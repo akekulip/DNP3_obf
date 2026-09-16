@@ -13,7 +13,7 @@ worktree layout, the tip of the cleanup branch, and the claim that nothing had b
 ```
 /home/philip/Projects/DNP3                                                   main checkout, on
                                                                              paper/campaign-v1-ndss-corrections-20260828
-/home/philip/Projects/DNP3-worktrees/campaign-v1-ndss-corrections-20260828   detached at ceb5bea, inert
+/home/philip/Projects/DNP3-worktrees/campaign-v1-ndss-corrections-20260828   detached at 7414a2f, inert
 ```
 
 That is the whole of it. `git rev-parse --git-common-dir` returns `.git` in the main checkout,
@@ -35,39 +35,39 @@ Ahead counts are commits reachable from the branch but not from `main`.
 
 | branch | tip | date | ahead of `main` | remote state | what it is |
 |---|---|---|---|---|---|
-| `paper/campaign-v1-ndss-corrections-20260828` | `b3bf07c` | 2026-09-07 | 263 | tracks `origin/…` at `0a3cbd8`, **6 ahead** | **The current branch.** The campaign_v1 correction line, plus this session's audit, harness, figure, manifest and rerun-plan commits. The six local commits are not pushed. |
-| `paper/final-timing-rewrite-20260826` | `7eb8887` | 2026-08-28 | 234 | in sync with `origin/…` | The 22-session campaign and the first NDSS-form manuscript. **Pushed.** |
-| `paper/timing-figures-20260824` | `0095923` | 2026-08-24 | 241 | local only | Timing figures T1 to T4, taken from `2ea2daf`. |
-| `final/timing-paper-20260824` | `22db6e0` | 2026-08-24 | 222 | local only | The merged final timing plus manuscript branch of 2026-08-24. |
-| `final/manuscript-20260824` | `860efc1` | 2026-08-24 | 217 | local only | The manuscript side of that merge. |
-| `cleanup/timing-read-sbo-20260824` | `2ea2daf` | 2026-08-24 | 208 | local only | The timing-only cleanup branch. **Its tip is `2ea2daf`, not the `0da6f00` this file used to record.** |
-| `defense4-size-native-parity-crc-split` | `02923cb` | 2026-08-14 | 211 | tracks `origin/…` at `8a6896e`, **10 ahead** | The frozen authoritative source branch for the 2026-08-13 evidence. See below. |
-| `defense4-real-size-normalization` | `d06ca8b` | 2026-08-18 | 240 | local only | Later size work, descends from `8a6896e`. Its former checkout at `DNP3-size-probe` is gone. |
-| `defense4-size-readsbo-normalizer` | `0b6fdba` | 2026-08-12 | 113 | in sync | Historical size research: the padnorm kernel and the multi-boundary wall. |
-| `defense4-size-transport-kernel-repair` | `979426f` | 2026-08-12 | 104 | in sync | Historical size research: transport-ledger repair. |
-| `defense4-size-read-range-probe` | `31b630f` | 2026-08-11 | 97 | in sync | Historical size research. |
+| `paper/campaign-v1-ndss-corrections-20260828` | `dc0bbaa` | 2026-09-07 | 263 | tracks `origin/…` at `4bf4b5e`, **6 ahead** | **The current branch.** The campaign_v1 correction line, plus this session's audit, harness, figure, manifest and rerun-plan commits. The six local commits are not pushed. |
+| `paper/final-timing-rewrite-20260826` | `ca82a6c` | 2026-08-28 | 234 | in sync with `origin/…` | The 22-session campaign and the first NDSS-form manuscript. **Pushed.** |
+| `paper/timing-figures-20260824` | `387dba6` | 2026-08-24 | 241 | local only | Timing figures T1 to T4, taken from `ef82fae`. |
+| `final/timing-paper-20260824` | `af4e326` | 2026-08-24 | 222 | local only | The merged final timing plus manuscript branch of 2026-08-24. |
+| `final/manuscript-20260824` | `5214cd9` | 2026-08-24 | 217 | local only | The manuscript side of that merge. |
+| `cleanup/timing-read-sbo-20260824` | `ef82fae` | 2026-08-24 | 208 | local only | The timing-only cleanup branch. **Its tip is `ef82fae`, not the `b553d93` this file used to record.** |
+| `defense4-size-native-parity-crc-split` | `2ea3152` | 2026-08-14 | 211 | tracks `origin/…` at `d69d35d`, **10 ahead** | The frozen authoritative source branch for the 2026-08-13 evidence. See below. |
+| `defense4-real-size-normalization` | `d646340` | 2026-08-18 | 240 | local only | Later size work, descends from `d69d35d`. Its former checkout at `DNP3-size-probe` is gone. |
+| `defense4-size-readsbo-normalizer` | `cfdb987` | 2026-08-12 | 113 | in sync | Historical size research: the padnorm kernel and the multi-boundary wall. |
+| `defense4-size-transport-kernel-repair` | `ed4ee3b` | 2026-08-12 | 104 | in sync | Historical size research: transport-ledger repair. |
+| `defense4-size-read-range-probe` | `6a6e5ac` | 2026-08-11 | 97 | in sync | Historical size research. |
 | `defense4-timing-core` | `3aa945e` | 2026-08-11 | 90 | in sync | Earlier timing-core development, superseded by the unified program. |
-| `defense4-caseA-hw-integration` | `796b41b` | 2026-08-12 | 88 | `origin/…` is at `7c4a5a7`; local is ahead and untracked | Case-A hardware integration, with unpushed work. |
+| `defense4-caseA-hw-integration` | `796b41b` | 2026-08-12 | 88 | `origin/…` is at `077d0aa`; local is ahead and untracked | Case-A hardware integration, with unpushed work. |
 | `wip/size-probe-uncommitted-20260824` | `9b9cb2c` | 2026-08-24 | 241 | local only | Preserves every uncommitted file from the `DNP3-size-probe` checkout before it was reorganised. **Do not delete: this is the only committed copy of that work.** |
 | `wip/caseA-uncommitted-20260824` | `348999e` | 2026-08-24 | 89 | local only | The same, for the main checkout before it moved to the final timing branch. |
-| `main` | `883d8cd` | 2026-08-06 | 0 | in sync | **Stale relative to the evidence.** Predates the 2026-08-13 campaign and the 2026-08-27 campaign_v1 entirely. Nothing in the timing result is on it. |
+| `main` | `2ad8d27` | 2026-08-06 | 0 | in sync | **Stale relative to the evidence.** Predates the 2026-08-13 campaign and the 2026-08-27 campaign_v1 entirely. Nothing in the timing result is on it. |
 
-`main` is at `883d8cd5d83eb283aac905d8398e0c5f97d219a7`, which matches the value the task
+`main` is at `2ad8d272d805e1b75cc7b25c6d422d2657923687`, which matches the value the task
 specification quotes.
 
 ## Remote branches
 
 | ref | tip | note |
 |---|---|---|
-| `origin/main` | `883d8cd` | default branch |
-| `origin/paper/campaign-v1-ndss-corrections-20260828` | `0a3cbd8` | 6 behind the local branch |
-| `origin/paper/final-timing-rewrite-20260826` | `7eb8887` | current |
-| `origin/defense4-size-native-parity-crc-split` | `8a6896e` | the frozen evidence tip |
+| `origin/main` | `2ad8d27` | default branch |
+| `origin/paper/campaign-v1-ndss-corrections-20260828` | `4bf4b5e` | 6 behind the local branch |
+| `origin/paper/final-timing-rewrite-20260826` | `ca82a6c` | current |
+| `origin/defense4-size-native-parity-crc-split` | `d69d35d` | the frozen evidence tip |
 | `origin/defense4-timing-core` | `3aa945e` | current |
-| `origin/defense4-size-read-range-probe` | `31b630f` | current |
-| `origin/defense4-size-readsbo-normalizer` | `0b6fdba` | current |
-| `origin/defense4-size-transport-kernel-repair` | `979426f` | current |
-| `origin/defense4-caseA-hw-integration` | `7c4a5a7` | behind its local branch |
+| `origin/defense4-size-read-range-probe` | `6a6e5ac` | current |
+| `origin/defense4-size-readsbo-normalizer` | `cfdb987` | current |
+| `origin/defense4-size-transport-kernel-repair` | `ed4ee3b` | current |
+| `origin/defense4-caseA-hw-integration` | `077d0aa` | behind its local branch |
 | `origin/fixed-transcript-experiments` | `901c120` | remote only, no local checkout |
 
 Two branches have been pushed since this file was last written, so its statement that "nothing
@@ -76,32 +76,32 @@ has been pushed" no longer holds: `paper/final-timing-rewrite-20260826` and
 
 ## The authoritative evidence branch, and its divergence
 
-`origin/defense4-size-native-parity-crc-split` is at `8a6896e`, exactly the tip the task
-specification names, and it has not moved. The local branch of the same name is at `02923cb`,
+`origin/defense4-size-native-parity-crc-split` is at `d69d35d`, exactly the tip the task
+specification names, and it has not moved. The local branch of the same name is at `2ea3152`,
 ten commits ahead and unpushed.
 
-All ten are manuscript work under `paper/`. Re-verified 2026-09-07: `git diff 8a6896e 02923cb --
+All ten are manuscript work under `paper/`. Re-verified 2026-09-07: `git diff d69d35d 2ea3152 --
 defense4/` is **empty**, so the `defense4/` tree is byte-identical between the frozen tip and
 the local tip. The divergence cannot affect any evidence or implementation artefact.
 
 The four frozen harness files in `implementation/harness/` were also compared against their
-versions at `8a6896e` and are byte-identical, at both paths that commit carries them under
+versions at `d69d35d` and are byte-identical, at both paths that commit carries them under
 (`TIMEOUT_AND_RETRANSMISSION_AUDIT.md` §1).
 
 ## Tags
 
 | tag | commit | date | what it preserves |
 |---|---|---|---|
-| `archive/defense4-full-before-timing-cleanup-20260824` | `8a6896e` | 2026-08-14 | the full pre-cleanup tree, including both `E_FINAL` copies and the whole size line |
-| `archive/defense4-local-unpushed-paper-20260824` | `02923cb` | 2026-08-14 | the ten unpushed manuscript commits |
-| `archive/pre-final-timing-prune-20260824` | `2ea2daf` | 2026-08-24 | the tree before the allowlist prune |
-| `checkpoint/timing-read-sbo-20260824` | `2ea2daf` | 2026-08-24 | the same commit, as a checkpoint |
-| `checkpoint/paper-timing-figures-20260824` | `0095923` | 2026-08-24 | the timing figures checkpoint |
-| `timing-final-meeting-v1` | `9cdcf18` | 2026-07-25 | the meeting deliverable |
-| `queue-trace-level1-hw-pass` | `43b3ed0` | 2026-07-23 | queue-trace level 1 hardware pass |
-| `d1-telem-v1-verified` | `8077c40` | 2026-07-22 | Defense-1 telemetry |
-| `d2-telem-v1-verified` | `49c1b0b` | 2026-07-22 | Defense-2 telemetry |
-| `ack-delay-caseA-c3-pass` | `bf4acdf` | 2026-07-20 | the Case-A ACK-delay pass |
+| `archive/defense4-full-before-timing-cleanup-20260824` | `d69d35d` | 2026-08-14 | the full pre-cleanup tree, including both `E_FINAL` copies and the whole size line |
+| `archive/defense4-local-unpushed-paper-20260824` | `2ea3152` | 2026-08-14 | the ten unpushed manuscript commits |
+| `archive/pre-final-timing-prune-20260824` | `ef82fae` | 2026-08-24 | the tree before the allowlist prune |
+| `checkpoint/timing-read-sbo-20260824` | `ef82fae` | 2026-08-24 | the same commit, as a checkpoint |
+| `checkpoint/paper-timing-figures-20260824` | `387dba6` | 2026-08-24 | the timing figures checkpoint |
+| `timing-final-meeting-v1` | `9483f00` | 2026-07-25 | the meeting deliverable |
+| `queue-trace-level1-hw-pass` | `271a925` | 2026-07-23 | queue-trace level 1 hardware pass |
+| `d1-telem-v1-verified` | `be481d0` | 2026-07-22 | Defense-1 telemetry |
+| `d2-telem-v1-verified` | `103fa20` | 2026-07-22 | Defense-2 telemetry |
+| `ack-delay-caseA-c3-pass` | `89139f6` | 2026-07-20 | the Case-A ACK-delay pass |
 
 No tag was created, moved or deleted by this session.
 
@@ -131,7 +131,7 @@ Its code and evidence are not on the current branch. Any of these reaches them:
 ```sh
 git switch --detach archive/defense4-full-before-timing-cleanup-20260824   # the full tree
 git switch defense4-size-native-parity-crc-split                           # the source branch
-git show 8a6896e:defense4/size/native_parity/evidence/E_FINAL/README.md    # one file
+git show d69d35d:defense4/size/native_parity/evidence/E_FINAL/README.md    # one file
 git clone /home/philip/Projects/DNP3_obf-before-timing-cleanup-20260824.bundle recovered
 ```
 

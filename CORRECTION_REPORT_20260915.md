@@ -8,7 +8,7 @@
 > comparison described as not done was also carried out. The analysis in §1 and the priorities in
 > §2 otherwise stand.
 
-Base commit `18a595a`, branch `fix/offline-corrections-20260915`. Offline only: no hardware was
+Base commit `8278346`, branch `fix/offline-corrections-20260915`. Offline only: no hardware was
 contacted, no switch written, no binary loaded, no traffic sent, and no hardware-authorisation
 flag set. `implementation/` and every raw capture are byte-identical to the base.
 

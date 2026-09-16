@@ -25,7 +25,7 @@ unrelated separate repository `DNP3_fixed_transcript`. None of `DNP3-size-probe`
 uncommitted material of the retired worktrees is preserved on `wip/size-probe-uncommitted-20260824`
 (`9b9cb2c`) and `wip/caseA-uncommitted-20260824` (`348999e`), both reachable from the main
 checkout (`git branch -vv`). The bundle `DNP3-before-final-timing-prune-20260824.bundle` records
-`worktrees/DNP3-size-probe/HEAD` at `d06ca8b`, matching `defense4-real-size-normalization`.
+`worktrees/DNP3-size-probe/HEAD` at `d646340`, matching `defense4-real-size-normalization`.
 
 **Status.** RESOLVED. No worktree removal remains to be done; disk space recovered was reported
 by the 2026-08-24 session (`VERIFICATION_REPORT.md` §8: 303 MB → 6.6 MB checkout; the retired
@@ -37,19 +37,19 @@ worktrees are gone). **Constraint:** `/home/philip/Projects/DNP3` is the sole ac
 
 | expectation | found |
 |---|---|
-| `origin/main` = `883d8cd5d83eb283aac905d8398e0c5f97d219a7` | `main` at `883d8cd` tracking `origin/main`, matches |
-| `origin/defense4-size-native-parity-crc-split` = `8a6896e…` | local branch at `02923cb`, "ahead 10" of origin; tag `archive/defense4-full-before-timing-cleanup-20260824` marks `8a6896e`; tag `archive/defense4-local-unpushed-paper-20260824` marks `02923cb` |
-| E_FINAL freeze `5a0fb73` | reachable from the archive tag (`REPOSITORY_AUDIT.md` 2026-08-24 confirmed its date 2026-08-13 21:21:39 −0400) |
-| source commit `c1871384` | blob at that commit hashes to `7ce30494…` (`EVIDENCE_AUDIT.md` §7; the copy in the timing tree hashes identically this session) |
-| `06f472c` | on `final/timing-paper-20260824`, "timing figures: the five paper figures" |
-| `cleanup/timing-read-sbo-20260824` | `2ea2daf`, also tagged `checkpoint/timing-read-sbo-20260824` and `archive/pre-final-timing-prune-20260824` |
-| `paper/timing-figures-20260824` | `0095923` |
+| `origin/main` = `2ad8d272d805e1b75cc7b25c6d422d2657923687` | `main` at `2ad8d27` tracking `origin/main`, matches |
+| `origin/defense4-size-native-parity-crc-split` = `d69d35d…` | local branch at `2ea3152`, "ahead 10" of origin; tag `archive/defense4-full-before-timing-cleanup-20260824` marks `d69d35d`; tag `archive/defense4-local-unpushed-paper-20260824` marks `2ea3152` |
+| E_FINAL freeze `62729da` | reachable from the archive tag (`REPOSITORY_AUDIT.md` 2026-08-24 confirmed its date 2026-08-13 21:21:39 −0400) |
+| source commit `33cfb37a` | blob at that commit hashes to `7ce30494…` (`EVIDENCE_AUDIT.md` §7; the copy in the timing tree hashes identically this session) |
+| `7bade45` | on `final/timing-paper-20260824`, "timing figures: the five paper figures" |
+| `cleanup/timing-read-sbo-20260824` | `ef82fae`, also tagged `checkpoint/timing-read-sbo-20260824` and `archive/pre-final-timing-prune-20260824` |
+| `paper/timing-figures-20260824` | `387dba6` |
 
-**Which branch holds all four things.** `final/timing-paper-20260824` at `22db6e0` is the only
-branch that contains the verified cleanup (`372b221`…`2ea2daf`), the self-contained reproduction
-(`0da6f00`), the five final figures (`06f472c`, `860efc1`) and the manuscript (`82d954b`…`860efc1`
-merged by `28158d4`). The final branch `paper/final-timing-rewrite-20260826` was therefore created
-from `22db6e0` and nothing else was merged.
+**Which branch holds all four things.** `final/timing-paper-20260824` at `af4e326` is the only
+branch that contains the verified cleanup (`d66b0e0`…`ef82fae`), the self-contained reproduction
+(`b553d93`), the five final figures (`7bade45`, `5214cd9`) and the manuscript (`12153a2`…`5214cd9`
+merged by `c643cf6`). The final branch `paper/final-timing-rewrite-20260826` was therefore created
+from `af4e326` and nothing else was merged.
 
 **Status.** RESOLVED.
 

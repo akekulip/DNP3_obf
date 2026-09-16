@@ -12,7 +12,7 @@ removed; `DNP3_obf` is the remote's name, not a directory. The live manuscript i
 `/home/philip/Projects/DNP3/paper/rewrite/main.tex`, which was verified present and is what
 this revision edits.
 
-The handoff also gives `d895d53` as the last inspected remote commit. That is correct for the
+The handoff also gives `b510809` as the last inspected remote commit. That is correct for the
 remote, but the local branch was already **five commits ahead** of it, carrying CLRT-figure work
 from the session immediately before the meeting. Those commits were preserved, not discarded.
 
@@ -20,10 +20,10 @@ from the session immediately before the meeting. Those commits were preserved, n
 
 | | |
 |---|---|
-| Started from | `paper/campaign-v1-ndss-corrections-20260828` at `fe42ada` |
+| Started from | `paper/campaign-v1-ndss-corrections-20260828` at `3035411` |
 | Review branch | `paper/lin-post-meeting-revision-20260908` |
-| Commits on it | `44603d9` Introduction and Design; `dd0fbc8` Implementation and Evaluation; `453a181` writing-philosophy pass; plus the audit commit that carries this section |
-| Remote at start | `origin/paper/campaign-v1-ndss-corrections-20260828` = `d895d53` |
+| Commits on it | `f82c177` Introduction and Design; `a1cf6cb` Implementation and Evaluation; `f1cc24a` writing-philosophy pass; plus the audit commit that carries this section |
+| Remote at start | `origin/paper/campaign-v1-ndss-corrections-20260828` = `b510809` |
 
 Changed files are listed in section 10.
 
@@ -69,9 +69,9 @@ Not one word was changed. Only the bracketed reference numbers were mapped to bi
 **Removed non-Lin text, and the evidence it was superseded.** The previous Introduction ¶3 began
 "First, the leaked features are different" and argued from DNP3 framing and CRC. Its status:
 
-* At `3b9a812` (2026-08-26) it was installed as author-supplied text; `LIN_TEXT_CHANGELOG.md`
+* At `6028e07` (2026-08-26) it was installed as author-supplied text; `LIN_TEXT_CHANGELOG.md`
   records that the supplied Introduction then had four paragraphs and that no word was changed.
-* At `4e2d105` ("bound the claim about adding bytes to ICS traffic") an assistant **rewrote its
+* At `93a59bd` ("bound the claim about adding bytes to ICS traffic") an assistant **rewrote its
   second half** into the CRC, framing and relay-firmware argument that stood until today. The
   current file header admitted this: "apart from added citations and the corrected DNP3
   framing/CRC explanation".
@@ -80,7 +80,7 @@ Not one word was changed. Only the bracketed reference numbers were mapped to bi
   motivation for a timing-only paper.
 
 So the removed block was part author-supplied and part assistant-written, and is superseded in
-both halves by newer authored text. It remains in git history at `3b9a812` and `4e2d105`.
+both halves by newer authored text. It remains in git history at `6028e07` and `93a59bd`.
 
 ## 4. Notation mapping
 
@@ -237,7 +237,7 @@ Ordered by what a reviewer should look at first.
 
 ## 10. Changed files
 
-See `git diff --stat fe42ada..HEAD` for the authoritative list; the count grew with each commit and is not restated here so it cannot go stale.
+See `git diff --stat 3035411..HEAD` for the authoritative list; the count grew with each commit and is not restated here so it cannot go stale.
 
 Manuscript sources: `00_abstract`, `01_introduction`, `04_design`, `05_implementation`,
 `06_evaluation`, `library.bib`, `main.pdf`.

@@ -35,7 +35,7 @@ harness/
 
 The P4 hash is the value recorded in `E0_testbed_preservation.md` as the source of the loaded
 binary `33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa`. The other files in
-`control/` and `harness/` come from the same commit, `c1871384`, which is the repository HEAD
+`control/` and `harness/` come from the same commit, `33cfb37a`, which is the repository HEAD
 recorded at capture time.
 
 ## This is the combined program

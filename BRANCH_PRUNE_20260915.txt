@@ -1,19 +1,19 @@
 Remote branch prune — regenerated 2026-09-15 after merging into main
-main = f843cef8edc8591b35b03387369b20549855e31c
+main = 812f98333b5c486d1cdc8a02841c6c95b9ae5cd9
 
 ZERO-LOSS: every commit on these is already reachable from main, so removing them from
 origin loses nothing. Heads recorded so any can be recreated with 'git branch <name> <sha>'.
 
-  cleanup/timing-read-sbo-20260824               2ea2dafe4517b5893fac5e06fc5db2ae63ba13b8
-  defense4-size-read-range-probe                 31b630fedd65f62a01bbc16aa323882f011fec89
-  defense4-size-readsbo-normalizer               0b6fdba6bff43a81c4315331bb5630cf789c97c1
-  defense4-size-transport-kernel-repair          979426f6ad135c7b57167b9a494eaf5eb862d7cb
-  final/manuscript-20260824                      860efc1b21c1b0bfb87d6e4fbee9e4bde40ac75c
-  final/timing-paper-20260824                    22db6e06ed9a826955dbc9fa7a7fb3a5254d46cd
-  paper/campaign-v1-ndss-corrections-20260828    fe42ada8cc1a0bfddb9a35b82afab3b7e7aad142
-  paper/final-timing-rewrite-20260826            7eb888778d8f97eea1791e45be49e453aefa4653
-  paper/lin-post-meeting-revision-20260908       24c52b44ab08ea43f4bde19f9697e5a79d75e5a6
-  fix/offline-corrections-20260915               690d49f0969b25b6b16feaab724042ca6a7958c4
+  cleanup/timing-read-sbo-20260824               ef82faed31a403fe0e13814d68c9e9c628d6d971
+  defense4-size-read-range-probe                 6a6e5ac0c26867fbfd2bb4558ae590a3d8124a47
+  defense4-size-readsbo-normalizer               cfdb9875ef3bc807087c51a64bbeb92002ade728
+  defense4-size-transport-kernel-repair          ed4ee3b8eef5409adeacd10700496dec6e521648
+  final/manuscript-20260824                      5214cd92460ab5cf3d6e5e1a35164e6bf9226d03
+  final/timing-paper-20260824                    af4e32656389124523416f4fb6bef826f8cb7bf0
+  paper/campaign-v1-ndss-corrections-20260828    3035411e0edbd55687e74844cab1751b138c30a8
+  paper/final-timing-rewrite-20260826            ca82a6c9d4be873700a91a11ca296fab44ea6915
+  paper/lin-post-meeting-revision-20260908       88e600c77118a9b58263493fe9afef88c7ee3a1d
+  fix/offline-corrections-20260915               185484d91f28b9a6a07ea340555b07f81b1af45f
 
 KEEP: main (default branch), paper/clrt-four-corrections-20260909 (working branch).
 
@@ -39,7 +39,7 @@ DECISION 2026-09-15: the cleanup is DEFERRED and is not a prerequisite for anyth
 the implementation and manuscript on main does not depend on it. Specifically:
 
   - The ten zero-loss branches stay on the remote for now.
-  - paper/clrt-four-corrections-20260909 (f843cef, also contained in main) is KEPT deliberately,
+  - paper/clrt-four-corrections-20260909 (812f983, also contained in main) is KEPT deliberately,
     as the active branch for the paper review.
   - The eight branches carrying unmerged work are OUT OF SCOPE for this cleanup and are not to be
     bundled into it as a convenience.

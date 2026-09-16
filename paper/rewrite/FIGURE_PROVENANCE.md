@@ -16,7 +16,7 @@ commit, not a description. Full detail lives in `defense4/timing/PROVENANCE.md` 
 |---|---|
 | P4 source | `defense4/timing/implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4` |
 | source sha256 | `7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861` |
-| source commit | `c18713840e8376c065909749d451a6bc9e6c5c4d` (2026-08-13 19:38 −0400, 11 min before the first capture) |
+| source commit | `33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7` (2026-08-13 19:38 −0400, 11 min before the first capture) |
 | loaded binary sha256 | `33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa` |
 | compiler | bf-p4c, Barefoot SDE 9.13.2, `--target tofino --arch tna -DU_BOR`; 12/12 ingress stages |
 

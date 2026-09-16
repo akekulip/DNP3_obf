@@ -8,7 +8,7 @@ rebuild. The 600-dpi PNG is a preview and is not hash-gated.
 
 ## `fig_policy_coverage_cost`
 
-* Printed size 7.16 x 4.6 in; seed `20260828`; commit `820e573e6bb9da471029b9cbf76d0965a4cddf2e`
+* Printed size 7.16 x 4.6 in; seed `20260828`; commit `13d2572011b80df1bec5bd53ba9ac44ff1699fa8`
 * Analysis script `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `537986a633d5229d…`
 
 | output | sha256 | gated |
@@ -19,7 +19,7 @@ rebuild. The 600-dpi PNG is a preview and is not hash-gated.
 
 ## `fig_distributions`
 
-* Printed size 7.16 x 4.25 in; seed `20260828`; commit `820e573e6bb9da471029b9cbf76d0965a4cddf2e`
+* Printed size 7.16 x 4.25 in; seed `20260828`; commit `13d2572011b80df1bec5bd53ba9ac44ff1699fa8`
 * Analysis script `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `537986a633d5229d…`
 
 | output | sha256 | gated |
@@ -30,7 +30,7 @@ rebuild. The 600-dpi PNG is a preview and is not hash-gated.
 
 ## `fig_feature_overlap`
 
-* Printed size 7.16 x 2.95 in; seed `20260828`; commit `820e573e6bb9da471029b9cbf76d0965a4cddf2e`
+* Printed size 7.16 x 2.95 in; seed `20260828`; commit `13d2572011b80df1bec5bd53ba9ac44ff1699fa8`
 * Analysis script `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `537986a633d5229d…`
 
 | output | sha256 | gated |
@@ -41,7 +41,7 @@ rebuild. The 600-dpi PNG is a preview and is not hash-gated.
 
 ## `fig_leakage`
 
-* Printed size 7.16 x 4.35 in; seed `20260828`; commit `820e573e6bb9da471029b9cbf76d0965a4cddf2e`
+* Printed size 7.16 x 4.35 in; seed `20260828`; commit `13d2572011b80df1bec5bd53ba9ac44ff1699fa8`
 * Analysis script `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `537986a633d5229d…`
 
 | output | sha256 | gated |
@@ -52,7 +52,7 @@ rebuild. The 600-dpi PNG is a preview and is not hash-gated.
 
 ## `fig_stability`
 
-* Printed size 3.5 x 3.5 in; seed `20260828`; commit `820e573e6bb9da471029b9cbf76d0965a4cddf2e`
+* Printed size 3.5 x 3.5 in; seed `20260828`; commit `13d2572011b80df1bec5bd53ba9ac44ff1699fa8`
 * Analysis script `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `537986a633d5229d…`
 
 | output | sha256 | gated |

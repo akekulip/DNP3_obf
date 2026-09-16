@@ -7,24 +7,24 @@ paper's own author block names Philip Akekudaga and Hui Lin and no one else.
 
 | commit | message |
 |---|---|
-| `5acf404` | feat(dnp3-obfuscation): rig-validate ACK/latency-delay timing defense |
-| `761d919` | docs(resume): record git checkpoint + ACK-delay resume state |
-| `b0071d3` | record the Vision DNP3 file reorganisation |
-| `d68123d` | render the delay note to PDF, and add the script that does it |
-| `5cc6183` | explain the retransmission limit an administrator has to respect |
+| `99f03fa` | feat(dnp3-obfuscation): rig-validate ACK/latency-delay timing defense |
+| `29c3ad5` | docs(resume): record git checkpoint + ACK-delay resume state |
+| `9f7717d` | record the Vision DNP3 file reorganisation |
+| `f10f788` | render the delay note to PDF, and add the script that does it |
+| `9bda4b5` | explain the retransmission limit an administrator has to respect |
 
 ## What this costs
 
 A commit message is part of the commit, so changing it changes the hash, and changing a hash
-changes every descendant. The oldest affected commit is `5acf404` of 2026-07-15, so **883 commits
+changes every descendant. The oldest affected commit is `99f03fa` of 2026-07-15, so **883 commits
 are rewritten** and every one of them gets a new hash.
 
 That breaks **83 commit references quoted in this repository's own documents**, including:
 
-* `18a595a`, which every frozen-tree and raw-capture integrity check compares against;
-* `18c324f`, `6750b57` and `fb74bbd`, the `git show` commands that recover the root documents
+* `8278346`, which every frozen-tree and raw-capture integrity check compares against;
+* `f6dd821`, `f573eec` and `6e2eff2`, the `git show` commands that recover the root documents
   removed in the 2026-09-15 prune;
-* `8e55bee` and `932a2e9`, the reviewed commits;
+* `6fbf351` and `5ce71ba`, the reviewed commits;
 * the build and provenance chains in `defense4/timing/audit_current/`.
 
 Step 2 below repairs all of them automatically from the map the rewrite produces.
@@ -84,7 +84,7 @@ Confirm the frozen-tree check still resolves with its new hash, substituting the
 updater wrote into `CORRECTION_REPORT_20260916.md`:
 
 ```bash
-git diff --name-only <new-18a595a> HEAD -- defense4/timing/implementation | wc -l   # expect 0
+git diff --name-only <new-8278346> HEAD -- defense4/timing/implementation | wc -l   # expect 0
 ```
 
 ## Step 4: publish

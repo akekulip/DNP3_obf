@@ -62,10 +62,10 @@ Timer facts, read from the source:
 
 ### The frozen harnesses, and whether they produced anything
 
-The two files the task specification names were checked against commit `8a6896e` and are
+The two files the task specification names were checked against commit `d69d35d` and are
 **byte-identical** to their versions there, at both paths that commit carries:
 
-| file | sha256 (first 16) | path at `8a6896e` |
+| file | sha256 (first 16) | path at `d69d35d` |
 |---|---|---|
 | `relay_read_g10_23.py` | `feeb6c5cac66900a` | `defense4/size/native_parity/hw/` |
 | `relay_sbo_operate_guarded.py` | `2ecdf066dbd20856` | `defense4/defense4_release/code/harness/` and `defense4/size/native_parity/h3_harness/` |

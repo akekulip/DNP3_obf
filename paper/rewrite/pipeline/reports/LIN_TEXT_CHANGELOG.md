@@ -27,4 +27,4 @@ altered (see the closing note of the 2026-08-26 session):
 The morning rewrite had edited Dr. Lin's two paragraphs (tense, grammar, the split Stuxnet
 sentence, an appended sentence on encrypted payloads, and a gap paragraph with three reasons).
 Those edits are withdrawn by the verbatim replacement above; the version that carried them is
-in Git history (commit `060c1df`, `sections/01_introduction.tex`).
+in Git history (commit `f3b6625`, `sections/01_introduction.tex`).

@@ -23,7 +23,7 @@ COMMON_EVIDENCE = {
     "p4_source_sha256": (
         "7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861",
         "audit/E0_testbed_preservation.md ('unified P4 source sha256'); independently "
-        "reproduced: git blob c1871384:defense4/size/native_parity/p4/"
+        "reproduced: git blob 33cfb37a:defense4/size/native_parity/p4/"
         "defense4_rrc_bor_unified12.p4 hashes to this value",
         "VERIFIED"),
     "loaded_binary_sha256": (
@@ -35,7 +35,7 @@ COMMON_EVIDENCE = {
         "records the superseded v1 binary 550b5b97",
         "PARTIAL"),
     "source_git_commit": (
-        "c18713840e8376c065909749d451a6bc9e6c5c4d",
+        "33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7",
         "audit/E0_testbed_preservation.md ('branch/source SHA (repo HEAD)'); commit is "
         "dated 2026-08-13 19:38:27 -0400, 11 minutes before the first capture in this set",
         "VERIFIED"),

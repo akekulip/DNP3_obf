@@ -36,16 +36,16 @@ which records the evidence inspected and the result.
 
 | item | state | what was understood |
 |---|---|---|
-| Current branch at session start | KNOWN | `final/timing-paper-20260824` at `22db6e0`, clean apart from the untracked brief `corrections.md` |
-| `origin/main` | ASSUMED | `883d8cd5…`, predates the 2026-08-13 campaign, contains none of the final evidence |
-| Frozen evidence branch | ASSUMED | `origin/defense4-size-native-parity-crc-split` at `8a6896e`; local tip `02923cb` ten manuscript commits ahead |
-| E_FINAL freeze commit | ASSUMED | `5a0fb73` |
-| Exact experiment source commit | KNOWN | `c18713840e8376c065909749d451a6bc9e6c5c4d` |
-| Figure/analysis commit recorded in provenance | KNOWN | `06f472c` |
-| Cleanup branch | KNOWN | `cleanup/timing-read-sbo-20260824` at `2ea2daf` |
-| Figure-handoff branch | KNOWN | `paper/timing-figures-20260824` at `0095923` |
+| Current branch at session start | KNOWN | `final/timing-paper-20260824` at `af4e326`, clean apart from the untracked brief `corrections.md` |
+| `origin/main` | ASSUMED | `2ad8d272…`, predates the 2026-08-13 campaign, contains none of the final evidence |
+| Frozen evidence branch | ASSUMED | `origin/defense4-size-native-parity-crc-split` at `d69d35d`; local tip `2ea3152` ten manuscript commits ahead |
+| E_FINAL freeze commit | ASSUMED | `62729da` |
+| Exact experiment source commit | KNOWN | `33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7` |
+| Figure/analysis commit recorded in provenance | KNOWN | `7bade45` |
+| Cleanup branch | KNOWN | `cleanup/timing-read-sbo-20260824` at `ef82fae` |
+| Figure-handoff branch | KNOWN | `paper/timing-figures-20260824` at `387dba6` |
 | Final branch requested by the brief | UNKNOWN | `paper/final-timing-rewrite-20260826` — did not exist before this session |
-| Which branch holds cleanup + reproduction + figures + manuscript together | ASSUMED | all four on `final/timing-paper-20260824` (merge commit `28158d4` brought `final/manuscript-20260824` onto the timing branch) |
+| Which branch holds cleanup + reproduction + figures + manuscript together | ASSUMED | all four on `final/timing-paper-20260824` (merge commit `c643cf6` brought `final/manuscript-20260824` onto the timing branch) |
 
 ## 4. Experiment source and binary
 

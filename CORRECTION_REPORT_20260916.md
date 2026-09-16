@@ -1,6 +1,6 @@
 # Correction pass, 2026-09-16
 
-Branch `fix/lin-paper-code-review-20260915`, starting from `932a2e9` on `main`, which is the
+Branch `fix/lin-paper-code-review-20260915`, starting from `5ce71ba` on `main`, which is the
 commit the review examined and was still the remote head when this began, so no finding had been
 resolved in the meantime.
 
@@ -17,7 +17,7 @@ restored to the unrelated program it had been running, with the identical comman
 scratch directories were removed.
 
 No branch was deleted, nothing was force-pushed, nothing was merged.
-`defense4/timing/implementation/` and every `raw_pcaps/` path are byte-identical to `18a595a`,
+`defense4/timing/implementation/` and every `raw_pcaps/` path are byte-identical to `8278346`,
 checked at the end of the pass.
 
 **The corrected active code has still not been run on hardware.** `delay_admission.py`,
@@ -180,8 +180,8 @@ The abstract is 252 words, down from 300.
 
 Five root documents named in `README.md` and `CLAUDE.md` were dropped in the 2026-09-15 prune.
 Each reference now gives the command that recovers it, at the last commit that still carried it,
-and all five commands were run: `18c324f` for `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md` and
-`REPOSITORY_AUDIT.md`, `6750b57` for `CLEANUP_PLAN.md`, `fb74bbd` for `REMOVAL_MANIFEST.csv`.
+and all five commands were run: `f6dd821` for `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md` and
+`REPOSITORY_AUDIT.md`, `f573eec` for `CLEANUP_PLAN.md`, `6e2eff2` for `REMOVAL_MANIFEST.csv`.
 
 Three dispositions in `CORRECTION_REPORT_20260915.md` described work that has since happened. The
 repository map said no manuscript claim rests on the diagnostics; it does, and now says which. The
@@ -197,7 +197,7 @@ application constraints. None was rebuilt; each was corrected in place.
 
 ## 3. Verification
 
-Run at `f650568`, every command from the repository's own documented entry points.
+Run at `550c0c9`, every command from the repository's own documented entry points.
 
 | check | result |
 |---|---|
@@ -208,7 +208,7 @@ Run at `f650568`, every command from the repository's own documented entry point
 | publication gate | **0 problems**, regenerated outputs match every published artefact |
 | protected introduction | **PASS**, 3 paragraphs word for word |
 | manuscript build and lin\_check | **PASS**, no hard-check failures |
-| frozen tree and raw captures vs `18a595a` | **0 files changed** on all four protected paths |
+| frozen tree and raw captures vs `8278346` | **0 files changed** on all four protected paths |
 | venue preflight | **FAIL**, page budget only |
 
 ```

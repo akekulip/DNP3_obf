@@ -16,15 +16,15 @@ commit, not a description.
 |---|---|
 | P4 source | `defense4_rrc_bor_unified12.p4` |
 | source sha256 | `7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861` |
-| source commit | `c18713840e8376c065909749d451a6bc9e6c5c4d` (2026-08-13 19:38:27 −0400) |
+| source commit | `33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7` (2026-08-13 19:38:27 −0400) |
 | kept at | `implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4` |
 | compiler | `bf-p4c --target tofino --arch tna -g -DU_BOR`, Barefoot SDE 9.13.2 |
 | loaded binary sha256 | `33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa` |
 | fit | 12 of 12 ingress MAU stages, 6 egress, 0 errors |
 
-The source snapshot is the blob from `c1871384`, which is the repo HEAD recorded in
+The source snapshot is the blob from `33cfb37a`, which is the repo HEAD recorded in
 `E0_testbed_preservation.md` and predates the first capture by eleven minutes. It is not the
-copy at the branch tip: commit `8a6896e` added a documentation header to that file on
+copy at the branch tip: commit `d69d35d` added a documentation header to that file on
 2026-08-14, after the campaign, changing its hash to `5b573a59…` without changing the
 program. Full account in `evidence/final_read_sbo/audit/EVIDENCE_AUDIT.md` §7.
 

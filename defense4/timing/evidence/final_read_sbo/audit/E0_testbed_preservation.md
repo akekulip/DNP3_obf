@@ -1,7 +1,7 @@
 # E0 — testbed preservation record
 captured: (session 2026-08-13)
 ## SHAs
-- branch/source SHA (repo HEAD): c18713840e8376c065909749d451a6bc9e6c5c4d
+- branch/source SHA (repo HEAD): 33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7
 - unified P4 source sha256: 7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861
 - loaded conf: conf-file /home/decps/rrc_bor_build_v2/out/defense4_rrc_bor_unified12_nomodel_abs.conf
 - loaded tofino.bin sha256: 33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa  (expect 33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa)

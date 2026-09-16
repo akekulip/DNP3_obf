@@ -5,7 +5,7 @@ came from, what the switch was configured to do while it was taken, and how far 
 proved. Everything below was checked against the files, not read off a filename.
 
 Audit performed 2026-08-24 on branch `cleanup/timing-read-sbo-20260824`, forked from
-`8a6896e` (the tip of `origin/defense4-size-native-parity-crc-split`).
+`d69d35d` (the tip of `origin/defense4-size-native-parity-crc-split`).
 
 ---
 
@@ -18,8 +18,8 @@ coverage is complete: 64 files, 63 hashed, 0 unaccounted.
 The second copy at `defense4/defense4_release/evidence/E_FINAL/` is not merely equal file
 by file — it is the **same git tree object**, `1d1a5f3c94cf8d34c1b390baa1c921e47cdbc79c`.
 Two paths, one tree, therefore byte-identical recursively by construction. It was created
-on 2026-08-14 by the release-packaging commit `8a6896e`; the original is the
-`native_parity` copy, first committed 2026-08-13 by `fc20528`.
+on 2026-08-14 by the release-packaging commit `d69d35d`; the original is the
+`native_parity` copy, first committed 2026-08-13 by `a547924`.
 
 ## 2. Which captures belong to the timing result
 
@@ -124,7 +124,7 @@ What the file actually is:
   value, so these were read back **after** the OPERATE batches, not during configuration.
 * The file lacks the `==== configure-all readback ====` header that every genuine run
   transcript carries.
-* It was committed once, by `fc20528`, and never edited.
+* It was committed once, by `a547924`, and never edited.
 
 So the file is a hand-assembled excerpt combining a configure-all readback with a later
 register readback, and its `RESULT:` line does not belong to the rows above it. Whatever
@@ -148,20 +148,20 @@ recorded here rather than explained away.
 
 `E0_testbed_preservation.md` records the experiment source as sha256
 `7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861` and the repo HEAD at
-capture time as `c18713840e8376c065909749d451a6bc9e6c5c4d`.
+capture time as `33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7`.
 
-Both check out, and they agree with each other. Commit `c1871384` is dated 2026-08-13
+Both check out, and they agree with each other. Commit `33cfb37a` is dated 2026-08-13
 19:38:27 −0400, eleven minutes before the first capture in the session, and its copy of
 `defense4/size/native_parity/p4/defense4_rrc_bor_unified12.p4` hashes to exactly
 `7ce30494…`.
 
 **The copy of that file at the branch tip does not.** It hashes to `5b573a59…`. Commit
-`8a6896e`, on 2026-08-14 — the day after the campaign — added a 21-line documentation header
+`d69d35d`, on 2026-08-14 — the day after the campaign — added a 21-line documentation header
 to the file. The change is confined to the leading comment block; no P4 construct was
 touched. The file is functionally the same program, but it is not the byte sequence that was
 compiled.
 
-`defense4/timing/implementation/exact_experiment_source/` therefore holds the `c1871384`
+`defense4/timing/implementation/exact_experiment_source/` therefore holds the `33cfb37a`
 blob, which hashes to the recorded value. The control-plane modules and the drivers in
 `implementation/` come from the same commit.
 

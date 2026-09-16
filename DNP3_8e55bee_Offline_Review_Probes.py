@@ -3,7 +3,7 @@ from pathlib import Path
 import sys, json, time, threading, argparse
 
 ap = argparse.ArgumentParser(description=__doc__)
-ap.add_argument('--repo', type=Path, required=True, help='Checkout of DNP3_obf at 8e55bee')
+ap.add_argument('--repo', type=Path, required=True, help='Checkout of DNP3_obf at 6fbf351')
 ap.add_argument('--output', type=Path, help='Optional JSON results path; otherwise print only')
 args = ap.parse_args()
 ROOT = args.repo.resolve()

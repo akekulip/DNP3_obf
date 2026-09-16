@@ -86,17 +86,17 @@ All three are stated with their evidence in
 
 No size claim, figure or analysis is in this tree. The size research remains in the
 repository's history and on its own branches. `REMOVAL_REPORT.md` says where, and is itself in
-history rather than on disk: `git show 18c324f:REMOVAL_REPORT.md`.
+history rather than on disk: `git show f6dd821:REMOVAL_REPORT.md`.
 
 ## What was removed, and how to get it back
 
 6,395 of 6,480 tracked files were removed from this branch. Nothing was destroyed. Every
 removed path is recoverable from the branch `cleanup/timing-read-sbo-20260824`, the tag
-`archive/pre-final-timing-prune-20260824`, commit `2ea2daf`, or the bundle
+`archive/pre-final-timing-prune-20260824`, commit `ef82fae`, or the bundle
 `DNP3-before-final-timing-prune-20260824.bundle`. Four root documents were dropped in the
 2026-09-15 prune and live only in history: `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md`,
-`REPOSITORY_AUDIT.md` at `18c324f` and `CLEANUP_PLAN.md` at `6750b57`. The per-path
-`REMOVAL_MANIFEST.csv` at `fb74bbd` that
+`REPOSITORY_AUDIT.md` at `f6dd821` and `CLEANUP_PLAN.md` at `f573eec`. The per-path
+`REMOVAL_MANIFEST.csv` at `6e2eff2` that
 listed each one individually was dropped on 2026-09-15 and is itself in git history; the
 references above recover any path without it.
 

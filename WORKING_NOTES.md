@@ -7,7 +7,7 @@ It was fast-forwarded to `paper/clrt-four-corrections-20260909` and verified byt
 and the manuscript was rebuilt from it (BUILD PASS, Dr. Lin's introduction verbatim). There is now
 **one working tree**: `/home/philip/Projects/DNP3`. Both worktrees under `DNP3-worktrees/` were
 removed on 2026-09-15 after checking that each was clean and that its head
-(`ceb5bea`, `690d49f`) is an ancestor of `main`; the directory itself is gone.
+(`7414a2f`, `185484d`) is an ancestor of `main`; the directory itself is gone.
 
 ## What changed in the 2026-09-15 pass
 
@@ -39,14 +39,14 @@ bundle the remote was probably its only copy.
 
 ## Current work: the 2026-09-16 correction pass
 
-Branch `fix/lin-paper-code-review-20260915` off `932a2e9`. Offline only: no hardware, no switch,
+Branch `fix/lin-paper-code-review-20260915` off `5ce71ba`. Offline only: no hardware, no switch,
 no traffic, no branch deletion, no force push, no merge. The full account is in
 `CORRECTION_REPORT_20260916.md`.
 
 Verified at the end of the pass: 178 active offline tests, 131 campaign tests with no failures,
 132 captures and 63,360 exchanges with zero validator problems, the publication gate clean, the
 protected introduction verbatim, the manuscript building and gating clean, and all four protected
-paths byte-identical to `18a595a`.
+paths byte-identical to `8278346`.
 
 ## Next actions
 
@@ -62,7 +62,7 @@ paths byte-identical to `18a595a`.
 ## Standing constraints
 
 Frozen `defense4/timing/implementation/` and every `raw_pcaps/` path are byte-identical to
-`18a595a` and must stay that way. Dr. Lin's first three Introduction paragraphs are protected by
+`8278346` and must stay that way. Dr. Lin's first three Introduction paragraphs are protected by
 `check_lin_intro_verbatim.py`. `build.sh` after every manuscript edit; `lin_check --compare` must
 show no regression. `configure-all` leaves `shape_enable = 1` — observed five times on hardware on
 2026-09-15 — so any run must force it to 0 and read it back.

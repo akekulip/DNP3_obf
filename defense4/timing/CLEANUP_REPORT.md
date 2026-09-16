@@ -7,7 +7,7 @@
 Machine-generated record of what this branch changed. Companion to `CLEANUP_PLAN.md`,
 which says why.
 
-Branch `cleanup/timing-read-sbo-20260824`, forked from `8a6896e`.
+Branch `cleanup/timing-read-sbo-20260824`, forked from `d69d35d`.
 
 ## Change summary
 
@@ -40,7 +40,7 @@ modification extends an ignore file.
 
 ## Repository tree, before and after
 
-Before — `defense4/timing/` at `8a6896e`:
+Before — `defense4/timing/` at `d69d35d`:
 
 ```
 .gitignore

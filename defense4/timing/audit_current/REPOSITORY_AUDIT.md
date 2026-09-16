@@ -19,13 +19,13 @@ into a separate paper repo has no target and was not executed.
 ## 2. Git state, verified 2026-09-02
 
 * `git fetch --all --prune` run; no pull, merge, or rebase.
-* Checkout on `paper/campaign-v1-ndss-corrections-20260828` at `ceb5bea` (this session's line),
+* Checkout on `paper/campaign-v1-ndss-corrections-20260828` at `7414a2f` (this session's line),
   one commit ahead of `origin/`, not pushed.
-* `origin/main` = `883d8cd5d83eb283aac905d8398e0c5f97d219a7`. The spec quoted
+* `origin/main` = `2ad8d272d805e1b75cc7b25c6d422d2657923687`. The spec quoted
   `883c8cd5d83e…`; that object is **not** in the repository. The real default-branch tip is
-  `883d8cd`. The spec's SHA is a transcription slip.
-* Authoritative evidence branch `defense4-size-native-parity-crc-split` tip = `02923cb`. The
-  spec's `8a6896e` **is an ancestor** of that tip: the branch moved forward, it was not rewritten.
+  `2ad8d27`. The spec's SHA is a transcription slip.
+* Authoritative evidence branch `defense4-size-native-parity-crc-split` tip = `2ea3152`. The
+  spec's `d69d35d` **is an ancestor** of that tip: the branch moved forward, it was not rewritten.
   Reported per the spec's requirement not to silently use the old commit.
 * Frozen source SHA-256 `7ce30494…` and loaded-binary SHA-256 `33fa3a77…` are unchanged and
   match the spec.
@@ -38,8 +38,8 @@ All four required pre-cleanup artifacts already existed from 2026-08-24 and were
 |---|---|
 | `../DNP3_obf-before-timing-cleanup-20260824.bundle` | present, 112,292,049 bytes |
 | tag `archive/defense4-full-before-timing-cleanup-20260824` | present, `50f91a1` |
-| branch `cleanup/timing-read-sbo-20260824` | present, `2ea2daf` |
-| worktree | `DNP3-worktrees/campaign-v1-ndss-corrections-20260828`, now detached at `ceb5bea` (inert) |
+| branch `cleanup/timing-read-sbo-20260824` | present, `ef82fae` |
+| worktree | `DNP3-worktrees/campaign-v1-ndss-corrections-20260828`, now detached at `7414a2f` (inert) |
 
 No `git reset --hard`, `git clean`, `git checkout --`, force push, interactive rebase, remote
 branch deletion, or recursive delete was run. No dirty or untracked work was lost. One untracked

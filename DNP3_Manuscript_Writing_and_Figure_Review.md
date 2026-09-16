@@ -1,6 +1,6 @@
 # Manuscript writing and figure review
 
-**Review basis:** Dr. Hui Lin's meeting explanations, his supplied introduction, the user's subsequent corrections and clean-figure instruction, and the active manuscript at commit **18a595aff59577f8e9f19de65afeaea11065bd38** in `akekulip/DNP3_obf`.
+**Review basis:** Dr. Hui Lin's meeting explanations, his supplied introduction, the user's subsequent corrections and clean-figure instruction, and the active manuscript at commit **8278346666b6071d7a882914b98b3f5d9747fc06** in `akekulip/DNP3_obf`.
 
 ## Judgment
 
@@ -26,7 +26,7 @@ These principles transfer Lin's voice. His grammar errors are not a style to imi
 
 The problem-to-mechanism progression is clear. The result paragraph is less disciplined: “the device's signature leaves the interval” and the repeated-observation claim go beyond the one-device transaction-class evaluation. A fixed classifier falling to chance does not establish removal of every device fingerprint.
 
-**Revision:** State the specific timing feature, the switch mechanism, the measured concentration/reduction, and the residual information. Keep the evaluation unit clear. Choose a few numbers that establish the main result; do not reproduce the full statistics table. [00_abstract.tex, line 17](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/00_abstract.tex#L17)
+**Revision:** State the specific timing feature, the switch mechanism, the measured concentration/reduction, and the residual information. Keep the evaluation unit clear. Choose a few numbers that establish the main result; do not reproduce the full statistics table. [00_abstract.tex, line 17](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/00_abstract.tex#L17)
 
 ### Introduction — keep Lin's three paragraphs; repair the continuation
 
@@ -34,23 +34,23 @@ The first three paragraphs already provide the intended progression: significanc
 
 The continuation should explain how the proposed mechanism addresses those reasons. It currently says the work demonstrates Formby's two features, although the control-response interval here is different from Formby's physical-operation feature. That contradiction forces later sections to undo the introduction's claim.
 
-**Revision:** Describe CLRT replacement and the related control-response case accurately. Keep the contribution list to what the design, implementation and experiment establish. Remove the sentence insisting these are “two case studies ... not two systems”; the structure can establish that without defending the label. [01_introduction.tex, line 49](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/01_introduction.tex#L49)
+**Revision:** Describe CLRT replacement and the related control-response case accurately. Keep the contribution list to what the design, implementation and experiment establish. Remove the sentence insisting these are “two case studies ... not two systems”; the structure can establish that without defending the label. [01_introduction.tex, line 49](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/01_introduction.tex#L49)
 
 ### Background — explain the exchange; stop restarting the motivation
 
 The packet sequence and source of the ACK-to-response interval are useful. The section then repeats detailed medians and tails that belong in evaluation, rehearses observation limits that reappear in the threat model and limitations, and restores the encryption-visible argument Lin specifically asked the draft to avoid.
 
-The statement that the signature “would remain visible if the payload were encrypted” may be a relevant fact in another paper, but it does not advance the chosen plaintext argument here. Remove that detour unless the paper explicitly studies that setting. [02_background.tex, line 47](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/02_background.tex#L47)
+The statement that the signature “would remain visible if the payload were encrypted” may be a relevant fact in another paper, but it does not advance the chosen plaintext argument here. Remove that detour unless the paper explicitly studies that setting. [02_background.tex, line 47](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/02_background.tex#L47)
 
 There is also a technical overgeneralization: TCP does not require every request to produce a separate pure ACK before a response. Describe the exchange observed on this relay and the mechanism's eligibility condition. TCP can piggyback acknowledgments. [RFC 9293](https://www.rfc-editor.org/rfc/rfc9293.html#section-3.10.7.4).
 
-**Revision:** Explain READ and SELECT/OPERATE, define the observable interval, and provide just enough switch background for the design. Remove the obsolete `c` alias in the transaction-ladder caption. Move detailed statistics to evaluation and consolidate the measurement boundary in one clear location. [02_background.tex, line 13](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/02_background.tex#L13)
+**Revision:** Explain READ and SELECT/OPERATE, define the observable interval, and provide just enough switch background for the design. Remove the obsolete `c` alias in the transaction-ladder caption. Move detailed statistics to evaluation and consolidate the measurement boundary in one clear location. [02_background.tex, line 13](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/02_background.tex#L13)
 
 ### Threat model — state capabilities and assumptions without arguing with the reader
 
 The one-relay, transaction-class limitation is candid and necessary. The descriptions of the two classifier cases are weakened by claims that retraining asks the wrong question or is stronger than the setting requires. This sounds like an argument chosen after seeing the result.
 
-**Revision:** Define what the observer sees, whether it can train on protected traffic, and the question answered by each evaluation. Give both results their proper scope. Keep the plaintext function-code observation concise: the experiment measures timing leakage, while packet contents already identify operations. Do not repeat the evaluation's numerical results throughout the threat model. [03_threat_model.tex, line 59](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/03_threat_model.tex#L59)
+**Revision:** Define what the observer sees, whether it can train on protected traffic, and the question answered by each evaluation. Give both results their proper scope. Keep the plaintext function-code observation concise: the experiment measures timing leakage, while packet contents already identify operations. Do not repeat the evaluation's numerical results throughout the threat model. [03_threat_model.tex, line 59](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/03_threat_model.tex#L59)
 
 ### Design — the strongest structural match, with important corrections
 
@@ -58,7 +58,7 @@ Starting from one transaction and deriving the coupled releases is close to Lin'
 
 The choosing-the-holds subsection drifts from a simple constraint argument into an assurance about RTO adaptation, a hardware budget calculation, and a long discussion of standards that were not verified. Its technical problems are detailed in the companion review.
 
-**Revision:** Use three clear steps: define the events and interval; explain how coupled deadlines replace it; explain the transport and application constraints on the chosen settings. Keep the response-arrival condition beside the schedule. Distinguish actual departures from scheduled deadlines and count queue-release delay once. State the application requirement as a deployment input until its precise reference is established. [04_design.tex, line 3](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/04_design.tex#L3)
+**Revision:** Use three clear steps: define the events and interval; explain how coupled deadlines replace it; explain the transport and application constraints on the chosen settings. Keep the response-arrival condition beside the schedule. Distinguish actual departures from scheduled deadlines and count queue-release delay once. State the application requirement as a deployment input until its precise reference is established. [04_design.tex, line 3](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/04_design.tex#L3)
 
 Keep shifting to one short analytical comparison. It should explain why replacement is needed, not become a parallel contribution or a long evaluation thread.
 
@@ -66,33 +66,33 @@ Keep shifting to one short analytical comparison. It should explain why replacem
 
 The explanation of a held packet being blocked by a higher-priority queue is accessible. However, the current two-lane/four-queue account is inconsistent with the actual four-queue ACK/RESPONSE ladder plus the separate OPERATE pair. The sentence that the deadline decides when the packet leaves also needs to distinguish eligibility from actual service.
 
-**Revision:** Walk through one READ with the four queues, then explain the timestamp check and remaining drain. Add the control extension afterward. Describe unmatched, duplicate and late packets according to actual state transitions. Use the P4 hardware details to explain how the design is realized, not to replace the design explanation. [05_implementation.tex, line 26](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/05_implementation.tex#L26)
+**Revision:** Walk through one READ with the four queues, then explain the timestamp check and remaining drain. Add the control extension afterward. Describe unmatched, duplicate and late packets according to actual state transitions. Use the P4 hardware details to explain how the design is realized, not to replace the design explanation. [05_implementation.tex, line 26](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/05_implementation.tex#L26)
 
 ### Evaluation — report the answer, then explain it
 
 The question-based subsection order is good. The repeated “Effectiveness in ROx,” “We achieve ROx if,” and “ROx therefore holds” make the prose read like a compliance report. Several paragraphs restate the same concentration result through a histogram, ECDF, quartiles, standard deviation, variance and a shifting counterfactual.
 
-**Revision:** Lead each subsection with the measured answer, present the necessary figure or table, then explain the relevant limit. Keep RO references if useful, but let the scientific question carry the prose. Use one main distribution comparison and the zoom needed to read it. Retain tails; additional full-range or stability evidence can sit in an appendix when it does not answer a new main-paper question. [06_evaluation.tex, line 83](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/06_evaluation.tex#L83)
+**Revision:** Lead each subsection with the measured answer, present the necessary figure or table, then explain the relevant limit. Keep RO references if useful, but let the scientific question carry the prose. Use one main distribution comparison and the zoom needed to read it. Retain tails; additional full-range or stability evidence can sit in an appendix when it does not answer a new main-paper question. [06_evaluation.tex, line 83](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/06_evaluation.tex#L83)
 
-The paragraph calling 0.082 the “honest figure” and then saying the contribution does not rest on it should be rewritten. Honesty should be evident from accurate reporting. Explain what CLRT suppression achieves and what ACK timing still reveals without arguing that the difficult result is less relevant. [06_evaluation.tex, line 301](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/06_evaluation.tex#L301)
+The paragraph calling 0.082 the “honest figure” and then saying the contribution does not rest on it should be rewritten. Honesty should be evident from accurate reporting. Explain what CLRT suppression achieves and what ACK timing still reveals without arguing that the difficult result is less relevant. [06_evaluation.tex, line 301](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/06_evaluation.tex#L301)
 
 ### Related work — generally respectful; sharpen comparisons rather than criticism
 
 The descriptions of complementary defenses are largely constructive. Preserve that tone. Avoid collective claims that all listed defenses assume the same encryption or endpoint cooperation unless each citation supports it. Keep descriptions tied to named works and settings.
 
-The section correctly distinguishes this paper's control-response interval from Formby's physical timing. Bring the introduction and threat model into agreement with that account. Do not make related work carry a correction to an earlier contribution claim. [07_related_work.tex, line 69](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/07_related_work.tex#L69)
+The section correctly distinguishes this paper's control-response interval from Formby's physical timing. Bring the introduction and threat model into agreement with that account. Do not make related work carry a correction to an earlier contribution claim. [07_related_work.tex, line 69](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/07_related_work.tex#L69)
 
 ### Conclusion — close on the result actually established
 
 The opening again claims identification of which device it is and later says its signature leaves the interval. It also says both deadlines are anchored at the outstation ACK without limiting that description to READ/SELECT; the OPERATE model uses the request.
 
-**Revision:** Summarize the appropriate mechanism by case, then state the demonstrated timing change on one relay and the remaining information. End with the bounded next measurements. Avoid creating a new broader claim in the final paragraph. [08_conclusion.tex, line 4](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/08_conclusion.tex#L4)
+**Revision:** Summarize the appropriate mechanism by case, then state the demonstrated timing change on one relay and the remaining information. End with the bounded next measurements. Avoid creating a new broader claim in the final paragraph. [08_conclusion.tex, line 4](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/08_conclusion.tex#L4)
 
 ### Ethics and Open Science — keep factual statements; remove self-justification
 
 The isolated-testbed description is useful. The paragraph explaining that withholding the adverse classifier result would have been the greater harm is unnecessary and defensive. Report the result where it belongs and keep this section factual.
 
-The single-script/every-figure reproduction claim is stronger than the current tooling: the new histograms and compiled manuscript are outside the five-figure campaign generation path. Correct the actual workflow and the prose together. [09_ethics_openscience.tex, line 14](https://github.com/akekulip/DNP3_obf/blob/18a595aff59577f8e9f19de65afeaea11065bd38/paper/rewrite/sections/09_ethics_openscience.tex#L14)
+The single-script/every-figure reproduction claim is stronger than the current tooling: the new histograms and compiled manuscript are outside the five-figure campaign generation path. Correct the actual workflow and the prose together. [09_ethics_openscience.tex, line 14](https://github.com/akekulip/DNP3_obf/blob/8278346666b6071d7a882914b98b3f5d9747fc06/paper/rewrite/sections/09_ethics_openscience.tex#L14)
 
 ## Short examples of the intended voice
 

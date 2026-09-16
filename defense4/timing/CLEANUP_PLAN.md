@@ -30,10 +30,10 @@ Classifications:
 
 | item | class | reason |
 |---|---|---|
-| `defense4_rrc_bor_unified12.p4` @ `c1871384` (sha `7ce30494…`) | KEEP ACTIVE | the exact source compiled into the loaded binary; copied to `implementation/exact_experiment_source/`, unmodified |
+| `defense4_rrc_bor_unified12.p4` @ `33cfb37a` (sha `7ce30494…`) | KEEP ACTIVE | the exact source compiled into the loaded binary; copied to `implementation/exact_experiment_source/`, unmodified |
 | same file at branch tip (sha `5b573a59…`) | KEEP ACTIVE, elsewhere | stays where it is under `defense4/size/native_parity/p4/`. Documentation header added 2026-08-14, after the campaign. Not presented as the experiment source |
-| `defense4_rrc_bor_unified12_setup.py`, `defense4_rrc_setup.py`, `defense4_caseA_setup.py` @ `c1871384` | KEEP ACTIVE | the control-plane import chain as it stood at capture time |
-| `relay_read_g10_23.py`, `relay_sbo_operate_guarded.py`, `relay_operate_guarded.py`, `dnp3_wire.py` @ `c1871384` | KEEP ACTIVE | READ driver and guarded SELECT/OPERATE drivers |
+| `defense4_rrc_bor_unified12_setup.py`, `defense4_rrc_setup.py`, `defense4_caseA_setup.py` @ `33cfb37a` | KEEP ACTIVE | the control-plane import chain as it stood at capture time |
+| `relay_read_g10_23.py`, `relay_sbo_operate_guarded.py`, `relay_operate_guarded.py`, `dnp3_wire.py` @ `33cfb37a` | KEEP ACTIVE | READ driver and guarded SELECT/OPERATE drivers |
 
 The embedded size code inside the P4 is **not** removed. It was on the switch when the
 captures were taken; removing it would misrepresent what ran.
@@ -89,7 +89,7 @@ go with the rest of the release package, as one decision.
 ## Recoverability
 
 Nothing classified ARCHIVE is deleted anywhere. All of it stays on
-`origin/defense4-size-native-parity-crc-split` at `8a6896e`, in the tag
+`origin/defense4-size-native-parity-crc-split` at `d69d35d`, in the tag
 `archive/defense4-full-before-timing-cleanup-20260824`, in the bundle at
 `/home/philip/Projects/DNP3_obf-before-timing-cleanup-20260824.bundle`, and in history. The
 files also remain on this branch under `defense4/size/native_parity/evidence/E_FINAL/`; what

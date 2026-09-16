@@ -35,7 +35,7 @@ comments at lines 2026 and 2098. **No such field is declared.**
 
 ### From the compiler: unused instances
 
-`8a6896e:defense4/size/native_parity/evidence/hw_campaign_20260813T172014Z/switch_compile_9132/compile_9132.log`,
+`d69d35d:defense4/size/native_parity/evidence/hw_campaign_20260813T172014Z/switch_compile_9132/compile_9132.log`,
 the archived bf-p4c transcript for the campaign build, contains:
 
 ```
@@ -170,7 +170,7 @@ Worse for line-level provenance: the compile log's line numbers do not match the
 `ts_first_block_w` is at log line 1982 and frozen line 2004, an offset of 22; `parser IgParser`
 is at log line 1042 and frozen line 1051, an offset of 9. A non-constant offset means inserted
 content, not a header. Hashing every version of the file in history identifies the compiled one:
-a **3,484-line** blob, sha256 `5b846064d2b3ebc9…`, first seen at commit `fdb67cf7` under
+a **3,484-line** blob, sha256 `5b846064d2b3ebc9…`, first seen at commit `e0fa655f` under
 `defense4/size/native_parity/p4/`, which matches the log on both cross-checks. The frozen
 "exact experiment source" is a **3,509-line** file, sha256 `7ce30494…`.
 

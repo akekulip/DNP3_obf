@@ -2,7 +2,7 @@
  "figure": "fig_clrt_distributions",
  "caption": "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of that arm's own transactions in each bin, on common 1 ms bins anchored at 0 ms with a linear ordinate and shared limits. Finite bins are half-open, $[\\mathrm{lo}, \\mathrm{hi})$; the hatched category at the right holds every transaction at or above 15 ms, which is 0.409 % of (a) and 0.027 % of (b). The dashed line in (b) is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$; the measured mean lies 0.012 ms from it. Because the configured value falls exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, which is a property of the grid and not of the measurement; Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. (a) $n$~=~26,400, mean 2.800~ms, sd 2.609~ms, variance 6.808~ms$^2$. (b) $n$~=~26,400, mean 4.012~ms, sd 0.628~ms, variance 0.3943~ms$^2$.",
  "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "7b59301045217bfcc4eb2a95166fab38874bb3e9",
+ "source_commit": "b7087f2b100a69c7b5842518a9b961ab80ffd824",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",

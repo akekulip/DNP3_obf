@@ -1,6 +1,6 @@
-# Review of DNP3_obf at 8e55bee
+# Review of DNP3_obf at 6fbf351
 
-Reviewed 16 September 2026. Exact commit: `8e55bee9e079116664c23ded9da68462293e2a79`.
+Reviewed 16 September 2026. Exact commit: `6fbf3519c9b31f141579fcdc94d0be7fe6b23c4e`.
 
 **The merge improves several earlier defects, but it does not yet warrant an implementation-correctness sign-off.** The normal-case campaign still supports the timing result. There are remaining active-code defects, a newly identified loss-recovery failure path in the frozen OPERATE implementation, and inconsistencies between the corrected analysis, the figures, the paper source and the published PDF.
 
@@ -13,7 +13,7 @@ This was a read-only repository review. No hardware was accessed, no firewall ru
 | Remote revision | Confirmed `main` at the exact commit above. |
 | Active control/harness/probe and timing tests | **179 passed**, reproduced. |
 | Protected introduction | **PASS:** all three supplied paragraphs are word-for-word intact. |
-| Frozen implementation and protected raw captures versus `18a595a` | No tracked-file differences on the protected paths. |
+| Frozen implementation and protected raw captures versus `8278346` | No tracked-file differences on the protected paths. |
 | Campaign | Fresh extraction: **132 captures, 63,360 exchanges, zero validator problems**, including the new CRC and ACK-range checks. |
 | Policy sweep | Fresh validation: **19 points, 5,860 transactions, zero problems**. |
 | Statistics and classifiers | Regenerated using the committed dependency lock. Combined-feature adaptive balanced accuracy remains about **0.651**. |
@@ -24,7 +24,7 @@ This was a read-only repository review. No hardware was accessed, no firewall ru
 | Current manuscript source | Independently compiled with `latexmk`/pdfLaTeX and BibTeX; **17 pages**. This was an alternative build, not the repository's Tectonic build. |
 | Lin source gate on current text and fresh PDF | **PASS**, with warnings; the optional voice checker is unavailable. |
 | Venue preflight | **FAIL**. Its page counter also has a logic error described below. |
-| Tracked `paper/rewrite/main.pdf` | Still the earlier PDF, byte-identical to the version at `932a2e9`. |
+| Tracked `paper/rewrite/main.pdf` | Still the earlier PDF, byte-identical to the version at `5ce71ba`. |
 
 The 179 passing tests are useful regression evidence. They do not exercise all admission/profile combinations, interruption behavior, or the actual P4 loss-recovery state machine.
 
@@ -296,4 +296,4 @@ The campaign was regenerated using its own `reproduce.sh` after `uv sync --froze
 
 The source was additionally compiled using installed pdfLaTeX/BibTeX with the standard IEEEtran bibliography style obtained from CTAN into the review scratch directory. This independently establishes that the current source compiles under that engine; it does not reproduce the unavailable Tectonic executable or its exact PDF bytes. The report's layout observations refer to this fresh alternative build.
 
-The companion `DNP3_8e55bee_Offline_Review_Probes.py` reproduces the active-code counterexamples using only the repository's test doubles. Run it against a checkout of the reviewed commit. Its results are not measurements of hardware behavior.
+The companion `DNP3_6fbf351_Offline_Review_Probes.py` reproduces the active-code counterexamples using only the repository's test doubles. Run it against a checkout of the reviewed commit. Its results are not measurements of hardware behavior.

@@ -3,7 +3,7 @@
 
 The rewrite leaves a two-column map of old and new hashes at `.git/filter-repo/commit-map`. Every
 commit from the oldest rewritten one onward gets a new hash, so every hash quoted in a document
-stops resolving: the frozen-tree comparisons against `18a595a`, the `git show` commands that
+stops resolving: the frozen-tree comparisons against `8278346`, the `git show` commands that
 recover the removed root documents, the reviewed-commit references, and the provenance chains in
 `audit_current/`. This walks the tracked text files and substitutes each one, matching any
 abbreviation of seven characters or more and replacing it with the same-length abbreviation of the

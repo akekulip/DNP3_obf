@@ -112,7 +112,7 @@ text (smallest: 6 pt labels inside the schematics, 8 pt tick labels in the data 
 ## 6. Status and remaining items
 
 * Branch `paper/final-timing-rewrite-20260826` **is pushed** to `origin` (first push 2026-08-26 after
-  `7604d68`, then the corrective commit); `main` untouched; a draft pull request is open and not
+  `7732580`, then the corrective commit); `main` untouched; a draft pull request is open and not
   merged.
 * Remaining: (1) the three points flagged in the verbatim Introduction (offsets "from the request"
   versus the acknowledgment-anchored read rule; the firstness claim; "turning"); (2) adopt the

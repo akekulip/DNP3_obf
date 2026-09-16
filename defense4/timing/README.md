@@ -61,7 +61,7 @@ campaign with `shape_enable=0`.
 `implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4`
 
 sha256 `7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861`, from commit
-`c18713840e8376c065909749d451a6bc9e6c5c4d`, compiled to the loaded binary
+`33cfb37aa153ecde6c3eab24fe69f67ff2f05ab7`, compiled to the loaded binary
 `33fa3a77c732f4cfc138e21486d26c239e275b22d739f7e9e8d1b4abadb0a3aa`.
 
 This is the **combined** implementation: one program carrying both the timing mechanism and

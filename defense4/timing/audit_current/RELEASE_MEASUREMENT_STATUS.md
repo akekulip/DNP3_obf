@@ -65,7 +65,7 @@ IBSPG series). P4 source SHA-256
 switch `10.10.54.81`, designed, compiled and run 2026-07-25. Recorded in
 `research/ibspg_hold_response/IBSPG_HOLD_RESPONSE_RESULT.md` §17 and
 `evidence/part12/rep_campaign_100/campaignA_summary.json`, both preserved in git history at
-commit `9adb92e` (the files are not in this pruned tree).
+commit `c72adb0` (the files are not in this pruned tree).
 
 **Blocker population and traffic.** One reservoir, K = 64, in Q_BLOCK (qid7, `max_priority`
 HIGH) starving one held RESPONSE in Q_RESP (qid1, LOW). Synthetic protocol roles only: no DNP3

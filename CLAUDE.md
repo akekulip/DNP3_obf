@@ -17,9 +17,9 @@ that reports it. The experiment is finished.
 - Root: `README.md` and `FINAL_TIMING_ALLOWLIST.txt` record how this tree was reduced from the
   full research repository. Four companion documents were dropped in the 2026-09-15 prune and are
   **in git history, not on disk**. Each is recoverable at the last commit that still carried it:
-  `git show 18c324f:REMOVAL_REPORT.md`, `git show 18c324f:VERIFICATION_REPORT.md`,
-  `git show 18c324f:REPOSITORY_AUDIT.md`, `git show 6750b57:CLEANUP_PLAN.md`, and the per-path
-  `git show fb74bbd:REMOVAL_MANIFEST.csv`. The
+  `git show f6dd821:REMOVAL_REPORT.md`, `git show f6dd821:VERIFICATION_REPORT.md`,
+  `git show f6dd821:REPOSITORY_AUDIT.md`, `git show f573eec:CLEANUP_PLAN.md`, and the per-path
+  `git show 6e2eff2:REMOVAL_MANIFEST.csv`. The
   reports above still carry the rules and the recovery references.
 
 Everything else — size experiments, earlier defenses, prototypes, meeting material, old
