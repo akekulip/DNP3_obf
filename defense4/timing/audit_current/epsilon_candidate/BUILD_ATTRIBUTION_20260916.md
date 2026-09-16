@@ -76,7 +76,7 @@ unanswerable, and it is not: the build tree from 2026-09-15 is still on the swit
 | `out_v2/pipe/tofino.bin` (v2), raw | `cde1b389fe91ceab…` — never recorded anywhere |
 | `out_v2/pipe/tofino.bin` (v2), `run_id` zeroed | **`b57801960b826273…`** |
 | `epsilon_candidate_v2_abs.conf` | program `epsilon_candidate`, path `out_v2` |
-| `switchd_v2.log`, 2026-09-15 22:55:17 | loads that conf |
+| `switchd_v2.log`, 2026-09-15 22:55:17 (committed as `compile_20260916/onswitch_switchd_v2.log`) | loads that conf |
 
 Three things follow, and together they close the gap.
 
@@ -87,8 +87,11 @@ Three things follow, and together they close the gap.
    `b5780196…`, and an independent recompile of this repository's patch on 2026-09-16 produced
    `b5780196…` as well. Its allocator report also matches: twelve ingress stages, six egress, 114
    tables.
-3. **That build is what was loaded.** The v2 conf names `out_v2` and `switchd_v2.log` records
-   loading it at 22:55:17, three minutes before the v2 rows were captured.
+3. **That build is what was loaded.** The v2 conf names `out_v2`, and the loader log records
+   loading it at 22:55:17, three minutes before the v2 rows were captured. Both are committed in
+   `compile_20260916/` as `onswitch_epsilon_candidate_v2_abs.conf` and `onswitch_switchd_v2.log`;
+   the sources and build trees themselves remain on the switch under
+   `~/Philip_repo/dnp3-defense4/epsilon_candidate_20260915/`.
 
 **So `epsilon_v2.jsonl` was produced by a binary built from `7d175222…`, the patch in this
 directory.** The measurement is properly attributed after all.
@@ -119,7 +122,8 @@ runs, at the cost of one line in the build record.
 ## 5. The resource counts, from the compiler itself
 
 Both builds, same invocation, read from each compile's own `table_summary.log`, which are
-preserved beside this file in `compile_20260916/`:
+preserved beside this file as `compile_20260916/base_table_summary.log` and
+`compile_20260916/cand_table_summary.log`, with `MANIFEST.json` carrying their hashes:
 
 | | frozen base | v2 candidate |
 |---|---|---|

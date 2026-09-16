@@ -73,3 +73,74 @@ Not implemented here, and out of scope for the evaluated build:
 A focused test would need the relay-facing link instrumented and a controlled loss injected on it
 after release, which is a separately authorised hardware session and a different instrumentation
 build from the one this repository has.
+
+---
+
+# A correction candidate, and the test that would settle it
+
+Neither is implemented. The evaluated P4 is unchanged and stays that way. This records what a
+future implementation would have to do, at the level of the state it already keeps, so that the
+work is specified rather than left as "fix the duplicate rule".
+
+## The distinction the current rule cannot make
+
+`V_OP_DUP` fires on one condition: the arriving OPERATE's generation equals the stored one. That
+condition is true in two situations that need opposite treatment.
+
+| situation | what the switch still controls | correct action |
+|---|---|---|
+| a copy arrives while the original is **held** in qid2, before `BPC_RELEASE` | the original: it has not left the switch | drop the copy. Releasing both would put the command on the relay-facing link twice |
+| a copy arrives **after** `BPC_RELEASE` has forwarded the original | nothing: the bytes are gone, and their delivery is unknown | forward the copy. It is the transport repairing a loss the switch cannot see |
+
+The program already distinguishes these two phases: `BPC_RELEASE` is a distinct pass code, and it
+is the point at which the comment says the generation is deliberately kept. So the information
+needed is present; what is missing is that the duplicate rule does not consult it.
+
+## The candidate
+
+Split the stored marker's meaning into held and released, rather than adding new state:
+
+* `reg_bor_gen` already holds one byte. Reserve its high bit as a **released** flag, set on the
+  `BPC_RELEASE` pass, in the same action that currently keeps the generation. The generation
+  occupies the low nibble already, so the encoding has room, and the one-register, one-access
+  rule is preserved because `BPC_RELEASE` is a different packet from the retransmission.
+* Classify on both: generation match **and** released clear stays `V_OP_DUP` and drops;
+  generation match **and** released set becomes a new verdict, `V_OP_REPAIR`, whose outcome
+  forwards rather than drops.
+* `gen_clear` on the next `BPC_PREPARE` clears the flag with the generation, as now.
+
+This keeps the property the spent marker was introduced for, which is that a duplicate cannot arm
+a second deadline or release the command twice, while letting the transport repair a loss after
+the command has left. It changes no timing path: a forwarded repair takes the ordinary forwarding
+outcome and is not held, so it cannot perturb the release schedule of a later transaction.
+
+**What it does not give.** Exactly-once execution. If the original did reach the relay and the
+copy is a spurious retransmission, forwarding it delivers the command's bytes twice to the relay's
+TCP, which will discard them as an already-received sequence range. That is TCP's job and not the
+switch's, and it is the reason the switch must not try to be the arbiter: it cannot see what the
+relay received.
+
+## The test
+
+One SELECT, one OPERATE, no other traffic, with the relay-facing link instrumented, which the
+current testbed does not do.
+
+1. Configure through `active_control/`, with shaping forced to 0 and read back, and record the
+   loaded build's normalised hash.
+2. Capture on **both** links at nanosecond resolution. The relay-facing capture is the point of
+   the test: without it, forwarding cannot be distinguished from delivery.
+3. Drive one SELECT and one OPERATE to an isolated point through the guarded driver.
+4. After the switch releases the OPERATE toward the relay, drop that released packet on the
+   relay-facing link only, scoped to the probe's own 4-tuple.
+5. Let the master's transport retransmit the OPERATE.
+
+**The outcome is binary.** If the retransmission reaches the relay, the repair path works. If it
+is dropped inside the switch, `OUT_OP_DUP` has discarded a packet TCP needed, which is the defect.
+
+**What would make the run invalid:** shaping enabled; the drop rule matching anything but the
+probe's connection; the relay-facing link not captured, which reduces the test to the one already
+run; or any control point that is not isolated.
+
+This needs a separately authorised hardware session and an instrumentation build that does not yet
+exist. Until it runs, the manuscript claims no loss recovery on the control path, and the
+repository's claim boundaries say exactly-once is neither provided nor claimed.

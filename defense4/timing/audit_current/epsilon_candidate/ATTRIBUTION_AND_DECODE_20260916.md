@@ -36,8 +36,9 @@ stay where they are.
 **RESOLVED on the switch, 2026-09-16.** The v2 rows were produced by a binary built from
 `7d175222…`, the patch in this directory. The 2026-09-15 build tree survives on the switch: its
 `epsilon_candidate.p4` hashes to `7d175222…`, its `out_v2` build normalises to the same
-`b5780196…` that an independent recompile of this repository's patch produces, and
-`switchd_v2.log` records that conf being loaded three minutes before the rows were captured. What
+`b5780196…` that an independent recompile of this repository's patch produces, and its loader log,
+committed as `compile_20260916/onswitch_switchd_v2.log`, records that conf being loaded three
+minutes before the rows were captured. What
 was wrong was narrower than it looked: `1d5470a6…` is genuinely v1's binary in `out/`, and the v2
 result inherited that citation from v1. The raw hash could never have settled it either way,
 because `bf-p4c` stamps a random `run_id` into every binary. See
