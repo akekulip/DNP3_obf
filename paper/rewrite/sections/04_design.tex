@@ -68,7 +68,11 @@ immediately,
 \label{eq:schedule}
 e_A = t_A + D_A , \qquad e_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} ,
 \end{equation}
-where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. We call this
+where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. These are the
+\emph{scheduled} release instants. A packet's realized departure follows its scheduled instant by
+the time the blocker queue takes to drain and by the queue's own service, which
+Section~\ref{sec:impl} describes and Section~\ref{sec:eval:limits} measures on an instrumented
+build, so the equalities here describe the schedule rather than the wire. We call this
 value the \emph{configured} $\mathrm{CLRT}_{\mathrm{new}}$, and we call what the master actually
 records the \emph{measured} $\mathrm{CLRT}_{\mathrm{new}}$; Section~\ref{sec:eval} reports how far
 apart the two are. Because both release instants derive from $t_A$ and neither from $t_R$, the term
@@ -91,7 +95,8 @@ t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
 \end{equation}
 Note that the acknowledgment may leave before the response arrives. That ordering is normal and
 does not by itself imply a lost packet. When~(\ref{eq:availability}) fails, the deadline is
-already in the past when the response appears and the switch forwards it immediately. The master
+already in the past when the response appears, so the switch marks it late and commits it to the
+response-hold queue, from which it leaves when that queue next serves it. The master
 then observes an interval larger than the configured value, as in Figure~\ref{fig:timeline}(b). One read-lane exchange in a thousand answers too late to be scheduled. We report those rather
 than excluding them, because they are the boundary of the mechanism
 and not a defect of the measurement.
@@ -102,15 +107,17 @@ requirement would constrain. Write $D_R$ for that quantity: the response's whole
 outstation transmitting it to the master receiving it, whose admissible range is set by the
 latency the operation requires.
 
-We do not measure $D_R$. The outstation's transmission lies one hop before $t_R$ and no capture
-here records it, because only the master-facing link is instrumented. What we observe is the
-portion from the switch onward,
+We do not measure $D_R$, and we do not measure the portion of it from the switch onward either.
+Only the master-facing link is instrumented, so $m_R$ is captured while $t_R$, the response's
+arrival at the switch, is not, and the outstation's transmission lies one hop before that. The
+quantity
 \begin{equation}
 \label{eq:resplatency}
-m_R - t_R \le D_R ,
+m_R - t_R \le D_R
 \end{equation}
-where $m_R$ is the instant the response reaches the master. We report that interval as the
-observed portion of the response journey and treat it as a lower bound, never as $D_R$ itself.
+is therefore a modelled partial journey, written from the model's endpoints rather than from two
+timestamps we hold. We use it to say which interval the operational requirement bounds, not as a
+measurement, and full $D_R$ remains unmeasured.
 
 Two terms make up the observed portion, $(e_R - t_R) + (m_R - e_R)$: the time the switch holds the
 response and the path from the switch to the master. The hold itself divides once more, into the
@@ -146,8 +153,12 @@ In practice the transport bound is not the one that binds here. The mechanism su
 with a finite resource described in Section~\ref{sec:impl}: a budget on blocker passes, not a
 wall clock. From that budget, an assumed service rate, a conservative bound on the outstation's
 own acknowledgment latency, measured detection and release terms and a safety margin, the
-control plane computes a horizon $H$ of 30.8~ms and an admissible budget of 24.8~ms, and refuses
-to install a policy outside it.
+control plane computes a horizon $H$ of 30.8~ms and an admissible budget of 24.8~ms. Three
+different limits act here and we keep them apart: this horizon is advisory and is what the
+admission arithmetic reports; a separate clamp in the control plane refuses any acknowledgment
+hold above 40~ms outright; and the sweep of Section~\ref{sec:eval:policy} deliberately installs
+settings past the horizon, through the same control plane, to find where the mechanism leaves its
+operating region. None of the three is a deadline the data plane enforces.
 
 That computation is an admission test in the control plane. It is not a deadline the data plane
 enforces, and the two must not be conflated. A pass budget bounds how many passes are

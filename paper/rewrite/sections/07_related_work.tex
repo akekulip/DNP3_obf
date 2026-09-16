@@ -8,7 +8,7 @@ type from the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePh
 These works define the threat we address; our objective, on the other hand, is to remove the timing
 features they rely on from the master-facing observation. Their target is the device type, whereas the classifier we evaluate separates three transaction
 classes on one outstation, so we suppress a feature
-their cross-layer response-time method uses without demonstrating that two devices become
+the cross-layer response-time method of Formby et al.\ uses, without demonstrating that two devices become
 indistinguishable.
 
 \textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
@@ -19,11 +19,11 @@ devices passively without deep packet inspection~\cite{jeonPassiveFingerprinting
 reconnaissance these techniques serve enables false-data injection and process-control
 attacks~\cite{liuFalseDataInjection2009, cardenasAttacksProcessControl2011}. 
 
-Defenses in this setting have so far worked at the content and connectivity layer: DefRec virtualizes physical
-functions to present deceptive content~\cite{linDefRecEstablishingPhysical2020}, RAINCOAT
-randomizes data acquisition and injects decoy
-measurements~\cite{linRAINCOATRandomizationNetwork2019}, and a companion testbed evaluates such
-anti-reconnaissance approaches on grid infrastructure~\cite{linCyberPhysicalTestbedCase2020}.
+The anti-reconnaissance defenses closest to ours work on what the traffic says and on which nodes
+it reaches. DefRec virtualizes physical functions to present deceptive
+content~\cite{linDefRecEstablishingPhysical2020}, RAINCOAT randomizes data acquisition and injects
+decoy measurements~\cite{linRAINCOATRandomizationNetwork2019}, and a companion testbed evaluates
+such approaches on grid infrastructure~\cite{linCyberPhysicalTestbedCase2020}.
 Compared to these, our framework works below the semantics they reshape and complements them: it
 changes when the wire carries the outstation's answer, not what the answer says.
 
@@ -43,9 +43,8 @@ and NetShaper shape a tenant's
 traffic to a schedule that bounds side-channel leakage in the
 cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. Pacer
 and NetShaper each shape from a host or hypervisor that can add cover traffic, and the smart-home
-setting assumes an encrypted payload. Our setting differs in both respects rather than in the
-soundness of those methods: it carries a plaintext protocol whose leaking feature is one interval
-inside a request-response exchange, and no endpoint can be modified to help. Because the outstation cannot be changed, it adds no
+setting assumes an encrypted payload. Our setting differs in both respects: it carries a plaintext protocol whose leaking feature is one
+interval inside a request-response exchange, and no endpoint can be modified to help. Because the outstation cannot be changed, it adds no
 byte and runs entirely in the network.
 
 \textbf{Programmable data-plane traffic transformation.} P4 defines the programmable parser and

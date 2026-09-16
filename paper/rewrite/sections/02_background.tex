@@ -33,9 +33,11 @@ forwards the exchange unchanged where they are not.
 \textbf{Why the interval between them is a fingerprint.} The two answers come from different
 parts of the outstation. Its TCP stack emits the acknowledgment as soon as the request arrives,
 whereas its application emits the response only after the device has done the work the request
-asks for. Consequently the interval between them, the cross-layer response time or CLRT, measures
-the outstation's own processing rather than the network path, and it differs between device
-models and between the kinds of work a device is asked to do. On our relay a control command
+asks for. Consequently the interval between them, the cross-layer response time or CLRT, is dominated by the
+outstation's own processing: the two packets traverse the same path in the same direction, so the
+common propagation cancels and what remains is the device's work plus whatever differential
+queueing the path adds between them. It differs between device models and between the kinds of
+work a device is asked to do. On our relay a control command
 takes 0.8~ms longer to answer than a poll, 2.937~ms against 2.116~ms, while the two requests are
 acknowledged 0.003~ms apart. Formby et al.\ used exactly this interval to tell device types and
 models apart in a substation network~\cite{formbyWhosControlYour2016}, and our own measurements

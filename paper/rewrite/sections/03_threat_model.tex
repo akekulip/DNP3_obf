@@ -65,11 +65,12 @@ demonstration that two devices become indistinguishable.
 \textbf{Two adversaries, not one.} We evaluate two conditions and report both. The \emph{fixed}
 adversary learns transaction classes from undefended traffic and applies that model unchanged once
 the defense is deployed; because the profile is built before the defense is met, this is the
-adversary the reconnaissance setting describes. The \emph{adaptive} adversary collects obfuscated
-traffic and retrains on it, which assumes more access, and answers what remains learnable once the
-defense is known: it recovers 0.651 balanced accuracy where the fixed one is left at chance. Both
-conditions are ours, chosen to bracket the problem, and the second is the one that limits our
-claim.
+adversary the reconnaissance setting describes. The \emph{adaptive} adversary collects obfuscated traffic and retrains on it, which answers what
+remains learnable once the defense is deployed: it recovers 0.651 balanced accuracy where the
+fixed one is left at chance. It needs no access the fixed one lacks, since the same passive
+observer sees obfuscated traffic and the plaintext function codes label it; the two are evaluation
+conditions rather than two adversaries with different powers. Both are ours, chosen to bracket the
+problem, and the second is the one that limits our claim.
 
 \textbf{Research objectives.} To make the goal checkable, we state it as five properties. The
 evaluation answers each in turn, and we reuse the labels throughout.

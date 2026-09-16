@@ -16,8 +16,14 @@ the control network can record.
 
 Concretely, the interval we report is the time between the arrival of the transport acknowledgment
 and the arrival of the application response, both observed on the master's own interface. The
-switch's internal instants, when the outstation's packets reach it and when it releases them, are on
-links that were not captured, so they are recovered from the program rather than measured.
+switch's internal instants, when the outstation's packets reach it and when it releases them, are
+on links that were not captured, so they are recovered from the program rather than measured.
+
+\textbf{Configuration provenance is partial.} Each block's manifest records the policy that block
+was configured with, and the loaded program's identity is recorded, but the sweep has no per-point
+readback of what the device actually held. Where a policy value appears in this section it is the
+configured value unless we say otherwise, and we mark the places where a readback would have
+settled a question that the configuration alone cannot.
 
 \textbf{Dataset.} We report per DNP3 exchange, i.e., one request, the transport acknowledgment
 that follows it, and the application response.
@@ -111,11 +117,15 @@ distribution sits: both medians are the configured 4.000~ms, and the interquarti
 the sweep of Section~\ref{sec:eval:policy}.
 
 A tail remains, and it is one-sided: the largest obfuscated READ interval is 57.182~ms, and fewer
-than one READ exchange in a thousand departs from the scheduled release by more than 1~ms, while
-none falls materially below it. The asymmetry is the mechanism rather than the data, because a
-response reaching the switch after its scheduled release cannot be moved backwards and is
-forwarded on arrival, and nothing can place one early. Those exchanges are the coverage boundary
-of RO4 seen from the other side, and we count them rather than hide them.
+than one READ exchange in a thousand departs from the scheduled release by more than 1~ms. The
+asymmetry follows from the mechanism, because a response that reaches the switch after its
+scheduled release cannot be moved backwards and is committed to the hold queue to leave as soon as
+that queue serves it. Below the configured value the picture is not symmetric but not empty
+either: the two releases each carry their own queueing and service, and their difference can fall
+either side of the configured interval, which is why the distribution has width at all rather than
+sitting on a single value. What the mechanism cannot do is schedule a release before the response
+exists. Those late exchanges are the coverage boundary of RO4 seen from the other side, and we
+count them rather than hide them.
 
 \begin{figure}[tbp]
   \centering
@@ -308,8 +318,10 @@ undefended traffic, which is what motivates our first condition; their setting d
 an observer of this mechanism to an unchanged model, and we do not read it as doing so. Closing
 the residual requires both paths to be timed from the same event, which we leave to future work.
 
-The targeted feature is therefore suppressed against the fixed adversary the threat model
-describes, and not against one that retrains.
+The targeted feature is therefore suppressed against both adversaries: the cross-layer response
+time alone leaves the fixed adversary at 0.333 and the retrained one at 0.333. What retraining
+recovers, it recovers from the request-to-acknowledgment interval, which the mechanism does not
+target and does make more informative.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
@@ -362,11 +374,11 @@ endpoints. It comes from a \emph{different build} than the campaign, so it
 characterizes the mechanism rather than any particular exchange in the measured distributions;
 that build is identified, its source being the recorded patch over the frozen program, with the
 build tree, its loader configuration and the loader's log agreeing on which binary ran. Twelve
-transactions at one configuration are not a drain bound over load. Comparing the instrumented
-build against the frozen one over 200 polls each gives mean cross-layer response times of
-4.000285 and 3.999470~ms with indistinguishable spread, which is one pair of captures rather than
-a demonstration that the instrumentation is free, and because the measured interval is a
-difference of two releases it could hide equal movement in both.
+transactions at one configuration are not a drain bound over load. Comparing the instrumented build against the frozen one over 200 polls each, both extracted the
+same way, gives mean cross-layer response times of 4.000282 and 3.999470~ms and sample standard
+deviations of 0.0153 ms in each. That is one pair of captures at one configuration, not a
+demonstration that the instrumentation is free: it does not establish equivalence, and because the
+measured interval is a difference of two releases it would not reveal equal movement in both.
 
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
