@@ -33,14 +33,15 @@ and **are not evidence of what produced `epsilon_v2.jsonl`**.
 They have not been overwritten to agree with the current patch. v1's hashes are v1's history and
 stay where they are.
 
-**Unresolved, and now known to be unresolvable retrospectively.** Which source produced the binary
-that was loaded when the v2 rows were captured. This was taken to the switch on 2026-09-16 and the
-recompilation route is closed: `bf-p4c` stamps a random `run_id` into every binary, so compiling
-one source twice gives two different hashes, and a raw `tofino.bin` hash identifies a compile
-event rather than a program. `1d5470a6…` therefore carries no information about which source
-produced it. See `BUILD_ATTRIBUTION_20260916.md`, which also gives the normalised hash that *is*
-reproducible and should be recorded from now on. The v2 measurement remains a **diagnostic with
-incomplete build attribution**, and the manuscript claim is scoped accordingly.
+**RESOLVED on the switch, 2026-09-16.** The v2 rows were produced by a binary built from
+`7d175222…`, the patch in this directory. The 2026-09-15 build tree survives on the switch: its
+`epsilon_candidate.p4` hashes to `7d175222…`, its `out_v2` build normalises to the same
+`b5780196…` that an independent recompile of this repository's patch produces, and
+`switchd_v2.log` records that conf being loaded three minutes before the rows were captured. What
+was wrong was narrower than it looked: `1d5470a6…` is genuinely v1's binary in `out/`, and the v2
+result inherited that citation from v1. The raw hash could never have settled it either way,
+because `bf-p4c` stamps a random `run_id` into every binary. See
+`BUILD_ATTRIBUTION_20260916.md`.
 
 ## 2. The decode was wrong by the armed marker, and one value was not a clock wrap
 

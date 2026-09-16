@@ -232,14 +232,16 @@ the full-range histogram to an appendix was tried and reverted: the structure ga
 Work to be second-last, and relaxing its back-matter allowlist to admit a figure I had just moved
 would have been loosening a gate to pass my own change. The cut has to be editorial.
 
-**Epsilon's build attribution is unresolvable retrospectively.** This was taken to the switch on
-2026-09-16 and the recompilation route I proposed here is closed: `bf-p4c` stamps a random
-`run_id` into every binary, so the same source compiled twice gives two different hashes and a raw
-`tofino.bin` hash identifies a compile event rather than a program. Nothing can recover which
-source produced the loaded binary from the hash that was recorded. Zeroing that field does restore
-exact reproducibility, so the problem is closed for future runs. The same session confirmed the
-resource counts from the allocator: 12 ingress stages, 6 egress and 112 tables for the frozen
-build, 114 for the candidate. See
+**Epsilon's build attribution is RESOLVED.** Taken to the switch on 2026-09-16. The recompilation
+route proposed here is indeed closed, and for a reason worth recording: `bf-p4c` stamps a random
+`run_id` into every binary, so one source compiled twice gives two different hashes and a raw
+`tofino.bin` hash identifies a compile event rather than a program. But the 2026-09-15 build tree
+survives on the switch and answers directly: its `epsilon_candidate.p4` hashes to `7d175222…`, its
+`out_v2` build normalises to the same `b5780196…` as an independent recompile of this
+repository's patch, and `switchd_v2.log` records that conf being loaded three minutes before the
+rows were captured. `1d5470a6…` is v1's binary, inherited into the v2 result by mistake. The same
+session confirmed the resource counts from the allocator: 12 ingress stages, 6 egress, 112 tables
+frozen and 114 for the candidate. See
 `defense4/timing/audit_current/epsilon_candidate/BUILD_ATTRIBUTION_20260916.md`.
 
 **No hardware adapter is validated.** `timing_only_profile.py` plans and verifies through a

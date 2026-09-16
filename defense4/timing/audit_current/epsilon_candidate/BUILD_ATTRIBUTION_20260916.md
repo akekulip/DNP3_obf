@@ -1,4 +1,4 @@
-# Why the build hashes cannot settle attribution, and what can
+# The epsilon build attribution, resolved, and why its hash could never have done it
 
 Run on the switch (`ufispace`, 10.10.54.81) on 2026-09-16 with its own SDE 9.13.2,
 `p4c 9.13.2 (SHA: 1baf055)`. **Compile only.** No program was loaded, no traffic was sent, the
@@ -6,9 +6,10 @@ relay was never contacted, and no configuration was changed. The switch was runn
 program throughout (`mcp_fabric_ledger_abs.conf`) and still is; nothing about it was touched. The
 scratch directory was removed afterwards and its absence checked.
 
-This supersedes the recommendation in `ATTRIBUTION_AND_DECODE_20260916.md` §1 and in
-`CORRECTION_REPORT_20260916.md` that a recompile of the v2 source could be compared against the
-recorded binary hash. It cannot, and the reason generalises.
+**The gap is closed: `epsilon_v2.jsonl` was produced by a binary built from `7d175222…`, the patch
+in this repository.** §3 has the evidence. Getting there took disproving the method this
+repository had proposed for it, which was to recompile and compare binary hashes: §1 shows that
+comparison can never work, for a reason that generalises beyond this question.
 
 ---
 
@@ -62,23 +63,60 @@ Each source reproduces its own normalised hash exactly, and the two sources give
 **This is the identity the repository should record for any future build**, alongside the source
 hash. It is a function of the input, so it can be checked.
 
-## 3. What this does and does not resolve
+## 3. RESOLVED: the preserved build tree on the switch settles it
+
+§1 shows that the recorded *hash* cannot identify a source. It does not follow that the question is
+unanswerable, and it is not: the build tree from 2026-09-15 is still on the switch at
+`~/Philip_repo/dnp3-defense4/epsilon_candidate_20260915/`, and it answers directly.
+
+| artefact on the switch | value |
+|---|---|
+| `epsilon_candidate.p4` | **`7d1752225e85b5476e14eed3e93127c272167caeec1ee4d00661e1e4c6fc54e5`** |
+| `out/pipe/tofino.bin` (v1), raw | `1d5470a678c6df4e…` — the hash the v1 records cite |
+| `out_v2/pipe/tofino.bin` (v2), raw | `cde1b389fe91ceab…` — never recorded anywhere |
+| `out_v2/pipe/tofino.bin` (v2), `run_id` zeroed | **`b57801960b826273…`** |
+| `epsilon_candidate_v2_abs.conf` | program `epsilon_candidate`, path `out_v2` |
+| `switchd_v2.log`, 2026-09-15 22:55:17 | loads that conf |
+
+Three things follow, and together they close the gap.
+
+1. **The source that was compiled for v2 is the patch in this repository.** The on-switch
+   `epsilon_candidate.p4` hashes to `7d175222…`, which is exactly what applying
+   `epsilon_candidate.patch` to the recorded base produces.
+2. **The build in `out_v2` is the build that source produces.** Its `run_id`-normalised hash is
+   `b5780196…`, and an independent recompile of this repository's patch on 2026-09-16 produced
+   `b5780196…` as well. Its allocator report also matches: twelve ingress stages, six egress, 114
+   tables.
+3. **That build is what was loaded.** The v2 conf names `out_v2` and `switchd_v2.log` records
+   loading it at 22:55:17, three minutes before the v2 rows were captured.
+
+**So `epsilon_v2.jsonl` was produced by a binary built from `7d175222…`, the patch in this
+directory.** The measurement is properly attributed after all.
+
+What was actually wrong was narrower than "unattributed": the v1 records cite `1d5470a6…`, which
+is genuinely v1's binary in `out/`, and `RESULT_V2.md` inherited that citation for a run that used
+`out_v2`. The hash was not fabricated; it was carried over from the wrong build.
+
+**The lesson stands even though the gap closed.** A raw binary hash cannot serve as a build
+identity, so the normalised hash in §2 is what should be recorded from now on. Here the question
+was answerable only because the build tree happened to survive on the switch, which is not a
+property to rely on.
+
+## 4. What this does and does not resolve
 
 **Resolved.** The v2 candidate source in this directory, `7d175222…`, compiles cleanly for Tofino
 with the recorded flags on the recorded SDE, and has a stable build identity of
 `b5780196…`. The question of whether the instrumentation fits is settled independently of the v1
 records.
 
-**Still unresolved, and now known to be unresolvable retrospectively.** Which source produced the
-binary that was loaded when `epsilon_v2.jsonl` was captured. The only recorded identifier for that
-load is a raw binary hash, which §1 shows carries no information about the source. No offline work
-and no recompilation can recover it. The v2 measurement therefore remains a diagnostic with
-incomplete build attribution, and the manuscript continues to scope it that way.
+**Resolved, by §3.** Which source produced the binary behind `epsilon_v2.jsonl`: `7d175222…`, the
+patch in this directory, via the build preserved in `out_v2` on the switch. It was not recoverable
+from the recorded hash, and it was recoverable from the preserved tree.
 
 **Resolved going forward.** Recording the normalised hash at load time closes this for future
 runs, at the cost of one line in the build record.
 
-## 4. The resource counts, from the compiler itself
+## 5. The resource counts, from the compiler itself
 
 Both builds, same invocation, read from each compile's own `table_summary.log`, which are
 preserved beside this file in `compile_20260916/`:
