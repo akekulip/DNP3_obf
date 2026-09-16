@@ -137,17 +137,17 @@ $\mathrm{CLRT}_{\mathrm{new}}$, and, through~(\ref{eq:coupling}), the response h
 follows from them. Each is limited by a different constraint.
 
 The acknowledgment hold is limited in principle by the transport. Holding an acknowledgment delays the feedback the master's TCP uses to decide that a segment
-is lost. Consequently, a hold approaching the master's retransmission timeout, which
-RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} floors at 1~s, would make the master resend
-a request the outstation had already answered. 
+is lost. Consequently, a hold approaching the master's retransmission timeout would make the
+master resend a request the outstation had already answered.
 
-That bound is less tight than it first appears, because the timer is adaptive.
-RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} computes it from the round-trip times the
-stack has itself observed, so a hold applied uniformly is folded into those samples and raises
-the timeout rather than racing it; the standard notes the same effect from the attacker's side,
-as a way to inflate a sender's timer~\cite[\S6]{paxsonComputingTCPsRetransmission2011}. What that
-argument does not cover is a hold that varies between transactions, which enters the variance
-term instead. Our policy holds by a constant, which is the case the adaptation absorbs.
+That timeout has to be measured, not assumed. RFC~6298~\cite{paxsonComputingTCPsRetransmission2011}
+recommends rounding it up to a second, but that is a recommendation about a minimum and not a
+property every stack exhibits: on our master the first retransmission of an unacknowledged request
+arrives after 201~ms, with each subsequent attempt roughly doubling. The 20~ms hold we evaluate
+therefore consumes about a tenth of the interval that actually governs it, and a hold of a few
+hundred milliseconds would begin to race it. We do not argue that the timer's adaptivity makes a
+constant hold safe: adaptation says nothing about the first delayed exchange, about a reconnection
+where the timer restarts from its initial value, or about a policy change mid-session.
 
 In practice the transport bound is not the one that binds here. The mechanism sustains a hold
 with a finite resource described in Section~\ref{sec:impl}: a budget on blocker passes, not a
