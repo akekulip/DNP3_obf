@@ -39,19 +39,28 @@ The master retransmits its 20-byte READ eight times, at these intervals:
 | 7 | 6{,}720.0 ms |
 | 8 | 13{,}312.0 ms |
 
-Successive ratios are 1.04, 1.96, 2.10, 1.94, 1.96, 2.06, 1.98: the first two are effectively one
-interval and everything after doubles, which is ordinary exponential backoff.
+Successive ratios are 1.04, 1.96, 2.10, 1.94, 1.96, 2.06, 1.98. Everything from the third gap
+onward doubles, which is ordinary exponential backoff. **The first two intervals are nearly equal,
+which backoff does not explain**, and that matters for what may be concluded.
 
-**The master's initial retransmission timeout is about 200 ms on this connection.**
+**What this establishes: the first repeated request appeared after 200.8 ms on this connection.**
+That is a measured repetition threshold, not a read of the sender's retransmission timer. The
+capture records packets; it does not record `TCP_INFO`, the stack's current RTO, or any event
+counter saying which timer fired. A tail loss probe is sent before RTO-based recovery and would
+produce an early repeat followed by a near-equal one, which is consistent with the first two gaps
+here; RFC 8985 defines that behaviour. We did not collect the evidence that would separate the two
+explanations, so we do not assert which fired, and we do not describe the whole series as simple
+exponential RTO backoff.
 
 ## What this settles
 
-**The frozen policy's 200 ms was right, for the timer it actually governs.**
+**The frozen policy's 200 ms is the right order for the timer it actually governs.**
 `implementation/control/parameter_policy.py` carries 200 ms, and the 2026-09-15 diagnostic was
 read as showing that value to be wrong by a factor of fifteen because the relay's timer is about
 3 s. That comparison was between two different timers. The outstation's timer is about 3 s and
-governs its response; the master's timer is about 200 ms and governs its request. The frozen
-value matches the master's, measured here directly.
+governs its response; the master's timer is about 200 ms and governs its request. The frozen value matches the order of the master's observed repetition threshold. It does not
+follow that the campaign's socket carried exactly this value: this is a later diagnostic on a new
+connection, and the campaign recorded no socket state.
 
 `active_control/delay_admission.py` already keeps them as separate named inputs and refuses to
 substitute one for the other. This measurement supplies the master's value for the first time,
@@ -74,6 +83,15 @@ effect on it:
 
 The acknowledgment interval carries the outstation's own acknowledgment latency ahead of the hold,
 which is why it exceeds 20 ms. The released interval is within 4 µs of its configured value.
+
+## What the script does and does not control
+
+`master_rto.py` records the return code of every `iptables` call and verifies removal by the
+check returning 1. It does **not** branch on a failed installation or a failed verification: it
+proceeds to the hold regardless and reports the codes afterwards. On this run all of them were
+clean and `cleanup_verified` is true, so the capture is valid, but the controls are recorded
+rather than enforced and the script should not be described as enforcing them. It also collects no
+socket timer state, which is the measurement that would settle the paragraph above.
 
 ## Scope
 

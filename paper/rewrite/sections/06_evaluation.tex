@@ -346,16 +346,19 @@ therefore a net difference between two releases, not a delay we can place inside
 We measured the blocking interval separately, on an instrumented build that adds two registers
 per lane keyed on the outcome marking a blocker that terminates because its deadline passed. The
 medians over twelve transactions are 1{,}706~ns on the acknowledgment lane and 1{,}705~ns on the
-response lane, with standard deviations of 8.7 and 8.0~ns. The first blocker observes the expiry
-a median of 12.5 and 13.5~ns after the deadline, so detection is not a material term, and the two
-lanes agreeing to within a nanosecond is consistent with one reservoir mechanism gating both. For
+response lane, with standard deviations of 8.7 and 8.0~ns. The first blocker's ingress timestamp follows the deadline by a median of 12.5 and 13.5~ns, which
+bounds when a blocker first observed the expiry rather than when the release decision was taken,
+since the program does not timestamp that decision. The two lanes agreeing to within a nanosecond
+is consistent with one reservoir mechanism gating both. For
 scale, the interval is about $4\times10^{-4}$ of the 4~ms configured interval.
 
 Four limits apply, and the first is why we do not simply call it $\varepsilon$. Both timestamps
 are taken in ingress on a recirculating blocker token, so the interval ends at the last blocking
 action and not at the wire: this program carries no egress timestamp, so the service that follows
-is outside the measurement, and what we report is an internal blocker-termination interval and a
-lower bound on $\varepsilon$. It comes from a \emph{different build} than the campaign, so it
+is outside the measurement. We report it as an internal blocker-termination interval and do not
+claim it bounds $\varepsilon$ in either direction, because the blocker's last traffic-manager
+service precedes its return to ingress and we have not established the ordering of the two
+endpoints. It comes from a \emph{different build} than the campaign, so it
 characterizes the mechanism rather than any particular exchange in the measured distributions;
 that build is identified, its source being the recorded patch over the frozen program, with the
 build tree, its loader configuration and the loader's log agreeing on which binary ran. Twelve

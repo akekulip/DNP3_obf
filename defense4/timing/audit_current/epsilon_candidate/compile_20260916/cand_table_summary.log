@@ -1,0 +1,127 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 6
+Critical path length through the table dependency graph: 12
+Number of tables allocated: 114
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  tbl_epsilon_candidate2974                   |
+|   0   |    [ 0, 0 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 0 ]     |                           cond-77                            |
+|   0   |    [ 0, 0 ]     |                  tbl_epsilon_candidate3016                   |
+|   0   |    [ 0, 0 ]     |                  tbl_epsilon_candidate3017                   |
+|   0   |    [ 0, 0 ]     |                  tbl_epsilon_candidate3018                   |
+|   0   |    [ 0, 1 ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 1 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 1 ]     |                  tbl_epsilon_candidate2980                   |
+|   0   |    [ 0, 1 ]     |                           cond-88                            |
+|   0   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3088                   |
+|   0   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3094                   |
+|   0   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3105                   |
+|   0   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3064                   |
+|   0   |   [ 0, 10 ]     |                  tbl_epsilon_candidate2971                   |
+|   0   |   [ 0, 10 ]     |                           cond-139                           |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3066                   |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3069                   |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3072                   |
+|   1   |    [ 1, 1 ]     |                    Ingress.tbl_build_now                     |
+|   1   |    [ 0, 1 ]     |                           cond-81                            |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3022                   |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3023                   |
+|   1   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3026                   |
+|   1   |    [ 0, 1 ]     |                  tbl_epsilon_candidate3027                   |
+|   1   |    [ 1, 1 ]     |                  tbl_epsilon_candidate3024                   |
+|   1   |    [ 1, 2 ]     |                  tbl_epsilon_candidate3141                   |
+|   1   |    [ 1, 2 ]     |                  tbl_epsilon_candidate3139                   |
+|   1   |    [ 1, 2 ]     |                  tbl_epsilon_candidate3140                   |
+|   1   |    [ 0, 3 ]     |                  tbl_epsilon_candidate3033                   |
+|   1   |    [ 0, 5 ]     |                    Ingress.tbl_bor_params                    |
+|   1   |    [ 1, 9 ]     |                  Ingress.tbl_build_do_shape                  |
+|   2   |    [ 2, 2 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   2   |    [ 2, 2 ]     |                  tbl_epsilon_candidate3143                   |
+|   2   |    [ 2, 2 ]     |                  tbl_epsilon_candidate3145                   |
+|   2   |    [ 2, 2 ]     |                           cond-96                            |
+|   2   |    [ 2, 2 ]     |                  tbl_epsilon_candidate3118                   |
+|   2   |    [ 2, 2 ]     |                  tbl_epsilon_candidate3120                   |
+|   2   |   [ 2, 11 ]     |                  tbl_epsilon_candidate3123                   |
+|   2   |    [ 2, 2 ]     |                  tbl_epsilon_candidate3032                   |
+|   2   |    [ 2, 4 ]     |                    Ingress.tbl_build_cand                    |
+|   2   |    [ 1, 4 ]     |                   Ingress.tbl_bor_codebook                   |
+|   2   |    [ 2, 5 ]     |                  tbl_epsilon_candidate3270                   |
+|   2   |    [ 2, 5 ]     |                  tbl_epsilon_candidate3271                   |
+|   2   |    [ 2, 5 ]     |                  tbl_epsilon_candidate3278                   |
+|   2   |    [ 0, 9 ]     |                  tbl_epsilon_candidate2983                   |
+|   2   |   [ 0, 10 ]     |                  tbl_epsilon_candidate3514                   |
+|   2   |   [ 0, 10 ]     |                           cond-141                           |
+|   3   |    [ 3, 3 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 5 ]     |                  tbl_epsilon_candidate3279                   |
+|   3   |    [ 3, 3 ]     |                  tbl_epsilon_candidate3267                   |
+|   3   |    [ 3, 3 ]     |                  tbl_epsilon_candidate3268                   |
+|   3   |    [ 3, 3 ]     |                  tbl_epsilon_candidate3269                   |
+|   3   |    [ 3, 4 ]     |                           cond-101                           |
+|   3   |   [ 0, 10 ]     |                  tbl_epsilon_candidate3525                   |
+|   3   |   [ 0, 11 ]     |                  tbl_epsilon_candidate3531                   |
+|   3   |   [ 0, 11 ]     |                  tbl_epsilon_candidate3534                   |
+|   3   |   [ 0, 11 ]     |                  tbl_epsilon_candidate3520                   |
+|   3   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   3   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3171                   |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3175                   |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3181                   |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3197                   |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3192                   |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3194                   |
+|   4   |    [ 3, 4 ]     |                           cond-116                           |
+|   4   |    [ 4, 4 ]     |                  tbl_epsilon_candidate3282                   |
+|   4   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   4   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   4   |   [ 1, 11 ]     |                  tbl_epsilon_candidate3539                   |
+|   4   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   5   |    [ 5, 5 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 5 ]     |                  tbl_epsilon_candidate3283                   |
+|   5   |    [ 5, 5 ]     |                  tbl_epsilon_candidate3284                   |
+|   5   |    [ 5, 6 ]     |                  tbl_epsilon_candidate3285                   |
+|   5   |    [ 5, 6 ]     |                    Ingress.tbl_txn_active                    |
+|   5   |    [ 5, 6 ]     |                           cond-121                           |
+|   5   |    [ 5, 6 ]     |                  tbl_epsilon_candidate3293                   |
+|   5   |    [ 5, 6 ]     |                  tbl_epsilon_candidate3294                   |
+|   5   |    [ 5, 6 ]     |                  tbl_epsilon_candidate3295                   |
+|   5   |    [ 5, 6 ]     |                  tbl_epsilon_candidate3290                   |
+|   5   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   6   |    [ 6, 6 ]     |                  tbl_epsilon_candidate3291                   |
+|   6   |    [ 6, 6 ]     |                  tbl_epsilon_candidate3215                   |
+|   6   |    [ 6, 9 ]     |                  tbl_epsilon_candidate3251                   |
+|   6   |    [ 6, 9 ]     |                  tbl_epsilon_candidate3257                   |
+|   7   |    [ 7, 7 ]     |                     Ingress.tbl_hold_ok                      |
+|   7   |    [ 7, 7 ]     |                  tbl_epsilon_candidate3241                   |
+|   7   |    [ 7, 8 ]     |                  tbl_epsilon_candidate3239                   |
+|   7   |    [ 7, 8 ]     |                  tbl_epsilon_candidate3232                   |
+|   7   |    [ 7, 8 ]     |                  tbl_epsilon_candidate3230                   |
+|   8   |    [ 8, 8 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   8   |    [ 8, 8 ]     |                  tbl_epsilon_candidate3299                   |
+|   8   |    [ 8, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   9   |    [ 9, 9 ]     |                   Ingress.tbl_topj_expiry                    |
+|   9   |    [ 9, 9 ]     |                  tbl_epsilon_candidate3325                   |
+|   9   |   [ 9, 10 ]     |                           cond-128                           |
+|   9   |   [ 9, 10 ]     |                           cond-131                           |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3342                   |
+|   9   |   [ 9, 10 ]     |                           cond-136                           |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3345                   |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3348                   |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3337                   |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3333                   |
+|   9   |   [ 9, 10 ]     |                  tbl_epsilon_candidate3334                   |
+|   9   |   [ 9, 10 ]     |                    Ingress.tbl_decide_deq                    |
+|  10   |   [ 10, 10 ]    |                   Ingress.tbl_decide_fresh                   |
+|  10   |   [ 10, 10 ]    |                  tbl_epsilon_candidate3338                   |
+|  10   |   [ 10, 10 ]    |                  tbl_epsilon_candidate3339                   |
+|  10   |   [ 10, 10 ]    |                  tbl_epsilon_candidate3340                   |
+|  11   |   [ 11, 11 ]    |                      Ingress.tbl_commit                      |
+|  11   |   [ 11, 11 ]    |                  Ingress.tbl_ep_block_last                   |
+|  11   |   [ 11, 11 ]    |                 Ingress.tbl_ep_expiry_first                  |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

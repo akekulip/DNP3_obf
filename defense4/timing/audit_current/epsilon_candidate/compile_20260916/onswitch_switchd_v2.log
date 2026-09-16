@@ -1,0 +1,63 @@
+2026-09-15 22:55:17.574415 BF_SWITCHD DEBUG - bf_switchd: system services initialized
+2026-09-15 22:55:17.574492 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /home/decps/Philip_repo/dnp3-defense4/epsilon_candidate_20260915/epsilon_candidate_v2_abs.conf...
+2026-09-15 22:55:17.574532 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...
+2026-09-15 22:55:17.574613 BF_SWITCHD DEBUG - Configuration for dev_id 0
+2026-09-15 22:55:17.574647 BF_SWITCHD DEBUG -   Family        : tofino
+2026-09-15 22:55:17.574667 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+2026-09-15 22:55:17.574686 BF_SWITCHD DEBUG -   pci_int_mode  : 0
+2026-09-15 22:55:17.574705 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-09-15 22:55:17.574724 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...
+2026-09-15 22:55:17.574789 BF_SWITCHD DEBUG - coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-09-15 22:55:17.574817 BF_SWITCHD DEBUG - P4 profile for dev_id 0
+2026-09-15 22:55:17.574836 BF_SWITCHD DEBUG - num P4 programs 1
+2026-09-15 22:55:17.574856 BF_SWITCHD DEBUG -   p4_name: epsilon_candidate
+2026-09-15 22:55:17.574875 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe
+2026-09-15 22:55:17.574894 BF_SWITCHD DEBUG -     libpd: 
+2026-09-15 22:55:17.574913 BF_SWITCHD DEBUG -     libpdthrift: 
+2026-09-15 22:55:17.574932 BF_SWITCHD DEBUG -     context: /home/decps/Philip_repo/dnp3-defense4/epsilon_candidate_20260915/out_v2/pipe/context.json
+2026-09-15 22:55:17.574952 BF_SWITCHD DEBUG -     config: /home/decps/Philip_repo/dnp3-defense4/epsilon_candidate_20260915/out_v2/pipe/tofino.bin
+2026-09-15 22:55:17.574971 BF_SWITCHD DEBUG -   Pipes in scope [
+2026-09-15 22:55:17.574990 BF_SWITCHD DEBUG - 0 
+2026-09-15 22:55:17.575019 BF_SWITCHD DEBUG - 1 
+2026-09-15 22:55:17.575038 BF_SWITCHD DEBUG - 2 
+2026-09-15 22:55:17.575057 BF_SWITCHD DEBUG - 3 
+2026-09-15 22:55:17.575075 BF_SWITCHD DEBUG - ]
+2026-09-15 22:55:17.575102 BF_SWITCHD DEBUG -   diag: 
+2026-09-15 22:55:17.575122 BF_SWITCHD DEBUG -   accton diag: 
+2026-09-15 22:55:17.575141 BF_SWITCHD DEBUG -   Agent[0]: /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so
+2026-09-15 22:55:17.591871 BF_SWITCHD DEBUG - bf_switchd: library /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so loaded
+2026-09-15 22:55:17.592882 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized
+2026-09-15 22:55:19.852975 BF_SWITCHD DEBUG - Device 0: Operational mode set to ASIC
+2026-09-15 22:55:19.853062 BF_SWITCHD DEBUG - Initialized the device types using platforms infra API
+2026-09-15 22:55:19.853094 BF_SWITCHD DEBUG - ASIC detected at PCI /sys/class/bf/bf0/device
+2026-09-15 22:55:19.853179 BF_SWITCHD DEBUG - ASIC pci device id is 16 (0x0010)
+Health monitor started 
+Starting PD-API RPC server on port 9090
+2026-09-15 22:55:19.868159 BF_SWITCHD DEBUG - bf_switchd: drivers initialized
+Setting core_pll_ctrl0=cd44cbfe
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\2026-09-15 22:55:24.889736 BF_PLTFM ERROR - ChkSum not matched for 33
+
+2026-09-15 22:55:24.995151 BF_PLTFM ERROR - ChkSum not matched for 34
+
+2026-09-15 22:55:25.171834 BF_SWITCHD DEBUG - bf_switchd: dev_id 0 initialized
+2026-09-15 22:55:25.171852 BF_SWITCHD DEBUG - bf_switchd: initialized 1 devices
+Adding Thrift service for bf-platforms to server
+2026-09-15 22:55:25.171968 BF_SWITCHD DEBUG - bf_switchd: thrift initialized for agent : 0
+2026-09-15 22:55:25.171985 BF_SWITCHD DEBUG - bf_switchd: spawning cli server thread
+2026-09-15 22:55:25.172168 BF_SWITCHD DEBUG - bf_switchd: spawning driver shell
+2026-09-15 22:55:25.172241 BF_SWITCHD DEBUG - bf_switchd: server started - listening on port 9999
+2026-09-15 22:55:57.278102 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 8 is not valid
+2026-09-15 22:55:57.278314 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
+2026-09-15 22:55:57.901665 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-15 22:55:57.901809 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-15 22:55:57.957380 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-15 22:55:57.957546 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-15 22:55:57.965394 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-15 22:55:57.965532 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-15 22:58:00.165012 BF_PM ERROR - bf_pm_port_front_panel_port_to_dev_port_get:5293 bf_pm_port_front_panel_port_to_dev_port_get: front port 13/0 : not found
+2026-09-15 22:58:00.165144 BF_PM ERROR - bf_pm_port_front_panel_port_to_dev_port_get:5293 bf_pm_port_front_panel_port_to_dev_port_get: front port 13/1 : not found
+2026-09-15 22:58:00.165214 BF_PM ERROR - bf_pm_port_front_panel_port_to_dev_port_get:5293 bf_pm_port_front_panel_port_to_dev_port_get: front port 13/2 : not found
+2026-09-15 22:58:00.165301 BF_PM ERROR - bf_pm_port_front_panel_port_to_dev_port_get:5293 bf_pm_port_front_panel_port_to_dev_port_get: front port 13/3 : not found
+bfruntime gRPC server started on 0.0.0.0:50052
+Received signal 15 (Terminated)
+Quiting switchd.

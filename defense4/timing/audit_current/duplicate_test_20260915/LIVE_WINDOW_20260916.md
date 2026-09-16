@@ -13,15 +13,24 @@ them measured today.
 
 | bound | value | where it comes from |
 |---|---:|---|
-| what the live window must exceed | **~2.97 s** | the interval to the outstation's first response retransmission, 2026-09-15 trace |
+| what the live window must exceed | **0.793 s** | the shortest interval to any response copy anywhere in the evidence, from the 2026-09-16 master capture |
 | the control plane's enforced ceiling on `D_A` | **40 ms** | refused on hardware today, see below |
 | the master's initial retransmission timeout | **~201 ms** | measured today, `../master_rto_20260916/RESULT.md` |
 | the data plane's representable ceiling | 2.147 s | `D_A + CLRT_new < 2^31` ns, from the expiry test |
 
-For a duplicate to arrive while the transaction is live, the live window `D_A + CLRT_new` must
-exceed the interval at which the outstation retransmits. On this relay that is about 2.97 s. The
-largest live window the control plane will configure is 44 ms, so the required condition is off by
-a factor of about 67. **The case cannot be reached on this deployment by configuring it.**
+For a duplicate to arrive while a transaction is live, the live window must exceed the interval
+after which a copy of the response appears. **2.97 s is not that interval**, and an earlier version
+of this note wrongly used it: the 2026-09-15 duplicate trace happened to show its first copy after
+2.969 s, but the 2026-09-16 master capture contains a copy **0.793 s** after the original, and its
+shortest gap between successive copies is the same 0.793 s. Copies are not governed by one relay
+timeout: several of these follow the master's own repeated requests, which the relay answers
+again, so the governing interval is whatever is shortest in the deployment rather than a single
+measured timer.
+
+Taking the shortest interval in the evidence, 0.793 s, against the largest live window the control
+plane will configure, 44 ms at the 40 ms clamp with a 4 ms target, the required condition is still
+off by a factor of about **18**. The margin is smaller than the earlier note claimed and it is
+still large.
 
 Two further ceilings sit below the one that would be needed, so removing the clamp would not help:
 the data plane's expiry test compares a 32-bit modular age and treats bit 31 as the sign, so any
@@ -52,11 +61,25 @@ the 2.147 s modular limit, which turns out not to be the binding constraint.
 
 ## What this resolves, and what it does not
 
-**Resolved for this deployment.** The live-window case is unreachable: the enforced 40 ms ceiling
-is 67 times smaller than the interval a duplicate would have to arrive within, and two independent
-ceilings sit below it. No configuration of this mechanism on this relay can produce a duplicate
-response inside a live transaction, so `OUT_RESP_DUP_SUPP` cannot discard a loss-recovery copy
-here.
+**Narrowed, not proved.** On the evidence available, no configuration the control plane will
+accept produces a live window within a factor of 18 of the shortest observed interval to a
+response copy, so `OUT_RESP_DUP_SUPP` discarding a loss-recovery copy is not something this
+deployment's settings can produce. That is an argument from three numbers and the shortest copy
+interval anyone has happened to observe, not a proof that no shorter one exists. Network
+duplication and loss recovery are not bounded by a single measured timeout.
+
+**The live window is also not exactly `D_A + CLRT_new`.** That sum is the nominal schedule. The
+transaction's actual lifetime is set by the program's retirement paths, which
+`CORRECTION_20260916.md` §6 describes: the released response or the fail-open budget, the latter
+counted in blocker passes rather than time. The 44 ms figure above is therefore the nominal
+window at the largest configurable hold, and it is used here as an order-of-magnitude comparison
+rather than as the lifetime.
+
+**And it does not cover every duplicate path.** The OPERATE spent-marker behaviour identified in
+the 2026-09-16 review is not bounded by the live window at all: the marker persists after the
+command has been released and is cleared by the next SELECT, so a master retransmission of a lost
+OPERATE can meet it long after any hold has ended. That path is separate from this one and is
+recorded in `../OPERATE_RETRANSMISSION_RISK_20260916.md`.
 
 **Not resolved in general.** This is an argument from three numbers, and all three are properties
 of this deployment rather than of the design. A device whose retransmission timer were tens of

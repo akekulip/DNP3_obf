@@ -44,10 +44,16 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   request-anchored with observable `R − A` and is never placed in the read-lane coverage
   denominator; results are transaction-class timing, not device identification, and are scoped
   to the evaluated Random-Forest attacker; the realized per-transaction `J` and the relay-facing
-  release are unobserved. Exactly-once delivery is **not** provided and is not claimed: on
-  2026-09-15 a response withheld from the master was retransmitted by the outstation and all
-  three copies were forwarded to the master, which is loss recovery working and is the opposite
-  of exactly-once. Configuration provenance is PARTIAL. No
+  release are unobserved. Exactly-once delivery is **not** provided and is not claimed. Two records bear on this and
+  neither shows loss recovery working. On 2026-09-15 a response was withheld from the master and
+  further copies crossed the switch and reached the master's interface, but the filter dropped
+  every copy for the whole test, so the application recovered nothing and what was observed was
+  arrival at the interface rather than delivery
+  (`audit_current/duplicate_test_20260915/CORRECTION_20260916.md`). Separately, the frozen
+  control path keeps a spent OPERATE generation after release and drops a matching
+  retransmission, so a command lost on the relay-facing link cannot be repaired by its own
+  retransmission; that is a source-level reading, not a hardware observation
+  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance is PARTIAL. No
   size, segmentation, padding or splitting claim anywhere in the manuscript.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.

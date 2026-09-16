@@ -4,14 +4,17 @@ Branch `fix/lin-paper-code-review-20260915`, starting from `932a2e9` on `main`, 
 commit the review examined and was still the remote head when this began, so no finding had been
 resolved in the meantime.
 
-**Almost entirely offline, with one compile-only hardware session.** The corrections in §1 were
-made without touching hardware. Afterwards, under explicit authorisation, the switch was used to
-settle two questions that could not be answered any other way: `bf-p4c` was run on the frozen
-source and on the v2 candidate. **Nothing was loaded, no traffic was sent, the relay was never
-contacted, no configuration was changed, and the unrelated program the switch was already running
-was left running throughout.** The scratch directory was removed and its absence checked. That
-session is recorded in
-`defense4/timing/audit_current/epsilon_candidate/BUILD_ATTRIBUTION_20260916.md`.
+**Offline corrections, then two hardware sessions.** The corrections in §1 were made without
+touching hardware. Under explicit authorisation the switch was then used twice on 2026-09-16.
+The first session was compile only: `bf-p4c` on the frozen source and on the v2 candidate, with
+nothing loaded and no traffic sent
+(`defense4/timing/audit_current/epsilon_candidate/BUILD_ATTRIBUTION_20260916.md`). The second
+session **did** load a program and send traffic: the frozen build was loaded and configured, the
+relay was contacted, one DNP3 connection was driven with a firewall rule scoped to its own
+4-tuple, and the master's retransmission behaviour was captured
+(`defense4/timing/audit_current/master_rto_20260916/RESULT.md`). Afterwards the switch was
+restored to the unrelated program it had been running, with the identical command line, and the
+scratch directories were removed.
 
 No branch was deleted, nothing was force-pushed, nothing was merged.
 `defense4/timing/implementation/` and every `raw_pcaps/` path are byte-identical to `18a595a`,
@@ -19,7 +22,8 @@ checked at the end of the pass.
 
 **The corrected active code has still not been run on hardware.** `delay_admission.py`,
 `rto_probe_plan.py` and `timing_only_profile.py` have been exercised only against offline
-fixtures. Nothing below claims otherwise.
+fixtures; the hardware sessions used the frozen control plane, not these modules. Nothing below
+claims otherwise.
 
 ---
 
@@ -197,7 +201,7 @@ Run at `f650568`, every command from the repository's own documented entry point
 
 | check | result |
 |---|---|
-| active offline suites | **178 passed** (from 119 at the start) |
+| active offline suites | **196 passed** (119 at the start, 179 before the 2026-09-16 review) |
 | campaign test suite | **131 passed, 0 failed** (from 125 passed, 6 failed) |
 | campaign validation | 132 captures, 63,360 exchanges, **0 problems** |
 | sweep validation | 19 points, 5,860 transactions, **0 problems** |
@@ -248,9 +252,11 @@ frozen and 114 for the candidate. See
 caller-supplied device; the bfrt transport is not implemented and a mock run is labelled as
 describing the mock.
 
-**The master's own retransmission timer was never measured.** The 3 s figure is the outstation's,
-from a diagnostic. `delay_admission.py` keeps them as separate named inputs and will not call a
-policy admitted while the master's timer is unknown.
+**The master's repetition threshold is measured; its timer state is not.** The first repeated
+request appeared after 200.8 ms on a 2026-09-16 diagnostic connection. That is a packet
+observation, not a read of the sender's RTO: no `TCP_INFO` or event counter was collected, and the
+first two intervals are nearly equal, which exponential backoff does not explain. `delay_admission.py`
+keeps the master's and the outstation's timers as separate named inputs.
 
 **The duplicate live-window case is untested.** Reaching it needs an outstation whose
 retransmission timer is of the same order as the hold.

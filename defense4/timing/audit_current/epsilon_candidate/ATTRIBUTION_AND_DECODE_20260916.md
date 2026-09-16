@@ -94,7 +94,7 @@ for a reason that is structural rather than cautious:
 
 Epsilon's intended physical meaning, the post-deadline blocking interval up to release, is
 preserved as the definition. What was measured is that interval **up to the last blocking
-action**, which is a lower bound on it. Closing the gap needs egress instrumentation, which is a
+action**, which is an interval whose relation to it is not established. Closing the gap needs egress instrumentation, which is a
 different candidate and a separately authorised run.
 
 **Twelve samples at one configuration are not an all-load drain bound.** They are READ only, one
