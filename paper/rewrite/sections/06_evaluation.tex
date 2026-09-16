@@ -375,10 +375,9 @@ and this program carries no egress timestamp, so the service that follows is out
 measurement. What we report is therefore an internal blocker-termination interval and a lower
 bound on $\varepsilon$. It comes from a \emph{different build} than the campaign, so it
 characterizes the mechanism rather than explaining any particular exchange in the measured
-distributions, and that build's identity is incompletely recorded: the source and binary hashes
-kept with the run belong to an earlier candidate, so we treat the number as a diagnostic rather
-than as a property of an identified build. Twelve transactions at one configuration are not a
-drain bound over load. We did compare the instrumented build against the frozen one over 200
+distributions. That build is identified: its source is the recorded patch over the frozen program,
+and the build tree, its loader configuration and the loader's own log agree on which binary ran.
+Twelve transactions at one configuration are not a drain bound over load. We did compare the instrumented build against the frozen one over 200
 polls each, finding mean cross-layer response times of 4.000285 and 3.999470~ms with
 indistinguishable spread; that is one pair of captures rather than a demonstration that the
 instrumentation is free, and because the measured interval is a difference of two releases it
