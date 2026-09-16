@@ -58,6 +58,13 @@ TICK_NS = 256
 MAX_DEV_PORT = 511
 MAX_QID = 31
 
+#: The frozen control plane refuses an ACK hold above this, for poll-period overlap on the 400 ms
+#: schedule, and it is the constraint that actually binds: far below the 2^31 ns modular
+#: half-range and well below the master's measured 200 ms retransmission timeout. Observed on
+#: hardware 2026-09-16, where configure-all refused 2200 ms with
+#: "D = 2200.000000 ms exceeds the 40.0 ms clamp".
+MAX_D_A_MS = 40.0
+
 ADAPTER_STATUS = (
     "no device adapter is implemented here. The frozen path reaches the switch through "
     "bfrt_grpc.client and helpers that exist only on the switch, so this module plans and "
@@ -163,6 +170,10 @@ def validate(p: TimingOnlyProfile) -> list[str]:
             continue
         if ms <= 0:
             problems.append("%s must be positive, got %r" % (name, ms))
+            continue
+        if name == "d_a_ms" and ms > MAX_D_A_MS:
+            problems.append("d_a_ms is %g ms, above the %g ms clamp the control plane enforces "
+                            "for poll-period overlap" % (ms, MAX_D_A_MS))
             continue
         word = quantize_ns(ms)
         words[name] = word

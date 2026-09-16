@@ -223,6 +223,18 @@ class TestValidationDoesNotRaiseOrAdmitNonsense(unittest.TestCase):
     def test_duplicate_ports_are_rejected(self):
         self.assertTrue(validate(TimingOnlyProfile(port_relay=9)))
 
+    def test_a_hold_above_the_enforced_clamp_is_rejected(self):
+        """The control plane refuses above 40 ms; this must refuse before reaching it.
+
+        Observed on hardware 2026-09-16: configure-all refused 2200 ms with
+        "D = 2200.000000 ms exceeds the 40.0 ms clamp", while its own dry-run model accepted the
+        same input.
+        """
+        self.assertEqual(validate(TimingOnlyProfile(d_a_ms=40.0)), [])
+        for bad in (41.0, 100.0, 2200.0):
+            problems = validate(TimingOnlyProfile(d_a_ms=bad))
+            self.assertTrue(any("clamp" in p for p in problems), bad)
+
     def test_a_clean_profile_has_no_problems(self):
         """Non-vacuity: the negative tests above would be meaningless if nothing ever passed."""
         self.assertEqual(validate(TimingOnlyProfile()), [])
