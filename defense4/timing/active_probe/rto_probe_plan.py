@@ -240,11 +240,16 @@ def build_rule(conn: Connection, direction: Direction, probe_id: str) -> list[st
                  "--tcp-flags", "SYN,RST,FIN,ACK", "ACK",
                  *payload_length_rule(conn)]
     else:
-        # The outstation's response travels the other way, and it carries data, so a
-        # zero-payload selector would be wrong here.
+        # The outstation's response carries data, so a zero-payload selector would be wrong here.
+        # A selector with no length bound at all is also wrong: it matches the outstation's pure
+        # acknowledgments too, which is a different experiment. The bound is therefore
+        # "longer than a header-only segment", which is the smallest statement that selects data
+        # without assuming a particular payload size.
+        exact = conn.ip_header_bytes + conn.tcp_header_bytes
         rule += ["-s", conn.dst_ip, "--sport", str(conn.dst_port),
                  "-d", conn.src_ip, "--dport", str(conn.src_port),
-                 "--tcp-flags", "SYN,RST,FIN,ACK", "ACK"]
+                 "--tcp-flags", "SYN,RST,FIN,ACK", "ACK",
+                 "-m", "length", "--length", "%d:65535" % (exact + 1)]
     rule += ["-m", "comment", "--comment", probe_id, "-j", "DROP"]
     return rule
 
@@ -287,8 +292,9 @@ def plan(conn: Connection, ctx: RunContext, hold_seconds: float,
     else:
         selector.update({
             "intent": "the outstation's data segments toward the master, on this connection only",
-            "implemented_as": "4-tuple reversed, ACK set, no length bound because the response "
-                              "carries data",
+            "implemented_as": "4-tuple reversed, ACK set, total length above %d B so that the "
+                              "outstation's own pure acknowledgments are not caught"
+                              % (conn.ip_header_bytes + conn.tcp_header_bytes),
             "note": "this is a different experiment from withholding the master's ACK, and its "
                     "capture shows copies that arrived before the drop, not delivery",
         })

@@ -267,9 +267,17 @@ class TestTheExecutedSelectionMatchesTheDocumentedOne(unittest.TestCase):
         inp = plan(conn(), ctx(), 1.0, direction=Direction.DROP_OUTSTATION_RESPONSE)
         self.assertEqual(out["selector"]["chain"], "OUTPUT")
         self.assertEqual(inp["selector"]["chain"], "INPUT")
-        self.assertIn("-m length", out["commands"]["install"])
-        self.assertNotIn("-m length", inp["commands"]["install"],
-                         "the response carries data, so a zero-payload bound would be wrong")
+        # Both carry a length bound, in opposite directions: the outbound one selects exactly a
+        # header-only segment, the inbound one selects anything longer than that, so neither
+        # experiment catches the other's packets.
+        self.assertIn("--length 52:52", out["commands"]["install"])
+        self.assertIn("--length 53:65535", inp["commands"]["install"])
+
+    def test_the_inbound_rule_does_not_catch_pure_acknowledgments(self):
+        """A rule with no length bound would also drop the outstation's own ACKs."""
+        inp = plan(conn(), ctx(), 1.0, direction=Direction.DROP_OUTSTATION_RESPONSE)
+        self.assertIn("53:65535", inp["commands"]["install"])
+        self.assertIn("pure acknowledgments are not caught", inp["selector"]["implemented_as"])
 
 
 class TestTheSelector(unittest.TestCase):
