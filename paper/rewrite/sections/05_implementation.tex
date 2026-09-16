@@ -1,9 +1,9 @@
 \section{Implementation}
 \label{sec:impl}
 
-Section~\ref{sec:design} says when each packet should leave. A forwarding pipeline has no way to
-wait: a P4 program runs to completion per packet, can read a clock, but cannot sleep or schedule
-a callback. This section explains how the switch releases a packet at a chosen instant anyway.
+Section~\ref{sec:design} says when each packet should leave, but a forwarding pipeline has no way
+to wait: a P4 program runs to completion per packet and can read a clock, yet it cannot sleep or
+schedule a callback.
 
 \subsection{Holding a packet with queues}
 \label{sec:impl:queues}
@@ -18,10 +18,10 @@ a callback. This section explains how the switch releases a packet at a chosen i
 \label{fig:design}
 \end{figure}
 
-What the switch does have is a traffic manager with several queues per port and a
-strict-priority scheduler, the primitive with which SP-PIFO approximates programmable
-scheduling on today's hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
-timer, we use that property. 
+What the switch does have is a traffic manager with several queues per port and a strict-priority
+scheduler, the primitive with which SP-PIFO approximates programmable scheduling on today's
+hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler decides what does \emph{not}
+leave, and we hold a packet by using that property rather than a timer.
 
 A READ uses \emph{four} queues on one internal port, as Figure~\ref{fig:design} shows. Two carry
 the packets we delay, the acknowledgment and the response, and above each of those sits a
@@ -34,23 +34,21 @@ acknowledgment, response blockers, held response.  Blockers circulate on an inte
 can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
 cannot delay a later transaction.
 
-It would be natural to read this as a timer built from a count: if a blocker takes $\tau$ to
-drain, $K$ blockers hold a packet for about $K\tau$. The program does not measure time that
-way. To measure time without a timer, the program stores an absolute release instant when the
-acknowledgment arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
-against it. While the
-difference is negative the blocker is regenerated; once it is not, the blocker is dropped instead.
-The deadline decides when the packet leaves. The blockers only have to keep the queue
-non-empty until then, so the reservoir is sized for continuity rather than for duration.
+This is not a timer built from a count. The program stores an absolute release instant when the
+acknowledgment arrives, quantized to a 256~ns grid, and each of the 64 recirculating blockers
+compares the current timestamp against it: while the difference is negative the blocker is
+regenerated, and once it is not, the blocker is dropped. The deadline decides when the packet
+leaves, and the blockers only have to keep the queue non-empty until then, so the reservoir is
+sized for continuity rather than for duration.
 
 The queue does not empty at the deadline, however. Each blocker tests the deadline on its own
-pass, so the blockers still queued when it passes have to be served once more before the queue
-runs dry and the held packet is served. The release therefore trails the deadline by the time
-that draining takes. Each lane drains its own queue, the acknowledgment's above the response's in
-the priority order, and Section~\ref{sec:eval:limits} reports both intervals as unmeasured.
- This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
-release instant is computed at the acknowledgment, so the resulting hold absorbs whatever the
-outstation does without the switch ever measuring it.
+pass, so those still queued when it passes are served once more before the queue runs dry and the
+held packet leaves. The release therefore trails the deadline by the time that draining takes, and
+each lane drains its own queue, the acknowledgment's above the response's;
+Section~\ref{sec:eval:limits} reports what we measured of that interval. The arrangement is what
+makes the coupling of Section~\ref{sec:design:model} implementable: the response's release instant
+is computed at the acknowledgment, so the resulting hold absorbs whatever the outstation does
+without the switch ever measuring it.
 
 \subsection{One READ transaction}
 \label{sec:impl:walkthrough}

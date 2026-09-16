@@ -26,11 +26,18 @@ requires the attacker to know which devices it is dealing
 with~\cite{liuFalseDataInjection2009}. Fingerprinting supplies that knowledge, and it does not
 need the payload, because the timing of the exchange carries it. 
 
-Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is the CLRT of a READ or of the SELECT phase of a control, which measures the
-outstation's own processing as Section~\ref{sec:bg} describes.  On our relay the first interval's median differs by 0.8~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
-0.003~ms, so this is where the separation lives. The second is the master-visible interval between an OPERATE's
-acknowledgment and its solicited response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms on
-this device. The mechanism does not target it, and we report it as measured.
+Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is
+the CLRT of a READ or of the SELECT phase of a control, which measures the outstation's own
+processing and which Section~\ref{sec:bg} shows carries the separation between the classes. The
+second is the master-visible interval between an OPERATE's acknowledgment and its solicited
+response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms
+on this device; the mechanism does not target it, and we report it as measured.
+
+Our own observation is narrower than the adversary's in one direction and wider in none. Every
+quantity we measure is one of three packet timestamps on the master-facing link: the request, the
+acknowledgment and the response. The instants at which the switch releases a packet, and every
+event on the relay-facing link, were not captured. Where the paper names them they come from the
+configuration, and we say so.
 
 
 
@@ -42,11 +49,10 @@ result~\cite{formbyWhosControlYour2016}.  The interval we measure is a packet-ti
 also make no claim about the payload-timestamp feature, which a mechanism that moves packets
 without editing bytes could not affect in any case.
 
-That narrower reading is still worth defending. On our relay the control lane answers 0.8~ms
-slower than the read lane, so the interval separates the two classes on its own, and
-Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy from exactly
-that kind of difference. RO2 therefore asks whether the interval becomes a policy value, not
-whether physical timing is concealed.
+That narrower reading is still worth defending, because the interval separates the two classes on
+its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy from
+exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy value,
+not whether physical timing is concealed.
 
 \textbf{What our evaluation actually separates.} Device fingerprinting is the application that
 motivates the work. What we evaluate is narrower, and we keep the two apart throughout. Our
@@ -56,16 +62,14 @@ identification to measure. What we measure is whether the timing of an exchange 
 READ, SELECT and OPERATE, so chance is 0.333 balanced accuracy.  A result here is therefore the suppression of a class-conditioned timing feature, and not a
 demonstration that two devices become indistinguishable.
 
-\textbf{Two adversaries, not one.} We evaluate two conditions, which answer different
-questions, and we report both. The \emph{fixed} adversary learns transaction classes from undefended traffic and applies that
-model unchanged once the defense is deployed. Because the profile is built before the defense is
-met, this is the adversary the reconnaissance setting describes. 
-
-The \emph{adaptive} adversary collects obfuscated traffic and retrains on it. It assumes more
-access than the reconnaissance setting describes, and it answers the question of what remains
-learnable once the defense is known: it recovers 0.651 balanced accuracy where the fixed one is
-left at chance. Both conditions are ours, chosen to bracket the problem. The second is the one
-that limits our claim.
+\textbf{Two adversaries, not one.} We evaluate two conditions and report both. The \emph{fixed}
+adversary learns transaction classes from undefended traffic and applies that model unchanged once
+the defense is deployed; because the profile is built before the defense is met, this is the
+adversary the reconnaissance setting describes. The \emph{adaptive} adversary collects obfuscated
+traffic and retrains on it, which assumes more access, and answers what remains learnable once the
+defense is known: it recovers 0.651 balanced accuracy where the fixed one is left at chance. Both
+conditions are ours, chosen to bracket the problem, and the second is the one that limits our
+claim.
 
 \textbf{Research objectives.} To make the goal checkable, we state it as five properties. The
 evaluation answers each in turn, and we reuse the labels throughout.
@@ -87,14 +91,11 @@ evaluation answers each in turn, and we reuse the labels throughout.
     answered and every control operation returns a success status.
 \end{itemize}
 
-\textbf{What is out of scope.} Three boundaries follow from the model above and hold for every
-result we report. The framework does not hide the DNP3 function codes, which stay in plaintext,
-so RO3 concerns the timing channel and not the command semantics. It forwards every packet at its original size, so it adds no size or segmentation signature of its
-own; the delays it imposes are themselves observable, and an adversary who can time packets can
-see that something is holding them. And the relay-facing link is not instrumented, so the per-transaction hold, drawn from a
-configured set of 2, 6 and 12~ms, and the release toward the outstation are configured rather
-than observed. That is why RO2 is stated in terms of the master-visible interval alone.
-
-RO1 and RO2 both ask for an interval the operator chooses. Whether a switch can produce such an
-interval at all, and what it costs to do so, is a question about timing rather than about
-adversaries, and the next section answers it.
+\textbf{What is out of scope.} Two boundaries follow from the model above and hold for every
+result we report. The framework does not hide the DNP3 function codes, which stay in plaintext, so
+RO3 concerns the timing channel and not the command semantics. It also forwards every packet at
+its original size, so it adds no size or segmentation signature of its own, while the delays it
+imposes are themselves observable: an adversary who can time packets can see that something is
+holding them. Because the relay-facing link is not instrumented, as stated above, the
+per-transaction hold drawn from the configured codebook of 2, 6 and 12~ms is configured rather
+than observed, which is why RO2 is stated in terms of the master-visible interval alone.
