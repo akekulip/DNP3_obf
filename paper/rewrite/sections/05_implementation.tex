@@ -76,17 +76,25 @@ rather than one per flow.
 The evaluated configuration satisfies that assumption by construction: the driver serialises its
 exchanges and every capture carries one connection. Where a second transaction would arm while one
 is live, the program does not interleave them silently; the arming attempt is classified as busy
-and the packet is forwarded unprotected, preserving delivery and forgoing the treatment rather
-than corrupting the deadline already in progress. Per-flow protection would need per-flow state
-and a way to index it, which this program does not have and we did not evaluate.
+and the packet is forwarded unprotected rather than taking the deadline already in progress. That
+is a statement about the deadline, not about the rest of the transaction's state: the expected
+relay sequence and acknowledgment are written earlier in the same pass than the busy verdict is
+reached, so we claim it for the serialized workload we evaluated and not in general. Per-flow
+protection would need per-flow state and a way to index it, which this program does not have and
+we did not evaluate.
 
 \subsection{Failing open}
 \label{sec:impl:failopen}
 
-Every path through the program ends in a forwarding decision. A packet outside the protected
+Almost every path through the program ends in a forwarding decision. A packet outside the protected
 session, an unrecognized request, an acknowledgment with no armed transaction and a response whose
-transaction has retired are all forwarded unchanged, so such an exchange loses its protection but
-not its delivery. Every hold is bounded by a budget on blocker passes: once a reservoir has spent
+transaction has retired are all forwarded unchanged, so such an exchange loses its protection and
+still arrives. One path is not like that, and we state it here rather than in the evaluation: the
+control lane keeps a released OPERATE's application generation as a spent marker until the next
+SELECT clears it, and a later OPERATE carrying that generation is dropped. A retransmission the
+master sends to repair an OPERATE lost after the switch forwarded it carries exactly that
+generation, so the switch discards the packet that would have repaired the loss
+(Section~\ref{sec:eval:limits}). Every hold is bounded by a budget on blocker passes: once a reservoir has spent
 its budget the packet is released and its state cleared. That budget counts passes rather than
 elapsed time, which is why the horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms here, is
 what the control plane computes from the budget and an assumed service rate rather than a

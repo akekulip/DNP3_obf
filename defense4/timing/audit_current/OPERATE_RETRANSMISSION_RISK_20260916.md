@@ -98,27 +98,78 @@ needed is present; what is missing is that the duplicate rule does not consult i
 
 ## The candidate
 
-Split the stored marker's meaning into held and released, rather than adding new state:
+An earlier version of this section proposed reserving the stored byte's high bit as a released
+flag, on the reading that the generation occupied only the low nibble. **That was wrong and must
+not be implemented.** The parser assigns `meta.gen_in = hdr.dnp3_app.app_control` at line 1462 and
+the arming branch admits only `(app_control & 0xF0) == 0xC0`, so every generation that can be
+written is in `0xC0..0xCF` and already has bit `0x80` set. A released flag in that bit would make
+every held generation read as released. Masking down to the low nibble instead is no better:
+application sequence zero would become `0x00` and collide with `GEN_INACTIVE`, which is the
+sentinel the fresh-arm test depends on.
 
-* `reg_bor_gen` already holds one byte. Reserve its high bit as a **released** flag, set on the
-  `BPC_RELEASE` pass, in the same action that currently keeps the generation. The generation
-  occupies the low nibble already, so the encoding has room, and the one-register, one-access
-  rule is preserved because `BPC_RELEASE` is a different packet from the retransmission.
-* Classify on both: generation match **and** released clear stays `V_OP_DUP` and drops;
-  generation match **and** released set becomes a new verdict, `V_OP_REPAIR`, whose outcome
-  forwards rather than drops.
-* `gen_clear` on the next `BPC_PREPARE` clears the flag with the generation, as now.
+What the mechanism needs is three states for each of the sixteen application sequence values, and
+the byte has room for them in a different place:
+
+| state | stored value | written by |
+|---|---|---|
+| inactive | `0x00` | `gen_clear` on `BPC_PREPARE`, as now |
+| held | `0xC0 \| s` | `gen_arm` on `BPC_OPERATE`, as now |
+| released | `0xD0 \| s` | a new write on `BPC_RELEASE`, where today the value is left alone |
+
+The verdict then reads the stored byte rather than a flag. The program compares through the SALU's
+difference, so the three outcomes stay disjoint arithmetically: an arriving `0xCn` against an
+inactive `0x00` gives `0xCn`, which is the fresh set; against a held `0xCn` gives `0x00`, the
+duplicate; against a held `0xCm` gives `0x01..0x0F`, the busy set; and against a released `0xDm`
+gives `0xE1..0xFF`, with the exact match at `0xF0`. That last range is the new one, and it is
+disjoint from all three existing sets. `V_OP_REPAIR` is the `0xF0` case and forwards; the rest of
+`0xE1..0xFF` is a different sequence arriving after a release, which is the busy case and fails
+open as it does today.
+
+**Every reader of the register has to be audited, not only the verdict.** `tbl_txn_active` matches
+`cur_gen` against `0xC0 &&& 0xF0`, so today a released-but-uncleared transaction still matches it
+and a released one under this encoding would not. That is the intended meaning, because no hold is
+live after release, but whatever depends on the current behaviour has to be found first. The same
+applies to the comment block at lines 504 to 511, which documents the disjointness of the decode
+sets and would no longer be complete.
 
 This keeps the property the spent marker was introduced for, which is that a duplicate cannot arm
 a second deadline or release the command twice, while letting the transport repair a loss after
-the command has left. It changes no timing path: a forwarded repair takes the ordinary forwarding
-outcome and is not held, so it cannot perturb the release schedule of a later transaction.
+the command has left.
+
+**What is not established.** The earlier claim here that a forwarded repair cannot perturb a later
+transaction was asserted, not shown, and the program contradicts the easy version of it: the
+shared sequence and acknowledgment trackers `exp_seq_w` and `exp_ack_w` execute at lines 3070 and
+3074, well before the OPERATE verdict is computed at line 3225, so a repair that arrives while a
+later transaction is live has already touched shared state by the time anything decides to forward
+or drop it. A repair is also indistinguishable at the register from a spurious retransmission,
+and forwarding one during a later transaction writes that transaction's expected relay sequence
+from the wrong packet. The candidate therefore has to specify what happens in that overlap before
+it is worth building, and the specification is not finished here.
 
 **What it does not give.** Exactly-once execution. If the original did reach the relay and the
 copy is a spurious retransmission, forwarding it delivers the command's bytes twice to the relay's
 TCP, which will discard them as an already-received sequence range. That is TCP's job and not the
 switch's, and it is the reason the switch must not try to be the arbiter: it cannot see what the
 relay received.
+
+## The acceptance cases a correction has to satisfy
+
+One isolated SELECT and OPERATE is not enough to accept this change, because the failure the
+encoding introduces is an overlap failure. A correction is acceptable only when all of the
+following are settled, offline in simulation first and on hardware afterwards:
+
+1. **Duplicate while held.** A second copy arriving before `BPC_RELEASE` is dropped, arms no
+   second deadline, and the command reaches the relay exactly once.
+2. **Repair after release.** A copy arriving after `BPC_RELEASE`, with no intervening SELECT, is
+   forwarded.
+3. **Repair during a later transaction.** A copy arriving after a new SELECT has armed a new
+   generation must not alter the live transaction's deadline, and the behaviour of `exp_seq_w`
+   and `exp_ack_w` on that packet has to be defined rather than inherited. This is the case the
+   earlier version of this document wrongly assumed away.
+4. **Sequence wrap.** Sixteen intervening control operations return the same application
+   sequence; the marker must not make a genuinely new OPERATE read as a repair.
+5. **Lost SELECT.** The marker is cleared only by the next `BPC_PREPARE`, so the specification has
+   to say what a released marker means when the SELECT that would clear it never arrives.
 
 ## The test
 

@@ -365,6 +365,19 @@ retransmission timer is of the same order as the hold; on this relay it is about
 larger. We report the mechanism as forwarding late copies, and leave the live-window case open
 rather than closed.
 
+\textbf{A Lost OPERATE Cannot Be Repaired.} The control lane has a second and worse case, which we
+found by reading the program rather than by measuring it. After the switch releases an OPERATE
+toward the relay it keeps that command's application generation as a spent marker, and clears it
+only when the next SELECT arrives. A later OPERATE carrying the same generation is classified a
+duplicate and dropped. If the released command is lost on the relay-facing link, the master's
+transport repairs the loss by retransmitting exactly those bytes, with the same generation, and
+the switch discards the packet the repair depends on. Forwarding a command out of the switch is
+not delivery to the relay, and the program cannot tell the two apart because the relay-facing link
+is not instrumented. No capture in this work exercises the path: the campaign's 5{,}280 OPERATE
+exchanges lost nothing and every control operation returned success, which is the normal case
+working rather than evidence that the failure case is handled. We therefore claim no loss recovery
+on the control path, and exactly-once execution is neither provided nor claimed.
+
 \textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves about one exchange
 in a thousand answering too late to be scheduled, and a comparable fraction of protected READ
 exchanges more than 1~ms from the configured value. RO1 is a claim about the distribution, not about every transaction in

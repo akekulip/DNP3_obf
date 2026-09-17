@@ -53,7 +53,7 @@ acknowledgment and the response of a transaction and releases each at a deadline
 the transaction begins.
 
 Because the switch forwards the same packets it received, the endpoints run unmodified firmware
-and every DNP3 byte reaches the master unchanged, which is what the plaintext setting requires.
+and no DNP3 byte is altered, which is what the plaintext setting requires.
 The framework is general over which packets are held and what the released interval should be, and
 we demonstrate it on two network-observable intervals: the cross-layer response time of a poll,
 the feature Formby et al.~\cite{formbyWhosControlYour2016} fingerprint, and the master-visible

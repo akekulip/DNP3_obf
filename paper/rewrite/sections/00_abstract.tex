@@ -7,8 +7,10 @@ interval inside a single transaction.
 
 We place the defense in the network instead. A programmable switch in front of the outstation
 holds the device's acknowledgment and its response, releasing each at a deadline computed from one
-common instant, the moment the outstation acknowledges the request. Neither release depends on how
-long the device took, so the interval an observer measures is one the operator sets. The switch
+common instant, the moment the outstation acknowledges the request. Because both deadlines come
+from that one instant, the device's own processing interval cancels from the gap between the two
+releases whenever the response arrives in time, so the interval an observer measures is one the
+operator sets. The switch
 forwards the packets it received, so both endpoints run unmodified and no DNP3 byte changes.
 
 We implement this on an Intel Tofino-1 and evaluate it against one physical SEL-751A protective
