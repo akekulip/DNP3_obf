@@ -1,3 +1,19 @@
+\section*{Open Science}
+
+The evidence and the analysis are reproducible from the raw captures, archived with the extraction
+and statistics code, the figure generators, the pinned environment and the tests. One script
+rebuilds every number and the campaign figures; the histogram and model figures have their own
+generators and the manuscript its own build. A hash manifest covers each published artefact, and a
+publication gate compares a fresh rebuild against what the paper contains, so a discrepancy fails
+rather than passing silently. That gate compares rendered
+PDFs byte for byte, which is stricter than numerical agreement: the numbers reproduce wherever the
+pinned environment installs, while the last bits of a plotted coordinate need not agree across
+interpreter builds. The figures the page budget keeps out of the manuscript are published too.
+
+The switch program is the exact P4 source that ran, with its compilation record; the relay's
+firmware and vendor documentation are not ours to distribute. On acceptance the captures, the
+analysis pipeline and the switch source are published under an open license.
+
 \section*{Ethics Considerations}
 
 This work required no human subjects and no personal data. The experiments ran on a laboratory
@@ -16,19 +32,3 @@ relay, the switch or the DNP3 protocol. We report one effect that works against 
 we report it in full rather than omit it: holding the acknowledgment makes the
 request-to-acknowledgment interval more informative than it was, from 0.380 to 0.662 balanced
 accuracy for an adversary that retrains. An operator weighing deployment needs that number.
-
-\section*{Open Science}
-
-The evidence and the analysis are reproducible from the raw captures, which are archived with the
-extraction and statistics code, the figure generators, the pinned environment and the tests. One
-script rebuilds every number and the campaign figures; the histogram and model figures have their
-own generators and the manuscript its own build, and the repository names all three rather than
-implying a single command. A hash manifest covers each published artefact and a publication gate
-compares a fresh rebuild against what the paper contains, so a discrepancy fails rather than
-passes silently. That gate is a byte comparison of rendered PDFs, which is stricter than numerical
-agreement: the numbers reproduce anywhere the pinned environment installs, while the last bits of
-a plotted coordinate need not agree across interpreter builds.
-
-The switch program is the exact P4 source that ran, with its compilation record. We do not release
-the relay's firmware or vendor documentation, which are not ours to distribute. On acceptance we
-will publish the captures, the analysis pipeline and the switch source under an open license.

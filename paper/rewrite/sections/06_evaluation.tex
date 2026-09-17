@@ -52,16 +52,6 @@ three controls with the mechanism disabled.
   \label{fig:clrtzoom}
 \end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics{figures/ndss/fig_distributions}
-  \caption{Measured interval per class. (a) READ and (b) the SELECT phase of SBO
-  report the CLRT; (c) OPERATE reports the master-visible response-to-ACK interval, timed from
-  the request. (d) The same measurements as quartiles. The abscissa is logarithmic and spans the
-  full support.}
-  \label{fig:dist}
-\end{figure}
-
 \textbf{RO1.} The read-path schedule of~(\ref{eq:schedule}) does replace
 $\mathrm{CLRT}_{\mathrm{original}}$ with the configured $\mathrm{CLRT}_{\mathrm{new}}$. We compare
 the two arms over all 22 grouped runs as full empirical distributions, because the shape of the
@@ -71,8 +61,7 @@ Figure~\ref{fig:hist} shows the two READ distributions. Before obfuscation the i
 and multi-modal, spanning 1.01 to 83.46~ms with peaks near 1.2, 2.1 and 4.0~ms; after it, 99.9\% of
 transactions fall within 0.10~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$. In
 Figure~\ref{fig:clrtzoom} the released interval resolves into a narrow distribution about that
-value, where the Timing OFF arm places only 13.6\% of its transactions. The same comparison with no
-cutoff, showing the one-sided tail in full, is published with the artifact.
+value, where the Timing OFF arm places only 13.6\% of its transactions.
 
 The change is a replacement, not a shift. The standard deviation falls from 2.609 to 0.628~ms for
 READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and
@@ -83,16 +72,17 @@ standard deviations of 2.609 and 2.267~ms, four and ninety-four times what we me
 counterfactual is analytical, computed from the Timing OFF samples themselves; the loaded program
 has no shifting mode, so it is not a measured arm and we do not present it as one.
 
-Low spread at the wrong interval would not be normalization, so we also report where the
-distribution sits. In Figure~\ref{fig:dist}(d) the median $\mathrm{CLRT}_{\mathrm{original}}$ is
+Low spread at the wrong interval would not be normalization, so we also report where it sits.
+The median $\mathrm{CLRT}_{\mathrm{original}}$ is
 2.116~ms for READ and 2.050~ms for SELECT, with interquartile ranges of 2.778 and 2.697~ms; under
 the mechanism both medians are the configured 4.000~ms and each interquartile range falls to
 0.006~ms, two orders of magnitude below the 1~ms step between neighbouring policy settings in the
-sweep of Section~\ref{sec:eval:policy}. Figure~\ref{fig:dist}(a, b) shows why the median alone
-understates the change: the Timing OFF distributions rise in a few discrete steps, so one
-observation can be informative about the class, whereas the obfuscated ones are a step at the
-scheduled release, an instant computed from the acknowledgment and a fixed offset that no longer
-depends on how long the device took.
+sweep of Section~\ref{sec:eval:policy}. The median alone understates the change, because the
+Timing OFF distributions rise in a few discrete steps, so one observation can be informative about
+the class, whereas the obfuscated ones are a step at the scheduled release, an instant computed
+from the acknowledgment and a fixed offset that no longer depends on how long the device took.
+Figure~\ref{fig:hist} shows that for READ; the per-class distributions for all three, and the
+per-run medians in acquisition order, are published with the artifact.
 
 A tail remains, and it is one-sided: the largest obfuscated READ interval is 57.182~ms, and fewer
 than one READ exchange in a thousand departs from the scheduled release by more than 1~ms. The
@@ -104,19 +94,10 @@ either side of the configured interval, which is why the distribution has width 
 exchanges are the coverage boundary of RO4 seen from the other side, and we count them rather than
 hide them.
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics{figures/ndss/fig_stability}
-  \caption{Per-run medians and interquartile ranges, in acquisition order.
-  \emph{Panel (b) uses a magnified ordinate spanning 0.20~ms.} The runs are one campaign, not
-  independent replications.}
-  \label{fig:stability}
-\end{figure}
-
-\textbf{Stability within the Campaign.} In Figure~\ref{fig:stability} the obfuscated median sits
-at the scheduled release in every grouped run and every class, in acquisition order, while the
-Timing OFF medians stay separated, so the effect is not an artifact of one run or of drift over
-the five hours.
+\textbf{Stability within the Campaign.} The obfuscated median sits at the scheduled release in
+every one of the 22 grouped runs and every class, while the Timing OFF medians stay separated, so
+the effect is not an artifact of one run or of drift over the five hours. The per-run medians and
+interquartile ranges in acquisition order are published with the artifact.
 
 \subsection{Does the control lane behave the same way? (RO2)}
 \label{sec:eval:ro2}
@@ -125,7 +106,7 @@ the five hours.
 response-to-ACK interval at the policy value. Timed from the request, its observable is
 $O = R - A$, in which the internal hold $J$ does not appear, so the read-path budget $D$ does not
 apply to it; the switch draws $J$ per transaction from the configured codebook
-$\{2, 6, 12\}$~ms. In Figure~\ref{fig:dist}(c, d) the OPERATE median moves from 2.937~ms under
+$\{2, 6, 12\}$~ms. The OPERATE median moves from 2.937~ms under
 Timing OFF to 4.000~ms under the mechanism, the interquartile range falls from 2.827 to 0.006~ms,
 and the interval stays concentrated at the configured value in every run. That is a result about
 the interval the master sees: the relay-facing release at $T_0 + J$ was not observed
@@ -178,19 +159,17 @@ usable range is therefore 1 to 22~ms at a fixed budget.
 depends on how long the outstation itself took, and a real operational cost to weigh against the
 polling period and any protocol timeout. Each exchange carries 3.017 frames and 272.3 bytes on the
 master-facing link, identical in both arms, so the mechanism moves packets in time without adding
-a frame or a byte. Every request was answered with a well-formed response and every control
-operation returned a success status.
+a frame or a byte.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
 timers, so we measured what it consumed. On the master-facing captures the request bytes were
 acknowledged in a separate segment every time, never piggybacked on the response, no request was
-sent while earlier bytes were unacknowledged, and there was no retransmission, reset or duplicate
-acknowledgment in either arm.
+sent while earlier bytes were unacknowledged, and there was no retransmission, reset or duplicate acknowledgment in either arm.
 
 The longest the master waited for its acknowledgment was 29.2~ms and for its response 77.7~ms.
-Against that, we withheld every acknowledgment of one request on a separate diagnostic connection
-and observed the master repeat it after 201~ms, about seven times the longest observed wait, which
-is consistent with the absence of a retransmission. The 201~ms is a measured repetition threshold
+Withholding every acknowledgment of one request on a separate diagnostic connection, we observed
+the master repeat it after 201~ms, about seven times the longest observed wait, which is
+consistent with the absence of a retransmission. The 201~ms is a measured repetition threshold
 rather than a reading of the sender's timer: the capture records packets, not socket state, and
 the next repeat followed 208~ms later, which simple exponential backoff does not explain. The
 receive timeout in our driver is 3~s and bounds one read rather than the whole transaction, so it
@@ -206,16 +185,6 @@ this operating point, and would have to be rechecked for a master with a shorter
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_feature_overlap}
-  \caption{The two measurable intervals against each other, (a) Timing OFF and (b) Obfuscated. Under the
-  mechanism the vertical interval of all three classes collapses onto the policy value, while
-  OPERATE keeps a horizontal offset because the two lanes are timed from different events. Small marks
-  are a subsample; the outlined marks are class medians over the full dataset.}
-  \label{fig:overlap}
-\end{figure}
-
-\begin{figure}[tbp]
-  \centering
   \includegraphics{figures/ndss/fig_leakage}
   \caption{Transaction-class leakage under the two attacker models, leaving out one grouped run at a time.
   (a) Balanced accuracy; whiskers span the 22 held-out runs and are not a confidence interval.
@@ -224,25 +193,23 @@ this operating point, and would have to be rechecked for a master with a shorter
   \label{fig:leakage}
 \end{figure}
 
-\textbf{Setup.} RO3 asks how much the timing features still tell an adversary about the
-transaction class. We treat it as a three-class problem over READ, SELECT and OPERATE, where
-chance balanced accuracy is one third, with the two separately measurable intervals as features;
-their sum, the total response time, is excluded so that no feature is a linear combination of the
-others. Separately measurable is not statistically independent and we do not assume it is: the
-classifier is given both and may exploit any dependence between them, which is what the adaptive
-result below does. We estimate mutual information for the CLRT in bits against a null built by
-shuffling class labels within each grouped run over 1{,}000 permutations, preserving the per-run
-class counts. Every fold leaves out one grouped run, and we report the spread of the 22
-held-out-run scores as a range.
+\textbf{Setup.} The features are the two separately measurable intervals; their sum, the total
+response time, is excluded so that no feature is a linear combination of the others. Separately
+measurable is not statistically independent and we do not assume it is: the classifier is given
+both and may exploit any dependence between them, which is what the adaptive result below does. We
+estimate mutual information for the CLRT in bits against a null built by shuffling class labels
+within each grouped run over 1{,}000 permutations, preserving the per-run class counts. Every fold
+leaves out one grouped run, and we report the spread of the 22 held-out-run scores as a range.
 
-\textbf{RO3.} Figure~\ref{fig:overlap} shows what the mechanism does to the two intervals before
-any classifier is applied. Under Timing OFF the classes separate mainly along the
-post-acknowledgment axis, with medians of 2.116, 2.050 and 2.937~ms for READ, SELECT and OPERATE
-against request-to-acknowledgment medians of 0.555, 0.555 and 0.558~ms, which barely separate them
-at all. Under the mechanism that axis collapses: all three medians sit at 4.000~ms and READ and
-SELECT overlap. What remains is a horizontal offset, with the request-to-acknowledgment median moving to 21.336,
-21.239 and 20.650~ms, because the read lane is timed from the outstation's acknowledgment and the
-control lane from the request.
+\textbf{RO3.} Consider first what the mechanism does to the two intervals before any classifier is
+applied. Under Timing OFF the classes separate mainly along the post-acknowledgment axis, with
+medians of 2.116, 2.050 and 2.937~ms for READ, SELECT and OPERATE against
+request-to-acknowledgment medians of 0.555, 0.555 and 0.558~ms, which barely separate them at all.
+Under the mechanism that axis collapses: all three medians sit at 4.000~ms and READ and SELECT
+overlap. What remains is a horizontal offset, with the request-to-acknowledgment median moving to
+21.336, 21.239 and 20.650~ms, because the read lane is timed from the outstation's acknowledgment
+and the control lane from the request. The two intervals plotted against each other, which is how
+that collapse and that offset look, are published with the artifact.
 
 In Figure~\ref{fig:leakage}, we show the two attacker models.
 
@@ -282,8 +249,9 @@ recovers from the request-to-acknowledgment interval, which the mechanism does n
 make more informative, and that residual bounds the result. Formby et
 al.~\cite{formbyWhosControlYour2016} profile devices from undefended traffic, which motivates the
 fixed condition; their setting does not restrict an observer of this mechanism to an unchanged
-model, and we do not read it as doing so. Closing the residual requires both paths to be timed
-from the same event, which we leave to future work.
+model, and we do not read it as doing so. One way to close the residual is to time both paths
+from the same event, which we leave to future work. We do not claim it is the only way: we have
+not searched the space of defenses that might close it differently.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
@@ -291,15 +259,13 @@ from the same event, which we leave to future work.
 Each limitation below bounds one of the results above, and we name which.
 
 \textbf{One Device, One Campaign.} The evidence is one SEL-751A behind one Tofino-1 in one
-five-hour campaign, so every result from RO1 to RO5 is a statement about this device and this
-window, and the runs are grouped collections rather than independent replications, so the spread
-across them is within-campaign variability.
+five-hour campaign, and the runs are grouped collections rather than independent replications, so
+every result from RO1 to RO5 is a statement about this device and this window and every spread is
+within-campaign variability.
 
-\textbf{What RO3 Establishes.} The classification separates three transaction classes on one
-outstation. It is not device-model identification, and with one outstation nothing here shows that
-two devices become indistinguishable. It characterizes the Random-Forest attacker we evaluated
-rather than every classifier, and the adaptive adversary recovers 0.651 balanced accuracy from the
-difference between the two events, which is the bound on what RO3 achieves.
+\textbf{What RO3 Establishes.} RO3 characterizes the Random-Forest attacker we evaluated rather
+than every classifier, and the adaptive adversary recovers 0.651 balanced accuracy from the
+difference between the two events, which is the bound on what it achieves.
 
 \textbf{What RO2 Rests On.} Only the master-facing link was captured, so the realized
 per-transaction hold $J$ and the relay-facing release at $T_0 + J$ are configured rather than
@@ -325,20 +291,17 @@ program does not timestamp.
 
 Four limits apply, and the first is why we do not simply call it $\varepsilon$. Both timestamps
 are taken in ingress on a recirculating blocker token, so the interval ends at the last blocking
-action and not at the wire, and this program carries no egress timestamp, so the service that
-follows is outside the measurement. We report an internal blocker-termination interval and do not
-claim it bounds $\varepsilon$ in either direction, because the blocker's last traffic-manager
-service precedes its return to ingress and we have not established the ordering of the two
-endpoints. It comes from a \emph{different build} than the campaign, so it characterizes the
-mechanism rather than any exchange in the measured distributions; that build is identified by the
-recorded patch over the frozen program, with the build tree, its loader configuration and the
-loader's log agreeing on which binary ran. Twelve transactions at one configuration are not a
-drain bound over load. Comparing the instrumented build against the frozen one over 200 polls
-each, extracted the same way, gives mean cross-layer response times of 4.000282 and 3.999470~ms
-and sample standard deviations of 0.0153 ms in each: one pair of captures at one configuration,
-not a demonstration that the instrumentation is free. It does not establish equivalence, and
-because the measured interval is a difference of two releases it would not reveal equal movement
-in both.
+action and not at the wire, and this program carries no egress timestamp. We report an internal
+blocker-termination interval and do not claim it bounds $\varepsilon$ in either direction, because
+the blocker's last traffic-manager service precedes its return to ingress and the ordering of the
+two endpoints is not established. It comes from a \emph{different build} than the campaign, so it
+characterizes the mechanism rather than any exchange in the measured distributions; that build is
+identified by the recorded patch over the frozen program, with the build tree, its loader
+configuration and the loader's log agreeing on which binary ran. Twelve transactions at one
+configuration are not a drain bound over load. Comparing the instrumented build against the frozen
+one over 200 polls each gives mean cross-layer response times of 4.000282 and 3.999470~ms with
+sample standard deviations of 0.0153~ms in each: one pair of captures at one configuration, which
+does not establish equivalence, and which would not reveal equal movement in both releases.
 
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
@@ -346,24 +309,21 @@ same way: because the program suppresses a response retransmission that matches 
 transport position while its transaction is live, such a copy would be absorbed inside the switch
 and would not reach a master-facing capture.
 
-That suppression raises a question we probed rather than argued, and the probe reaches less far
-than we first read it as reaching. A response lost downstream of the switch is recovered by
-exactly such a retransmission, so a mechanism that discarded it would break loss recovery.
-Dropping the response inbound at the master, scoped to one connection, leaves it unacknowledged
-and the outstation retransmits on its own timer. Three further copies crossed the switch and
-reached the master's interface, at 3.20, 9.21 and 20.25~s, every one forwarded rather than
-absorbed.
+We probed that suppression. A response lost downstream of the switch is recovered by exactly such
+a retransmission, so a mechanism that discarded it would break loss recovery. Dropping the
+response inbound at the master, scoped to one connection, leaves it unacknowledged and the
+outstation retransmits on its own timer; three further copies crossed the switch and reached the
+master's interface, at 3.20, 9.21 and 20.25~s, every one forwarded rather than absorbed.
 
-What that does \emph{not} show is that duplicate suppression preserves loss recovery, for two
-reasons the distinction turns on. The filter dropped every copy for the whole test rather than
-only the original, so nothing was acknowledged and the application recovered nothing, and the
-capture is taken ahead of the filter, so it records arrival at the interface. The copies also
-arrived long after the transaction had retired, the first 2.97~s after a transaction live for
-about 24~ms, so they met the path taken by a stale token rather than by a duplicate of a live
-transaction, which is the case the concern is about. Reaching that path needs an outstation whose
-retransmission timer is of the same order as the hold; on this relay it is about three orders
-larger. We report the mechanism as forwarding late copies, and leave the live-window case open
-rather than closed.
+The probe does not show that duplicate suppression preserves loss recovery. The filter dropped
+every copy for the whole test rather than only the original, so nothing was acknowledged and the
+application recovered nothing, and the capture is taken ahead of the filter, so it records arrival
+at the interface. The copies also arrived long after the transaction had retired, the first
+2.97~s after a transaction live for about 24~ms, so they met the path a stale token takes rather
+than the path a duplicate of a live transaction takes, which is the case the concern is about.
+Reaching that path needs an outstation whose retransmission timer is of the same order as the
+hold; on this relay it is about three orders larger. The mechanism forwards late copies, and the
+live-window case stays open.
 
 \textbf{A Lost OPERATE Cannot Be Repaired.} The control lane has a second and worse case, which we
 found by reading the program rather than by measuring it. After the switch releases an OPERATE

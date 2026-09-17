@@ -5,11 +5,12 @@
 the payload. Kohno et al.\ fingerprint a remote host from the skew of its clock in TCP
 timestamps~\cite{kohnoRemotePhysicalDevice2005}, and GTID fingerprints a device and its type from
 the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePhysical2015}. These works
-define the threat we address, and our objective is to remove the timing features they rely on from
-the master-facing observation. Their target is the device type, whereas the classifier we evaluate
-separates three transaction classes on one outstation, so we suppress a feature the cross-layer
-response-time method of Formby et al.\ uses without demonstrating that two devices become
-indistinguishable.
+define the threat we address, and each reads a different observable: a clock's skew in one case,
+a device's whole packet-timing signature in the other. We remove neither. What this work removes
+is one interval inside a request-response exchange, the one the cross-layer response-time method
+of Formby et al.\ uses, and it removes it from the master-facing observation only. Their target
+is the device type, whereas the classifier we evaluate separates three transaction classes on one
+outstation, so we do not demonstrate that two devices become indistinguishable.
 
 \textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
 systems with the cross-layer response time and the physical operation time, measured at the

@@ -37,27 +37,23 @@ packet timestamps on the master-facing link, the request, the acknowledgment and
 switch's release instants and every event on the relay-facing link were not captured, and where
 the paper names them they come from the configuration.
 
-The second interval needs a careful statement, because it is easy to claim more for it than we
-can support. Formby et al.\ estimate the time a device physically takes to complete an operation,
-but from a sequence-of-events timestamp inside the outstation's application payload, and their
-alternative estimate from packet arrival times produced no usable
+Formby et al.\ estimate the time a device physically takes to complete an operation from a
+sequence-of-events timestamp inside the outstation's application payload, and their alternative
+estimate from packet arrival times produced no usable
 result~\cite{formbyWhosControlYour2016}. What we measure is a packet-timing feature of the
-solicited control response. It is not physical actuation time, which we do not measure anywhere,
-and we make no claim about the payload-timestamp feature, which a mechanism that moves packets
-without editing bytes could not affect in any case.
+solicited control response: not physical actuation time, which we do not measure anywhere, and not
+the payload-timestamp feature, which a mechanism that moves packets without editing bytes could
+not affect. The narrower interval is still worth defending, because it separates the two classes
+on its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy
+from exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy
+value, not whether physical timing is concealed.
 
-That narrower reading is still worth defending, because the interval separates the two classes on
-its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy from
-exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy value,
-not whether physical timing is concealed.
-
-\textbf{What our evaluation actually separates.} Device fingerprinting motivates the work; what we
-evaluate is narrower, and we keep the two apart throughout. Our testbed has one outstation, so
-there is no second device to confuse it with and no device identification to measure. We measure
-whether the timing of an exchange still reveals \emph{which class of transaction} it was on that
-one device, a three-class problem over READ, SELECT and OPERATE whose chance is 0.333 balanced
-accuracy, so a result here suppresses a class-conditioned timing feature rather than showing that
-two devices become indistinguishable.
+\textbf{What our evaluation actually separates.} Our testbed has one outstation, so there is no
+second device to confuse it with and no device identification to measure. We measure whether the
+timing of an exchange still reveals \emph{which class of transaction} it was on that one device, a
+three-class problem over READ, SELECT and OPERATE whose chance is 0.333 balanced accuracy. A
+result here suppresses a class-conditioned timing feature; it does not show that two devices
+become indistinguishable.
 
 \textbf{Two conditions, not two adversaries.} The \emph{fixed} condition learns transaction
 classes from undefended traffic and applies that model unchanged once the defense is deployed,

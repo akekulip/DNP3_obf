@@ -65,10 +65,15 @@ it late and commits it to the same response-hold queue rather than to a bypass, 
 Figure~\ref{fig:timeline}(b); it leaves when that queue next serves it, so its departure is
 prompt but not instantaneous. The transaction state is cleared when the response is released.
 
-The read and control treatments have separate queues, but not separate transaction state. Each
-has its own loopback port and its own hold and blocker queue pair, so neither can delay the other
-in a queue: sharing one hold queue would let whichever waited longer delay the other and corrupt
-the policy the second was meant to present. The deadline registers are shared. Every register that
+The two lanes hold different packets, and it is worth saying which. The four-queue ladder above
+holds what the outstation sends back, the acknowledgment and the response, for READ and for both
+phases of a control alike. The second loopback port carries a pair of queues for the opposite
+direction: blockers above a held \emph{OPERATE request}, on its way to the relay. So the control
+extension adds a hold the read path does not have, while the packets the master observes are
+released by the same machinery in both cases. Giving the OPERATE its own scheduling domain keeps
+it from being starved by the higher-priority read reservoirs.
+
+The queues are separate; the transaction state is not. The deadline registers are shared. Every register that
 records a transaction holds a single slot, and the control path writes the same release instants
 at OPERATE admission that the read path uses, so the program protects one transaction at a time
 rather than one per flow.
@@ -122,10 +127,14 @@ model are properties of the design and not settings of this build, and configuri
 packets unheld with the measured interval the outstation's own.
 
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
-packet-generator configuration, writes the timing parameters and reads them back, and refuses
-configurations the data plane could not honor: the admissible budget of
-Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest admissible
-$J$ plus a bound on the outstation's acknowledgment latency. The outstation is an SEL-751A feeder
+packet-generator configuration, and writes the timing parameters and reads them back. What it
+refuses is a clamp, not the admission arithmetic: a request for an acknowledgment hold above
+40~ms is rejected outright before any write, which we confirmed on the switch, and the
+acknowledgment offset $A$ on the control lane must exceed the largest admissible $J$ plus a bound
+on the outstation's acknowledgment latency. The horizon $H$ of
+Section~\ref{sec:design:params} is computed and reported, not enforced, which is exactly why the
+sweep of Section~\ref{sec:eval:policy} can install settings beyond it and find where the
+mechanism leaves its operating region. The outstation is an SEL-751A feeder
 protection relay, one of the DNP3 device classes whose timing Formby et al.\
 fingerprint~\cite{formbyWhosControlYour2016}. The master issues READ and select-before-operate
 operations to isolated control points through a guarded driver, so no control operation in the

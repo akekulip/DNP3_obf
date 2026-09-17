@@ -25,7 +25,10 @@ Consider one READ transaction, drawn in Figure~\ref{fig:timeline}. The master se
 The outstation answers it twice: first its transport layer acknowledges the request, and later
 its application layer returns the response with the data. We write $t_A$ for the instant the
 acknowledgment reaches the switch and $t_R$ for the instant the response reaches it. The
-switch forwards each packet onward at some later instant, $e_A$ and $e_R$ respectively. The
+switch forwards each packet onward at some later instant, $e_A$ and $e_R$ respectively. These
+are \emph{actual} departures, and we write $\hat{e}_A$ and $\hat{e}_R$ for the instants the
+schedule asks for, because the two differ by whatever the switch takes to act on a deadline and
+that difference is part of what we report. The
 master therefore observes the interval $e_R - e_A$, up to the propagation and capture delay of
 the two packets on the link between them.
 
@@ -35,7 +38,10 @@ That interval carries the information about the device, and on our relay it has 
 \label{eq:clrt-original}
 \mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
 \end{equation}
-the time the outstation itself spends between acknowledging the request and producing the answer.
+the interval between the two packets arriving at the switch. It is dominated by the time the
+outstation spends between acknowledging the request and producing the answer, but it is not a
+clean measurement of that time: the two packets traverse the relay-facing link separately, so
+differential queueing and the outstation's own transmission both enter it.
 Section~\ref{sec:bg} explains why it identifies the device; here it is the quantity we intend to
 remove.
 
@@ -44,9 +50,10 @@ To change what the master sees, the switch holds each packet. We write
 \label{eq:holds}
 D_A = e_A - t_A
 \end{equation}
-for the \emph{acknowledgment hold}, and we refer to $e_R - t_R$ as the \emph{response hold}
-without giving it a symbol of its own, because the schedule below fixes it rather than letting us
-choose it. Substituting into the interval the master observes gives the identity that governs the
+for the \emph{acknowledgment hold}. It is written from actual departures, so a configured $D_A$
+and the hold a transaction realizes are the same quantity only to the extent that the release
+follows its deadline. We refer to $e_R - t_R$ as the \emph{response hold} without giving it a
+symbol of its own, because the schedule below fixes it rather than letting us choose it. Substituting into the interval the master observes gives the identity that governs the
 whole design,
 \begin{equation}
 \label{eq:clrt-new}
@@ -64,13 +71,14 @@ instant $t_A$. When the acknowledgment arrives, the switch computes both release
 immediately,
 \begin{equation}
 \label{eq:schedule}
-e_A = t_A + D_A , \qquad e_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} ,
+\hat{e}_A = t_A + D_A , \qquad \hat{e}_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} ,
 \end{equation}
-where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. These are the
-\emph{scheduled} release instants. A packet's realized departure follows its scheduled instant by
-the time the blocker queue takes to drain and by the queue's own service, which
-Section~\ref{sec:impl} describes and Section~\ref{sec:eval:limits} measures on an instrumented
-build, so the equalities here describe the schedule rather than the wire. We call this
+where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. A packet's
+actual departure $e$ follows its scheduled instant $\hat{e}$ by the time the blocker queue takes
+to drain and by the queue's own service, which Section~\ref{sec:impl} describes and
+Section~\ref{sec:eval:limits} measures on an instrumented build. Writing the two apart is what
+keeps the identity honest: (\ref{eq:clrt-new}) holds exactly for actual departures, and
+(\ref{eq:schedule}) is a statement about the schedule rather than about the wire. We call this
 value the \emph{configured} $\mathrm{CLRT}_{\mathrm{new}}$, and we call what the master actually
 records the \emph{measured} $\mathrm{CLRT}_{\mathrm{new}}$; Section~\ref{sec:eval} reports how far
 apart the two are. Because both release instants derive from $t_A$ and neither from $t_R$, the term
@@ -94,8 +102,10 @@ t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
 The acknowledgment may leave before the response arrives; that ordering is normal and does not by
 itself imply a lost packet. When~(\ref{eq:availability}) fails the deadline is already past when
 the response appears, so the switch marks it late and commits it to the response-hold queue, from
-which it leaves when that queue next serves it, and the master observes an interval larger than
-the configured value, as in Figure~\ref{fig:timeline}(b). One read-lane exchange in a thousand
+which it leaves when that queue next serves it, as in Figure~\ref{fig:timeline}(b). The master
+then usually observes an interval larger than the configured value, though not necessarily: what
+it measures is a difference of two releases, each with its own queueing and service, so a late
+response is not by itself a guarantee of a larger measured interval. One read-lane exchange in a thousand
 answers too late to be scheduled. We report those rather than excluding them, because they are the
 boundary of the mechanism and not a defect of the measurement.
 
@@ -175,6 +185,13 @@ value we tested, 4~ms, and report the response latency the mechanism produces, a
 than the device alone, so an operator with a requirement of their own can check it against those
 numbers.
 
+A third timer is worth naming because it is easy to miss. Holding the response also postpones the
+master's acknowledgment of it, which is the feedback the \emph{outstation's} transport waits for,
+so the response hold spends the outstation's retransmission budget as well as the application's
+patience. That budget is not the master's: on this relay the outstation's timer is about three
+orders larger than the master's, so the master's is what binds here, but the three constraints are
+separate and a deployment that changed either device could reorder them.
+
 Together the two set what the mechanism costs. Their sum
 \begin{equation}
 \label{eq:budget}
@@ -231,13 +248,8 @@ also 4~ms, so the two lanes present the same value to the observer.
 \subsection{What the design does not change}
 \label{sec:design:boundary}
 
-The mechanism replaces one interval per lane and leaves the rest of the exchange as it was. The
-DNP3 function codes remain in plaintext and every packet's direction remains visible, so an
-observer can still tell a poll from a control command by reading the packet, and the
-request-to-acknowledgment interval still contains the outstation's own acknowledgment latency,
-displaced by the constant $D_A$ but not reshaped by it. The switch forwards the packets it
-received without padding them, injecting new ones or editing any DNP3 field, which is what the
-plaintext setting requires and which leaves every size feature as it was. It does change when
-packets leave, so it is not a claim about arrival order.
-Section~\ref{sec:eval:ro3} reports what an attacker allowed to retrain on the obfuscated traffic
-still recovers from the features that remain.
+The mechanism replaces one interval per lane and leaves the rest of the exchange as it was, within
+the scope Section~\ref{sec:threat} sets out. One consequence is worth stating here because the
+schedule causes it: the request-to-acknowledgment interval still carries the outstation's own
+acknowledgment latency, displaced by the constant $D_A$ but not reshaped by it, and
+Section~\ref{sec:eval:ro3} reports what an attacker allowed to retrain recovers from it.
