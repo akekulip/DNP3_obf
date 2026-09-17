@@ -13,7 +13,7 @@ convention below, and this file is the bridge.
 | symbol | earlier revision | now |
 |---|---|---|
 | `CLRT_target` | the configured acknowledgment-to-response gap | **withdrawn.** That quantity is now the *configured* `CLRT_new` |
-| `D_R` | the RESPONSE hold, `e_R - t_R` | **the response latency,** `m_R - t_R`. The hold keeps no symbol and is written from its endpoints |
+| `D_R` | the RESPONSE hold, `e_R - t_R` | **the response latency:** the response's whole journey, outstation transmission to master receipt, which is unmeasured here. The hold keeps no symbol and is written from its endpoints |
 
 There is no `X`, `Y`, or `C` for any of these quantities anywhere in the manuscript.
 
@@ -44,7 +44,7 @@ plus the differential path and capture delay between the two packets, which was 
 | `CLRT_new` | `e_R - e_A`, the acknowledgment-to-response interval after obfuscation | the obfuscation objective |
 | `D_A` | `e_A - t_A`, the **ACK hold** | transport feedback and retransmission timing |
 | response hold | `e_R - t_R`; **no symbol of its own** | not chosen; implied by the schedule |
-| `D_R` | `m_R - t_R`, the **response latency** | the operation, through whatever latency requirement the deployment carries |
+| `D_R` | the **response latency**: outstation transmission to master receipt, **unmeasured** | the operation, through whatever latency requirement the deployment carries |
 
 `CLRT_new` is used with one of two adjectives and never bare where the distinction matters:
 
@@ -95,19 +95,23 @@ So three different intervals must be kept apart, and only the second is observed
 | | interval | status |
 |---|---|---|
 | the full response latency, `D_R` | outstation transmission to master receipt | **unmeasured** |
-| the observed portion | `m_R - t_R`, switch arrival to master receipt | measured |
+| the partial journey | `m_R - t_R`, switch arrival to master receipt | **not measured either:** `m_R` is captured, `t_R` is not |
 | the switch's own contribution | `e_R - t_R`, the response hold | derived, see below |
 
-`m_R - t_R` is a lower bound on `D_R` and is referred to as the observed portion of the response
-journey, never as `D_R` itself. Reporting added latency, or a master-side CLRT, as a measurement
-of `D_R` would assert a quantity no capture here contains.
+`m_R - t_R` is a *modelled* partial journey and a lower bound on `D_R`. It is written from the
+model's endpoints rather than from timestamps this repository holds, because `t_R` is the
+response's arrival at the switch and no capture records it. Calling it measured, which an earlier
+revision of this file did, overstates what exists. Reporting added latency, or a master-side CLRT,
+as a measurement of `D_R` would assert a quantity no capture here contains.
 
-Because `e_R` is the response's **actual** departure from the switch, the exact identity is
+Writing `o` for the instant the outstation puts the response on the wire, the identity is
 
-    D_R = (e_R - t_R) + (m_R - e_R)
+    D_R = (t_R - o) + (e_R - t_R) + (m_R - e_R)
 
-that is, the actual hold plus the path from the switch to the master. An earlier revision of
-this file listed the hold and a separate blocker-draining term side by side. That double-counts:
+that is, the relay-facing hop, then the actual hold, then the path from the switch to the master.
+The first term is not observed at all, which is the reason `D_R` is unmeasured; an earlier
+revision omitted it and so defined `D_R` as something smaller than it is. A second earlier
+revision listed the hold and a separate blocker-draining term side by side, which double-counts:
 an actual departure already includes whatever post-deadline waiting preceded it, so the drain
 cannot be added again beside it.
 
@@ -123,8 +127,12 @@ If the hold is to be broken down further, it decomposes **once**, into three dis
    and 1,705 ns on the response lane, medians over twelve transactions, after decoding the armed
    marker in the deadline word; see
    `audit_current/epsilon_candidate/ATTRIBUTION_AND_DECODE_20260916.md`, which also records that
-   the build's identity is incompletely attributed. That interval ends at the last blocking
-   action and so is a lower bound on epsilon rather than epsilon itself. It characterizes the
+   the build's identity is now attributed. That interval ends at the last blocking action, and
+   both of its timestamps are taken in ingress on a recirculating blocker token, so it is
+   reported as an **internal blocker-termination interval** and is **not** claimed to bound
+   epsilon in either direction: the blocker's last traffic-manager service precedes its return to
+   ingress, and the ordering of the two endpoints has not been established. An earlier revision
+   of this file called it a lower bound on epsilon; that claim is withdrawn. It characterizes the
    mechanism and not any exchange in `campaign_v1`;
 3. **subsequent service** — from the end of blocking to the packet actually leaving.
 
@@ -145,7 +153,7 @@ which governs how long a select stays armed rather than how quickly a response m
 
 | | meaning | value in `campaign_v1` |
 |---|---|---|
-| Paper | `D_R`, the response latency `m_R - t_R` | per transaction; not directly observed |
+| Paper | `D_R`, the response latency, outstation transmission to master receipt | per transaction; **unmeasured** |
 | Code and archived evidence, field `D_R_ms` | the configured acknowledgment-to-response gap | 4 ms, constant |
 
 So **the code's `D_R_ms` maps to the paper's configured `CLRT_new`**, and the paper's `D_R` has no

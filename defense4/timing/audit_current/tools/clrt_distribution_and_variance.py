@@ -590,8 +590,9 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         shares[arm] = 100.0 * inside / float(v.size)
         _draw_finite_bars(ax, pct, edges, arm)
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        ax.set_title(_panel_title(tag, arm, ", zoom, %.3f ms bins" % w), loc="left",
-                     fontsize=8, pad=10.0)
+        # The bin width belongs in the caption, which states it, not in the panel title where it
+        # repeats on both panels and crowds the arm name.
+        ax.set_title(_panel_title(tag, arm, ""), loc="left", fontsize=8, pad=10.0)
         ax.set_xlim(z_lo, z_hi)
         ax.set_ylabel("Transactions (%)")
         for i in range(n):
@@ -665,7 +666,8 @@ def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
         "`defense4/timing/NOTATION_MAPPING.md` that is m_R - m_A. It is CLRT_original in the "
         "Timing OFF arm and the measured CLRT_new in the Obfuscated arm. The configured value "
         "is the policy field named D_R_ms; under the manuscript's convention that field is the "
-        "configured CLRT_new and it is not D_R, which is the response latency m_R - t_R. "
+        "configured CLRT_new and it is not D_R, which is the response latency: the response's "
+        "whole journey from the outstation to the master, unmeasured here. "
         "Measured and configured quantities are never merged: the dashed line is the "
         "configuration, the bars are the measurement. "
         "Transaction accounting: the extractor pairs one request with the first transport "

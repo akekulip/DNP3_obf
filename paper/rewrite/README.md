@@ -55,7 +55,8 @@ pipeline/reports/               PRE_REWRITE_KNOWLEDGE, PRE_REWRITE_RECONCILIATIO
 
 `pipeline/DR_LIN_WRITING_GUIDE.md`. In short: the framework is the contribution and READ and
 SELECT/OPERATE are case studies; the arms are Timing OFF and Obfuscated; the read path is anchored
-to the relay acknowledgment (CLRT = D_R) and the control path to the request (echo − ACK = R − A);
+to the outstation acknowledgment, where the observable is the CLRT, and the control path to
+the request, where it is R − A;
 no size claim, no system name, no firstness claim, no em dashes; every result number traces to
 `figures/ndss/MANUSCRIPT_VALUES.json`, which is regenerated from the raw captures by
 `defense4/timing/evidence/campaign_v1/repro/reproduce.sh` and is the only file the manuscript

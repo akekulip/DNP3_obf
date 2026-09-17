@@ -1,12 +1,12 @@
 {
  "figure": "fig_clrt_zoom",
  "caption": "**The released interval, resolved.** The same measurements as Fig.~\\ref{fig:hist} on 0.005 ms bins within 0.10 ms of the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed). The ordinate is still the percentage of that arm's entire sample, not of the window, so the bars are directly comparable with the other figures; the window holds 13.58 % of (a) and 99.86 % of (b). This is where the mass that the 1 ms grid splits across two bins is seen to be a single narrow mode.",
- "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "b7087f2b100a69c7b5842518a9b961ab80ffd824",
+ "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+ "source_commit": "ae4f65d38c790f9fb45308c20b7a0778781fcdad",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "4d482a2e6b41becee1f56439f7a69cafe25bae686dfcfed8a3dde12bda458da6"
+  "sha256": "da5d3db4988c0947fa3c7791f5b2a661ca83381d232f6c1139cdf2b277cd4220"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -559,19 +559,19 @@
   },
   {
    "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
-   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+   "sha256": "fec3766319ae5c1b54c5cb4bd1d17039b1f1a65b7537d51f155215c50c9e5f75"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_zoom.pdf",
-   "sha256": "36cd3d2e96f412fbc6823227ec98e6b14fb8e56d695eaaae9577aa9839e09896",
+   "sha256": "c42915d0cc843f0a1684bcdba75d3a2cc002f8e90813782a5077e01a037f07c0",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_zoom.png",
-   "sha256": "f7eea4544c2be11b67a384a4ee2ccd78d08d1418b5da7b801a89556ec5fc0f4c",
+   "sha256": "a1d7860b886184690904ece1ec4b2f57e9a4d1f8563971daf1c8aa508873192c",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"

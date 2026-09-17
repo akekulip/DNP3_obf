@@ -23,7 +23,9 @@ grammar, tense or factual content in place. Record concerns in
 supersedes the revision that briefly made `D_R` the response hold and introduced `CLRT_target`.
 
 * `D_A` is the **ACK hold**, `e_A - t_A`.
-* `D_R` is the **response latency**, `m_R - t_R`. It is not the hold and not the configured gap.
+* `D_R` is the **response latency**: the response's whole journey from the outstation to the
+  master. It is unmeasured here, it is not `m_R - t_R`, and it is neither the hold nor the
+  configured gap.
 * The **response hold**, `e_R - t_R`, has no symbol of its own and is written from its endpoints.
 * The configured gap is the **configured `CLRT_new`**. `CLRT_target` is withdrawn; do not use it.
 * Say **configured `CLRT_new`** for the policy value and **measured `CLRT_new`** for what the
@@ -42,7 +44,7 @@ field or a control-plane parameter to match the paper.
 | Introduction paragraph 3 as "why those approaches do not transfer", argued through DNP3 framing and CRC | His paragraph 3: different fingerprinting features, and the encrypted-channel assumption that does not hold here. The CRC and no-flexibility arguments are removed from the motivation. |
 | The prescribed Evaluation running order in section 2 | The reader's questions: what was measured; does the released interval reach its target; the control lane; the supported range; the cost; what the attacker still learns; limitations. The RO1-RO5 tags are retained inside those headings. |
 | Any requirement to assert firstness | Firstness is not required and is not asserted. |
-| Treating `D_R` as the configured gap, or as the response hold, in prose, equations or figure labels | The **configured `CLRT_new`** for the policy value; the response hold written from its endpoints `e_R - t_R`. `D_R` is the response latency `m_R - t_R`. |
+| Treating `D_R` as the configured gap, or as the response hold, in prose, equations or figure labels | The **configured `CLRT_new`** for the policy value; the response hold written from its endpoints `e_R - t_R`. `D_R` is the response latency, which is unmeasured here. |
 
 **Still in force and reaffirmed:** timing only, no size claim anywhere; no invented system name;
 the framework leads and READ/SELECT and OPERATE are its case studies; arm labels are *Timing OFF*
@@ -136,7 +138,7 @@ this draft, not a structure the advisor dictated.
 | timing-feature overlap (Figure 3) | clustering performance, t-SNE, UMAP |
 | transaction-class timing leakage / classifier | device identification, device-model separation |
 | CLRT (cross-layer response time) = response − ACK, master-facing | ACK-to-response "latency of the relay" without the observation point |
-| D_A = ACK hold; D_R = **response latency** `m_R - t_R`; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
+| D_A = ACK hold; D_R = **response latency**, the response's whole journey from the outstation to the master, which is unmeasured here; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
 | size shaping **off in both arms** in `campaign_v1`, so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
 
 ## 6. Claim gates (every sentence of results must pass)

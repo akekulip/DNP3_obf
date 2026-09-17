@@ -82,6 +82,7 @@ corpus ran with shaping **active** in both arms, where responses are split 28+21
 is therefore a reliable tell for which configuration produced a capture.
 
 **Notation.** `defense4/timing/NOTATION_MAPPING.md` is the authority, as fixed on 2026-09-09.
-`D_A` is the ACK hold; `D_R` is the response latency `m_R - t_R`; the response hold `e_R - t_R`
+`D_A` is the ACK hold; `D_R` is the response latency, the response's whole journey from the
+outstation to the master, which is unmeasured here; the response hold `e_R - t_R`
 has no symbol; the configured gap is the **configured `CLRT_new`**, carried in the code by the
 field still named `D_R_ms`. `CLRT_target` is withdrawn. Archived field names are never renamed.
