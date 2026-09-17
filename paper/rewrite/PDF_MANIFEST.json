@@ -1,13 +1,13 @@
 {
  "what": "the tracked PDF at paper/rewrite/main.pdf",
- "sha256": "b85c7a8803e5542be2c7f9cd320720e87bc04c23e31385a44a93927fd1c27e76",
+ "sha256": "3a6bb922f3b31dfd98bfe1a5b1c106b6c2655d1ff1f0c4e71c22271165566745",
  "pages": 15,
- "source_digest_sha256": "e6b2401834aeba74f934cacffd30ca8e9a728cecd5adc734a8ec341179ba19bd",
+ "source_digest_sha256": "ab7792340022efaedad6606970ed8affbbd35013922a7b17d73b81052e1892da",
  "source_files": 19,
- "built_from_commit": "8bd7f40fd6ce252373cc9cc6738b94780be3f6d0",
+ "built_from_commit": "e4cc5a24e9b6e1b286aac286370b8836486c3699",
  "working_tree_clean_at_publish": false,
  "built_by": "paper/rewrite/pipeline/build.sh, which writes pipeline/build/main.pdf; this file is a copy published by pipeline/publish_manuscript.py",
  "lin_gate": "PASS (no hard-check failures)",
- "venue_preflight": "PASS",
+ "venue_preflight": "[FAIL] page budget 14 main-body page(s) (Ethics Considerations begins on page 14, References on page 15); limit 13. 1 of the 15 page(s) carry no body region and are excluded; a page where an excluded section begins is still counted, because the text above that heading is body. Open Science is counted, because the venue's exclusions name only Ethics Considerations, references and appendices",
  "note": "Every record here is written in one step, so the sidecar hash, the manifest and the file cannot disagree. source_digest_sha256 covers main.tex, every section and every included figure, so an edit after this publish is detectable without trusting a commit. Whether this PDF is a submission candidate is said by venue_preflight above, not assumed."
 }
