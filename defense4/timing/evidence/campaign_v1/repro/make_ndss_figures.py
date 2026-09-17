@@ -69,8 +69,7 @@ def box_pair(ax, rows, col, logy=True):
     if logy:
         ax.set_yscale("log"); ax.yaxis.set_minor_formatter(NullFormatter())
     ax.set_xticks(range(3))
-    # Angled: set horizontally, the three class names abut on a column-width panel.
-    ax.set_xticklabels(CLASSES, fontsize=8, rotation=45, ha="right", rotation_mode="anchor")
+    ax.set_xticklabels(CLASSES, fontsize=8)
     ax.set_xlim(-0.6, 2.6)
 
 
@@ -78,11 +77,14 @@ def box_pair(ax, rows, col, logy=True):
 def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     """Panels (b) and (c) are the measured hardware sweep, not a resampled distribution."""
     D, H = cfg["release_budget_D_ms"], cfg["fail_open_horizon_H_ms"]
-    # 2x2 at column width. Each panel's key sits ABOVE its axes rather than inside them: at
-    # 1.5 inches square an in-axes legend covered most of the data, which is what the
-    # 2026-09-17 review found. The height pays for that room; shrinking the type instead would
-    # fall below the 8 pt floor the style module enforces.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.3))
+    # 2x2 across the text block, not the column. At 3.5 in each panel was about 1.5 in square,
+    # which is why the keys had to be pushed outside the axes and why the type looked large
+    # beside the plots: the labels were sized for the page and the panels for a quarter of a
+    # column. At 7.16 in each panel has roughly four times the area, so the keys sit inside,
+    # the class names under (d) stand up straight, and nothing is shrunk below the 8 pt floor.
+    # This figure is a figure* in the manuscript; it is the only one that spans. The height is
+    # what the 13-page budget allows: 2.85 in and above costs a fourteenth body page.
+    fig, _axes = plt.subplots(2, 2, figsize=(F.PAGE_W, 2.70))
     ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     data = []
 

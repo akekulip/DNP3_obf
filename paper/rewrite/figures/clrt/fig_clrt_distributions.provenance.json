@@ -2,15 +2,15 @@
  "figure": "fig_clrt_distributions",
  "caption": "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of that arm's own transactions in each bin, on common 1 ms bins anchored at 0 ms with a linear ordinate and shared limits. Finite bins are half-open, $[\\mathrm{lo}, \\mathrm{hi})$; the hatched category at the right holds every transaction at or above 15 ms, which is 0.409 % of (a) and 0.027 % of (b). The dashed line in (b) is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$; the measured mean lies 0.012 ms from it. Because the configured value falls exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, which is a property of the grid and not of the measurement; Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. (a) $n$~=~26,400, mean 2.800~ms, sd 2.609~ms, variance 6.808~ms$^2$. (b) $n$~=~26,400, mean 4.012~ms, sd 0.628~ms, variance 0.3943~ms$^2$.",
  "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
+ "source_commit": "8daa4adcd6cf88fc3069e893ce9e95cd7bb65f67",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "da5d3db4988c0947fa3c7791f5b2a661ca83381d232f6c1139cdf2b277cd4220"
+  "sha256": "22ba3d4bee27b210ce343a74db8e57dcfb97dc9f859e70ca1c7486980f215351"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "454d97ed9cdf25e5482f2c3ed15011b3e4e26ba6c5ae5d63a2b8b60135577c2e"
+  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
  },
  "reused_module": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",

@@ -4,11 +4,11 @@ The evidence and the analysis are reproducible from the raw captures, archived w
 and statistics code, the figure generators, the pinned environment and the tests. One script
 rebuilds every number and the campaign figures; the histogram and model figures have their own
 generators and the manuscript its own build. A hash manifest covers each published artefact, and a
-publication gate compares a fresh rebuild against what the paper contains, so a discrepancy fails
-rather than passing silently. The gate compares rendered
-PDFs byte for byte, which is stricter than numerical agreement: the numbers reproduce wherever the
-pinned environment installs, while the last bits of a plotted coordinate need not agree across
-interpreter builds. The figures the page budget keeps out of the manuscript are published too.
+publication gate compares a fresh rebuild against what the paper contains, byte for byte, so a
+discrepancy fails rather than passing silently. That is stricter than numerical agreement: the
+numbers reproduce wherever the pinned environment installs, while the last bits of a plotted
+coordinate need not agree across interpreter builds. The figures the page budget keeps out of the
+manuscript are published too.
 
 The switch program is the exact P4 source that ran, with its compilation record; the relay's
 firmware and vendor documentation are not ours to distribute. On acceptance the captures, the

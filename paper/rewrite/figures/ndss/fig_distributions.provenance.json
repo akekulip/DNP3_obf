@@ -2,11 +2,11 @@
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
+ "source_commit": "8daa4adcd6cf88fc3069e893ce9e95cd7bb65f67",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "aa2f05c04378a37301477be0eeb081ac7699de61e79c294626533094181cbfaf"
+  "sha256": "db37076bf8a5ab857dbb284f8cd225306538badcf61c929ef99bd5d0b6ee23ba"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -22,12 +22,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "5d053a99554b464e0f975cee8406450675db9a08a1dff1ccf1d835a2464024d6",
+   "sha256": "c8705c7ea23c7e040850ec90a2eaa90a3454149b996e11574d862aa9ceeaec85",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "f33c7d87d6d54c16ffc58f540b154272199cd4ce87fc54006167a69ddbd99625",
+   "sha256": "1b193eb75c82a8b0f6b7183f454e2d540c649fa0e0e771af1c7d5317aca74f94",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"

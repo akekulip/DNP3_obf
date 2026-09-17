@@ -590,6 +590,12 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         shares[arm] = 100.0 * inside / float(v.size)
         _draw_finite_bars(ax, pct, edges, arm)
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
+        # Panel (a) is nearly empty, and that emptiness IS the result: Timing OFF puts a small
+        # share of its transactions in this window and spreads them over every bin, so no bar
+        # clears half a percent. Without the share stated in the panel a reader sees a blank
+        # axis and has to hunt the caption for the number, so it is written where it is read.
+        ax.text(0.985, 0.92, "%.2f\u2009%% of this arm in the window" % shares[arm],
+                transform=ax.transAxes, ha="right", va="top", fontsize=8, color=ARM_COLOR[arm])
         # The bin width belongs in the caption, which states it, not in the panel title where it
         # repeats on both panels and crowds the arm name.
         ax.set_title(_panel_title(tag, arm, ""), loc="left", fontsize=8, pad=10.0)
