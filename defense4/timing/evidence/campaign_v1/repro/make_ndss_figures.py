@@ -136,7 +136,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
     ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms)")
     ax[0][1].set_ylabel("Measured (ms)")
-    ax[0][1].annotate("request-to-response", xy=(xs[1], rt[1]), xytext=(0.06, 0.80),
+    ax[0][1].annotate("request-to-response", xy=(xs[1], rt[1]), xytext=(0.02, 0.80),
                       textcoords="axes fraction", fontsize=8, color=F.C_OPERATE,
                       ha="left", va="top")
     # One short token on the marks; the caption says it is the measured value.

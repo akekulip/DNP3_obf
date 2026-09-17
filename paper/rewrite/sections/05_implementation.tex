@@ -13,10 +13,9 @@ schedule a callback.
 \IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
 \caption{How one pipeline realizes the schedule. Ingress classifies each transaction and computes
   its release deadlines. Blocker packets drained ahead of the held packet sustain a hold until its
-  deadline expires. The four-queue ladder holds what the outstation returns, for READ and for both
-  phases of a control; the second pair holds the outgoing OPERATE on its way to the relay, so it
-  is not a second reply lane. Solid lines are master-facing and observed; dashed lines are not, as
-  in Figure~\ref{fig:observation}.}
+  deadline expires. The four-queue ladder holds what the outstation returns; the second pair holds
+  the outgoing OPERATE, not a second reply. Solid lines are master-facing and observed; dashed
+  lines are not, as in Figure~\ref{fig:observation}.}
 \label{fig:design}
 \end{figure}
 
@@ -49,8 +48,7 @@ held packet leaves. The release therefore trails the deadline by the time that d
 each lane drains its own queue, the acknowledgment's above the response's;
 Section~\ref{sec:eval:limits} reports what we measured of that interval. The arrangement is what
 makes the coupling of Section~\ref{sec:design:model} implementable: the response's release instant
-is computed at the acknowledgment, so the resulting hold absorbs whatever the outstation does
-without the switch ever measuring it.
+is computed at the acknowledgment, so the hold absorbs whatever the outstation does without the switch measuring it.
 
 \subsection{One READ transaction}
 \label{sec:impl:walkthrough}

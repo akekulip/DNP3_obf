@@ -186,20 +186,19 @@ this operating point, and would have to be rechecked for a master with a shorter
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_leakage}
-  \caption{Transaction-class leakage under the two attacker models, leaving out one grouped run at a time.
-  (a) Balanced accuracy; whiskers span the 22 held-out runs and are not a confidence interval.
-  (b) Mutual information against a within-run permutation null. (c) and (d) Row-normalized
-  confusion using both intervals.}
+  \caption{Transaction-class leakage under the two attacker models, leaving out one grouped run at
+  a time. (a) Balanced accuracy by attacker condition and feature set; whiskers span the 22
+  held-out runs and are not a confidence interval. (b) Mutual information between the CLRT and the
+  class, against a within-run permutation null.}
   \label{fig:leakage}
 \end{figure}
 
 \textbf{Setup.} The features are the two separately measurable intervals; their sum, the total
 response time, is excluded so that no feature is a linear combination of the others. Separately
 measurable is not statistically independent and we do not assume it is: the classifier is given
-both and may exploit any dependence between them, which is what the adaptive result below does. We
-estimate mutual information for the CLRT in bits against a null built by shuffling class labels
-within each grouped run over 1{,}000 permutations, preserving the per-run class counts. Every fold
-leaves out one grouped run, and we report the spread of the 22 held-out-run scores as a range.
+both and may exploit any dependence, which is what the adaptive result below does. Mutual
+information for the CLRT is estimated in bits against a null built by shuffling class labels
+within each grouped run over 1{,}000 permutations, which preserves the per-run class counts.
 
 \textbf{RO3.} Consider first what the mechanism does to the two intervals before any classifier is
 applied. Under Timing OFF the classes separate mainly along the post-acknowledgment axis, with
@@ -231,8 +230,9 @@ The adaptive adversary gives two results, and they answer different questions. R
 obfuscated traffic it stays at chance, 0.333, on the CLRT alone: the targeted feature is
 suppressed against a retrained adversary and not only against a fixed one. The same adversary
 recovers to 0.651 when it is given both intervals, because the read and control paths are timed
-from different events, so their acknowledgment latencies differ. The confusion panels show the
-shape of that recovery, with OPERATE separable while SELECT stays confused with READ.
+from different events, so their acknowledgment latencies differ. Row-normalised confusion over all
+22 held-out runs, published with the artifact, shows the shape of that recovery: OPERATE separable
+while SELECT stays confused with READ.
 
 We state the cost of that difference rather than leave it to be inferred. On the
 request-to-acknowledgment interval alone, balanced accuracy rises from 0.380 under Timing OFF to
