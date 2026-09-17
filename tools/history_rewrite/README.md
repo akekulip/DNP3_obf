@@ -12,13 +12,17 @@ renders as a second author on those commits. Every commit in this repository is 
 committed by Philip Akekudaga; the trailer is the only place any other name appears, and the
 paper's own author block names Philip Akekudaga and Hui Lin and no one else.
 
-| commit | message |
-|---|---|
-| `99f03fa` | feat(dnp3-obfuscation): rig-validate ACK/latency-delay timing defense |
-| `29c3ad5` | docs(resume): record git checkpoint + ACK-delay resume state |
-| `9f7717d` | record the Vision DNP3 file reorganisation |
-| `f10f788` | render the delay note to PDF, and add the script that does it |
-| `9bda4b5` | explain the retransmission limit an administrator has to respect |
+The hashes below are the rewritten ones, because the hash repair of step 2 repointed this table
+along with every other document. The old hash each one replaced is given beside it, since that is
+what a pre-rewrite clone, a stale tag or a pull-request ref still names.
+
+| commit | was | message |
+|---|---|---|
+| `99f03fa` | `5acf404c` | feat(dnp3-obfuscation): rig-validate ACK/latency-delay timing defense |
+| `29c3ad5` | `761d9199` | docs(resume): record git checkpoint + ACK-delay resume state |
+| `9f7717d` | `b0071d32` | record the Vision DNP3 file reorganisation |
+| `f10f788` | `d68123d9` | render the delay note to PDF, and add the script that does it |
+| `9bda4b5` | `5cc61831` | explain the retransmission limit an administrator has to respect |
 
 ## What this costs
 
@@ -115,4 +119,34 @@ git push --force-with-lease origin main
 ```
 
 `--force-with-lease` rather than `--force`: it refuses if the remote moved since your last fetch,
-which is the check worth keeping on an operation like this.
+which is the check worth keeping on an operation like this. The rewrite deletes the
+`origin/main` remote-tracking ref, so the lease has nothing to compare against and the first
+attempt fails with "stale info"; `git fetch origin` restores the baseline and the push then works.
+
+## Step 5: the tags, which are what keep the old commits alive
+
+Pushing `main` is not enough. The ten tags on GitHub still point into the pre-rewrite history, and
+two of the trailered commits, `5acf404c` and `761d9199` of 2026-07-15, are ancestors of every one
+of those tag targets. While the tags stand, the old commits stay reachable and the old authorship
+stays visible. The rewrite repointed the tags locally, so publishing them is one command:
+
+```bash
+git push --force origin --tags
+```
+
+Verify afterwards that each remote tag names the same commit as the local one:
+
+```bash
+for t in $(git tag); do
+  printf '%-52s %s %s\n' "$t" "$(git rev-list -n1 $t | cut -c1-8)" \
+    "$(gh api repos/akekulip/DNP3_obf/git/ref/tags/$t --jq '.object.sha' | cut -c1-8)"
+done
+```
+
+## What cannot be removed
+
+This repository has five closed pull requests, and GitHub keeps a `refs/pull/N/head` ref for each
+one permanently. All five reach `5acf404c` and `761d9199`, so those two commits stay retrievable
+by hash through the pull-request views no matter what is pushed. Only GitHub Support can purge
+them. They do not feed the contributors list, which is computed from the default branch, and after
+the force-push `repos/akekulip/DNP3_obf/contributors` reports `akekulip` alone.
