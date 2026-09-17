@@ -1,0 +1,635 @@
+--- a/defense4_rrc_bor_unified12.p4
++++ b/defense4_timing_only.p4
+@@ -1,26 +1,30 @@
+ /* ============================================================================
+- * ►►►► defense4_rrc_kernel.p4 — RELEASE-REPLICATE-CARVE (RRC) native primitive ◄◄◄◄
++ * ►►►► defense4_timing_only.p4 — the timing mechanism, with the size layer removed ◄◄◄◄
+  *
+- * RRC = ADMIT -> HOLD -> RELEASE -> REPLICATE -> CARVE. It joins the frozen caseA
+- * timing transaction to a native Tofino size transform WITHOUT an egress mirror: the
+- * caseA response-release event itself sends the eligible 49 B response into a Packet-
+- * Replication-Engine multicast group (RRC_MGID_49_28), and the egress carves the two
+- * replicas by replication id — RID 1 = DNP3 payload[0:28] (dnp3_dl + blk0), RID 2 =
+- * payload[28:49] (blk1 + res3), split on a DNP3 CRC-block boundary so join == 49 B and
+- * no DNP3 byte or CRC is touched. Built on defense4_joint_size_time_kernel.p4; the caseA
+- * ingress transaction/timing core is embedded VERBATIM. Changes vs the joint kernel are
+- * tagged "RRC section N" (spec: ../RRC_DESIGN.md):
+- *   1. multi-function admission (READ 0x01 / SELECT 0x03 / OPERATE 0x04 all arm)
+- *   2. per-function EXP_ACK (keyed tbl_build_exp_ack) + shape_enable knob (tbl_params)
+- *   3. payload49 eligibility with TCP options, in the parser (no MAU arithmetic)
+- *   4. direct PRE release (ig_tm_md.mcast_grp_a) — the egress mirror is DELETED
+- *   5. egress = RID interpreter (carve + checksum incl. options; rid==0 byte-identical)
+- *   6. one profile RRC_49_CUT28 (no runtime cut param)
+- * bf-p4c 9.13.1: 0 errors, ingress 12/12 stages, 0 new ingress registers, PRE (not MAU),
+- * egress 3 stages (4 fewer policy tables than the joint kernel). COMPILE PROBE ONLY —
+- * NOT silicon-validated; the hardware gates R1-R6 are run separately.
++ * A candidate derived from the frozen evaluated program
++ * `defense4_rrc_bor_unified12.p4` by deleting the release-replicate-CARVE size layer and
++ * nothing else. The timing transaction is untouched: ADMIT -> HOLD -> RELEASE, with the
++ * read lane anchored to the outstation's acknowledgment and the control lane to the
++ * request, which is what the evaluation measures.
++ *
++ * What was removed, and it is only this:
++ *   - the parser's 49 B eligibility gate and its four states (meta.payload49);
++ *   - meta.shape_enable, the sixth knob on tbl_params, and meta.do_shape;
++ *   - tbl_build_do_shape, the level-1 precompute that existed to keep the release
++ *     gateway a single-field test;
++ *   - the do_shape ternary column from tbl_decide_fresh and tbl_decide_deq, and the
++ *     three entries that selected a SHAPE outcome;
++ *   - cmt_shape, the RRC_TO_SHAPE macro, the four OUT_*_SHAPE outcome codes, and the
++ *     multicast group they replicated into;
++ *   - the whole egress pipeline: the DNP3 CRC-block headers, the block re-parse, the
++ *     replication-id interpreter and the per-window checksum recomputation.
++ *
++ * Nothing else is touched. Every remaining table, register, queue and deadline is the
++ * frozen program's. This is a COMPILE CANDIDATE: it answers what the size layer cost in
++ * switch resources, and it has not been loaded or run.
+  *
+  * ---- The embedded caseA core (unchanged) ----------------------------------------------
++ * ---- The embedded caseA core (unchanged) ----------------------------------------------
+  * The three defects confirmed by the
+  * 2026-07-30 audit (see ../AUDIT_RESPONSE.md and REPORT.md §7.5–§7.8) are fixed, and the
+  * three repairs are compiled UNCONDITIONALLY — there are no defect toggles, so a build with
+@@ -324,7 +328,6 @@
+  * shaping is enabled; the control plane binds this MGID to TWO level-1 nodes, both egress
+  * dp9, with RID 1 (prefix) and RID 2 (suffix). Distinct from any caseA pktgen mirror.
+  * bit<16> to match ig_tm_md.mcast_grp_a; not typedef'd to avoid clashing with tna.p4. */
+-const bit<16> RRC_MGID_49_28 = 16w0x2849;   /* mnemonic 28/49; control-plane-installed  */
+ 
+ /* ---- roles (parser-assigned, once per path) ---- */
+ const bit<8> ROLE_BYPASS     = 0;  /* forwarded unchanged, never held, never arms         */
+@@ -760,8 +763,7 @@
+ const bit<16> OUT_RESP_HOLD_LATE   = 16w8;   /* qid4  (CF_RESP_HOLD_LATE)        */
+ const bit<16> OUT_RESP_HOLD_EARLY  = 16w9;   /* qid4  (CF_RESP_HOLD_EARLY)       */
+ const bit<16> OUT_RESP_DUP_SUPP    = 16w10;  /* drop  (CF_RESP_DUP_SUPP)         */
+-const bit<16> OUT_RESP_BYPASS_FWD  = 16w11;  /* fwd   (CF_RESP_BYPASS, !shape)   */
+-const bit<16> OUT_RESP_BYPASS_SHAPE= 16w12;  /* shape (CF_RESP_BYPASS,  shape)   */
++const bit<16> OUT_RESP_BYPASS_FWD  = 16w11;  /* fwd   (CF_RESP_BYPASS)           */
+ const bit<16> OUT_ACK_REJECT       = 16w13;  /* fwd   (CF_ACK_REJECT, incl OFF)  */
+ const bit<16> OUT_ACK_HOLD         = 16w14;  /* qid6  (CF_ACK_HOLD)              */
+ const bit<16> OUT_ACK_DUP_HOLD     = 16w15;  /* qid6  (CF_ACK_DUP_HOLD)          */
+@@ -780,10 +782,8 @@
+ const bit<16> OUT_AB_LOOP          = 16w28;  /* qid7  (CD_BLOCK_LOOP, ack)       */
+ const bit<16> OUT_ACK_REL_RETIRE   = 16w29;  /* fwd   (CD_ACK_REL_RETIRE)        */
+ const bit<16> OUT_ACK_RELEASE      = 16w30;  /* fwd   (CD_ACK_RELEASE)           */
+-const bit<16> OUT_REL_DL_FWD       = 16w31;  /* fwd   (CD_RELEASE_DEADLINE,!shape)*/
+-const bit<16> OUT_REL_DL_SHAPE     = 16w32;  /* shape (CD_RELEASE_DEADLINE, shape)*/
+-const bit<16> OUT_REL_FO_FWD       = 16w33;  /* fwd   (CD_RELEASE_FAILOPEN,!shape)*/
+-const bit<16> OUT_REL_FO_SHAPE     = 16w34;  /* shape (CD_RELEASE_FAILOPEN, shape)*/
++const bit<16> OUT_REL_DL_FWD       = 16w31;  /* fwd   (CD_RELEASE_DEADLINE)      */
++const bit<16> OUT_REL_FO_FWD       = 16w33;  /* fwd   (CD_RELEASE_FAILOPEN)      */
+ const bit<16> OUT_DEQ_DROP         = 16w35;  /* drop  (unreachable loop-back guard)*/
+ #ifdef U_BOR
+ /* ►► UNIFIED12 change 4/6: BOR OPERATE-hold dispositions, same one-outcome/one-commit path. */
+@@ -867,12 +867,6 @@
+ header bridge_h { bit<8> role; }
+ #endif
+ 
+-/* ---- egress-only SIZE-layer block headers (native-parity CRC-boundary split).
+- *      The ingress never parses or emits these; they are added to headers_t so the
+- *      egress can re-parse the RELEASED DNP3 response into CRC blocks and carve it. ---- */
+-header pay18_h { bit<144> b; }   /* one full 18-byte DNP3 CRC block (16 user + 2 CRC) */
+-header res3_h  { bit<24>  b; }   /* short final block: 1 user byte  + 2 CRC (S=49)    */
+-
+ struct headers_t {
+     pktgen_hdr_h pgen;    /* consumed on the dp68 blocker/event path; NEVER emitted */
+ #ifdef D3_EGRESS_MARKER
+@@ -888,10 +882,6 @@
+     dnp3_dl_h   dnp3_dl;
+     dnp3_tp_h   dnp3_tp;
+     dnp3_app_h  dnp3_app;
+-    /* egress SIZE layer: DNP3 CRC blocks re-parsed for the split (49 B = dl+blk0+blk1+res3) */
+-    pay18_h     blk0;
+-    pay18_h     blk1;
+-    res3_h      res3;
+ }
+ 
+ /* ================================ metadata ===============================
+@@ -936,11 +926,6 @@
+     /* RRC section 2/4: the size-shaping runtime knob and the parser eligibility bit. Both
+      * are 16-bit so they land in the empty H PHV group — the 8-bit group B0-15 is at
+      * 16/16 containers, so no new 8-bit metadata may be added (see the PHV note below). */
+-    bit<16> shape_enable;  /* RRC: 1 = size-shaping armed (from tbl_params)                */
+-    bit<16> payload49;     /* RRC: 1 = frame is a complete 49 B DNP3 payload (parser-set)  */
+-    bit<16> do_shape;      /* RRC: shape_enable & payload49, PRECOMPUTED at level 1 so the
+-                            * release-branch test is a single-field gateway, not a compound
+-                            * two-field one (a compound test tipped ingress to 13 stages).  */
+     bit<8>  sess;          /* D3: SESS_NONE / SESS_RELAY / SESS_MASTER             */
+     bit<16> mport;         /* D3: the MASTER's ephemeral port as seen on this frame*/
+     bit<16> sport_w;       /* D3: PHV input 2 of reg_session_port (0 = no write)   */
+@@ -1121,9 +1106,6 @@
+         meta.seq_m           = 32w0;
+         meta.read_len        = 32w0;
+         meta.budget_init     = 32w0;
+-        meta.shape_enable    = 16w0;   /* RRC: overwritten by tbl_params on every packet   */
+-        meta.payload49       = 16w0;   /* RRC: set to 1 only on the 49 B eligibility states */
+-        meta.do_shape        = 16w0;   /* RRC: recomputed by tbl_build_do_shape at level 1 */
+         meta.sess            = SESS_NONE;
+         meta.mport           = 16w0;
+         meta.sport_w         = 16w0;
+@@ -1377,17 +1359,10 @@
+             (8w0x10 &&& 8w0x3F, 4w13, 16w72) : set_role_ack;
+             (8w0x10 &&& 8w0x3F, 4w14, 16w76) : set_role_ack;
+             (8w0x10 &&& 8w0x3F, 4w15, 16w80) : set_role_ack;
+-            /* RRC section 3 — the 49 B eligibility gate, EXACT so it takes priority over
+-             * the general DNP3 ranges below. total_len for a 49 B DNP3 payload depends on
+-             * the TCP options width: dofs 5 -> 89, 6 -> 93, 7 -> 97, 8 -> 101 (the corpus's
+-             * TCP-timestamp case, which is why the previous size layer's total_len==89-only
+-             * test missed the real relay response). Each state sets meta.payload49 and then
+-             * continues the SAME DNP3 framing gates, so eligibility is only "shape-able" once
+-             * the frame also passes the §8.2 solicited-single-fragment RESPONSE conjuncts. */
+-            (8w0x10 &&& 8w0x27, 4w5,  16w89)             : dl_p49;
+-            (8w0x10 &&& 8w0x27, 4w6,  16w93)             : opt4_p49;
+-            (8w0x10 &&& 8w0x27, 4w7,  16w97)             : opt8_p49;
+-            (8w0x10 &&& 8w0x27, 4w8,  16w101)            : opt12_p49;
++            /* The 49 B exact-match eligibility gate that used to sit here selected the
++             * frames the size carve could split. With the carve gone, these four
++             * (data_offset, total_len) pairs fall through to the general DNP3 ranges below,
++             * which send them to exactly the same states. */
+             (8w0x10 &&& 8w0x27, 4w5,  16w53 .. 16w65535) : parse_dnp3_dl;
+             (8w0x10 &&& 8w0x27, 4w6,  16w57 .. 16w65535) : opt4;
+             (8w0x10 &&& 8w0x27, 4w7,  16w61 .. 16w65535) : opt8;
+@@ -1399,12 +1374,6 @@
+     state opt4  { pkt.extract(hdr.tcp_opt4);  transition parse_dnp3_dl; }
+     state opt8  { pkt.extract(hdr.tcp_opt8);  transition parse_dnp3_dl; }
+     state opt12 { pkt.extract(hdr.tcp_opt12); transition parse_dnp3_dl; }
+-    /* RRC section 3: 49 B eligible — mark payload49, extract any options, join the gates. */
+-    state dl_p49    { meta.payload49 = 16w1;                            transition parse_dnp3_dl; }
+-    state opt4_p49  { meta.payload49 = 16w1; pkt.extract(hdr.tcp_opt4);  transition parse_dnp3_dl; }
+-    state opt8_p49  { meta.payload49 = 16w1; pkt.extract(hdr.tcp_opt8);  transition parse_dnp3_dl; }
+-    state opt12_p49 { meta.payload49 = 16w1; pkt.extract(hdr.tcp_opt12); transition parse_dnp3_dl; }
+-
+     state set_role_ack { meta.role = ROLE_ACK; transition accept; }
+ 
+     /* GATE 2 — DNP3 link LEN. LEN counts ctrl+dst+src+user data, so LEN == 5 is a
+@@ -1801,7 +1770,7 @@
+     }
+ 
+     /* single-bit hold gate (folds the reg_topj arm for a FRESH matched+ready OPERATE, the RRC
+-     * do_shape idiom): one table instead of a compound gateway + a standalone arm. */
++     * single-table idiom): one table instead of a compound gateway + a standalone arm. */
+     action hold_and_arm() { meta.hold_ok = 8w1; meta.dl_val_topj = meta.topj_cand; }
+     action clr_hold_ok()  { meta.hold_ok = 8w0; meta.dl_val_topj = DL_NO_WRITE; }
+     table tbl_hold_ok {
+@@ -2197,24 +2166,6 @@
+     #define D3_DROP()    { ig_dprsr_md.drop_ctl = 3w1; }
+ 
+     /* ►► RRC section 4 — DIRECT PRE RELEASE (no egress mirror, no source copy).
+-     * At the caseA response-release branch a shape-eligible 49 B response goes to the
+-     * dedicated multicast group INSTEAD of a unicast dp9 copy: set ONLY mcast_grp_a, qid 0,
+-     * bypass_egress 0. ucast_egress_port is deliberately left unset so NO unicast (source)
+-     * copy is produced; drop_ctl is NOT set. The PRE replicates into RID 1 (prefix) and
+-     * RID 2 (suffix), both egress dp9, and the egress carves per RID. */
+-    #define RRC_TO_SHAPE() { ig_tm_md.mcast_grp_a   = RRC_MGID_49_28;  \
+-                             ig_tm_md.qid           = QID_FWD;         \
+-                             ig_tm_md.bypass_egress = 1w0; }
+-
+-    /* RRC: forward a RESPONSE to the master, shaping it into the PRE carve group when
+-     * shaping is armed AND the frame is a complete 49 B DNP3 payload; otherwise the
+-     * unchanged unicast forward. do_shape = shape_enable & payload49 is PRECOMPUTED at
+-     * level 1 (tbl_build_do_shape), so this is a SINGLE-field gateway — a compound
+-     * two-field test here tipped ingress to 13 stages. payload49 is re-derived by the
+-     * parser on every pass (fresh from the relay and dequeued from the loopback alike),
+-     * so this same gate fires on the deadline-release pass and on the OFF bypass. */
+-    #define RRC_RESP_FWD() { if (meta.do_shape == 16w1) { RRC_TO_SHAPE() } \
+-                             else { D3_TO_FWD() } }
+ 
+     /* request ONE I2E mirror (the clone) to dp68, on the FRESH-ARM path only. */
+     action arm_clone() {
+@@ -2243,7 +2194,6 @@
+                                * (BPC_PKTGEN_OP -> OUT_PKTGEN_DROP), so READ behaviour is unchanged. */
+                               meta.clone_tag  = CLONE_TAG_MARKER_3K | (bit<32>)meta.gen_in;
+                               ctr_outcome.count(); }
+-    action cmt_shape()      { RRC_TO_SHAPE()  ctr_outcome.count(); }
+     action cmt_block()      { to_block();      ctr_outcome.count(); }   /* qid7 */
+     action cmt_resp_block() { to_resp_block(); ctr_outcome.count(); }   /* qid5 */
+     action cmt_hold()       { to_hold();       ctr_outcome.count(); }   /* qid6 */
+@@ -2288,7 +2238,7 @@
+      * mapping (it installs nothing here — const entries need no install). */
+     table tbl_commit {
+         key     = { meta.outcome : exact; }
+-        actions = { cmt_drop; cmt_fwd; cmt_fwd_clone; cmt_shape;
++        actions = { cmt_drop; cmt_fwd; cmt_fwd_clone;
+                     cmt_block; cmt_resp_block; cmt_hold; cmt_resp_hold;
+ #ifdef U_BOR
+                     cmt_op_block; cmt_op_hold; cmt_op_relay;
+@@ -2307,8 +2257,7 @@
+             (OUT_RESP_HOLD_LATE)    : cmt_resp_hold();   /* qid4                       */
+             (OUT_RESP_HOLD_EARLY)   : cmt_resp_hold();   /* qid4                       */
+             (OUT_RESP_DUP_SUPP)     : cmt_drop();        /* duplicate RESPONSE         */
+-            (OUT_RESP_BYPASS_FWD)   : cmt_fwd();         /* bypass, no shape           */
+-            (OUT_RESP_BYPASS_SHAPE) : cmt_shape();       /* bypass, PRE carve          */
++            (OUT_RESP_BYPASS_FWD)   : cmt_fwd();         /* bypass                     */
+             (OUT_ACK_REJECT)        : cmt_fwd();         /* forward unprotected ACK    */
+             (OUT_ACK_HOLD)          : cmt_hold();        /* qid6                       */
+             (OUT_ACK_DUP_HOLD)      : cmt_hold();        /* qid6                       */
+@@ -2328,9 +2277,7 @@
+             (OUT_ACK_REL_RETIRE)    : cmt_fwd();         /* released ACK, retire       */
+             (OUT_ACK_RELEASE)       : cmt_fwd();         /* released ACK, preserve     */
+             (OUT_REL_DL_FWD)        : cmt_fwd();
+-            (OUT_REL_DL_SHAPE)      : cmt_shape();
+             (OUT_REL_FO_FWD)        : cmt_fwd();
+-            (OUT_REL_FO_SHAPE)      : cmt_shape();
+             (OUT_DEQ_DROP)          : cmt_drop();        /* loop-back guard            */
+ #ifdef U_BOR
+             (OUT_OP_HOLD)           : cmt_op_hold();     /* qid2 held OPERATE          */
+@@ -2359,25 +2306,22 @@
+      * (D_A + D_R) so T_RESP = t_A + D_A + D_R needs ONE MAU addition (setup verifies
+      * da_dr == D_A + D_R and both satisfy the half-range < 2^31 timestamp clamp);
+      * mode selects OFF/D1/D2/D3/D4/FAIL_OPEN. All statically installed, no per-txn action. */
+-    /* RRC section 2: shape_enable is a 6th runtime knob on the SAME keyless params table.
+-     * read_len is KEPT (written+read back by the frozen caseA control plane) but no longer
+-     * drives EXP_ACK — that is per-function now (tbl_build_exp_ack). The size control plane
+-     * owns shape_enable via a read-modify-write of this default entry (it reads back the
+-     * live timing params, then rewrites them with shape_enable=1), so the timing owner
+-     * (caseA) and the size owner (RRC setup) never clobber each other's fields. */
++    /* read_len is KEPT (written and read back by the frozen caseA control plane) but no
++     * longer drives EXP_ACK, which is per-function now (tbl_build_exp_ack). The sixth
++     * parameter this table used to carry was the size layer's shape_enable; a control
++     * plane for this candidate writes five, not six. */
+     action set_params(bit<32> d_ticks, bit<32> read_len, bit<32> budget,
+-                      bit<8> mode, bit<32> da_dr, bit<16> shape_enable) {
++                      bit<8> mode, bit<32> da_dr) {
+         meta.seq_m        = d_ticks;
+         meta.read_len     = read_len;
+         meta.budget_init  = budget;
+         meta.mode         = mode;
+         meta.da_dr        = da_dr;
+-        meta.shape_enable = shape_enable;
+     }
+     table tbl_params {
+         actions = { set_params; }
+         default_action = set_params(D_DEFAULT_TICKS, READ_LEN_DEFAULT, BUDGET_DEFAULT,
+-                                    MODE_D3_ACK, D_DEFAULT_TICKS, 16w0);
++                                    MODE_D3_ACK, D_DEFAULT_TICKS);
+         size = 1;
+     }
+ 
+@@ -2505,18 +2449,6 @@
+         size = 1;
+     }
+ 
+-    /* RRC: precompute the size-shape predicate at level 1. do_shape = shape_enable (from
+-     * tbl_params, level 0) & payload49 (from the parser, level 0), both 0/1-valued, so the
+-     * AND is nonzero (== 1) iff both are set. Kept a SEPARATE keyless table (the tbl_build_now
+-     * idiom) so the release-branch test downstream is a single-field gateway; folding it into
+-     * an existing action risks the "action spanning multiple stages" reject and, more to the
+-     * point, a compound two-field release test measured at +1 ingress stage (13/12). */
+-    action build_do_shape() { meta.do_shape = meta.shape_enable & meta.payload49; }
+-    table tbl_build_do_shape {
+-        actions = { build_do_shape; }
+-        const default_action = build_do_shape();
+-        size = 1;
+-    }
+ 
+     /* ---- level 1: RRC — the per-function expected acknowledgment candidate ----
+      * exp_ack_cand = this frame's tcp.seq_no + <request payload length>. The length is
+@@ -2800,7 +2732,7 @@
+ 
+     /* ---- FRESH (dequeued == 0). key order:
+      *   role, pkt_class, verdict, txn_active, is_pktgen, mode, pgen_slot, ack_first,
+-     *   tag_diff, do_shape                                                            ---- */
++     *   tag_diff                                                                      ---- */
+     table tbl_decide_fresh {
+         key = {
+             meta.role       : ternary;
+@@ -2812,49 +2744,47 @@
+             meta.pgen_slot  : ternary;
+             meta.ack_first  : ternary;
+             meta.tag_diff   : ternary;
+-            meta.do_shape   : ternary;
+         }
+         actions = { dec_o; dec_admit_ack; dec_admit_resp; }
+         const default_action = dec_o(OUT_BYPASS);   /* ROLE_BYPASS: transparent forward */
+         const entries = {
+             /* trigger clone: dropped, tested first */
+-            (ROLE_CLONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_CLONE);
++            (ROLE_CLONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_CLONE);
+             /* pktgen admission (is_pktgen=1, txn_active=1): slot 1 ack, 2 resp, 0 drop */
+-            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_admit_ack(OUT_ADMIT_ACK);
+-            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w2, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_admit_resp(OUT_ADMIT_RESP);
+-            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_PKTGEN_DROP);
++            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0) : dec_admit_ack(OUT_ADMIT_ACK);
++            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w2, 8w0&&&8w0, 8w0&&&8w0) : dec_admit_resp(OUT_ADMIT_RESP);
++            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
+             /* pktgen but no active txn (txn_active != 1): drop */
+-            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_PKTGEN_DROP);
++            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
+             /* R3: fresh non-pktgen 0x88C1 (host injection): reject */
+-            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_BLOCK_REJECT);
++            (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_BLOCK_REJECT);
+             /* RESPONSE: OFF forwards even a (structurally unreachable) held RESP; then hold
+              * (txn_active=1, LATE iff tag_diff==0), dup (2), else bypass. The OFF arm mirrors the
+              * frozen oracle exactly even on the unreachable mode=OFF&txn_active=1 state. */
+-            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_OFF_FWD);
+-            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 16w0&&&16w0) : dec_o(OUT_RESP_HOLD_LATE);
+-            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_HOLD_EARLY);
+-            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w2, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_DUP_SUPP);
+-            (8w0&&&8w0, CLASS_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w1) : dec_o(OUT_RESP_BYPASS_SHAPE);
+-            (8w0&&&8w0, CLASS_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_BYPASS_FWD);
++            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_OFF_FWD);
++            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0) : dec_o(OUT_RESP_HOLD_LATE);
++            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_HOLD_EARLY);
++            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w2, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_DUP_SUPP);
++            (8w0&&&8w0, CLASS_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_BYPASS_FWD);
+             /* ACK: OFF forwards; D4 holds (first arms, second dup); else reject */
+-            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ACK_REJECT);
+-            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ACK_HOLD);
+-            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ACK_DUP_HOLD);
+-            (8w0&&&8w0, CLASS_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ACK_REJECT);
++            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
++            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0) : dec_o(OUT_ACK_HOLD);
++            (8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0) : dec_o(OUT_ACK_DUP_HOLD);
++            (8w0&&&8w0, CLASS_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
+             /* ARM (READ): D4 fresh -> clone+fwd; OFF fresh -> fwd no clone (busy slot);
+              * dup -> fwd; else concurrent-escape */
+-            (8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_D4_DUAL, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ARM_FRESH);
+-            (8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ARM_BUSY);
+-            (8w0&&&8w0, CLASS_ARM, V_ARM_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ARM_DUP);
+-            (8w0&&&8w0, CLASS_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ARM_BUSY);
++            (8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_D4_DUAL, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_FRESH);
++            (8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
++            (8w0&&&8w0, CLASS_ARM, V_ARM_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_DUP);
++            (8w0&&&8w0, CLASS_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
+             /* UNSUPPORTED segmentation */
+-            (ROLE_RESP_UNSUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_UNSUP);
++            (ROLE_RESP_UNSUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_UNSUP);
+         }
+         size = 48;
+     }
+ 
+     /* ---- DEQUEUED (dequeued == 1). key order:
+-     *   role, is_resp_blk, verdict, expired, expired_resp, budget_zero, do_shape       ---- */
++     *   role, is_resp_blk, verdict, expired, expired_resp, budget_zero                 ---- */
+     table tbl_decide_deq {
+         key = {
+             meta.role        : ternary;
+@@ -2863,35 +2793,32 @@
+             meta.expired     : ternary;
+             meta.expired_resp: ternary;
+             meta.budget_zero : ternary;
+-            meta.do_shape    : ternary;
+         }
+         actions = { dec_o; dec_loop; }
+         const default_action = dec_o(OUT_DEQ_DROP);
+         const entries = {
+             /* RESP blocker (qid5): PENDING+T_RESP -> DL; else budget -> TMO; else loop;
+              * LIVE (not pending) never DL; catch-all STALE. Priority top-down. */
+-            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w1, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RB_DL);
+-            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w1, 16w0&&&16w0) : dec_o(OUT_RB_TMO);
+-            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_loop(OUT_RB_LOOP);
+-            (ROLE_BLOCK, 8w1, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w1, 16w0&&&16w0) : dec_o(OUT_RB_TMO);
+-            (ROLE_BLOCK, 8w1, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_loop(OUT_RB_LOOP);
+-            (ROLE_BLOCK, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RB_STALE);
++            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w1, 8w0&&&8w0) : dec_o(OUT_RB_DL);
++            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w1) : dec_o(OUT_RB_TMO);
++            (ROLE_BLOCK, 8w1, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_loop(OUT_RB_LOOP);
++            (ROLE_BLOCK, 8w1, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w1) : dec_o(OUT_RB_TMO);
++            (ROLE_BLOCK, 8w1, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_loop(OUT_RB_LOOP);
++            (ROLE_BLOCK, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RB_STALE);
+             /* ACK blocker (qid7, D4): LIVE/PENDING -> expired DL, budget TMO, else loop;
+              * catch-all STALE. */
+-            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w1, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_AB_DL);
+-            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w1, 16w0&&&16w0) : dec_o(OUT_AB_TMO);
+-            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_loop(OUT_AB_LOOP);
+-            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w1, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_AB_DL);
+-            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w1, 16w0&&&16w0) : dec_o(OUT_AB_TMO);
+-            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_loop(OUT_AB_LOOP);
+-            (ROLE_BLOCK, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_AB_STALE);
++            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w1, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_AB_DL);
++            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w1) : dec_o(OUT_AB_TMO);
++            (ROLE_BLOCK, 8w0, V_BLOCK_PENDING, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_loop(OUT_AB_LOOP);
++            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w1, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_AB_DL);
++            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w1) : dec_o(OUT_AB_TMO);
++            (ROLE_BLOCK, 8w0, V_BLOCK_LIVE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_loop(OUT_AB_LOOP);
++            (ROLE_BLOCK, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_AB_STALE);
+             /* ACK release (D4 always preserves) */
+-            (ROLE_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_ACK_RELEASE);
++            (ROLE_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ACK_RELEASE);
+             /* RESPONSE release: attributed by T_RESP; shape iff armed+eligible */
+-            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 16w1) : dec_o(OUT_REL_DL_SHAPE);
+-            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_REL_DL_FWD);
+-            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w1) : dec_o(OUT_REL_FO_SHAPE);
+-            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_REL_FO_FWD);
++            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0) : dec_o(OUT_REL_DL_FWD);
++            (ROLE_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_REL_FO_FWD);
+         }
+         size = 32;
+     }
+@@ -2933,7 +2860,6 @@
+             /* ---------- level 1: now-word, EXP_ACK candidate, class + write drivers ---- */
+             tbl_build_now.apply();
+             tbl_build_exp_ack.apply();
+-            tbl_build_do_shape.apply();      /* RRC: do_shape = shape_enable & payload49 */
+ 
+ #ifdef U_BOR
+             /* ►► UNIFIED12 change 4/6: classify the BOR packet-class ONCE (single field bor_pc),
+@@ -3325,64 +3251,29 @@
+     }
+ }
+ 
+-/* ======================================================================== *
+- *  EGRESS — RRC "CARVE": a pure REPLICATION-ID INTERPRETER. Tofino-1 / TNA.
+- *  COMPILE PROBE (software/model only — NOT silicon-validated).
+- * ------------------------------------------------------------------------ *
+- * RRC section 5. The shape/owner/size DECISION was already taken in INGRESS
+- * (a shape-armed, protected, eligible 49 B response was sent to mcast group
+- * RRC_MGID_49_28 instead of a unicast dp9 copy). The egress does NOT re-run
+- * ownership or policy — the replication id IS the instruction:
+- *
+- *   egress_rid == 0  : ordinary unicast. BYTE-IDENTICAL pass-through (caseA
+- *                      forwarding + timing behaviour unchanged). DNP3 blocks
+- *                      are left unparsed (residual), so nothing is altered.
+- *   egress_rid == 1  : the PREFIX window. Keep dnp3_dl(10) + blk0(18) = 28 B,
+- *                      drop blk1 + res3. seq = orig, clear PSH/FIN, keep ACK/
+- *                      window. ip.total_len -= 21.
+- *   egress_rid == 2  : the SUFFIX window. Keep blk1(18) + res3(3) = 21 B, drop
+- *                      dnp3_dl + blk0. seq = orig + 28 (28 payload bytes carried
+- *                      by RID 1), keep the final-segment flags. ip.total_len -= 28.
+- *
+- * join(prefix, suffix) == the original 49 B, on a DNP3 CRC-block boundary, so
+- * every window ends on an already-valid CRC — NO DNP3 byte or CRC is touched.
+- * IPv4 total_len + IPv4/TCP checksums are recomputed per carved window, and the
+- * TCP checksum input INCLUDES the emitted TCP options (the option width is
+- * options-agnostic in the deltas: 21/28 come off the original total_len). All
+- * of Eth / IP addrs / ports / ACK / window / TS-option values are preserved.
+- *
+- * No egress mirror, no source-copy drop, no owner/policy/do_shape tables — the
+- * previous size layer's SHAPE_SESSION / t_policy / t_shape are all deleted.
+- * Egress counters RRC_RID1 / RRC_RID2 / RRC_UNEXPECTED_RID / RRC_PARSE_REJECT
+- * make the replication observable; no new INGRESS register is added.
++/* ============================ EGRESS ====================================
++ * Nothing happens here. The egress existed to carve a released DNP3 response into a
++ * 28-byte prefix and a 21-byte suffix on a CRC-block boundary, driven by the
++ * replication id; that was the size layer and it has been removed. Every packet is
++ * now the byte-identical pass-through the carve's rid == 0 case already was.
+  * ======================================================================== */
+ 
+-/* egress-only constants (caseA already defines ETHERTYPE_IPV4/IP_PROTO_TCP/DNP3_START/DIR_*) */
+-const bit<8>  CLR_PSH_FIN    = 8w0xF6;   /* clear PSH(0x08)+FIN(0x01) on the prefix window   */
+-const bit<16> RID1_TL_DELTA  = 16w21;    /* prefix total_len = orig - 21 (drops blk1+res3)   */
+-const bit<16> RID2_TL_DELTA  = 16w28;    /* suffix total_len = orig - 28 (drops dl+blk0)      */
+-const bit<32> RID2_SEQ_DELTA = 32w28;    /* suffix TCP seq starts 28 payload bytes in         */
+-const bit<16> RRC_RID_PREFIX = 16w1;
+-const bit<16> RRC_RID_SUFFIX = 16w2;
+-
+-/* RRC section 8: egress counter slots (indexed Counter; the control plane aggregates
+- * the slot across the stages the object replicates into). */
+-const bit<8> RRC_RID1           = 8w0;   /* a prefix window was carved and emitted */
+-const bit<8> RRC_RID2           = 8w1;   /* a suffix window was carved and emitted */
+-const bit<8> RRC_UNEXPECTED_RID = 8w2;   /* egress_rid not in {0,1,2} (must never fire) */
+-const bit<8> RRC_PARSE_REJECT   = 8w3;   /* rid 1/2 but the 49 B blocks did not parse    */
++/* The egress carries no constants now: the replication-id interpreter that used them
++ * was the size carve, and it is gone. */
+ 
+ struct eg_meta_t {
+-    bit<1>  carve;     /* rid in {1,2} AND the 49 B blocks parsed: recompute checksums */
+-    bit<1>  parsed;    /* the egress parser reached res3 (a well-formed 49 B DNP3 frame) */
+-    bit<16> tcp_len;   /* TCP length for the checksum pseudo-header (= total_len - 20)   */
++    /* The egress carried the size carve and nothing else, so it now carries no state. */
++    bit<1> unused;
+ }
+ 
+ parser EgParser(packet_in pkt, out headers_t hdr, out eg_meta_t m,
+                 out egress_intrinsic_metadata_t eg) {
++    /* The egress used to re-parse a released DNP3 response into its CRC blocks so the carve
++     * could split it at a block boundary. With the carve gone the egress only has to hand the
++     * deparser the headers it emits, so the parse stops at the TCP options. */
+     state start {
+         pkt.extract(eg);
+-        m.carve = 1w0; m.parsed = 1w0; m.tcp_len = 16w0;
++        m.unused = 1w0;
+         transition parse_eth;
+     }
+     state parse_eth {
+@@ -3391,7 +3282,6 @@
+     }
+     state parse_ipv4 {
+         pkt.extract(hdr.ipv4);
+-        /* only IHL==5 IPv4/TCP can be a carve copy; anything else is pass-through */
+         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl) {
+             (IP_PROTO_TCP, 4w5) : parse_tcp;
+             default             : accept;
+@@ -3400,30 +3290,15 @@
+     state parse_tcp {
+         pkt.extract(hdr.tcp);
+         transition select(hdr.tcp.data_offset) {
+-            4w5 : after_tcp;
+-            4w6 : eopt4;
+-            4w7 : eopt8;
+-            4w8 : eopt12;
++            4w6     : eopt4;
++            4w7     : eopt8;
++            4w8     : eopt12;
+             default : accept;
+         }
+     }
+-    state eopt4  { pkt.extract(hdr.tcp_opt4);  transition after_tcp; }
+-    state eopt8  { pkt.extract(hdr.tcp_opt8);  transition after_tcp; }
+-    state eopt12 { pkt.extract(hdr.tcp_opt12); transition after_tcp; }
+-    /* Only the carve copies (rid 1/2) need the DNP3 blocks parsed so the carve can
+-     * invalidate the right ones; a rid==0 unicast frame leaves the DNP3 payload RESIDUAL
+-     * and is re-emitted byte-identically. */
+-    state after_tcp {
+-        transition select(eg.egress_rid) {
+-            RRC_RID_PREFIX : parse_dl;
+-            RRC_RID_SUFFIX : parse_dl;
+-            default        : accept;
+-        }
+-    }
+-    state parse_dl   { pkt.extract(hdr.dnp3_dl); transition parse_b0; }
+-    state parse_b0   { pkt.extract(hdr.blk0);    transition parse_b1; }
+-    state parse_b1   { pkt.extract(hdr.blk1);    transition parse_res3; }
+-    state parse_res3 { pkt.extract(hdr.res3); m.parsed = 1w1; transition accept; }
++    state eopt4  { pkt.extract(hdr.tcp_opt4);  transition accept; }
++    state eopt8  { pkt.extract(hdr.tcp_opt8);  transition accept; }
++    state eopt12 { pkt.extract(hdr.tcp_opt12); transition accept; }
+ }
+ 
+ control Egress(inout headers_t hdr, inout eg_meta_t m,
+@@ -3431,77 +3306,25 @@
+                in egress_intrinsic_metadata_from_parser_t prsr,
+                inout egress_intrinsic_metadata_for_deparser_t eg_dprsr,
+                inout egress_intrinsic_metadata_for_output_port_t oport) {
+-
+-    Counter<bit<64>, bit<8>>(8, CounterType_t.PACKETS) ctr_rrc;   /* RRC_* slots */
+-
+-    apply {
+-        if (eg.egress_rid == RRC_RID_PREFIX) {
+-            if (m.parsed == 1w1) {
+-                /* prefix = dnp3_dl(10) + blk0(18) = 28 B */
+-                hdr.blk1.setInvalid(); hdr.res3.setInvalid();
+-                hdr.ipv4.total_len = hdr.ipv4.total_len - RID1_TL_DELTA;
+-                hdr.tcp.flags      = hdr.tcp.flags & CLR_PSH_FIN;
+-                m.carve = 1w1;
+-                ctr_rrc.count(RRC_RID1);
+-            } else {
+-                ctr_rrc.count(RRC_PARSE_REJECT);
+-            }
+-        } else if (eg.egress_rid == RRC_RID_SUFFIX) {
+-            if (m.parsed == 1w1) {
+-                /* suffix = blk1(18) + res3(3) = 21 B, at seq + 28 */
+-                hdr.dnp3_dl.setInvalid(); hdr.blk0.setInvalid();
+-                hdr.tcp.seq_no     = hdr.tcp.seq_no + RID2_SEQ_DELTA;
+-                hdr.ipv4.total_len = hdr.ipv4.total_len - RID2_TL_DELTA;
+-                m.carve = 1w1;
+-                ctr_rrc.count(RRC_RID2);
+-            } else {
+-                ctr_rrc.count(RRC_PARSE_REJECT);
+-            }
+-        } else if (eg.egress_rid != 16w0) {
+-            ctr_rrc.count(RRC_UNEXPECTED_RID);
+-        }
+-        /* egress_rid == 0: byte-identical pass-through — no carve, no counter, no checksum. */
+-
+-        if (m.carve == 1w1) {
+-            m.tcp_len = hdr.ipv4.total_len - 16w20;   /* TCP length incl. options + payload */
+-        }
+-    }
++    /* Empty by construction. Every packet leaves byte-identical to the one that entered, which
++     * is what the carve's rid == 0 path already did for everything the mechanism did not shape.
++     * No timing decision was ever taken here: the holds and the releases are all ingress. */
++    apply { }
+ }
+ 
+ control EgDeparser(packet_out pkt, inout headers_t hdr, in eg_meta_t m,
+                    in egress_intrinsic_metadata_for_deparser_t eg_dprsr) {
+-    Checksum() ipv4_csum;
+-    Checksum() tcp_csum;
++    /* The IPv4 and TCP checksums were recomputed only on a carved window; an uncarved packet
++     * keeps the originals it arrived with, so there is nothing to recompute. */
+     apply {
+-        /* recompute checksums ONLY on the carved windows; rid==0 keeps its originals so the
+-         * pass-through stays byte-identical (guard is bit<1> — the shape bf-p4c wants). */
+-        if (m.carve == 1w1) {
+-            hdr.ipv4.hdr_checksum = ipv4_csum.update({
+-                hdr.ipv4.version, hdr.ipv4.ihl, hdr.ipv4.diffserv, hdr.ipv4.total_len,
+-                hdr.ipv4.identification, hdr.ipv4.flags_frag, hdr.ipv4.ttl, hdr.ipv4.protocol,
+-                hdr.ipv4.src_addr, hdr.ipv4.dst_addr });
+-            /* TCP checksum over the pseudo-header + TCP header + EMITTED options + the kept
+-             * DNP3 blocks. Invalid headers (the dropped window's blocks and the absent option
+-             * widths) are excluded by their POV, so each window checksums exactly its bytes. */
+-            hdr.tcp.checksum = tcp_csum.update({
+-                hdr.ipv4.src_addr, hdr.ipv4.dst_addr, 8w0, hdr.ipv4.protocol, m.tcp_len,
+-                hdr.tcp.src_port, hdr.tcp.dst_port, hdr.tcp.seq_no, hdr.tcp.ack_no,
+-                hdr.tcp.data_offset, hdr.tcp.res, hdr.tcp.flags, hdr.tcp.window, hdr.tcp.urgent_ptr,
+-                hdr.tcp_opt4.data, hdr.tcp_opt8.data, hdr.tcp_opt12.data,
+-                hdr.dnp3_dl.start, hdr.dnp3_dl.length, hdr.dnp3_dl.ctrl,
+-                hdr.dnp3_dl.dst_addr, hdr.dnp3_dl.src_addr, hdr.dnp3_dl.crc,
+-                hdr.blk0.b, hdr.blk1.b, hdr.res3.b });
+-        }
+         pkt.emit(hdr.eth);
+         pkt.emit(hdr.ipv4);
+         pkt.emit(hdr.tcp);
+         pkt.emit(hdr.tcp_opt4);
+         pkt.emit(hdr.tcp_opt8);
+         pkt.emit(hdr.tcp_opt12);
+-        pkt.emit(hdr.dnp3_dl);
+-        pkt.emit(hdr.blk0);
+-        pkt.emit(hdr.blk1);
+-        pkt.emit(hdr.res3);
++        /* The DNP3 bytes were never extracted in egress on this path, so they ride as payload,
++         * which is exactly what the carve's rid == 0 case did. */
+     }
+ }
+ 
