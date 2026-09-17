@@ -1,12 +1,12 @@
 {
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "b7087f2b100a69c7b5842518a9b961ab80ffd824",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "d72cac2f8dbbd2b0722e03e81edbdbc9f9985246",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "77203800abb67d218569bd3c211def9f7c6e2e202f5aebc5a2f583c3153bade6"
+  "sha256": "1c7fa047e9227f34f49d405ce57dc9b7e94f99ef403c676555e1aeca4f4617e0"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -22,12 +22,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "967121e17c2806eb95eeefac3ad6c96bffb6df1fdea9d7555ee4d2637e290fb4",
+   "sha256": "8a9d62ea72ebc4dc96fc747dd3cde5cfd43424b273669795042f7ee5ae3c1cda",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "d67803a89c042f0f2e0936654088001f741363552eeecc243e5e4b66f20e8b82",
+   "sha256": "f91854a31f3a2c7341f2ed0c42ae4febffaa9c321ac056e0a0686024ab53104a",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -41,7 +41,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.5,
-  "height": 2.9
+  "height": 3.1
  },
  "method_note": "Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.",
  "limitation_note": "The OPERATE panel is the master-visible response-to-ACK interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.",

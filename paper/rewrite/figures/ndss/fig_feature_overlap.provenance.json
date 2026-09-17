@@ -1,12 +1,12 @@
 {
  "figure": "fig_feature_overlap",
  "caption": "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the outlined markers are the median of each class, computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is timed from the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "b7087f2b100a69c7b5842518a9b961ab80ffd824",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "d72cac2f8dbbd2b0722e03e81edbdbc9f9985246",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "77203800abb67d218569bd3c211def9f7c6e2e202f5aebc5a2f583c3153bade6"
+  "sha256": "1c7fa047e9227f34f49d405ce57dc9b7e94f99ef403c676555e1aeca4f4617e0"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_feature_overlap.pdf",
-   "sha256": "be12aa811eb8b586d62427a1888885a8f9accaeca9300458b0440b48e1e7f5e4",
+   "sha256": "4a758f79be3702370a2e8adcc066d95309139f8c12c4be8c71a5aeffd3836a14",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_feature_overlap.png",
-   "sha256": "998c88596854691e46f18cf6d65612fb5f8d6da563db442fe10df01b1a514ddc",
+   "sha256": "83d3911ff88077059f7b7f6241788afcaf793cbc5c4736b2b2c84e7553b4bca6",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"

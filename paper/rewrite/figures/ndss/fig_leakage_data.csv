@@ -1,27 +1,27 @@
 arm,attacker,features,fraction,iqr_hi,iqr_lo,matrix,max,mean,median,min,n_permutations,n_runs,null_max_bits,null_mean_bits,null_p95_bits,null_p99_bits,observed_bits,p_value,p_value_resolution,panel,predicted,true
-,"A fixed, Timing OFF",clrt,,0.6713,0.6326,,0.7219,0.6519,0.6436,0.5986,,22,,,,,,,,a,,
-,"A fixed, Timing OFF",ack_clrt,,0.749,0.7219,,0.7825,0.7359,0.73,0.6961,,22,,,,,,,,a,,
-,"A fixed, on Obfuscated",clrt,,0.3333,0.3331,,0.3333,0.3332,0.3333,0.3328,,22,,,,,,,,a,,
-,"A fixed, on Obfuscated",ack_clrt,,0.3339,0.3333,,0.3342,0.3336,0.3336,0.3306,,22,,,,,,,,a,,
-,"B adaptive, on Obfuscated",clrt,,0.3333,0.3333,,0.3333,0.3333,0.3333,0.3333,,22,,,,,,,,a,,
-,"B adaptive, on Obfuscated",ack_clrt,,0.6601,0.6432,,0.6908,0.651,0.6533,0.615,,22,,,,,,,,a,,
+,fixed OFF,clrt,,0.6713,0.6326,,0.7219,0.6519,0.6436,0.5986,,22,,,,,,,,a,,
+,fixed Obf.,clrt,,0.3333,0.3331,,0.3333,0.3332,0.3333,0.3328,,22,,,,,,,,a,,
+,adapt. Obf.,clrt,,0.3333,0.3333,,0.3333,0.3333,0.3333,0.3333,,22,,,,,,,,a,,
+,fixed OFF,ack_clrt,,0.749,0.7219,,0.7825,0.7359,0.73,0.6961,,22,,,,,,,,a,,
+,fixed Obf.,ack_clrt,,0.3339,0.3333,,0.3342,0.3336,0.3336,0.3306,,22,,,,,,,,a,,
+,adapt. Obf.,ack_clrt,,0.6601,0.6432,,0.6908,0.651,0.6533,0.615,,22,,,,,,,,a,,
 Timing OFF,,,,,,,,,,,1000,,0.00916,0.00127,0.00502,0.00686,0.38342,0.001,0.001,b,,
 Obfuscated,,,,,,,,,,,1000,,0.00927,0.00124,0.005,0.00661,0.00417,0.08392,0.001,b,,
-,,,0.1374,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,READ,READ
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,READ
-,,,0.8626,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,READ
-,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,READ,SELECT
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,SELECT
-,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,SELECT
-,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,READ,OPERATE
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,OPERATE
-,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,OPERATE
-,,,0.9719,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,READ,READ
-,,,0.0188,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,READ
-,,,0.0093,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,READ
-,,,0.853,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,READ,SELECT
-,,,0.1348,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,SELECT
-,,,0.0121,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,SELECT
-,,,0.153,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,READ,OPERATE
-,,,0.0008,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,SELECT,OPERATE
-,,,0.8462,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,cd,OPERATE,OPERATE
+,,,0.1374,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
+,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
+,,,0.8626,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
+,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
+,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
+,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
+,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
+,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
+,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE
+,,,0.9719,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
+,,,0.0188,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
+,,,0.0093,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
+,,,0.853,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
+,,,0.1348,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
+,,,0.0121,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
+,,,0.153,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
+,,,0.0008,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
+,,,0.8462,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE
