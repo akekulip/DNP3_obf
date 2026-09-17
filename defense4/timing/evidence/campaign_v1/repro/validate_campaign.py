@@ -143,8 +143,21 @@ def main(out_dir):
                 problems.append(f"{base}: latency identity violated")
             if e.resp_func != P.RESP_FUNC:
                 problems.append(f"{base}: response func 0x{e.resp_func:02x} != 0x81")
-            if e.func in (3, 4) and e.status != STATUS_OK:
-                problems.append(f"{base}: {P.FUNC_NAME[e.func]} status {e.status} != SUCCESS")
+            # The response must answer the request it was paired with. Pairing is positional,
+            # so without this the table could pair a response with the wrong request and the
+            # validator would not notice. Added 2026-09-17 after a review found it missing.
+            if e.resp_app_seq != e.req_app_seq:
+                problems.append(f"{base}: response application sequence {e.resp_app_seq} "
+                                f"does not match the request's {e.req_app_seq}")
+            if e.func in (3, 4):
+                if not e.statuses:
+                    problems.append(f"{base}: {P.FUNC_NAME[e.func]} response carries no decoded "
+                                    "control status")
+                # Every point, not only the first: a control response here carries two.
+                for i, s in enumerate(e.statuses):
+                    if s != STATUS_OK:
+                        problems.append(f"{base}: {P.FUNC_NAME[e.func]} point {i} status {s} "
+                                        "!= SUCCESS")
             rows.append(dict(run=run, block=block, arm=arm, capture=base, idx=idx,
                              txn_class=P.FUNC_NAME.get(e.func, str(e.func)),
                              func=e.func, req_seq=e.req_seq, resp_func=e.resp_func,

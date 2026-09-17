@@ -158,18 +158,47 @@ def dnp3_user_data(payload: bytes):
     return bytes(out)
 
 
+#: One CROB point body: control code, count, on-time, off-time, status.
+CROB_POINT_BYTES = 11
+
+
+def crob_statuses(obj: bytes) -> list[int]:
+    """Every CROB status octet in a group-12 object block, in order.
+
+    Reading only the first point's status, which this module did until 2026-09-17, checks one of
+    the two points each control response in this campaign carries. A second point could report a
+    failure without the check noticing, so the whole block is walked: group, variation, qualifier
+    and count, then one index prefix and one 11-octet point body per point. Only the qualifier
+    these captures use, 0x17 (one-octet count, one-octet index prefix), is decoded; any other
+    qualifier returns nothing rather than a guess, and the caller treats that as undecoded.
+    """
+    if len(obj) < 4 or obj[0] != 12 or obj[1] != 1 or obj[2] != 0x17:
+        return []
+    count = obj[3]
+    out, i = [], 4
+    for _ in range(count):
+        if i + 1 + CROB_POINT_BYTES > len(obj):
+            return []                                       # truncated: decode nothing
+        out.append(obj[i + 1 + CROB_POINT_BYTES - 1])
+        i += 1 + CROB_POINT_BYTES
+    return out
+
+
 def dnp3_app(payload: bytes):
-    """(function_code, application_sequence, crob_status) or None."""
+    """(function_code, application_sequence, crob_statuses) or None.
+
+    The third element is a list, because a control response carries one status per point and the
+    campaign's responses carry two.
+    """
     u = dnp3_user_data(payload)
     if u is None or len(u) < 3:
         return None
     app_seq = u[1] & 0x0F                                   # application control low nibble
     func = u[2]
-    status = None
-    obj = u[5:]
-    if func == RESP_FUNC and len(obj) >= 16 and obj[0] == 12:
-        status = obj[15]                                    # CROB status octet
-    return func, app_seq, status
+    statuses: list[int] = []
+    if func == RESP_FUNC:
+        statuses = crob_statuses(u[5:])
+    return func, app_seq, statuses
 
 
 @dataclass
@@ -177,7 +206,16 @@ class Exchange:
     """One exchange. The three timestamps are integer nanoseconds, not float seconds."""
 
     func: int; t_req_ns: int; t_ack_ns: int; t_resp_ns: int
-    req_seq: int; resp_func: int; status: int | None
+    req_seq: int; resp_func: int; statuses: list
+    #: the response's own application sequence, so it can be checked against the request's
+    resp_app_seq: int = -1
+    #: the request's application sequence
+    req_app_seq: int = -1
+
+    @property
+    def status(self):
+        """The first CROB status, kept for callers that reported a single one."""
+        return self.statuses[0] if self.statuses else None
 
     @property
     def clrt_ns(self) -> int:
@@ -302,7 +340,8 @@ def extract(path, *, verify_crc: bool = True) -> CaptureReport:
                     continue
                 if t_ack_ns is not None:
                     rep.exchanges.append(Exchange(pend[1], pend[0], t_ack_ns, fr.ts_ns,
-                                                  pend[3], app[0], app[2]))
+                                                  pend[3], app[0], app[2],
+                                                  resp_app_seq=app[1], req_app_seq=pend[2]))
                 else:
                     rep.unpaired_requests += 1
                 pend = None

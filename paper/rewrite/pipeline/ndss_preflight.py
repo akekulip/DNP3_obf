@@ -128,6 +128,68 @@ def _first_page_matching(pdf, total, pattern):
     return None
 
 
+#: Headings that begin a region the venue excludes from the page budget, and headings that begin
+#: body again. Small caps come out of pdftotext with a space after the first letter, so every
+#: pattern tolerates that. Open Science is BODY: the venue's exclusions name only Ethics
+#: Considerations, references and appendices.
+EXCLUDED_HEADINGS = (
+    ("ethics", r"\bE\s*THICS\s+C\s*ONSIDERATIONS\b"),
+    ("references", r"\bR\s*EFERENCES\b"),
+    ("appendix", r"\bA\s*PPENDI(?:X|CES)\b"),
+)
+BODY_HEADINGS = (
+    ("open science", r"\bO\s*PEN\s+S\s*CIENCE\b"),
+    ("numbered section", r"(?m)^\s*[IVX]{1,5}\.\s+\S"),
+)
+
+
+def _page_text(pdf, page):
+    rc, out, _ = run("pdftotext", "-f", str(page), "-l", str(page), str(pdf), "-")
+    return out if rc == 0 else ""
+
+
+def count_body(page_texts):
+    """Classify a list of page texts, index 0 = page 1. Pure, so it can be tested directly.
+
+    Returns (body_pages, first_reference_page, first_ethics_page).
+    """
+    marks = []                       # (page, offset, kind, name)
+    for i, text in enumerate(page_texts, start=1):
+        if not text.strip():
+            continue
+        for name, pat in EXCLUDED_HEADINGS:
+            m = re.search(pat, text, re.I)
+            if m:
+                marks.append((i, m.start(), "excluded", name))
+        for name, pat in BODY_HEADINGS:
+            for m in re.finditer(pat, text, re.I):
+                marks.append((i, m.start(), "body", name))
+    marks.sort(key=lambda m: (m[0], m[1]))
+
+    ref_page = next((p for p, _, _, n in marks if n == "references"), None)
+    ethics_page = next((p for p, _, _, n in marks if n == "ethics"), None)
+
+    state = "body"                   # the document opens in body
+    body = 0
+    for i, text in enumerate(page_texts, start=1):
+        if not text.strip():
+            continue
+        on_page = [m for m in marks if m[0] == i]
+        first_excluded = next((off for _, off, k, _ in on_page if k == "excluded"), None)
+        has_body_heading = any(k == "body" for _, _, k, _ in on_page)
+        if state == "body":
+            # A page where an excluded section begins counts only if body text sits above that
+            # heading. A heading at the top of a page has nothing above it.
+            counts = first_excluded is None or bool(text[:first_excluded].strip())
+        else:
+            counts = has_body_heading
+        if counts:
+            body += 1
+        for _, _, kind, _ in on_page:
+            state = kind
+    return body, ref_page, ethics_page
+
+
 def body_pages(pdf, total):
     """Main-body pages: every page carrying body content, by the venue's own exclusions.
 
@@ -135,32 +197,25 @@ def body_pages(pdf, total):
     the 'Ethics Considerations' section, references, or appendices." Open Science is not on that
     list, so it is body and is counted.
 
-    Counting to the page *before* the Ethics heading is wrong, and was: a page that carries body
-    text above the Ethics heading is still a body page, and in this manuscript page 15 carries the
-    Conclusion and several thousand characters of body text before Ethics begins on the same page.
-    That undercounted by one and would have let a paper pass while a page of scientific text sat
-    outside the count.
+    Two earlier versions of this function were wrong in the same way, by excluding a whole page
+    because an excluded section began on it:
 
-    A page is therefore excluded only when it carries no body content at all: it lies after the
-    Ethics heading has begun and contains no body-section heading of its own. Everything from the
-    References heading onward is excluded outright.
+    * counting to the page *before* the Ethics heading lost a page of Conclusion that sat above
+      that heading;
+    * excluding everything from the References page onward lost body text above that heading too,
+      and recognising resumed body only by a numbered heading missed Open Science, which the
+      venue counts and which this template sets without a number.
+
+    The rule is therefore stated positively and per page. Walking the pages in order, each page is
+    counted when any body region is open on it: the page where an excluded heading first appears
+    still counts, because the text above that heading is body; a page after it does not, until a
+    body heading resumes. Returns (body_pages, pages_scanned, first_reference_page,
+    first_ethics_page).
     """
-    ref_page = _first_page_matching(pdf, total, r"\bR\s*EFERENCES\b")
-    ethics_page = _first_page_matching(pdf, total, r"\bE\s*THICS\s+C\s*ONSIDERATIONS\b")
-    last_pre_ref = (ref_page - 1) if ref_page else (total or 0)
-
-    excluded_tail = 0
-    if ethics_page:
-        # Pages strictly after the one Ethics starts on are body only if a body section resumes
-        # there, which in this template would mean a numbered heading.
-        for pg in range(ethics_page + 1, last_pre_ref + 1):
-            rc, out, _ = run("pdftotext", "-f", str(pg), "-l", str(pg), str(pdf), "-")
-            if rc != 0:
-                continue
-            if not re.search(r"\n\s*[IVX]{1,5}\.\s", out):
-                excluded_tail += 1
-    body = max(0, last_pre_ref - excluded_tail)
-    return body, last_pre_ref, ref_page, ethics_page
+    total = total or 0
+    texts = [_page_text(pdf, page) for page in range(1, total + 1)]
+    body, ref_page, ethics_page = count_body(texts)
+    return body, total, ref_page, ethics_page
 
 
 def check_page_budget(rep, pdf, total):
@@ -172,9 +227,9 @@ def check_page_budget(rep, pdf, total):
               + (f", References on page {ref_page})" if ref_page else ")")
               + f"; limit {MAX_BODY_PAGES}")
     if body != before_refs:
-        detail += (f". {before_refs - body} page(s) after the Ethics heading carry no body "
-                   "section and are excluded; a page carrying body text above that heading is "
-                   "still counted")
+        detail += (f". {before_refs - body} of the {before_refs} page(s) carry no body region and "
+                   "are excluded; a page where an excluded section begins is still counted, "
+                   "because the text above that heading is body")
     detail += (". Open Science is counted, because the venue's exclusions name only Ethics "
                "Considerations, references and appendices")
     rep.add("page budget", ok, detail)

@@ -63,8 +63,12 @@ follow that the campaign's socket carried exactly this value: this is a later di
 connection, and the campaign recorded no socket state.
 
 `active_control/delay_admission.py` already keeps them as separate named inputs and refuses to
-substitute one for the other. This measurement supplies the master's value for the first time,
-so a policy can now be admitted against a measured master timer rather than an assumed one.
+substitute one for the other. This measurement supplies a master-side number for the first time,
+and what it supplies is the observed repetition threshold, not the socket's retransmission timer.
+An admission computed against it is therefore computed against an observed repeat interval on one
+connection, which is better than an assumed constant and is not a reading of the timer. An earlier
+revision of this file said the policy could now be admitted against a measured master timer; that
+overstates it, and the paragraph above is the reason.
 
 **A 20 ms acknowledgment hold consumes about a tenth of the master's initial timeout.** That is
 the margin the evaluated configuration actually runs with, and it is comfortable but not vast: a
@@ -99,5 +103,9 @@ One relay, one connection, one master host, at one moment. The master's timer is
 that host's TCP stack and its route, not of the protocol, so it does not transfer to another
 deployment; that is exactly why the admission module takes it as a measured input with provenance
 rather than as a constant. RFC 6298's one-second floor is a recommendation about the minimum a
-sender *should* use, and this host plainly does not apply it to this route, which is a further
-reason not to assume a value anywhere.
+sender *should* use for the retransmission timeout. The 200.8 ms observed here is shorter than
+that floor, but it does not follow that the host ignores the floor: a tail loss probe is sent
+before RTO-based recovery and would produce exactly this early repeat, so the observation is
+consistent both with a sub-floor RTO and with a probe fired while the RTO still had most of a
+second to run. We did not collect the evidence that separates them, so the conclusion is that a
+value must be measured rather than assumed, not that this host disregards the floor.

@@ -1,4 +1,12 @@
-# The duplicate live-window risk is unreachable on this deployment — 2026-09-16
+# How far the duplicate live-window case is from reach on this deployment — 2026-09-16
+
+> **What this establishes.** Three bounds, two of them measured on 2026-09-16, that put the
+> live-window case about eighteen times outside the largest hold this deployment will configure.
+> It does **not** establish that the case cannot occur: the 0.793 s below is the shortest copy
+> interval observed, not a guaranteed minimum, and the nominal schedule is not a measurement of
+> how long a transaction stays live. The case stays open, and the manuscript reports it as open.
+> An earlier revision of this file called it unreachable, and the paragraphs that followed
+> withdrew that in detail; the title now says what the evidence says.
 
 `CORRECTION_20260916.md` left one case open: `OUT_RESP_DUP_SUPP` drops a duplicate response
 **while the transaction is live**, and the 2026-09-15 trace never reached it, because the copies
@@ -32,11 +40,14 @@ plane will configure, 44 ms at the 40 ms clamp with a 4 ms target, the required 
 off by a factor of about **18**. The margin is smaller than the earlier note claimed and it is
 still large.
 
-Two further ceilings sit below the one that would be needed, so removing the clamp would not help:
-the data plane's expiry test compares a 32-bit modular age and treats bit 31 as the sign, so any
-`D_A + CLRT_new` at or above 2.147 s stops being a deadline in the future; and the master's own
-retransmission timer fires at about 201 ms, so a hold anywhere near a second breaks the master's
-transport long before it approaches the outstation's.
+Removing the clamp would not help, because a third bound sits **below** the hold that would be
+needed: the master's own retransmission timer fires at about 201 ms, so a hold anywhere near a
+second breaks the master's transport long before it approaches the outstation's. The data plane's
+modular expiry test is a fourth bound but not a binding one, and an earlier revision of this file
+listed it as though it were: the test compares a 32-bit modular age and treats bit 31 as the sign,
+so `D_A + CLRT_new` at or above 2.147 s stops being a deadline in the future. That ceiling is
+above the 0.793 s the case would require, not below it, so it is the master's timer and the clamp
+that close this off, not the modular limit.
 
 ## The clamp, observed
 

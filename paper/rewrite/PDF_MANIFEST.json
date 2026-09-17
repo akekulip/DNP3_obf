@@ -1,11 +1,13 @@
 {
  "what": "the tracked PDF at paper/rewrite/main.pdf",
- "built_from_commit": "resynchronised at each manuscript commit; see git log for the exact commit",
- "sha256": "c9aeb4cf7e1bc18551e6d12b1944c8c96a8c5d3e7aa80ef76a5bddf4e5ff90cf",
+ "sha256": "5d9500513ff15fa0fe2009e9ff80cdf417c0e5698a8b498c3ea2f2f3c857b96e",
  "pages": 15,
- "built_by": "paper/rewrite/pipeline/build.sh, which writes pipeline/build/main.pdf; this file is a copy",
+ "source_digest_sha256": "57bad0a48ba50569fb0d57bcf0655e8c1aab46ac62e5de1dbd0e2f6f032f8d41",
+ "source_files": 22,
+ "built_from_commit": "fedba3afb0f6cc9ab47c277322cda5af707cf37e",
+ "working_tree_clean_at_publish": false,
+ "built_by": "paper/rewrite/pipeline/build.sh, which writes pipeline/build/main.pdf; this file is a copy published by pipeline/publish_manuscript.py",
  "lin_gate": "PASS (no hard-check failures)",
- "protected_introduction": "PASS, three paragraphs word for word",
- "venue_preflight": "FAIL: 14 main-body pages against a limit of 13",
- "note": "This PDF is synchronised with the source at the commit above so that the published artefact is not silently older than the repository. It is NOT a submission candidate: the venue preflight fails on the page budget, and that failure is recorded here rather than left for a reader to discover."
+ "venue_preflight": "[FAIL] page budget 14 main-body page(s) (Ethics Considerations begins on page 14, References on page 15); limit 13. Open Science is counted, because the venue's exclusions name only Ethics Considerations, references and appendices",
+ "note": "Every record here is written in one step, so the sidecar hash, the manifest and the file cannot disagree. source_digest_sha256 covers main.tex, every section and every included figure, so an edit after this publish is detectable without trusting a commit. Whether this PDF is a submission candidate is said by venue_preflight above, not assumed."
 }
