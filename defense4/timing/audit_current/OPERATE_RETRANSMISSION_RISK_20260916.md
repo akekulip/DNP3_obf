@@ -1,5 +1,15 @@
 # A lost OPERATE cannot be repaired by its own retransmission
 
+> **A correction now exists, 2026-09-17.** It is built, compiled, loaded and measured in
+> `../operate_repair_candidate/`: released generations move to `0xD0..0xDF`, a repair is
+> relayed instead of dropped, the encoding is verified exhaustively over all 528 cases, and
+> it costs four tables and no additional ingress stage. Sixty READ polls through each build
+> give a CLRT median of 3.9995 ms frozen against 4.0000 ms corrected, so the timing is
+> unchanged. **The repair path itself is still untested**, because inducing a loss needs the
+> relay-facing link instrumented and it is not. The frozen program, which is what the
+> manuscript evaluates, still has the defect described below.
+
+
 Identified by the 2026-09-16 review and confirmed here by reading the frozen program. This is
 source-level reasoning about `defense4/timing/implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4`.
 **It has not been reproduced on hardware, and no capture in this repository exercises it.** No P4

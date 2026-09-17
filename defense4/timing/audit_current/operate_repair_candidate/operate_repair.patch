@@ -1,0 +1,133 @@
+--- a/defense4_rrc_bor_unified12.p4
++++ b/defense4_rrc_bor_unified12_operate_repair.p4
+@@ -386,6 +386,14 @@
+ const bit<8> SLOT_OP        = 8w2;   /* OPERATE blocker token slot marker                 */
+ const bit<8> EPOCH_NONE     = 8w0;   /* reg_bor_epoch == 0 <=> no prepared epoch          */
+ const bit<8> GEN_INACTIVE   = 8w0;   /* reg_bor_gen == 0   <=> no OPERATE held             */
++/* ►► CORRECTION 2026-09-17: a released OPERATE's generation is kept, but in its OWN domain.
++ * The parser admits only (app_control & 0xF0) == 0xC0, so a HELD generation is 0xC0..0xCF and
++ * bit 4 is free. Setting it on release gives 0xD0..0xDF for RELEASED, which is what lets the
++ * verdict tell a duplicate of a still-held command from the transport's repair of one that
++ * has already gone to the relay. Masking down to the low nibble instead would collide
++ * sequence zero with GEN_INACTIVE, and reusing bit 7 is impossible because every admitted
++ * generation already has it set. */
++const bit<8> GEN_RELEASED_BIT = 8w0x10;
+ /* BOR packet-class (a compact byte gating every BOR register access on a SINGLE field, so the
+  * BOR state domain never shares a gateway with an RRC field — the change-4 separation trap). */
+ const bit<8> BPC_NONE       = 8w0;
+@@ -399,6 +407,7 @@
+ const bit<8> V_OP_FRESH = 8w1;
+ const bit<8> V_OP_DUP   = 8w2;
+ const bit<8> V_OP_BUSY  = 8w3;
++const bit<8> V_OP_REPAIR = 8w4;   /* same generation, already released: TCP repairing a loss */
+ const bit<8> V_BLK_OP_LIVE = 8w1;
+ /* ►► UNIFIED12 blocker 3: T0-anchored OPERATE ACK / echo deadlines. A held OPERATE arms
+  * reg_deadline = T0 + A_DEFAULT_TICKS and reg_tresp = T0 + R_DEFAULT_TICKS at admission,
+@@ -791,7 +800,8 @@
+ const bit<16> OUT_OP_ADMIT         = 16w37;  /* qid3  seed OP reservoir (pktgen)   */
+ const bit<16> OUT_OP_LOOP          = 16w38;  /* qid3  OP blocker re-enqueue        */
+ const bit<16> OUT_OP_RELAY         = 16w39;  /* fwd->relay  released OPERATE @ T0+J */
+-const bit<16> OUT_OP_DUP           = 16w40;  /* drop  retransmit while held        */
++const bit<16> OUT_OP_DUP           = 16w40;  /* drop  retransmit while HELD        */
++const bit<16> OUT_OP_REPAIR        = 16w44;  /* relay retransmit after RELEASE     */
+ const bit<16> OUT_OP_TERM_STALE    = 16w41;  /* drop  stale-epoch OP token         */
+ const bit<16> OUT_OP_TERM_DL       = 16w42;  /* drop  T0+J reached: release qid2   */
+ const bit<16> OUT_OP_TERM_TMO      = 16w43;  /* drop  missing-OPERATE watchdog     */
+@@ -985,6 +995,7 @@
+     bit<8>  epoch_stored;  /* reg_bor_epoch pre-state (the prepared BOR_PENDING epoch)      */
+     bit<8>  ready_stored;  /* reg_bor_ready pre-state (epoch whose qid3 residency is set)   */
+     bit<8>  gen_stored;    /* reg_bor_gen pre-state (held-OPERATE generation, dedup)        */
++    bit<8>  gen_rel;       /* gen_in | GEN_RELEASED_BIT: this generation's RELEASED form    */
+     bit<8>  op_matched;    /* 1 = a prepared epoch exists (reg_bor_epoch != 0)             */
+     bit<8>  op_ready;      /* 1 = reg_bor_ready == reg_bor_epoch (qid3 resident)           */
+     bit<8>  hold_ok;       /* 1 = op_matched AND op_ready (single-bit hold gate)           */
+@@ -1780,6 +1791,15 @@
+     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_gen) gen_clear = {
+         void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = GEN_INACTIVE; }
+     };
++    /* ►► CORRECTION 2026-09-17: on RELEASE, move this generation into the released domain
++     * instead of leaving it in the held one. Only our own generation is moved, so a release that
++     * raced something else cannot mislabel it. */
++    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_gen) gen_release = {
++        void apply(inout bit<8> v, out bit<8> rv) {
++            rv = v;
++            if (v != GEN_INACTIVE) { v = v | GEN_RELEASED_BIT; }
++        }
++    };
+ 
+     /* reg_bor_topj: the OPERATE request-hold deadline T0+J (kept SEPARATE per change 4/5). */
+     Register<bit<32>, bit<1>>(1, 0) reg_bor_topj;
+@@ -2337,7 +2357,8 @@
+             (OUT_OP_ADMIT)          : cmt_op_block();    /* qid3 seed OP reservoir     */
+             (OUT_OP_LOOP)           : cmt_op_block();    /* qid3 re-enqueue            */
+             (OUT_OP_RELAY)          : cmt_op_relay();    /* released OPERATE -> relay  */
+-            (OUT_OP_DUP)            : cmt_drop();        /* retransmit while held/spent*/
++            (OUT_OP_DUP)            : cmt_drop();        /* retransmit while HELD      */
++            (OUT_OP_REPAIR)         : cmt_op_relay();    /* repair after RELEASE       */
+             (OUT_OP_TERM_STALE)     : cmt_drop();        /* stale-epoch OP token       */
+             (OUT_OP_TERM_DL)        : cmt_drop();        /* T0+J reached, token drains */
+             (OUT_OP_TERM_TMO)       : cmt_drop();        /* missing-OPERATE watchdog   */
+@@ -2511,6 +2532,13 @@
+      * idiom) so the release-branch test downstream is a single-field gateway; folding it into
+      * an existing action risks the "action spanning multiple stages" reject and, more to the
+      * point, a compound two-field release test measured at +1 ingress stage (13/12). */
++    action build_gen_rel() { meta.gen_rel = meta.gen_in | GEN_RELEASED_BIT; }
++    table tbl_build_gen_rel {
++        actions = { build_gen_rel; }
++        const default_action = build_gen_rel();
++        size = 1;
++    }
++
+     action build_do_shape() { meta.do_shape = meta.shape_enable & meta.payload49; }
+     table tbl_build_do_shape {
+         actions = { build_do_shape; }
+@@ -2934,6 +2962,7 @@
+             tbl_build_now.apply();
+             tbl_build_exp_ack.apply();
+             tbl_build_do_shape.apply();      /* RRC: do_shape = shape_enable & payload49 */
++            tbl_build_gen_rel.apply();       /* CORRECTION: gen_rel = gen_in | 0x10      */
+ 
+ #ifdef U_BOR
+             /* ►► UNIFIED12 change 4/6: classify the BOR packet-class ONCE (single field bor_pc),
+@@ -3200,10 +3229,15 @@
+             else                                 { meta.epoch_stored = epoch_read.execute(0); }
+             if (meta.bor_pc == BPC_OPERATE)      { meta.gen_stored = gen_arm.execute(0); }
+             else if (meta.bor_pc == BPC_PREPARE) { meta.gen_stored = gen_clear.execute(0); }
++            else if (meta.bor_pc == BPC_RELEASE) { meta.gen_stored = gen_release.execute(0); }
+             /* ►► blocker 5: RELEASE does NOT clear reg_bor_gen — it KEEPS the just-released
+              * generation as a "spent" marker so a post-release retransmit of the SAME OPERATE
+-             * reads V_OP_DUP and is DROPPED (exactly-once must survive PAST release, not only
+-             * while held). The epoch IS retired (epoch_retire above) so no NEW hold occurs; the
++             * reads V_OP_DUP and is DROPPED while the command is still HELD. ►► CORRECTION
++             * 2026-09-17: after RELEASE the generation moves to its released domain, so the
++             * SAME retransmission then reads V_OP_REPAIR and is FORWARDED to the relay, because
++             * once the bytes have left the switch their delivery is unknown and the transport is
++             * the only thing that can repair a loss. Dropping it made a lost OPERATE
++             * unrecoverable; that is what this changes, and it is not exactly-once. The epoch IS retired (epoch_retire above) so no NEW hold occurs; the
+              * spent marker is cleared by the NEXT SELECT (gen_clear on BPC_PREPARE). A genuinely
+              * new OPERATE with a different generation reads V_OP_BUSY and fails open. */
+             else                                 { meta.gen_stored = gen_read.execute(0); }
+@@ -3221,9 +3255,10 @@
+                     meta.op_matched = 8w1;
+                     if (meta.ready_stored == meta.epoch_stored) { meta.op_ready = 8w1; }
+                 }
+-                if (meta.gen_stored == GEN_INACTIVE)     { meta.verdict_bor = V_OP_FRESH; }
+-                else if (meta.gen_stored == meta.gen_in) { meta.verdict_bor = V_OP_DUP; }
+-                else                                     { meta.verdict_bor = V_OP_BUSY; }
++                if (meta.gen_stored == GEN_INACTIVE)      { meta.verdict_bor = V_OP_FRESH; }
++                else if (meta.gen_stored == meta.gen_in)  { meta.verdict_bor = V_OP_DUP; }
++                else if (meta.gen_stored == meta.gen_rel) { meta.verdict_bor = V_OP_REPAIR; }
++                else                                      { meta.verdict_bor = V_OP_BUSY; }
+             }
+             tbl_hold_ok.apply();                    /* hold_ok = matched&ready; folds T0+J arm */
+             if (meta.bor_pc == BPC_OPERATE || meta.bor_pc == BPC_TOKEN) {
+@@ -3261,7 +3296,8 @@
+              * an OP release, and an OP pktgen seed are BOR-owned; everything else (incl. a
+              * fail-open OPERATE, which still needs the RRC ARM fwd) is RRC-decided. */
+             if (meta.bor_pc == BPC_OPERATE) {
+-                if (meta.verdict_bor == V_OP_DUP) { meta.outcome = OUT_OP_DUP; }          /* exactly-once */
++                if (meta.verdict_bor == V_OP_DUP) { meta.outcome = OUT_OP_DUP; }          /* held: drop */
++                else if (meta.verdict_bor == V_OP_REPAIR) { meta.outcome = OUT_OP_REPAIR; } /* released: relay it */
+                 else if (meta.verdict_bor == V_OP_FRESH && meta.hold_ok == 8w1) { meta.outcome = OUT_OP_HOLD; }
+                 else { tbl_decide_fresh.apply(); }   /* fail-open / busy: forward via RRC ARM */
+             } else if (meta.bor_pc == BPC_TOKEN) {

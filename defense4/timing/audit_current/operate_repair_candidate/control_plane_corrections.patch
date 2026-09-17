@@ -1,0 +1,44 @@
+--- a/defense4_rrc_bor_unified12_setup.py
++++ b/defense4_rrc_bor_unified12_setup_corrected.py
+@@ -118,6 +118,10 @@
+     REL_DL_SHAPE=32, REL_FO_FWD=33, REL_FO_SHAPE=34, DEQ_DROP=35,
+     OP_HOLD=36, OP_ADMIT=37, OP_LOOP=38, OP_RELAY=39, OP_DUP=40, OP_TERM_STALE=41,
+     OP_TERM_DL=42, OP_TERM_TMO=43,
++    # CORRECTION 2026-09-17: a retransmission arriving AFTER the OPERATE was released is
++    # the transport repairing a loss on the relay-facing link, not a duplicate of a held
++    # command, so it is relayed rather than dropped.
++    OP_REPAIR=44,
+ )
+ COMMIT_MAP = {
+     OUT["BADPORT"]: "cmt_drop", OUT["CLONE"]: "cmt_drop", OUT["PKTGEN_DROP"]: "cmt_drop",
+@@ -137,6 +141,7 @@
+     OUT["OP_HOLD"]: "cmt_op_hold", OUT["OP_ADMIT"]: "cmt_op_block", OUT["OP_LOOP"]: "cmt_op_block",
+     OUT["OP_RELAY"]: "cmt_op_relay", OUT["OP_DUP"]: "cmt_drop", OUT["OP_TERM_STALE"]: "cmt_drop",
+     OUT["OP_TERM_DL"]: "cmt_drop", OUT["OP_TERM_TMO"]: "cmt_drop",
++    OUT["OP_REPAIR"]: "cmt_op_relay",
+ }
+ COMMIT_DEFAULT_ACTION = "cmt_fwd"   # fail-OPEN default (blocker 1): NEVER cmt_drop
+ 
+@@ -305,8 +310,8 @@
+ 
+ def verify_commit_map(chk):
+     """blocker 1: the tbl_commit const map is TOTAL over OUT_* 1..43, single-valued, default fail-OPEN."""
+-    chk.expect("tbl_commit map is total over OUT_* 1..43", set(COMMIT_MAP.keys()), set(range(1, 44)))
+-    chk.expect("tbl_commit map is single-valued", len(COMMIT_MAP), 43)
++    chk.expect("tbl_commit map is total over OUT_* 1..44", set(COMMIT_MAP.keys()), set(range(1, 45)))
++    chk.expect("tbl_commit map is single-valued", len(COMMIT_MAP), 44)
+     chk.expect("tbl_commit default is fail-OPEN forward (not drop)", COMMIT_DEFAULT_ACTION, "cmt_fwd")
+     valid = {"cmt_drop", "cmt_fwd", "cmt_fwd_clone", "cmt_shape", "cmt_block", "cmt_resp_block",
+              "cmt_hold", "cmt_resp_hold", "cmt_op_block", "cmt_op_hold", "cmt_op_relay"}
+@@ -963,7 +968,10 @@
+     iface, bi, tgt, tdev = _connect(a)
+     out = {}
+     try:
+-        hw_verify_tbl_commit(bi, tgt, chk)
++        # CORRECTION 2026-09-17: const entries are reported at the DEVICE target, not per
++        # pipe. configure-all already passes tdev here; verify passed tgt (pipe 0) and so read
++        # an empty table and could never pass its own check.
++        hw_verify_tbl_commit(bi, tdev, chk)
+         for r in BOR_REGS_ZERO:
+             try:
+                 chk.ok("%s = %s" % (r, d3.reg_read(bi, tgt, r)))
