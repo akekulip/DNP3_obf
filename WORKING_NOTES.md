@@ -1,27 +1,20 @@
 # Working notes
 
-## Status: one branch, one working tree, and a history without the co-author trailers
+## Status: published, and the 2026-09-17 review is answered
 
-`main` carries everything, 888 commits, and it is the only branch. The twenty other GitHub
-branches were removed on 2026-09-16 after each was shown to be contained in `main` or bundled to
-`/home/philip/Archives/DNP3_branch_bundles_20260915/`. On the same day the history was rewritten
-to strip the `Co-Authored-By: Claude` trailers from five commit messages, which changed every hash
-from 2026-07-15 onward; `git log --all --format=%B | grep -ci "co-authored-by:.*claude"` returns 0
-and every commit is authored by `akekulip`. There is one working tree,
-`/home/philip/Projects/DNP3`.
+`main` is the only branch and carries everything, 902 commits. The history rewrite that stripped
+the `Co-Authored-By: Claude` trailers was published on 2026-09-16, branch and tags both, and
+GitHub lists one contributor. **Eleven commits since then are local:** `origin/main` is at
+`7388c314` and local `HEAD` is at `5edc4db8`, so the review response has not been pushed.
 
-**Publishing has not happened.** The rewritten history is local only, the `origin/main`
-remote-tracking ref no longer exists because the rewrite dropped it, and publishing it needs a
-lease-checked force update of `main`, which the repository's own rules leave to Philip.
+The five closed pull requests keep `refs/pull/N/head` refs that still reach two pre-rewrite
+commits. Only GitHub Support can purge those; they do not feed the contributors list.
 
-Archives, all verified: `/home/philip/Archives/DNP3_post_rewrite_20260916/` holds the current
-history as a bundle together with `commit-map-old-to-new.txt`, the 926-line map that is the only
-way to translate a hash written down before the rewrite;
-`/home/philip/Archives/DNP3_pre_rewrite_20260916/` holds the history as it stood before, which is
-what an undo would clone from; `/home/philip/Archives/DNP3_branch_bundles_20260915/` holds the
-eight branches whose commits `main` never had, and since the rewrite pruned them from the
-repository those bundles are now the sole copy. The README beside the first of these explains all
-three.
+Archives, all verified, in `/home/philip/Archives/`: `DNP3_post_rewrite_20260916/` (current
+history plus `commit-map-old-to-new.txt`, the only way to translate a pre-2026-09-16 hash),
+`DNP3_pre_rewrite_20260916/` (two bundles: the full backup, and the remote tip one commit further
+on that the backup missed), and `DNP3_branch_bundles_20260915/` (the eight branches whose commits
+`main` never had, now the sole copy).
 
 ## What changed in the 2026-09-15 pass
 
@@ -51,32 +44,50 @@ repository, not from the archive directory, or it reports a false failure.
 `fixed-transcript-experiments` mattered most there: 23 commits with no local branch, so before the
 bundle the remote was probably its only copy.
 
-## Current work: the 2026-09-16 correction pass
+## What the 2026-09-17 review changed
 
-Offline only: no hardware, no switch, no traffic. The full account is in
-`git show 48373e39:CORRECTION_REPORT_20260916.md`. Verified at the end of the pass: 197 active offline tests, 131
-campaign tests with no failures, 132 captures and 63,360 exchanges with zero validator problems,
-the publication gate clean, the protected introduction verbatim, the manuscript building and
-gating clean, and all four protected paths byte-identical to the frozen tree. After the history
-rewrite, `update_hash_references.py --apply` repointed 179 hash references across 53 files and
-every gate was re-run against the new hashes.
+The review is at `DNP3_7388c31_Full_Review_20260917.md`, untracked on purpose: incoming reviews
+live beside the repository, and what they find is recorded where the fix is.
+
+**Implementation.** The OPERATE correction candidate was unbuildable as written: every generation
+the parser admits is `0xC0`-`0xCF`, so the high bit it proposed to use as a released flag is
+already set. Released generations now live in `0xD0`-`0xDF`, the four decode sets stay disjoint,
+and the claim that a forwarded repair cannot disturb a later transaction is withdrawn, because the
+shared sequence and acknowledgment trackers run before the verdict. Admission is bound to the
+deployment: all three constraint checks must be present and passing, and the record must name a
+build and a connection that match. The probe cleans up after an install that raises on its way
+back and revalidates its own durations. An unverifiable write is reported as possibly applied.
+
+**Evidence.** The canonical validator now checks what the review had to check by hand: the
+response's application sequence against the request's, and every CROB status rather than the
+first, which is 21,120 statuses over 10,560 control responses. Zero problems over 132 captures.
+
+**Figures.** The leakage figure was unusable at column width and is now two readable panels, with
+the confusion matrices in its data file. The policy figure names its series on the marks. Nothing
+is below the 8 pt floor. Checked by rendering pages 9, 10 and 11 at printed size.
+
+**Manuscript.** 13 main-body pages against a limit of 13; the venue preflight passes with no
+blocking issues. The space came from repeated scope explanations, from narration of our own review
+process, and from three floats whose numbers the text already carries. Open Science now precedes
+Ethics Considerations. `pipeline/publish_manuscript.py` writes the PDF, its hash and the manifest
+together, so they cannot disagree again, and the page-budget rule is stated positively with seven
+tests behind it.
+
+**Documents.** 87 prose documents down to 63. `NOTATION_MAPPING.md` held four contradictory
+statements about `D_R` at once and five other files repeated the stale one; there is now one
+definition. What was removed and where it lives is in `CLAUDE.md`.
 
 ## Next actions
 
-1. **Publish the rewritten history**, with the lease-checked force update recorded in
-   `tools/history_rewrite/README.md`. Anyone with an existing clone has to re-clone.
-2. **The body is one page over.** 14 main-body pages against a limit of 13. A compression pass on
-   2026-09-16 removed about 150 words without dropping a number or a caveat and cut the spill from
-   sixteen column lines to twelve, but the remaining twelve lines will not come out of wording.
-   Because the figures reflow into whatever prose frees, roughly 300 more words of source would
-   have to go, so the real choice is a content cut or one fewer figure, and that is Philip's call.
-   The tallest candidates are `fig_ladder` at 266 pt and `fig_m01_release_timeline` at 288 pt.
-3. **Read the built PDF at printed size** before circulating it.
-4. The OPERATE spent-marker loss path is specified but not implemented or run: it needs the
+1. **Publish the review response.** Eleven commits are local. `git push origin main` is an
+   ordinary fast-forward; nothing here needs a force.
+2. **Read the built PDF at printed size** before circulating it. The figures were checked that
+   way; the prose has not been.
+3. The OPERATE spent-marker loss path is specified but not implemented or run. It needs the
    relay-facing link instrumented and a separately authorised hardware session
    (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`).
-5. Optional: the duplicate live-window case and a hardware adapter for the activation profile are
-   still open.
+4. Optional: the duplicate live-window case stays open, and a hardware adapter for the activation
+   profile does not exist.
 
 ## Standing constraints
 
