@@ -56,4 +56,5 @@ restructuring it.
 
 `bf-p4c` exists only on the switch, which this work does not access; `/usr/bin/p4c` here is the
 open-source compiler and cannot target Tofino. The procedure, the required evidence and the
-failure criteria are in `../EPSILON_MEASUREMENT_PLAN.md`.
+failure criteria are in the measurement plan, removed once the measurement was taken and
+recoverable at `dc721cdf`.

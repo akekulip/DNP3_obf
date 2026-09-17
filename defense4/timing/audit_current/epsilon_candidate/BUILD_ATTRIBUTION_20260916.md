@@ -44,7 +44,7 @@ machine minutes later. The recorded `1d5470a678c6df4e…` for the candidate and
 compiled, and no recompilation can make them so. Compiling the frozen source here gave
 `f9dade81…`, which agrees with `33fa3a77…` no better than any other pair of compiles would.
 
-That also explains a note in `REPRODUCTION_REPORT_20260826.md` that the loaded-binary hash "cannot
+That also explains a note in the 2026-08-26 reproduction report, at `dc721cdf`, that the loaded-binary hash "cannot
 be re-derived". The reason is not that no binary was kept. It is that the value is not a function
 of the input.
 

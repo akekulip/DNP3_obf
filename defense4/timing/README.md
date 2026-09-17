@@ -77,7 +77,7 @@ control-plane chain and the drivers from the same commit.
 run, plus `evidence/campaign_v1/sweep/raw_pcaps/` — 19 sweep captures: 16 configured release
 policies, all in mode D4, and three native controls. The two points configured in modes D2 and
 D3 measured native timing, because the loaded binary arms a transaction only for D4; see
-`TIMING_ONLY_RERUN_PLAN.md` §2. Claim C2 is unaffected, since every point it quotes is D4. Per-run hashes are in each `sNN/provenance/DATASET.sha256` and the
+the rerun plan at `dc721cdf` §2. Claim C2 is unaffected, since every point it quotes is D4. Per-run hashes are in each `sNN/provenance/DATASET.sha256` and the
 sweep's in `sweep/SWEEP.sha256`; `repro/reproduce.sh` verifies all of them before any analysis
 reads a capture.
 
@@ -214,7 +214,7 @@ Each of these is stated with its evidence in `CLAIMS_AND_LIMITATIONS.md`.
 
 No size claim, size figure, or size analysis lives in this tree. The size evidence, the size
 scripts and the earlier size research remain where they were, under
-`defense4/size/` and on the branches listed in `BRANCH_MAP.md`. The one place size touches
+`defense4/size/` and on the branches recorded in the archives. The one place size touches
 the timing result is section 7 above, and it is stated there rather than left implicit.
 
 ## 9. Layout
@@ -225,11 +225,7 @@ defense4/timing/
 ├── CLAIMS_AND_LIMITATIONS.md     what the evidence supports, and what bounds it
 ├── TIMING_MODEL.md               every symbol, its observation point, and the map to the code
 ├── TIMEOUT_AND_RETRANSMISSION_AUDIT.md   the five timers, and which ones were ever at risk
-├── TIMING_ONLY_RERUN_PLAN.md     the hardware package to approve or reject; nothing run
 ├── PROVENANCE.md                 silicon to figure, by hash and commit
-├── REPOSITORY_AUDIT.md           repository state and safety steps
-├── CLEANUP_PLAN.md               disposition of every candidate
-├── BRANCH_MAP.md                 branches, tags, bundle
 ├── reproduce.sh                  rebuild everything from the raw captures
 ├── pyproject.toml                pinned environment
 ├── implementation/

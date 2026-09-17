@@ -55,7 +55,7 @@ because they are real: the tail is not clipped anywhere in the figures.
 ### C2 — The release policy is programmable over a bounded range
 
 From the 19-point hardware sweep, whose 16 configured release policies are all in mode D4; its
-other three points are native controls (`TIMING_ONLY_RERUN_PLAN.md` §2). At a fixed total
+other three points are native controls (`git show dc721cdf:defense4/timing/TIMING_ONLY_RERUN_PLAN.md` §2). At a fixed total
 budget `D` = 24 ms, targets of
 `D_R` = 1, 2, 4, 8, 12, 16, 20 and 22 ms produce measured CLRT medians of 0.998, 1.999, 3.999,
 8.001, 12.001, 16.000, 20.001 and 22.001 ms, while the end-to-end response time stays between

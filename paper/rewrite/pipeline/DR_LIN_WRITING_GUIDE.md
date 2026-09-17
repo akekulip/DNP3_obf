@@ -58,8 +58,8 @@ and new measurement campaigns.
 Consolidates the writing rules the manuscript follows. It replaces `LIN_STYLE_CONTRACT.md`,
 `LIN_STYLE_PROFILE.md`, `LIN_VS_PHILIP_DIFF.md`, `PIPELINE_AUDIT_VERDICT.md`,
 `WRITING_PIPELINE_AUDIT.md` and `WRITING_PIPELINE_REBUILD_PLAN.md` (archived 2026-08-26, see
-`CLEANUP_PLAN.md`). The evidence trail for Dr. Lin's own words stays in
-`../LIN_WRITING_GUIDANCE.md` (extracted from the 2026-08-19 meeting) and in
+the cleanup plan at `dc721cdf`). The evidence trail for Dr. Lin's own words stays in
+the guidance extracted from the 2026-08-19 meeting, at `dc721cdf`, and in
 `samples/lin_intro.txt` (his introduction paragraphs, verbatim from the annotated draft).
 The style files control style; they never override experimental evidence
 (`../../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`).
@@ -174,7 +174,7 @@ headers, and plain explanatory clauses ("This is because …").
 
 Dr. Lin's opening paragraph and his obfuscation-trend paragraph (red boxes in the annotated
 introduction, verbatim in `samples/lin_intro.txt` and quoted in
-`reports/PRE_REWRITE_RECONCILIATION.md` R10) keep their sentence roles and logic. Only grammar,
+the pre-rewrite reconciliation at `dc721cdf`, R10) keep their sentence roles and logic. Only grammar,
 factual correctness, citation correctness, timing-only scope, terminology consistency and the
 removal of unsupported claims may change them, and every change is logged in
 `reports/LIN_TEXT_CHANGELOG.md` with the original, the revision, the reason and whether it is

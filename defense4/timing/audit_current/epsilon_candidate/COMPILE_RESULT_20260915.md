@@ -70,4 +70,4 @@ instrumentation perturbs the timing it is meant to observe, which is a question 
 with a comparison against the frozen build can answer.
 
 The procedure, required evidence and failure criteria for that run are in
-`../EPSILON_MEASUREMENT_PLAN.md`. Loading the candidate remains a separately authorised step.
+the measurement plan at `dc721cdf`. Loading the candidate remains a separately authorised step.

@@ -78,4 +78,4 @@ object group at `user_data[5]`, and both CROB statuses.
 ## What these drivers do not do
 
 They do not run hardware, and they are not a rerun. The rerun package, including what a run
-would need to instrument that this evidence lacks, is `../TIMING_ONLY_RERUN_PLAN.md`.
+would need to instrument that this evidence lacks, is the rerun plan at `dc721cdf`.

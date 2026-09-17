@@ -37,18 +37,18 @@ figures/fig_design.{svg,pdf}    design schematic (Section IV)
 figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder (Section II)
 figures/fig_observation.{svg,pdf}   observation model (Section III)
 figures/SCHEMATICS.sha256       hashes of the three schematics (svg, pdf, png)
-main.pdf.sha256                 hash of the committed build
-FINAL_FIGURES.md                generated: one row per final figure, paths, hashes, references
 FIGURE_PROVENANCE.md            silicon -> capture -> script -> figure, by hash
-LIN_WRITING_GUIDANCE.md         Dr. Lin's guidance extracted from the 2026-08-19 meeting (evidence)
+main.pdf.sha256                 hash of the committed build, written with PDF_MANIFEST.json by
+                                pipeline/publish_manuscript.py
 pipeline/DR_LIN_WRITING_GUIDE.md   the active writing guide (structure, voice, terminology, gates)
 pipeline/lin_check.py           the manuscript gate
 pipeline/build.sh               compile + gate
-                                (make_final_figures.py is retired; see FINAL_FIGURES.md)
 pipeline/samples/lin_intro.txt  his introduction paragraphs, verbatim
-pipeline/reports/               PRE_REWRITE_KNOWLEDGE, PRE_REWRITE_RECONCILIATION,
-                                EVENT_SEMANTICS_TRUTH_TABLE, LIN_TEXT_CHANGELOG,
-                                CLAIM_CITATION_MATRIX, FINAL_MANUSCRIPT_AUDIT
+pipeline/publish_manuscript.py  publishes main.pdf, its hash and PDF_MANIFEST.json together
+pipeline/tests/                 tests for the venue page-budget rule
+pipeline/reports/               EVENT_SEMANTICS_TRUTH_TABLE, LIN_TEXT_CHANGELOG,
+                                CLAIM_CITATION_MATRIX, POST_MEETING_REVIEW_HANDOFF,
+                                and the dated gate reports
 ```
 
 ## Writing rules
@@ -77,15 +77,14 @@ cd ../../defense4/timing && TIMING_PYTHON=/usr/bin/python3 ./reproduce.sh
 cp build/figures/fig0*.{pdf,png,caption.md,provenance.json} build/figures/fig0*_data.csv figures/publication/
 # figures are published only by the gate:
 #   evidence/campaign_v1/repro/publication_gate.py <OUT_DIR> --update
-# FINAL_FIGURES.md is now maintained by hand: its generator read figures/timing/, which
 # was removed on 2026-09-07, and is retired to defense4/timing/history/.
 ```
 
-Then refresh the hashes in `FIGURE_PROVENANCE.md`. Schematics: edit the SVG, then
+Each figure carries its own `.provenance.json`. Schematics: edit the SVG, then
 `./pipeline/export_schematics.sh` (Inkscape 1.x on PATH) exports PDF/PNG, mirrors them to
 `defense4/timing/figures/schematics/` and writes `figures/SCHEMATICS.sha256`.
 
 ## Open items
 
 The three flagged points in the verbatim Introduction, the NDSS template switch, and a licence
-file: see `pipeline/reports/FINAL_MANUSCRIPT_AUDIT.md`.
+file: the gate reports under `pipeline/reports/` carry the current state.

@@ -91,7 +91,7 @@ Where this repository said the reproduction is byte-identical, it should say, an
 
 Statements elsewhere about two runs agreeing "byte for byte on all 14 artefacts" describe **two
 runs on this machine**, which is what was measured; they are not cross-machine claims and are
-scoped accordingly in `SESSION_20260907.md` gate row 19.
+scoped accordingly in the 2026-09-07 session record, at `dc721cdf`, gate row 19.
 
 ## 5. The failing test, identified
 

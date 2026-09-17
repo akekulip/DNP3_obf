@@ -4,7 +4,8 @@ Every timing quantity used in this study, with the point at which it is observed
 is a timestamp or a duration, and whether it was measured at all. Written so that no reader
 has to infer which of two nearby quantities a number refers to.
 
-This document supersedes nothing: it extends `audit_current/TIMING_DEFINITIONS.md` by
+This document is the model; `NOTATION_MAPPING.md` is the one definition table. It extends the
+earlier definitions note, removed on 2026-09-17 and recoverable at `dc721cdf`, by
 separating quantities that document merged, and it records the mapping to the names the code
 actually uses. Where the code uses a different name, the name in the code governs the code and
 the name here governs the prose. No variable and no CSV column was renamed.

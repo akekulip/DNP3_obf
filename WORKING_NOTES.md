@@ -54,7 +54,7 @@ bundle the remote was probably its only copy.
 ## Current work: the 2026-09-16 correction pass
 
 Offline only: no hardware, no switch, no traffic. The full account is in
-`CORRECTION_REPORT_20260916.md`. Verified at the end of the pass: 197 active offline tests, 131
+`git show 48373e39:CORRECTION_REPORT_20260916.md`. Verified at the end of the pass: 197 active offline tests, 131
 campaign tests with no failures, 132 captures and 63,360 exchanges with zero validator problems,
 the publication gate clean, the protected introduction verbatim, the manuscript building and
 gating clean, and all four protected paths byte-identical to the frozen tree. After the history

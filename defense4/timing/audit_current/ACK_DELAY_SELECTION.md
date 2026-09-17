@@ -1,5 +1,10 @@
 # Selecting the acknowledgment hold `D_A`: how much more holding this deployment tolerates
 
+> Citations below to `TIMING_ONLY_RERUN_PLAN.md`, with line numbers, refer to the rerun
+> plan that was removed from the tree on 2026-09-17. It is recoverable unchanged with
+> `git show dc721cdf:defense4/timing/TIMING_ONLY_RERUN_PLAN.md`, so the line numbers still
+> resolve.
+
 Written 2026-09-08. Every repository fact is quoted with `file:line` or the exact file read
 this session; every external fact carries its URL and clause. No hardware was touched and no
 traffic was generated.

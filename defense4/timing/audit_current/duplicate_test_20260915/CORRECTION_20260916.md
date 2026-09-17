@@ -49,7 +49,8 @@ supported by this trace.
 
 ## 3. The risk is not closed, because this test did not reach it
 
-The risk in `CORRECTION_REPORT_20260915.md` §1 is that `OUT_RESP_DUP_SUPP` **drops** a duplicate
+The risk in `CORRECTION_REPORT_20260915.md` §1, recoverable with
+`git show 48373e39:CORRECTION_REPORT_20260915.md`, is that `OUT_RESP_DUP_SUPP` **drops** a duplicate
 response **while the transaction is live**. In this trace the transaction was live for about
 25 ms: the request at 0.210335 s and the released response at 0.235595 s, consistent with the
 configured 20 ms acknowledgment hold plus 4 ms. The first copy arrived 2.97 s later, about 120

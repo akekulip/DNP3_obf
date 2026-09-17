@@ -106,7 +106,7 @@ git log --all --format=%B | grep -ci claude          # expect 0
 ```
 
 Confirm the frozen-tree check still resolves with its new hash, substituting the value the
-updater wrote into `CORRECTION_REPORT_20260916.md`:
+updater wrote into the correction report, which is in git history at `48373e39`:
 
 ```bash
 git diff --name-only <new-8278346> HEAD -- defense4/timing/implementation | wc -l   # expect 0

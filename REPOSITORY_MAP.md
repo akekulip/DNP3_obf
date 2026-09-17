@@ -59,9 +59,10 @@ each point: the measured blocker-termination interval, the perturbation comparis
 forwarding of late response copies all come from the 2026-09-15 diagnostics rather than from
 `campaign_v1`. Each is reported with its own scope and build attribution. See `relay_rto_20260915/CORRECTION_20260915.md` for the configuration difference from the campaign. |
 
-The two standing analysis documents: `CORRECTION_REPORT_20260915.md` at the root holds the
+The two standing analysis documents were removed from the tree on 2026-09-17 and are in git
+history at `48373e39`. `CORRECTION_REPORT_20260915.md` held the
 duplicate-handling behaviour table and the prioritized next steps;
-`audit_current/EPSILON_MEASUREMENT_PLAN.md` holds the procedure that would measure epsilon,
+The epsilon measurement plan, at `dc721cdf`, held the procedure that would measure epsilon,
 which remains unmeasured, and `audit_current/epsilon_candidate/` holds the patch over the frozen
 P4, uncompiled, with its base and result hashes recorded.
 

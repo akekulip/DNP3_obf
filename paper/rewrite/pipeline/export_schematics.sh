@@ -38,6 +38,6 @@ for name in fig_ladder fig_observation fig_design; do
   printf '  %-16s pdf+png(600dpi) exported, mirrored (identical)\n' "${name}"
 done
 
-# hashes, for FIGURE_PROVENANCE.md
+# hashes, for each figure's .provenance.json
 ( cd "${PAPER_FIGS}" && sha256sum fig_ladder.{svg,pdf,png} fig_observation.{svg,pdf,png} fig_design.{svg,pdf,png} ) > "${PAPER_FIGS}/SCHEMATICS.sha256"
 echo "  hashes -> figures/SCHEMATICS.sha256"

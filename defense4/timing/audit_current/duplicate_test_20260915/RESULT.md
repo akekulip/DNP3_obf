@@ -8,7 +8,8 @@
 > the first copy arrived 2.97 s later, so the case the risk is about, a duplicate arriving while
 > the transaction is live, was never exercised. See `CORRECTION_20260916.md`.
 
-The open risk in `CORRECTION_REPORT_20260915.md` §1 is **closed**. A loss-recovery retransmission
+The open risk in `CORRECTION_REPORT_20260915.md` §1, which is in git history at `48373e39`, is
+**closed**. A loss-recovery retransmission
 is delivered, not suppressed.
 
 ## The risk

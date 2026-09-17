@@ -59,6 +59,6 @@ re-read this session), PARTIAL, UNVERIFIED.
   `jeonPassiveFingerprintingSCADA2016` (`howpublished`), and `langnerStuxnetDissectingCyberwarfare2011`
   (added).
 * `refs.bib` (legacy, 41 hand-written keys) is not referenced by `main.tex`; every claim above cites
-  `library.bib`, so it is archived (see `CLEANUP_PLAN.md`).
+  `library.bib`, so it is archived (see the cleanup plan at `dc721cdf`).
 * No Stuxnet or Ukraine statement is made without a citation, and each incident carries only the
   claim its source supports (`LIN_TEXT_CHANGELOG.md` 1.4).

@@ -14,13 +14,29 @@ that reports it. The experiment is finished.
   retired corpus needs the explicit `--historical` flag.
 - `paper/rewrite/` — the one active manuscript. Entry point `main.tex`, sections under
   `sections/`; build with `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
-- Root: `README.md` and `FINAL_TIMING_ALLOWLIST.txt` record how this tree was reduced from the
-  full research repository. Four companion documents were dropped in the 2026-09-15 prune and are
-  **in git history, not on disk**. Each is recoverable at the last commit that still carried it:
-  `git show f6dd821:REMOVAL_REPORT.md`, `git show f6dd821:VERIFICATION_REPORT.md`,
-  `git show f6dd821:REPOSITORY_AUDIT.md`, `git show f573eec:CLEANUP_PLAN.md`, and the per-path
-  `git show 6e2eff2:REMOVAL_MANIFEST.csv`. The
-  reports above still carry the rules and the recovery references.
+- Root: `README.md`, `REPOSITORY_MAP.md` and `FINAL_TIMING_ALLOWLIST.txt` record how this tree was
+  reduced from the full research repository.
+
+### Documents removed from the tree, and where they are
+
+Prose that recorded a plan, a session or a state that has since been superseded is kept in git
+history rather than on disk, so that one document is authoritative per subject and a reader cannot
+follow a stale one. Nothing was lost: each is a `git show` away.
+
+| removed | at | what it was |
+|---|---|---|
+| `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md`, `REPOSITORY_AUDIT.md` | `f6dd821` | the 2026-08-26 reduction of the full repository |
+| `CLEANUP_PLAN.md` | `f573eec` · also `dc721cdf` | disposition of every candidate in that reduction |
+| `REMOVAL_MANIFEST.csv` | `6e2eff2` | the per-path record of it |
+| the six root review and correction reports of 2026-09-15 and 2026-09-16 | `48373e39` | the reviews this repository answered |
+| twenty superseded notes under `defense4/timing/`, `audit_current/` and `paper/rewrite/` | `dc721cdf` | branch maps, rerun plans, session logs, pre-rewrite reconciliations, an applied patch proposal, a duplicate writing guide and a duplicate definitions table |
+
+**One subject, one document.** The response latency `D_R` is defined in
+`defense4/timing/NOTATION_MAPPING.md` and nowhere else; the claim boundaries in
+`defense4/timing/CLAIMS_AND_LIMITATIONS.md`; the writing contract in
+`paper/rewrite/pipeline/DR_LIN_WRITING_GUIDE.md`. A second copy of any of those is a defect, and
+on 2026-09-17 a review found one that had already caused the manuscript to be edited against a
+stale definition.
 
 Everything else — size experiments, earlier defenses, prototypes, meeting material, old
 drafts — is out of scope here. It lives in git history (tag

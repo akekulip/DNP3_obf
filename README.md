@@ -25,8 +25,6 @@ CLAUDE.md                     repository instructions
 FINAL_TIMING_ALLOWLIST.txt    every retained path, and the rules that produced the list
 (in git history, not on disk; see the note below)
   REMOVAL_REPORT.md           what was kept, what was removed, and why
-  REPOSITORY_AUDIT.md         repository state at the start of the 2026-08-26 rewrite
-  CLEANUP_PLAN.md             disposition of every item touched by the rewrite
 defense4/timing/              the canonical timing tree: evidence, analysis, figures
 paper/rewrite/                the manuscript (main.tex, sections/, library.bib, pipeline/)
 ```
@@ -95,7 +93,7 @@ removed path is recoverable from the branch `cleanup/timing-read-sbo-20260824`, 
 `archive/pre-final-timing-prune-20260824`, commit `ef82fae`, or the bundle
 `DNP3-before-final-timing-prune-20260824.bundle`. Four root documents were dropped in the
 2026-09-15 prune and live only in history: `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md`,
-`REPOSITORY_AUDIT.md` at `f6dd821` and `CLEANUP_PLAN.md` at `f573eec`. The per-path
+`REPOSITORY_AUDIT.md` and `CLEANUP_PLAN.md`, both at `dc721cdf`. The per-path
 `REMOVAL_MANIFEST.csv` at `6e2eff2` that
 listed each one individually was dropped on 2026-09-15 and is itself in git history; the
 references above recover any path without it.
