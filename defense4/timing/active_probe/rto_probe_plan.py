@@ -191,6 +191,7 @@ class ExecutionRecord:
     probe_id: str
     status: str = "not started"
     steps: list = field(default_factory=list)
+    install_attempted: bool = False
     rule_installed: bool = False
     rule_removed: bool = False
     cleanup_verified: bool = False
@@ -375,13 +376,27 @@ def run_steps(p: dict[str, Any], runner, *,
     if problems:
         raise ProbeRefused("refusing to execute an incomplete plan: " + "; ".join(problems))
 
-    if (not isinstance(slice_seconds, (int, float)) or isinstance(slice_seconds, bool)
-            or not math.isfinite(slice_seconds) or slice_seconds <= 0):
-        raise ProbeRefused("slice_seconds must be a positive finite number, got %r"
-                           % (slice_seconds,))
+    # A plan is a plain dictionary, so passing `plan()` does not mean the values that reach here
+    # are the ones it validated: anything can be edited between the two calls. Execution therefore
+    # revalidates its own duration fields rather than trusting the earlier check. A non-finite
+    # hold is the case that matters, because a NaN deadline compares false against every clock
+    # reading, so the wait loop would exit at once and the shortfall test at the end would also
+    # compare false and report the hold as served.
+    def _duration(name, value):
+        if (not isinstance(value, (int, float)) or isinstance(value, bool)
+                or not math.isfinite(value) or value <= 0):
+            raise ProbeRefused("%s must be a positive finite number, got %r" % (name, value))
+        return float(value)
+
+    _duration("slice_seconds", slice_seconds)
+    hold = _duration("hold_seconds", p.get("hold_seconds"))
+    watchdog_s = _duration("watchdog_seconds", p.get("watchdog_seconds"))
+    if watchdog_s < hold:
+        raise ProbeRefused("watchdog_seconds %r is shorter than hold_seconds %r"
+                           % (watchdog_s, hold))
     rec = ExecutionRecord(probe_id=p["probe_id"],
-                          requested_hold_seconds=float(p["hold_seconds"]),
-                          watchdog_seconds=float(p["watchdog_seconds"]))
+                          requested_hold_seconds=hold,
+                          watchdog_seconds=watchdog_s)
 
     def step(name, argv, *, expect):
         """`expect` is the return code that means success for this step."""
@@ -403,13 +418,50 @@ def run_steps(p: dict[str, Any], runner, *,
     verify = shlex.split(p["commands"]["verify_installed"])
     remove = shlex.split(p["commands"]["remove"])
 
-    if not step("install", install, expect=0):
+    def attempt_cleanup():
+        """Remove and verify, recording each outcome instead of propagating it.
+
+        Used by the install paths as well as the held phase, because an install that reported
+        failure, or that raised on its way back, can still have left the rule in place. Ownership
+        is the probe's own connection: `remove` and `verify` are the plan's commands, which are
+        scoped to that 4-tuple, so this never touches a rule the probe did not ask for.
+        """
+        removed = gone = False
+        try:
+            removed = step("remove", remove, expect=0)
+        except Exception as exc:
+            rec.errors.append("remove raised %r" % (exc,))
+        try:
+            # `iptables -C` exits 1 when the rule is absent. Any other non-zero status means the
+            # check could not be made, which is not evidence of absence.
+            gone = step("verify_removed", verify, expect=RULE_ABSENT_RC)
+        except Exception as exc:
+            rec.errors.append("verify_removed raised %r" % (exc,))
+        rec.rule_removed = bool(removed)
+        rec.cleanup_verified = bool(removed and gone)
+        return rec.cleanup_verified
+
+    # The install call is itself inside the protected region. A runner that installs the rule and
+    # then raises while returning its result leaves the rule in place, and so does an install that
+    # reports failure after partially applying, so neither may leave this function without an
+    # attempted removal and a record of what happened.
+    rec.install_attempted = True
+    try:
+        installed = step("install", install, expect=0)
+    except Exception as exc:
+        rec.status = "install raised"
+        rec.primary_error = repr(exc)
+        rec.errors.append("the rule may exist: install raised while returning its result")
+        attempt_cleanup()
+        raise ProbeRefused("install raised %r; the rule may exist and removal was attempted"
+                           % (exc,), rec)
+    if not installed:
         rec.status = "aborted before install"
+        attempt_cleanup()
         raise ProbeRefused("install failed; nothing was held and no capture is valid", rec)
     rec.rule_installed = True
 
-    # From here the rule exists, so every path out of this function must attempt cleanup. The
-    # protection therefore starts on the instruction after the install, not after verification.
+    # From here the rule exists, so every path out of this function must attempt cleanup.
     try:
         if not step("verify_installed", verify, expect=0):
             rec.status = "aborted after install"
@@ -466,19 +518,7 @@ def run_steps(p: dict[str, Any], runner, *,
     finally:
         # Cleanup and its verification must survive a runner that raises, so each is attempted
         # independently and its failure is recorded rather than propagated over the primary one.
-        removed = gone = False
-        try:
-            removed = step("remove", remove, expect=0)
-        except Exception as exc:
-            rec.errors.append("remove raised %r" % (exc,))
-        try:
-            # `iptables -C` exits 1 when the rule is absent. Any other non-zero status means the
-            # check could not be made, which is not evidence of absence.
-            gone = step("verify_removed", verify, expect=RULE_ABSENT_RC)
-        except Exception as exc:
-            rec.errors.append("verify_removed raised %r" % (exc,))
-        rec.rule_removed = bool(removed)
-        rec.cleanup_verified = bool(removed and gone)
+        attempt_cleanup()
 
     if not rec.cleanup_verified:
         rec.status = "cleanup unverified"

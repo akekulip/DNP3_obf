@@ -184,12 +184,68 @@ class TestCleanupProtection(unittest.TestCase):
             run(plan(conn(), ctx(), 5.0), r)
         self.assertIn("-D", [a for c in r.calls for a in c])
 
-    def test_a_failed_install_does_not_attempt_removal(self):
+    def test_a_failed_install_is_cleaned_up_and_confirmed_absent(self):
+        """A non-zero install is not proof that nothing was applied.
+
+        This test asserted the opposite until 2026-09-17, when a review pointed out that the
+        install call sat outside the protected region. The command's return code is evidence
+        about the command, not about the firewall, so the probe now removes and verifies on this
+        path too. The removal is scoped to the probe's own 4-tuple, so attempting it when nothing
+        was installed costs a checked absence and touches nothing else.
+        """
         r = Runner(install_rc=1)
         with self.assertRaises(ProbeRefused) as cm:
             run(plan(conn(), ctx(), 5.0), r)
-        self.assertNotIn("-D", [a for c in r.calls for a in c])
-        self.assertFalse(cm.exception.record["rule_installed"])
+        rec = cm.exception.record
+        self.assertIn("-D", [a for c in r.calls for a in c], "removal must be attempted")
+        self.assertFalse(rec["rule_installed"], "the install did not report success")
+        self.assertTrue(rec["install_attempted"])
+        self.assertTrue(rec["cleanup_verified"], "absence must be confirmed, not assumed")
+
+    def test_an_install_that_raises_on_return_is_cleaned_up(self):
+        """The counterexample from the 2026-09-17 review.
+
+        The runner applies the rule and then raises on its way back. Nothing about the return
+        tells the caller whether the rule exists, so the record must say the install was
+        attempted and the removal must be tried.
+        """
+
+        class InstallsThenRaises(Runner):
+            def __call__(self, argv):
+                if "-A" in argv:
+                    self.calls.append(argv)
+                    self.installed = True
+                    raise OSError("transport closed after the rule was applied")
+                return super().__call__(argv)
+
+        r = InstallsThenRaises()
+        with self.assertRaises(ProbeRefused) as cm:
+            run(plan(conn(), ctx(), 5.0), r)
+        rec = cm.exception.record
+        self.assertTrue(rec["install_attempted"])
+        self.assertIn("-D", [a for c in r.calls for a in c], "removal must be attempted")
+        self.assertFalse(r.installed, "the rule must not be left behind")
+        self.assertIn("install raised", rec["status"])
+
+    def test_execution_revalidates_a_mutated_hold(self):
+        """The second counterexample: a plan is a dictionary and can be edited after `plan()`.
+
+        A NaN hold made every clock comparison false, so the wait loop exited at once and the
+        shortfall test at the end also compared false, reporting a hold that was never served as
+        completed.
+        """
+        p = plan(conn(), ctx(), 5.0)
+        p["hold_seconds"] = float("nan")
+        with self.assertRaises(ProbeRefused) as cm:
+            run(p, Runner())
+        self.assertIn("hold_seconds", str(cm.exception))
+
+    def test_execution_refuses_a_watchdog_shorter_than_the_hold(self):
+        p = plan(conn(), ctx(), 5.0)
+        p["watchdog_seconds"] = 1.0
+        with self.assertRaises(ProbeRefused) as cm:
+            run(p, Runner())
+        self.assertIn("shorter than", str(cm.exception))
 
 
 class TestRemovalIsVerifiedHonestly(unittest.TestCase):

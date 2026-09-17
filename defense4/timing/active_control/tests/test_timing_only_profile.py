@@ -90,11 +90,56 @@ def _executable_source():
     return "\n".join(ln for ln in src.splitlines() if not ln.strip().startswith("#"))
 
 
-def admitted(d_a_ms=20.0, clrt_new_ms=4.0, build_id="frozen-7ce30494"):
-    """An admission record bound to the policy it evaluated, as delay_admission now emits."""
-    return {"verdict": "admitted_conditional",
-            "policy": {"d_a_ms": d_a_ms, "clrt_new_ms": clrt_new_ms,
-                       "context": {"build_id": build_id}}}
+def admitted(d_a_ms=20.0, clrt_new_ms=4.0, build_id="frozen-7ce30494", connection_id="conn-1"):
+    """A genuine admission record, produced by running the evaluator.
+
+    It used to be a hand-written dictionary carrying a verdict and two delays. The 2026-09-17
+    review showed that such a record was enough to activate, because nothing required the
+    arithmetic behind the verdict to be present. Building it from `delay_admission.evaluate`
+    means the tests exercise the real schema, and a drift between the two modules fails here
+    rather than silently widening what activation accepts.
+    """
+    from delay_admission import (AdmissionInputs, Applicability, Bound, PolicyContext,
+                                 Provenance, evaluate)
+
+    M = Provenance.MEASURED_THIS_CONNECTION
+
+    def applies(direction="", timer=""):
+        return Applicability(connection_id=connection_id, build_id=build_id,
+                             direction=direction, timer=timer)
+
+    role = {"master_rto_ms": applies("master_to_outstation", "master_rto"),
+            "outstation_rto_ms": applies("outstation_to_master", "outstation_rto"),
+            "master_feedback_path_ms": applies("master_to_outstation"),
+            "outstation_feedback_path_ms": applies("outstation_to_master")}
+
+    def b(name, value, prov=M):
+        return Bound(name=name, value_ms=value, provenance=prov, source="test",
+                     observed_at="2026-09-15T00:00:00Z",
+                     applies_to=role.get(name, applies()))
+
+    return evaluate(AdmissionInputs(
+        d_a_ms=d_a_ms, clrt_new_ms=clrt_new_ms,
+        master_rto_ms=b("master_rto_ms", 200.0),
+        outstation_rto_ms=b("outstation_rto_ms", 3000.0),
+        application_deadline_ms=b("application_deadline_ms", 1000.0,
+                                  Provenance.OPERATOR_SUPPLIED),
+        clrt_original_ms=b("clrt_original_ms", 1.0),
+        master_feedback_path_ms=b("master_feedback_path_ms", 1.0),
+        outstation_feedback_path_ms=b("outstation_feedback_path_ms", 1.0),
+        native_request_to_response_ms=b("native_request_to_response_ms", 5.0),
+        ack_latency_bound_ms=b("ack_latency_bound_ms", 3.0),
+        detect_ms=b("detect_ms", 0.0012),
+        release_tail_ms=b("release_tail_ms", 0.0017),
+        safety_margin_ms=3.0,
+        policy_cap_ms=40.0,
+        context=PolicyContext(connection_id=connection_id, build_id=build_id)))
+
+
+def profile(**over):
+    """A profile naming the connection the admission records above are computed for."""
+    over.setdefault("connection_id", "conn-1")
+    return TimingOnlyProfile(**over)
 
 
 class TestShapingNeverEnabled(unittest.TestCase):
@@ -362,6 +407,32 @@ class TestFailuresKeepTheirEvidence(unittest.TestCase):
         self.assertIn("recovery", rec)
         self.assertIn("does not roll back", rec["recovery"])
 
+    def test_a_write_that_cannot_be_read_back_is_still_reported_as_left_active(self):
+        """The 2026-09-17 counterexample.
+
+        The very first write of `shape_enable = 0` succeeds and the device records it, then the
+        readback raises. The record used to say `partial_configuration: false` and
+        `left_active: []`, because it counted only steps that had been verified. A failure to
+        verify is not evidence that nothing was mutated, so the write has to be reported.
+        """
+
+        class ReadsFailAfterTheFirstWrite(RecordingDevice):
+            def read(self, table):
+                if self.writes:
+                    raise OSError("simulated readback failure")
+                return super().read(table)
+
+        dev = ReadsFailAfterTheFirstWrite()
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), dev, mock=True)
+        rec = cm.exception.record
+        self.assertTrue(dev.writes, "the device did record a write")
+        self.assertTrue(rec["partial_configuration"], "an unverified write is still a mutation")
+        self.assertTrue(rec["left_active"], "the record must name the unverified write")
+        self.assertEqual(rec["verified_active"], [], "nothing was verified")
+        self.assertTrue(rec["uncertain_writes"], "the write must be listed as uncertain")
+        self.assertIn("treat them as applied", rec["recovery"])
+
     def test_device_write_failure_aborts_and_does_not_arm_pktgen(self):
         dev = RecordingDevice(fail_on="tbl_params")
         with self.assertRaises(ActivationError):
@@ -406,16 +477,69 @@ class TestAdmissionIsWiredIn(unittest.TestCase):
         """An admission computed for a 9 ms schedule must not install a 24 ms one."""
         dev = RecordingDevice()
         with self.assertRaises(ActivationError) as cm:
-            activate(TimingOnlyProfile(d_a_ms=20.0, clrt_new_ms=4.0), dev, mock=False,
+            activate(profile(d_a_ms=20.0, clrt_new_ms=4.0), dev, mock=False,
                      admission=admitted(d_a_ms=5.0, clrt_new_ms=4.0))
         self.assertIn("computed for", str(cm.exception))
         self.assertEqual(dev.writes, [])
 
     def test_admission_for_a_different_build_is_not_permission(self):
         with self.assertRaises(ActivationError) as cm:
-            activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+            activate(profile(), RecordingDevice(), mock=False,
                      admission=admitted(build_id="some-other-build"))
         self.assertIn("build", str(cm.exception))
+
+    def test_a_verdict_with_matching_delays_but_no_checks_is_not_permission(self):
+        """The first 2026-09-17 counterexample.
+
+        This record says the right words and names the right policy, build and connection, but
+        carries none of the arithmetic that would justify the verdict. It activated, with nine
+        writes. A label is not an evaluation.
+        """
+        dev = RecordingDevice()
+        bare = {"verdict": "admitted_conditional",
+                "claim": {"kind": "admitted_conditional"},
+                "policy": {"d_a_ms": 20.0, "clrt_new_ms": 4.0,
+                           "context": {"build_id": "frozen-7ce30494",
+                                       "connection_id": "conn-1"}}}
+        with self.assertRaises(ActivationError) as cm:
+            activate(profile(), dev, mock=False, admission=bare)
+        self.assertIn("checks", str(cm.exception))
+        self.assertEqual(dev.writes, [])
+
+    def test_an_admission_whose_checks_did_not_pass_is_not_permission(self):
+        rec = admitted()
+        rec["checks"][0] = dict(rec["checks"][0], ok=None)
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError) as cm:
+            activate(profile(), dev, mock=False, admission=rec)
+        self.assertIn("did not pass", str(cm.exception))
+        self.assertEqual(dev.writes, [])
+
+    def test_a_genuine_admission_for_another_connection_is_not_permission(self):
+        """The second 2026-09-17 counterexample: a real evaluation, of the wrong connection."""
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError) as cm:
+            activate(profile(connection_id="conn-1"), dev, mock=False,
+                     admission=admitted(connection_id="conn-2"))
+        self.assertIn("connection", str(cm.exception))
+        self.assertEqual(dev.writes, [])
+
+    def test_a_profile_that_names_no_connection_cannot_be_authorised(self):
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), dev, mock=False, admission=admitted())
+        self.assertIn("names no connection", str(cm.exception))
+        self.assertEqual(dev.writes, [])
+
+    def test_a_missing_build_identity_is_not_agreement(self):
+        """The third 2026-09-17 counterexample: identity was checked only when present."""
+        rec = admitted()
+        rec["policy"]["context"] = {"connection_id": "conn-1"}
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError) as cm:
+            activate(profile(), dev, mock=False, admission=rec)
+        self.assertIn("names no build", str(cm.exception))
+        self.assertEqual(dev.writes, [])
 
     def test_a_refused_policy_is_never_applied(self):
         dev = RecordingDevice()
@@ -430,10 +554,10 @@ class TestAdmissionIsWiredIn(unittest.TestCase):
         self.assertEqual(dev.writes, [])
 
     def test_an_admitted_policy_proceeds(self):
-        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+        rec = activate(profile(), RecordingDevice(), mock=False,
                        admission=admitted())
         self.assertEqual(rec["status"], "activated")
-        self.assertEqual(rec["admission"], admitted())
+        self.assertEqual(rec["admission"]["verdict"], "admitted_conditional")
 
 
 class TestMockIsNeverEvidence(unittest.TestCase):
@@ -444,7 +568,7 @@ class TestMockIsNeverEvidence(unittest.TestCase):
         self.assertFalse(rec["is_evidence_of_switch_state"])
 
     def test_live_label_is_only_set_when_the_caller_says_so(self):
-        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+        rec = activate(profile(), RecordingDevice(), mock=False,
                        admission=admitted())
         self.assertEqual(rec["source"], "switch")
         self.assertTrue(rec["is_evidence_of_switch_state"])

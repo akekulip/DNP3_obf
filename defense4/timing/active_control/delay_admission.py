@@ -54,6 +54,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -147,6 +148,12 @@ class Bound:
             return "claims to be measured here but records no applicability"
         if not self.observed_at:
             return "claims to be measured here but records no observation time"
+        try:
+            datetime.fromisoformat(self.observed_at.replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            return ("records %r as its observation time, which is not a date this module can "
+                    "read; a timestamp that cannot be parsed cannot be aged or compared"
+                    % (self.observed_at,))
         ok, why = self.applies_to.matches(ctx, want_direction=want_direction,
                                           want_timer=want_timer)
         return "" if ok else why
@@ -425,9 +432,12 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         verdict = "admitted_conditional"
 
     if verdict == "admitted_conditional":
-        statement = ("admitted against the stated bounds, each of which is a finite observed "
-                     "maximum for the conditions it was measured under, not a universal upper "
-                     "bound on this connection's behaviour")
+        statement = ("admitted against the stated bounds, none of which is a universal property "
+                     "of this connection. The inputs do not all play the same role: the latency "
+                     "terms have to be observed maxima for the conditions they were measured "
+                     "under, the timer and deadline budgets have to be values the connection "
+                     "will not beat, and CLRT_original has to be a lower bound, because a "
+                     "smaller native interval makes the implied response hold longer")
     elif verdict == "refused":
         statement = "refused: a check failed or the policy cap was exceeded"
     else:

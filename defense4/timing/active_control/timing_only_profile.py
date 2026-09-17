@@ -63,6 +63,15 @@ MAX_QID = 31
 #: be treated as permission.
 ADMITTING_VERDICTS = frozenset({"admitted_conditional"})
 
+# The three constraints `delay_admission.evaluate` computes. All three must be present
+# and passing in an admission record before a policy is installed; a verdict without
+# them is a label rather than an evaluation.
+REQUIRED_ADMISSION_CHECKS = (
+    "master TCP retransmission",
+    "outstation TCP retransmission",
+    "master application deadline",
+)
+
 #: What the frozen binary actually uses. A profile targeting this build must match it, because
 #: configuring a different queue or port does not change where the compiled program sends packets.
 BUILD_FIXED = {
@@ -133,6 +142,11 @@ class TimingOnlyProfile:
     """The timing-paper configuration. There is no shaping field: it cannot be turned on."""
 
     build_id: str = "frozen-7ce30494"      # the binary this profile is written for
+    # The connection this policy is for. An admission record is evidence about one connection's
+    # timers, so activation compares this against the record's own context rather than accepting
+    # a genuine evaluation of some other connection. There is no default: a non-mock activation
+    # has to say which connection it is configuring.
+    connection_id: str = ""
     mode: str = "D4"                       # D4 arms the holds; OFF is the Timing OFF arm
     d_a_ms: float = 20.0                   # the ACK hold
     clrt_new_ms: float = 4.0               # the configured CLRT_new (the code field D_R_ms)
@@ -348,6 +362,13 @@ def _admission_problem(admission: Any, p: TimingOnlyProfile) -> str:
     Acceptance is by allowlist and by binding, not by excluding known-bad verdicts. A record that
     admits some other policy is not permission to install this one, which is the bypass the
     2026-09-16 review demonstrated with an admission for a 9 ms schedule installing a 24 ms one.
+
+    The 2026-09-17 review found the binding still incomplete in three ways, all closed here. A
+    verdict label with matching delays and nothing else was enough to activate, so the supporting
+    checks are now required to be present and to have passed. Identity was optional, so a genuine
+    evaluation of another connection or another build authorised this one; both are now mandatory
+    and must match. A caller-supplied label is not the authorisation record: the record has to
+    carry the arithmetic that produced it.
     """
     if admission is None:
         return "no admission record supplied"
@@ -358,6 +379,16 @@ def _admission_problem(admission: Any, p: TimingOnlyProfile) -> str:
         return "admission record carries no verdict"
     if verdict not in ADMITTING_VERDICTS:
         return "verdict %r is not one of %s" % (verdict, ", ".join(sorted(ADMITTING_VERDICTS)))
+    if admission.get("input_errors"):
+        return "admission record reports input errors: %s" % "; ".join(
+            str(e) for e in admission["input_errors"])
+    if admission.get("problems"):
+        return "admission record reports problems: %s" % "; ".join(
+            str(e) for e in admission["problems"])
+    claim = admission.get("claim")
+    if not isinstance(claim, dict) or claim.get("kind") != verdict:
+        return "admission record's claim does not match its own verdict"
+
     policy = admission.get("policy")
     if not isinstance(policy, dict):
         return "admission record does not say which policy it evaluated"
@@ -368,10 +399,38 @@ def _admission_problem(admission: Any, p: TimingOnlyProfile) -> str:
         if quantize_ns(float(got)) != quantize_ns(float(want)):
             return ("admission was computed for %s = %r but this profile requests %r"
                     % (field, got, want))
+
+    # The three constraints have to be there and to have passed. An admitting verdict with no
+    # checks is a label, not an evaluation.
+    checks = admission.get("checks")
+    if not isinstance(checks, list) or not checks:
+        return "admission record carries no checks, so its verdict rests on nothing"
+    named = {c.get("constraint") for c in checks if isinstance(c, dict)}
+    missing = [n for n in REQUIRED_ADMISSION_CHECKS if n not in named]
+    if missing:
+        return "admission record is missing the check(s): %s" % ", ".join(missing)
+    not_passed = [c.get("constraint") for c in checks
+                  if not isinstance(c, dict) or c.get("ok") is not True]
+    if not_passed:
+        return "admission check(s) did not pass: %s" % ", ".join(str(n) for n in not_passed)
+    cap = admission.get("policy_cap")
+    if not isinstance(cap, dict) or cap.get("ok") is not True:
+        return "admission record does not show the policy cap was satisfied"
+
+    # Identity is mandatory in both directions. Absence is not agreement.
     ctx = policy.get("context") or {}
-    if ctx.get("build_id") and ctx["build_id"] != p.build_id:
+    if not ctx.get("build_id"):
+        return "admission record names no build, so it cannot authorise this one"
+    if ctx["build_id"] != p.build_id:
         return ("admission was computed for build %r but this profile targets %r"
                 % (ctx["build_id"], p.build_id))
+    if not p.connection_id:
+        return "the profile names no connection, so no admission record can be bound to it"
+    if not ctx.get("connection_id"):
+        return "admission record names no connection, so it cannot authorise this one"
+    if ctx["connection_id"] != p.connection_id:
+        return ("admission was computed for connection %r but this profile configures %r"
+                % (ctx["connection_id"], p.connection_id))
     return ""
 
 
@@ -425,15 +484,30 @@ def activate(p: TimingOnlyProfile, device: Device, *, mock: bool,
     record["plan"] = plan
     record["steps_completed"] = 0
     record["left_active"] = []
+    record["writes_attempted"] = []
+    record["writes_returned"] = []
 
     def _partial(stage: str, exc: BaseException) -> ActivationError:
-        """Report what was left configured. Stopping later writes is not a rollback."""
+        """Report what was left configured. Stopping later writes is not a rollback.
+
+        A write whose readback failed is not evidence that the write did not land, so the three
+        states are kept apart: verified, attempted-and-unverified, and not attempted at all.
+        `left_active` is the conservative union of the first two, because the caller has to
+        assume a mutation it could not check may have taken effect.
+        """
         record["failure"] = dict(record.get("failure") or {},
                                  stage=stage, error="%s: %s" % (type(exc).__name__, exc))
-        record["left_active"] = [s["name"] for s in record["steps"] if s.get("status") == "ok"]
+        verified = [s["name"] for s in record["steps"] if s.get("status") == "ok"]
+        attempted = list(record["writes_attempted"])
+        record["verified_active"] = verified
+        record["uncertain_writes"] = [n for n in attempted if n not in verified]
+        record["left_active"] = sorted(set(verified) | set(attempted))
         record["partial_configuration"] = bool(record["left_active"])
         record["recovery"] = ("the device holds a partial configuration; bring it to a known "
                               "state before reusing it, since this path does not roll back")
+        if record["uncertain_writes"]:
+            record["recovery"] += ("; the writes in uncertain_writes were issued but never read "
+                                   "back, so treat them as applied until the device says otherwise")
         return ActivationError("activation failed at %s, leaving a partial configuration: %s"
                                % (stage, exc), record)
 
@@ -445,7 +519,13 @@ def activate(p: TimingOnlyProfile, device: Device, *, mock: bool,
                 # future edit to build_plan might do.
                 if int(step["write"].get("shape_enable", 0)) != 0:
                     raise ActivationError("step %s would enable shaping" % step["name"], record)
+                # Recorded before the call, because a write that raises on its way back may
+                # still have reached the device.
+                entry["write_attempted"] = True
+                record["writes_attempted"].append(step["name"])
                 device.write(step["table"], step["write"])
+                entry["write_returned"] = True
+                record["writes_returned"].append(step["name"])
             got = device.read(step["table"])
         except ActivationError:
             raise

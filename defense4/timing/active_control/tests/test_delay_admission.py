@@ -310,8 +310,21 @@ class TestWhatIsNotEstablished(unittest.TestCase):
     def test_the_best_verdict_is_explicitly_conditional(self):
         claim = evaluate(inputs())["claim"]
         self.assertEqual(claim["kind"], "admitted_conditional")
-        self.assertIn("not a universal upper bound", claim["statement"])
+        self.assertIn("universal property", claim["statement"])
         self.assertTrue(claim["conditions"])
+
+    def test_the_statement_distinguishes_the_roles_of_its_inputs(self):
+        """The 2026-09-17 review: the statement called every input an observed maximum.
+
+        They are not the same kind of number. A latency term has to be a maximum, a timer or
+        deadline budget has to be a value the connection will not beat, and CLRT_original has to
+        be a lower bound, since a smaller native interval lengthens the implied response hold.
+        """
+        s = evaluate(inputs())["claim"]["statement"].lower()
+        self.assertIn("observed maxima", s)
+        self.assertIn("will not beat", s)
+        self.assertIn("lower bound", s)
+        self.assertIn("clrt_original", s)
 
     def test_hardware_execution_is_never_claimed(self):
         joined = " ".join(evaluate(inputs())["claim"]["not_established"]).lower()
