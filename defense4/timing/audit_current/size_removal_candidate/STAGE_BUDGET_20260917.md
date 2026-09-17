@@ -94,25 +94,73 @@ trade.
 **`tbl_hold_ok` → `topj_rmw` is the mechanism.** The hold must be armed before its age can be
 taken. That boundary is the thing the paper measures.
 
-## What this would be worth, and what it would cost
+## What this is worth: four compiles, and the answer is no
 
-Folding the three expiry predicates into their SALUs is the one change that helps both lanes,
-because both have an expiry table on their critical path. On its own it is worth about one stage,
-not three: `tbl_tresp_expiry` and `tbl_deadline_expiry` already share stage 8. Getting further
-means also removing the read lane's `exp_ack → tbl_resp_authorise` and `tag_arm →
-tbl_state_decode` boundaries, and those are harder, because both tables key on several fields
-rather than on one register's result.
+The claim above was that folding an expiry predicate into its SALU would remove a stage. It does.
+It was also written before any of it was built, and building it changed the conclusion, so the
+paragraph that estimated "nine to ten stages" is withdrawn and replaced by what compiled.
 
-A plausible ceiling is **nine to ten stages rather than twelve**, freeing two or three for
-something else on the chip.
+Four variants of the `topj` expiry were compiled on the switch, each identical to the size-free
+candidate except for that one register and its table.
 
-**None of this is verified.** It is read from the dependency log and from the SALU sources, and
-the TNA predicate facility has its own constraints on how many comparisons one SALU can express
-and on whether the result can drive a gateway in the same stage. The only way to know is to build
-one fold and compile it. Nothing here should be quoted as a result until that is done.
+| variant | what it does | result |
+|---|---|---|
+| 1 | SALU returns `(age & 0x800000FF) == 0`, the exact test the table performed | **rejected**: "You can only have more than one binary operator in a statement if the outer one is \|" |
+| 2 | SALU returns `v <= now_word`, dropping the armed check | compiles, **11 stages** |
+| 3 | adds the armed check back inside the same action | **rejected**: "needs 3 comparisons but the device only has 2 comparison units" |
+| 4 | splits the write guard into its own action, as `reg_bor_epoch` already does, freeing a comparison unit | compiles, **11 stages**, 98 tables |
+
+So the resource question is answered: **the fold removes a stage, 12 to 11, and the critical path
+falls with it.** Variant 4 costs one extra table for one fewer stage.
+
+## And the answer to whether it may be used is no
+
+**None of the variants that compile is correct**, which is why this is recorded rather than
+proposed.
+
+The table being replaced tests `(now - deadline) & 0x800000FF == 0`. That is deliberately
+*modular*: the sign bit of a 32-bit subtraction, which is wrap-safe. Variants 2 and 4 replace it
+with `deadline <= now`, a direct comparison, which is not. The clock is the low 32 bits of the
+nanosecond timestamp, so it **wraps every 4.295 seconds**, and a hold is 20 to 24 ms:
+
+```
+deadline 0xFFF00001 armed just before a wrap, tested at now = 0x00100001, 2.10 ms later
+   the table's test : expired   (correct)
+   the folded test  : not expired
+```
+
+About **0.56 %** of holds straddle a wrap, one in a hundred and eighty, and on each of those the
+folded version would miss a deadline that is due. That is not a corner case worth accepting in a
+release mechanism.
+
+The wrap-safe test needs a subtraction and then a comparison of its sign. One SALU statement
+cannot express both, which is exactly what variant 1's rejection says, and the two comparison
+units the device has are not the constraint that blocks it. So the stage is recoverable only by
+changing how a deadline is encoded, so that "armed and due" becomes a single wrap-safe
+comparison. That is a design change to the timing mechanism, not a rewrite of one register action,
+and nothing here has been done to it.
+
+## What this establishes, exactly
+
+* Both lanes are twelve stages deep independently; shortening one does not shorten the pipeline.
+* The depth is spent on a repeated pattern, a register access followed by a table that tests its
+  result, and that pattern is where any saving has to come from.
+* One such fold does save a stage, measured, twice.
+* No version of that fold preserves the mechanism's semantics, and the obstacle is the modular
+  clock rather than the compiler.
+
+`tbl_commit` and `tbl_hold_ok -> topj_rmw` remain excluded for the reasons given above.
 
 ## Evidence
 
-`compile_20260917/candidate_table_dependency_summary.log` carries the 39 critical paths and the
-per-stage dependency matrix; the legend for the dependency letters is at the end of that file.
-`candidate_table_summary.log` carries the stage assignment the table above is read from.
+```
+compile_20260917/candidate_table_dependency_summary.log   the 39 critical paths
+compile_20260917/probe_compile.log                        variants 1 and 2
+compile_20260917/probe_table_summary.log                  variant 2: 11 stages
+compile_20260917/probe3_compile.log                       variant 3, the comparison-unit limit
+compile_20260917/probe4_compile.log                       variant 4
+compile_20260917/probe4_table_summary.log                 variant 4: 11 stages, 98 tables
+probe4_topj_predicate_fold.p4                             the variant-4 source, kept for reference
+```
+
+None of the probes was loaded, and no probe is a proposal.
