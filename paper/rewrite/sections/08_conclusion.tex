@@ -3,10 +3,10 @@
 
 How long an outstation takes to answer is a signature an observer can profile, and the relay
 leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
-problem into the network: a switch in front of the outstation holds the packets carrying the
-device's timing and releases each at a deadline computed when the transaction begins, from the
-outstation's acknowledgment on the read path, which is READ and the SELECT phase of
-select-before-operate, and from the request for OPERATE. Consequently, the interval an observer
+problem into the network. A switch in front of the outstation holds the packets carrying the
+device's timing and releases each at a deadline computed when the transaction begins. The read
+path, which is READ and the SELECT phase of select-before-operate, times that deadline from the
+outstation's acknowledgment; OPERATE times it from the request. Consequently, the interval an observer
 sees is the operator's value rather than the device's.
 
 Evaluation on one physical relay shows the released interval concentrating on the configured
@@ -16,11 +16,10 @@ accuracy to three-class chance. The framework protects the exchanges its budget 
 forwards the rest untouched.
 
 Three bounds limit the result. An adversary who retrains recovers to 0.651 by adding the
-request-to-acknowledgment interval, which the mechanism does not target; the evidence is one
-relay, one campaign and a transaction-class evaluation rather than a comparison between device
-models; and the switch's own release instants were never captured, so the residual around the
-configured value is a difference between two releases rather than a delay we can place inside the
-switch. An instrumented build measures an internal blocker-termination interval of about
+request-to-acknowledgment interval, which the mechanism does not target. The evidence comes from
+one relay and one campaign, and it separates transaction classes, not device models. The switch's
+own release instants were never captured, so the residual around the configured value measures a
+difference between two releases. We cannot place it inside the switch. An instrumented build measures an internal blocker-termination interval of about
 1.7~$\mu$s, which characterizes the mechanism without decomposing that residual. Evaluating the
 framework on outstations from several vendors, and capturing the release instants on both switch
 links, is what would attribute it.

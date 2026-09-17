@@ -143,7 +143,81 @@ BODY_HEADINGS = (
 )
 
 
+#: A line is treated as spanning both columns when it covers more than this fraction of the
+#: page width. The title and the abstract span; a body line in either column does not.
+FULL_WIDTH_FRACTION = 0.60
+
+#: Words whose baselines sit within this many points belong to the same line.
+BASELINE_TOLERANCE_PT = 2.0
+
+
+def reading_order(lines, page_width):
+    """Order two-column lines the way a reader takes them. Pure, so it can be tested directly.
+
+    ``lines`` is a sequence of ``(y, x_min, x_max, text)``. A line wider than
+    ``FULL_WIDTH_FRACTION`` of the page splits the page into bands; inside a band the whole left
+    column is read before the whole right column. ``pdftotext`` without ``-layout`` does not do
+    this: it interleaves the columns by y, which puts a heading low in the left column after one
+    high in the right column and misreports which region a page ends in.
+    """
+    mid = page_width / 2.0
+    out, band = [], []
+
+    def flush():
+        left = [l for l in band if l[2] <= mid]
+        right = [l for l in band if l[2] > mid]
+        out.extend(sorted(left, key=lambda l: l[0]))
+        out.extend(sorted(right, key=lambda l: l[0]))
+        band.clear()
+
+    for line in sorted(lines, key=lambda l: (l[0], l[1])):
+        if (line[2] - line[1]) > FULL_WIDTH_FRACTION * page_width:
+            flush()
+            out.append(line)
+        else:
+            band.append(line)
+    flush()
+    return [l[3] for l in out]
+
+
+def _page_lines(pdf, page):
+    """Return ``(lines, page_width)`` for one page from pdftotext's word bounding boxes."""
+    rc, out, _ = run("pdftotext", "-f", str(page), "-l", str(page), "-bbox", str(pdf), "-")
+    if rc != 0:
+        return [], 0.0
+    m = re.search(r'<page width="([\d.]+)"', out)
+    width = float(m.group(1)) if m else 612.0
+    words = re.findall(
+        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">(.*?)</word>',
+        out, re.S)
+    # Cluster words onto lines by their baseline, not by yMin: a small-caps heading sets its
+    # first letter at full cap height, so "E" and "THICS" share a baseline but not a yMin, and
+    # rounding yMin alone tears the heading into two lines that no heading pattern can match.
+    items = sorted(((float(y1), float(x0), float(x1), txt) for x0, _y0, x1, y1, txt in words))
+    lines, cur, base = [], [], None
+
+    def close():
+        if cur:
+            cur.sort(key=lambda w: w[1])
+            lines.append((base, cur[0][1], max(w[2] for w in cur),
+                          " ".join(w[3] for w in cur)))
+
+    for it in items:
+        if base is None or abs(it[0] - base) <= BASELINE_TOLERANCE_PT:
+            base = it[0] if base is None else base
+            cur.append(it)
+        else:
+            close()
+            cur, base = [it], it[0]
+    close()
+    return lines, width
+
+
 def _page_text(pdf, page):
+    lines, width = _page_lines(pdf, page)
+    if lines:
+        import html
+        return html.unescape("\n".join(reading_order(lines, width)))
     rc, out, _ = run("pdftotext", "-f", str(page), "-l", str(page), str(pdf), "-")
     return out if rc == 0 else ""
 

@@ -28,7 +28,7 @@ A READ uses \emph{four} queues on one internal port, as Figure~\ref{fig:design} 
 the packets we delay, the acknowledgment and the response, and above each of those sits a
 \emph{blocker queue} in strict priority carrying small packets the switch generates itself. While
 blockers keep arriving, the packet beneath them is never served, and each hold ends when its own
-blocker queue runs dry. The response is not simply queued behind the acknowledgment: it has its
+blocker queue runs dry. The response does not queue behind the acknowledgment. It has its
 own held queue and its own blocker gate, which is what lets the two releases be scheduled
 independently. In descending priority the ladder is acknowledgment blockers, held
 acknowledgment, response blockers, held response.  Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
@@ -36,9 +36,9 @@ can observe them. Each carries a tag naming its transaction and lane, so a lefto
 cannot delay a later transaction.
 
 This is not a timer built from a count. The program stores an absolute release instant when the
-acknowledgment arrives, quantized to a 256~ns grid, and each of the 64 recirculating blockers
-compares the current timestamp against it: while the difference is negative the blocker is
-regenerated, and once it is not, the blocker is dropped. The deadline decides when the packet
+acknowledgment arrives, quantized to a 256~ns grid. Each of the 64 recirculating blockers compares
+the current timestamp against it: while the difference is negative the blocker is regenerated, and
+once it is not, the blocker is dropped. The deadline decides when the packet
 leaves, and the blockers only have to keep the queue non-empty until then, so the reservoir is
 sized for continuity rather than for duration.
 
@@ -53,19 +53,19 @@ is computed at the acknowledgment, so the hold absorbs whatever the outstation d
 \subsection{One READ transaction}
 \label{sec:impl:walkthrough}
 
-The request arrives, a table classifies it by function code, and the program forwards it at once,
-recording that a transaction is in flight and which acknowledgment to expect. When the
+The request arrives, a table classifies it by function code, and the program forwards it at once.
+It records that a transaction is in flight and which acknowledgment to expect. When the
 acknowledgment arrives at $t_A$, a median of 0.56~ms after the request on our relay, the
 program writes both release instants from that one timestamp, which is what puts them on the
 same instant $t_A$ that Section~\ref{sec:design:model} requires. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
 second deadline. The acknowledgment enters the hold queue and the packet generator fills the
 blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
-and the two leave in order at their scheduled instants. A response that arrives after its deadline has no remaining wait to serve, and the program marks
-it late and commits it to the same response-hold queue rather than to a bypass, as in
-Figure~\ref{fig:timeline}(b); it leaves when that queue next serves it, so its departure is
+and the two leave in order at their scheduled instants. A response that arrives after its deadline has no remaining wait to serve. The program marks it
+late and commits it to the same response-hold queue rather than to a bypass, as in
+Figure~\ref{fig:timeline}(b). It leaves when that queue next serves it, so its departure is
 prompt but not instantaneous. The transaction state is cleared when the response is released.
 
-The two lanes hold different packets, and it is worth saying which. The four-queue ladder above
+The two lanes hold different packets. The four-queue ladder above
 holds what the outstation sends back, the acknowledgment and the response, for READ and for both
 phases of a control alike. The second loopback port carries a pair of queues for the opposite
 direction: blockers above a held \emph{OPERATE request}, on its way to the relay. So the control
@@ -81,10 +81,10 @@ rather than one per flow.
 The evaluated configuration satisfies that assumption by construction: the driver serialises its
 exchanges and every capture carries one connection. Where a second transaction would arm while one
 is live, the program does not interleave them silently; the arming attempt is classified as busy
-and the packet is forwarded unprotected rather than taking the deadline already in progress. That
-is a statement about the deadline, not about the rest of the transaction's state: the expected
-relay sequence and acknowledgment are written earlier in the same pass than the busy verdict is
-reached, so we claim it for the serialized workload we evaluated and not in general. Per-flow
+and the packet is forwarded unprotected rather than taking the deadline already in progress. The
+claim covers the deadline, not the rest of the transaction's state. The expected relay sequence
+and acknowledgment are written earlier in the same pass than the busy verdict is reached, so we
+claim it for the serialized workload we evaluated and not in general. Per-flow
 protection would need per-flow state and a way to index it, which this program does not have and
 we did not evaluate.
 
@@ -94,13 +94,13 @@ we did not evaluate.
 Almost every path through the program ends in a forwarding decision. A packet outside the protected
 session, an unrecognized request, an acknowledgment with no armed transaction and a response whose
 transaction has retired are all forwarded unchanged, so such an exchange loses its protection and
-still arrives. One path is not like that, and we state it here rather than in the evaluation: the
+still arrives. One path behaves differently. The
 control lane keeps a released OPERATE's application generation as a spent marker until the next
 SELECT clears it, and a later OPERATE carrying that generation is dropped. A retransmission the
 master sends to repair an OPERATE lost after the switch forwarded it carries exactly that
-generation, so the switch discards the packet that would have repaired the loss
+generation. Consequently the switch discards the packet that would have repaired the loss
 (Section~\ref{sec:eval:limits}). Every hold is bounded by a budget on blocker passes: once a reservoir has spent
-its budget the packet is released and its state cleared. That budget counts passes rather than
+its budget the packet is released and its state cleared. The budget counts passes rather than
 elapsed time, which is why the horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms here, is
 what the control plane computes from the budget and an assumed service rate rather than a
 wall-clock deadline the data plane keeps. With the timing mode off the same program forwards
@@ -114,22 +114,21 @@ P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Nat
 Architecture, compiled
 with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
 112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
-register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay, and two further ports are
+register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay. Two further ports are
 loopbacks carrying no cable: the first carries the four-queue read ladder, the second the control
-extension's pair, blockers above a held OPERATE, in its own scheduling domain so the OPERATE
-reservoir cannot be starved by the higher-priority read reservoirs. Six queues across two
+extension's pair, blockers above a held OPERATE. The second loopback sits in its own scheduling
+domain, so the OPERATE reservoir cannot be starved by the higher-priority read reservoirs. Six queues across two
 loopbacks in all.
 
 Every policy quantity is a runtime table entry, so an operator changes policy by writing entries
-rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
-arming table admits that mode alone, so the acknowledgment-only and response-only limits of the
-model are properties of the design and not settings of this build, and configuring them left both
-packets unheld with the measured interval the outstation's own.
+rather than loading a program. The loaded build realizes the dual-deadline schedule only, because its
+arming table admits that mode alone. The acknowledgment-only and response-only limits of the model
+are therefore properties of the design and not settings of this build: configuring them left both
+packets unheld, with the measured interval the outstation's own.
 
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
-packet-generator configuration, and writes the timing parameters and reads them back. What it
-refuses is a clamp, not the admission arithmetic: a request for an acknowledgment hold above
-40~ms is rejected outright before any write, which we confirmed on the switch, and the
+packet-generator configuration, and writes the timing parameters and reads them back. It refuses through a clamp, not through the admission arithmetic. A request for an acknowledgment
+hold above 40~ms is rejected outright before any write, which we confirmed on the switch, and the
 acknowledgment offset $A$ on the control lane must exceed the largest admissible $J$ plus a bound
 on the outstation's acknowledgment latency. The horizon $H$ of
 Section~\ref{sec:design:params} is computed and reported, not enforced, which is exactly why the

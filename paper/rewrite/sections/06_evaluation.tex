@@ -4,13 +4,13 @@
 \subsection{What we measured, and where}
 \label{sec:eval:testbed}
 
-\textbf{Evaluation Cases.} We compare two arms of the same program, differing only in the release
+\textbf{Evaluation Cases.} We compare two arms of the same program. They differ only in the release
 schedule. In \emph{Timing OFF} the switch forwards the outstation's acknowledgment and response as
 they arrive; in \emph{Obfuscated} it holds them and releases them on the deadlines of
 Section~\ref{sec:design}. The switch is the only path between the master and the relay, and every
-timestamp is taken on the master-facing link, so each interval below is one a passive observer can
-record: the arrival of the transport acknowledgment to the arrival of the application response,
-both on the master's own interface. The switch's internal instants are on links that were not
+timestamp is taken on the master-facing link. Consequently each interval below is one a passive
+observer can record: the arrival of the transport acknowledgment to the arrival of the application
+response, both on the master's own interface. The switch's internal instants are on links that were not
 captured and are recovered from the program rather than measured.
 
 \textbf{Configuration provenance is partial.} Each block's manifest records the policy it was
@@ -64,23 +64,23 @@ Figure~\ref{fig:clrtzoom} the released interval resolves into a narrow distribut
 value, where the Timing OFF arm places only 13.6\% of its transactions.
 
 The change is a replacement, not a shift. The standard deviation falls from 2.609 to 0.628~ms for
-READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and
-0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a session-level bootstrap. A
-defense that shifted the interval would keep that spread, because translating a sample leaves its
-variance unchanged: translated onto the protected median, the Timing OFF distribution retains
-standard deviations of 2.609 and 2.267~ms, four and ninety-four times what we measure. That
-counterfactual is analytical, computed from the Timing OFF samples themselves; the loaded program
-has no shifting mode, so it is not a measured arm and we do not present it as one.
+READ and from 2.267 to 0.024~ms for SELECT. Under a session-level bootstrap those are variance
+ratios of 0.058 (95\% CI [0.019, 0.101]) and 0.0001
+(95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]). A defense that shifted the interval would
+keep that spread, because translating a sample leaves its variance unchanged. Translated onto the
+protected median, the Timing OFF distribution retains standard deviations of 2.609 and 2.267~ms,
+four and ninety-four times what we measure. We computed that counterfactual analytically, from the Timing OFF samples themselves. The loaded
+program has no shifting mode, so it is not a measured arm and we do not present it as one.
 
 Low spread at the wrong interval would not be normalization, so we also report where it sits.
 The median $\mathrm{CLRT}_{\mathrm{original}}$ is
 2.116~ms for READ and 2.050~ms for SELECT, with interquartile ranges of 2.778 and 2.697~ms; under
 the mechanism both medians are the configured 4.000~ms and each interquartile range falls to
 0.006~ms, two orders of magnitude below the 1~ms step between neighbouring policy settings in the
-sweep of Section~\ref{sec:eval:policy}. The median alone understates the change, because the
-Timing OFF distributions rise in a few discrete steps, so one observation can be informative about
-the class, whereas the obfuscated ones are a step at the scheduled release, an instant computed
-from the acknowledgment and a fixed offset that no longer depends on how long the device took.
+sweep of Section~\ref{sec:eval:policy}. The median alone understates the change. The Timing OFF distributions rise in a few discrete
+steps, so one observation can be informative about the class. The obfuscated ones are a step at
+the scheduled release, an instant computed from the acknowledgment and a fixed offset, and that
+instant no longer depends on how long the device took.
 Figure~\ref{fig:hist} shows that for READ; the per-class distributions for all three, and the
 per-run medians in acquisition order, are published with the artifact.
 
@@ -91,8 +91,8 @@ release cannot be moved backwards and leaves as soon as the hold queue serves it
 cannot schedule a release before the response exists. Below the configured value the distribution
 is not empty either: each release carries its own queueing and service, so their difference falls
 either side of the configured interval, which is why the distribution has width at all. Those late
-exchanges are the coverage boundary of RO4 seen from the other side, and we count them rather than
-hide them.
+exchanges are the coverage boundary of RO4 seen from the other side, and
+Section~\ref{sec:eval:policy} counts them.
 
 \textbf{Stability within the Campaign.} The obfuscated median sits at the scheduled release in
 every one of the 22 grouped runs and every class, while the Timing OFF medians stay separated, so
@@ -104,8 +104,8 @@ interquartile ranges in acquisition order are published with the artifact.
 
 \textbf{RO2.} The control-path rule of~(\ref{eq:control}) holds the master-visible
 response-to-ACK interval at the policy value. Timed from the request, its observable is
-$O = R - A$, in which the internal hold $J$ does not appear, so the read-path budget $D$ does not
-apply to it; the switch draws $J$ per transaction from the configured codebook
+$O = R - A$, in which the internal hold $J$ does not appear. Consequently the read-path budget $D$
+does not apply to it, and the switch draws $J$ per transaction from the configured codebook
 $\{2, 6, 12\}$~ms. The OPERATE median moves from 2.937~ms under
 Timing OFF to 4.000~ms under the mechanism, the interquartile range falls from 2.827 to 0.006~ms,
 and the interval stays concentrated at the configured value in every run. That is a result about
@@ -127,8 +127,8 @@ the interval the master sees: the relay-facing release at $T_0 + J$ was not obse
 
 \textbf{RO4.} The interval a passive observer records is a policy value the operator sets, over a
 usable range. We installed 16 release policies in turn and ran a fixed DNP3 workload through each,
-in two series: the first holds the budget at $D = D_A + \mathrm{CLRT}_{\mathrm{new}} = 24$~ms and
-moves the split between them, the second fixes the configured
+in two series. The first holds the budget at $D = D_A + \mathrm{CLRT}_{\mathrm{new}} = 24$~ms and
+moves the split between them. The second fixes the configured
 $\mathrm{CLRT}_{\mathrm{new}}$ at 4~ms and raises $D_A$ until the mechanism leaves its operating
 region. Each point is the median over its READ exchanges.
 
@@ -216,10 +216,9 @@ The fixed adversary trained on
 Timing OFF traffic reaches 0.652 balanced accuracy on held-out Timing OFF exchanges using the
 CLRT alone, and 0.736 using both intervals. Applied unchanged to obfuscated traffic, it falls to
 0.333 and 0.334, which is chance. Mutual information between the CLRT and the class falls from
-0.383~bits to 0.004~bits; the Timing OFF value lies far above its permutation null at the
-resolution of the test ($p = 0.001$ with 1{,}000 permutations), and the obfuscated value lies
-inside its null ($p = 0.084$), so the test does not reject the hypothesis that the obfuscated
-estimate is null noise. Failing to reject is not evidence of zero: with 1{,}000 permutations the
+0.383~bits to 0.004~bits. The Timing OFF value lies far above its permutation null at the
+resolution of the test ($p = 0.001$ with 1{,}000 permutations). The obfuscated value lies inside
+its null ($p = 0.084$), so the test does not reject the hypothesis that it is null noise. Failing to reject is not evidence of zero: with 1{,}000 permutations the
 test resolves differences of this size only so far, and a small residual dependence would look the
 same. For the evaluated fixed Random-Forest attacker, then, three-class transaction identification
 falls to approximately chance, and no dependence between the cross-layer response time and the
@@ -228,7 +227,7 @@ outside a timing-only feature set and still names the operation.
 
 The adaptive adversary gives two results, and they answer different questions. Retrained on
 obfuscated traffic it stays at chance, 0.333, on the CLRT alone: the targeted feature is
-suppressed against a retrained adversary and not only against a fixed one. The same adversary
+suppressed against a retrained adversary, and not against a fixed one alone. The same adversary
 recovers to 0.651 when it is given both intervals, because the read and control paths are timed
 from different events, so their acknowledgment latencies differ. Row-normalised confusion over all
 22 held-out runs, published with the artifact, shows the shape of that recovery: OPERATE separable
@@ -237,13 +236,13 @@ while SELECT stays confused with READ.
 We state the cost of that difference rather than leave it to be inferred. On the
 request-to-acknowledgment interval alone, balanced accuracy rises from 0.380 under Timing OFF to
 0.662 under the mechanism: almost nothing about the class before the mechanism runs, and the most
-informative single feature afterwards. The mechanism does not merely fail to remove that feature,
+informative single feature afterwards. The mechanism leaves that feature in place, and
 it creates it, because holding the acknowledgment for $D_A$ displaces an interval the two lanes
 compute from different events. Against an adversary using both intervals and allowed to retrain,
 the net effect is a fall from 0.736 to 0.651, or 0.085 on a three-class problem whose chance is
 0.333.
 
-The targeted feature is therefore suppressed under both conditions, the cross-layer response time
+Notably the targeted feature is suppressed under both conditions, the cross-layer response time
 alone leaving fixed and retrained adversaries alike at 0.333. What retraining recovers, it
 recovers from the request-to-acknowledgment interval, which the mechanism does not target and does
 make more informative, and that residual bounds the result. Formby et
@@ -281,23 +280,23 @@ the program cannot supply them: the timestamp registers it declares are never wr
 measured distribution shows around the configured value is therefore a net difference between two
 releases, not a delay we can place inside the switch.
 
-On a separately instrumented build that adds two registers per lane, keyed on the outcome marking
-a blocker that terminates because its deadline passed, the medians over twelve transactions are
-1{,}706~ns on the acknowledgment lane and 1{,}705~ns on the response lane, with standard
-deviations of 8.7 and 8.0~ns, about $4\times10^{-4}$ of the 4~ms configured interval. The first
+A separately instrumented build adds two registers per lane, keyed on the outcome that marks a
+blocker terminating because its deadline passed. Over twelve transactions the medians are
+1{,}706~ns on the acknowledgment lane and 1{,}705~ns on the response lane. The standard deviations
+are 8.7 and 8.0~ns, about $4\times10^{-4}$ of the 4~ms configured interval. The first
 blocker's ingress timestamp follows the deadline by a median of 12.5 and 13.5~ns, bounding when a
 blocker first observed the expiry rather than when the release decision was taken, which the
 program does not timestamp.
 
-Four limits apply, and the first is why we do not simply call it $\varepsilon$. Both timestamps
+Four limits apply, and the first is why we avoid the name $\varepsilon$ for it. Both timestamps
 are taken in ingress on a recirculating blocker token, so the interval ends at the last blocking
 action and not at the wire, and this program carries no egress timestamp. We report an internal
 blocker-termination interval and do not claim it bounds $\varepsilon$ in either direction, because
 the blocker's last traffic-manager service precedes its return to ingress and the ordering of the
-two endpoints is not established. It comes from a \emph{different build} than the campaign, so it
-characterizes the mechanism rather than any exchange in the measured distributions; that build is
-identified by the recorded patch over the frozen program, with the build tree, its loader
-configuration and the loader's log agreeing on which binary ran. Twelve transactions at one
+two endpoints is not established. It comes from a \emph{different build} than the campaign. It therefore
+characterizes the mechanism, not any exchange in the measured distributions. The recorded patch
+over the frozen program identifies that build, and the build tree, its loader configuration and
+the loader's log agree on which binary ran. Twelve transactions at one
 configuration are not a drain bound over load. Comparing the instrumented build against the frozen
 one over 200 polls each gives mean cross-layer response times of 4.000282 and 3.999470~ms with
 sample standard deviations of 0.0153~ms in each: one pair of captures at one configuration, which
