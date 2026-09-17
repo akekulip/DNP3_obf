@@ -31,6 +31,7 @@ REPRO = TIMING / "evidence" / "campaign_v1" / "repro"
 sys.path.insert(0, str(REPRO))
 
 import figstyle_ndss as fs                                                   # noqa: E402
+import matplotlib
 import matplotlib.pyplot as plt                                              # noqa: E402
 from matplotlib.patches import FancyArrowPatch                               # noqa: E402
 
@@ -101,6 +102,11 @@ def lifelines(ax, t_max):
     ax.set_yticks([])
     for side in ("left", "right", "top"):
         ax.spines[side].set_visible(False)
+    # A tick needs a spine to sit on. SciencePlots puts ticks on all four sides, which on a
+    # schematic whose top and right spines are hidden leaves a row of marks floating in the
+    # white space above the diagram.
+    ax.tick_params(top=False, right=False, which="both")
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
 
 
 def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
@@ -319,6 +325,11 @@ def figure_timeout(outdir, const, audit):
     ax.set_xlabel("time from the request leaving the master, log scale (ms)")
     for side in ("left", "right", "top"):
         ax.spines[side].set_visible(False)
+    # A tick needs a spine to sit on. SciencePlots puts ticks on all four sides, which on a
+    # schematic whose top and right spines are hidden leaves a row of marks floating in the
+    # white space above the diagram.
+    ax.tick_params(top=False, right=False, which="both")
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.grid(True, axis="x", which="major", color="#CCCCCC", lw=0.4, zorder=0)
     ax.set_axisbelow(True)
     fig.tight_layout(pad=0.4)

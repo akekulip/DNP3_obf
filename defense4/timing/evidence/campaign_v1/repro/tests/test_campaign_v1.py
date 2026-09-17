@@ -686,9 +686,21 @@ def test_no_figure_text_below_8pt():
 
 
 def test_greyscale_distinguishability_uses_style_not_only_colour():
+    """Every distinction a reader has to make must survive a black-and-white print.
+
+    Classes are separated by line style. The two arms were separated by a hatch until
+    2026-09-17; a hatch at 3.5 in reads as noise, so they are now separated by fill: Timing OFF
+    is drawn open and Obfuscated solid. The requirement is unchanged, only the channel.
+    """
     src = open(os.path.join(HERE, "make_ndss_figures.py")).read()
+    sty = open(os.path.join(HERE, "figstyle_ndss.py")).read()
     assert "LS_CLASS" in src, "classes must differ by line style, not colour alone"
-    assert "hatch=F.HATCH" in src, "arms must differ by hatch, not colour alone"
+    assert "def arm_face" in sty and "FILL_ALPHA" in sty, \
+        "figstyle must define the non-colour fill channel that separates the arms"
+    assert "F.arm_face(" in src, "arms must differ by fill, not colour alone"
+    assert 'fill = {"clrt": (F.OFF, "white"' in src, \
+        "the leakage bars must differ by fill, not colour alone"
+    assert "hatch=" not in src, "hatch was retired; it reads as noise at column width"
 
 
 def test_figure_output_is_deterministic(tmp_path):

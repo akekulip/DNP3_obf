@@ -2,15 +2,15 @@
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "sha256": "aa2f05c04378a37301477be0eeb081ac7699de61e79c294626533094181cbfaf"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "0d9783473ddeef15faf848ce85b87e792c8c2e2a4580d4964b3a6e3138c067b3",
+   "sha256": "a75c3874002d6007b60f0ecdd50870bc7954783748118bb7e6e3bda8849687c9",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "0d21d3bc831eac25a47826b4b8fa5d7073c3ceb41cb8f3b79c6bea4623ee0782",
+   "sha256": "00a38d4bb0659a4105dd137197565dcc1d3bef4fd0f6f5a1d7f232b628876220",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -55,5 +55,5 @@
   "panel_b_ordinate": "magnified, full span 0.20 ms, disclosed in-panel and in caption",
   "scope": "within-campaign only"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

@@ -58,8 +58,9 @@ def box_pair(ax, rows, col, logy=True):
         bp = ax.boxplot(data, positions=pos, widths=0.32, patch_artist=True,
                         whis=(0, 100), showfliers=False)
         for i in range(3):
-            bp["boxes"][i].set(facecolor=ACOL[arm], alpha=0.45, edgecolor=ACOL[arm], lw=0.7,
-                               hatch=F.HATCH[arm],
+            # Open against solid, so the pair stays readable in greyscale without a hatch.
+            bp["boxes"][i].set(facecolor=F.arm_face(arm, ACOL[arm]), alpha=F.FILL_ALPHA[arm],
+                               edgecolor=ACOL[arm], lw=0.9,
                                label=F.LBL[arm] if i == 0 else None)
             bp["medians"][i].set(color=ACOL[arm], lw=1.5)
             for kk in ("whiskers", "caps"):
@@ -104,8 +105,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][0].text(D * 0.92, 2.2, "$D$", fontsize=8, ha="right", va="top", color="black")
     ax[0][0].text(H * 1.10, 2.2, "$H$", fontsize=8, ha="left", va="top", color="black")
     # Above the panel: inside, even a two-entry key sat on the curve it was naming.
-    ax[0][0].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=2, framealpha=1.0,
-                    borderpad=0.22, labelspacing=0.12, columnspacing=0.8, handlelength=1.4)
+    ax[0][0].legend(loc="lower left", ncol=1, handlelength=1.5, handletextpad=0.4)
 
     # ---- (b) fixed total budget, the configured CLRT_new swept: the visible interval follows
     # the policy value. The archived sweep table names that configured value D_R_ms; under the
@@ -170,9 +170,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # The two reference lines carry no in-plot text. The upper one is the control-plane
     # admission horizon and the lower one the configured CLRT_new; both are named in the
     # caption. The lower annotation used to sit on the axis and cross its own line.
-    ax[1][0].text(0.04, 0.55, "request-to-ACK", transform=ax[1][0].transAxes,
+    ax[1][0].text(0.03, 0.70, "request-to-ACK", transform=ax[1][0].transAxes,
                   fontsize=8, color=F.OFF, ha="left", va="bottom")
-    ax[1][0].text(0.36, 0.13, "$\\mathrm{CLRT}_{\\mathrm{new}}$",
+    ax[1][0].text(0.40, 0.19, "$\\mathrm{CLRT}_{\\mathrm{new}}$",
                   transform=ax[1][0].transAxes, fontsize=8, color=F.ON, ha="left", va="bottom")
     for s in ramp:
         data.append(dict(panel="c", series="D_A_ramp", point=s["point"],
@@ -183,8 +183,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # ---- (d) the master's request-to-response latency, the observed cost
     box_pair(ax[1][1], rows, col=5)
     ax[1][1].set_ylabel("Request-to-response (ms)"); ax[1][1].set_ylim(1, 400)
-    ax[1][1].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=1, framealpha=1.0,
-                    borderpad=0.22, labelspacing=0.12, handlelength=1.2)
+    ax[1][1].legend(loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c, col=5)
@@ -194,12 +193,11 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                              q3_ms=round(float(q3), 6), min_ms=round(float(v.min()), 6),
                              max_ms=round(float(v.max()), 6)))
 
-    tag(ax[0][0], "a", x=0.035, y=0.06, ha="left", va="bottom")
+    tag(ax[0][0], "a", x=0.965, y=0.955)
     tag(ax[0][1], "b", x=0.965, y=0.06, va="bottom")
     tag(ax[1][0], "c", x=0.965, y=0.955)
     tag(ax[1][1], "d", x=0.965, y=0.955)
     F.grid([ax[0][0], ax[0][1], ax[1][0], ax[1][1]])
-    fig.tight_layout()
 
     cov = stats["read_lane_coverage"]
     add = stats["added_response_latency_ms"]
@@ -275,13 +273,10 @@ def fig_distributions(rows, out, inputs):
         a.set_xscale("log"); a.xaxis.set_minor_formatter(NullFormatter())
         a.set_xlim(0.8, 120); a.set_ylim(0, 1.02)
         a.set_xlabel(f"{c}: {INAME[c]} (ms)"); a.set_ylabel("Empirical CDF")
-    # Above the panel. Inside, it covered the very step it was naming.
-    flat[0].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=2, framealpha=1.0,
-                   borderpad=0.22, labelspacing=0.12, columnspacing=0.8, handlelength=1.4)
+    flat[0].legend(loc="lower right", ncol=1, handlelength=1.5, handletextpad=0.4)
     box_pair(ax[1][1], rows, col=3)
     ax[1][1].set_ylabel("Interval (ms)"); ax[1][1].set_ylim(0.8, 200)
-    ax[1][1].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=1, framealpha=1.0,
-                    borderpad=0.22, labelspacing=0.12, handlelength=1.2)
+    ax[1][1].legend(loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c)
@@ -293,7 +288,6 @@ def fig_distributions(rows, out, inputs):
     for a, t in zip([ax[0][0], ax[0][1], ax[1][0], ax[1][1]], "abcd"):
         tag(a, t, y=0.93)
     F.grid([ax[0][0], ax[0][1], ax[1][0], ax[1][1]])
-    fig.tight_layout()
     mx = {c: {a_: round(float(sel(rows, a_, c).max()), 3) for a_ in ARMS} for c in CLASSES}
     fields = sorted({k for d in data for k in d})
     F.save(fig, out, "fig_distributions",
@@ -416,7 +410,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
 
     for a, t in zip(ax, "ab"):
         tag(a, t, x=0.035, y=0.955, ha="left")
-    F.grid(list(ax)); fig.tight_layout()
+    F.grid(list(ax))
     fields = sorted({k for d in data for k in d})
     F.save(fig, out, "fig_feature_overlap",
            "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two "
@@ -480,13 +474,14 @@ def fig_leakage(leak, out, inputs):
     conds = [("fixed\nOFF", "A_fixed_native_trained", "tested_on_timing_off"),
              ("fixed\nObf.", "A_fixed_native_trained", "tested_on_obfuscated"),
              ("adapt.\nObf.", "B_adaptive_obfuscated_trained", "tested_on_obfuscated")]
-    fill = {"clrt": (F.OFF, "///"), "ack_clrt": (F.ON, "\\\\\\")}
+    # Open against solid, the same greyscale channel the arms use elsewhere.
+    fill = {"clrt": (F.OFF, "white", 1.0), "ack_clrt": (F.ON, None, 0.90)}
     w, xb = 0.36, np.arange(len(conds))
     data = []
     # (a) balanced accuracy. The visible spread is the descriptive range over the 22 held-out
     # runs, never a confidence interval: the folds share training data.
     for k, f in enumerate(feats):
-        col, hat = fill[f]
+        col, face, al = fill[f]
         m, lo, hi = [], [], []
         for lab, grp, key in conds:
             d = leak["classifiers"][f][grp][key]
@@ -494,17 +489,15 @@ def fig_leakage(leak, out, inputs):
             data.append(dict(panel="a", attacker=lab.replace("\n", " "), features=f,
                              mean=d["mean"], median=d["median"], min=d["min"], max=d["max"],
                              iqr_lo=d["iqr_lo"], iqr_hi=d["iqr_hi"], n_runs=d["n_runs"]))
-        ax[0].bar(xb + (k - 0.5) * w, m, w * 0.88, yerr=[lo, hi], capsize=2, color=col,
-                  alpha=0.85, edgecolor="black", lw=0.6, hatch=hat, label=names[f],
-                  error_kw=dict(lw=0.7))
+        ax[0].bar(xb + (k - 0.5) * w, m, w * 0.88, yerr=[lo, hi], capsize=2,
+                  color=face or col, alpha=al, edgecolor=col, lw=0.9, label=names[f],
+                  error_kw=dict(lw=0.7, ecolor="black"))
     ax[0].axhline(leak["chance_balanced_accuracy"], color="black", ls=":", lw=1.0, zorder=4)
     ax[0].text(2.46, leak["chance_balanced_accuracy"] + 0.02, "chance", fontsize=8,
                ha="right", va="bottom")
     ax[0].set_xticks(xb); ax[0].set_xticklabels([c[0] for c in conds])
     ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.0)
-    # Above the axes, so it covers no bar and needs no headroom stretched into the metric.
-    ax[0].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=1, framealpha=1.0,
-                 borderpad=0.24, labelspacing=0.14, handlelength=1.3)
+    ax[0].legend(loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
 
     # (b) observed MI against the within-run permutation null. No error bar on the estimate.
     mi = leak["mutual_information"]
@@ -531,8 +524,7 @@ def fig_leakage(leak, out, inputs):
     ax[1].set_ylim(min(mi[a]["observed_bits"] for a in ARMS) * 0.35,
                    max(mi[a]["observed_bits"] for a in ARMS) * 3)
     ax[1].yaxis.set_minor_formatter(NullFormatter())
-    ax[1].legend(loc="lower left", bbox_to_anchor=(0.0, 1.01), ncol=1, framealpha=1.0,
-                 borderpad=0.24, labelspacing=0.14, handlelength=1.3)
+    ax[1].legend(loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
 
     # The confusion matrices are not drawn, but their numbers are kept, so the artifact and this
     # figure's own data file still carry every one of them.
@@ -546,7 +538,6 @@ def fig_leakage(leak, out, inputs):
     for a, t in zip([ax[0], ax[1]], "ab"):
         tag(a, t, x=0.035, y=0.04, ha="left", va="bottom")
     F.grid([ax[0], ax[1]])
-    fig.tight_layout()
     fields = sorted({k for d in data for k in d})
     F.save(fig, out, "fig_leakage",
            "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one "
@@ -626,7 +617,7 @@ def fig_stability(rows, cfg, out, inputs):
     ax[0].legend(loc="upper left", ncol=3, framealpha=1.0, borderpad=0.26, labelspacing=0.14,
                  columnspacing=0.6, fontsize=8, handlelength=1.2)
     tag(ax[0], "a"); tag(ax[1], "b", y=0.955)
-    F.grid(list(ax)); fig.tight_layout()
+    F.grid(list(ax))
     fields = sorted({k for d in data for k in d})
     F.save(fig, out, "fig_stability",
            "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. "

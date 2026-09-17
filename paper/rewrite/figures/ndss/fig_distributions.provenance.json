@@ -2,15 +2,15 @@
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "sha256": "aa2f05c04378a37301477be0eeb081ac7699de61e79c294626533094181cbfaf"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
  },
  "inputs": [
   {
@@ -22,12 +22,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "8a9d62ea72ebc4dc96fc747dd3cde5cfd43424b273669795042f7ee5ae3c1cda",
+   "sha256": "5d053a99554b464e0f975cee8406450675db9a08a1dff1ccf1d835a2464024d6",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "f91854a31f3a2c7341f2ed0c42ae4febffaa9c321ac056e0a0686024ab53104a",
+   "sha256": "f33c7d87d6d54c16ffc58f540b154272199cd4ce87fc54006167a69ddbd99625",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -65,5 +65,5 @@
   "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
   "operate_scope": "master-visible response-to-ACK interval, timed from the request"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

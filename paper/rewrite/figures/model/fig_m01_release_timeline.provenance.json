@@ -1,21 +1,21 @@
 {
  "figure": "fig_m01_release_timeline",
  "caption": "Release timeline of the read lane, drawn from the verified program and not from a distribution. Points are timestamps and bars are durations; a filled circle marks an instant that was measured and an open square one that was not. The switch arms both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the acknowledgment is due at $t_A+D_A$ and the response at $t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time $\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is whatever the schedule requires, and it therefore varies with the arrival $t_R$. In (a) the response arrives before its deadline and the measured $\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it arrives after, the deadline is already past, the program forwards it on arrival, and the measured value exceeds the configured one; no response hold is drawn there because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, $t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=20$ ms and a configured $\\mathrm{CLRT}_{\\mathrm{new}}=4$ ms are the campaign settings.",
- "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "131ab67b60f020b0d51463b4a2b68f53be883fba",
+ "generation_command": "python make_model_figures.py",
+ "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "007b52a9ba840e8863a1ac74810b286e11953a00fdd564541fb364695e1681b5"
+  "sha256": "3b44ace3c8e1ada83cf62a1f812fb635d95e3151fa8eb4e05814772e11724be2"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "sha256": "454d97ed9cdf25e5482f2c3ed15011b3e4e26ba6c5ae5d63a2b8b60135577c2e"
  },
  "inputs": [
   {
    "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
-   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+   "sha256": "fec3766319ae5c1b54c5cb4bd1d17039b1f1a65b7537d51f155215c50c9e5f75"
   },
   {
    "path": "defense4/timing/audit_current/outputs/timeout_and_tcp_audit.json",
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.pdf",
-   "sha256": "93f9c983ec220459b32734fbac9cf2ccab25d9cd119aaee0dfaa58f7c5aaa414",
+   "sha256": "95c577c3a9aff26440a631170c105f14d9b07f30ecf675a8dc39c54a142261e1",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.png",
-   "sha256": "b3124ef25f69e98268a21dd2b8af66829cf98d89d997c846f3463117c0082852",
+   "sha256": "bc7f4989dce09d9b7d3333f0fbff3a5ec9068e40d6c3b511dc2e917fab7dca9a",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -54,5 +54,5 @@
   "link propagation and the switch's processing term are drawn at a legible size, not to scale; the 1.2 ms gap between an arrival and its emission in panel (b) is a drawing choice",
   "case (b) is the fail-open path, which bounds the tail rather than clipping it"
  ],
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

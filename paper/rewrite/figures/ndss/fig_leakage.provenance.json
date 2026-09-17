@@ -2,15 +2,15 @@
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.084$). No uncertainty interval is placed on the point estimate. The row-normalised confusion of both attackers over all 22 held-out runs is not drawn here; every entry is in this figure's data file and in the released leakage record.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "sha256": "aa2f05c04378a37301477be0eeb081ac7699de61e79c294626533094181cbfaf"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_leakage.pdf",
-   "sha256": "d0fc12bb53b3e74d4ca3716754783c2a7aa9638e3efb8db58026b71cd7e21911",
+   "sha256": "f9514da5810f61c3eabca5779651823b08ca354a163445dad3193a16f97df395",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_leakage.png",
-   "sha256": "49254e66b00e2b637fd80fb208312f1b0f58382661d59e86133b9fed49f43677",
+   "sha256": "9900819f73b30cef958283e9e26609264ab5d2895ad9d6048256d7943ac6b7b3",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -57,5 +57,5 @@
   "uncertainty": "MI is reported against a within-run permutation null with an empirical Monte Carlo p-value and no error bar; classifier scores are reported with the descriptive spread of the 22 held-out-run scores and no confidence interval",
   "classifier_scope": "results characterise the evaluated fixed Random-Forest attacker and this feature set; they do not generalise to all fingerprinting classifiers"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

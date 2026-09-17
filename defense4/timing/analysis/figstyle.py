@@ -35,6 +35,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import scienceplots  # noqa: F401,E402  registers "science" / "ieee" / "no-latex"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import paper_palettes as pp  # noqa: E402
@@ -70,7 +71,23 @@ LABEL_SBO = "SBO"
 
 
 def use_ieee():
-    """Apply the IEEE conventions from utils_mpl, then this project's additions."""
+    """SciencePlots science+ieee, then the IEEE conventions from utils_mpl, then this project's.
+
+    ``science`` + ``ieee`` (garrettj403/SciencePlots) supply the tick and spine discipline that
+    makes a plot read as a journal figure: ticks inward on all four sides, minor ticks visible,
+    thin spines, frameless keys, 600 dpi.
+
+    ``no-latex`` is appended because ``science`` sets ``text.usetex``, which needs ``cm-super``
+    (for ``type1ec.sty``) and ``dvipng``, neither installed; and because the ``science``
+    preamble loads no font package, so with LaTeX on, every figure would render in Computer
+    Modern while the manuscript body is Times. The ``mathtext`` settings below keep figure text
+    and body text in one face.
+
+    The ``ieee`` style's black/red/blue/green cycle is left in place only as a fallback: every
+    series in this repository is given an explicit colour from the palette above, which is
+    colourblind-safe and holds one meaning per colour across the manuscript.
+    """
+    plt.style.use(["science", "ieee", "no-latex"])
     utils_mpl.set_global()                       # 9 pt Times, bold labels, boxed legend
     plt.rcParams.update({
         "font.family": "serif",
@@ -97,6 +114,23 @@ def use_ieee():
         "pdf.fonttype": 42,
         "ps.fonttype": 42,
         "svg.fonttype": "none",
+        # utils_mpl.set_global draws a boxed key; a frame is a patch of white over the data.
+        "legend.frameon": False,
+        "legend.borderpad": 0.2,
+        "legend.handletextpad": 0.5,
+        "legend.labelspacing": 0.25,
+        # SciencePlots ticks, trimmed for a 3.5 in column.
+        "xtick.direction": "in", "ytick.direction": "in",
+        "xtick.top": True, "ytick.right": True,
+        "xtick.minor.visible": True, "ytick.minor.visible": True,
+        "xtick.major.size": 2.6, "ytick.major.size": 2.6,
+        "xtick.minor.size": 1.4, "ytick.minor.size": 1.4,
+        "xtick.major.width": 0.5, "ytick.major.width": 0.5,
+        "xtick.minor.width": 0.4, "ytick.minor.width": 0.4,
+        # The PDF must be exactly the size asked for, so it lands at a known width in the
+        # column. SciencePlots crops to "tight", which would defeat that.
+        "savefig.bbox": "standard", "savefig.pad_inches": 0.0,
+        "figure.dpi": 600, "savefig.dpi": 600,
     })
 
 
