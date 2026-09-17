@@ -1,0 +1,84 @@
+2026-09-17 17:41:07.825288 BF_SWITCHD DEBUG - bf_switchd: system services initialized
+2026-09-17 17:41:07.825376 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /home/decps/Philip_repo/dnp3-defense4/sizefree_20260917/frozen_abs.conf...
+2026-09-17 17:41:07.825427 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...
+2026-09-17 17:41:07.825508 BF_SWITCHD DEBUG - Configuration for dev_id 0
+2026-09-17 17:41:07.825530 BF_SWITCHD DEBUG -   Family        : tofino
+2026-09-17 17:41:07.825549 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:04:00.0
+2026-09-17 17:41:07.825567 BF_SWITCHD DEBUG -   pci_int_mode  : 0
+2026-09-17 17:41:07.825586 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-09-17 17:41:07.825604 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...
+2026-09-17 17:41:07.825667 BF_SWITCHD DEBUG - coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-09-17 17:41:07.825693 BF_SWITCHD DEBUG - P4 profile for dev_id 0
+2026-09-17 17:41:07.825712 BF_SWITCHD DEBUG - num P4 programs 1
+2026-09-17 17:41:07.825730 BF_SWITCHD DEBUG -   p4_name: defense4_rrc_bor_unified12
+2026-09-17 17:41:07.825749 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe
+2026-09-17 17:41:07.825767 BF_SWITCHD DEBUG -     libpd: 
+2026-09-17 17:41:07.825786 BF_SWITCHD DEBUG -     libpdthrift: 
+2026-09-17 17:41:07.825804 BF_SWITCHD DEBUG -     context: /home/decps/Philip_repo/dnp3-defense4/sizefree_20260917/out_base/pipe/context.json
+2026-09-17 17:41:07.825823 BF_SWITCHD DEBUG -     config: /home/decps/Philip_repo/dnp3-defense4/sizefree_20260917/out_base/pipe/tofino.bin
+2026-09-17 17:41:07.825842 BF_SWITCHD DEBUG -   Pipes in scope [
+2026-09-17 17:41:07.825860 BF_SWITCHD DEBUG - 0 
+2026-09-17 17:41:07.825879 BF_SWITCHD DEBUG - 1 
+2026-09-17 17:41:07.825898 BF_SWITCHD DEBUG - 2 
+2026-09-17 17:41:07.825916 BF_SWITCHD DEBUG - 3 
+2026-09-17 17:41:07.825934 BF_SWITCHD DEBUG - ]
+2026-09-17 17:41:07.825952 BF_SWITCHD DEBUG -   diag: 
+2026-09-17 17:41:07.825971 BF_SWITCHD DEBUG -   accton diag: 
+2026-09-17 17:41:07.825990 BF_SWITCHD DEBUG -   Agent[0]: /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so
+2026-09-17 17:41:07.843567 BF_SWITCHD DEBUG - bf_switchd: library /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so loaded
+2026-09-17 17:41:07.844564 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized
+2026-09-17 17:41:10.003433 BF_SWITCHD DEBUG - Device 0: Operational mode set to ASIC
+2026-09-17 17:41:10.003518 BF_SWITCHD DEBUG - Initialized the device types using platforms infra API
+2026-09-17 17:41:10.003548 BF_SWITCHD DEBUG - ASIC detected at PCI /sys/class/bf/bf0/device
+2026-09-17 17:41:10.003631 BF_SWITCHD DEBUG - ASIC pci device id is 16 (0x0010)
+Health monitor started 
+Starting PD-API RPC server on port 9090
+2026-09-17 17:41:10.020759 BF_SWITCHD DEBUG - bf_switchd: drivers initialized
+Setting core_pll_ctrl0=cd44cbfe
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|2026-09-17 17:41:15.006257 BF_PLTFM ERROR - ChkSum not matched for 33
+
+2026-09-17 17:41:15.112954 BF_PLTFM ERROR - ChkSum not matched for 34
+
+2026-09-17 17:41:15.282120 BF_SWITCHD DEBUG - bf_switchd: dev_id 0 initialized
+2026-09-17 17:41:15.282135 BF_SWITCHD DEBUG - bf_switchd: initialized 1 devices
+Adding Thrift service for bf-platforms to server
+2026-09-17 17:41:15.282246 BF_SWITCHD DEBUG - bf_switchd: thrift initialized for agent : 0
+2026-09-17 17:41:15.282263 BF_SWITCHD DEBUG - bf_switchd: spawning cli server thread
+2026-09-17 17:41:15.282475 BF_SWITCHD DEBUG - bf_switchd: spawning driver shell
+2026-09-17 17:41:15.282541 BF_SWITCHD DEBUG - bf_switchd: server started - listening on port 9999
+2026-09-17 17:43:32.785600 BF_PIPE ERROR - pipe_mgr_exm_get_first_programmed_entry_handle:2228 Invalid pipe id 0 passed for symmetric exm tbl with handle 0x1000059, device id 0
+2026-09-17 17:43:32.785748 BF_PIPE ERROR - pipe_mgr_exm_get_phy_entry_info:7372 Error in getting physical entry info for entry handle -1, tbl 0x1000059, device id 0, err 0x2
+2026-09-17 17:43:32.785801 BF_PIPE ERROR - pipe_mgr_exm_get_entry_llp_from_hw:2756 Could not find the entry info for entry with handle -1 in exact match table with handle 16777305, device_id 0
+2026-09-17 17:44:38.638427 BF_BFRT ERROR - BF_RT_SERVER:getBfRtInfo:740 Unable to get bound_program Unexpected error
+2026-09-17 17:44:38.638603 BF_BFRT ERROR - BF_RT_SERVER:Read:4222 Error getting BfRtInfo
+2026-09-17 17:44:51.897216 BF_PIPE ERROR - pipe_mgr_exm_get_first_programmed_entry_handle:2228 Invalid pipe id 0 passed for symmetric exm tbl with handle 0x1000059, device id 0
+2026-09-17 17:44:51.897432 BF_PIPE ERROR - pipe_mgr_exm_get_phy_entry_info:7372 Error in getting physical entry info for entry handle -1, tbl 0x1000059, device id 0, err 0x2
+2026-09-17 17:44:51.897497 BF_PIPE ERROR - pipe_mgr_exm_get_entry_llp_from_hw:2756 Could not find the entry info for entry with handle -1 in exact match table with handle 16777305, device_id 0
+2026-09-17 17:44:51.898767 BF_PIPE ERROR - pipe_mgr_exm_get_first_programmed_entry_handle:2228 Invalid pipe id 0 passed for symmetric exm tbl with handle 0x1000059, device id 0
+2026-09-17 17:44:51.898944 BF_PIPE ERROR - pipe_mgr_exm_get_entry : Could not find the entry info for entry with handle -1 in exact match table with handle 16777305, device_id 0
+2026-09-17 17:44:51.899059 BF_PIPE ERROR - pipe_mgr_exm_default_ent_get:2473 Exm tbl info for tbl 0x1000059 pipe id 0, device id 0 not found
+2026-09-17 17:44:51.899118 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:pipe.Ingress.tbl_commit Invalid arguments
+2026-09-17 17:45:48.412257 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 8 is not valid
+2026-09-17 17:45:48.412456 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
+2026-09-17 17:45:49.055761 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-17 17:45:49.055943 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-17 17:47:59.183401 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-17 17:47:59.183582 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-17 17:47:59.193038 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-17 17:47:59.193172 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-17 17:47:59.196824 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$mirror.cfg Invalid arguments
+2026-09-17 17:47:59.202140 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-17 17:47:59.204805 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-17 17:47:59.214970 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.220111 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.224764 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.229421 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.233855 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.238020 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-17 17:47:59.242516 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$pre.node Already exists
+2026-09-17 17:47:59.245429 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$pre.node Already exists
+2026-09-17 17:47:59.248336 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$pre.mgid Already exists
+2026-09-17 17:47:59.269353 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-17 17:47:59.269526 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-17 17:47:59.277602 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-17 17:47:59.277749 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments

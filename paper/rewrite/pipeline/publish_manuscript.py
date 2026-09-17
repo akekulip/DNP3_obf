@@ -155,8 +155,11 @@ def main(update: bool) -> int:
         problems.append("the source has changed since this PDF was published "
                         "(digest %s, manifest %s)"
                         % (digest[:12], str(man.get("source_digest_sha256"))[:12]))
-    if BUILT.is_file() and sha256(BUILT) != actual:
-        problems.append("pipeline/build/main.pdf differs from the tracked copy")
+    # Deliberately NOT compared byte for byte against pipeline/build/main.pdf. The manuscript
+    # build is not deterministic: three builds of identical source give three hashes, because the
+    # PDF carries a fresh /ID on every run. Comparing them made this check fail after every
+    # rebuild and say nothing. The source digest above is the staleness signal that means
+    # something, because it changes only when the source does.
     for p in problems:
         print("[FAIL] %s" % p)
     if problems:
