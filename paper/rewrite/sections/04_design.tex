@@ -186,11 +186,11 @@ value we tested, 4~ms, and report the response latency the mechanism produces, a
 than the device alone, so an operator with a requirement of their own can check it against those
 numbers.
 
-A third timer escapes notice easily. Holding the response also postpones the
+A third timer is easy to miss. Holding the response also postpones the
 master's acknowledgment of it, which is the feedback the \emph{outstation's} transport waits for,
 so the response hold spends the outstation's retransmission budget as well as the application's
 patience. The budget belongs to the outstation, not the master. On this relay its timer runs about three
-orders larger than the master's, so the master's binds here. The three constraints stay
+orders larger than the master's, so the master's timer binds here. The three constraints stay
 separate, and a deployment that changed either device could reorder them.
 
 Together the two set what the mechanism costs. Their sum
@@ -202,8 +202,8 @@ is the release budget: by~(\ref{eq:availability}) it decides which transactions 
 place on the schedule at all. A larger budget covers more of the device's own response-time
 distribution and costs more delay on every transaction it covers: at $D=24$~ms it covers 99.9\% of
 them for about 23~ms of added latency. $D$ names the budget rather than the delay added to each exchange.
-The switch holds a transaction the outstation answers quickly longer than one it answers slowly,
-so the added delay reaches at most $D$ without equalling it.
+The switch holds a transaction the outstation answers quickly for longer than one it answers
+slowly, so the added delay reaches at most $D$ without equalling it.
 
 Because the budget and the observable measure different quantities, an operator can fix the cost and
 still choose the feature. Holding $D$ at 24~ms, we installed configured values from 1~ms to 22~ms.
