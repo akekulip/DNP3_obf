@@ -106,13 +106,12 @@ interquartile ranges in acquisition order are published with the artifact.
 
 \textbf{RO2.} The control-path rule of~(\ref{eq:control}) holds the master-visible
 response-to-ACK interval at the policy value. Timed from the request, its observable is
-$O = R - A$, in which the internal hold $J$ does not appear. Consequently the read-path budget $D$
-does not apply to it, and the switch draws $J$ per transaction from the configured codebook
-$\{2, 6, 12\}$~ms. The OPERATE median moves from 2.937~ms under
+$O = \mathrm{CLRT}_{\mathrm{new}}$, in which the internal hold $J$ does not appear. Because that
+deadline is computed from the request, the read-lane coverage of
+Section~\ref{sec:eval:policy} does not describe it, and the switch draws $J$ per transaction from
+the configured codebook $\{2, 6, 12\}$~ms. The OPERATE median moves from 2.937~ms under
 Timing OFF to 4.000~ms under the mechanism, the interquartile range falls from 2.827 to 0.006~ms,
-and the interval stays concentrated at the configured value in every run. That result speaks to
-the interval the master sees: the relay-facing release at $T_0 + J$ was not observed
-(Section~\ref{sec:eval:limits}).
+and the interval stays concentrated at the configured value in every run.
 
 \subsection{What range of settings does the mechanism support? (RO4)}
 \label{sec:eval:policy}

@@ -197,11 +197,19 @@ measurement of the drain interval.
 
 ## 5. The control lane keeps its own convention
 
-READ and SELECT use the acknowledgment-arrival reference above. OPERATE is request-anchored and
-keeps the established `A`, `R`, and `J` quantities of the implementation; its master-visible
-observable is `R - A`. Do not apply the read-lane model to the whole select-before-operate
-exchange without deriving the mapping. `J` is a configured codebook `{2, 6, 12}` ms; the
-per-transaction draw was never observed.
+READ and SELECT use the acknowledgment-arrival reference above. OPERATE is request-anchored: its
+deadlines are computed from `T0` rather than from `t_A`. The offsets, however, are the read lane's
+`D_A` and `D_R`, so the master-visible observable is `O = D_R`. Do not apply the read-lane
+*coverage* model to the select-before-operate exchange, since the anchor differs; do apply the
+read-lane *parameters*, since they are the ones the data plane uses.
+
+`A` and `R` remain in the implementation and in the control plane's admission arithmetic, which
+refuses an `A` that does not exceed the largest admissible `J` plus the outstation's own
+acknowledgment latency, and an `R` that reaches the horizon. They gate what may be installed and
+do not set the master-facing instants; a sweep of 2026-09-18 that separated them from `D_A` and
+`D_R` found the acknowledgment fixed at 20.65 ms across `A` of 12 to 24 ms, and the
+response-to-ACK interval following `D_R` exactly while ignoring `R - A`. `J` is a configured
+codebook `{2, 6, 12}` ms; the per-transaction draw was never observed.
 
 ## 6. Terms to use in prose
 

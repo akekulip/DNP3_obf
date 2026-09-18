@@ -31,10 +31,22 @@ relay's own timing through an otherwise passive switch.
   acknowledgment: the switch releases the held ACK at `t_A + D_A` and the held response at
   `t_A + D_A + D_R`, with `D_A` = 20 ms and `D_R` = 4 ms. The observable CLRT is `D_R`. The
   release budget `D = D_A + D_R` = 24 ms governs this lane and only this lane.
-* **Control lane** — OPERATE. Deadlines are anchored to the request: the ACK is released at
-  `T0 + A` and the response at `T0 + R`, so the master-visible observable is `O = R - A`, in which
-  the internal hold `J` does not appear. The read-path budget `D` is not a schedulability
-  criterion here, and OPERATE never enters the read-lane coverage denominator.
+* **Control lane** — OPERATE. Deadlines are anchored to the request, but the offsets are the
+  read lane's own: the ACK is released at `T0 + D_A` and the response at `T0 + D_A + D_R`, so the
+  master-visible observable is `O = D_R`, in which the internal hold `J` does not appear. The
+  read-path budget `D` is not a schedulability criterion here, because the deadline is computed
+  from the request rather than from the relay's acknowledgment, and OPERATE never enters the
+  read-lane coverage denominator.
+
+  **Corrected 2026-09-18, measured.** This entry read `T0 + A`, `T0 + R` and `O = R - A` until a
+  sweep separated those quantities from the read-lane pair. `campaign_v1` sets `D_A` = `A` = 20 ms
+  and `D_R` = `R - A` = 4 ms, so nothing in it could tell the two apart. Holding `D_A` at 20 ms
+  and walking `A` over 12, 16, 20 and 24 ms, the master-facing OPERATE acknowledgment stayed at
+  20.65 to 20.68 ms throughout; walking `R - A` over 4, 8 and 12 ms with `D_R` pinned at 4 ms, the
+  response-to-ACK interval stayed at 3.999, 4.001 and 4.000 ms; walking `D_R` over 2, 8 and 12 ms
+  with `R - A` pinned at 8 ms, it followed at 1.999, 7.998 and 11.998 ms. `A` and `R` are checked
+  by the control plane and gate what may be installed; they do not set the master-facing instants.
+  Evidence: `evidence/tail_sweep_20260918/`, three independent installs per point.
 
 ---
 
