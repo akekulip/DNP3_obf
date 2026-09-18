@@ -84,7 +84,7 @@ for x0, x1 in ((130, 142), (150, 162)):
 text(82, 9, 34, 18, "passive<br>adversary", 7.5, align="left", colour=VERM)
 text(5, 75, 40, 10, "Master")
 text(111, 75, 70, 10, "Programmable switch")
-text(209, 75, 36, 10, "SEL-751A")
+text(207, 75, 40, 10, "Outstation")
 
 xml = (f'<mxfile host="drawio"><diagram name="fig_observation" id="obs">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" '

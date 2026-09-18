@@ -83,11 +83,11 @@ vertex(BX0, 2, BX1 - BX0, 110, f"rounded=1;arcSize=2;fillColor=#F7F8FA;strokeCol
 text(BX0, 104, BX1 - BX0, 9, "programmable switch", 8, align="center")
 
 # ---------------- the endpoints, outside the box on either side ----------------
-endpoint(0, 26, "outstation")
-endpoint(216, 26, "master")
+endpoint(0, 26, "Outstation")
+endpoint(216, 26, "Master")
 text(0, 42, 32, 9, "ACK, response", 7, align="center")
 text(0, 70, 34, 9, "OPERATE", 7, align="center", colour=SLATE)
-text(0, 77, 34, 9, "from master", 7, align="center")
+text(0, 77, 34, 9, "from Master", 7, align="center")
 
 # ---------------- ingress classifies every arrival ----------------
 vertex(48, 20, 18, 66, f"shape=trapezoid;direction=north;perimeter=trapezoidPerimeter;"
@@ -122,7 +122,7 @@ for y0, y1 in ((22, 48), (70, 87)):
 # ---------------- what leaves, on the right ----------------
 arrow((206, 34), (215, 34), GREEN, 1.0)
 arrow((206, 78), (215, 78), BLUE, 1.0)
-text(202, 88, 46, 9, "to outstation", 7, align="center")
+text(202, 88, 46, 9, "to Outstation", 7, align="center")
 
 # ---------------- the blocker loopback, closed back into the queues it feeds ----------------
 # It leaves the scheduler, turns inside the switch and re-enters the blocker queue, which is what

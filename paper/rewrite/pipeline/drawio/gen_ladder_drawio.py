@@ -82,7 +82,7 @@ def bracket(xm, y0, y1, sym, w=22, ital=False):
 for xm, xo, title in PANELS:
     text((xm + xo) / 2 - 50, 2, 100, 9, title, 8, align="center", colour=SOFT, italic=True)
     text(xm - 23, 13, 46, 9, "Master", 8, align="center")
-    text(xo - 23, 13, 46, 9, "SEL-751A", 8, align="center")
+    text(xo - 23, 13, 46, 9, "Outstation", 8, align="center")
     for x in (xm, xo):
         rule((x, TOP), (x, BOT), "#9AA4AE", 0.6, "2 2")
 
