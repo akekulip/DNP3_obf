@@ -79,8 +79,7 @@ echo "[5b/8] leakage when the adversary pools several exchanges instead of one"
 
 echo "[6/8] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
 "$PY" "$HERE/make_ndss_figures.py" "$OUT/transactions_canonical.csv" "$OUT/stats.json" \
-      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json" \
-      "$OUT/multiobs.json"
+      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json"
 
 echo "[7/8] tests"
 CV1_OUT="$OUT" "$PY" -m pytest "$HERE/tests" -q

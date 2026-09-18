@@ -739,8 +739,7 @@ def test_figure_output_is_deterministic(tmp_path):
         subprocess.run([py, os.path.join(HERE, "make_ndss_figures.py"), CANON,
                         os.path.join(OUT, "stats.json"), os.path.join(OUT, "leakage.json"),
                         os.path.join(HERE, "policy_config.json"), str(d),
-                        os.path.join(OUT, "sweep_summary.json"),
-                        os.path.join(OUT, "multiobs.json")],
+                        os.path.join(OUT, "sweep_summary.json")],
                        check=True, capture_output=True)
         outs.append({p.name: sha256(p) for p in sorted(d.glob("*.pdf"))})
     assert outs[0] == outs[1] and outs[0], "figure PDFs are not reproducible"

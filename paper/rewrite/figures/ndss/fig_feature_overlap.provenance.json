@@ -1,12 +1,12 @@
 {
  "figure": "fig_feature_overlap",
  "caption": "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the outlined markers are the median of each class, computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is timed from the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/multiobs.json",
- "source_commit": "8f34a59f1dac61237aaf86610b9608f9c4260e0c",
+ "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "de5d523ce949fb601928a460974231552d34da46",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "9564c0f55b51d870498f7ba2a8aa827a81fd3a4acde99f26ef62643ad036f982"
+  "sha256": "9a6a59c717b477fb9ac89c928cf93598c92cded3f6829ed3fdb530a127df495b"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

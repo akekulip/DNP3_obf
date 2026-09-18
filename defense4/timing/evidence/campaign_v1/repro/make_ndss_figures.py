@@ -462,16 +462,13 @@ def fig_feature_overlap(rows, cfg, out, inputs):
 
 
 # ============================================================ GRID 3: leakage (2x2)
-def fig_leakage(leak, mo, out, inputs):
+def fig_leakage(leak, out, inputs):
     # Two panels at column width, not four. The 2x2 version squeezed two bar panels and two
     # equal-aspect confusion matrices into 3.5 inches: every axis collapsed into a strip, the
     # category labels overlapped and the legend ran off the canvas. The confusion matrices are
     # secondary, because the text states what they show, so their numbers stay in this figure's
     # data file and in leakage.json rather than being drawn illegibly.
-    fig = plt.figure(figsize=(F.COL_W, 3.05))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 0.78], hspace=0.58, wspace=0.42)
-    ax = [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])]
-    ax3 = fig.add_subplot(gs[1, :])
+    fig, ax = plt.subplots(1, 2, figsize=(F.COL_W, 2.35))
     feats = ["clrt", "ack_clrt"]
     names = {"clrt": "CLRT only", "ack_clrt": "both intervals"}
     # The attacker conditions go on the abscissa and the feature set into a two-entry legend.
@@ -546,27 +543,6 @@ def fig_leakage(leak, mo, out, inputs):
         tag(a, t, x=0.035, y=0.04, ha="left", va="bottom")
     F.grid([ax[0], ax[1]])
 
-    # ---- (c) what the adversary gains by pooling exchanges instead of judging one
-    ks = mo["k_values"]
-    for key, colour, ls, mk, lab in (
-            ("clrt/native", F.OFF, "-", F.MK["READ"], "Timing OFF, CLRT"),
-            ("clrt/obfuscated", F.ON, "-", F.MK["SELECT"], "Obf., CLRT"),
-            ("ack_clrt/obfuscated", F.ON, "--", F.MK["OPERATE"], "Obf., both")):
-        y = [mo["results"][f"{key}/k{k}"]["balanced_accuracy_mean"] for k in ks]
-        lo = [mo["results"][f"{key}/k{k}"]["min"] for k in ks]
-        hi = [mo["results"][f"{key}/k{k}"]["max"] for k in ks]
-        ax3.plot(ks, y, ls=ls, marker=mk, ms=3.0, lw=1.0, color=colour, label=lab, zorder=3)
-        ax3.fill_between(ks, lo, hi, color=colour, alpha=0.12, lw=0, zorder=2)
-        for k, a, b, c in zip(ks, y, lo, hi):
-            data.append(dict(panel="c", series=key, k=k, mean=a, min=b, max=c))
-    ax3.axhline(leak["chance_balanced_accuracy"], color="black", ls=":", lw=1.0, zorder=4)
-    ax3.set_xscale("log"); ax3.set_xticks(ks); ax3.set_xticklabels([str(k) for k in ks])
-    ax3.xaxis.set_minor_formatter(NullFormatter())
-    ax3.set_xlabel("exchanges pooled into one decision")
-    ax3.set_ylabel("Balanced accuracy"); ax3.set_ylim(0.25, 1.03)
-    ax3.legend(loc="center left", ncol=1, handlelength=1.6, handletextpad=0.4)
-    tag(ax3, "c", x=0.985, y=0.955)
-    F.grid(ax3)
     fields = sorted({k for d in data for k in d})
 
     F.save(fig, out, "fig_leakage",
@@ -586,12 +562,7 @@ def fig_leakage(leak, mo, out, inputs):
            f"($p={mi['obfuscated']['p_value_empirical']:.3f}$). No uncertainty interval is placed "
            "on the point estimate. The row-normalised confusion of both attackers over all 22 "
            "held-out runs is not drawn here; every entry is in this figure's data file and in "
-           "the released leakage record. (c) Balanced accuracy when the adversary pools $k$ "
-           "non-overlapping same-class exchanges from one capture into a single decision, "
-           "summarised by the mean, spread and extremes of each interval; the band is the range "
-           "over the 22 held-out runs. On the cross-layer response time the obfuscated arm stays "
-           "at chance at every $k$, so pooling does not recover the feature the mechanism "
-           "replaces; what it recovers comes from the request-to-acknowledgment interval.",
+           "the released leakage record.",
            inputs,
            {"folds": leak["n_folds"], "permutations": mi["native"]["n_permutations"],
             "features": "req-to-ACK and CLRT; total response latency is their sum and is excluded",
@@ -679,18 +650,18 @@ def fig_stability(rows, cfg, out, inputs):
                "independent replications. Panel (b) uses a magnified ordinate."))
 
 
-def main(canon, statsf, leakf, cfgf, out, sweepf, multiobsf):
+def main(canon, statsf, leakf, cfgf, out, sweepf):
     F.use()
     rows = load_rows(canon)
     stats = json.load(open(statsf)); leak = json.load(open(leakf)); cfg = json.load(open(cfgf))
-    sweep = json.load(open(sweepf)); mo = json.load(open(multiobsf))
+    sweep = json.load(open(sweepf))
     print("figures:")
     fig_policy_coverage_cost(rows, cfg, stats, sweep, out, [canon, cfgf, statsf, sweepf])
     fig_distributions(rows, out, [canon])
     fig_feature_overlap(rows, cfg, out, [canon, cfgf])
-    fig_leakage(leak, mo, out, [canon, leakf, multiobsf])
+    fig_leakage(leak, out, [canon, leakf])
     fig_stability(rows, cfg, out, [canon, cfgf])
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:8])
+    main(*sys.argv[1:7])
