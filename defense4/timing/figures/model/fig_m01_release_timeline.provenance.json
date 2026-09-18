@@ -1,12 +1,12 @@
 {
  "figure": "fig_m01_release_timeline",
  "caption": "Release timeline of the read lane, drawn from the verified program and not from a distribution. Points are timestamps and bars are durations; a filled circle marks an instant that was measured and an open square one that was not. The switch arms both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the acknowledgment is due at $t_A+D_A$ and the response at $t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time $\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is whatever the schedule requires, and it therefore varies with the arrival $t_R$. In (a) the response arrives before its deadline and the measured $\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it arrives after, the deadline is already past, the program forwards it on arrival, and the measured value exceeds the configured one; no response hold is drawn there because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, $t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=20$ ms and a configured $\\mathrm{CLRT}_{\\mathrm{new}}=4$ ms are the campaign settings.",
- "generation_command": "python make_model_figures.py",
- "source_commit": "e2f5b83eb18ece9654499346283eab73e3e4c62d",
+ "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
+ "source_commit": "b86fcdfbcfb906d44fb65a7cb5219e4bba462197",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "a5ce35925598d62f2bfbdf286654f357a809a26a185d95e9c110ff2cdd0751ab"
+  "sha256": "1bb29623a3d01f1a4fb139773fa132500f8f8c0ac347b667d31fcfccbe1c0a14"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.pdf",
-   "sha256": "f0454cfd0c75bc4f3a53094bb454d34a7f23566071758364f49e1ea738f8a229",
+   "sha256": "e457b9ea863dbe1556000d7c6f3f989ae7cd13c0a94db7c85e84733431490527",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.png",
-   "sha256": "bc0851ee65bcccd0225d8c6602589fe9f037f38df4910a694dd0cc7e90376082",
+   "sha256": "33ac0e548ae5d965495af1b1592b17f627f3bd988042a7e8e2d250bb8e126eae",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"

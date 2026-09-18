@@ -166,7 +166,13 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     instant(ax, m_r, m, r"$m_R$", C_RESP, dy=0.10, ha="left")
     instant(ax, prop, s, r"$t_0$", C_REQ, dy=0.10, dx=-0.25, ha="right", marker="s")
     instant(ax, t_a, s, r"$t_A$", C_ACK, dy=0.10, dx=0.20, ha="left", marker="s")
-    instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
+    # In the late case $t_R$ and $e_R$ sit within a millimetre of each other, and a label
+    # written to the right of $t_R$ lands between the two squares and reads as either.
+    # There it goes to the left instead, so each label touches only its own marker.
+    if late:
+        instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=-0.25, ha="right", marker="s")
+    else:
+        instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
     instant(ax, e_a, s, r"$e_A$", C_ACK, dy=-0.13, dx=-0.20, ha="right", marker="s")
     instant(ax, e_r, s, r"$e_R$", C_RESP, dy=-0.13, dx=0.25, ha="left", marker="s")
 
