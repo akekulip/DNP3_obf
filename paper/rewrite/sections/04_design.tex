@@ -164,7 +164,7 @@ where the mechanism leaves its operating region. None of the three names a deadl
 plane enforces. The distinction matters because a pass budget bounds how many passes get
 \emph{serviced}: under strict priority a lower-priority reservoir can be starved while a
 higher-priority one is still being served, so one budget does not translate into one elapsed time
-for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequence directly.
+for every queue. That sweep shows the consequence directly.
 At a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
 saturates at 31.07~ms, well short of the configured value. The median request-to-response interval
 for the same point is 40.58~ms and the median CLRT reaches 9.51~ms rather than the configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it. We observed that
