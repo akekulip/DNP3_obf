@@ -17,52 +17,51 @@ read its internal state, and it sees neither the relay-facing link, which in our
 inside the switch with no tap on it, nor physical breaker motion. Because DNP3 carries no
 transport security by default we assume the traffic is
 unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function codes
-directly. An adversary that probes or injects remains out of scope, since the passive observer is the
-setting the traffic-obfuscation work we build on also targets.
+directly. An adversary that probes or injects remains out of scope, since the traffic-obfuscation work we
+build on targets the passive observer as well.
 
 \textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
 false data injection requires the attacker to know which devices it is dealing
 with~\cite{liuFalseDataInjection2009}, and fingerprinting supplies that knowledge without the
 payload, since the timing of the exchange carries it.
 
-Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is
-the CLRT of a READ or of the SELECT phase of a control, which measures the outstation's own
-processing and which Section~\ref{sec:bg} shows carries the separation between the classes. The
-second is the master-visible interval between an OPERATE's acknowledgment and its solicited
-response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms
+Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals fall in scope. The first,
+the CLRT of a READ or of the SELECT phase of a control, measures the outstation's own
+processing and carries the separation between the classes that Section~\ref{sec:bg} shows. The
+second spans the master-visible interval between an OPERATE's acknowledgment and its solicited
+response. The adversary also sees the request-to-acknowledgment interval, whose median reaches 0.56~ms
 on this device. Since the mechanism does not target that interval, we report it as measured.
 
-Our own observation remains narrower than the adversary's, since every quantity we measure is one
-of three packet timestamps on the master-facing link, the request, the acknowledgment and the
-response. The switch's release instants and every event on the relay-facing link were not
-captured, so where the paper names them they come from the configuration.
+Our own observation remains narrower than the adversary's, since every quantity we measure derives from
+three packet timestamps on the master-facing link, the request, the acknowledgment and the
+response. We captured neither the switch's release instants nor any event on the relay-facing link, so where
+the paper names them they come from the configuration.
 
 Formby et al.\ estimate the time a device physically takes to complete an operation from a
 sequence-of-events timestamp inside the outstation's application payload, and their alternative
 estimate from packet arrival times produced no usable
-result~\cite{formbyWhosControlYour2016}. What we measure is a packet-timing feature of the
+result~\cite{formbyWhosControlYour2016}. We measure a packet-timing feature of the
 solicited control response: not physical actuation time, which we do not measure anywhere, and not
 the payload-timestamp feature, which a mechanism that moves packets without editing bytes could
-not affect. The narrower interval is still worth defending, because it separates the two classes
+not affect. The narrower interval still merits defending, because it separates the two classes
 on its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.782 balanced accuracy
 from exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy
-value, not whether physical timing is concealed.
+value rather than whether the mechanism conceals physical timing.
 
-\textbf{What our evaluation actually separates.} Our testbed has one outstation, so there is no
-second device to confuse it with and no device identification to measure. We measure whether the
+\textbf{What our evaluation actually separates.} Our testbed holds one outstation, so no
+second device exists to confuse it with and no device identification to measure. We measure whether the
 timing of an exchange still reveals \emph{which class of transaction} it was on that one device, a
-three-class problem over READ, SELECT and OPERATE whose chance is 0.333 balanced accuracy. A
+three-class problem over READ, SELECT and OPERATE with a chance level of 0.333 balanced accuracy. A
 result here suppresses a class-conditioned timing feature; it does not show that two devices
 become indistinguishable.
 
 \textbf{Two conditions, not two adversaries.} The \emph{fixed} condition learns transaction
 classes from undefended traffic and applies that model unchanged once the defense is deployed,
-which is the adversary the reconnaissance setting describes. The \emph{adaptive} condition
+which matches the adversary the reconnaissance setting describes. The \emph{adaptive} condition
 collects obfuscated traffic and retrains. It answers what remains learnable once the defense is
-deployed, and it recovers 0.782 balanced accuracy where the fixed one is left at chance. It needs no
+deployed, and it recovers 0.782 balanced accuracy where the fixed one stays at chance. It needs no
 access the fixed one lacks, since the same passive observer sees obfuscated traffic and the
-plaintext function codes label it. Both are ours, chosen to bracket the problem, and the second
-is the one that limits our claim.
+plaintext function codes label it. Both conditions are ours, chosen to bracket the problem, and the second limits our claim.
 
 \textbf{Research objectives.} We state the goal as five properties, which the evaluation answers
 in turn.
@@ -74,7 +73,7 @@ in turn.
     12~ms.
   \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
     transaction class, and a fixed adversary that trained on undefended traffic is reduced to
-    approximately three-class chance, which for READ, SELECT and OPERATE is 0.333 balanced
+    approximately three-class chance, which for READ, SELECT and OPERATE means 0.333 balanced
     accuracy.
   \item \textbf{RO4 (release policy and coverage).} The release budget, the range of policies the
     mechanism can realize, the fraction of traffic it can cover, and the residual it leaves are
@@ -91,4 +90,4 @@ its original size, so it adds no size or segmentation signature of its own, whil
 imposes are themselves observable: an adversary who can time packets can see that something is
 holding them. Because the relay-facing link is not instrumented, as stated above, the
 per-transaction hold drawn from the configured codebook of 2, 6 and 12~ms is configured rather
-than observed, which is why RO2 is stated in terms of the master-visible interval alone.
+than observed, which is why RO2 speaks to the master-visible interval alone.

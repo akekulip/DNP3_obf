@@ -62,9 +62,9 @@ whole design,
 \end{equation}
 
 Equation~(\ref{eq:clrt-new}) makes the difference between two kinds of defense concrete. If both
-holds are constants, their difference is a constant and the observed interval is the original one
-moved by it: the distribution slides along the axis and keeps its width, a spread of 2.6~ms
-wherever it is moved to, so an observer who has seen the device before still recognizes it by the
+holds stay constant, their difference stays constant too and the observed interval becomes the
+original one moved by it: the distribution slides along the axis and keeps its width, a spread of 2.6~ms
+wherever it lands, so an observer who has seen the device before still recognizes it by the
 shape. The response hold must instead absorb the variation in
 $\mathrm{CLRT}_{\mathrm{original}}$, which we achieve by computing both releases from the same
 instant $t_A$. When the acknowledgment arrives, the switch computes both release instants
@@ -76,20 +76,21 @@ immediately,
 where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. A packet's
 actual departure $e$ follows its scheduled instant $\hat{e}$ by the time the blocker queue takes
 to drain and by the queue's own service, which Section~\ref{sec:impl} describes and
-Section~\ref{sec:eval:limits} measures on an instrumented build. Writing the two apart is what
-keeps the identity honest: (\ref{eq:clrt-new}) holds exactly for actual departures, and
-(\ref{eq:schedule}) is a statement about the schedule rather than about the wire. We call this
+Section~\ref{sec:eval:limits} measures on an instrumented build. Writing the two apart keeps the
+identity honest: (\ref{eq:clrt-new}) holds exactly for actual departures, while
+(\ref{eq:schedule}) speaks to the schedule rather than to the wire. We call this
 value the \emph{configured} $\mathrm{CLRT}_{\mathrm{new}}$, and we call what the master actually
 records the \emph{measured} $\mathrm{CLRT}_{\mathrm{new}}$; Section~\ref{sec:eval} reports how far
 apart the two are. Because both release instants derive from $t_A$ and neither from $t_R$, the term
-$\mathrm{CLRT}_{\mathrm{original}}$ cancels in~(\ref{eq:clrt-new}) and the observed interval is
-the configured one. Consequently the response hold is implied rather than chosen,
+$\mathrm{CLRT}_{\mathrm{original}}$ cancels in~(\ref{eq:clrt-new}) and the observed interval
+becomes the configured one. Consequently the response hold is implied rather than chosen,
 \begin{equation}
 \label{eq:coupling}
 e_R - t_R = D_A + \mathrm{CLRT}_{\mathrm{new}} - \mathrm{CLRT}_{\mathrm{original}} .
 \end{equation}
-Equation~(\ref{eq:coupling}) is why the three quantities cannot be picked independently. Once the
-acknowledgment hold and the configured $\mathrm{CLRT}_{\mathrm{new}}$ are fixed, the response hold
+Equation~(\ref{eq:coupling}) explains why the three quantities cannot be picked independently.
+Once the acknowledgment hold and the configured $\mathrm{CLRT}_{\mathrm{new}}$ are fixed, the
+response hold
 follows from whatever the device did on that transaction. It varies from one transaction to the
 next exactly as much as the device does.
 
@@ -138,40 +139,40 @@ Section~\ref{sec:eval:limits} reports what we measured of $\varepsilon$ and on w
 
 The model leaves three quantities to decide: the acknowledgment hold $D_A$, the configured
 $\mathrm{CLRT}_{\mathrm{new}}$, and, through~(\ref{eq:coupling}), the response hold that
-follows from them. Each is limited by a different constraint.
+follows from them. A different constraint limits each of them.
 
-The acknowledgment hold is limited in principle by the transport. Holding an acknowledgment delays the feedback the master's TCP uses to decide that a segment
+The transport limits the acknowledgment hold in principle. Holding an acknowledgment delays the feedback the master's TCP uses to decide that a segment
 is lost. Consequently, a hold approaching the master's retransmission timeout would make the
 master resend a request the outstation had already answered.
 
 That timeout has to be measured, not assumed.
 RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} recommends rounding it up to a second, but
-that is a recommendation about a minimum and not a property every stack exhibits: on our master an
-unacknowledged request is repeated after 201~ms. The 20~ms hold we evaluate consumes about a tenth
+that recommendation concerns a minimum and names no property every stack exhibits: on our master an
+unacknowledged request repeats after 201~ms. The 20~ms hold we evaluate consumes about a tenth
 of that, and a hold of a few hundred milliseconds would begin to race it. We do not argue that the
 timer's adaptivity makes a constant hold safe, because adaptation says nothing about the first
 delayed exchange, a reconnection where the timer restarts, or a policy change mid-session.
 
-In practice the transport bound is not the one that binds. The mechanism sustains a hold with a
+In practice the transport bound does not bind. The mechanism sustains a hold with a
 budget on blocker passes rather than a wall clock. From that budget, an assumed service rate, a
 conservative bound on the outstation's acknowledgment latency, measured detection and release
 terms and a safety margin, the control plane computes a horizon $H$ of 30.8~ms and an admissible
-budget of 24.8~ms. Three limits act here, and they are distinct. The horizon is advisory and is what the admission
-arithmetic reports. A separate clamp refuses any acknowledgment hold above 40~ms outright. The
+budget of 24.8~ms. Three limits act here, and they stay distinct. The horizon carries advisory force and reports what
+the admission arithmetic computes. A separate clamp refuses any acknowledgment hold above 40~ms outright. The
 sweep of Section~\ref{sec:eval:policy} deliberately installs settings past the horizon, to find
-where the mechanism leaves its operating region. None is a deadline the data
-plane enforces. The distinction matters because a pass budget bounds how many passes are
+where the mechanism leaves its operating region. None of the three names a deadline the data
+plane enforces. The distinction matters because a pass budget bounds how many passes get
 \emph{serviced}: under strict priority a lower-priority reservoir can be starved while a
 higher-priority one is still being served, so one budget does not translate into one elapsed time
 for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequence directly.
 At a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
 saturates at 31.07~ms, well short of the configured value. The median request-to-response interval
-for the same point is 40.58~ms and the median CLRT is 9.51~ms, not the configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it. We observed that
-saturation as a transition on the acknowledgment lane at this configuration. It is not a release
+for the same point is 40.58~ms and the median CLRT reaches 9.51~ms rather than the configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it. We observed that
+saturation as a transition on the acknowledgment lane at this configuration. It names no release
 deadline the hardware guarantees for every held packet.
 
-The configured $\mathrm{CLRT}_{\mathrm{new}}$ is limited by the operation, and through $D_R$
-rather than directly: what an operator can accept is a bound on how long the answer takes to
+The operation limits the configured $\mathrm{CLRT}_{\mathrm{new}}$, and through $D_R$
+rather than directly: an operator accepts a bound on how long the answer takes to
 arrive, not on the gap between the two packets that carry it. We could not verify a communications
 requirement that fixes such a bound for a DNP3 poll or a select-before-operate control on a
 distribution relay. The only numeric deadline we could verify from primary documentation is the
@@ -185,11 +186,11 @@ value we tested, 4~ms, and report the response latency the mechanism produces, a
 than the device alone, so an operator with a requirement of their own can check it against those
 numbers.
 
-A third timer is easy to miss. Holding the response also postpones the
+A third timer escapes notice easily. Holding the response also postpones the
 master's acknowledgment of it, which is the feedback the \emph{outstation's} transport waits for,
 so the response hold spends the outstation's retransmission budget as well as the application's
-patience. The budget belongs to the outstation, not the master. On this relay its timer is about three
-orders larger than the master's, so the master's is what binds here. The three constraints stay
+patience. The budget belongs to the outstation, not the master. On this relay its timer runs about three
+orders larger than the master's, so the master's binds here. The three constraints stay
 separate, and a deployment that changed either device could reorder them.
 
 Together the two set what the mechanism costs. Their sum
@@ -200,20 +201,20 @@ D = D_A + \mathrm{CLRT}_{\mathrm{new}}
 is the release budget: by~(\ref{eq:availability}) it decides which transactions the switch can
 place on the schedule at all. A larger budget covers more of the device's own response-time
 distribution and costs more delay on every transaction it covers: at $D=24$~ms it covers 99.9\% of
-them for about 23~ms of added latency. $D$ is the budget and not the delay added to each exchange.
-A transaction the outstation answers quickly is held longer than one it answers slowly, so the
-added delay is at most $D$ and not equal to it.
+them for about 23~ms of added latency. $D$ names the budget rather than the delay added to each exchange.
+The switch holds a transaction the outstation answers quickly longer than one it answers slowly,
+so the added delay reaches at most $D$ without equalling it.
 
-Because the budget and the observable are different quantities, an operator can fix the cost and
+Because the budget and the observable measure different quantities, an operator can fix the cost and
 still choose the feature. Holding $D$ at 24~ms, we installed configured values from 1~ms to 22~ms.
 The master observed each one while the added delay stayed the same.
 Section~\ref{sec:eval:policy} reports that sweep and the point at which the realized hold stops
 tracking the requested one.
 
 The model says nothing about what $\mathrm{CLRT}_{\mathrm{new}}$ should be, so the framework and
-the policy it carries are separate. We chose a constant, because it removes the device's variation
-entirely and is the simplest policy to state and to check. A schedule could instead draw the value
-from a distribution or make it a function of the operation, and the same mechanism would carry it;
+the policy it carries stay separate. We chose a constant, because it removes the device's variation
+entirely and an operator can state and check it in one line. A schedule could instead draw the value
+from a distribution or compute it from the operation, and the same mechanism would carry it;
 we implement and evaluate only the constant setting.
 
 \subsection{The control transaction is timed from the request}
@@ -221,7 +222,7 @@ we implement and evaluate only the constant setting.
 
 A select-before-operate control command differs in one way that matters here: the framework holds
 the command itself before it reaches the relay, separating the moment the master issued the
-command from the moment the relay acts on it. The outstation's acknowledgment cannot be the
+command from the moment the relay acts on it. The outstation's acknowledgment cannot serve as the
 reference instant, because it does not exist until after the command has been released, and any
 deadline measured from it would carry the length of the command hold into the interval the master
 observes. We therefore time the control lane from the request. When
@@ -232,7 +233,7 @@ offsets from $T_0$,
 \label{eq:control}
 e_{\mathrm{ack}} = T_0 + A , \qquad e_{\mathrm{or}} = T_0 + R .
 \end{equation}
-Consequently, the interval the master observes is
+Consequently, the master observes
 \begin{equation}
 \label{eq:optime}
 O = e_{\mathrm{or}} - e_{\mathrm{ack}} = R - A ,
@@ -242,13 +243,13 @@ interval does not, and an observer cannot subtract a known offset to recover it.
 
 The control plane checks that $A$ exceeds the largest admissible $J$ plus the outstation's own
 acknowledgment latency before it installs the values, since a deadline the switch cannot honor
-would fail open rather than protect. In our experiments $D_A$ is 20~ms, $\mathrm{CLRT}_{\mathrm{new}}$ is 4~ms, and $R - A$ is
-also 4~ms, so the two lanes present the same value to the observer.
+would fail open rather than protect. Our experiments set $D_A$ to 20~ms, the configured $\mathrm{CLRT}_{\mathrm{new}}$ to 4~ms and
+$R - A$ to 4~ms as well, so the two lanes present the same value to the observer.
 
 \subsection{What the design does not change}
 \label{sec:design:boundary}
 
-The mechanism replaces one interval per lane and leaves the rest of the exchange as it was, within
+The mechanism replaces one interval per lane and leaves the rest of the exchange untouched, within
 the scope Section~\ref{sec:threat} sets out. The schedule causes one consequence directly. The
 request-to-acknowledgment interval still carries the outstation's own
 acknowledgment latency, displaced by the constant $D_A$ but not reshaped by it.
