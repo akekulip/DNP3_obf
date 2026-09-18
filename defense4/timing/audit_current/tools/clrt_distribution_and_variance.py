@@ -411,8 +411,11 @@ def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
         if show_legend:
             ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
                                       label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$")],
-                      loc="upper right", fontsize=8, framealpha=0.9, borderpad=0.3,
-                      handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
+                      loc="upper right", fontsize=8, borderpad=0.3,
+                      handlelength=1.8, labelspacing=0.22, borderaxespad=0.3,
+                      # The IEEE style sets legend.frameon False, so framealpha alone did
+                      # nothing and the overflow break marker ran straight through the label.
+                      frameon=True, framealpha=1.0, facecolor="white", edgecolor="none")
 
 
 def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):

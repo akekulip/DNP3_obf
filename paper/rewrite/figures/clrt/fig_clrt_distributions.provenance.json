@@ -2,11 +2,11 @@
  "figure": "fig_clrt_distributions",
  "caption": "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of that arm's own transactions in each bin, on common 1 ms bins anchored at 0 ms with a linear ordinate and shared limits. Finite bins are half-open, $[\\mathrm{lo}, \\mathrm{hi})$; the hatched category at the right holds every transaction at or above 15 ms, which is 0.409 % of (a) and 0.027 % of (b). The dashed line in (b) is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$; the measured mean lies 0.012 ms from it. Because the configured value falls exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, which is a property of the grid and not of the measurement; Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. (a) $n$~=~26,400, mean 2.800~ms, sd 2.609~ms, variance 6.808~ms$^2$. (b) $n$~=~26,400, mean 4.012~ms, sd 0.628~ms, variance 0.3943~ms$^2$.",
  "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "9523276985232f832b450f6bd0e4ee989b1104e6",
+ "source_commit": "88cbc9c74907eaf5a5b54c5567259fd64ee0d1bf",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "d073d1e3af6668e762aa3b012934a8ac0111dc0c0625077cf14deb59c35b0e3e"
+  "sha256": "6f3ea36a6a6fb361c084fb74723c7c234a905481a61d460f51df2588c5cfb18e"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -566,12 +566,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.pdf",
-   "sha256": "bb4bea59b1987e27b96ebaf031b68456486bbf07059ab1a2d5846941937c5d75",
+   "sha256": "d6460ccfa08b919e08b5946b2d0c665fec38573ca60aa773d8717b13950458cf",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.png",
-   "sha256": "156fcf253e68abf48cfcd4c5abd03575f1ea9d32e43fafd03be2a8019cc0105d",
+   "sha256": "88eb766a046d206cc964bb364ac0e57e5f15b80a1901f51c6873273d4b3a173c",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
