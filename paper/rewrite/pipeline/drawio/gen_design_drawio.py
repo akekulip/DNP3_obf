@@ -91,12 +91,13 @@ for y0, y1 in ((16, 60), (74, 94)):
 text(172, 62, 40, 9, "strict priority", 7, align="center")
 
 # ---------------- what leaves ----------------
+# The read lane returns what the outstation sent, so its scheduler feeds the master. The
+# control lane holds the OPERATE on its way out, so its scheduler feeds the relay and nothing
+# on it is ever master-facing. Blockers reach neither: they recirculate on the loopback.
 arrow((192, 38), (228, 38), VERM, 1.2)
 text(194, 28, 36, 9, "to master", 7, colour=VERM)
-arrow((192, 80), (228, 80), VERM, 1.2)
-text(194, 70, 36, 9, "to master", 7, colour=VERM)
-arrow((192, 90), (228, 90), GREY, 0.9, dashed=True)
-text(194, 96, 36, 9, "to relay", 7)
+arrow((192, 84), (228, 84), GREY, 0.9, dashed=True)
+text(194, 74, 36, 9, "to relay", 7)
 
 # ---------------- the generator that keeps the blocker queues non-empty ----------------
 # One dashed trunk with a branch into each blocker queue, rather than three separate runs.
