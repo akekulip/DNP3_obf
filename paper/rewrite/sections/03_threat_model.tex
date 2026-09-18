@@ -44,7 +44,7 @@ result~\cite{formbyWhosControlYour2016}. What we measure is a packet-timing feat
 solicited control response: not physical actuation time, which we do not measure anywhere, and not
 the payload-timestamp feature, which a mechanism that moves packets without editing bytes could
 not affect. The narrower interval is still worth defending, because it separates the two classes
-on its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy
+on its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.782 balanced accuracy
 from exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy
 value, not whether physical timing is concealed.
 
@@ -59,7 +59,7 @@ become indistinguishable.
 classes from undefended traffic and applies that model unchanged once the defense is deployed,
 which is the adversary the reconnaissance setting describes. The \emph{adaptive} condition
 collects obfuscated traffic and retrains. It answers what remains learnable once the defense is
-deployed, and it recovers 0.651 balanced accuracy where the fixed one is left at chance. It needs no
+deployed, and it recovers 0.782 balanced accuracy where the fixed one is left at chance. It needs no
 access the fixed one lacks, since the same passive observer sees obfuscated traffic and the
 plaintext function codes label it. Both are ours, chosen to bracket the problem, and the second
 is the one that limits our claim.

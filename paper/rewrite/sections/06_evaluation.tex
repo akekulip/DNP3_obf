@@ -213,9 +213,9 @@ that collapse and that offset look, are published with the artifact.
 In Figure~\ref{fig:leakage}, we show the two attacker models.
 
 The fixed adversary trained on
-Timing OFF traffic reaches 0.652 balanced accuracy on held-out Timing OFF exchanges using the
-CLRT alone, and 0.736 using both intervals. Applied unchanged to obfuscated traffic, it falls to
-0.333 and 0.334, which is chance. Mutual information between the CLRT and the class falls from
+Timing OFF traffic reaches 0.745 balanced accuracy on held-out Timing OFF exchanges using the
+CLRT alone, and 0.820 using both intervals. Applied unchanged to obfuscated traffic, it falls to
+0.333 in both cases, which is chance. Mutual information between the CLRT and the class falls from
 0.383~bits to 0.004~bits. The Timing OFF value lies far above its permutation null at the
 resolution of the test ($p = 0.001$ with 1{,}000 permutations). The obfuscated value lies inside
 its null ($p = 0.084$), so the test does not reject the hypothesis that it is null noise. Failing to reject is not evidence of zero: with 1{,}000 permutations the
@@ -226,24 +226,25 @@ class survives at the resolution of this test. Note that this holds for the two 
 outside a timing-only feature set and still names the operation. 
 
 The adaptive adversary gives two results, and they answer different questions. Retrained on
-obfuscated traffic it stays at chance, 0.333, on the CLRT alone: the targeted feature is
-suppressed against a retrained adversary, and not against a fixed one alone. The same adversary
-recovers to 0.651 when it is given both intervals, because the read and control paths are timed
+obfuscated traffic it reaches 0.347 on the CLRT alone, against a chance level of 0.333 and with a
+per-run range of 0.294 to 0.389 that straddles it: the targeted feature is suppressed against a
+retrained adversary, and not against a fixed one alone. The same adversary
+recovers to 0.782 when it is given both intervals, because the read and control paths are timed
 from different events, so their acknowledgment latencies differ. Row-normalised confusion over all
 22 held-out runs, published with the artifact, shows the shape of that recovery: OPERATE separable
 while SELECT stays confused with READ.
 
 We state the cost of that difference rather than leave it to be inferred. On the
-request-to-acknowledgment interval alone, balanced accuracy rises from 0.380 under Timing OFF to
-0.662 under the mechanism: almost nothing about the class before the mechanism runs, and the most
-informative single feature afterwards. The mechanism leaves that feature in place, and
+request-to-acknowledgment interval alone, balanced accuracy rises from 0.479 under Timing OFF to
+0.809 under the mechanism: weakly informative about the class before the mechanism runs, and the
+most informative single feature afterwards. The mechanism leaves that feature in place, and
 it creates it, because holding the acknowledgment for $D_A$ displaces an interval the two lanes
 compute from different events. Against an adversary using both intervals and allowed to retrain,
-the net effect is a fall from 0.736 to 0.651, or 0.085 on a three-class problem whose chance is
-0.333.
+the net effect is a fall from 0.820 to 0.782, or 0.038 on a three-class problem whose chance is
+0.333. That margin is small, and we report it as measured.
 
 Notably the targeted feature is suppressed under both conditions, the cross-layer response time
-alone leaving fixed and retrained adversaries alike at 0.333. What retraining recovers, it
+alone leaving the fixed adversary at 0.333 and the retrained one at 0.347. What retraining recovers, it
 recovers from the request-to-acknowledgment interval, which the mechanism does not target and does
 make more informative, and that residual bounds the result. Formby et
 al.~\cite{formbyWhosControlYour2016} profile devices from undefended traffic, which motivates the
@@ -263,7 +264,7 @@ every result from RO1 to RO5 is a statement about this device and this window an
 within-campaign variability.
 
 \textbf{What RO3 Establishes.} RO3 characterizes the Random-Forest attacker we evaluated rather
-than every classifier, and the adaptive adversary recovers 0.651 balanced accuracy from the
+than every classifier, and the adaptive adversary recovers 0.782 balanced accuracy from the
 difference between the two events, which is the bound on what it achieves.
 
 \textbf{What RO2 Rests On.} Only the master-facing link was captured, so the realized

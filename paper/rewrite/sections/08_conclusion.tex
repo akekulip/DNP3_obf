@@ -11,11 +11,11 @@ sees is the operator's value rather than the device's.
 
 Evaluation on one physical relay shows the released interval concentrating on the configured
 value: its interquartile range falls from 2.78 to 0.006~ms and its standard deviation from 2.61
-to 0.63~ms. A classifier trained on that interval before deployment drops from 0.652 balanced
+to 0.63~ms. A classifier trained on that interval before deployment drops from 0.745 balanced
 accuracy to three-class chance. The framework protects the exchanges its budget can schedule and
 forwards the rest untouched.
 
-Three bounds limit the result. An adversary who retrains recovers to 0.651 by adding the
+Three bounds limit the result. An adversary who retrains recovers to 0.782 by adding the
 request-to-acknowledgment interval, which the mechanism does not target. The evidence comes from
 one relay and one campaign, and it separates transaction classes, not device models. The switch's
 own release instants were never captured, so the residual around the configured value measures a

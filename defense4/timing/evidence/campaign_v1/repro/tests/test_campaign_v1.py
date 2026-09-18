@@ -498,13 +498,38 @@ def test_expected_headline_values(leak, stats):
     assert abs(mi["native"]["observed_bits"] - 0.38315) < 5e-4
     assert abs(mi["obfuscated"]["observed_bits"] - 0.00394) < 5e-4
     c = leak["classifiers"]
-    assert abs(c["clrt"]["A_fixed_native_trained"]["tested_on_timing_off"]["mean"] - 0.6515) < 5e-3
-    assert abs(c["clrt"]["A_fixed_native_trained"]["tested_on_obfuscated"]["mean"] - 0.3332) < 5e-3
-    assert abs(c["ack_clrt"]["A_fixed_native_trained"]["tested_on_timing_off"]["mean"] - 0.7328) < 5e-3
-    assert abs(c["ack_clrt"]["A_fixed_native_trained"]["tested_on_obfuscated"]["mean"] - 0.3337) < 5e-3
-    assert abs(c["ack_clrt"]["B_adaptive_obfuscated_trained"]["tested_on_obfuscated"]["mean"] - 0.6510) < 5e-3
+    # Values from the class-weight-balanced forest. The earlier figures (0.6515, 0.7328, 0.6510)
+    # came from an unweighted forest that collapsed onto the majority class on the obfuscated
+    # arm; see the RF comment in leakage_campaign.py.
+    assert abs(c["clrt"]["A_fixed_native_trained"]["tested_on_timing_off"]["mean"] - 0.7448) < 5e-3
+    assert abs(c["clrt"]["A_fixed_native_trained"]["tested_on_obfuscated"]["mean"] - 0.3327) < 5e-3
+    assert abs(c["ack_clrt"]["A_fixed_native_trained"]["tested_on_timing_off"]["mean"] - 0.8201) < 5e-3
+    assert abs(c["ack_clrt"]["A_fixed_native_trained"]["tested_on_obfuscated"]["mean"] - 0.3334) < 5e-3
+    assert abs(c["ack_clrt"]["B_adaptive_obfuscated_trained"]["tested_on_obfuscated"]["mean"] - 0.7823) < 5e-3
     for k in ("obfuscated/READ", "obfuscated/SELECT", "obfuscated/OPERATE"):
         assert abs(stats["per_arm_class"][k]["median"] - 4.000) < 1e-3
+
+
+def test_attacker_is_not_crippled_by_class_imbalance(leak):
+    """The forest must be class-weighted, and its confusion matrix must not be degenerate.
+
+    The campaign is 26,400 READ against 2,640 SELECT and 2,640 OPERATE. An unweighted forest
+    collapses onto READ on the obfuscated arm, and a constant predictor scores exactly 1/3
+    balanced accuracy on three classes whether or not information remains. Reporting that as
+    "chance" would credit the defense for the classifier's failure.
+    """
+    assert "class_weight" in leak["classifier"] and "balanced" in leak["classifier"]
+    # Only the ADAPTIVE attacker is checked. The fixed attacker is trained on Timing OFF and
+    # applied unchanged, so on the obfuscated arm it maps every interval, all of them near the
+    # configured value, to one leaf. That collapse is the defense working, not a broken model.
+    for key, cm in leak["confusion_all_folds"].items():
+        if not key.endswith("/B_obf"):
+            continue
+        for col in range(3):
+            column = [row[col] for row in cm]
+            assert not all(v > 0.99 for v in column), (
+                f"{key}: every row predicts class {col}; the retrained attacker is degenerate "
+                "and its balanced accuracy is a property of the classifier, not of the defense")
 
 
 def test_no_added_frames_or_bytes(stats):
@@ -572,7 +597,7 @@ def test_figures_derive_parameters_from_config():
 
 def test_no_hard_coded_publication_statistics():
     src = open(os.path.join(HERE, "make_ndss_figures.py")).read()
-    for v in ("0.383", "0.651", "2.116", "63360", "63,360", "0.006", "29040", "99.9"):
+    for v in ("0.383", "0.782", "2.116", "63360", "63,360", "0.006", "29040", "99.9"):
         assert v not in src, f"hard-coded statistic {v} in figure code"
 
 

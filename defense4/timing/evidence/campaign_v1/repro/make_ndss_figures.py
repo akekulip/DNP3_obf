@@ -495,8 +495,10 @@ def fig_leakage(leak, out, inputs):
                   color=face or col, alpha=al, edgecolor=col, lw=0.9, label=names[f],
                   error_kw=dict(lw=0.7, ecolor="black"))
     ax[0].axhline(leak["chance_balanced_accuracy"], color="black", ls=":", lw=1.0, zorder=4)
-    ax[0].text(2.46, leak["chance_balanced_accuracy"] + 0.02, "chance", fontsize=8,
-               ha="right", va="bottom")
+    # Over the middle group, the only span where nothing reaches above the chance line: the
+    # retrained CLRT-only bar now carries an error bar that the old right-hand placement hit.
+    ax[0].text(1.0, leak["chance_balanced_accuracy"] + 0.05, "chance", fontsize=8,
+               ha="center", va="bottom")
     ax[0].set_xticks(xb); ax[0].set_xticklabels([c[0] for c in conds])
     ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.0)
     ax[0].legend(loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)

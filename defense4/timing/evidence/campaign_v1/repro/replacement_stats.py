@@ -17,7 +17,12 @@ from sklearn.metrics import balanced_accuracy_score
 SEED = 20260902
 N_BOOT = 2000                     # session-level bootstrap replicates for spread ratios
 N_BOOT_CLS = 2000                 # cluster bootstrap over per-session scores
-RF = dict(n_estimators=200, min_samples_leaf=5, random_state=0, n_jobs=-1)
+# Balanced for the same reason as in leakage_campaign.py: the campaign is 26,400 READ against
+# 2,640 SELECT and 2,640 OPERATE, and an unweighted forest answers READ to everything on the
+# obfuscated arm, which scores chance for a reason that has nothing to do with the defense.
+# The two scripts must stay configured alike or the paper quotes two different attackers.
+RF = dict(n_estimators=200, min_samples_leaf=5, random_state=0, n_jobs=-1,
+          class_weight="balanced")
 FEATURE_SETS = {"clrt_only": [1], "req_to_ack_only": [0],
                 "req_to_resp_only": [2], "ack_plus_clrt": [0, 1]}
 

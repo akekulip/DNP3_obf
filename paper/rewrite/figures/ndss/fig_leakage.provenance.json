@@ -1,12 +1,12 @@
 {
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.084$). No uncertainty interval is placed on the point estimate. The row-normalised confusion of both attackers over all 22 held-out runs is not drawn here; every entry is in this figure's data file and in the released leakage record.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "8daa4adcd6cf88fc3069e893ce9e95cd7bb65f67",
+ "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "52c48a49ec6adfd7b63178212ef5cdc598c1d831",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "db37076bf8a5ab857dbb284f8cd225306538badcf61c929ef99bd5d0b6ee23ba"
+  "sha256": "5c088489f13a6d996eedb4d136fca62a03d6a267cd32b36253ef1c382d6872cd"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -19,26 +19,26 @@
   },
   {
    "path": "pipeline-output/leakage.json",
-   "sha256": "d9b53d8b8f843099816bcfa2daf3560794e217bab315f73ac762e99a5efb6907"
+   "sha256": "e13d435109f8d351c47aec2fd73aed94995696ff82290d2460ba9ab783c0d287"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_leakage.pdf",
-   "sha256": "f9514da5810f61c3eabca5779651823b08ca354a163445dad3193a16f97df395",
+   "sha256": "75968bc78537e04748c655158eb397542623a366e20d73465526ae74f191cc12",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_leakage.png",
-   "sha256": "9900819f73b30cef958283e9e26609264ab5d2895ad9d6048256d7943ac6b7b3",
+   "sha256": "77308423ed1a8b36ed653d69bfbfa99a3bcef020db3bb83d3bf5e7c3ab0ea372",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_leakage_data.csv",
-   "sha256": "ff5a78b3ad423294944f4dcf977791792da0b4d5acac4abbe39dc1d67ddcde89",
+   "sha256": "f2afcde75ed3e51668170c5d4c4a73d3af4bb6d8da385c6d8819f41f148c1c99",
    "rows": 26,
    "authoritative": true
   }

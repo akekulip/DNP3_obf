@@ -41,7 +41,16 @@ CLASSES = ["READ", "SELECT", "OPERATE"]
 SEED = 20260828
 N_PERM = 1000
 LN2 = np.log(2.0)
-RF = dict(n_estimators=200, min_samples_leaf=5, random_state=0, n_jobs=-1)
+# class_weight="balanced" is load-bearing, not a tuning choice. The campaign is 26,400 READ
+# against 2,640 SELECT and 2,640 OPERATE, a 10:1:1 split. Without it the forest collapses onto
+# the majority class on the obfuscated arm: the 2026-09-17 confusion matrix for clrt/B_obf
+# predicted READ with probability 1.000 on every row. A constant predictor scores exactly 1/3
+# balanced accuracy on three classes whether or not information remains, so the headline
+# "falls to chance" was being carried by a degenerate model rather than by indistinguishability.
+# Re-weighting makes the attacker competent, which is the conservative choice for a defense
+# paper: it can only raise what the adversary recovers, never lower it.
+RF = dict(n_estimators=200, min_samples_leaf=5, random_state=0, n_jobs=-1,
+          class_weight="balanced")
 FEATURES = {"clrt": ["clrt_ms"], "ack_clrt": ["ack_ms", "clrt_ms"]}
 
 
