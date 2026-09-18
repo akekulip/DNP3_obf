@@ -74,9 +74,13 @@ echo "[4/8] shift-versus-replacement: variance ratios and deadline coverage"
 echo "[5/8] leakage: mutual information against a permutation null, two attacker models"
 "$PY" "$HERE/leakage_campaign.py" "$OUT/transactions_canonical.csv" "$OUT/leakage.json"
 
+echo "[5b/8] leakage when the adversary pools several exchanges instead of one"
+"$PY" "$HERE/multiobs_leakage.py" "$OUT/transactions_canonical.csv" "$OUT/multiobs.json"
+
 echo "[6/8] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
 "$PY" "$HERE/make_ndss_figures.py" "$OUT/transactions_canonical.csv" "$OUT/stats.json" \
-      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json"
+      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json" \
+      "$OUT/multiobs.json"
 
 echo "[7/8] tests"
 CV1_OUT="$OUT" "$PY" -m pytest "$HERE/tests" -q

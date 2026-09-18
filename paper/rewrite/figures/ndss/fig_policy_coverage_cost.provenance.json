@@ -1,12 +1,12 @@
 {
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "52c48a49ec6adfd7b63178212ef5cdc598c1d831",
+ "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/multiobs.json",
+ "source_commit": "8f34a59f1dac61237aaf86610b9608f9c4260e0c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c088489f13a6d996eedb4d136fca62a03d6a267cd32b36253ef1c382d6872cd"
+  "sha256": "9564c0f55b51d870498f7ba2a8aa827a81fd3a4acde99f26ef62643ad036f982"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

@@ -1,12 +1,12 @@
 {
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "52c48a49ec6adfd7b63178212ef5cdc598c1d831",
+ "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/multiobs.json",
+ "source_commit": "8f34a59f1dac61237aaf86610b9608f9c4260e0c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c088489f13a6d996eedb4d136fca62a03d6a267cd32b36253ef1c382d6872cd"
+  "sha256": "9564c0f55b51d870498f7ba2a8aa827a81fd3a4acde99f26ef62643ad036f982"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
