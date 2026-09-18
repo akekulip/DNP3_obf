@@ -1,11 +1,11 @@
 # Working notes
 
-## Status: published, and the 2026-09-17 review is answered
+## Status: 2026-09-18, the overnight figure and voice pass is done and unpushed
 
-`main` is the only branch and carries everything, 902 commits. The history rewrite that stripped
-the `Co-Authored-By: Claude` trailers was published on 2026-09-16, branch and tags both, and
-GitHub lists one contributor. **Eleven commits since then are local:** `origin/main` is at
-`7388c314` and local `HEAD` is at `5edc4db8`, so the review response has not been pushed.
+`main` is the only branch and carries everything. The history rewrite that stripped the
+`Co-Authored-By: Claude` trailers was published on 2026-09-16, branch and tags both, and GitHub
+lists one contributor. **Nineteen commits since then are local:** `origin/main` is at `f8be278e`
+and local `HEAD` is at `932a9317`. Nothing has been pushed, per the standing rule.
 
 The five closed pull requests keep `refs/pull/N/head` refs that still reach two pre-rewrite
 commits. Only GitHub Support can purge those; they do not feed the contributors list.
@@ -79,15 +79,52 @@ definition. What was removed and where it lives is in `CLAUDE.md`.
 
 ## Next actions
 
-1. **Publish the review response.** Eleven commits are local. `git push origin main` is an
-   ordinary fast-forward; nothing here needs a force.
-2. **Read the built PDF at printed size** before circulating it. The figures were checked that
-   way; the prose has not been.
+1. **Publish.** Nineteen commits are local. `git push origin main` is an ordinary fast-forward;
+   nothing here needs a force. It waits on Philip's word.
+2. **Read the built PDF at printed size** before circulating it. All eight figures and pages 1,
+   3, 5, 8, 10 and 12 were read that way on 2026-09-18; the rest of the prose has not been.
 3. The OPERATE spent-marker loss path is specified but not implemented or run. It needs the
    relay-facing link instrumented and a separately authorised hardware session
    (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`).
 4. Optional: the duplicate live-window case stays open, and a hardware adapter for the activation
    profile does not exist.
+
+## Overnight pass of 2026-09-18 — what was done, and the four things needing a decision
+
+**The prose now speaks in the introduction's voice on every axis but one.** Measured with
+`aivoice` against the five human-written reference papers, the body had been using the copula
+(is, are, was, were) at 27.7 per 1000 words, above the human maximum of 21.4 and more than double
+the corpus median of 12.8. About seventy of those are gone; the body measures 13.8 in source and
+14.4 in the rendered PDF. Every other tier-2 measure is inside the human band. The exception is
+mean sentence length at 22.5 against a band of 19.9 to 21.8, and the introduction Philip wrote by
+hand measures 24.3, so the two references disagree and the longer reading was kept.
+
+**Six figure defects were found by rendering each figure and reading it, not by trusting the
+generator.** Figure 2's read-lane bracket carried a bare italic `c` that appears nowhere else in
+the paper or in `NOTATION_MAPPING.md`; it reads CLRT now. Figure 4 drew a master-facing arrow off
+the control lane, which holds the outgoing OPERATE and feeds only the relay. Figure 5's overflow
+category was a two-pixel sliver whose share is now written beside it. Figure 6's annotation was
+cut through by the dashed configured-value line. Figure 7(d)'s legend sat on a 90 ms whisker.
+Figure 8(a) abbreviated a condition to "adapt.".
+
+**Four things need Philip's decision, and none of them were decided unilaterally.**
+
+1. **The `natural-voice` academic profile pulls against Philip's own voice on three axes.** Its
+   `academic.json` is calibrated on the five Lin-group papers, and on participial clauses,
+   transition openers and copula surrogates his 707-word introduction sits far outside that band.
+   Those three gaps are small-sample artifacts, not style: his 11.33 copula-surrogate rate is the
+   regex counting the *noun* "features" eight times in 707 words. Only the copula gap was real on
+   both references, and only the copula gap was acted on.
+2. **The introduction Philip pasted contains a firstness claim** ("to the best of our knowledge,
+   is the first"). `lin_check`'s `firstness` check blocks it and `CLAUDE.md` says firstness is not
+   asserted in this repository. It is not in the compiled draft. Philip decides whether the rule
+   stands or the claim goes in.
+3. **The two-column architecture SVG cannot be added.** The body is at 13 of 13 pages and the
+   drawing overlaps Figure 4, which already shows the pipeline. Adding it costs a page and
+   duplicates a figure.
+4. **The multi-observation leakage result is computed but not in the paper.**
+   `campaign_v1/repro/multiobs_leakage.py` runs as step 5b and publishes `multiobs.json`. Putting
+   it in the evaluation needs a paragraph of space that the page budget does not have.
 
 ## Standing constraints
 
@@ -97,3 +134,15 @@ Frozen `defense4/timing/implementation/` and every `raw_pcaps/` path are byte-id
 show no regression. `configure-all` leaves `shape_enable = 1` — observed five times on hardware on
 2026-09-15 — so any run must force it to 0 and read it back.
 
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-09-17T22:11:13Z -->
+### Compaction handoff — 2026-09-17T22:11:13Z
+- Git: branch `main`, 3 uncommitted file(s): paper/rewrite/sections/02_background.tex paper/rewrite/sections/06_evaluation.tex paper/rewrite/sections/08_conclusion.tex 
+- Last verification run recorded: 2026-09-17T22:11:13Z	cd /home/philip/Projects/DNP3 python3 - <<'PY' import pathlib E = {} # ---- conclusion: one 68-word sentence carrying th
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-09-18T04:14:44Z -->
+### Compaction handoff — 2026-09-18T04:14:44Z
+- Git: branch `main`, 11 uncommitted file(s): WORKING_NOTES.md paper/rewrite/sections/02_background.tex paper/rewrite/sections/03_threat_model.tex paper/rewrite/sections/04_design.tex paper/rewrite/sections/05_implementation.tex paper/rewrite/sections/06_evaluation.tex paper/rewrite/sections/07_related_work.tex paper/rewrite/sections/08_conclusion.tex paper/rewrite/sections/09_ethics_openscience.tex 2022_NDSS_ditto dnp3_timing_obfuscation_architecture_sbo_twocol.svg 
+- Last verification run recorded: 2026-09-18T04:14:29Z	cd /home/philip/Projects/DNP3/paper/rewrite python3 - <<'PY' import pathlib p=pathlib.Path("sections/06_evaluation.tex")
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
