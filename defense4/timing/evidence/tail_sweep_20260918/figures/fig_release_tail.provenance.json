@@ -10,11 +10,11 @@
       "sha256": "4d6ada26c27c0bf1464ab383f2de999c515b4dd5fc82eb717d561aecd6adddca"
     }
   ],
-  "caption_draft": "What the mechanism costs beyond the deadline it was given. (a) The read-lane release tail against the budget $D$, over three independent installs of each policy. The tail does not follow the budget smoothly: it falls on a short branch near 25~$\\mu$s or a long branch that grows with the hold, reaching 0.96~ms. Past $D = 35$~ms the reservoir spends its pass budget and releases early, so no tail is defined and the region is shaded. (b) The master-facing OPERATE acknowledgment against the configured control-lane offset $A$. It does not follow the dotted identity the design places it on; it sits at the read-lane hold $D_A$, here 20~ms, for every admissible $A$ and for both jitter codebooks.",
-  "statistical_method": "tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold. Point is the mean over three passes, whiskers the min and max across them. Panel (b) plots per-offset medians directly, since the quantity in question is the acknowledgment instant itself",
+  "caption_draft": "(a) The release tail $\\varepsilon$, the interval between a packet's scheduled instant and its actual one, against the budget $D$ the operator sets, over three independent installs of each policy. It falls on one of two branches, near 25~$\\mu$s or growing with the hold to 0.96~ms; the shaded region is where the reservoir spends its pass budget and releases early. (b) Every configured quantity that could set a master-visible OPERATE interval, measured against what was asked for. The configured CLRT$_{\\mathrm{new}}$ is obeyed on the identity; the control-lane offset $A$ and the difference $R-A$ are ignored.",
+  "statistical_method": "(a) tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold; point is the mean over three passes, whiskers the min and max. (b) per-setting medians of the interval each quantity is supposed to govern",
   "artifacts": {
-    "fig_release_tail.pdf": "7fd2d199a69b2ec0fcc76fd298352c09dbd48f618bc123ba39ad4b2c58092a4d",
-    "fig_release_tail.png": "b89003e8200a6b31fdf5fd4f0da3c33659d22702b78c2103889feb7e9e12b568",
+    "fig_release_tail.pdf": "a99f98c42e7d68d473e2cbd6b572fed7dc35c410dfb21aecb27766282a70ec7b",
+    "fig_release_tail.png": "cd100440c772c73cc7b56de917e14dc3245afd5a36d787cb572caf825813afcd",
     "fig_release_tail_data.csv": "89cd58d9498154ceb2d2ee2b71f91fad3218d23f31b2f29ba51940918c8d367f"
   },
   "style": {

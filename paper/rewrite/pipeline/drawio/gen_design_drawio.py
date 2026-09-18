@@ -55,58 +55,59 @@ def queue(y, packets, colour, label):
 
 # ---------------- the switch, named quietly at its own bottom edge ----------------
 vertex(26, 4, 204, 124, f"rounded=1;arcSize=2;fillColor=#F7F8FA;strokeColor={RULE};strokeWidth=0.7;")
-text(26, 116, 204, 9, "programmable switch (one P4 pipeline)", 7, align="center")
+text(26, 120, 204, 9, "programmable switch", 8, align="center")
 
 # ---------------- ingress: every arrival is classified here, from either side ----------------
-vertex(34, 44, 24, 42, f"shape=trapezoid;direction=north;perimeter=trapezoidPerimeter;"
+vertex(34, 34, 24, 44, f"shape=trapezoid;direction=north;perimeter=trapezoidPerimeter;"
                        f"fillColor=#E7EBEF;strokeColor={SLATE};strokeWidth=0.7;")
-text(30, 88, 32, 9, "classify,", 7, align="center")
-text(30, 96, 32, 9, "arm", 7, align="center")
-# The request comes from the master; the acknowledgment and the response come back from the
-# relay. Both reach ingress, which is why the lanes can hold either.
-arrow((2, 56), (33, 56), VERM, 1.2)
-text(0, 47, 32, 9, "from master", 7, align="center", colour=VERM)
-arrow((2, 74), (33, 74), GREY, 0.9, dashed=True)
-text(0, 76, 32, 9, "from relay", 7, align="center")
+text(28, 82, 36, 9, "classify", 8, align="center")
+arrow((2, 46), (33, 46), VERM, 1.2)
+text(0, 36, 32, 9, "from master", 8, align="center", colour=VERM)
+arrow((2, 66), (33, 66), GREY, 0.9, dashed=True)
+text(0, 68, 32, 9, "from relay", 8, align="center")
 
-# ---------------- read lane: blockers above each held packet, strict priority ----------------
-text(QX, 8, 120, 9, "read lane (READ, SELECT)", 7.5, colour=SLATE)
-queue(16, 4, AMBER, "blockers")
-queue(28, 1, GREY,  "held ACK")
-queue(40, 4, AMBER, "blockers")
-queue(52, 1, GREEN, "held response")
-# ---------------- control lane ----------------
-text(QX, 66, 120, 9, "control lane (OPERATE)", 7.5, colour=SLATE)
-queue(74, 4, AMBER, "blockers")
-queue(86, 1, BLUE,  "held OPERATE")
+# ---------------- the two lanes ----------------
+# Only the held queues are named, and by what they hold. The blocker queues are the amber ones
+# and the loopback names them once for all three. Ditto's Fig. 4 carries seven labels and no
+# parameter symbols; the release rules live in the Design section's equations, and repeating
+# them here would only crowd the drawing.
+text(QX, 2, 120, 9, "read lane", 8, colour=SLATE)
+queue(12, 4, AMBER, "")
+queue(24, 1, GREY,  "ACK")
+queue(36, 4, AMBER, "")
+queue(48, 1, GREEN, "response")
+text(QX, 64, 120, 9, "control lane", 8, colour=SLATE)
+queue(74, 4, AMBER, "")
+queue(86, 1, BLUE,  "OPERATE")
 
-# ingress feeds the held queue of each lane
-arrow((58, 58), (QX - 1, 32), SLATE, 0.8, pts=((66, 58), (66, 32)))
-arrow((58, 72), (QX - 1, 90), SLATE, 0.8, pts=((66, 72), (66, 90)))
+arrow((58, 48), (QX - 1, 28), SLATE, 0.8, pts=((66, 48), (66, 28)))
+arrow((58, 64), (QX - 1, 90), SLATE, 0.8, pts=((66, 64), (66, 90)))
 
 # ---------------- strict-priority schedulers drain each lane ----------------
-for y0, y1 in ((16, 60), (74, 94)):
+for y0, y1 in ((12, 56), (74, 94)):
     vertex(180, y0, 12, y1 - y0, f"shape=triangle;direction=east;fillColor=#E7EBEF;"
                                  f"strokeColor={SLATE};strokeWidth=0.7;")
-text(172, 62, 40, 9, "strict priority", 7, align="center")
 
 # ---------------- what leaves ----------------
-# The read lane returns what the outstation sent, so its scheduler feeds the master. The
-# control lane holds the OPERATE on its way out, so its scheduler feeds the relay and nothing
-# on it is ever master-facing. Blockers reach neither: they recirculate on the loopback.
-arrow((192, 38), (228, 38), VERM, 1.2)
-text(194, 28, 36, 9, "to master", 7, colour=VERM)
+arrow((192, 34), (228, 34), VERM, 1.2)
+text(194, 24, 36, 9, "to master", 8, colour=VERM)
 arrow((192, 84), (228, 84), GREY, 0.9, dashed=True)
-text(194, 74, 36, 9, "to relay", 7)
+text(194, 74, 36, 9, "to relay", 8)
 
-# ---------------- the generator that keeps the blocker queues non-empty ----------------
-# One dashed trunk with a branch into each blocker queue, rather than three separate runs.
-vertex(QX, 100, QW, 10, f"rounded=1;arcSize=20;fillColor=#FFFFFF;strokeColor={RULE};strokeWidth=0.6;")
-text(QX, 100, QW, 10, "packet generator", 6.5, align="center")
-edge((QX - 4, 105), (QX - 4, 18), f"endArrow=none;strokeColor={AMBER};strokeWidth=0.6;"
-                                  "dashed=1;dashPattern=2 1.5;")
-for y in (20, 44, 78):
-    arrow((QX - 4, y), (QX - 0.5, y), AMBER, 0.6, dashed=True)
+# ---------------- the blocker loopbacks, drawn rather than boxed ----------------
+# Two of them, not one. The read ladder and the control pair sit on separate loopback ports in
+# separate scheduling domains, which is what keeps the higher-priority read reservoirs from
+# starving the OPERATE reservoir; a single "packet generator" box said none of that. Each loop
+# stays inside its own lane's band so the two never cross, and neither crosses an egress arrow.
+DASH = f"endArrow=none;strokeColor={AMBER};strokeWidth=0.6;dashed=1;dashPattern=2 1.5;rounded=1;"
+#           return path y   blocker queue inlets
+for ret, inlets in ((60, (16, 40)), (102, (78,))):
+    edge((174, ret - 2), (QX - 6, ret), DASH, pts=((174, ret), (QX - 6, ret)))
+    edge((QX - 6, ret), (QX - 6, min(inlets)), DASH)
+    for y in inlets:
+        arrow((QX - 6, y), (QX - 0.5, y), AMBER, 0.6, dashed=True)
+# Below the lower return path, not on it: at y=98 the label sat in the line.
+text(114, 105, 66, 9, "blocker loopback", 8, colour=AMBER)
 
 xml = (f'<mxfile host="drawio"><diagram name="fig_design" id="des">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" '
