@@ -11,10 +11,8 @@ timing.
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
-\caption{The two DNP3 transactions, observed on the master-facing link. (a) A READ poll, whose CLRT
-  runs from the acknowledgment to the response. (b) A select-before-operate control, whose
-  master-visible interval $O$ runs from the acknowledgment of the OPERATE to its response. The shaded
-  bar marks the outstation producing the answer.}
+\caption{The two DNP3 transactions on the master-facing link. (a) A READ poll and its CLRT. (b) A
+  select-before-operate control and its master-visible interval $O$.}
 \label{fig:ladder}
 \end{figure}
 

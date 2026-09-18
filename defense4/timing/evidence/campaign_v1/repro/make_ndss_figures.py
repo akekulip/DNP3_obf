@@ -100,7 +100,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # what the 13-page budget allows: 2.85 in and above costs a fourteenth body page.
     # One column, not the full text width. As a figure* it cost 5.4 column-inches; the same
     # four panels at column width cost 3.1, and each keeps a readable 8 pt abscissa.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.10))
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 2.85))
     ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     data = []
 

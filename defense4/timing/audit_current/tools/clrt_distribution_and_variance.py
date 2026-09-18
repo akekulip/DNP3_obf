@@ -545,7 +545,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         shares[arm] = 100.0 * int(counts.sum()) / float(v.size)
     y_zoom = max(zoom[a].max() for a in zoom) * 1.18
 
-    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 2.55))
+    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 2.35))
     for col, (arm, v) in enumerate((("native", off), ("obfuscated", obf))):
         a0, a1 = axes[0][col], axes[1][col]
 
@@ -557,7 +557,13 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         ticks = [0.0, 5.0, 10.0, 15.0, cutoff + 2.5 * w]
         a0.set_xticks(ticks)
         a0.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
+        # Panel letters sit in the corner rather than in a title: the caption refers to the
+        # panels by letter, and a second row of titles would repeat the arm names and cost
+        # height the figure does not have.
         a0.set_title(ARM_LABEL[arm], fontsize=8)
+        for a_, letter in ((a0, "ab"[col]), (a1, "cd"[col])):
+            a_.annotate("(%s)" % letter, xy=(0.97, 0.9), xycoords="axes fraction",
+                        fontsize=8, color=fs.GREY, ha="right", va="top")
 
         a1.bar(zedges[:-1], zoom[arm], width=zw, align="edge",
                color=ARM_COLOR[arm], edgecolor="none", zorder=3)

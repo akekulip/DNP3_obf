@@ -218,7 +218,7 @@ def figure_release(outdir, const, audit):
     # D_A and CLRT_new, and the abscissa already shows the end-to-end time.
     # One shared time axis. Both panels drew their own 0-30 scale, which spent a line of
     # height saying the same thing twice.
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.75), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.35), sharex=True)
     rows = []
     t_max = d_a + c_new + 7.5
     ladder_panel(axes[0], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,

@@ -38,10 +38,8 @@ resulting resistance to fixed and adaptive fingerprinting (RO2).
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/clrt/fig_clrt}
-  \caption{READ CLRT measured on the master-facing link, in both cases (columns) and at two scales
-  (rows). The upper row uses 1~ms bins, and its last bin holds every interval of 15~ms or more. The
-  lower row uses 0.005~ms bins within 0.10~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$
-  (dashed). Both rows give the percentage of all 26{,}400 exchanges of each case.}
+  \caption{READ CLRT on the master-facing link. (a), (b) The full range in 1~ms bins, the last bin
+  holding 15~ms and above. (c), (d) 0.005~ms bins around the configured value (dashed).}
   \label{fig:hist}
 \end{figure}
 
@@ -64,10 +62,9 @@ $\mathrm{CLRT}_{\mathrm{new}}$ and ignores every other configured offset.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_policy_coverage_cost}
-  \caption{Release policy and cost. (a) Timing OFF response time of the read lane against the
-  budget $D$ and the horizon $H$. (b) At $D=24$~ms, the measured $\mathrm{CLRT}_{\mathrm{new}}$ against the configured
-  one, with the response time of the exchange. (c) The measured request-to-acknowledgment interval
-  against the configured $D_A$. (d) End-to-end response time per class in both cases.}
+  \caption{Release policy and cost. (a) Coverage against the budget $D$ and the horizon $H$. (b) Measured
+  against configured interval at $D=24$~ms. (c) Acknowledgment hold against its setting. (d)
+  End-to-end response time per class.}
   \label{fig:policy}
 \end{figure}
 
@@ -87,10 +84,8 @@ longer sustain the hold, and the released interval rises to 9.507~ms at a 36~ms 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_leakage}
-  \caption{Fingerprinting the three operations, with one grouped run held out at a time. (a) Balanced
-  accuracy of a fixed adversary tested on Timing OFF and on Obfuscated traffic, and of an adaptive
-  adversary retrained on Obfuscated traffic. Whiskers span the 22 held-out runs. (b) Mutual
-  information between the CLRT and the operation, against a within-run permutation null.}
+  \caption{Fingerprinting the three operations, one grouped run held out at a time. (a) Balanced accuracy
+  by adversary, whiskers spanning the 22 runs. (b) Mutual information against a permutation null.}
   \label{fig:leakage}
 \end{figure}
 
@@ -153,11 +148,9 @@ outstation.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/tail/fig_release_tail}
-  \caption{Release tail $\varepsilon$ against the budget $D$ for each class, over three installs of
-  each setting. Whiskers span the installs. In the shaded region, the switch cannot sustain the
-  hold. OPERATE is timed from the request, so its $\varepsilon$ is the arrival of the acknowledgment
-  beyond $T_0 + D_A$. Lower right, the master-visible OPERATE interval against each configured
-  offset that could set it. Only the configured $\mathrm{CLRT}_{\mathrm{new}}$ does.}
+  \caption{Release tail $\varepsilon$ against the budget $D$, over three installs of each setting, for
+  (a) READ, (b) SELECT and (c) OPERATE. (d) Only the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$ sets the master-visible OPERATE interval.}
   \label{fig:tail}
 \end{figure}
 

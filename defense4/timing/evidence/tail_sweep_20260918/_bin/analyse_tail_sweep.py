@@ -188,14 +188,15 @@ def figure(res, rows, sep):
     # One column, 2x2: the three classes' tails on a shared axis, then which value governs.
     # READ and SELECT sit on the read lane and are read against the Timing OFF baseline; OPERATE
     # is timed from the request, so its tail is its acknowledgment's arrival beyond T_0 + D_A.
-    fig, grid = plt.subplots(2, 2, figsize=(fs.COL_WIDTH_IN, 3.05))
+    fig, grid = plt.subplots(2, 2, figsize=(fs.COL_WIDTH_IN, 2.80))
     tails_ax = [grid[0][0], grid[0][1], grid[1][0]]
     ax = [None, grid[1][1]]          # ax[1] keeps its old meaning below: the governing panel
 
     CLRT_PINNED = 4.0                # the read-lane series holds CLRT_new at 4 ms throughout
-    for a_, cls, ref, title in ((tails_ax[0], "READ", "D_A", "READ"),
-                                (tails_ax[1], "SELECT", "D_A", "SELECT"),
-                                (tails_ax[2], "OPERATE", "D_A", "OPERATE")):
+    # Panel letters, because the caption and the text refer to the panels by letter.
+    for a_, cls, ref, title in ((tails_ax[0], "READ", "D_A", "(a) READ"),
+                                (tails_ax[1], "SELECT", "D_A", "(b) SELECT"),
+                                (tails_ax[2], "OPERATE", "D_A", "(c) OPERATE")):
         pts = [r for r in res if r["series"] == "readlane" and r["txn_class"] == cls
                and r["reference"] == ref]
         # OPERATE rows are keyed on D_A; put them on the budget axis the other two use.
@@ -223,7 +224,7 @@ def figure(res, rows, sep):
     tails_ax[0].set_ylabel("Release tail $\\varepsilon$ [$\\mu$s]")
     tails_ax[2].set_ylabel("Release tail $\\varepsilon$ [$\\mu$s]")
     tails_ax[1].set_yticklabels([])
-    grid[1][1].set_title("Which value governs", fontsize=8)
+    grid[1][1].set_title("(d) Which value governs", fontsize=8)
 
     # ---- (b) measured against configured, for every quantity that could set the interval
     g = collections.defaultdict(list)

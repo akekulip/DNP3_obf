@@ -2,11 +2,11 @@
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec5c8a5ae5fdfe937485d75125dc012b1bde1f9e",
+ "source_commit": "72ee5965b5d2bfeaf84c86b30c00bf65bd452af7",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "7c2d1f0e6d85e04f77fd04566becc7da28a49856a1d2e8695c40009c9535c06a"
+  "sha256": "b81e46485892af8a89421d4db5232de219c61623584f88ccfafe5b11b57b4589"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -34,12 +34,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "24ddd2560458917d406fb471cf9654899920764a3f77ffb7e6874b1d7d727f41",
+   "sha256": "75e5b6c99e468fd4d8bfe1cd470adf8411c8439f6d98f51c15f498b6c78962a1",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "00ab02cc300c91a07ccddbb2122675133b542e47dbb24766a2dd7b465c20b9b4",
+   "sha256": "bfae5b3fc0f19cd1e0259825f8428297d50430ba0267600faf66d837936a30e8",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -53,7 +53,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.48,
-  "height": 3.1
+  "height": 2.85
  },
  "method_note": "Panel (a) is an empirical complementary CDF over the Timing OFF read lane (READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is timed to the request and is not schedulable against D. Panels (b) and (c) plot the 16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in (c); each is one capture under one installed dual-deadline policy, summarised by the median over its READ transactions, with the full measured range shown in (b). The other three captures are controls taken with the timing mechanism disabled and are not plotted. No value is resampled or interpolated. Panel (d) reports quartiles with whiskers over the full support.",
  "limitation_note": "The sweep offsets, the field D_A_ms and the field D_R_ms that carries the configured CLRT_new, are read from the archived sweep_points.csv configuration table; the driver logs record the mode and the J codebook but not the per-point offsets, and no per-point control-plane readback exists, so the configuration provenance for the sweep is partial. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.",
