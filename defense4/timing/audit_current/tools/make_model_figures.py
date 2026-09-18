@@ -56,7 +56,7 @@ RTO_FLOOR_MS, RTO_RFC_MS = 200.0, 1000.0
 
 # The same three actors Figures 1 and 2 name, spelled the same way. They were "master",
 # "switch" and "relay" here, so the outstation changed name between figures.
-LANE_Y = {"Master": 2.0, "Switch": 1.0, "SEL-751A": 0.0}
+LANE_Y = {"Master": 2.0, "Switch": 1.0, "outstation": 0.0}
 # Drawn acknowledgment-arrival instant. It must exceed request-arrival-at-relay plus one
 # propagation, that is 0.35 + 0.30 + 0.35 = 1.00 ms, or the drawing violates causality. 1.25 ms
 # leaves the relay a visible processing interval. Illustrative, not measured.
@@ -104,7 +104,7 @@ def lifelines(ax, t_max):
     for name, y in LANE_Y.items():
         ax.plot([0, t_max], [y, y], color="#999999", lw=0.5, zorder=1)
         ax.text(-0.015 * t_max, y, name, ha="right", va="center", fontsize=8)
-    ax.set_ylim(-1.75, 3.05)
+    ax.set_ylim(-2.05, 3.05)
     ax.set_xlim(-0.15 * t_max, t_max)
     ax.set_yticks([])
     for side in ("left", "right", "top"):
@@ -124,7 +124,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     acknowledgment to propagate back. An earlier version drew the acknowledgment leaving the
     relay 0.10 ms before the request arrived.
     """
-    m, s, r = LANE_Y["Master"], LANE_Y["Switch"], LANE_Y["SEL-751A"]
+    m, s, r = LANE_Y["Master"], LANE_Y["Switch"], LANE_Y["outstation"]
     prop = 0.35                                    # link propagation, drawn not measured
     relay_hop = 0.30                               # switch to relay, drawn not measured
     req_at_relay = prop + relay_hop
@@ -185,7 +185,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     # it does not exist because the response is forwarded on arrival. The paper's $D_R$ is a
     # different quantity, the response latency, and is not drawn here.
     if not late:
-        interval(ax, r - 1.02, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
+        interval(ax, r - 1.42, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
     interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
              C_DEADLINE, pad=0.0)
 
@@ -202,7 +202,6 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
                     ("L_A", m_a), ("L_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(v, 3), kind="duration"))
-    ax.set_xlabel("time from the request [ms]")
 
 
 def figure_release(outdir, const, audit):
@@ -228,7 +227,10 @@ def figure_release(outdir, const, audit):
                  t_r=d_a + c_new + 1.8, late=True, rows=rows, t_max=t_max)
     axes[0].set_title("(a) response arrives in time", fontsize=8, loc="left", style="italic")
     axes[1].set_title("(b) response arrives late", fontsize=8, loc="left", style="italic")
-    axes[0].set_xlabel("")
+    for ax in axes:
+        ax.set_xlabel("")
+        ax.set_xticks([])
+        ax.spines["bottom"].set_visible(False)
     # The upper panel reads its times off the lower panel's axis. Left in place, its own spine
     # was a ruled line with ticks and no numbers across the middle of the figure.
     axes[0].tick_params(labelbottom=False, bottom=False)

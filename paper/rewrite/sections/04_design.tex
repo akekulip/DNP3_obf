@@ -27,6 +27,16 @@ code. Based on that classification, it holds the packets that carry the timing o
 releases each of them at a deadline, such that the interval the adversary measures becomes the value
 the operator configures. We handle two kinds of transactions in two lanes.
 
+\textbf{Holding a Packet.} A switch pipeline carries no timer a program can wait on, so the
+framework holds a packet with the queues instead. Every packet it delays waits in a queue of its
+own, beneath a second queue of higher priority that carries \emph{blocker packets}, which the
+switch generates itself. While blocker packets keep arriving, the scheduler serves them and never
+serves the packet beneath them. The hold ends when the blocker queue runs dry at the deadline, and
+the held packet leaves on the next service. Blocker packets circulate on a loopback port inside the
+switch, so they reach neither the master nor the outstation and consume no bandwidth on either
+link. Section~\ref{sec:impl} describes how the program generates them and how it decides when they
+stop.
+
 \textbf{Read Lane.} For a READ poll and for the SELECT phase of a control command, the framework
 holds the transport acknowledgment and the application response of the outstation on their way to
 the master. It computes both release deadlines when the acknowledgment arrives
@@ -37,7 +47,8 @@ to the relay. Because the acknowledgment then no longer marks the start of the w
 computes the deadlines when the OPERATE request arrives (Section~\ref{sec:design:control}).
 
 Both lanes forward the packets they receive at their original size and generate none on either
-link. As such, the framework changes only when the wire carries the answer of the outstation.
+link. The master and the outstation exchange exactly the packets they would exchange
+without the framework, and only the instants at which those packets leave the switch differ.
 
 \subsection{Replacing the CLRT of a Read Transaction}
 \label{sec:design:read}
@@ -45,7 +56,8 @@ link. As such, the framework changes only when the wire carries the answer of th
 \begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction, with illustrative time coordinates. Both
+  \caption{Release timeline of one READ transaction. The drawing is schematic and its spacing is
+  not to scale. Both
   deadlines are computed from the arrival of the acknowledgment $t_A$. In (a), the response arrives
   in time and the master observes the configured $\mathrm{CLRT}_{\mathrm{new}}$. In (b), it arrives
   late and leaves when its queue serves it. Filled circles lie on the master-facing link. Open
@@ -96,7 +108,7 @@ cancels in~(\ref{eq:clrt-new}), and the response hold becomes
 \label{eq:coupling}
 e_R - t_R = D_A + \mathrm{CLRT}_{\mathrm{new}} - \mathrm{CLRT}_{\mathrm{original}} .
 \end{equation}
-The response hold therefore follows the device on every transaction. It is long when the outstation
+The response hold follows the device on every transaction. It is long when the outstation
 answers quickly and short when the outstation answers slowly.
 
 \textbf{Availability.} The switch can delay a packet but cannot release one it has not received. We

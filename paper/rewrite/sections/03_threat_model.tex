@@ -2,8 +2,8 @@
 \label{sec:threat}
 
 In this section, we first describe the adversary we consider and the knowledge it seeks. Then we
-specify the three research objectives the framework must achieve, RO1 to RO3, and the attacks it
-does not address.
+specify the three research objectives the framework must achieve, RO1 to RO3, and the scope of our
+work.
 
 \subsection{Threat Model}
 \label{sec:threat:model}
@@ -19,19 +19,19 @@ does not address.
 \textbf{Assumptions on Adversary's Capability.} We assume that an adversary has penetrated the
 control network and passively monitors the master-facing link, the position from which Formby et
 al.\ fingerprint outstations~\cite{formbyWhosControlYour2016}, as shown in
-Figure~\ref{fig:observation}. We assume that the adversary records the headers, the size and the
-arrival time of every packet. Because DNP3 carries no transport security by
+Figure~\ref{fig:observation}. The adversary is able to record the headers, the size and the arrival
+time of every packet. Because DNP3 carries no transport security by
 default~\cite{eastTaxonomyAttacksDNP32009}, the adversary also reads the function code of every
 request and can label each exchange by its operation, e.g., a READ poll or the SELECT and OPERATE
 of a control command. We assume that the adversary knows the framework and the interval it
 enforces, but cannot read the internal state of the switch or monitor the link between the switch
-and the outstation. We argue that this is a practical assumption, as the switch sits at the edge
-of the outstation, and the relay-facing link can be a single cable between two devices in the same
+and the outstation. This is a practical assumption, as the switch sits at the edge of the
+outstation, and the relay-facing link can be a single cable between two devices in the same
 substation cabinet.
 
 \textbf{Adversary's Goal.} The adversary aims at fingerprinting the outstation from the timing of
-its exchanges, and from that timing it infers the device type and the operation each exchange
-performs. Based on this knowledge, the adversary can design targeted attacks, e.g., false data
+its exchanges, and from that timing it infers the make and model of the device and the operation
+each exchange performs. Based on this knowledge, the adversary can design targeted attacks, e.g., false data
 injection that must match the devices it compromises~\cite{liuFalseDataInjection2009}. We consider two adversaries. A
 \emph{fixed} adversary builds its classifier from traffic captured before the framework is deployed
 and applies it afterwards. An \emph{adaptive} adversary collects traffic after deployment, labels
@@ -60,9 +60,9 @@ We specify three research objectives (RO) as follows:
 \textbf{For Payload-Based Fingerprinting.} We designed the framework to hide timing, not content.
 It forwards every packet at its original size and leaves the function codes readable, so the
 adversary still knows which operation an exchange carries. What the framework removes is how long the device
-takes to perform it. Formby et al.\ also estimate the physical operation time of a breaker from an
-event timestamp inside the response payload~\cite{formbyWhosControlYour2016}. Such content is a different problem, and payload protection
-is complementary to the framework. We leave the combination of the two to future work.
+takes to perform it. The physical operation time of Definition 2 is a second feature, and the estimate Formby et al.\ retain reads a timestamp inside the payload rather than the timing of a
+packet~\cite{formbyWhosControlYour2016}. Such content is a different problem, and payload
+protection is complementary to the framework. We leave the combination of the two to future work.
 
 \textbf{For Active Adversaries.} An adversary that injects, delays or drops packets, or that
 compromises the switch or the outstation, performs attacks beyond reconnaissance and is outside this

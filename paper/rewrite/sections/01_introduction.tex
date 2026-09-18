@@ -15,18 +15,20 @@ devices within as entry points to inflict physical damage. Consequently, fingerp
 the focus from visited websites and user biometric behavior to device models and types of
 control operations that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian
 power grids and the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely
-believed that adversaries stay in their systems for at least 6 months to perform cyber
+believed that adversaries stayed in their systems for at least 6 months to perform cyber
 reconnaissance~\cite{leeAnalysisCyberAttack2016, langnerStuxnetDissectingCyberwarfare2011}.
 
-To disrupt device fingerprinting, many studies present network traffic
+To disrupt device fingerprinting, many studies have presented network traffic
 obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Device
 fingerprinting targeting general computing environments generally relies on network-level
 features such as packet size and/or inter-packet latency observed from communication
 patterns~\cite{sirinamDeepFingerprintingUndermining2018}. Consequently, existing traffic
 obfuscation often focuses on (i) padding and splitting network packets, which hide or change the
-distribution of network packet sizes~\cite{wrightTrafficMorphingEfficient2009}, and (ii)
+distribution of network packet sizes~\cite{wrightTrafficMorphingEfficient2009,
+wangWalkieTalkieEfficientDefense2017, panchenkoWebsiteFingerprintingInternet2016}, and (ii)
 delaying network packets and adding dummy ones, which disrupt the inter-packet timing
-pattern~\cite{dyerPeekaBooStillSee2012, caiSystematicApproachDeveloping2014}. Since manipulating
+pattern~\cite{dyerPeekaBooStillSee2012, caiSystematicApproachDeveloping2014,
+wangDependentLinkPadding2008, juarezEfficientWebsiteFingerprinting2016}. Since manipulating
 communication networks can introduce runtime overhead, recent works have begun to offload
 traffic obfuscation onto programmable network switches, which change communication patterns at
 much higher line rates than CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
@@ -36,8 +38,10 @@ Unfortunately, these methods cannot be directly applied to ICS environments for 
 reasons. First, device fingerprinting methods on ICS devices rely on different features from the
 ones in general computing environments. Instead of using network layer knowledge, they attempt
 to use behavior on physical devices to reveal device model or types of operations. For example,
-work in~\cite{formbyWhosControlYour2016} uses the latency between the TCP acknowledge packets
-and the actual response from the same device to estimate execution time there. Since each
+work in~\cite{formbyWhosControlYour2016, shenHybridAugmentedDeviceFingerprinting2018,
+ahmedScanningCycleTiming2021, pospisilIdentifyingIndustryDevices2023} uses the latency between the
+TCP acknowledge packets and the actual response from the same device to estimate execution time
+there. Since each
 vendors may choose different materials or algorithms to implement the same control
 functionality, this time can be accurate in fingerprinting those devices. Second, existing
 traffic obfuscation is performed over encrypted channels, which are necessary to mix the
@@ -87,8 +91,8 @@ The main contributions of the paper are:
 For evaluation, we placed the switch between a DNP3 master and a physical SEL-751A feeder protection
 relay and collected 63{,}360 exchanges, half of them with the framework running. We tested the
 released interval against (i) a classifier trained before the framework was deployed, (ii) an
-adversary that retrains on obfuscated traffic, and (iii) an adversary that pools up to twenty
-exchanges into one signature, as Formby et al.\ do.
+adversary that retrains on obfuscated traffic, and (iii) an adversary that pools many exchanges
+of the same operation into one signature, as Formby et al.\ do.
 
 Our experimental results show that the framework disrupts timing-based fingerprinting while
 introducing negligible overhead:

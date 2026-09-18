@@ -28,3 +28,19 @@ The morning rewrite had edited Dr. Lin's two paragraphs (tense, grammar, the spl
 sentence, an appended sentence on encrypted payloads, and a gap paragraph with three reasons).
 Those edits are withdrawn by the verbatim replacement above; the version that carried them is
 in Git history (commit `f3b6625`, `sections/01_introduction.tex`).
+
+
+## 2026-09-18: two author corrections, made by Dr. Lin on the printed draft
+
+Dr. Lin marked the build of commit `b71f2836` by hand and corrected two words of his own supplied
+text. Both are his corrections, not editorial changes by anyone else, so the protected text and the
+two reference copies the verbatim gate compares against were updated together.
+
+| # | paragraph | before | after |
+|---|---|---|---|
+| 1 | ¶1 | "adversaries stay in their systems" | "adversaries stayed in their systems" |
+| 2 | ¶2 | "many studies present network traffic obfuscation" | "many studies have presented network traffic obfuscation" |
+
+Updated in `sections/01_introduction.tex`, in `REFERENCE` inside
+`pipeline/check_lin_intro_verbatim.py`, and in `pipeline/samples/lin_intro.txt`. The gate passes
+against the corrected reference, so any later drift from his wording still fails.

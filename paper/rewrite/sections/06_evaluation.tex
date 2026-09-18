@@ -51,7 +51,7 @@ measures in both cases. Under Timing OFF, the interval spans 1.01 to 83.46~ms, w
 exchanges fall within 0.10~ms of the configured 4~ms. From the figure, we can see that the medians move from 2.116~ms for READ and 2.050~ms for SELECT to
 4.000~ms, while the interquartile ranges fall from 2.778 and 2.697~ms to 0.006~ms. The standard
 deviation falls from 2.609 to 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT. A defense that only shifted the interval would keep the Timing OFF spread, since shifting a
-distribution leaves its variance unchanged. The framework therefore replaces the interval instead of
+distribution leaves its variance unchanged. The framework replaces the interval instead of
 moving it, and it does so in each of the 22 runs.
 
 \textbf{Control Lane.} The control lane achieves the same replacement for OPERATE, although the
@@ -209,5 +209,5 @@ measured ones.
 
 \textbf{Retransmitted Commands.} After releasing an OPERATE, the control lane keeps its generation
 until the next SELECT and drops a retransmission that carries it. A command lost on the relay-facing
-link is therefore not repaired by its own retransmission, and extending the control lane to forward
+link is not repaired by its own retransmission, and extending the control lane to forward
 such a retransmission is future work.

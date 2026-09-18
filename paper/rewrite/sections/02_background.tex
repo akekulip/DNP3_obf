@@ -26,16 +26,23 @@ control command instead uses select-before-operate. The master sends a SELECT, f
 names an output point, and the outstation confirms it. The master then sends an OPERATE, function
 code 4, which the outstation executes and confirms with a solicited response.
 
-Because DNP3 runs over TCP, the transport layer of the outstation acknowledges each request. On the
-relay we evaluate, the acknowledgment travels in a segment of its own before the application
-answers, although TCP also allows it to ride on the response~\cite{eddyTransmissionControlProtocol2022}.
-Each exchange therefore appears on the wire as three packets: a request, a transport acknowledgment
-carrying no DNP3 payload, and a DNP3 response. The framework protects exchanges of this form and
-forwards any other exchange unchanged.
+Because DNP3 runs over TCP, the transport layer of the outstation acknowledges each request. The
+acknowledgment travels in a segment of its own before the application answers, although TCP also
+allows it to ride on the response~\cite{eddyTransmissionControlProtocol2022}.
+Each exchange appears on the wire as three packets: a request, a transport acknowledgment
+carrying no DNP3 payload, and a DNP3 response. We limit the framework to the three function codes
+above, READ, SELECT and OPERATE, and it forwards every other exchange unchanged.
 
 \textbf{Definition 1. Cross-Layer Response Time (CLRT):} the interval between the arrival of the
 transport acknowledgment and the arrival of the DNP3 response of the same exchange, measured on the
 link to the master.
+
+\textbf{Definition 2. Physical Operation Time:} for a select-before-operate command, the interval
+between the OPERATE command and the moment the commanded physical change occurs at the device.
+Formby et al.\ estimate it in two ways, from the arrival of the unsolicited event response at a tap
+and from the sequence-of-events timestamp the response carries in its
+payload~\cite{formbyWhosControlYour2016}. They report that the arrival-time estimate produced no
+usable results and retain the payload timestamp as the physical fingerprint.
 
 \subsection{Execution Time as a Fingerprint}
 \label{sec:bg:fingerprint}
@@ -48,13 +55,12 @@ cancels. Consequently, the CLRT is dominated by the execution time of the outsta
 Execution time differs between device models, since vendors implement the same function with
 different hardware and algorithms, and it differs between the operations one device performs. Formby
 et al.\ classify DNP3 device types and models by the distribution of the
-CLRT~\cite{formbyWhosControlYour2016}, and Lin et al.\ measured execution times that differ across
-devices from three vendors, one of which is the SEL-751A we
-evaluate~\cite{linDefRecEstablishingPhysical2020}. The same separation holds between the operations
+CLRT~\cite{formbyWhosControlYour2016}, and Lin et al.\ measured the execution times of three
+devices, among them the SEL-751A we evaluate, and separated them by the combination of their average
+and their variation~\cite{linDefRecEstablishingPhysical2020}. The same separation holds between the operations
 of one device. For example, our relay takes 2.937~ms to answer a control command and 2.116~ms to
-answer a poll, while it acknowledges the two requests 0.003~ms apart. The function code already names
-the operation in plaintext, and the CLRT adds how this device performs it, which is the profile a
-fingerprinting adversary builds.
+answer a poll, while it acknowledges the two requests 0.003~ms apart. Consequently, the CLRT carries how this device performs
+an operation, which is the profile a fingerprinting adversary builds.
 
 \subsection{Holding Packets in a Programmable Switch}
 \label{sec:bg:switch}

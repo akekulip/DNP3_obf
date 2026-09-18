@@ -98,9 +98,13 @@ for k, (l2r, colour, name) in enumerate(((True, BLUE, "SELECT"), (False, GREY, "
                                          (False, GREEN, "Response"), (True, BLUE, "OPERATE"),
                                          (False, GREY, "ACK"), (False, GREEN, "Response"))):
     msg(XB, OB, 38 + 16 * k, l2r, colour, name)
+# Rows in panel (b): SELECT 38, ACK 54, Response 70, OPERATE 86, ACK 102, Response 118. The
+# OPERATE activation and the O bracket therefore run from the acknowledgment at 102 to the
+# response at 118, exactly as CLRT runs from 58 to 78 in panel (a). They were drawn a row low,
+# from the response to an empty row, which put O against the wrong pair of packets.
 activation(OB, 54, 70)
-activation(OB, 118, 134)
-bracket(XB, 118 + SLANT, 134 + SLANT, "O", w=10, ital=True)
+activation(OB, 102, 118)
+bracket(XB, 102 + SLANT, 118 + SLANT, "O", w=10, ital=True)
 
 xml = (f'<mxfile host="drawio"><diagram name="fig_ladder" id="lad">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" arrows="0" '
