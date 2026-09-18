@@ -17,25 +17,25 @@ read its internal state, and it sees neither the relay-facing link, which in our
 inside the switch with no tap on it, nor physical breaker motion. Because DNP3 carries no
 transport security by default we assume the traffic is
 unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function codes
-directly. An adversary that probes or injects is out of scope, and the passive observer is the
+directly. An adversary that probes or injects remains out of scope, since the passive observer is the
 setting the traffic-obfuscation work we build on also targets.
 
 \textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
 false data injection requires the attacker to know which devices it is dealing
 with~\cite{liuFalseDataInjection2009}, and fingerprinting supplies that knowledge without the
-payload, because the timing of the exchange carries it.
+payload, since the timing of the exchange carries it.
 
 Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is
 the CLRT of a READ or of the SELECT phase of a control, which measures the outstation's own
 processing and which Section~\ref{sec:bg} shows carries the separation between the classes. The
 second is the master-visible interval between an OPERATE's acknowledgment and its solicited
 response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms
-on this device; the mechanism does not target it, and we report it as measured.
+on this device. Since the mechanism does not target that interval, we report it as measured.
 
-Our own observation is narrower than the adversary's: every quantity we measure is one of three
-packet timestamps on the master-facing link, the request, the acknowledgment and the response. The
-switch's release instants and every event on the relay-facing link were not captured, and where
-the paper names them they come from the configuration.
+Our own observation remains narrower than the adversary's, since every quantity we measure is one
+of three packet timestamps on the master-facing link, the request, the acknowledgment and the
+response. The switch's release instants and every event on the relay-facing link were not
+captured, so where the paper names them they come from the configuration.
 
 Formby et al.\ estimate the time a device physically takes to complete an operation from a
 sequence-of-events timestamp inside the outstation's application payload, and their alternative

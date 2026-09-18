@@ -38,21 +38,21 @@ That interval carries the information about the device, and on our relay it has 
 \label{eq:clrt-original}
 \mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
 \end{equation}
-the interval between the two packets arriving at the switch. It is dominated by the time the
-outstation spends between acknowledging the request and producing the answer, but it does not
-measure that time cleanly. The two packets traverse the relay-facing link separately, so
-differential queueing and the outstation's own transmission both enter it.
-Section~\ref{sec:bg} explains why it identifies the device; here it is the quantity we intend to
-remove.
+the interval between the two packets arriving at the switch. This interval remains dominated by
+the time the outstation spends between acknowledging the request and producing the answer, but it
+does not measure that time cleanly, since the two packets traverse the relay-facing link
+separately, allowing differential queueing and the outstation's own transmission to enter it.
+Section~\ref{sec:bg} explains why it identifies the device; here it becomes the quantity we intend
+to remove.
 
 To change what the master sees, the switch holds each packet. We write
 \begin{equation}
 \label{eq:holds}
 D_A = e_A - t_A
 \end{equation}
-for the \emph{acknowledgment hold}. It is written from actual departures, so a configured $D_A$
-and the hold a transaction realizes are the same quantity only to the extent that the release
-follows its deadline. We refer to $e_R - t_R$ as the \emph{response hold} without giving it a
+for the \emph{acknowledgment hold}. Since it is written from actual departures, a configured
+$D_A$ and the hold a transaction realizes become the same quantity only to the extent that the
+release follows its deadline. We refer to $e_R - t_R$ as the \emph{response hold} without giving it a
 symbol of its own, because the schedule below fixes it rather than letting us choose it. Substituting into the interval the master observes gives the identity that governs the
 whole design,
 \begin{equation}
@@ -102,19 +102,20 @@ t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
 The acknowledgment may leave before the response arrives; that ordering is normal and does not by
 itself imply a lost packet. When~(\ref{eq:availability}) fails the deadline is already past when
 the response appears, so the switch marks it late and commits it to the response-hold queue, from
-which it leaves when that queue next serves it, as in Figure~\ref{fig:timeline}(b). The master
-then usually observes an interval larger than the configured value, though not necessarily. What
-it measures is a difference of two releases, each with its own queueing and service, so a late
-response alone does not guarantee a larger measured interval. One read-lane exchange in a thousand
-answers too late to be scheduled. We include those exchanges in every figure and table below, because
-they are the boundary of the mechanism and not a defect of the measurement.
+which it leaves when that queue next serves it, as in Figure~\ref{fig:timeline}(b). Consequently the
+master usually observes an interval larger than the configured value, though not necessarily,
+since what it measures remains a difference of two releases, each carrying its own queueing and
+service, so a late response alone does not guarantee a larger measured interval. One read-lane
+exchange in a thousand answers too late to be scheduled, and we include those exchanges in every
+figure and table below, since they mark the boundary of the mechanism rather than a defect of the
+measurement.
 
 The holds decide what the master observes \emph{between} the two packets, not how long it waits
 for the answer itself, which is the quantity an operational requirement constrains. Write $D_R$
 for that: the response's whole journey from the outstation transmitting it to the master receiving
-it. We do not measure $D_R$, nor the portion of it from the switch onward, because only the
-master-facing link is instrumented: $m_R$ is captured while $t_R$, the response's arrival at the
-switch, is not. The quantity
+it. Since only the master-facing link is instrumented, we do not measure $D_R$, nor the portion of it
+from the switch onward: $m_R$ is captured while $t_R$, the response's arrival at the switch, is
+not. The quantity
 \begin{equation}
 \label{eq:resplatency}
 m_R - t_R \le D_R

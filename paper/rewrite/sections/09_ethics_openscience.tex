@@ -26,7 +26,7 @@ select-before-operate exchange in the evaluation addresses isolated control poin
 guarded driver. No control operation in this paper moved a breaker or energized a circuit: each
 OPERATE is a protocol exchange the relay accepted and acknowledged, not a physical actuation.
 
-The mechanism we describe is defensive. It removes a timing feature that an adversary would use
+The mechanism we describe remains defensive, removing a timing feature that an adversary would use
 for reconnaissance, and it neither creates a new attack nor discloses a vulnerability in the
 relay, the switch or the DNP3 protocol. One effect works against the defender. Holding the acknowledgment makes the
 request-to-acknowledgment interval more informative than it was, from 0.479 to 0.809 balanced
