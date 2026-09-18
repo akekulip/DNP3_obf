@@ -54,7 +54,9 @@ APP_BUDGET_MS = 3000.0
 # never recorded, so its realised retransmission timeout is unknown; these bracket it.
 RTO_FLOOR_MS, RTO_RFC_MS = 200.0, 1000.0
 
-LANE_Y = {"master": 2.0, "switch": 1.0, "relay": 0.0}
+# The same three actors Figures 1 and 2 name, spelled the same way. They were "master",
+# "switch" and "relay" here, so the outstation changed name between figures.
+LANE_Y = {"Master": 2.0, "Switch": 1.0, "SEL-751A": 0.0}
 # Drawn acknowledgment-arrival instant. It must exceed request-arrival-at-relay plus one
 # propagation, that is 0.35 + 0.30 + 0.35 = 1.00 ms, or the drawing violates causality. 1.25 ms
 # leaves the relay a visible processing interval. Illustrative, not measured.
@@ -122,7 +124,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     acknowledgment to propagate back. An earlier version drew the acknowledgment leaving the
     relay 0.10 ms before the request arrived.
     """
-    m, s, r = LANE_Y["master"], LANE_Y["switch"], LANE_Y["relay"]
+    m, s, r = LANE_Y["Master"], LANE_Y["Switch"], LANE_Y["SEL-751A"]
     prop = 0.35                                    # link propagation, drawn not measured
     relay_hop = 0.30                               # switch to relay, drawn not measured
     req_at_relay = prop + relay_hop
