@@ -431,7 +431,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
 
     y_hi = max(max(panels[a][0].max(), panels[a][1]) for a in panels) * 1.18
 
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.0))
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True)
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         pct, over_pct, counts, over = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
@@ -452,6 +452,9 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
                              edge_convention="[cutoff, inf)", transactions=int(over),
                              percent_of_arm=round(float(over_pct), 9)))
     axes[0].set_xlabel("")
+    # One abscissa, not two: the upper panel reads its values off the lower one.
+    axes[0].tick_params(labelbottom=False, bottom=False)
+    axes[0].spines["bottom"].set_visible(False)
     axes[1].set_xlabel("CLRT (ms)")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
@@ -515,7 +518,7 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
         panels[arm] = (counts * (100.0 / float(v.size)), counts)
 
     y_hi = max(panels[a][0].max() for a in panels) * 1.18
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.0))
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True)
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         pct, counts = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
@@ -537,6 +540,9 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
                                  transactions=int(counts[i]),
                                  percent_of_arm=round(float(pct[i]), 9)))
     axes[0].set_xlabel("")
+    # One abscissa, not two: the upper panel reads its values off the lower one.
+    axes[0].tick_params(labelbottom=False, bottom=False)
+    axes[0].spines["bottom"].set_visible(False)
     axes[1].set_xlabel("CLRT (ms)")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
@@ -578,7 +584,7 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     edges = z_lo + w * np.arange(n + 1)
     w_fd_zoom = freedman_diaconis_ms(obf)
 
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.9))
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.7), sharex=True)
     shares, peaks = {}, []
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         counts, _ = np.histogram(v, bins=edges)
@@ -616,6 +622,9 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     for ax in axes:
         ax.set_ylim(0.0, top)
     axes[0].set_xlabel("")
+    # One abscissa, not two: the upper panel reads its values off the lower one.
+    axes[0].tick_params(labelbottom=False, bottom=False)
+    axes[0].spines["bottom"].set_visible(False)
     axes[1].set_xlabel("CLRT (ms)")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 

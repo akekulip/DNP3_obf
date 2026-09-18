@@ -16,7 +16,8 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 
 "$PY" "$HERE/gen_ladder_drawio.py"
 "$PY" "$HERE/gen_obs_drawio.py"
-for f in fig_ladder fig_observation; do
+"$PY" "$HERE/gen_design_drawio.py"
+for f in fig_ladder fig_observation fig_design; do
     "$DRAWIO" -x -f svg --border 2 -o "$TMP/$f.svg" "$FIGS/$f.drawio" >/dev/null 2>&1
     if grep -q '<foreignObject' "$TMP/$f.svg"; then
         echo "error: $f.svg carries foreignObject text, which the PDF step cannot render" >&2; exit 2
@@ -24,5 +25,7 @@ for f in fig_ladder fig_observation; do
 done
 "$PY" "$HERE/finalize_svg.py" "$TMP/fig_ladder.svg" "$FIGS/fig_ladder.svg" lad "DNP3 transaction ladder" \
   "Two DNP3 transactions between a SCADA master and an SEL-751A outstation, time running downwards. Requests are blue, transport acknowledgments grey and application responses green, with DNP3 function codes in grey beside the outstation. A bar on the outstation's lifeline marks the interval in which the device produces the answer. On the master side, c is the READ's cross-layer response time and O the master-visible OPERATE response-to-acknowledgment interval, both measured between the acknowledgment and the response arriving at the master."
+"$PY" "$HERE/finalize_svg.py" "$TMP/fig_design.svg" "$FIGS/fig_design.svg" des "Design overview" \
+  "Inside one programmable switch, ingress classifies every arrival, from the master or back from the relay, and arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT, and the control lane holds an OPERATE, each behind a queue of generated blocker packets that a strict-priority scheduler drains first, which is what realizes the deadline. The on-chip packet generator keeps the blocker queues non-empty."
 "$PY" "$HERE/finalize_svg.py" "$TMP/fig_observation.svg" "$FIGS/fig_observation.svg" obs "Observation model" \
   "A SCADA master reaches an SEL-751A protective relay through one programmable switch. A passive adversary taps the master-facing link, the only part of the path it observes, which is shaded; the relay-facing link and the switch's two internal loopback lanes, one for reads and one for control, are dashed and are observed by neither the adversary nor the authors."

@@ -2,11 +2,11 @@
  "figure": "fig_clrt_distributions_full",
  "caption": "**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms and no overflow category, so every tail out to the largest observation, 83.5 ms in (a) and 57.2 ms in (b), is drawn.",
  "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "8daa4adcd6cf88fc3069e893ce9e95cd7bb65f67",
+ "source_commit": "2eb49064e0e7484ed6ac5d123b26bc3163704913",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "22ba3d4bee27b210ce343a74db8e57dcfb97dc9f859e70ca1c7486980f215351"
+  "sha256": "03bc6593c400e2e0c624db35686dedac9452c91ec9f9d2cc5a6dfa259f1c0f42"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -566,12 +566,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.pdf",
-   "sha256": "dfa788d5550c7b78d0d1b8e7985d63cb8ecc5b19c466a44396ee19c810480cb5",
+   "sha256": "73cc6a3277ab20c78f817aba9036ebd735299a86748d072330437b5fa9dca131",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.png",
-   "sha256": "680c62b12d2b6076c79e2a9f1826abfa82a96f2c028430139725b6f732a3c2f5",
+   "sha256": "d54b7e99a374af7aef4ca04dd773b939cd908f9250f4d36043d585155a5ff71e",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
@@ -585,7 +585,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.5,
-  "height": 3.0
+  "height": 2.8
  },
  "method_note": "Companion to fig_clrt_distributions and generated from the same samples in the same run of the same script, so the two cannot disagree. Bins are identical in width and origin; the only difference is that no overflow category is formed and the abscissa runs to the largest observation in either arm. Bars are the percentage of that arm's own transactions, weight 100/n. Bins holding no transaction are omitted from the CSV and drawn at zero height.",
  "limitation_note": "A narrower distribution after obfuscation is a property of the released interval. It is not on its own evidence that transaction fingerprinting is mitigated: that claim rests on the classifier and mutual-information results reported separately, and reduced variance alone does not establish it. The dashed line is a configured policy value and the bars are a measurement; the two must not be read as the same kind of quantity. The residual spread in the Obfuscated arm is a net quantity, the response release delay minus the acknowledgment release delay plus differential path and capture effects; it is not attributed here to any single mechanism. The two arms are separate capture blocks, not repeated measurements of the same transaction, so no per-transaction transfer function can be read from this figure. All intervals are master-facing; the relay-facing release instants and the realized per-transaction jitter were not observed. One relay, one configured setting, one approximately five-hour window.",
