@@ -73,12 +73,27 @@ def transactions(path: Path):
 
 
 def fetch():
+    """Pull every capture whose local copy is missing or differs in size from the lab's.
+
+    Comparing names alone was wrong. A capture fetched while tcpdump was still writing it kept
+    its partial size forever, because the next fetch saw the name and skipped it: two read-lane
+    blocks sat at 8,192 and 61,440 bytes locally against 105,637 and 104,454 in the lab, one of
+    them holding 22 of its 300 READ exchanges. Sizes are compared now, so a partial copy is
+    replaced on the next run.
+    """
     PCAPS.mkdir(parents=True, exist_ok=True)
-    have = {p.name for p in PCAPS.glob("*.pcap")}
+    have = {p.name: p.stat().st_size for p in PCAPS.glob("*.pcap")}
     listing = subprocess.run(
-        ["ssh", "-o", "BatchMode=yes", REMOTE, f"ls {REMOTE_DIR}/*.pcap 2>/dev/null"],
-        capture_output=True, text=True).stdout.split()
-    want = [n for n in listing if Path(n).name not in have]
+        ["ssh", "-o", "BatchMode=yes", REMOTE,
+         f"stat -c '%n %s' {REMOTE_DIR}/*.pcap 2>/dev/null"],
+        capture_output=True, text=True).stdout.split("\n")
+    want = []
+    for line in listing:
+        if not line.strip():
+            continue
+        name, size = line.rsplit(" ", 1)
+        if have.get(Path(name).name) != int(size):
+            want.append(name)
     if not want:
         return 0
     # One scp for the batch: a call per capture spends more time in ssh setup than in transfer.

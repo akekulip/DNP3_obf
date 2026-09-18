@@ -185,34 +185,45 @@ def figure(res, rows, sep):
     import collections                                     # noqa: E402
     fs.use_ieee()
 
-    # One column, two panels side by side: the page cannot afford a full-width float for this.
-    fig, ax = plt.subplots(1, 2, figsize=(fs.COL_WIDTH_IN, 1.70))
+    # One column, 2x2: the three classes' tails on a shared axis, then which value governs.
+    # READ and SELECT sit on the read lane and are read against the Timing OFF baseline; OPERATE
+    # is timed from the request, so its tail is its acknowledgment's arrival beyond T_0 + D_A.
+    fig, grid = plt.subplots(2, 2, figsize=(fs.COL_WIDTH_IN, 3.05))
+    tails_ax = [grid[0][0], grid[0][1], grid[1][0]]
+    ax = [None, grid[1][1]]          # ax[1] keeps its old meaning below: the governing panel
 
-    # ---- (a) the tail itself, against the budget that was asked for
-    rd = sorted([r for r in res if r["series"] == "readlane" and r["txn_class"] == "READ"],
-                key=lambda r: r["deadline_ms"])
-    live = [r for r in rd if not r["saturated"]]
-    sat = [r for r in rd if r["saturated"]]
-    # The split is in the measurement, not chosen: an order of magnitude separates the two
-    # groups and nothing lies between them.
-    lo = [r for r in live if r["tail_ms"] * 1000 < 120.0]
-    hi = [r for r in live if r["tail_ms"] * 1000 >= 120.0]
-    # One neutral colour for both branches. Panel (b) spends blue and orange on obeyed and
-    # ignored, so reusing them here for long and short branch would tell a reader that the
-    # short branch is something the switch ignores. Position already separates the branches.
-    for rs, col, mk in ((hi, fs.NEUTRAL, "o"), (lo, fs.NEUTRAL, "o")):
-        x = [r["deadline_ms"] for r in rs]
-        y = [r["tail_ms"] * 1000 for r in rs]
-        e = [[y[i] - rs[i]["tail_min_ms"] * 1000 for i in range(len(rs))],
-             [rs[i]["tail_max_ms"] * 1000 - y[i] for i in range(len(rs))]]
-        ax[0].errorbar(x, y, yerr=e, marker=mk, ms=3.6, ls="none", elinewidth=0.9, capsize=2,
-                       color=col, mec="black", mew=0.4)
-    if sat:
-        ax[0].axvspan(min(r["deadline_ms"] for r in sat) - 0.5,
-                      max(r["deadline_ms"] for r in sat) + 1.0, color="#EDEDED", zorder=0)
-    ax[0].set_xlabel("Release budget $D$ [ms]")
-    ax[0].set_ylabel("Release tail $\\varepsilon$ [$\\mu$s]")
-    ax[0].set_ylim(0, 1120)
+    CLRT_PINNED = 4.0                # the read-lane series holds CLRT_new at 4 ms throughout
+    for a_, cls, ref, title in ((tails_ax[0], "READ", "D_A", "READ"),
+                                (tails_ax[1], "SELECT", "D_A", "SELECT"),
+                                (tails_ax[2], "OPERATE", "D_A", "OPERATE")):
+        pts = [r for r in res if r["series"] == "readlane" and r["txn_class"] == cls
+               and r["reference"] == ref]
+        # OPERATE rows are keyed on D_A; put them on the budget axis the other two use.
+        for r in pts:
+            r["_x"] = r["deadline_ms"] + (CLRT_PINNED if cls == "OPERATE" else 0.0)
+        pts.sort(key=lambda r: r["_x"])
+        live = [r for r in pts if not r["saturated"]]
+        sat = [r for r in pts if r["saturated"]]
+        # One neutral colour for every tail. Panel (d) spends blue and orange on obeyed and
+        # ignored; reusing them for the two branches would read as that. Position shows the
+        # branches, and the whiskers, spanning the three installs, show where they disagree.
+        x = [r["_x"] for r in live]
+        y = [r["tail_ms"] * 1000 for r in live]
+        e = [[y[k] - live[k]["tail_min_ms"] * 1000 for k in range(len(live))],
+             [live[k]["tail_max_ms"] * 1000 - y[k] for k in range(len(live))]]
+        a_.errorbar(x, y, yerr=e, marker="o", ms=3.0, ls="none", elinewidth=0.8, capsize=1.6,
+                    color=fs.NEUTRAL, mec="black", mew=0.4)
+        if sat:
+            a_.axvspan(min(r["_x"] for r in sat) - 0.5, max(r["_x"] for r in sat) + 1.0,
+                       color="#EDEDED", zorder=0)
+        a_.set_title(title, fontsize=8)
+        a_.set_xlim(4, 38)
+        a_.set_ylim(0, 1120)
+        a_.set_xlabel("Release budget $D$ [ms]")
+    tails_ax[0].set_ylabel("Release tail $\\varepsilon$ [$\\mu$s]")
+    tails_ax[2].set_ylabel("Release tail $\\varepsilon$ [$\\mu$s]")
+    tails_ax[1].set_yticklabels([])
+    grid[1][1].set_title("Which value governs", fontsize=8)
 
     # ---- (b) measured against configured, for every quantity that could set the interval
     g = collections.defaultdict(list)
@@ -247,24 +258,23 @@ def figure(res, rows, sep):
     ax[1].text(14.0, 23.6, "ignored", fontsize=8, color=fs.TIMING_OFF_ALT, ha="left",
                va="center")
 
-    for a in ax:
+    for a in (grid[0][0], grid[0][1], grid[1][0], grid[1][1]):
         fs.grid(fig, a)
-    fig.tight_layout(pad=0.3)
+    fig.tight_layout(pad=0.3, h_pad=0.6, w_pad=0.5)
 
     data = [(r["series"], r["txn_class"], r["reference"], r["deadline_ms"], r["configured_ms"],
              r["passes"], r["n_total"], round(r["tail_ms"] * 1000, 2),
              round(r["tail_min_ms"] * 1000, 2), round(r["tail_max_ms"] * 1000, 2),
              round(r["tail_sd_ms"] * 1000, 2), int(r["saturated"])) for r in res]
     fs.save(fig, FIGDIR, "fig_release_tail", inputs=[TXNS, ROOT / "blocks.csv"],
-            caption=("(a) The release tail $\\varepsilon$, the interval between a packet's "
-                     "scheduled instant and its actual one, against the budget $D$ the operator "
-                     "sets, over three independent installs of each policy. It falls on one of "
-                     "two branches, near 25~$\\mu$s or growing with the hold to 0.96~ms; the "
-                     "shaded region is where the reservoir spends its pass budget and releases "
-                     "early. (b) Every configured quantity that could set a master-visible "
-                     "OPERATE interval, measured against what was asked for. The configured "
-                     "CLRT$_{\\mathrm{new}}$ is obeyed on the identity; the control-lane "
-                     "offset $A$ and the difference $R-A$ are ignored."),
+            caption=("The release tail $\\varepsilon$ against the budget $D$ for READ, SELECT "
+                     "and OPERATE, over three installs of each setting; whiskers span them, and "
+                     "in the shaded region the reservoir spends its pass budget and releases "
+                     "early. OPERATE is timed from the request, so its $\\varepsilon$ is the "
+                     "acknowledgment's arrival beyond $T_0 + D_A$. Lower right, each configured "
+                     "quantity that could set a master-visible OPERATE interval, against the "
+                     "interval it would set: CLRT$_{\\mathrm{new}}$ is obeyed, $A$ and $R-A$ are "
+                     "ignored."),
             stats_note=("(a) tail = median(request-to-acknowledgment | Obfuscated) - median(same "
                         "| Timing OFF blocks of the same pass) - configured hold; point is the "
                         "mean over three passes, whiskers the min and max. (b) per-setting "

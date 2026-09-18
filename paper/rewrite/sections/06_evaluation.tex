@@ -154,10 +154,11 @@ a frame or a byte.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/tail/fig_release_tail}
-  \caption{(a) The release tail $\varepsilon$ against the budget $D$, over three installs of each
-  setting; whiskers span them. In the shaded region the reservoir spends its pass budget and
-  releases early, so no tail is defined. (b) Each configured quantity that could set a
-  master-visible OPERATE interval, against the interval it would set: the configured
+  \caption{The release tail $\varepsilon$ against the budget $D$ for each class, over three
+  installs of each setting; whiskers span them, and in the shaded region the reservoir spends its
+  pass budget and releases early. OPERATE is timed from the request, so its $\varepsilon$ is the
+  acknowledgment's arrival beyond $T_0 + D_A$. Lower right, each configured quantity that could set
+  a master-visible OPERATE interval, against the interval it would set: the configured
   $\mathrm{CLRT}_{\mathrm{new}}$ is obeyed, and the control plane's offsets $A$ and $R-A$ are
   ignored.}
   \label{fig:tail}
@@ -170,12 +171,14 @@ request-to-acknowledgment median carries the outstation's own latency and every 
 the obfuscated median carries the same terms plus the configured hold plus $\varepsilon$, and the
 difference leaves $\varepsilon$. On the campaign's captures it is 0.78~ms at the evaluated 24~ms
 budget, already contained in the added latency above. A second sweep on the same testbed installed
-18 read-lane budgets three times each, 26{,}640 exchanges in all, reading back the installed policy
-and the disabled size carve for every block. In Figure~\ref{fig:tail}(a) $\varepsilon$ does not
-follow the budget smoothly: it sits between 18 and 38~$\mu$s at nine budgets and grows with the
-hold to 0.96~ms at the rest, and every setting but one takes the same branch in all three installs.
-Figure~\ref{fig:tail}(b) confirms~(\ref{eq:control}): the master-visible control intervals follow
-$D_A$ and the configured $\mathrm{CLRT}_{\mathrm{new}}$ and ignore the control plane's own offsets.
+18 read-lane budgets three times each, 27{,}111 exchanges over 96 blocks, reading back the installed policy
+and the disabled size carve for every block. In Figure~\ref{fig:tail} $\varepsilon$ does not
+follow the budget smoothly. For READ it sits between 18 and 38~$\mu$s at ten budgets and grows
+with the hold to 0.96~ms at the other six, and every setting takes the same branch in all three
+installs. SELECT shows the same two branches, but at six settings its installs disagree. OPERATE,
+timed from the request, carries 0.55 to 0.85~ms at every hold below the knee and no trace of $J$.
+The fourth panel confirms~(\ref{eq:control}): the master-visible control intervals follow $D_A$
+and the configured $\mathrm{CLRT}_{\mathrm{new}}$ and ignore the control plane's own offsets.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
 timers, so we measured what it consumed. On the master-facing captures the request bytes were

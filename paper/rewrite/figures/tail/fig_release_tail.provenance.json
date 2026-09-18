@@ -3,19 +3,19 @@
   "inputs": [
     {
       "path": "defense4/timing/evidence/tail_sweep_20260918/transactions.csv",
-      "sha256": "cb74535bf0bfc2cb371139ba3137087d99f17d131efb416ff7900c90bb74a0c1"
+      "sha256": "5b3f10082b009c1dd61d77a65a20e6a1c5832dd1d582df54a74fd23b75ace26e"
     },
     {
       "path": "defense4/timing/evidence/tail_sweep_20260918/blocks.csv",
       "sha256": "4d6ada26c27c0bf1464ab383f2de999c515b4dd5fc82eb717d561aecd6adddca"
     }
   ],
-  "caption_draft": "(a) The release tail $\\varepsilon$, the interval between a packet's scheduled instant and its actual one, against the budget $D$ the operator sets, over three independent installs of each policy. It falls on one of two branches, near 25~$\\mu$s or growing with the hold to 0.96~ms; the shaded region is where the reservoir spends its pass budget and releases early. (b) Every configured quantity that could set a master-visible OPERATE interval, measured against what was asked for. The configured CLRT$_{\\mathrm{new}}$ is obeyed on the identity; the control-lane offset $A$ and the difference $R-A$ are ignored.",
+  "caption_draft": "The release tail $\\varepsilon$ against the budget $D$ for READ, SELECT and OPERATE, over three installs of each setting; whiskers span them, and in the shaded region the reservoir spends its pass budget and releases early. OPERATE is timed from the request, so its $\\varepsilon$ is the acknowledgment's arrival beyond $T_0 + D_A$. Lower right, each configured quantity that could set a master-visible OPERATE interval, against the interval it would set: CLRT$_{\\mathrm{new}}$ is obeyed, $A$ and $R-A$ are ignored.",
   "statistical_method": "(a) tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold; point is the mean over three passes, whiskers the min and max. (b) per-setting medians of the interval each quantity is supposed to govern",
   "artifacts": {
-    "fig_release_tail.pdf": "f72d41b3adb25e8666f5afc31f99c39590ba25bf575388fe8611fecfdbf58b26",
-    "fig_release_tail.png": "8ceb99118ea8a389b7798a7cf91c6369c63698d25803cd6162c72e1269e05920",
-    "fig_release_tail_data.csv": "89cd58d9498154ceb2d2ee2b71f91fad3218d23f31b2f29ba51940918c8d367f"
+    "fig_release_tail.pdf": "52596733da57c4ed145254451108412de28bc6ea124884932136bd454407e2a2",
+    "fig_release_tail.png": "b57db85847df490577b2f619f239d00648a64a1a3545797f31f523778ff4afea",
+    "fig_release_tail_data.csv": "d8f73e6d39bbb2a3a333ce6de0794ff5b88db744003c9bbe485cb425e75a6f7d"
   },
   "style": {
     "width_in": 3.48,
