@@ -2,11 +2,11 @@
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "de5d523ce949fb601928a460974231552d34da46",
+ "source_commit": "9523276985232f832b450f6bd0e4ee989b1104e6",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "9a6a59c717b477fb9ac89c928cf93598c92cded3f6829ed3fdb530a127df495b"
+  "sha256": "23b0151392e890f0e0ee5d51880c2bbb5d3d27e5c0c4fb23220fd23f1aaa07ed"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -34,12 +34,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "52db360e83fe0474705e4ad82864efbd6e53fdeae7b815a2664386d7d58d09d8",
+   "sha256": "4c39a242f93edebd38e67b7a02dbc08944424412cfc2af7a7c53eed5e411411b",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "468733ca1196e87710245fd435cc026f83fe6803a5b852dfedc79cd58ee6f1cb",
+   "sha256": "a5f9ef5a5caa3ddc89f1604e7bd80bce8844a403e93d7683d3ce78e197a98eaa",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"

@@ -184,7 +184,10 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
 
     # ---- (d) the master's request-to-response latency, the observed cost
     box_pair(ax[1][1], rows, col=5)
-    ax[1][1].set_ylabel("Request-to-response (ms)"); ax[1][1].set_ylim(1, 400)
+    # The ordinate runs to 800 rather than 400 so the upper-left legend clears the tallest
+    # whisker, 90 ms on the Timing OFF READ box. Lower right is not free: the OPERATE boxes
+    # sit there.
+    ax[1][1].set_ylabel("Request-to-response (ms)"); ax[1][1].set_ylim(1, 800)
     ax[1][1].legend(loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
@@ -475,7 +478,7 @@ def fig_leakage(leak, out, inputs):
     # The other way round needs a three-entry legend of long names, which is what did not fit.
     conds = [("fixed\nOFF", "A_fixed_native_trained", "tested_on_timing_off"),
              ("fixed\nObf.", "A_fixed_native_trained", "tested_on_obfuscated"),
-             ("adapt.\nObf.", "B_adaptive_obfuscated_trained", "tested_on_obfuscated")]
+             ("adaptive\nObf.", "B_adaptive_obfuscated_trained", "tested_on_obfuscated")]
     # Open against solid, the same greyscale channel the arms use elsewhere.
     fill = {"clrt": (F.OFF, "white", 1.0), "ack_clrt": (F.ON, None, 0.90)}
     w, xb = 0.36, np.arange(len(conds))

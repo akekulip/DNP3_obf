@@ -382,6 +382,14 @@ def _draw_overflow_bar(ax, pct, cutoff, w, arm):
     ax.axvline(cutoff + w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
     ax.bar([cutoff + 2.0 * w], [pct], width=w, align="edge", color=ARM_COLOR[arm],
            edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///", linewidth=0.6, zorder=3)
+    # At a few tenths of a percent on a 0-60 % ordinate the category is a sliver: the hatch the
+    # caption names is invisible at print size. Its value is therefore written above it, so a
+    # reader sees that the category exists and how much it holds without measuring the bar.
+    # Set vertically: only three bin widths of abscissa sit right of the break marker, so a
+    # horizontal label would straddle the marker and read as if it belonged to the finite bins.
+    ax.annotate("%.3f\u2009%%" % pct, xy=(cutoff + 2.5 * w, pct),
+                xytext=(0, 4), textcoords="offset points", ha="center", va="bottom",
+                rotation=90, fontsize=8, color=ARM_COLOR[arm], zorder=6)
 
 
 def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
@@ -600,8 +608,8 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         # share of its transactions in this window and spreads them over every bin, so no bar
         # clears half a percent. Without the share stated in the panel a reader sees a blank
         # axis and has to hunt the caption for the number, so it is written where it is read.
-        ax.text(0.985, 0.92, "%.2f\u2009%% of this arm in the window" % shares[arm],
-                transform=ax.transAxes, ha="right", va="top", fontsize=8, color=ARM_COLOR[arm])
+        ax.text(0.02, 0.94, "%.2f\u2009%% of this arm" % shares[arm],
+                transform=ax.transAxes, ha="left", va="top", fontsize=8, color=ARM_COLOR[arm])
         # The bin width belongs in the caption, which states it, not in the panel title where it
         # repeats on both panels and crowds the arm name.
         ax.set_title(_panel_title(tag, arm, ""), loc="left", fontsize=8, pad=10.0)

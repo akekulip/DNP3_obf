@@ -63,13 +63,13 @@ def msg(y, l2r, colour, name, fc=None):
 def activation(y0, y1):
     vertex(XO - 3, y0, 6, y1 - y0, f"fillColor=#BFE6D9;strokeColor={GREEN};strokeWidth=0.6;")
 
-def bracket(y0, y1, sym):
+def bracket(y0, y1, sym, w=10, ital=True):
     x = XM - 14
     rule((x, y0), (x, y1), VERM, 1.0)
     for yy in (y0, y1):
         rule((x - 2, yy), (x + 2, yy), VERM, 1.0)
         rule((x + 2, yy), (XM - 1, yy), VERM, 0.45, "1.2 1.2")
-    text(x - 13, (y0 + y1) / 2 - 5, 10, 10, sym, 9, align="right", colour=VERM, italic=True)
+    text(x - 3 - w, (y0 + y1) / 2 - 5, w, 10, sym, 9, align="right", colour=VERM, italic=ital)
 
 def frame(y0, y1, label, tabw):
     vertex(30, y0, 206, y1 - y0, f"rounded=1;arcSize=2;fillColor=none;strokeColor={RULE};strokeWidth=0.6;")
@@ -94,7 +94,7 @@ msg(72, True, BLUE, "READ")
 msg(88, False, GREY, "ACK")
 msg(104, False, GREEN, "Response")
 activation(88, 104)
-bracket(88 + SLANT, 104 + SLANT, "c")
+bracket(88 + SLANT, 104 + SLANT, "CLRT", w=24, ital=False)
 
 # ---- (b) select-before-operate
 panel(123, "(b) Select-before-operate control")
