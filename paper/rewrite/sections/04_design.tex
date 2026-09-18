@@ -1,228 +1,228 @@
 \section{Design}
 \label{sec:design}
 
-The objectives of Section~\ref{sec:threat} require a selected interval to become a value the
-operator sets. We derive that from one transaction and defer the hardware realization to
-Section~\ref{sec:impl}.
+In this section, we first present an overview of the framework. Then we describe how it replaces
+the CLRT of a read transaction (Section~\ref{sec:design:read}) and of a control transaction
+(Section~\ref{sec:design:control}), each followed by its security argument. Last, we argue why its
+overhead is negligible and bounded (Section~\ref{sec:design:overhead}).
 
-\subsection{A timing model for one transaction}
-\label{sec:design:model}
+\subsection{Design Overview}
+\label{sec:design:overview}
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies every arrival and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; each held packet sits behind a queue of generated blocker packets that a strict-priority scheduler drains first.}}
+\caption{Design of the framework on one switch pipeline. Ingress classifies each transaction and
+  computes its release deadlines. The read lane holds what the outstation returns, for READ and for
+  both phases of a control. The control lane holds the outgoing OPERATE. Each held packet waits
+  behind a queue of switch-generated blocker packets (amber), which recirculate on a loopback port
+  of their own. Solid lines are master-facing and observed by the adversary. Dashed lines are not,
+  as in Figure~\ref{fig:observation}.}
+\label{fig:design}
+\end{figure}
+
+In Figure~\ref{fig:design}, we present the design of the framework. We place a programmable switch
+between the master and the outstation, and the switch classifies every DNP3 exchange by its function
+code. Based on that classification, it holds the packets that carry the timing of the outstation and
+releases each of them at a deadline, such that the interval the adversary measures becomes the value
+the operator configures. We handle two kinds of transactions in two lanes.
+
+\textbf{Read Lane.} For a READ poll and for the SELECT phase of a control command, the framework
+holds the transport acknowledgment and the application response of the outstation on their way to
+the master. It computes both release deadlines when the acknowledgment arrives
+(Section~\ref{sec:design:read}).
+
+\textbf{Control Lane.} For the OPERATE phase, the framework also holds the command itself on its way
+to the relay. Because the acknowledgment then no longer marks the start of the work, the framework
+computes the deadlines when the OPERATE request arrives (Section~\ref{sec:design:control}).
+
+Both lanes forward the packets they receive at their original size and generate none on either
+link. As such, the framework changes only when the wire carries the answer of the outstation.
+
+\subsection{Replacing the CLRT of a Read Transaction}
+\label{sec:design:read}
 
 \begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction. Time coordinates are illustrative, chosen so
-  an arrival and its emission are separable on the page. Both deadlines are computed from the
-  acknowledgment's arrival $t_A$: in (a) the response arrives in time and the master observes the
-  configured $\mathrm{CLRT}_{\mathrm{new}}$, in (b) it arrives late. The response hold $e_R-t_R$
-  is drawn in (a) because the schedule implies it rather than configuring it. Filled circles lie
-  on the master-facing link, the only place this work captured anything; open squares are
-  switch-side instants that were not captured.}
+  \caption{Release timeline of one READ transaction, with illustrative time coordinates. Both
+  deadlines are computed from the arrival of the acknowledgment $t_A$. In (a), the response arrives
+  in time and the master observes the configured $\mathrm{CLRT}_{\mathrm{new}}$. In (b), it arrives
+  late and leaves when its queue serves it. Filled circles lie on the master-facing link. Open
+  squares are instants inside the switch.}
   \label{fig:timeline}
 \end{figure}
 
-Consider one READ transaction, drawn in Figure~\ref{fig:timeline}. The master sends a request.
-The outstation answers it twice: first its transport layer acknowledges the request, and later
-its application layer returns the response with the data. We write $t_A$ for the instant the
-acknowledgment reaches the switch and $t_R$ for the instant the response reaches it. The
-switch forwards each packet onward at some later instant, $e_A$ and $e_R$ respectively. These
-are \emph{actual} departures, and we write $\hat{e}_A$ and $\hat{e}_R$ for the instants the
-schedule asks for, because the two differ by whatever the switch takes to act on a deadline and
-that difference is part of what we report. The
-master therefore observes the interval $e_R - e_A$, up to the propagation and capture delay of
-the two packets on the link between them.
-
-That interval carries the information about the device, and on our relay it has a median of
-2.116~ms for a poll and a spread of 2.6~ms:
+\textbf{Timing Model.} In Figure~\ref{fig:timeline}, we show the timeline of one READ transaction.
+The master sends a request, and the outstation answers it twice: its transport layer first
+acknowledges the request, and its application later returns the response. We write $t_A$ and $t_R$
+for the instants the acknowledgment and the response reach the switch, and $e_A$ and $e_R$ for the
+instants the switch forwards them. Without the framework, the adversary measures
 \begin{equation}
 \label{eq:clrt-original}
 \mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
 \end{equation}
-the interval between the two packets arriving at the switch. This interval remains dominated by
-the time the outstation spends between acknowledging the request and producing the answer, but it
-does not measure that time cleanly, since the two packets traverse the relay-facing link
-separately, allowing differential queueing and the outstation's own transmission to enter it.
-Section~\ref{sec:bg} explains why it identifies the device; here it becomes the quantity we intend
-to remove.
-
-To change what the master sees, the switch holds each packet. We write
+which is dominated by the execution time of the outstation (Section~\ref{sec:bg}). We write
 \begin{equation}
 \label{eq:holds}
 D_A = e_A - t_A
 \end{equation}
-for the \emph{acknowledgment hold}. Since it is written from actual departures, a configured
-$D_A$ and the hold a transaction realizes become the same quantity only to the extent that the
-release follows its deadline. We refer to $e_R - t_R$ as the \emph{response hold} without giving it a
-symbol of its own, because the schedule below fixes it rather than letting us choose it. Substituting into the interval the master observes gives the identity that governs the
-whole design,
+for the \emph{acknowledgment hold} and refer to $e_R - t_R$ as the \emph{response hold}. The interval
+the adversary measures then becomes
 \begin{equation}
 \label{eq:clrt-new}
 \mathrm{CLRT}_{\mathrm{new}} = e_R - e_A
   = \mathrm{CLRT}_{\mathrm{original}} + (e_R - t_R) - D_A .
 \end{equation}
 
-Equation~(\ref{eq:clrt-new}) makes the difference between two kinds of defense concrete. If both
-holds stay constant, their difference stays constant too and the observed interval becomes the
-original one moved by it: the distribution slides along the axis and keeps its width, a spread of 2.6~ms
-wherever it lands, so an observer who has seen the device before still recognizes it by the
-shape. The response hold must instead absorb the variation in
-$\mathrm{CLRT}_{\mathrm{original}}$, which we achieve by computing both releases from the same
-instant $t_A$. When the acknowledgment arrives, the switch computes both release instants
-immediately,
+\textbf{Constant Holds.} Equation~(\ref{eq:clrt-new}) shows why holding both packets for constant
+times cannot remove the fingerprint. If both holds are constant, the adversary measures the original
+interval shifted by their difference. The distribution moves along the time axis and keeps its
+shape, e.g., a spread of 2.6~ms on our relay, so an adversary who has profiled the device still
+recognizes it. To remove the fingerprint, the response hold must absorb the variation of
+$\mathrm{CLRT}_{\mathrm{original}}$.
+
+\textbf{Dual-Deadline Schedule.} To make the response hold absorb that variation, we compute both
+release deadlines from the same instant $t_A$. When the acknowledgment arrives, the framework sets
+the scheduled instants
 \begin{equation}
 \label{eq:schedule}
 \hat{e}_A = t_A + D_A , \qquad \hat{e}_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} ,
 \end{equation}
-where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. A packet's
-actual departure $e$ follows its scheduled instant $\hat{e}$ by the time the blocker queue takes
-to drain and by the queue's own service, which Section~\ref{sec:impl} describes and
-Section~\ref{sec:eval:cost} measures. Equation~(\ref{eq:clrt-new}) holds for actual departures
-and~(\ref{eq:schedule}) for the schedule. We call this
-value the \emph{configured} $\mathrm{CLRT}_{\mathrm{new}}$, and we call what the master actually
-records the \emph{measured} $\mathrm{CLRT}_{\mathrm{new}}$; Section~\ref{sec:eval} reports how far
-apart the two are. Because both release instants derive from $t_A$ and neither from $t_R$, the term
-$\mathrm{CLRT}_{\mathrm{original}}$ cancels in~(\ref{eq:clrt-new}) and the observed interval
-becomes the configured one. Consequently the response hold is implied rather than chosen,
+where the configured $\mathrm{CLRT}_{\mathrm{new}}$ is the interval the operator wants the adversary
+to measure. Because neither deadline depends on $t_R$, the term $\mathrm{CLRT}_{\mathrm{original}}$
+cancels in~(\ref{eq:clrt-new}), and the response hold becomes
 \begin{equation}
 \label{eq:coupling}
 e_R - t_R = D_A + \mathrm{CLRT}_{\mathrm{new}} - \mathrm{CLRT}_{\mathrm{original}} .
 \end{equation}
-Equation~(\ref{eq:coupling}) explains why the three quantities cannot be picked independently.
-Once the acknowledgment hold and the configured $\mathrm{CLRT}_{\mathrm{new}}$ are fixed, the
-response hold
-follows from whatever the device did on that transaction. It varies from one transaction to the
-next exactly as much as the device does.
+The response hold therefore follows the device on every transaction. It is long when the outstation
+answers quickly and short when the outstation answers slowly.
 
-This holds only while the response exists in time to be released on schedule. The switch can
-delay a packet but cannot emit one it has not received, so~(\ref{eq:schedule}) requires
-\begin{equation}
-\label{eq:availability}
-t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
-\end{equation}
-When~(\ref{eq:availability}) fails the deadline is already past when the response appears, so the
-switch marks it late and commits it to the response-hold queue, from which it leaves when that
-queue next serves it, as in Figure~\ref{fig:timeline}(b), and the master usually observes a longer
-interval. One read-lane exchange in a thousand answers that late, and every figure and table below
-includes it.
-
-The holds decide what the master observes \emph{between} the two packets, not how long it waits
-for the answer itself, which is the quantity an operational requirement constrains. Write $D_R$
-for that: the response's whole journey from the outstation transmitting it to the master receiving
-it, of which the switch accounts for
-\begin{equation}
-\label{eq:resplatency}
-m_R - t_R \le D_R .
-\end{equation}
-
-Two terms make up the observed portion, $(e_R - t_R) + (m_R - e_R)$: the time the switch holds the
-response and the path from the switch to the master. The hold itself divides once more, into the
-wait to the release deadline, the interval $\varepsilon$ from that deadline to the end of
-blocking, because the switch stops blocking a queued packet only once the queue gating it has
-drained, and the service that follows. Those three sum to the hold rather than adding to it.
-Consequently neither the response hold nor the configured $\mathrm{CLRT}_{\mathrm{new}}$ is the
-response latency, and the three are not separately selectable: fixing $D_A$ and the configured
-interval fixes the hold, which in turn consumes part of whatever the application deadline allows.
-Section~\ref{sec:eval:cost} measures $\varepsilon$.
-
-\subsection{Choosing the holds and the configured interval}
-\label{sec:design:params}
-
-The model leaves three quantities to decide: the acknowledgment hold $D_A$, the configured
-$\mathrm{CLRT}_{\mathrm{new}}$, and, through~(\ref{eq:coupling}), the response hold that
-follows from them. A different constraint limits each of them.
-
-The transport limits the acknowledgment hold in principle. Holding an acknowledgment delays the feedback the master's TCP uses to decide that a segment
-is lost. Consequently, a hold approaching the master's retransmission timeout would make the
-master resend a request the outstation had already answered.
-
-That timeout has to be measured rather than assumed.
-RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} recommends rounding it up to a second, and on
-our master an unacknowledged request repeats after 201~ms. The 20~ms hold we evaluate uses about a
-tenth of that.
-
-In practice the transport bound does not bind. The mechanism sustains a hold with a
-budget on blocker passes rather than a wall clock. From that budget, an assumed service rate, a
-conservative bound on the outstation's acknowledgment latency, measured detection and release
-terms and a safety margin, the control plane computes a horizon $H$ of 30.8~ms and an admissible
-budget of 24.8~ms, and a separate clamp refuses any acknowledgment hold above 40~ms. Because a
-pass budget bounds how many passes are \emph{serviced}, and under strict priority a lower-priority
-reservoir waits while a higher-priority one is served, one budget does not translate into one
-elapsed time for every queue. The sweep of Section~\ref{sec:eval:policy} installs settings past the
-horizon to find the resulting ceiling: the acknowledgment interval saturates at 31.07~ms, close to
-$H$.
-
-The operation limits the configured $\mathrm{CLRT}_{\mathrm{new}}$, and through $D_R$
-rather than directly: an operator bounds how long the answer takes to arrive, not the gap between
-the two packets that carry it. The relay documents one deadline that bears on this, its
-select-to-operate timeout, 1.0~s by default~\cite{selSEL751AInstructionManual}, which governs how
-long a select stays armed. The setting is therefore a deployment choice: we evaluate 4~ms and
-report the latency it produces, about 23~ms beyond the device alone, for an operator to check
-against their own requirement.
-
-A third timer is easy to miss. Holding the response also postpones the
-master's acknowledgment of it, which is the feedback the \emph{outstation's} transport waits for,
-so the response hold spends the outstation's retransmission budget as well as the application's
-patience. The budget belongs to the outstation, not the master. On this relay its timer runs about three
-orders larger than the master's, so the master's timer binds here. The three constraints stay
-separate, and a deployment that changed either device could reorder them.
-
-Together the two set what the mechanism costs. Their sum
+\textbf{Availability.} The switch can delay a packet but cannot release one it has not received. We
+call
 \begin{equation}
 \label{eq:budget}
 D = D_A + \mathrm{CLRT}_{\mathrm{new}}
 \end{equation}
-is the release budget: by~(\ref{eq:availability}) it decides which transactions the switch can
-place on the schedule at all. A larger budget covers more of the device's own response-time
-distribution and costs more delay on every transaction it covers: at $D=24$~ms it covers 99.9\% of
-them for about 23~ms of added latency. $D$ names the budget rather than the delay added to each exchange.
-The switch holds a transaction the outstation answers quickly for longer than one it answers
-slowly, so the added delay reaches at most $D$ without equalling it.
+the \emph{release budget}, and the schedule requires
+\begin{equation}
+\label{eq:availability}
+t_R \le t_A + D .
+\end{equation}
+A response that violates~(\ref{eq:availability}) arrives after its deadline. The framework marks it
+late and forwards it as soon as its queue serves it, so the exchange completes with its own timing.
+The operator chooses $D$ such that late responses are rare
+(Section~\ref{sec:design:overhead}).
 
-Because the budget and the observable measure different quantities, an operator can fix the cost and
-still choose the feature. Holding $D$ at 24~ms, we installed configured values from 1~ms to 22~ms.
-The master observed each one while the added delay stayed the same.
-Section~\ref{sec:eval:policy} reports that sweep and the point at which the realized hold stops
-tracking the requested one.
+\textbf{Security Argument.} Each held packet leaves the switch slightly after its deadline, by a
+\emph{release tail} $\varepsilon$ that the queues of the switch introduce
+(Section~\ref{sec:impl}). Writing $e_A = \hat{e}_A + \varepsilon_A$ and
+$e_R = \hat{e}_R + \varepsilon_R$, the schedule~(\ref{eq:schedule}) gives, for every response that
+satisfies~(\ref{eq:availability}),
+\begin{equation}
+\label{eq:released}
+e_R - e_A = \mathrm{CLRT}_{\mathrm{new}} + \varepsilon_R - \varepsilon_A .
+\end{equation}
+No term on the right-hand side depends on $t_R$. Consequently, the execution time of the outstation
+does not reach the interval the adversary measures. The operator sets the configured value, and the
+release tails belong to the switch rather than to the device. Nothing in this argument refers to which
+operation the outstation performed or which device produced the response. A different operation and
+a different device type are both a different distribution of
+$\mathrm{CLRT}_{\mathrm{original}}$, and both cancel in the same way. Therefore, a classifier that
+separates device types or operation types by the CLRT, such as the one of Formby et
+al.~\cite{formbyWhosControlYour2016}, receives the same input distribution for every class, which
+makes it challenging, if not impossible, to perform better than chance. Pooling does not help the
+adversary either, since pooling $k$ draws from one distribution yields one distribution for every
+class, whatever $k$ is. The device can still reach the interval in only two ways, through release
+tails that depend on the length of the hold and through responses that
+violate~(\ref{eq:availability}). We evaluate both in Section~\ref{sec:eval}.
 
-The model says nothing about what $\mathrm{CLRT}_{\mathrm{new}}$ should be, so the framework and
-the policy it carries stay separate. We chose a constant, because it removes the device's variation
-entirely and an operator can state and check it in one line. A schedule could instead draw the value
-from a distribution or compute it from the operation, and the same mechanism would carry it;
-we implement and evaluate only the constant setting.
+\textbf{Is It Possible to Recover the Execution Time (Adaptive Adversary)?} An adaptive adversary
+knows the framework and the configured $\mathrm{CLRT}_{\mathrm{new}}$, but this knowledge reveals
+only a value the operator chose. The adversary can still measure the intervals the framework does
+not replace. The request-to-acknowledgment interval carries the acknowledgment latency of the
+outstation and the hold $D_A + \varepsilon_A$. The acknowledgment latency reflects the transport
+stack of the outstation rather than its application, e.g., our relay acknowledges READ, SELECT and
+OPERATE requests within 0.003~ms of one another (Section~\ref{sec:bg}). Consequently, any class
+structure this interval shows under the framework comes from the release logic of the switch, e.g.,
+from the two lanes timing their deadlines from different events, rather than from the execution
+time of the device. We quantify this residual in Section~\ref{sec:eval:ro2}.
 
-\subsection{The control transaction is timed from the request}
+\subsection{Replacing the CLRT of a Control Transaction}
 \label{sec:design:control}
 
-A select-before-operate control command differs in one way that matters here: the framework holds
-the command itself before it reaches the relay, separating the moment the master issued the
-command from the moment the relay acts on it. The outstation's acknowledgment cannot be the
-reference instant, because it does not exist until after the command has been released, and any
-deadline measured from it would carry the length of the command hold into the interval the master
-observes. We therefore time the control lane from the request. When the OPERATE arrives at $T_0$,
-the switch releases it toward the relay after an internal delay $J$, and places the
-acknowledgment and the solicited response the master sees at
+A select-before-operate control command differs from a poll in one way. The framework also holds
+the OPERATE request before it reaches the relay, which separates the instant the master issues the
+command from the instant the relay acts on it. The acknowledgment of the outstation then cannot be
+the reference instant, because it exists only after the command is released, and a
+deadline measured from it would carry the command hold into the interval the adversary measures. To
+remove this dependence, we time the control lane from the request. When the OPERATE arrives at
+$T_0$, the framework releases it toward the relay after a hold $J$ drawn from a configured set, and
+it schedules the acknowledgment and the response toward the master at
 \begin{equation}
 \label{eq:control}
-e_{\mathrm{ack}} = T_0 + D_A , \qquad
-e_{\mathrm{or}} = e_{\mathrm{ack}} + \mathrm{CLRT}_{\mathrm{new}} .
+\hat{e}_{\mathrm{ack}} = T_0 + D_A , \qquad
+\hat{e}_{\mathrm{or}} = \hat{e}_{\mathrm{ack}} + \mathrm{CLRT}_{\mathrm{new}} .
 \end{equation}
-Those two offsets are the read lane's own, not a second pair: one set of deadline registers serves
-both lanes (Section~\ref{sec:impl}). The master therefore observes
-$O = e_{\mathrm{or}} - e_{\mathrm{ack}} = \mathrm{CLRT}_{\mathrm{new}}$, in which $J$ does not
-appear, so the relay-facing release time can vary while the master-facing interval does not, and
-an observer cannot subtract a known offset to recover it.
+The two offsets are those of the read lane, and one set of deadline registers serves both lanes
+(Section~\ref{sec:impl}).
 
-The control plane keeps its own pair of offsets for this lane and refuses one whose
-acknowledgment offset does not exceed the largest admissible $J$ plus the outstation's
-acknowledgment latency, or whose response offset reaches the horizon. Those checks decide what may
-be installed, not when a packet leaves. Our experiments set $D_A$ to 20~ms and the configured
-$\mathrm{CLRT}_{\mathrm{new}}$ to 4~ms, so both lanes present the same value to the observer.
+\textbf{Security Argument.} The adversary measures
+$O = e_{\mathrm{or}} - e_{\mathrm{ack}} = \mathrm{CLRT}_{\mathrm{new}} + \varepsilon_{\mathrm{or}} -
+\varepsilon_{\mathrm{ack}}$, in which neither the execution time of the relay nor the command hold
+$J$ appears. As such, the framework can vary the instant the relay acts on a command while the
+interval the adversary measures stays fixed, and the adversary cannot subtract a known offset to
+recover either quantity. As in the read lane, the schedule requires the response of the relay to
+reach the switch before $\hat{e}_{\mathrm{or}}$, i.e., within $D$ of the request, with the command hold
+$J$ included.
 
-\subsection{What the design does not change}
-\label{sec:design:boundary}
+\subsection{Overhead Argument}
+\label{sec:design:overhead}
 
-The mechanism replaces one interval per lane and leaves the rest of the exchange untouched, within
-the scope Section~\ref{sec:threat} sets out. The schedule causes one consequence directly. The
-request-to-acknowledgment interval still carries the outstation's own
-acknowledgment latency, displaced by the constant $D_A$ but not reshaped by it.
-Section~\ref{sec:eval:ro3} reports what an attacker allowed to retrain recovers from it.
+Obfuscation is only useful if an operator can afford it. We now argue why the framework introduces
+negligible overhead (RO3) in any deployment.
+
+\textbf{Bandwidth Overhead.} As shown in Figure~\ref{fig:design}, the framework forwards the
+packets it receives at their original size.
+The blocker packets that sustain a hold recirculate on internal loopback ports and never reach a
+cable (Section~\ref{sec:impl}). Consequently, the framework adds no frame and no byte to either
+link. Obfuscation that pads packets or injects dummy ones pays a bandwidth cost that this design
+does not have~\cite{meierDittoWANTraffic2022, dyerPeekaBooStillSee2012}.
+
+\textbf{Latency Bound.} We delay two packets per transaction. The acknowledgment leaves
+$D_A + \varepsilon_A$ after it arrives. A response that satisfies~(\ref{eq:availability}) leaves at
+$t_A + D + \varepsilon_R$, so by~(\ref{eq:coupling}) its added delay,
+$D - \mathrm{CLRT}_{\mathrm{original}} + \varepsilon_R$, never exceeds $D + \varepsilon_R$ and
+shrinks as the outstation answers more slowly. A response that violates~(\ref{eq:availability})
+leaves as soon as its queue serves it. The operator therefore bounds every added delay by choosing
+the release budget $D$, and the release tail is the only term the operator does not set.
+
+\textbf{Protocol Timers.} Three timers of the two endpoints can observe these delays. The TCP stack of the master
+retransmits a request whose acknowledgment does not arrive within its retransmission timeout
+$\tau_m$. The TCP stack of the outstation retransmits a response the master does not acknowledge
+within its own timeout $\tau_o$. The relay cancels a selected control point whose OPERATE does not
+follow within the select-to-operate timeout $\tau_s$, 1.0~s by default on the
+SEL-751A~\cite{selSEL751AInstructionManual}. The acknowledgment hold delays the first, the response
+hold delays the second, and the hold on the SELECT response delays the third. Consequently, the
+framework triggers none of them as long as
+\begin{equation}
+\label{eq:timers}
+D + \varepsilon < \min(\tau_m, \tau_o, \tau_s) .
+\end{equation}
+Condition~(\ref{eq:timers}) holds for any deployment whose outstation answers well within its
+timers, because the budget only needs to cover the response time of the outstation. RFC~6298
+recommends a lower bound of one second on the retransmission
+timeout~\cite{paxsonComputingTCPsRetransmission2011}. On our testbed, the master repeats an
+unacknowledged request after 201~ms and the relay repeats an unacknowledged response after about
+3~s, while a 24~ms budget covers 99.9\% of the responses of the relay
+(Section~\ref{sec:eval:perf}).
+
+\textbf{Security-Performance Trade-off Argument.} The release budget $D$ sets both sides of a
+trade-off. A larger budget places more of the responses of the outstation on the schedule, so fewer late
+responses carry their own timing, and it adds more delay to every transaction.
+Within a fixed budget, the split between $D_A$ and the configured $\mathrm{CLRT}_{\mathrm{new}}$
+costs nothing, and the operator can place the released interval anywhere below $D$ without changing
+the delay. We set $\mathrm{CLRT}_{\mathrm{new}}$ to a constant, because a constant removes the
+variation of the device entirely and an operator can state and check it. The schedule can carry any
+other value, e.g., one drawn from a distribution, without change.

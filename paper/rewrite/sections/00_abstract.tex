@@ -1,24 +1,25 @@
 \begin{abstract}
-An adversary watching a power-grid control network learns what an outstation is doing from how
-long it takes to answer: the interval between the device's transport acknowledgment and its
-application response reflects the work the device performed, and Formby et al.\ showed that its
-distribution identifies device types. The relay cannot be modified, and existing traffic
-obfuscation reshapes flow-level sizes and inter-packet gaps rather than one interval inside a
-single transaction.
+Adversaries preparing attacks on industrial control systems (ICSs) such as power grids first
+perform reconnaissance, and device fingerprinting supplies much of the knowledge they need. In ICS
+networks, the fingerprint does not have to come from the payload. The interval between the transport
+acknowledgment of an outstation and its application response reflects the execution time of the
+device, and it identifies both the device type and the operation the device performs. Existing
+traffic obfuscation does not remove this interval, because it reshapes packet sizes and inter-packet
+gaps of encrypted flows, whereas ICS traffic is unencrypted and any padding or dummy packet reveals
+itself.
 
-We place the defense in the network. A programmable switch in front of the outstation holds the
-acknowledgment and the response and releases each at a deadline computed from the moment the
-outstation acknowledged the request. Because both deadlines share that instant, the device's
-processing time cancels from the gap between the two releases, and the interval an observer
-measures becomes a value the operator sets. The switch forwards the packets it received, so both
-endpoints run unmodified and no DNP3 byte changes.
-
-We implement the framework on an Intel Tofino-1 and evaluate it against a physical SEL-751A
-protective relay over 63{,}360 exchanges. The released interval settles on the configured 4~ms, and its
-standard deviation falls from 2.609 to 0.628~ms, and the operator can place it anywhere from 1 to
-22~ms at a fixed budget without moving the response time the master sees. The mutual information
-between the interval and the transaction class falls into its permutation null, and a classifier
-trained on Timing OFF traffic drops from 0.745 balanced accuracy to three-class chance. An adversary
-that retrains and pools twenty exchanges into a signature stays at chance on the replaced interval,
-where Timing OFF traffic lets it reach 0.988.
+To overcome these challenges, we propose an in-network timing-obfuscation framework that replaces
+the interval with a value the operator configures. A programmable switch placed in front of the
+outstation holds the acknowledgment and the response and releases each of them at a deadline
+computed from the same instant, such that the execution time of the device cancels from the interval
+an adversary measures. The switch only delays the packets it receives, so both endpoints run
+unmodified and no DNP3 byte changes. We implement the framework on an Intel Tofino-1 switch and
+evaluate it against a physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The
+experimental results show that, with negligible overhead, the framework can disrupt timing-based
+fingerprinting. The released interval settles on the configured value, and the mutual information it
+carries about the operation falls into its permutation null. A classifier trained on Timing OFF
+traffic falls from 0.745 balanced accuracy to three-class chance, and an adaptive adversary that
+pools twenty exchanges stays at chance, where Timing OFF traffic lets it reach 0.988. The framework
+adds no frame and no byte, and its 22.7~ms of added latency stays well within the 201~ms after which
+the master repeats an unacknowledged request.
 \end{abstract}

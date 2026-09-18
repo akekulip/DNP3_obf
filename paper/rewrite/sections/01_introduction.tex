@@ -46,34 +46,60 @@ to a wide range of legacy devices, despite ICS network protocols may provide sec
 Directly padding or adding dummy packets can easily reveal obfuscated packets, exposing the the
 underlying traffic pattern to adversaries.
 
-In this paper, we present a framework that schedules when selected packets of an ICS transaction
-leave the network, so that a timing feature an observer measures becomes a value we choose rather
-than a property of the device. A programmable switch at the outstation edge holds the
-acknowledgment and the response of a transaction and releases each at a deadline it computes when
-the transaction begins.
-
-Because the switch forwards the same packets it received, the endpoints run unmodified firmware
-and no DNP3 byte is altered, which is what the plaintext setting requires.
-The framework is general over which packets are held and what the released interval should be, and
-we demonstrate it on two network-observable intervals: the cross-layer response time of a poll,
-the feature Formby et al.~\cite{formbyWhosControlYour2016} fingerprint, and the master-visible
-timing of a select-before-operate control command. The second is our own case rather than their
-second feature, which is the device's physical operation time and not an interval read from the
-network. These are two case studies of one mechanism, not two systems.
+In this paper, we propose an in-network timing-obfuscation framework for ICS traffic. Instead of
+padding packets or adding dummy ones, the framework changes only when the packets of a transaction
+leave the network, such that the timing an adversary measures becomes a value the operator
+configures rather than a property of the device.
 
 \subsection{Contributions}
 
-To overcome the two obstacles above, we design a timing-obfuscation framework. It replaces a
-selected within-transaction timing feature with a configured value by scheduling the release of
-real protocol packets. We derive the coupling between the acknowledgment hold, the response hold
-and the configured interval that any such schedule must satisfy (Section~\ref{sec:design}).
+To overcome the two drawbacks above, we design a framework that runs on a programmable switch placed
+in front of an outstation. The switch holds the transport acknowledgment and the application
+response of the outstation, and it releases each of them at a deadline computed from the moment the
+acknowledgment arrives. Because both deadlines are computed from the same instant, the execution
+time of the device cancels from the interval between the two releases. Because the switch forwards
+the same packets it received, the obfuscated traffic carries nothing that marks it as obfuscated,
+which is what a plaintext protocol requires.
 
-\textbf{Realization.} We realize the framework on an Intel Tofino-1 using paired blocker and hold
-queues that sustain a hold until a deadline expires, with a read lane timed from the outstation's
-acknowledgment and a control lane timed from the request. Forwarding stays open when a response
-arrives after its scheduled release (Section~\ref{sec:impl}).
+\textbf{The Framework's Role.} We position the framework as a complement to the protections an ICS
+already runs, such as intrusion detection. It reads no payload and changes no byte, and it requires
+no modification of the master, the outstation or the DNP3 protocol. Consequently, it can protect
+legacy devices that can neither be patched nor replaced, which are the devices that fingerprinting
+targets.
 
-\textbf{Evaluation.} We evaluate the realization against a physical SEL-751A relay. The report
-covers how closely the released interval reaches its configured value, what the policy can and
-cannot cover, the latency the mechanism adds, the hardware resources it uses, and what an adaptive
-attacker still learns from the features that remain (Section~\ref{sec:eval}).
+The main contributions of the paper are:
+\begin{itemize}
+  \item \textbf{Replace the execution time of a device with a configured value.} We design a release
+    schedule that holds real protocol packets. It computes both deadlines from one instant, so the
+    execution time of the outstation cancels from the released interval. To the best of our
+    knowledge, this is the first work that replaces the cross-layer response time of an ICS device
+    inside the network. Existing defenses mimic, randomize or encrypt what the device sends.
+  \item \textbf{Obfuscate plaintext ICS traffic without adding a packet.} The framework only delays
+    packets, so it needs no encryption to hide its operation. The operator bounds the added delay by
+    choosing the release budget, and that bound keeps every exchange within the timers of TCP and
+    DNP3.
+  \item \textbf{Implement the framework at line rate.} On an Intel Tofino-1 switch, we hold each
+    packet behind a strict-priority queue of blocker packets the switch generates. The queue
+    sustains a hold until its deadline without a timer. We cover both the read and the control
+    transaction of DNP3.
+\end{itemize}
+
+For evaluation, we placed the switch between a DNP3 master and a physical SEL-751A feeder protection
+relay and collected 63{,}360 exchanges, half of them with the framework running. We tested the
+released interval against (i) a classifier trained before the framework was deployed, (ii) an
+adversary that retrains on obfuscated traffic, and (iii) an adversary that pools up to twenty
+exchanges into one signature, as Formby et al.\ do.
+
+Our experimental results show that the framework disrupts timing-based fingerprinting while
+introducing negligible overhead:
+\begin{itemize}
+  \item The released interval settles on the configured value. Its interquartile range falls from
+    2.778 to 0.006~ms, and the operator can place it anywhere from 1 to 22~ms at a fixed cost.
+  \item The interval no longer identifies the operation. Its mutual information with the transaction
+    class falls from 0.383 to 0.004~bits, inside the permutation null. A classifier trained on
+    Timing OFF traffic falls from 0.745 balanced accuracy to chance, and an adaptive adversary that
+    pools twenty exchanges stays at chance, against 0.988 on Timing OFF traffic.
+  \item The overhead is negligible. The framework adds no frame and no byte, the median response
+    time rises by 22.7~ms, well within the 201~ms after which the master repeats an unacknowledged
+    request, and no exchange was retransmitted.
+\end{itemize}

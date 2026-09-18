@@ -71,7 +71,9 @@ def installed_paragraphs() -> list[str]:
     body = INTRO.read_text()
     body = "\n".join(l for l in body.splitlines() if not l.lstrip().startswith("%"))
     body = body.split("\\label{sec:intro}", 1)[1]
-    body = body.split("In this paper, we present", 1)[0]
+    # The continuation after his paragraph 3 opens "In this paper, we ..."; the verb varies
+    # ("present", "propose"), so split on the stable prefix rather than on one wording.
+    body = body.split("In this paper, we ", 1)[0]
     return [p.strip() for p in body.split("\n\n") if p.strip()]
 
 
