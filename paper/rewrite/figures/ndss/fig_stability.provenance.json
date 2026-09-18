@@ -2,15 +2,15 @@
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "010c18fe7779fe629636a61c0b4f461e5c236b45",
+ "source_commit": "d42083aaf1b1887d0678d776bd97f9c032f1c43c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c5b93822b05f649c361055df881be6ba04d295366fc03fb3a4c6e417e558cf3"
+  "sha256": "18157d766ee0ad1f11bac319554838ef3a69cf421989cc8a843b192140f03a10"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "937423dd06fdf6a0e54f3b4b69d225d9d5f6e0adf18381dd93807f001cef8548",
+   "sha256": "d886a42aaf5b1072f5f1dd6f54b314c10a86633344b13b9e9a5d63fd9449a268",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "09e3d7a64f416b0c3694423d0335e3089a05bfb31270ad0fa3f0687c3ab81ed2",
+   "sha256": "dc6f6c25b1c297372d68343ba22499d9067cfc87d9ed8082318cf679ff720016",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -44,7 +44,7 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
+  "width": 3.48,
   "height": 3.0
  },
  "method_note": "Each marker is the median of one transaction class within one grouped run, and the bar spans that run's interquartile range. Runs are shown in acquisition order so that drift over the campaign would be visible as a trend.",

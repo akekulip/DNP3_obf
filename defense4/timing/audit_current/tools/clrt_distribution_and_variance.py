@@ -545,7 +545,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         shares[arm] = 100.0 * int(counts.sum()) / float(v.size)
     y_zoom = max(zoom[a].max() for a in zoom) * 1.18
 
-    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 3.15))
+    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 2.55))
     for col, (arm, v) in enumerate((("native", off), ("obfuscated", obf))):
         a0, a1 = axes[0][col], axes[1][col]
 

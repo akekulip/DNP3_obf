@@ -2,15 +2,15 @@
  "figure": "fig_clrt_distributions_full",
  "caption": "**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms and no overflow category, so every tail out to the largest observation, 83.5 ms in (a) and 57.2 ms in (b), is drawn.",
  "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "ec5cff0470f0f0756c736c403d08bd5cdfd1bebf",
+ "source_commit": "d42083aaf1b1887d0678d776bd97f9c032f1c43c",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "5b5c0c7d43a7f2afe573f360f176572bf4de6333c020af73ebb4b17475e2f00a"
+  "sha256": "0fd610927b4f2d3712ae787baac48e608f8001fd129ba41567e6b5a9bb950d98"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "reused_module": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
@@ -566,12 +566,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.pdf",
-   "sha256": "ee5b69cedc293bb14f099cd088295b598bb2ad98f384bf10c4fdb64501f9c7b2",
+   "sha256": "e41c4c88321c6a6b2426017b47ba8da21520734d77c84962cc65179c9a0b63cd",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.png",
-   "sha256": "16ac2cd4d2748375398d9ac4ebc35ce1c27e94512e766d2f02856e01ddb83db0",
+   "sha256": "dda5c4691aeadebe003b3e8f27fe0bb3eb4a9d8729946151f48750e122726e56",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
@@ -584,7 +584,7 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
+  "width": 3.48,
   "height": 2.8
  },
  "method_note": "Companion to fig_clrt_distributions and generated from the same samples in the same run of the same script, so the two cannot disagree. Bins are identical in width and origin; the only difference is that no overflow category is formed and the abscissa runs to the largest observation in either arm. Bars are the percentage of that arm's own transactions, weight 100/n. Bins holding no transaction are omitted from the CSV and drawn at zero height.",

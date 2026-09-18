@@ -42,7 +42,8 @@ import paper_palettes as pp  # noqa: E402
 import utils_mpl  # noqa: E402
 
 # IEEE column measures. Decide the width first; never rescale in LaTeX.
-COL_WIDTH_IN = 3.5       # single column (88.9 mm)
+# IEEEtran's \columnwidth is 251.06 pt; 3.5 in overran it by 0.94 pt on every figure.
+COL_WIDTH_IN = 3.48      # single column, usable
 PAGE_WIDTH_IN = 7.16     # double column (181.8 mm)
 
 # Times New Roman with metric-compatible fallbacks, so the figures still build on a machine

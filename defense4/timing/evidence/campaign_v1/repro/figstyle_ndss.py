@@ -22,7 +22,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import scienceplots  # noqa: F401  registers the "science" / "ieee" / "no-latex" styles
 
-COL_W, PAGE_W = 3.5, 7.16          # NDSS column is 3.5 in; text block 7.16 in
+# IEEEtran's \columnwidth is 251.06 pt, not 252, so a 3.5 in figure overran every column by
+# 0.94 pt and logged an overfull box for each. 3.48 in is 250.56 pt and fits.
+COL_W, PAGE_W = 3.48, 7.16         # NDSS column is 3.48 in usable; text block 7.16 in
 SERIF = ["Nimbus Roman", "Times New Roman", "Liberation Serif", "DejaVu Serif"]
 # Colourblind-safe (Okabe-Ito). One meaning per colour across every figure.
 OFF, ON = "#D55E00", "#0072B2"      # Timing OFF (vermillion), Obfuscated (blue)

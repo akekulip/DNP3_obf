@@ -2,15 +2,15 @@
  "figure": "fig_feature_overlap",
  "caption": "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the outlined markers are the median of each class, computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is timed from the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "010c18fe7779fe629636a61c0b4f461e5c236b45",
+ "source_commit": "d42083aaf1b1887d0678d776bd97f9c032f1c43c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c5b93822b05f649c361055df881be6ba04d295366fc03fb3a4c6e417e558cf3"
+  "sha256": "18157d766ee0ad1f11bac319554838ef3a69cf421989cc8a843b192140f03a10"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_feature_overlap.pdf",
-   "sha256": "93b9a3f802061dbd58a28b66d9f818fc8e9af714be7a380e782522dde7139917",
+   "sha256": "f8178f4e9ca386491fdc82f751c03d88b2ac2385a20ba044eb2657b5ec1ca23e",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_feature_overlap.png",
-   "sha256": "7279fd27709de04f4b3d913f273afc24a8d62e981deaf19827bee3b31c4cc03d",
+   "sha256": "daf3fbbcd76ca68afc238a0f975f8b6779d91f622b2019b264459acc0074eaad",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -44,7 +44,7 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
+  "width": 3.48,
   "height": 3.0
  },
  "method_note": "Each panel plots the request-to-ACK interval against the post-ACK interval for every transaction class of one arm, on identical logarithmic axes so the two panels are directly comparable. Scatter is a deterministic class-stratified subsample of at most 900 exchanges per class, drawn with a seeded generator so the figure is reproducible; subsampling affects only what is drawn. The outlined marker is the median, and the 5th and 95th percentiles are written to the figure-data CSV rather than drawn; both are computed over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No dimensionality reduction, embedding or clustering algorithm is used anywhere: both axes are measured intervals in milliseconds.",

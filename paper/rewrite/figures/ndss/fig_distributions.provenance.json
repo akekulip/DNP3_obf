@@ -2,15 +2,15 @@
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "010c18fe7779fe629636a61c0b4f461e5c236b45",
+ "source_commit": "d42083aaf1b1887d0678d776bd97f9c032f1c43c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c5b93822b05f649c361055df881be6ba04d295366fc03fb3a4c6e417e558cf3"
+  "sha256": "18157d766ee0ad1f11bac319554838ef3a69cf421989cc8a843b192140f03a10"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
@@ -22,12 +22,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "f311711e7fef223ddecdbcf66264b9a629864b6c4f6c1b1430bc45c95f492acc",
+   "sha256": "1d3cd108d0c287d02bc5ac65accafa2757ab4615144d93e7adc042244d81dde0",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "275a8e5c006d7f19a3c780707319c4b6f54bce877cf90ede34db0b096562447a",
+   "sha256": "edf9584b1527ac0f40a91719a6e29b80b3d40324550367d9ac715d339a7af87c",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -40,7 +40,7 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
+  "width": 3.48,
   "height": 3.1
  },
  "method_note": "Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.",

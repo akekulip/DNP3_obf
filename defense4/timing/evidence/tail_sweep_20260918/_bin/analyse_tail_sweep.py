@@ -186,7 +186,7 @@ def figure(res, rows, sep):
     fs.use_ieee()
 
     # One column, two panels side by side: the page cannot afford a full-width float for this.
-    fig, ax = plt.subplots(1, 2, figsize=(fs.COL_WIDTH_IN, 1.95))
+    fig, ax = plt.subplots(1, 2, figsize=(fs.COL_WIDTH_IN, 1.70))
 
     # ---- (a) the tail itself, against the budget that was asked for
     rd = sorted([r for r in res if r["series"] == "readlane" and r["txn_class"] == "READ"],
@@ -232,7 +232,7 @@ def figure(res, rows, sep):
             continue
         ax[1].plot([a for a, _ in pts], [b for _, b in pts], marker=mk, ms=4.2, ls="none",
                    color=col, mec="black", mew=0.4, zorder=3,
-                   label=lab if lab not in seen else None)
+                   )
         seen.add(lab)
     lim = [0, 27]
     ax[1].plot(lim, lim, ls=":", lw=1.0, color=fs.GREY, zorder=1)
@@ -240,7 +240,12 @@ def figure(res, rows, sep):
     ax[1].set_ylim(*lim)
     ax[1].set_xlabel("Configured value [ms]")
     ax[1].set_ylabel("Measured interval [ms]")
-    fs.key(ax[1], loc="upper left")
+    # Labelled in place, not keyed. An opaque key has no safe corner at this size: in the upper
+    # left it hid the ignored point at A = 12 ms, and in the lower right the one at R - A = 12.
+    # A label set in clear space beside its own group cannot cover anything.
+    ax[1].text(13.5, 9.5, "obeyed", fontsize=8, color=fs.TIMING_ON, ha="left", va="center")
+    ax[1].text(14.0, 23.6, "ignored", fontsize=8, color=fs.TIMING_OFF_ALT, ha="left",
+               va="center")
 
     for a in ax:
         fs.grid(fig, a)

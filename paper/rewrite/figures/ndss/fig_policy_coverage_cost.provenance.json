@@ -2,15 +2,15 @@
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "010c18fe7779fe629636a61c0b4f461e5c236b45",
+ "source_commit": "d42083aaf1b1887d0678d776bd97f9c032f1c43c",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "5c5b93822b05f649c361055df881be6ba04d295366fc03fb3a4c6e417e558cf3"
+  "sha256": "18157d766ee0ad1f11bac319554838ef3a69cf421989cc8a843b192140f03a10"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
@@ -34,12 +34,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "ada581661a886615b82cde02ed84c1b0045abb38ef41b1657c1faa925edefbff",
+   "sha256": "24ddd2560458917d406fb471cf9654899920764a3f77ffb7e6874b1d7d727f41",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "905a2c5d796978424368f5d3f2b01b22b0c55f328d95c7240eb5924428d2c448",
+   "sha256": "00ab02cc300c91a07ccddbb2122675133b542e47dbb24766a2dd7b465c20b9b4",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -52,8 +52,8 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 7.16,
-  "height": 2.7
+  "width": 3.48,
+  "height": 3.1
  },
  "method_note": "Panel (a) is an empirical complementary CDF over the Timing OFF read lane (READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is timed to the request and is not schedulable against D. Panels (b) and (c) plot the 16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in (c); each is one capture under one installed dual-deadline policy, summarised by the median over its READ transactions, with the full measured range shown in (b). The other three captures are controls taken with the timing mechanism disabled and are not plotted. No value is resampled or interpolated. Panel (d) reports quartiles with whiskers over the full support.",
  "limitation_note": "The sweep offsets, the field D_A_ms and the field D_R_ms that carries the configured CLRT_new, are read from the archived sweep_points.csv configuration table; the driver logs record the mode and the J codebook but not the per-point offsets, and no per-point control-plane readback exists, so the configuration provenance for the sweep is partial. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.",

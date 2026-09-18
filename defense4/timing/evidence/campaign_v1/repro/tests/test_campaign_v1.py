@@ -681,7 +681,11 @@ def test_figure_provenance_hashes_match_outputs(stem):
 def test_figure_dimensions_are_ndss_widths(stem):
     p = json.load(open(os.path.join(OUT, "figs", f"{stem}.provenance.json")))
     w = p["figure_dimensions_in"]["width"]
-    assert abs(w - 7.16) < 0.01 or abs(w - 3.5) < 0.01, f"{stem}: width {w} in"
+    # Read from the style module, not restated here: the column width moved from 3.5 to 3.48 in
+    # when IEEEtran's 251.06 pt \columnwidth was found to be narrower than 3.5 in, and a literal
+    # in the test would have held the figures to the wrong width. The tolerance is unchanged.
+    import figstyle_ndss as F
+    assert abs(w - F.PAGE_W) < 0.01 or abs(w - F.COL_W) < 0.01, f"{stem}: width {w} in"
 
 
 @pytest.mark.parametrize("stem", FIGURES)

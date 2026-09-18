@@ -50,13 +50,20 @@ def tag(ax, t, x=0.965, y=0.955, ha="right", va="top"):
     ax.text(x, y, f"({t})", transform=ax.transAxes, va=va, ha=ha, fontsize=8)
 
 
-def box_pair(ax, rows, col, logy=True):
-    """Timing OFF against Obfuscated for the three classes; whiskers span the full range."""
+def box_pair(ax, rows, col, logy=True, horizontal=False):
+    """Timing OFF against Obfuscated for the three classes; whiskers span the full range.
+
+    horizontal=True lays the classes down the side. At one column's width three class names
+    cannot sit under three box pairs at 8 pt: SELECT and OPERATE need 31.5 pt between centres
+    and get 30. Down the side they have the whole left margin.
+    """
     for arm in ARMS:
         data = [sel(rows, arm, c, col=col) for c in CLASSES]
-        pos = np.arange(3) + (0.19 if arm == "obfuscated" else -0.19)
+        # Top to bottom READ, SELECT, OPERATE, the order of the text, when laid down the side.
+        base = (2 - np.arange(3)) if horizontal else np.arange(3)
+        pos = base + (0.19 if arm == "obfuscated" else -0.19) * (-1 if horizontal else 1)
         bp = ax.boxplot(data, positions=pos, widths=0.32, patch_artist=True,
-                        whis=(0, 100), showfliers=False)
+                        whis=(0, 100), showfliers=False, vert=not horizontal)
         for i in range(3):
             # Open against solid, so the pair stays readable in greyscale without a hatch.
             bp["boxes"][i].set(facecolor=F.arm_face(arm, ACOL[arm]), alpha=F.FILL_ALPHA[arm],
@@ -66,6 +73,13 @@ def box_pair(ax, rows, col, logy=True):
             for kk in ("whiskers", "caps"):
                 for art in bp[kk][2 * i:2 * i + 2]:
                     art.set(color=ACOL[arm], lw=0.7)
+    if horizontal:
+        if logy:
+            ax.set_xscale("log"); ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_yticks([2, 1, 0])
+        ax.set_yticklabels(CLASSES, fontsize=8)
+        ax.set_ylim(-0.6, 2.6)
+        return
     if logy:
         ax.set_yscale("log"); ax.yaxis.set_minor_formatter(NullFormatter())
     ax.set_xticks(range(3))
@@ -84,7 +98,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # the class names under (d) stand up straight, and nothing is shrunk below the 8 pt floor.
     # This figure is a figure* in the manuscript; it is the only one that spans. The height is
     # what the 13-page budget allows: 2.85 in and above costs a fourteenth body page.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.PAGE_W, 2.70))
+    # One column, not the full text width. As a figure* it cost 5.4 column-inches; the same
+    # four panels at column width cost 3.1, and each keeps a readable 8 pt abscissa.
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.10))
     ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     data = []
 
@@ -136,7 +152,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
                   zorder=3, label="request-to-response")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ [ms]")
+    # The points are labelled CLRT_new in the panel, so the axis need not repeat it; at one
+    # column the longer label ran past the figure edge.
+    ax[0][1].set_xlabel("Configured [ms]")
     ax[0][1].set_ylabel("Measured [ms]")
     ax[0][1].annotate("request-to-response", xy=(xs[1], rt[1]), xytext=(0.02, 0.80),
                       textcoords="axes fraction", fontsize=8, color=F.C_OPERATE,
@@ -183,12 +201,15 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                          clrt_med_ms=s["read_clrt_med_ms"]))
 
     # ---- (d) the master's request-to-response latency, the observed cost
-    box_pair(ax[1][1], rows, col=5)
-    # The ordinate runs to 800 rather than 400 so the upper-left legend clears the tallest
-    # whisker, 90 ms on the Timing OFF READ box. Lower right is not free: the OPERATE boxes
-    # sit there.
-    ax[1][1].set_ylabel("Request-to-response [ms]"); ax[1][1].set_ylim(1, 800)
-    F.key(ax[1][1], loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
+    box_pair(ax[1][1], rows, col=5, horizontal=True)
+    # The class names label the rows, so no ordinate label is needed. The arms are labelled
+    # in place on the READ row, right of every whisker, in the short forms Figure 8 already
+    # uses. A key has no room here: the only empty region is above 100 ms, 0.4 in wide, and a
+    # key set anywhere else covered the SELECT row's Obfuscated box.
+    ax[1][1].set_xlabel("Request-to-response [ms]"); ax[1][1].set_xlim(1, 800)
+    ax[1][1].text(115, 2.19, "OFF", fontsize=8, color=ACOL["native"], ha="left", va="center")
+    ax[1][1].text(115, 1.81, "Obf.", fontsize=8, color=ACOL["obfuscated"], ha="left",
+                  va="center")
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c, col=5)
@@ -201,7 +222,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     tag(ax[0][0], "a", x=0.965, y=0.955)
     tag(ax[0][1], "b", x=0.965, y=0.06, va="bottom")
     tag(ax[1][0], "c", x=0.965, y=0.955)
-    tag(ax[1][1], "d", x=0.965, y=0.955)
+    tag(ax[1][1], "d", x=0.965, y=0.06, va="bottom")   # top right now holds the arm labels
     F.grid([ax[0][0], ax[0][1], ax[1][0], ax[1][1]])
 
     cov = stats["read_lane_coverage"]
@@ -471,7 +492,7 @@ def fig_leakage(leak, out, inputs):
     # category labels overlapped and the legend ran off the canvas. The confusion matrices are
     # secondary, because the text states what they show, so their numbers stay in this figure's
     # data file and in leakage.json rather than being drawn illegibly.
-    fig, ax = plt.subplots(1, 2, figsize=(F.COL_W, 2.35))
+    fig, ax = plt.subplots(1, 2, figsize=(F.COL_W, 1.95))
     feats = ["clrt", "ack_clrt"]
     names = {"clrt": "CLRT only", "ack_clrt": "both intervals"}
     # The attacker conditions go on the abscissa and the feature set into a two-entry legend.
@@ -504,7 +525,14 @@ def fig_leakage(leak, out, inputs):
                ha="center", va="bottom")
     ax[0].set_xticks(xb); ax[0].set_xticklabels([c[0] for c in conds])
     ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.0)
-    F.key(ax[0], loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
+    # Labelled inside the fixed-OFF bars, not keyed. At one column an opaque key in any corner
+    # of this panel sat on a bar: in the upper right it covered the adaptive both-interval bar
+    # and its whisker, the adaptive result the section argues from. Set upright inside the two bars of
+    # the first group, the names cannot cover anything.
+    for k, f in enumerate(feats):
+        col, face, _ = fill[f]
+        ax[0].text(xb[0] + (k - 0.5) * w, 0.04, names[f], rotation=90, fontsize=8,
+                   ha="center", va="bottom", color=("white" if face is None else col))
 
     # (b) observed MI against the within-run permutation null. No error bar on the estimate.
     mi = leak["mutual_information"]
@@ -542,8 +570,9 @@ def fig_leakage(leak, out, inputs):
             for j in range(3):
                 data.append(dict(panel="not_drawn_confusion", matrix=ttl, true=CLASSES[i],
                                  predicted=CLASSES[j], fraction=float(cm[i, j])))
-    for a, t in zip([ax[0], ax[1]], "ab"):
-        tag(a, t, x=0.035, y=0.04, ha="left", va="bottom")
+    # (a) moves to the top left: the bottom left is now inside the first bar's label.
+    tag(ax[0], "a", x=0.035, y=0.955, ha="left", va="top")
+    tag(ax[1], "b", x=0.035, y=0.04, ha="left", va="bottom")
     F.grid([ax[0], ax[1]])
 
     fields = sorted({k for d in data for k in d})
