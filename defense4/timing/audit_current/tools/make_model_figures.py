@@ -59,7 +59,12 @@ LANE_Y = {"master": 2.0, "switch": 1.0, "relay": 0.0}
 # propagation, that is 0.35 + 0.30 + 0.35 = 1.00 ms, or the drawing violates causality. 1.25 ms
 # leaves the relay a visible processing interval. Illustrative, not measured.
 T_A_DRAWN = 1.25
-C_REQ, C_ACK, C_RESP, C_DEADLINE = fs.C_OPERATE, fs.GREY, fs.C_READ, fs.OFF
+# Request blue, acknowledgment grey, response green, exactly as Figure 1 (fig_ladder.svg)
+# draws them. They were the other way round here, so a reader turning from Figure 1 to this
+# one saw the request change colour. Vermillion is the timing the defense controls, as the
+# measured interval is in Figure 1.
+C_REQ, C_ACK, C_RESP, C_DEADLINE = fs.C_READ, fs.GREY, fs.C_OPERATE, fs.OFF
+LABEL = "#222222"   # symbols are black; colour is carried by the marker and the arrow
 
 
 def interval(ax, y, x0, x1, label, colour, *, above=True, pad=0.13, fontsize=8):
@@ -90,7 +95,7 @@ def instant(ax, x, y, label, colour, *, dy=0.1, dx=0.0, ha="center", fontsize=8,
     ax.plot([x], [y], marker=marker, ms=3.2, color=colour, markerfacecolor=face,
             markeredgecolor=colour, markeredgewidth=0.7, zorder=4, clip_on=False)
     ax.text(x + dx, y + dy, label, ha=ha, va="bottom" if dy > 0 else "top",
-            fontsize=fontsize, color=colour, zorder=5)
+            fontsize=fontsize, color=LABEL, zorder=5)
 
 
 def lifelines(ax, t_max):
@@ -174,7 +179,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     if not late:
         interval(ax, r - 1.02, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
     interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
-             C_RESP, pad=0.0)
+             C_DEADLINE, pad=0.0)
 
 
     for name, x in (("m_0", 0.0), ("t_0", prop), ("t_A", t_a), ("t_R", t_r),
@@ -204,17 +209,23 @@ def figure_release(outdir, const, audit):
     # One column. The deadline expressions and the end-to-end bar were dropped rather than
     # shrunk: the dotted lines still mark the deadlines, the duration bars below already name
     # D_A and CLRT_new, and the abscissa already shows the end-to-end time.
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 4.0))
+    # One shared time axis. Both panels drew their own 0-30 scale, which spent a line of
+    # height saying the same thing twice.
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.5), sharex=True)
     rows = []
     t_max = d_a + c_new + 7.5
     ladder_panel(axes[0], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
                  t_r=T_A_DRAWN + nat["median"], late=False, rows=rows, t_max=t_max)
     ladder_panel(axes[1], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
                  t_r=d_a + c_new + 1.8, late=True, rows=rows, t_max=t_max)
-    axes[0].set_title("(a) response arrives in time", fontsize=9, loc="left")
-    axes[1].set_title("(b) response arrives late", fontsize=9, loc="left")
+    axes[0].set_title("(a) response arrives in time", fontsize=8, loc="left", style="italic")
+    axes[1].set_title("(b) response arrives late", fontsize=8, loc="left", style="italic")
     axes[0].set_xlabel("")
-    fig.tight_layout(pad=0.4, h_pad=1.1)
+    # The upper panel reads its times off the lower panel's axis. Left in place, its own spine
+    # was a ruled line with ticks and no numbers across the middle of the figure.
+    axes[0].tick_params(labelbottom=False, bottom=False)
+    axes[0].spines["bottom"].set_visible(False)
+    fig.tight_layout(pad=0.4, h_pad=0.6)
     return fs.save(
         fig, outdir, "fig_m01_release_timeline",
         caption=(

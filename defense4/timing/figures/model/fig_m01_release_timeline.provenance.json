@@ -2,15 +2,15 @@
  "figure": "fig_m01_release_timeline",
  "caption": "Release timeline of the read lane, drawn from the verified program and not from a distribution. Points are timestamps and bars are durations; a filled circle marks an instant that was measured and an open square one that was not. The switch arms both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the acknowledgment is due at $t_A+D_A$ and the response at $t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time $\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is whatever the schedule requires, and it therefore varies with the arrival $t_R$. In (a) the response arrives before its deadline and the measured $\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it arrives after, the deadline is already past, the program forwards it on arrival, and the measured value exceeds the configured one; no response hold is drawn there because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, $t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=20$ ms and a configured $\\mathrm{CLRT}_{\\mathrm{new}}=4$ ms are the campaign settings.",
  "generation_command": "python make_model_figures.py",
- "source_commit": "16b7e1cd335000a21b620768e33ee47f1929b0f1",
+ "source_commit": "82e88db208a831821b6d33a23937a1133f23a72d",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "3b44ace3c8e1ada83cf62a1f812fb635d95e3151fa8eb4e05814772e11724be2"
+  "sha256": "f669a51734342f3fba896b51b68a0b4b0a60d4d11f0a6da9a467989125fd5298"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "454d97ed9cdf25e5482f2c3ed15011b3e4e26ba6c5ae5d63a2b8b60135577c2e"
+  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.pdf",
-   "sha256": "95c577c3a9aff26440a631170c105f14d9b07f30ecf675a8dc39c54a142261e1",
+   "sha256": "192579ca2227821a284ae8666dae9a4f6d917796b9ce3106c1b42278793ef5a7",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.png",
-   "sha256": "bc7f4989dce09d9b7d3333f0fbff3a5ec9068e40d6c3b511dc2e917fab7dca9a",
+   "sha256": "c5a5c465fc65acfd6cecf969f5ee5500f51cf105ac4341312f9ba8b0af08875c",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -45,7 +45,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.5,
-  "height": 4.0
+  "height": 3.5
  },
  "method_note": "No statistic is computed. The configured offsets are read from PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the measured median Timing OFF READ interval of 2.116 ms so the drawing is to the right scale. The late panel places $t_r$ beyond the release horizon to show the fail-open case; its offset is illustrative.",
  "limitation_note": "A master-facing capture contains none of $t_0$, $t_a$, $t_r$, $e_a$, $e_r$, so the switch-side instants in this diagram are recovered from the program and are not measurements. Queue residence time, the relay-facing release at $t_0+J$, release multiplicity and physical actuation are all unobserved.",
