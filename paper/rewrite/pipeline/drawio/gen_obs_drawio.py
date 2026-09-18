@@ -41,8 +41,12 @@ def edge(style, src=None, tgt=None, sp=None, tp=None, pts=()):
 CISCO = ("html=1;pointerEvents=1;dashed=0;strokeColor=#ffffff;strokeWidth=1.2;"
          "outlineConnect=0;shape=mxgraph.cisco.{name};fillColor={fill};")
 
-# ---- the adversary's view, shaded: first, so everything else paints over it
-vertex(2, 2, 100, 84, f"rounded=1;arcSize=3;fillColor={ZONE_FILL};strokeColor={ZONE_EDGE};"
+# ---- the adversary's view, shaded: first, so everything else paints over it.
+# The zone covers the master-facing link and nothing else. It used to run from x=2 to x=102,
+# which enclosed the master, an endpoint the threat model says the adversary does not
+# compromise, and stopped 17 units short of the switch, leaving part of the observed link
+# outside the region the caption calls observed.
+vertex(43, 2, 76, 68, f"rounded=1;arcSize=3;fillColor={ZONE_FILL};strokeColor={ZONE_EDGE};"
                       "dashed=1;dashPattern=3 2;strokeWidth=0.6;")
 
 # ---- devices
@@ -77,7 +81,7 @@ for x0, x1 in ((130, 142), (150, 162)):
          "dashPattern=2.4 1.8;rounded=1;", sp=(x0, 65), tp=(x1, 65), pts=((x0, 72), (x1, 72)))
 
 # ---- labels: the four actors, nothing else
-text(2, 10, 54, 18, "passive<br>adversary", 7.5, align="right", colour=VERM)
+text(82, 9, 34, 18, "passive<br>adversary", 7.5, align="left", colour=VERM)
 text(5, 75, 40, 10, "Master")
 text(111, 75, 70, 10, "Programmable switch")
 text(209, 75, 36, 10, "SEL-751A")
