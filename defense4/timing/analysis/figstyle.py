@@ -135,12 +135,33 @@ def use_ieee():
 
 
 def grid(fig, ax, major=True, minor=True):
-    """Grid, then tight_layout. Call LAST, after every label and legend.
+    """No interior rules, then tight_layout. Call LAST, after every label and legend.
 
-    minor=False on a logarithmic axis: a decade's worth of minor lines reads as hatching.
+    The name and signature are kept because every call site in this repository uses them, and
+    the layout pass is what those sites actually depend on. What changed is the ruling: the
+    Ditto figures these plots are matched to carry no grid at all, and a panel whose interior
+    is white reads as data rather than as ruling. `major` and `minor` are accepted and ignored.
     """
     for a in (ax if isinstance(ax, (list, tuple)) else [ax]):
-        utils_mpl.set_grid(fig, a, major=major, minor=minor)
+        a.grid(False)
+        a.set_axisbelow(True)
+    fig.tight_layout()
+
+
+def key(ax, **kw):
+    """The legend as Ditto draws it: a white box with a thin grey border, inside the panel.
+
+    Frameless keys let a rule or a whisker run through the label, which is exactly the defect
+    that had to be repaired by hand on two figures here. A box costs nothing and cannot.
+    """
+    opts = dict(frameon=True, framealpha=1.0, facecolor="white", edgecolor="#666666",
+                fancybox=False, borderpad=0.35, handlelength=1.6, handletextpad=0.5,
+                labelspacing=0.28, fontsize=8)
+    opts.update(kw)
+    leg = ax.legend(**opts)
+    if leg is not None:
+        leg.get_frame().set_linewidth(0.5)
+    return leg
 
 
 def _sha256(p):

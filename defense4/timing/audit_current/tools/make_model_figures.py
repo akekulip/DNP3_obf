@@ -202,7 +202,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
                     ("L_A", m_a), ("L_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(v, 3), kind="duration"))
-    ax.set_xlabel("time from the request (ms)")
+    ax.set_xlabel("time from the request [ms]")
 
 
 def figure_release(outdir, const, audit):
@@ -341,7 +341,7 @@ def figure_timeout(outdir, const, audit):
     ax.set_xlim(0.1, 4000)
     ax.set_ylim(-0.05, 4.05)
     ax.set_yticks([])
-    ax.set_xlabel("time from the request leaving the master, log scale (ms)")
+    ax.set_xlabel("time from the request leaving the master, log scale [ms]")
     for side in ("left", "right", "top"):
         ax.spines[side].set_visible(False)
     # A tick needs a spine to sit on. SciencePlots puts ticks on all four sides, which on a

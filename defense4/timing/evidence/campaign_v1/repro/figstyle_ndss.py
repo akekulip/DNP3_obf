@@ -112,15 +112,28 @@ def use():
 
 
 def grid(axes):
-    """A hairline reference grid, or none at all.
+    """No interior rules.
 
     SciencePlots draws no grid and relies on minor ticks, which is the convention in IEEE and
-    NDSS figures. A grid is kept only where a reader has to carry a value across a wide panel,
-    and then at a weight that stays behind the data.
+    NDSS figures, and it is what the Ditto figures these plots are matched to do. The hairline
+    grid this function used to add is gone: across a column-width panel it competed with the
+    data it was meant to help read. The name is kept because the call sites use it.
     """
     for a in (axes if isinstance(axes, (list, tuple)) else [axes]):
-        a.grid(True, which="major", color="#DDDDDD", lw=0.3, zorder=0)
+        a.grid(False)
         a.set_axisbelow(True)
+
+
+def key(ax, **kw):
+    """The legend as Ditto draws it: a white box with a thin grey border, inside the panel."""
+    opts = dict(frameon=True, framealpha=1.0, facecolor="white", edgecolor="#666666",
+                fancybox=False, borderpad=0.35, handlelength=1.6, handletextpad=0.5,
+                labelspacing=0.28, fontsize=8)
+    opts.update(kw)
+    leg = ax.legend(**opts)
+    if leg is not None:
+        leg.get_frame().set_linewidth(0.5)
+    return leg
 
 
 def nogrid(axes):

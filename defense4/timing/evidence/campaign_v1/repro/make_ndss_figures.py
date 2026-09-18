@@ -102,12 +102,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][0].set_xscale("log"); ax[0][0].set_yscale("log")
     ax[0][0].xaxis.set_minor_formatter(NullFormatter())
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
-    ax[0][0].set_xlabel("$\\mathrm{CLRT}_{\\mathrm{original}}$ (ms)")
+    ax[0][0].set_xlabel("$\\mathrm{CLRT}_{\\mathrm{original}}$ [ms]")
     ax[0][0].set_ylabel("Fraction exceeding")
     ax[0][0].text(D * 0.92, 2.2, "$D$", fontsize=8, ha="right", va="top", color="black")
     ax[0][0].text(H * 1.10, 2.2, "$H$", fontsize=8, ha="left", va="top", color="black")
     # Above the panel: inside, even a two-entry key sat on the curve it was naming.
-    ax[0][0].legend(loc="lower left", ncol=1, handlelength=1.5, handletextpad=0.4)
+    F.key(ax[0][0], loc="lower left", ncol=1, handlelength=1.5, handletextpad=0.4)
 
     # ---- (b) fixed total budget, the configured CLRT_new swept: the visible interval follows
     # the policy value. The archived sweep table names that configured value D_R_ms; under the
@@ -136,8 +136,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
                   zorder=3, label="request-to-response")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms)")
-    ax[0][1].set_ylabel("Measured (ms)")
+    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ [ms]")
+    ax[0][1].set_ylabel("Measured [ms]")
     ax[0][1].annotate("request-to-response", xy=(xs[1], rt[1]), xytext=(0.02, 0.80),
                       textcoords="axes fraction", fontsize=8, color=F.C_OPERATE,
                       ha="left", va="top")
@@ -166,8 +166,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                   zorder=4, label="$\\mathrm{CLRT}_{\\mathrm{new}}$")
     ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
     ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel("Configured $D_A$ (ms)")
-    ax[1][0].set_ylabel("Measured median (ms)")
+    ax[1][0].set_xlabel("Configured $D_A$ [ms]")
+    ax[1][0].set_ylabel("Measured median [ms]")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
     # The two reference lines carry no in-plot text. The upper one is the control-plane
     # admission horizon and the lower one the configured CLRT_new; both are named in the
@@ -187,8 +187,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # The ordinate runs to 800 rather than 400 so the upper-left legend clears the tallest
     # whisker, 90 ms on the Timing OFF READ box. Lower right is not free: the OPERATE boxes
     # sit there.
-    ax[1][1].set_ylabel("Request-to-response (ms)"); ax[1][1].set_ylim(1, 800)
-    ax[1][1].legend(loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
+    ax[1][1].set_ylabel("Request-to-response [ms]"); ax[1][1].set_ylim(1, 800)
+    F.key(ax[1][1], loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c, col=5)
@@ -277,11 +277,11 @@ def fig_distributions(rows, out, inputs):
                                  x_ms=round(float(xi), 6), y_ecdf=round(float(yi), 8)))
         a.set_xscale("log"); a.xaxis.set_minor_formatter(NullFormatter())
         a.set_xlim(0.8, 120); a.set_ylim(0, 1.02)
-        a.set_xlabel(f"{c}: {INAME[c]} (ms)"); a.set_ylabel("Empirical CDF")
-    flat[0].legend(loc="lower right", ncol=1, handlelength=1.5, handletextpad=0.4)
+        a.set_xlabel(f"{c}: {INAME[c]} [ms]"); a.set_ylabel("Empirical CDF")
+    F.key(flat[0], loc="lower right", ncol=1, handlelength=1.5, handletextpad=0.4)
     box_pair(ax[1][1], rows, col=3)
-    ax[1][1].set_ylabel("Interval (ms)"); ax[1][1].set_ylim(0.8, 200)
-    ax[1][1].legend(loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
+    ax[1][1].set_ylabel("Interval [ms]"); ax[1][1].set_ylim(0.8, 200)
+    F.key(ax[1][1], loc="upper left", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c)
@@ -379,9 +379,9 @@ def fig_feature_overlap(rows, cfg, out, inputs):
         a.set_title(F.LBL[arm], fontsize=9)
     # One abscissa label for both panels: they share the axis, so labelling each repeated it and
     # cost the upper panel the room its marks needed.
-    ax[1].set_xlabel("Request-to-ACK interval (ms)")
-    ax[0].set_ylabel("Post-ACK interval (ms)")
-    ax[0].legend(handles=[Line2D([], [], linestyle="none", marker=F.MK[c], ms=5.0,
+    ax[1].set_xlabel("Request-to-ACK interval [ms]")
+    ax[0].set_ylabel("Post-ACK interval [ms]")
+    F.key(ax[0], handles=[Line2D([], [], linestyle="none", marker=F.MK[c], ms=5.0,
                                  mfc=CCOL[c], mec="black", mew=0.7, label=c)
                           for c in CLASSES],
                  loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
@@ -504,7 +504,7 @@ def fig_leakage(leak, out, inputs):
                ha="center", va="bottom")
     ax[0].set_xticks(xb); ax[0].set_xticklabels([c[0] for c in conds])
     ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.0)
-    ax[0].legend(loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
+    F.key(ax[0], loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
 
     # (b) observed MI against the within-run permutation null. No error bar on the estimate.
     mi = leak["mutual_information"]
@@ -526,12 +526,12 @@ def fig_leakage(leak, out, inputs):
     # Two lines, because "Timing OFF" and "Obfuscated" set on one line abut at this width.
     ax[1].set_xticks(xs)
     ax[1].set_xticklabels([F.LBL[a].replace(" ", "\n") for a in ARMS])
-    ax[1].set_ylabel("Mutual information (bits)")
+    ax[1].set_ylabel("Mutual information [bits]")
     ax[1].set_xlim(-0.6, 1.6)
     ax[1].set_ylim(min(mi[a]["observed_bits"] for a in ARMS) * 0.35,
                    max(mi[a]["observed_bits"] for a in ARMS) * 3)
     ax[1].yaxis.set_minor_formatter(NullFormatter())
-    ax[1].legend(loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
+    F.key(ax[1], loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
 
     # The confusion matrices are not drawn, but their numbers are kept, so the artifact and this
     # figure's own data file still carry every one of them.
@@ -613,7 +613,7 @@ def fig_stability(rows, cfg, out, inputs):
                                  q3_ms=round(float(q3), 6)))
             a.errorbar(xs, med, yerr=[lo, hi], fmt=F.MK[c], ms=2.8, lw=0, elinewidth=0.7,
                        capsize=1.4, color=CCOL[c], label=c, zorder=3)
-        a.set_ylabel("Interval (ms)")
+        a.set_ylabel("Interval [ms]")
         a.set_xlim(0.3, len(runs) + 0.7); a.set_xticks([1, 6, 11, 16, 22])
     ax[0].set_ylim(0, 8.6)
     sched = cfg["scheduled_release_interval_ms"]
@@ -623,7 +623,7 @@ def fig_stability(rows, cfg, out, inputs):
     # values already show the span, and a boxed sentence in the data area is not information the
     # reader needs from the artwork.
     ax[1].set_xlabel("Grouped run, in acquisition order")
-    ax[0].legend(loc="upper left", ncol=3, framealpha=1.0, borderpad=0.26, labelspacing=0.14,
+    F.key(ax[0], loc="upper left", ncol=3, framealpha=1.0, borderpad=0.26, labelspacing=0.14,
                  columnspacing=0.6, fontsize=8, handlelength=1.2)
     tag(ax[0], "a"); tag(ax[1], "b", y=0.955)
     F.grid(list(ax))

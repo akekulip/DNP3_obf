@@ -27,6 +27,10 @@ ROOT = HERE.parent
 PCAPS = ROOT / "raw_pcaps"
 MANIFEST = ROOT / "blocks.csv"
 OUT = ROOT / "transactions.csv"
+# The separation series is a second run with its own manifest; --sep points both
+# the manifest and the output at it so the two never mix in one table.
+MANIFEST_SEP = ROOT / "blocks_sep.csv"
+OUT_SEP = ROOT / "transactions_sep.csv"
 
 REMOTE = "decps@10.10.54.166"
 REMOTE_DIR = "/home/decps/tail_sweep_20260918"
@@ -84,6 +88,9 @@ def fetch():
 
 
 def main(argv) -> int:
+    global MANIFEST, OUT
+    if "--sep" in argv:
+        MANIFEST, OUT = MANIFEST_SEP, OUT_SEP
     if "--local" not in argv:
         n = fetch()
         print(f"fetched {n} new capture(s)")

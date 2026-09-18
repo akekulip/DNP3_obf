@@ -2,15 +2,15 @@
  "figure": "fig_m02_timeout_model",
  "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred, measured on the master-facing link. The host's realised retransmission timeout was never recorded: the two orange bounds are the Linux documented minimum and the value RFC 6298 recommends, shown as a reference range and not as a measurement of this testbed. The application timer bounds one receive and is re-armed on each read, and is not a transaction deadline; the measured latencies are shown against it as scale, not as a claim that one read spanned a transaction.",
  "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "b86fcdfbcfb906d44fb65a7cb5219e4bba462197",
+ "source_commit": "010c18fe7779fe629636a61c0b4f461e5c236b45",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "1bb29623a3d01f1a4fb139773fa132500f8f8c0ac347b667d31fcfccbe1c0a14"
+  "sha256": "0743f7bf53a8f875d23e22ab91c9734505265a5f2e5e0de506bf905739de0e01"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "c16b545dd0e5d569a8efe298f9b98b331823af2d5ceaba5d7aeba14511b50389"
+  "sha256": "7dfddcd85af7c1be1e8c232a0abd49a1f938974bd6ffd9ba20410047de42e932"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.pdf",
-   "sha256": "3744a3f341d762f90309a30d2f8bfccba59cce89e8bf2cfb62c053fcea07ed40",
+   "sha256": "9491045601d4a63bdf4853752b88e1608a6a04f45ce0bd527a80ecf50981640f",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.png",
-   "sha256": "6a5f2fa00f2467560af4dae4765ac985c9c9ac87334c50a69f7d544e0631c282",
+   "sha256": "6a1166220c9eaa96c8267171276f54af49a1f22b43d503f65d83b39a032460eb",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"

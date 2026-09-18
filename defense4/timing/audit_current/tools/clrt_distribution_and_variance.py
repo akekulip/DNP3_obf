@@ -25,7 +25,7 @@ Notation follows the manuscript body, not this tool, as fixed by
 the Timing OFF arm and the measured CLRT_new in the Obfuscated arm. The policy field named
 D_R_ms is the *configured* CLRT_new; it is **not** D_R, which under that mapping is the
 response latency m_R - t_R. The configured value is therefore drawn and labelled "configured
-CLRT_new" and never as D_R or as a target. The axes say "CLRT (ms)" in plain words.
+CLRT_new" and never as D_R or as a target. The axes say "CLRT [ms]" in plain words.
 
     python3 clrt_distribution_and_variance.py [OUT_DIR]
     python3 clrt_distribution_and_variance.py --check [OUT_DIR]
@@ -395,7 +395,7 @@ def _draw_overflow_bar(ax, pct, cutoff, w, arm):
 def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
                        show_legend):
     ax.set_title(title, loc="left", pad=12.0)
-    ax.set_ylabel("Transactions (%)")
+    ax.set_ylabel("Transactions [%]")
     ax.set_xlim(0.0, cutoff + 4.0 * w)
     ax.set_ylim(0.0, y_hi)
     # The overflow category is set two bin widths clear of the last finite bin, with the break
@@ -409,13 +409,9 @@ def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
     if show_target:
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=1.0, zorder=5)
         if show_legend:
-            ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
+            fs.key(ax, handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
                                       label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$")],
-                      loc="upper right", fontsize=8, borderpad=0.3,
-                      handlelength=1.8, labelspacing=0.22, borderaxespad=0.3,
-                      # The IEEE style sets legend.frameon False, so framealpha alone did
-                      # nothing and the overflow break marker ran straight through the label.
-                      frameon=True, framealpha=1.0, facecolor="white", edgecolor="none")
+                      loc="upper right", handlelength=1.8, borderaxespad=0.3)
 
 
 def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
@@ -466,7 +462,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
     # One abscissa, not two: the upper panel reads its values off the lower one.
     axes[0].tick_params(labelbottom=False, bottom=False)
     axes[0].spines["bottom"].set_visible(False)
-    axes[1].set_xlabel("CLRT (ms)")
+    axes[1].set_xlabel("CLRT [ms]")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
@@ -534,7 +530,7 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
         pct, counts = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
         ax.set_title(_panel_title(tag, arm, ", full range"), loc="left", pad=12.0)
-        ax.set_ylabel("Transactions (%)")
+        ax.set_ylabel("Transactions [%]")
         ax.set_xlim(0.0, w * n_fin)
         ax.set_ylim(0.0, y_hi)
         if arm == "obfuscated":
@@ -554,7 +550,7 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     # One abscissa, not two: the upper panel reads its values off the lower one.
     axes[0].tick_params(labelbottom=False, bottom=False)
     axes[0].spines["bottom"].set_visible(False)
-    axes[1].set_xlabel("CLRT (ms)")
+    axes[1].set_xlabel("CLRT [ms]")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
@@ -617,7 +613,7 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         # repeats on both panels and crowds the arm name.
         ax.set_title(_panel_title(tag, arm, ""), loc="left", fontsize=8, pad=10.0)
         ax.set_xlim(z_lo, z_hi)
-        ax.set_ylabel("Transactions (%)")
+        ax.set_ylabel("Transactions [%]")
         for i in range(n):
             if counts[i] == 0:
                 continue
@@ -636,7 +632,7 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     # One abscissa, not two: the upper panel reads its values off the lower one.
     axes[0].tick_params(labelbottom=False, bottom=False)
     axes[0].spines["bottom"].set_visible(False)
-    axes[1].set_xlabel("CLRT (ms)")
+    axes[1].set_xlabel("CLRT [ms]")
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,

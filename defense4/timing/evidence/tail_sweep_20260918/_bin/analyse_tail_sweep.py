@@ -31,6 +31,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 TXNS = ROOT / "transactions.csv"
+TXNS_SEP = ROOT / "transactions_sep.csv"
 OUT_JSON = ROOT / "tail_sweep.json"
 FIGDIR = ROOT / "figures"
 
@@ -141,7 +142,32 @@ def report(res, base):
                   f"{r['tail_sd_ms']*1000:7.1f}{note}")
 
 
-def figure(res, rows):
+def separation():
+    """Which configured quantity sets the master-visible OPERATE response-to-ACK interval.
+
+    The design section gives it as O = R - A. The read lane's configured CLRT_new is a different
+    quantity. Nothing measured before this could tell them apart, because every run so far set
+    both to 4 ms. Two crossed series separate them: one walks R - A with CLRT_new pinned, the
+    other walks CLRT_new with R - A pinned.
+    """
+    if not TXNS_SEP.exists():
+        return []
+    g = defaultdict(list)
+    for r in csv.DictReader(TXNS_SEP.open()):
+        if r["txn_class"] != "OPERATE" or r["series"] == "baseline":
+            continue
+        g[(r["series"], float(r["A_ms"]), float(r["R_ms"]), float(r["CLRT_new_ms"]))].append(
+            float(r["clrt_ms"]))
+    out = []
+    for (series, a_ms, r_ms, clrt), v in sorted(g.items()):
+        out.append(dict(series=series, A_ms=a_ms, R_ms=r_ms, O_ms=r_ms - a_ms,
+                        CLRT_new_ms=clrt, n=len(v), measured_ms=_median(v),
+                        err_vs_O_ms=_median(v) - (r_ms - a_ms),
+                        err_vs_CLRT_ms=_median(v) - clrt))
+    return out
+
+
+def figure(res, rows, sep):
     """Two panels, each drawn to the shape the data turned out to have.
 
     (a) The read-lane tail against the budget. It is not a curve: it splits into two regimes,
@@ -170,7 +196,7 @@ def figure(res, rows):
     lo = [r for r in live if r["tail_ms"] * 1000 < SPLIT_US]
     hi = [r for r in live if r["tail_ms"] * 1000 >= SPLIT_US]
 
-    fig, ax = plt.subplots(1, 2, figsize=(fs.PAGE_WIDTH_IN, 2.05))
+    fig, ax = plt.subplots(1, 3, figsize=(fs.PAGE_WIDTH_IN, 1.95))
 
     def bars(rs):
         x = [r["deadline_ms"] for r in rs]
@@ -192,11 +218,11 @@ def figure(res, rows):
         x, y, e = bars(rs)
         ax[0].errorbar(x, y, yerr=e, marker=mk, ms=3.2, ls="none", elinewidth=0.9, capsize=2,
                        color=col, mec="black", mew=0.4, label=lab)
-    ax[0].set_xlabel("Release budget $D$ (ms)")
-    ax[0].set_ylabel("Release tail ($\\mu$s)")
+    ax[0].set_xlabel("Release budget $D$ [ms]")
+    ax[0].set_ylabel("Release tail [$\\mu$s]")
     ax[0].set_ylim(0, 1120)
     ax[0].set_title("(a) read lane", loc="left", fontsize=8)
-    ax[0].legend(loc="upper left", fontsize=8, handletextpad=0.4, borderpad=0.3)
+    fs.key(ax[0], loc="upper left", fontsize=8, handletextpad=0.4, borderpad=0.3)
 
     # (b) the control lane, from the raw per-block medians so the identity line is comparable
     import collections
@@ -222,10 +248,30 @@ def figure(res, rows):
                    color=col, mec="black", mew=0.4, label=lab, zorder=3)
     ax[1].axhline(20.0, color=fs.TIMING_OFF_ALT, ls=(0, (5, 2)), lw=1.0, zorder=2)
     ax[1].text(12.4, 20.9, "$D_A = 20$ ms", fontsize=8, color=fs.TIMING_OFF_ALT)
-    ax[1].set_xlabel("Configured control-lane offset $A$ (ms)")
-    ax[1].set_ylabel("OPERATE request-to-ACK (ms)")
+    ax[1].set_xlabel("Configured control-lane offset $A$ [ms]")
+    ax[1].set_ylabel("OPERATE request-to-ACK [ms]")
     ax[1].set_title("(b) control lane", loc="left", fontsize=8)
-    ax[1].legend(loc="lower right", fontsize=8, handletextpad=0.4, borderpad=0.3)
+    fs.key(ax[1], loc="lower right", fontsize=8, handletextpad=0.4, borderpad=0.3)
+
+    # (c) which configured quantity the OPERATE response-to-ACK actually follows
+    if sep:
+        byO = sorted([d for d in sep if d["series"] == "sep_O"], key=lambda d: d["O_ms"])
+        byC = sorted([d for d in sep if d["series"] == "sep_C"], key=lambda d: d["CLRT_new_ms"])
+        if byO:
+            ax[2].plot([d["O_ms"] for d in byO], [d["measured_ms"] for d in byO],
+                       marker="s", ms=4.0, ls="none", color=fs.TIMING_OFF_ALT, mec="black",
+                       mew=0.4, label="$R-A$ varied", zorder=3)
+        if byC:
+            ax[2].plot([d["CLRT_new_ms"] for d in byC], [d["measured_ms"] for d in byC],
+                       marker="o", ms=4.0, ls="none", color=fs.TIMING_ON, mec="black",
+                       mew=0.4, label="CLRT$_{\\mathrm{new}}$ varied", zorder=3)
+        lim = [0, 14]
+        ax[2].plot(lim, lim, ls=":", lw=1.0, color=fs.GREY, zorder=1)
+        ax[2].set_xlim(*lim); ax[2].set_ylim(*lim)
+        ax[2].set_xlabel("Configured value [ms]")
+        ax[2].set_ylabel("Measured response-to-ACK [ms]")
+        ax[2].set_title("(c) which value governs", loc="left", fontsize=8)
+        fs.key(ax[2], loc="upper left")
 
     for a in ax:
         fs.grid(fig, a)
@@ -287,7 +333,7 @@ def main(argv) -> int:
         indent=1, sort_keys=True) + "\n")
     print(f"\n  -> {OUT_JSON}")
     if "--figure" in argv:
-        figure(res, rows)
+        figure(res, rows, separation())
     return 0
 
 
