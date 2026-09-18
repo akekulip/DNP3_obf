@@ -1,6 +1,8 @@
 """Figure 2 as a draw.io document: Cisco stencils for the network devices, a native-shape
 faceplate for the protective relay. 1 unit = 1 pt at the final 3.5 in width."""
-import html
+import html, sys
+sys.path.insert(0, __file__.rsplit("/", 1)[0])
+from adversary_stencil import stencil_style
 W, H = 252, 90
 SLATE, VERM, GREY = "#2F3E4E", "#D55E00", "#8A8A8A"
 ZONE_FILL, ZONE_EDGE = "#FDF5F0", "#EAAE7F"          # vermillion at 6% / 50% over white
@@ -46,7 +48,8 @@ vertex(2, 2, 100, 84, f"rounded=1;arcSize=3;fillColor={ZONE_FILL};strokeColor={Z
 # ---- devices
 master = vertex(8, 40, 34, 26, CISCO.format(name="computers_and_peripherals.workstation", fill=SLATE))
 switch = vertex(120, 41, 52, 24, CISCO.format(name="switches.workgroup_switch", fill=SLATE))
-adv    = vertex(60, 6, 20, 26, CISCO.format(name="people.pc_man", fill=VERM))
+# A hooded figure, not draw.io's person-at-a-desk: the desk figure reads as an ordinary user.
+adv    = vertex(62, 6, 18, 21, stencil_style(VERM))
 
 # SEL-751A protective relay faceplate, native shapes so it stays vector
 rx, ry = 214, 36
