@@ -44,8 +44,8 @@ acknowledged 0.003~ms apart. Formby et al.\ used exactly this interval to tell d
 models apart in a substation network~\cite{formbyWhosControlYour2016}, and our own measurements
 show the same separation on a single device, which Section~\ref{sec:eval} reports.
 
-Since the DNP3 function codes travel in plaintext and already name each operation, what timing
-adds is a second, device-derived signature of that operation.
+The function code names the operation, and the interval reveals how this device performs it: a
+timing profile per operation, which is the profile a fingerprinter builds.
 
 \textbf{What a programmable switch makes possible.} A programmable switch exposes a match-action
 pipeline, written in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers,

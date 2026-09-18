@@ -76,9 +76,8 @@ immediately,
 where $\mathrm{CLRT}_{\mathrm{new}}$ is the interval we want the master to observe. A packet's
 actual departure $e$ follows its scheduled instant $\hat{e}$ by the time the blocker queue takes
 to drain and by the queue's own service, which Section~\ref{sec:impl} describes and
-Section~\ref{sec:eval:limits} measures on an instrumented build. Writing the two apart keeps the
-identity honest: (\ref{eq:clrt-new}) holds exactly for actual departures, while
-(\ref{eq:schedule}) speaks to the schedule rather than to the wire. We call this
+Section~\ref{sec:eval:cost} measures. Equation~(\ref{eq:clrt-new}) holds for actual departures
+and~(\ref{eq:schedule}) for the schedule. We call this
 value the \emph{configured} $\mathrm{CLRT}_{\mathrm{new}}$, and we call what the master actually
 records the \emph{measured} $\mathrm{CLRT}_{\mathrm{new}}$; Section~\ref{sec:eval} reports how far
 apart the two are. Because both release instants derive from $t_A$ and neither from $t_R$, the term
@@ -100,29 +99,20 @@ delay a packet but cannot emit one it has not received, so~(\ref{eq:schedule}) r
 \label{eq:availability}
 t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
 \end{equation}
-The acknowledgment may leave before the response arrives; that ordering is normal and does not by
-itself imply a lost packet. When~(\ref{eq:availability}) fails the deadline is already past when
-the response appears, so the switch marks it late and commits it to the response-hold queue, from
-which it leaves when that queue next serves it, as in Figure~\ref{fig:timeline}(b). Consequently the
-master usually observes an interval larger than the configured value, though not necessarily,
-since what it measures remains a difference of two releases, each carrying its own queueing and
-service, so a late response alone does not guarantee a larger measured interval. One read-lane
-exchange in a thousand answers too late to be scheduled, and we include those exchanges in every
-figure and table below, since they mark the boundary of the mechanism rather than a defect of the
-measurement.
+When~(\ref{eq:availability}) fails the deadline is already past when the response appears, so the
+switch marks it late and commits it to the response-hold queue, from which it leaves when that
+queue next serves it, as in Figure~\ref{fig:timeline}(b), and the master usually observes a longer
+interval. One read-lane exchange in a thousand answers that late, and every figure and table below
+includes it.
 
 The holds decide what the master observes \emph{between} the two packets, not how long it waits
 for the answer itself, which is the quantity an operational requirement constrains. Write $D_R$
 for that: the response's whole journey from the outstation transmitting it to the master receiving
-it. Since only the master-facing link is instrumented, we do not measure $D_R$, nor the portion of it
-from the switch onward: $m_R$ is captured while $t_R$, the response's arrival at the switch, is
-not. The quantity
+it, of which the switch accounts for
 \begin{equation}
 \label{eq:resplatency}
-m_R - t_R \le D_R
+m_R - t_R \le D_R .
 \end{equation}
-is therefore a modelled partial journey, written from the model's endpoints rather than from
-timestamps we hold, and full $D_R$ remains unmeasured.
 
 Two terms make up the observed portion, $(e_R - t_R) + (m_R - e_R)$: the time the switch holds the
 response and the path from the switch to the master. The hold itself divides once more, into the
@@ -132,7 +122,7 @@ drained, and the service that follows. Those three sum to the hold rather than a
 Consequently neither the response hold nor the configured $\mathrm{CLRT}_{\mathrm{new}}$ is the
 response latency, and the three are not separately selectable: fixing $D_A$ and the configured
 interval fixes the hold, which in turn consumes part of whatever the application deadline allows.
-Section~\ref{sec:eval:limits} reports what we measured of $\varepsilon$ and on which build.
+Section~\ref{sec:eval:cost} measures $\varepsilon$.
 
 \subsection{Choosing the holds and the configured interval}
 \label{sec:design:params}
@@ -145,46 +135,29 @@ The transport limits the acknowledgment hold in principle. Holding an acknowledg
 is lost. Consequently, a hold approaching the master's retransmission timeout would make the
 master resend a request the outstation had already answered.
 
-That timeout has to be measured, not assumed.
-RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} recommends rounding it up to a second, but
-that recommendation concerns a minimum and names no property every stack exhibits: on our master an
-unacknowledged request repeats after 201~ms. The 20~ms hold we evaluate consumes about a tenth
-of that, and a hold of a few hundred milliseconds would begin to race it. We do not argue that the
-timer's adaptivity makes a constant hold safe, because adaptation says nothing about the first
-delayed exchange, a reconnection where the timer restarts, or a policy change mid-session.
+That timeout has to be measured rather than assumed.
+RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} recommends rounding it up to a second, and on
+our master an unacknowledged request repeats after 201~ms. The 20~ms hold we evaluate uses about a
+tenth of that.
 
 In practice the transport bound does not bind. The mechanism sustains a hold with a
 budget on blocker passes rather than a wall clock. From that budget, an assumed service rate, a
 conservative bound on the outstation's acknowledgment latency, measured detection and release
 terms and a safety margin, the control plane computes a horizon $H$ of 30.8~ms and an admissible
-budget of 24.8~ms. Three limits act here, and they stay distinct. The horizon carries advisory force and reports what
-the admission arithmetic computes. A separate clamp refuses any acknowledgment hold above 40~ms outright. The
-sweep of Section~\ref{sec:eval:policy} deliberately installs settings past the horizon, to find
-where the mechanism leaves its operating region. None of the three names a deadline the data
-plane enforces. The distinction matters because a pass budget bounds how many passes get
-\emph{serviced}: under strict priority a lower-priority reservoir can be starved while a
-higher-priority one is still being served, so one budget does not translate into one elapsed time
-for every queue. That sweep shows the consequence directly.
-At a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
-saturates at 31.07~ms, well short of the configured value. The median request-to-response interval
-for the same point is 40.58~ms and the median CLRT reaches 9.51~ms rather than the configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it. We observed that
-saturation as a transition on the acknowledgment lane at this configuration. It names no release
-deadline the hardware guarantees for every held packet.
+budget of 24.8~ms, and a separate clamp refuses any acknowledgment hold above 40~ms. Because a
+pass budget bounds how many passes are \emph{serviced}, and under strict priority a lower-priority
+reservoir waits while a higher-priority one is served, one budget does not translate into one
+elapsed time for every queue. The sweep of Section~\ref{sec:eval:policy} installs settings past the
+horizon to find the resulting ceiling: the acknowledgment interval saturates at 31.07~ms, close to
+$H$.
 
 The operation limits the configured $\mathrm{CLRT}_{\mathrm{new}}$, and through $D_R$
-rather than directly: an operator accepts a bound on how long the answer takes to
-arrive, not on the gap between the two packets that carry it. We could not verify a communications
-requirement that fixes such a bound for a DNP3 poll or a select-before-operate control on a
-distribution relay. The only numeric deadline we could verify from primary documentation is the
-relay's own select-to-operate timeout, documented default
-1.0~s~\cite{selSEL751AInstructionManual}. It governs how long a select stays armed, not how
-quickly a response must return. Timing classes defined for other protocols do not transfer to a
-DNP3 poll merely because their numbers are convenient.
-
-We therefore treat the setting as a deployment choice, not a compliance question. We state the
-value we tested, 4~ms, and report the response latency the mechanism produces, about 23~ms more
-than the device alone, so an operator with a requirement of their own can check it against those
-numbers.
+rather than directly: an operator bounds how long the answer takes to arrive, not the gap between
+the two packets that carry it. The relay documents one deadline that bears on this, its
+select-to-operate timeout, 1.0~s by default~\cite{selSEL751AInstructionManual}, which governs how
+long a select stays armed. The setting is therefore a deployment choice: we evaluate 4~ms and
+report the latency it produces, about 23~ms beyond the device alone, for an operator to check
+against their own requirement.
 
 A third timer is easy to miss. Holding the response also postpones the
 master's acknowledgment of it, which is the feedback the \emph{outstation's} transport waits for,
@@ -222,7 +195,7 @@ we implement and evaluate only the constant setting.
 
 A select-before-operate control command differs in one way that matters here: the framework holds
 the command itself before it reaches the relay, separating the moment the master issued the
-command from the moment the relay acts on it. The outstation's acknowledgment cannot serve as the
+command from the moment the relay acts on it. The outstation's acknowledgment cannot be the
 reference instant, because it does not exist until after the command has been released, and any
 deadline measured from it would carry the length of the command hold into the interval the master
 observes. We therefore time the control lane from the request. When the OPERATE arrives at $T_0$,

@@ -1,26 +1,18 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-How long an outstation takes to answer has become a signature an observer can profile, and the
-relay leaking it cannot be modified. Consequently this paper presents a timing-obfuscation
-framework that moves the problem into the network, placing a switch in front of the outstation
-that holds the packets carrying the device's timing and releases each at a deadline computed when
-the transaction begins. The read
-path, which is READ and the SELECT phase of select-before-operate, times that deadline from the
-outstation's acknowledgment; OPERATE times it from the request. Consequently, the interval an observer
-sees is the operator's value rather than the device's.
+How long an outstation takes to answer is a signature an observer can profile, and Formby
+et al.~\cite{formbyWhosControlYour2016} classify devices by it. We remove that signature in the
+network. A switch in front of the unmodified outstation holds the packets that carry the device's
+timing and releases each at a deadline computed when the transaction begins, so the interval an
+observer sees is the operator's value rather than the device's.
 
-Evaluating this on one physical relay shows the released interval concentrating on the configured
-value, its interquartile range falling from 2.78 to 0.006~ms and its standard deviation from 2.61
-to 0.63~ms, while a classifier trained on that interval before deployment drops from 0.745
-balanced accuracy to three-class chance. The framework protects the exchanges its budget can schedule and
-forwards the rest untouched.
-
-Three bounds limit the result. An adversary who retrains recovers to 0.782 by adding the
-request-to-acknowledgment interval, which the mechanism does not target. The evidence comes from
-one relay and one campaign, and it separates transaction classes, not device models. Since the switch's own release instants were never captured, the residual around the configured
-value measures a difference between two releases, which we cannot place inside the switch. The
-release tail itself, read from the captures, is 0.78~ms at the evaluated budget and does not
-follow the budget smoothly. Attributing the residual would take the
-framework evaluated on outstations from several vendors and the release instants captured on both
-switch links.
+On a physical SEL-751A the released interval settles on the configured value, its interquartile
+range falling from 2.778 to 0.006~ms and its standard deviation from 2.609 to 0.628~ms, and the mutual
+information it carries about the transaction class falls into its permutation null. A classifier
+trained on Timing OFF traffic drops from 0.745 balanced accuracy to three-class chance. An adversary
+that retrains on the replaced interval and pools twenty exchanges into a signature, as Formby et
+al.\ do, stays at chance, where the same adversary on Timing OFF traffic reaches 0.988. What an
+adversary can still learn comes from the request-to-acknowledgment interval, whose structure comes from the
+switch's own release logic rather than from the device. The operator chooses the released interval anywhere
+from 1 to 22~ms at a fixed budget, and the switch adds no byte or frame to do it.

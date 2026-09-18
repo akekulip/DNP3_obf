@@ -50,7 +50,7 @@ def sha256(path):
     return h.hexdigest()
 
 
-def manuscript_values(stats, leak, sweep, val, repl):
+def manuscript_values(stats, leak, sweep, val, repl, pooled=None):
     """Every number the manuscript is allowed to quote, derived here and nowhere else."""
     cov = stats["read_lane_coverage"]
     pac = stats["per_arm_class"]
@@ -104,6 +104,26 @@ def manuscript_values(stats, leak, sweep, val, repl):
             f: {"native": repl["classifiers_by_feature_set"][f]["native"]["balanced_accuracy_mean"],
                 "protected": repl["classifiers_by_feature_set"][f]["protected"]["balanced_accuracy_mean"]}
             for f in ("clrt_only", "req_to_ack_only", "ack_plus_clrt")},
+        # The adversary that pools k exchanges into one signature, retrained and tested within
+        # each arm. It is the shape of attack Formby et al. build, a distribution of many
+        # observations per decision, so the manuscript quotes it as the test of that attack.
+        # Both feature sets are published together: quoting the CLRT result alone would report
+        # only the half of this analysis that favours the defense.
+        # Where the retrained adversary's recovery comes from, class by class: the diagonal of the
+        # row-normalised confusion over every held-out run, for each attacker the paper discusses.
+        "confusion_diagonal": {
+            key: dict(zip(("READ", "SELECT", "OPERATE"),
+                          [round(float(leak["confusion_all_folds"][key][i][i]) /
+                                 float(sum(leak["confusion_all_folds"][key][i])), 4)
+                           for i in range(3)]))
+            for key in sorted(leak["confusion_all_folds"])},
+        "pooled_adversary": None if pooled is None else {
+            "k_values": pooled["k_values"],
+            "balanced_accuracy": {key: pooled["results"][key]["balanced_accuracy_mean"]
+                                  for key in sorted(pooled["results"])},
+            "range": {key: [pooled["results"][key]["min"], pooled["results"][key]["max"]]
+                      for key in sorted(pooled["results"])},
+        },
         "sweep": {
             "points": len(sweep),
             "fixed_budget_points": len(fixed),
@@ -138,7 +158,11 @@ def main(out_dir, update=False):
     leak = json.load(open(out / "leakage.json"))
     sweep = json.load(open(out / "sweep_summary.json"))
     repl = json.load(open(out / "replacement_stats.json"))
-    values = manuscript_values(stats, leak, sweep, val, repl)
+    pooled_path = out / "multiobs.json"
+    pooled = json.load(open(pooled_path)) if pooled_path.exists() else None
+    if pooled is None:
+        problems.append("multiobs.json missing: the pooled adversary cannot be published")
+    values = manuscript_values(stats, leak, sweep, val, repl, pooled)
 
     # ---- 2. figures
     figs = out / "figs"

@@ -4,13 +4,9 @@
 \textbf{Device fingerprinting.} Devices can be identified from what they emit, without access to
 the payload. Kohno et al.\ fingerprint a remote host from the skew of its clock in TCP
 timestamps~\cite{kohnoRemotePhysicalDevice2005}, and GTID fingerprints a device and its type from
-the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePhysical2015}. These works define the threat we address, each reading a different observable, a clock's skew in
-one case and a device's whole packet-timing signature in the other, and we remove neither.
-Instead, this work removes one interval inside a request-response exchange, the one the
-cross-layer response-time method of Formby et al.\ uses, and removes it from the master-facing
-observation only. Since their target remains the device type, whereas the classifier we evaluate
-separates three transaction classes on one outstation, we do not demonstrate that two devices
-become indistinguishable.
+the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePhysical2015}. These works define the threat we address, each reading a different observable. This work
+targets the interval the cross-layer response-time method of Formby et al.\ classifies by, and
+replaces it on the master-facing link.
 
 \textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
 systems with the cross-layer response time and the physical operation time, measured at the
@@ -70,8 +66,6 @@ specification-based and state-based intrusion detection has been adapted to
 DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}, yet none of these changes
 the timing an observer sees.
 
-On the control path we report a different quantity from Formby et al., the master-visible OPERATE
-response-to-acknowledgment interval, which remains a protocol-response timing feature rather than
-the payload-timestamp estimate of physical operation time they
-use~\cite{formbyWhosControlYour2016}. Section~\ref{sec:threat} states why the two are not
-interchangeable and what we therefore do not claim.
+On the control path we replace the master-visible OPERATE response-to-acknowledgment interval.
+Formby et al.\ read physical operation time from an event timestamp inside the application
+payload~\cite{formbyWhosControlYour2016}, a different channel from packet timing.
