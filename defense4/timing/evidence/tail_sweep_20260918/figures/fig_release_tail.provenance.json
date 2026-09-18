@@ -1,0 +1,36 @@
+{
+  "figure": "fig_release_tail",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/tail_sweep_20260918/transactions.csv",
+      "sha256": "cb74535bf0bfc2cb371139ba3137087d99f17d131efb416ff7900c90bb74a0c1"
+    },
+    {
+      "path": "defense4/timing/evidence/tail_sweep_20260918/blocks.csv",
+      "sha256": "4d6ada26c27c0bf1464ab383f2de999c515b4dd5fc82eb717d561aecd6adddca"
+    }
+  ],
+  "caption_draft": "What the mechanism costs beyond the deadline it was given. (a) The read-lane release tail against the budget $D$, over three independent installs of each policy. The tail does not follow the budget smoothly: it falls on a short branch near 25~$\\mu$s or a long branch that grows with the hold, reaching 0.96~ms. Past $D = 35$~ms the reservoir spends its pass budget and releases early, so no tail is defined and the region is shaded. (b) The master-facing OPERATE acknowledgment against the configured control-lane offset $A$. It does not follow the dotted identity the design places it on; it sits at the read-lane hold $D_A$, here 20~ms, for every admissible $A$ and for both jitter codebooks.",
+  "statistical_method": "tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold. Point is the mean over three passes, whiskers the min and max across them. Panel (b) plots per-offset medians directly, since the quantity in question is the acknowledgment instant itself",
+  "artifacts": {
+    "fig_release_tail.pdf": "502123dee2396ca413230186e01622fa679523c2358f4d007af6f362405cf79e",
+    "fig_release_tail.png": "f75b47280de6252781c76338f39a8cbed3735508c6a98248934fd1f57458d22c",
+    "fig_release_tail_data.csv": "89cd58d9498154ceb2d2ee2b71f91fad3218d23f31b2f29ba51940918c8d367f"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

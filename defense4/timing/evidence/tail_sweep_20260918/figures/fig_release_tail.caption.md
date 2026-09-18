@@ -1,0 +1,5 @@
+### fig_release_tail
+
+What the mechanism costs beyond the deadline it was given. (a) The read-lane release tail against the budget $D$, over three independent installs of each policy. The tail does not follow the budget smoothly: it falls on a short branch near 25~$\mu$s or a long branch that grows with the hold, reaching 0.96~ms. Past $D = 35$~ms the reservoir spends its pass budget and releases early, so no tail is defined and the region is shaded. (b) The master-facing OPERATE acknowledgment against the configured control-lane offset $A$. It does not follow the dotted identity the design places it on; it sits at the read-lane hold $D_A$, here 20~ms, for every admissible $A$ and for both jitter codebooks.
+
+**Statistics.** tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold. Point is the mean over three passes, whiskers the min and max across them. Panel (b) plots per-offset medians directly, since the quantity in question is the acknowledgment instant itself
