@@ -29,27 +29,16 @@ three controls with the mechanism disabled.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics{figures/clrt/fig_clrt_distributions}
-  \caption{Measured READ CLRT before and after obfuscation, as the percentage of each arm's own
-  transactions per bin, on common 1~ms bins anchored at 0~ms with a linear ordinate. Finite bins
-  are half-open; the category past the break marker holds everything at or above 15~ms, 0.409\% of
-  (a) and 0.027\% of (b), written beside it. The dashed line in (b) is the configured $\mathrm{CLRT}_{\mathrm{new}}$, which
-  falls on a bin edge, so the obfuscated mass divides between the two neighbouring bins;
-  Figure~\ref{fig:clrtzoom} resolves it. In (a) $n$~=~26{,}400, mean 2.800~ms, sd 2.609~ms,
-  variance 6.808~ms$^2$; in (b) $n$~=~26{,}400, mean 4.012~ms, sd 0.628~ms, variance
-  0.394~ms$^2$.}
+  \includegraphics{figures/clrt/fig_clrt}
+  \caption{Measured READ CLRT, at both scales. Columns are the arms, rows the scale. Above,
+  common 1~ms bins anchored at 0~ms with a linear ordinate; finite bins are half-open and the
+  category past the break holds everything at or above 15~ms, 0.409\% of Timing OFF and 0.027\%
+  of Obfuscated. Below, 0.005~ms bins within 0.10~ms of the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$ (dashed), where the mass the upper grid divides between two
+  neighbouring bins resolves into one mode. The ordinate is the percentage of that arm's entire
+  sample throughout, not of the window, so the rows are comparable; the window holds 13.58\% and
+  99.86\%. Above, $n$~=~26{,}400 per arm, mean 2.800 and 4.012~ms, sd 2.609 and 0.628~ms.}
   \label{fig:hist}
-\end{figure}
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics{figures/clrt/fig_clrt_zoom}
-  \caption{The released interval, resolved. The same measurements as Figure~\ref{fig:hist} on
-  0.005~ms bins within $0.10$~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$ (dashed). The
-  ordinate is still the percentage of that arm's entire sample, not of the window, so the bars
-  are directly comparable with the other figures. The window holds 13.58\% of (a) and 99.86\% of
-  (b).}
-  \label{fig:clrtzoom}
 \end{figure}
 
 \textbf{RO1.} The read-path schedule of~(\ref{eq:schedule}) does replace
@@ -59,9 +48,9 @@ Timing OFF distribution.
 
 Figure~\ref{fig:hist} shows the two READ distributions. Before obfuscation the interval spans
 1.01 to 83.46~ms and stays multi-modal, with peaks near 1.2, 2.1 and 4.0~ms; after it, 99.9\% of
-transactions fall within 0.10~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$. In
-Figure~\ref{fig:clrtzoom} the released interval resolves into a narrow distribution about that
-value, where the Timing OFF arm places only 13.6\% of its transactions.
+transactions fall within 0.10~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$. Its lower row
+resolves the released interval into a narrow distribution about that value, where the Timing OFF
+arm places only 13.6\% of its transactions.
 
 The change is a replacement, not a shift. The standard deviation falls from 2.609 to 0.628~ms for
 READ and from 2.267 to 0.024~ms for SELECT. Under a session-level bootstrap those give variance
@@ -161,6 +150,32 @@ depends on how long the outstation itself took, and a real operational cost to w
 polling period and any protocol timeout. Each exchange carries 3.017 frames and 272.3 bytes on the
 master-facing link, identical in both arms, so the mechanism moves packets in time without adding
 a frame or a byte.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figures/tail/fig_release_tail}
+  \caption{(a) The release tail $\varepsilon$ against the budget $D$, over three installs of each
+  setting; whiskers span them. In the shaded region the reservoir spends its pass budget and
+  releases early, so no tail is defined. (b) Each configured quantity that could set a
+  master-visible OPERATE interval, against the interval it would set: the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$ is obeyed, and the control plane's offsets $A$ and $R-A$ are
+  ignored.}
+  \label{fig:tail}
+\end{figure}
+
+\textbf{The Release Tail.} A held packet leaves after its scheduled instant, and the difference
+$\varepsilon$ is a hold the operator did not configure, so it belongs to the cost. The switch
+timestamps no departure, so we read $\varepsilon$ from the two arms: the Timing OFF
+request-to-acknowledgment median carries the outstation's own latency and every propagation term,
+the obfuscated median carries the same terms plus the configured hold plus $\varepsilon$, and the
+difference leaves $\varepsilon$. On the campaign's captures it is 0.78~ms at the evaluated 24~ms
+budget, already contained in the added latency above. A second sweep on the same testbed installed
+18 read-lane budgets three times each, 26{,}640 exchanges in all, reading back the installed policy
+and the disabled size carve for every block. In Figure~\ref{fig:tail}(a) $\varepsilon$ does not
+follow the budget smoothly: it sits between 18 and 38~$\mu$s at nine budgets and grows with the
+hold to 0.96~ms at the rest, and every setting but one takes the same branch in all three installs.
+Figure~\ref{fig:tail}(b) confirms~(\ref{eq:control}): the master-visible control intervals follow
+$D_A$ and the configured $\mathrm{CLRT}_{\mathrm{new}}$ and ignore the control plane's own offsets.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
 timers, so we measured what it consumed. On the master-facing captures the request bytes were
@@ -282,27 +297,13 @@ the program cannot supply them, since the timestamp registers it declares are ne
 Consequently what the measured distribution shows around the configured value becomes a net
 difference between two releases rather than a delay we can place inside the switch.
 
-A separately instrumented build adds two registers per lane, keyed on the outcome that marks a
-blocker terminating because its deadline passed. Over twelve transactions the medians are
-1{,}706~ns on the acknowledgment lane and 1{,}705~ns on the response lane. The standard deviations
-are 8.7 and 8.0~ns, about $4\times10^{-4}$ of the 4~ms configured interval. The first
-blocker's ingress timestamp follows the deadline by a median of 12.5 and 13.5~ns, bounding when a
-blocker first observed the expiry rather than when the release decision was taken, which the
-program does not timestamp.
-
-Four limits apply, and the first is why we avoid the name $\varepsilon$ for it. Since both timestamps are taken in ingress on a recirculating blocker token, the interval ends at
-the last blocking action rather than at the wire, and this program carries no egress timestamp. We
-report an internal blocker-termination interval and do not claim it bounds $\varepsilon$ in either
-direction, since the blocker's last traffic-manager service precedes its return to ingress and the
-ordering of the two endpoints remains unestablished. It also comes from a \emph{different build}
-than the campaign, characterizing the mechanism rather than any exchange in the measured
-distributions. The recorded patch
-over the frozen program identifies that build, and the build tree, its loader configuration and
-the loader's log agree on which binary ran. Twelve transactions at one
-configuration are not a drain bound over load. Comparing the instrumented build against the frozen
-one over 200 polls each gives mean cross-layer response times of 4.000282 and 3.999470~ms with
-sample standard deviations of 0.0153~ms in each: one pair of captures at one configuration, which
-does not establish equivalence, and which would not reveal equal movement in both releases.
+A separately instrumented build timestamps, in ingress, the last blocker that terminates because
+its deadline passed. Over twelve transactions it reports 1{,}706 and 1{,}705~ns on the two lanes,
+with standard deviations of 8.7 and 8.0~ns. That interval ends at the last blocking action rather
+than at the wire, comes from a different build than the campaign and covers one configuration, so
+it bounds neither $\varepsilon$ nor the drain under load. Against the 0.78~ms tail read from the
+campaign's captures it is 0.2\%: it measures how soon a blocker sees the expiry, not when the held
+packet leaves.
 
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the

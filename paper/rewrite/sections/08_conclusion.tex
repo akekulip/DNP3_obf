@@ -19,8 +19,8 @@ forwards the rest untouched.
 Three bounds limit the result. An adversary who retrains recovers to 0.782 by adding the
 request-to-acknowledgment interval, which the mechanism does not target. The evidence comes from
 one relay and one campaign, and it separates transaction classes, not device models. Since the switch's own release instants were never captured, the residual around the configured
-value measures a difference between two releases, which we cannot place inside the switch. An
-instrumented build measures an internal blocker-termination interval of about 1.7~$\mu$s,
-characterizing the mechanism without decomposing that residual. Attributing it would take the
+value measures a difference between two releases, which we cannot place inside the switch. The
+release tail itself, read from the captures, is 0.78~ms at the evaluated budget and does not
+follow the budget smoothly. Attributing the residual would take the
 framework evaluated on outstations from several vendors and the release instants captured on both
 switch links.

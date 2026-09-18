@@ -1,7 +1,7 @@
 """Figure 1 as a draw.io document, with the same device icons as Figure 2.
 1 unit = 1 pt at the final 3.5 in width. Geometry is computed, not placed by eye."""
 import html
-W = 252
+W, H = 252, 150
 XM, XO = 52.0, 214.0
 XC = (XM + XO) / 2
 SLANT = 5.0
@@ -52,63 +52,56 @@ def relay(x, y, s=1.0):
     for dx, dy in ((17, 19), (21, 19), (17, 24), (21, 24)):
         P(dx, dy, 3, 3, f"rounded=1;arcSize=15;fillColor=#C4CCD4;strokeColor={SLATE};strokeWidth=0.3;")
 
-def msg(y, l2r, colour, name, fc=None):
-    x1, x2 = (XM + 1.5, XO - 1.5) if l2r else (XO - 1.5, XM + 1.5)
+# ---- the two transactions side by side, not stacked.
+# Stacked, this figure stood 3.43 in tall in a 3.5 in column, a third of the page it sat on, and
+# its two panels repeated one pair of lifelines nine rows deep. Side by side the height is the
+# longer transaction alone. The device icons are gone with the stacking: Figure 2 establishes
+# both devices, and repeating them twice here would spend the width the panels need.
+# Geometry is chosen so nothing overruns the 252 unit page: the bracket gutter on the left of
+# each panel is 34 units, which is what its label needs, and the head labels are narrow enough
+# that panel (a) right and panel (b) left do not meet.
+PANELS = ((34.0, 102.0, "(a) READ poll"), (150.0, 218.0, "(b) Select-before-operate"))
+TOP, BOT = 26.0, 138.0
+
+def msg(xm, xo, y, l2r, colour, name):
+    x1, x2 = (xm + 1.5, xo - 1.5) if l2r else (xo - 1.5, xm + 1.5)
     arrow((x1, y), (x2, y + SLANT), colour)
-    ym = y + SLANT / 2
-    text(XC - 60, ym - 12, 120, 9, name)
-    if fc:   # function codes in their own column by the outstation, grey
-        text(XO - 36, ym - 12, 32, 9, f"FC {fc}", 7, align="right", colour=SOFT)
+    text((xm + xo) / 2 - 33, y + SLANT / 2 - 12, 66, 9, name, 8, align="center")
 
-def activation(y0, y1):
-    vertex(XO - 3, y0, 6, y1 - y0, f"fillColor=#BFE6D9;strokeColor={GREEN};strokeWidth=0.6;")
+def activation(xo, y0, y1):
+    vertex(xo - 3, y0, 6, y1 - y0, f"fillColor=#BFE6D9;strokeColor={GREEN};strokeWidth=0.6;")
 
-def bracket(y0, y1, sym, w=10, ital=True):
-    x = XM - 14
+def bracket(xm, y0, y1, sym, w=22, ital=False):
+    x = xm - 10
     rule((x, y0), (x, y1), VERM, 1.0)
     for yy in (y0, y1):
         rule((x - 2, yy), (x + 2, yy), VERM, 1.0)
-        rule((x + 2, yy), (XM - 1, yy), VERM, 0.45, "1.2 1.2")
-    text(x - 3 - w, (y0 + y1) / 2 - 5, w, 10, sym, 9, align="right", colour=VERM, italic=ital)
+        rule((x + 2, yy), (xm - 1, yy), VERM, 0.45, "1.2 1.2")
+    text(x - 2 - w, (y0 + y1) / 2 - 5, w, 10, sym, 9, align="right", colour=VERM, italic=ital)
 
-def frame(y0, y1, label, tabw):
-    vertex(30, y0, 206, y1 - y0, f"rounded=1;arcSize=2;fillColor=none;strokeColor={RULE};strokeWidth=0.6;")
-    vertex(30, y0, tabw, 10, f"rounded=0;fillColor=#F2F4F7;strokeColor={RULE};strokeWidth=0.6;")
-    text(33, y0 + 0.5, tabw - 4, 9, label, 7.5, align="left", italic=True)
+for xm, xo, title in PANELS:
+    text((xm + xo) / 2 - 50, 2, 100, 9, title, 8, align="center", colour=SOFT, italic=True)
+    text(xm - 23, 13, 46, 9, "Master", 8, align="center")
+    text(xo - 23, 13, 46, 9, "SEL-751A", 8, align="center")
+    for x in (xm, xo):
+        rule((x, TOP), (x, BOT), "#9AA4AE", 0.6, "2 2")
 
-# ---- header: the icons and the two names, nothing else
-vertex(XM - 17, 3, 34, 26, "html=1;pointerEvents=1;dashed=0;strokeColor=#ffffff;strokeWidth=1.2;outlineConnect=0;"
-                          f"shape=mxgraph.cisco.computers_and_peripherals.workstation;fillColor={SLATE};")
-relay(XO - 10.4, 2, 0.8)
-text(XM - 30, 31, 60, 9, "Master")
-text(XO - 30, 31, 60, 9, "SEL-751A")
-for x in (XM, XO):
-    rule((x, 44), (x, 240), "#9AA4AE", 0.6, "2 2")
+XA, OA, _ = PANELS[0]
+msg(XA, OA, 38, True, BLUE, "READ")
+msg(XA, OA, 58, False, GREY, "ACK")
+msg(XA, OA, 78, False, GREEN, "Response")
+activation(OA, 58, 78)
+bracket(XA, 58 + SLANT, 78 + SLANT, "CLRT")
 
-def panel(y, label):
-    text(XC - 70, y, 140, 9, label, 7.5, colour=SOFT, italic=True)
+XB, OB, _ = PANELS[1]
+for k, (l2r, colour, name) in enumerate(((True, BLUE, "SELECT"), (False, GREY, "ACK"),
+                                         (False, GREEN, "Response"), (True, BLUE, "OPERATE"),
+                                         (False, GREY, "ACK"), (False, GREEN, "Response"))):
+    msg(XB, OB, 38 + 16 * k, l2r, colour, name)
+activation(OB, 54, 70)
+activation(OB, 118, 134)
+bracket(XB, 118 + SLANT, 134 + SLANT, "O", w=10, ital=True)
 
-# ---- (a) READ
-panel(47, "(a) READ poll")
-msg(72, True, BLUE, "READ")
-msg(88, False, GREY, "ACK")
-msg(104, False, GREEN, "Response")
-activation(88, 104)
-bracket(88 + SLANT, 104 + SLANT, "CLRT", w=24, ital=False)
-
-# ---- (b) select-before-operate
-panel(123, "(b) Select-before-operate control")
-msg(148, True, BLUE, "SELECT")
-msg(164, False, GREY, "ACK")
-msg(180, False, GREEN, "Response")
-msg(196, True, BLUE, "OPERATE")
-msg(212, False, GREY, "ACK")
-msg(228, False, GREEN, "Response")
-activation(164, 180)
-activation(212, 228)
-bracket(212 + SLANT, 228 + SLANT, "O")
-
-H = 244
 xml = (f'<mxfile host="drawio"><diagram name="fig_ladder" id="lad">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" arrows="0" '
        f'fold="0" page="1" pageScale="1" pageWidth="{W}" pageHeight="{H}" background="#ffffff" math="0" '

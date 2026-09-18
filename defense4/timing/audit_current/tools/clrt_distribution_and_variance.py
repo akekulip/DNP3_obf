@@ -509,6 +509,113 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
                 limitations, notes)
 
 
+def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
+    """The same measurements at both scales, as one 2x2 rather than two stacked pairs.
+
+    Columns are the two arms and rows are the two scales, which is the small-multiples layout
+    Ditto uses for its own distribution figures. It replaces `fig_clrt_distributions` and
+    `fig_clrt_zoom` in the manuscript: those carried the same data in two floats with two
+    captions, 5.5 column-inches of figure between them, and a cross-reference from one to the
+    other that a reader had to follow to see the mode resolve. Side by side the resolution
+    happens by looking down a column, and the pair costs 3.15 inches instead of 5.5.
+
+    Both figures are still generated, because they are the archival full-height versions and
+    their bin accounting is what the row tables are built from.
+    """
+    fs.use()
+    off, obf = by_arm["native"], by_arm["obfuscated"]
+
+    w, cutoff = MAIN_BIN_MS, OVERFLOW_CUTOFF_MS
+    n_fin = int(round(cutoff / w))
+    edges = w * np.arange(n_fin + 1)
+    main = {}
+    for arm, v in (("native", off), ("obfuscated", obf)):
+        counts, over = binned_percentages(v, edges, cutoff_ms=cutoff)
+        scale = 100.0 / float(v.size)
+        main[arm] = (counts * scale, over * scale)
+    y_main = max(max(main[a][0].max(), main[a][1]) for a in main) * 1.18
+
+    z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
+    zw = ZOOM_BIN_MS
+    zedges = z_lo + zw * np.arange(int(round((z_hi - z_lo) / zw)) + 1)
+    zoom, shares = {}, {}
+    for arm, v in (("native", off), ("obfuscated", obf)):
+        counts, _ = np.histogram(v, bins=zedges)
+        zoom[arm] = counts * (100.0 / float(v.size))
+        shares[arm] = 100.0 * int(counts.sum()) / float(v.size)
+    y_zoom = max(zoom[a].max() for a in zoom) * 1.18
+
+    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 3.15))
+    for col, (arm, v) in enumerate((("native", off), ("obfuscated", obf))):
+        a0, a1 = axes[0][col], axes[1][col]
+
+        pct, over_pct = main[arm]
+        _draw_finite_bars(a0, pct, edges, arm)
+        _draw_overflow_bar(a0, over_pct, cutoff, w, arm)
+        a0.set_xlim(0.0, cutoff + 4.0 * w)
+        a0.set_ylim(0.0, y_main)
+        ticks = [0.0, 5.0, 10.0, 15.0, cutoff + 2.5 * w]
+        a0.set_xticks(ticks)
+        a0.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
+        a0.set_title(ARM_LABEL[arm], fontsize=8)
+
+        a1.bar(zedges[:-1], zoom[arm], width=zw, align="edge",
+               color=ARM_COLOR[arm], edgecolor="none", zorder=3)
+        a1.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
+        a1.set_xlim(z_lo, z_hi)
+        a1.set_ylim(0.0, y_zoom)
+        a1.set_xticks([z_lo, target_ms, z_hi])
+        a1.set_xticklabels(["%.2f" % z_lo, "%.2f" % target_ms, "%.2f" % z_hi])
+        a1.set_xlabel("CLRT [ms]")
+        # The share is the result in the lower row: the Timing OFF panel is nearly empty
+        # because that arm puts little of itself in this window, and saying so in the panel
+        # keeps a reader from reading the emptiness as missing data.
+        a1.annotate("%.2f\u2009%%" % shares[arm], xy=(0.04, 0.9), xycoords="axes fraction",
+                    fontsize=8, color=ARM_COLOR[arm], ha="left", va="top")
+
+        if col == 0:
+            a0.set_ylabel("Transactions [%]")
+            a1.set_ylabel("Transactions [%]")
+        else:
+            a0.set_yticklabels([])
+            a1.set_yticklabels([])
+        a0.set_xlabel("CLRT [ms]")
+
+    fig.tight_layout(pad=0.3, h_pad=0.8, w_pad=0.6)
+
+    rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
+                      "campaign_v1/derived/transactions.csv")
+            for arm, v in (("native", off), ("obfuscated", obf))]
+    for r, arm in zip(rows, ("native", "obfuscated")):
+        r["main_bin_width_ms"] = round(w, 6)
+        r["zoom_bin_width_ms"] = round(zw, 6)
+        r["overflow_cutoff_ms"] = round(cutoff, 6)
+        r["percent_in_overflow"] = round(float(main[arm][1]), 9)
+        r["percent_in_zoom_window"] = round(float(shares[arm]), 9)
+        r["configured_CLRT_new_ms"] = target_ms
+
+    caption = (
+        "**Measured READ CLRT, at both scales.** Columns are the arms and rows the scale. "
+        "Upper row: common %.0f ms bins anchored at 0 ms, finite bins half-open, and one "
+        "category past the break holding every transaction at or above %g ms, %.3f %% of "
+        "Timing OFF and %.3f %% of Obfuscated. Lower row: %.3f ms bins within %.2f ms of the "
+        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed), where the mass that the upper "
+        "row's grid divides between two neighbouring bins resolves into one mode. The ordinate "
+        "is the percentage of that arm's entire sample throughout, not of the window, so the "
+        "rows are directly comparable; the window holds %.2f %% of Timing OFF and %.2f %% of "
+        "Obfuscated."
+        % (w, cutoff, main["native"][1], main["obfuscated"][1], zw, ZOOM_HALFWIDTH_MS,
+           shares["native"], shares["obfuscated"]))
+    method = _method_note(w, freedman_diaconis_ms(off), cutoff, main, target_ms, acc)
+    notes = ["READ only; SELECT and OPERATE are excluded by design",
+             "no exclusions: every READ transaction in the canonical table is plotted",
+             "overflow is a category, not an interval; values equal to the cutoff are in it",
+             "the full-height single-scale versions are kept as fig_clrt_distributions and "
+             "fig_clrt_zoom"]
+    return emit(fig, out, "fig_clrt", caption, inputs, rows, method,
+                _limitations_note(), notes)
+
+
 def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     """Companion view: the same bins over the entire measured range, no overflow, all tails."""
     fs.use()
@@ -990,6 +1097,7 @@ def main(argv):
     figure_distributions(by_arm, target_ms, out, cv1_inputs + cfg_inputs, acc, bin_rows)
     figure_distributions_full(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
     figure_zoom(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
+    figure_clrt_grid(by_arm, target_ms, out, cv1_inputs + cfg_inputs, acc, bin_rows)
     write_run_statistics(out, by_run, by_capture, single_stats)
     write_bin_table(out, bin_rows)
     write_source_manifest(out, by_arm, acc, target_ms)

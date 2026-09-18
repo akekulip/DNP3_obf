@@ -34,6 +34,10 @@ TXNS = ROOT / "transactions.csv"
 TXNS_SEP = ROOT / "transactions_sep.csv"
 OUT_JSON = ROOT / "tail_sweep.json"
 FIGDIR = ROOT / "figures"
+# The manuscript copy. Published by this generator and nothing else, with a hash manifest that
+# --check recomputes, the same contract the other figure families keep.
+PUBDIR = ROOT.parents[3] / "paper" / "rewrite" / "figures" / "tail"
+PUB_EXT = (".pdf", ".png", "_data.csv", ".caption.md", ".provenance.json")
 
 READ_LANE_CLASSES = ("READ", "SELECT")     # anchored on the outstation's acknowledgment
 CONTROL_CLASSES = ("OPERATE",)             # anchored on the request
@@ -181,7 +185,8 @@ def figure(res, rows, sep):
     import collections                                     # noqa: E402
     fs.use_ieee()
 
-    fig, ax = plt.subplots(1, 2, figsize=(fs.PAGE_WIDTH_IN, 2.25))
+    # One column, two panels side by side: the page cannot afford a full-width float for this.
+    fig, ax = plt.subplots(1, 2, figsize=(fs.COL_WIDTH_IN, 1.95))
 
     # ---- (a) the tail itself, against the budget that was asked for
     rd = sorted([r for r in res if r["series"] == "readlane" and r["txn_class"] == "READ"],
@@ -192,7 +197,10 @@ def figure(res, rows, sep):
     # groups and nothing lies between them.
     lo = [r for r in live if r["tail_ms"] * 1000 < 120.0]
     hi = [r for r in live if r["tail_ms"] * 1000 >= 120.0]
-    for rs, col, mk in ((hi, fs.TIMING_ON, "o"), (lo, fs.TIMING_OFF_ALT, "s")):
+    # One neutral colour for both branches. Panel (b) spends blue and orange on obeyed and
+    # ignored, so reusing them here for long and short branch would tell a reader that the
+    # short branch is something the switch ignores. Position already separates the branches.
+    for rs, col, mk in ((hi, fs.NEUTRAL, "o"), (lo, fs.NEUTRAL, "o")):
         x = [r["deadline_ms"] for r in rs]
         y = [r["tail_ms"] * 1000 for r in rs]
         e = [[y[i] - rs[i]["tail_min_ms"] * 1000 for i in range(len(rs))],
@@ -284,6 +292,12 @@ def main(argv) -> int:
             for b in (bad + missing)[:10]:
                 print("  " + b, file=sys.stderr)
             return 1
+        pub = check_published()
+        if pub:
+            print(f"tail sweep: {len(pub)} problem(s)", file=sys.stderr)
+            for b in pub:
+                print("  " + b, file=sys.stderr)
+            return 1
         print("tail sweep: 0 problems")
         return 0
     report(res, base)
@@ -293,7 +307,43 @@ def main(argv) -> int:
     print(f"\n  -> {OUT_JSON}")
     if "--figure" in argv:
         figure(res, rows, separation())
+        publish()
     return 0
+
+
+def _sha(path):
+    import hashlib
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def publish():
+    import shutil
+    PUBDIR.mkdir(parents=True, exist_ok=True)
+    lines = []
+    for ext in PUB_EXT:
+        src = FIGDIR / f"fig_release_tail{ext}"
+        dst = PUBDIR / src.name
+        shutil.copyfile(src, dst)
+        lines.append(f"{_sha(dst)}  {dst.name}")
+    (PUBDIR / "FIGURES.sha256").write_text("\n".join(lines) + "\n")
+    print(f"  published -> {PUBDIR}")
+
+
+def check_published():
+    man = PUBDIR / "FIGURES.sha256"
+    if not man.exists():
+        return [f"{man} is missing"]
+    bad = []
+    for line in man.read_text().split("\n"):
+        if not line.strip():
+            continue
+        h, name = line.split("  ", 1)
+        pub, gen = PUBDIR / name, FIGDIR / name
+        if not pub.exists() or _sha(pub) != h:
+            bad.append(f"{name}: published copy does not match its manifest")
+        elif not gen.exists() or _sha(gen) != h:
+            bad.append(f"{name}: published copy does not match the generating tree")
+    return bad
 
 
 if __name__ == "__main__":
