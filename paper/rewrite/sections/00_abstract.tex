@@ -2,19 +2,19 @@
 Adversaries preparing attacks on industrial control systems (ICSs) such as power grids first
 perform reconnaissance, and device fingerprinting supplies much of the knowledge they need. In ICS
 networks, the fingerprint does not have to come from the payload. The interval between the transport
-acknowledgment of an outstation and its application response reflects the execution time of the
-device, and it identifies both the device and the operation it performs. Removing that interval is
-challenging. Existing traffic obfuscation reshapes packet sizes and inter-packet gaps of encrypted
+acknowledgment of an outstation and its application response carries the execution time of the
+device, and it identifies both the device and the operation it performs. Removing that execution
+time is challenging. Existing traffic obfuscation pads packets and adds dummy ones inside encrypted
 flows, whereas ICS traffic is unencrypted, and any padding or dummy packet reveals itself.
 
 To overcome these challenges, we propose an in-network timing-obfuscation framework that replaces
-the interval with a value the operator configures. A programmable switch in front of the outstation
-holds the acknowledgment and the response and releases each of them at a deadline computed from the
-same instant, such that the execution time of the device cancels from the interval an adversary
-measures. The switch only delays the packets it receives, so both endpoints run unmodified and no
-DNP3 byte changes. We implement the framework on an Intel Tofino-1 switch and evaluate it against a
+the execution time of the device with a value the operator configures. A programmable switch in
+front of the outstation holds the acknowledgment and the response and releases each of them at a
+deadline computed from the arrival of the request, so neither release depends on anything the
+outstation does. The switch only delays the packets it receives, so both endpoints run unmodified and
+no DNP3 byte changes. We implement the framework on an Intel Tofino-1 switch and evaluate it with a
 physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The experimental results show that,
-with negligible overhead, the framework can disrupt timing-based fingerprinting. A classifier
-trained before deployment falls from 0.745 balanced accuracy to three-class chance, an adaptive
-adversary that pools many exchanges stays at chance, and the framework adds no frame and no byte.
+without adding a frame or a byte, the framework removes the execution time from the interval an
+adversary measures. The interval settles on the configured 8~ms for every operation, and a
+classifier trained before deployment falls from 0.803 balanced accuracy to chance.
 \end{abstract}

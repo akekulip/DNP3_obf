@@ -83,6 +83,7 @@ def manuscript_values(stats, leak, sweep, val, repl, pooled=None, proof=None):
         "ack_interval_ms": {k: {"median": v["median"], "iqr": v["iqr"]}
                             for k, v in stats["ack_interval_ms"].items()},
         "added_response_latency_ms": stats["added_response_latency_ms"],
+        "response_time_median_ms": stats["response_time_median_ms"],
         "overhead": stats["overhead"],
         "mutual_information_bits": {
             a: {"observed": mi[a]["observed_bits"],

@@ -71,3 +71,10 @@ packet says, and none of them changes the timing an adversary sees. On the contr
 al.\ read the physical operation time from an event timestamp inside the application
 payload~\cite{formbyWhosControlYour2016}, which is a different channel from the packet timing our
 framework replaces.
+
+\textbf{Protecting the Framework Itself.} Like any in-network defense, the framework adds a switch to
+what an operator must protect, and an adversary that compromises the switch sees every hold. However,
+the framework makes light use of the switch. One pipeline program holds the packets of three
+function codes and forwards all others unchanged, no controller sits in the forwarding path, and the
+control plane reads back every policy it installs. Checking this program and its policy is a smaller
+task than hardening the legacy outstations behind it, which often cannot be patched.

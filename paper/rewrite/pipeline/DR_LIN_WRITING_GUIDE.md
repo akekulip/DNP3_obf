@@ -138,21 +138,19 @@ this draft, not a structure the advisor dictated.
 | timing-feature overlap (Figure 3) | clustering performance, t-SNE, UMAP |
 | transaction-class timing leakage / classifier | device identification, device-model separation |
 | CLRT (cross-layer response time) = response − ACK, master-facing | ACK-to-response "latency of the relay" without the observation point |
-| D_A = ACK hold; D_R = **response latency**, the response's whole journey from the outstation to the master, which is unmeasured here; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
-| size shaping **off in both arms** in `campaign_v1`, so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
+| D_A = acknowledgment deadline, measured from the request; D_R = **response latency**, the response's whole journey from the outstation to the master, which is unmeasured here; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (both lanes anchored to the request on the shipped build; see `NOTATION_MAPPING.md` §0a); J (control path, command hold) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
+| size shaping **off in both arms** in `campaign_v2` (and `campaign_v1`), so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
 
 ## 6. Claim gates (every sentence of results must pass)
 
 * Every number traces to `figures/ndss/MANUSCRIPT_VALUES.json`, regenerated from the raw
-  captures by `defense4/timing/evidence/campaign_v1/repro/reproduce.sh`. That file is the only
+  captures by `defense4/timing/evidence/campaign_v2/repro/reproduce.sh`. That file is the only
   source the manuscript quotes from, and the publication gate fails if it drifts from a rebuild.
 * Every figure sentence names its figure and reports the observation point.
-* The Obfuscated mutual information is quoted as "0.004 bits, inside the permutation null", with
-  the empirical p-value where the sentence needs it. (The older rule said "below 0.003 bits" and
-  applied to the retired `final_read_sbo` estimate, whose instability at the fourth decimal came
-  from a histogram bin edge at exactly 4.000 ms. The campaign_v1 estimate uses a
-  nearest-neighbour estimator and does not have that failure mode, so the value is quoted as
-  measured.) No uncertainty interval is placed on a mutual-information estimate.
+* The Obfuscated mutual information is quoted as measured, 0.043 bits in `campaign_v2`, which lies
+  **above** its permutation null (p = 0.001); the manuscript says so and attributes it with the
+  analyses in `proof.json` rather than calling it chance. No uncertainty interval is placed on a
+  mutual-information estimate.
 * Classifier accuracy is scoped to the evaluated Random-Forest attacker and feature set, and its
   spread is described as the range over the 22 held-out runs, never as a confidence interval.
 * The read lane and the control lane are never pooled: the release budget `D` governs READ and

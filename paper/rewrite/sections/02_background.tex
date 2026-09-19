@@ -56,8 +56,9 @@ et al.\ classify DNP3 device types and models by the distribution of the
 CLRT~\cite{formbyWhosControlYour2016}, and Lin et al.\ measured the execution times of three
 devices, among them the SEL-751A we evaluate, and separated them by the combination of their average
 and their variation~\cite{linDefRecEstablishingPhysical2020}. The same separation holds between the operations
-of one device. For example, our relay takes 2.937~ms to answer a control command and 2.116~ms to
-answer a poll, while it acknowledges the two requests 0.003~ms apart. Consequently, the CLRT carries how this device performs
+of one device. For example, the median CLRT of our relay is 2.929~ms for a control command and 2.121~ms for
+a poll, while its median acknowledgment latencies for READ, SELECT and OPERATE lie within
+0.003~ms of one another. Consequently, the CLRT carries how this device performs
 an operation, which is the profile a fingerprinting adversary builds.
 
 \subsection{Holding Packets in a Programmable Switch}

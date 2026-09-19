@@ -2,16 +2,20 @@
 \label{sec:conclusion}
 
 Instead of padding packets or adding dummy ones, we propose an in-network framework that holds the
-packets carrying the timing of an ICS device and releases them on a schedule the operator sets.
-Because both release deadlines are computed from one instant, the execution time of the device
-cancels from the interval an adversary measures, which is the interval that cross-layer
-response-time fingerprinting relies on. The framework runs without encryption and leaves the master, the outstation
-and DNP3 unchanged.
+packets carrying the timing of an ICS device and releases them at deadlines computed from the
+arrival of the request. Because neither release depends on anything the outstation does, the
+execution time of the device reaches neither the request-to-acknowledgment interval nor the
+cross-layer response time an adversary measures, which is the interval that cross-layer
+response-time fingerprinting relies on. The framework runs without encryption and leaves the master,
+the outstation and DNP3 unchanged.
 
-On a physical SEL-751A relay, the released interval settles on the configured value, its
-interquartile range falls from 2.778 to 0.006~ms, and the operator can place it anywhere from 1 to
-22~ms. A classifier trained on Timing OFF traffic falls from 0.745 balanced accuracy to chance, and
-an adaptive adversary that pools twenty exchanges, as fingerprinting methods do, stays at chance,
-where Timing OFF traffic lets it reach 0.988. The framework adds no frame and no byte, and it
-raises the median response time by 22.7~ms, well within every timer of TCP and DNP3. In future work, we will evaluate the framework on outstations from
-several vendors and on intervals beyond the two we replace.
+On a physical SEL-751A relay, the released interval settles on the configured 8~ms for every
+operation, and the interquartile range of READ falls from 2.772 to 0.022~ms. READ and SELECT, which
+differ only in execution time, become indistinguishable, and a classifier trained before deployment
+falls from 0.803 balanced accuracy to chance. An adaptive adversary reaches 0.445 by learning when
+requests reach the switch, not how the relay executes them. The framework adds no frame and no byte,
+and the median request-to-response time of a poll stays at 28.107~ms, well within every timer of TCP
+and DNP3.
+
+In future work, we will evaluate the framework on outstations from several vendors, and we will
+make the release independent of the state of the blocker queue.

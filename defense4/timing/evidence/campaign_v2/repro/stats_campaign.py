@@ -144,10 +144,13 @@ def main(canon, budget_ms, out):
     # ---- observed added response latency, by class
     print("\nObserved added response latency (median rt, obfuscated minus Timing OFF):")
     res["added_response_latency_ms"] = {}
+    res["response_time_median_ms"] = {}
     for c in CLASSES:
         a = np.median([r[5] for r in rows if r[1] == "native" and r[2] == c])
         b = np.median([r[5] for r in rows if r[1] == "obfuscated" and r[2] == c])
         res["added_response_latency_ms"][c] = round(float(b - a), 4)
+        res["response_time_median_ms"][c] = {"native": round(float(a), 4),
+                                              "obfuscated": round(float(b), 4)}
         print(f"  {c:8s} {a:7.3f} -> {b:7.3f} ms   added {b-a:6.3f} ms")
 
     with open(out, "w") as f:

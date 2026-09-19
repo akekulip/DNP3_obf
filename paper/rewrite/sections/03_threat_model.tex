@@ -31,13 +31,13 @@ substation cabinet.
 
 \textbf{Adversary's Goal.} The adversary aims at fingerprinting the outstation from the timing of
 its exchanges, and from that timing it infers the make and model of the device and the operation
-each exchange performs. Based on this knowledge, the adversary can design targeted attacks, e.g., false data
-injection that must match the devices it compromises~\cite{liuFalseDataInjection2009}. We consider two adversaries. A
-\emph{fixed} adversary builds its classifier from traffic captured before the framework is deployed
-and applies it afterwards. An \emph{adaptive} adversary collects traffic after deployment, labels
-it with the plaintext function codes and retrains its classifier. The adaptive adversary can also
-pool many exchanges of the same operation into one signature, as Formby et al.\
-do~\cite{formbyWhosControlYour2016}.
+each exchange performs. Based on this knowledge, the adversary can design targeted attacks, e.g.,
+false data injection that must match the devices it compromises~\cite{liuFalseDataInjection2009}.
+We consider two adversaries. A \emph{fixed} adversary builds its classifier from traffic captured
+before the framework is deployed and applies it afterwards. An \emph{adaptive} adversary collects
+traffic after deployment, labels it with the plaintext function codes and retrains its classifier.
+The adaptive adversary can also pool many exchanges of the same operation into one signature, as
+Formby et al.\ do~\cite{formbyWhosControlYour2016}.
 
 \subsection{Research Objectives}
 \label{sec:threat:ro}
@@ -49,13 +49,19 @@ We specify three research objectives (RO) as follows:
   \item \textbf{RO1:} for both the read poll and the select-before-operate control, we aim at
     making the CLRT the adversary measures a value the operator configures, independent of the
     execution time of the outstation.
-  \item \textbf{RO2:} for fixed and adaptive adversaries, we aim at removing the information the
-    CLRT carries about the outstation, such that their classifiers perform no better than chance,
-    even when they pool many exchanges.
+  \item \textbf{RO2:} for fixed and adaptive adversaries, we aim at removing the execution time of
+    the outstation from everything they learn from the timing of an exchange, such that a fixed
+    adversary performs no better than chance and whatever an adaptive adversary still learns
+    reflects the switch rather than the device.
   \item \textbf{RO3:} for the operation of the control network, we aim at negligible overhead. The
     framework adds no packet and no byte, and it keeps every added delay within the timers of TCP
     and DNP3, such that no request is retransmitted and no control operation is refused.
 \end{itemize}
+
+\textbf{Trusted Components.} To achieve these objectives, we add only the switch and its control
+plane to the trusted computing base. The control plane installs the release policy and reads it
+back, and the switch enforces it. The framework needs no cooperation from the master or the
+outstation, and neither of them is modified.
 
 \textbf{For Payload-Based Fingerprinting.} We designed the framework to hide timing, not content.
 It forwards every packet at its original size and leaves the function codes readable, so the

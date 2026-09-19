@@ -25,7 +25,7 @@ packets recirculate on an internal loopback port and never reach a cable, so nei
 observe them. Each blocker packet carries a tag naming its transaction and lane, so a leftover blocker
 packet cannot delay a later transaction.
 
-\textbf{Deadline Check.} No counter drives the hold. When the acknowledgment arrives, the program
+\textbf{Deadline Check.} No counter drives the hold. When the request arrives, the program
 stores an absolute release instant for each packet, quantized to a 256~ns grid. Each of the 64 recirculating blocker packets
 compares the current timestamp against that instant on every pass. The program regenerates the
 blocker packet while the deadline lies in the future and drops it once the deadline passes.
@@ -41,13 +41,13 @@ Section~\ref{sec:design:read}, and we measure it in Section~\ref{sec:eval:tail}.
 \label{sec:impl:walkthrough}
 
 \textbf{Read Transaction.} When a request arrives, a table classifies it by its function code, and
-the program forwards it at once and records the transaction in flight. When the acknowledgment
-arrives at $t_A$, a median of 0.56~ms later on our relay, the program writes both release instants
-from that one timestamp, as~(\ref{eq:schedule}) requires. It writes them only from an unarmed state,
-so a duplicate acknowledgment cannot arm a second deadline. A response that arrives before its
-deadline waits in its held queue, and the two packets leave at their scheduled instants. A response
-that arrives after its deadline is marked late and enters the same held queue, from which it leaves
-when the queue next serves it. Releasing the response clears the transaction.
+the program forwards it at once, records the transaction in flight and writes both release instants
+from the arrival timestamp of the request, as~(\ref{eq:schedule}) requires. It writes them only for
+a fresh transaction, and the later acknowledgment of the outstation finds both deadlines already
+armed and cannot move them. The
+acknowledgment and the response each wait in their held queue and leave at their scheduled instants.
+A response that arrives after its deadline is marked late and enters the same held queue, from which
+it leaves when the queue next serves it. Releasing the response clears the transaction.
 
 \textbf{Control Transaction.} The control lane uses a second loopback port with one blocker queue
 above the held OPERATE request, on its way to the relay. The acknowledgment and the response of the
@@ -69,17 +69,18 @@ Timing OFF case.
 \subsection{Testbed}
 \label{sec:impl:p4}
 
-\textbf{Switch Program.} The program has about 1{,}560 lines of
-P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Native Architecture,
-compiled with the Barefoot SDE 9.13. It occupies all twelve ingress stages and six egress stages of
-one pipeline, with 112 tables. Its state lives in one-entry registers, each accessed once per packet.
+\textbf{Switch Program.} The program has 1{,}584 lines of
+P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Native Architecture
+(comments excluded), and we compiled it with the Barefoot SDE 9.13.2. It occupies all twelve ingress stages and
+six egress stages of one pipeline, with 113 tables. Its state lives in one-entry registers, each accessed once per packet.
 One 25~Gb/s port connects the master and one 1~Gb/s port connects the relay. Two further ports are
 loopbacks without cables, one for the read lane and one for the control lane.
 
-\textbf{Control Plane.} A control plane of about 890 lines of Python brings up the ports and the
-queues, configures the packet generator, and writes the release policy into runtime tables and reads
-it back. An operator therefore changes the policy by writing table entries rather than loading a new
-program. The control plane refuses any acknowledgment hold above 40~ms.
+\textbf{Control Plane.} A control plane written in Python, around 900 lines in its entry module,
+brings up the ports and the queues, configures the packet generator, and writes the release policy
+into runtime tables and reads it back. An operator therefore changes the policy by writing table
+entries rather than loading a new program. The control plane refuses any release offset at or above
+the smallest of the timer and horizon bounds it is given, which is 30~ms on our testbed.
 
 \textbf{Physical Device.} The outstation is an SEL-751A feeder protection relay, one of the DNP3
 device classes that Formby et al.\ fingerprint~\cite{formbyWhosControlYour2016}.
