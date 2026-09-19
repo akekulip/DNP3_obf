@@ -9,13 +9,15 @@ overhead is negligible and bounded (Section~\ref{sec:design:overhead}).
 \subsection{Design Overview}
 \label{sec:design:overview}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\IfFileExists{figures/fig_design.pdf}{\includegraphics[width=\columnwidth]{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies every arrival and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; each held packet sits behind a queue of generated blocker packets that a strict-priority scheduler drains first.}}
-\caption{The framework on one switch pipeline. Each held packet waits behind blocker packets, which a
-  strict-priority scheduler drains first, and the loopback keeps those packets inside the switch.}
+\IfFileExists{figures/fig_design.pdf}{\includegraphics[width=\textwidth]{figures/fig_design}}{\figplaceholder{One P4 pipeline read left to right: everything on the left arrives at the switch and everything on the right leaves it. The request arms both release deadlines; the read lane holds the acknowledgment and the response, each behind its own queue of blocker packets; the control lane holds a command the same way; a strict-priority scheduler drains each blocker queue first and the blocker loopback returns into it.}}
+\caption{The framework on one switch pipeline, read left to right. A request arms both release
+  deadlines from its own arrival, so neither instant carries anything the outstation did. The
+  scheduler drains each blocker queue before the queue it guards, which is what holds a packet until
+  its deadline. The figure does not show the exchanges the switch forwards unchanged.}
 \label{fig:design}
-\end{figure}
+\end{figure*}
 
 In Figure~\ref{fig:design}, we present the design of the framework. We place a programmable switch
 between the master and the outstation, and the switch classifies every DNP3 exchange by its function
