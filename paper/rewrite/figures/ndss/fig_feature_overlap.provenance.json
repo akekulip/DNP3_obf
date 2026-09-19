@@ -1,44 +1,44 @@
 {
  "figure": "fig_feature_overlap",
  "caption": "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the outlined markers are the median of each class, computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is timed from the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "72ee5965b5d2bfeaf84c86b30c00bf65bd452af7",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "f0eb6d3ab89cb776c4430068a5793931d4922cd9",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
   "sha256": "b81e46485892af8a89421d4db5232de219c61623584f88ccfafe5b11b57b4589"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
   "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
-   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_feature_overlap.pdf",
-   "sha256": "f8178f4e9ca386491fdc82f751c03d88b2ac2385a20ba044eb2657b5ec1ca23e",
+   "sha256": "4ed986daa000c68c328ba05a8abdc6970e417f3807eb94da6385c987ea9bcfdc",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_feature_overlap.png",
-   "sha256": "daf3fbbcd76ca68afc238a0f975f8b6779d91f622b2019b264459acc0074eaad",
+   "sha256": "cf043e3f683bad21844654a45f0f97f3a76c5ce968de43bbaf91e77596df7048",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_feature_overlap_data.csv",
-   "sha256": "b7c56d6da645cb8f598d1f1a28d537aece5d84bda505d9e0af3a32ce0bf83b48",
+   "sha256": "25979a83759aa3e509bf0df06811d5c2f9f20c82acf6c81bb54876b70307bb0b",
    "rows": 6,
    "authoritative": true
   }

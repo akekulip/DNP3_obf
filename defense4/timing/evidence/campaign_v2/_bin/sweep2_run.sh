@@ -3,8 +3,11 @@
 #
 # The point set is campaign_v1's, point for point, so the two sweeps compare directly and the
 # effect of request anchoring is visible across the whole policy space rather than at one setting.
-# One point is added: sw_D4_20_8, the policy campaign_v2 actually ships, which campaign_v1's set
-# does not contain.
+# Two families are added. campaign_v1's set splits a FIXED budget of 24 ms between D_A and
+# D_R, which is the budget it shipped. campaign_v2 ships 28 ms, so the same split is swept
+# there too, eight points from (26, 2) to (2, 26). Without them the figure that plots the
+# measured interval against the configured one at the shipped budget has a single point to
+# draw, and would otherwise have to be drawn at a budget this paper does not use.
 #
 # Three points establish the operating envelope rather than a release policy. sw_off is the relay
 # unmodified. sw_D2_0_24 and sw_D3_20_0 select modes the decision tables no longer carry entries
@@ -32,12 +35,19 @@ sw_D4_34_4              D4    34   4
 sw_D4_36_4              D4    36   4
 sw_D4_23_1              D4    23   1
 sw_D4_22_2              D4    22   2
-sw_D4_20_8              D4    20   8
 sw_D4_16_8              D4    16   8
 sw_D4_12_12             D4    12   12
 sw_D4_08_16             D4    8    16
 sw_D4_04_20             D4    4    20
 sw_D4_02_22             D4    2    22
+sw_D4_26_2              D4    26   2
+sw_D4_24_4              D4    24   4
+sw_D4_20_8              D4    20   8
+sw_D4_16_12             D4    16   12
+sw_D4_12_16             D4    12   16
+sw_D4_08_20             D4    8    20
+sw_D4_04_24             D4    4    24
+sw_D4_02_26             D4    2    26
 "
 
 log "=== sweep2 START n_read=$NREAD n_sbo=$NSBO (control lane held at A=20 R=28) ==="

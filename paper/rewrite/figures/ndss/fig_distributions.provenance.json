@@ -1,40 +1,40 @@
 {
  "figure": "fig_distributions",
- "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "72ee5965b5d2bfeaf84c86b30c00bf65bd452af7",
+ "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 113.48~ms and the largest obfuscated one is 78.44~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "f0eb6d3ab89cb776c4430068a5793931d4922cd9",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
   "sha256": "b81e46485892af8a89421d4db5232de219c61623584f88ccfafe5b11b57b4589"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
   "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "1d3cd108d0c287d02bc5ac65accafa2757ab4615144d93e7adc042244d81dde0",
+   "sha256": "343f7207be2bc336b9e864709d59a63950d14de4f42bf446a1aa2329a6358291",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "edf9584b1527ac0f40a91719a6e29b80b3d40324550367d9ac715d339a7af87c",
+   "sha256": "f30d4c34c6f847d127ddf69e07d96b4269172b2228e5302001da52d0ac6e7def",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_distributions_data.csv",
-   "sha256": "7368e7900b1fa374a1e96f6cae20325231f4bfe3dff1d3dce0251ff7b52fb3be",
+   "sha256": "900790900cedca0aa9db013140a43efb28b9e362b588b57dc3d44461d31b9812",
    "rows": 246,
    "authoritative": true
   }
@@ -49,16 +49,16 @@
   "clipping": "none; full support plotted",
   "maxima_ms": {
    "READ": {
-    "native": 83.458,
-    "obfuscated": 57.182
+    "native": 113.48,
+    "obfuscated": 78.443
    },
    "SELECT": {
-    "native": 24.831,
-    "obfuscated": 5.15
+    "native": 24.3,
+    "obfuscated": 8.077
    },
    "OPERATE": {
-    "native": 24.203,
-    "obfuscated": 5.662
+    "native": 19.631,
+    "obfuscated": 8.075
    }
   },
   "whiskers": "full range, no observation hidden",

@@ -1,53 +1,53 @@
 {
  "figure": "fig_policy_coverage_cost",
- "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "72ee5965b5d2bfeaf84c86b30c00bf65bd452af7",
+ "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=28~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=28~ms, 17 of 29040 (0.0585\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=28~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "f0eb6d3ab89cb776c4430068a5793931d4922cd9",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
   "sha256": "b81e46485892af8a89421d4db5232de219c61623584f88ccfafe5b11b57b4589"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
   "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
-   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
   },
   {
    "path": "pipeline-output/stats.json",
-   "sha256": "c21fd48260560e0f692dd20ba461f318070ee654e144bd8b1423878ef25bd79f"
+   "sha256": "bd6795fbf5658f0a3e9f479d4f29ed10565b134764225fcbbdf09c53dd6395ac"
   },
   {
    "path": "pipeline-output/sweep_summary.json",
-   "sha256": "5d240e0a07f352757542a81755ccc0ef11113b9dc7ae8b9d65a15179f6ca239c"
+   "sha256": "04619a2181a1e3cc1b43a22e8ecf6b28512e683eb21d231574b28ffe4fc376b6"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "75e5b6c99e468fd4d8bfe1cd470adf8411c8439f6d98f51c15f498b6c78962a1",
+   "sha256": "95e4c580c70d7509d50f8863b3812d96ae9503f009d2f95a801f4ad51370369e",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "bfae5b3fc0f19cd1e0259825f8428297d50430ba0267600faf66d837936a30e8",
+   "sha256": "3067a421cda3fbf36d24edf374b5a3fe4de27b6c12a2c5f174c67b3b6947ed13",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_policy_coverage_cost_data.csv",
-   "sha256": "5ce2d9850b7e7194fe72b5f2b7a1511390e1c1fbf5cceeebb9d7c5eec5220a2a",
-   "rows": 103,
+   "sha256": "f0f6506450cbd1ffe6ff7f5d3e0eafb1154cee20ac338a245c07fa638b2af97b",
+   "rows": 96,
    "authoritative": true
   }
  },
@@ -60,31 +60,24 @@
  "notes": {
   "lane_separation": "panels (a)-(c) are read-lane only; OPERATE is timed from the request",
   "added_latency_ms": {
-   "READ": 22.657,
-   "SELECT": 22.617,
-   "OPERATE": 21.185
+   "READ": 25.426,
+   "SELECT": 25.4825,
+   "OPERATE": 24.652
   },
   "sweep_points_used": {
    "fixed_total_budget": [
-    "sw_D4_23_1",
-    "sw_D4_22_2",
-    "sw_D4_20_4",
-    "sw_D4_16_8",
-    "sw_D4_12_12",
-    "sw_D4_08_16",
-    "sw_D4_04_20",
-    "sw_D4_02_22"
+    "sw_D4_26_2",
+    "sw_D4_24_4",
+    "sw_D4_20_8",
+    "sw_D4_16_12",
+    "sw_D4_12_16",
+    "sw_D4_08_20",
+    "sw_D4_04_24",
+    "sw_D4_02_26"
    ],
    "D_A_ramp": [
-    "sw_D4_04_4",
-    "sw_D4_12_4",
-    "sw_D4_20_4",
-    "sw_D4_28_4",
-    "sw_D4_30_4",
-    "sw_D4_32_4",
-    "sw_D4_34_4",
-    "sw_D4_36_4",
-    "sw_D4_36_4b"
+    "sw_D4_16_8",
+    "sw_D4_20_8"
    ]
   },
   "scope": "master-facing link; internal blocker traffic not counted"
