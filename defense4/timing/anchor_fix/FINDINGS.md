@@ -148,8 +148,21 @@ of budget given up. The prediction and the measurement agree:
 
 Six exchanges in 6,308. The remedy is arithmetic, not a code change: the availability condition
 becomes `t_R <= T_0 + D` rather than `t_R <= t_A + D`, and the operator sizes `D` against the
-request. The relay's own request-to-response latency has a 99th percentile of 13.4 ms and a maximum
-of 24.7 ms here, against a 24.0 ms budget.
+request. Read off the Timing OFF arm, the relay's own request-to-response latency has a median of
+2.783 ms, a 99th percentile of 13.427 ms and a maximum of 24.691 ms over 6,288 exchanges, against a
+24.0 ms budget. What each candidate budget would have cost:
+
+| `D_A` + `D_R` | total | exchanges that overflow |
+|---|---|---|
+| 20 + 4 | 24 ms | 5 of 6,288 (0.080 %) |
+| **20 + 8** | **28 ms** | **0 of 6,288** |
+| 24 + 8 | 32 ms | 0 of 6,288 |
+
+`D_A` + `D_R` = 28 ms is the smallest budget on the 4 ms grid — `A` and `R` must be exact multiples
+of the 256 ns tick, which for whole milliseconds means multiples of four — that covers this relay's
+worst observed response. Choosing it costs 4 ms of added master-visible latency and buys a release
+that never misses its deadline; keeping 24 ms keeps the current headline figure and releases about
+one response in 1,250 late. That is an operator's trade and it is not decided here.
 
 **A telemetry effect, by design.** The relay's acknowledgment now finds the deadline already armed,
 so `deadline_arm_once` is a no-op and `ack_first` reads 0. Both `OUT_ACK_HOLD` and
