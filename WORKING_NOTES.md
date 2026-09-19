@@ -1,3 +1,44 @@
+<!-- RESUME:START -->
+# RESUME — read this first
+
+**Task:** rebuild the NDSS manuscript on `campaign_v2`. Plan:
+`~/.claude/plans/warm-bouncing-waterfall.md`. Running unattended; resume here after any reset.
+
+**Checkpoint: 0 done, 1 in progress.**
+
+| # | work | state |
+|---|---|---|
+| 0 | rescue the three adversarial reviews into `paper/rewrite/reports/` | **done**, commit `4a782b20` |
+| 1 | `campaign_v2` finishes (~05:30 UTC 2026-09-19) | **running** |
+| 2 | sweep: `evidence/campaign_v2/_bin/sweep2_run.sh` | not started |
+| 3 | `defense4/timing/reproduce.sh` then `publication_gate.py --update` | not started |
+| 4 | the four owed analyses + `evidence/campaign_v2/FINDINGS.md` | not started |
+| 5 | figures, Ditto + Formby | not started |
+| 6 | prose, section by section | not started |
+| 7 | repoint `CLAIMS_AND_LIMITATIONS.md` and the writing guide | not started |
+| 8 | final verification | not started |
+
+**Next command:**
+
+```bash
+cat defense4/timing/evidence/campaign_v2/_bin/HEARTBEAT.txt     # expect 22/22 when done
+grep -cE 'FAILED|REFUSED|UNPROVED|INCOMPLETE' defense4/timing/evidence/campaign_v2/_bin/campaign2.log
+# when 22/22 and 0 failures:
+cd defense4/timing/evidence/campaign_v2/_bin && nohup ./sweep2_run.sh > sweep2_driver.log 2>&1 &
+```
+
+**State of the hardware.** The Tofino runs the corrected request-anchored build
+(`anchor_fix_build`, `tofino.bin` sha `22e542f6…`), policy `D_A` 20 ms / `D_R` 8 ms /
+`anchor_req` 1. `anchor_fix_build/launch_frozen_restore.sh` puts the frozen build back if needed.
+
+**Do not:** modify `defense4/timing/implementation/` or any `raw_pcaps/`; push; rewrite history;
+add Claude attribution to commits; run `remove-ai-marks` or any detector-evasion tool here.
+
+**Decisions already taken, do not reopen:** the anchor A/B stays out of the paper (only the
+request-anchored design is described); all eight figures are kept and redrawn; if results are not
+clean, diagnose and fix on hardware before touching the manuscript.
+<!-- RESUME:END -->
+
 # Working notes
 
 ## Status: 2026-09-18, the overnight figure and voice pass is done and unpushed
