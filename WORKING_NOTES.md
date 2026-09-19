@@ -18,14 +18,11 @@
 | 7 | repoint `CLAIMS_AND_LIMITATIONS.md` and the writing guide | not started |
 | 8 | final verification | not started |
 
-**Open question for Philip, blocking the prose.** The fixed adversary is at exact chance and the
-device's execution time is gone (READ vs SELECT 0.7847 → 0.5071 against 0.5). The three-class
-adaptive adversary sits at 0.4452 against 0.3333, rising to 0.6500 when it pools twenty exchanges.
-That residual is entirely OPERATE and is six microseconds of queue phase, not the device — within
-READ alone, splitting only by arrival spacing, the same forest scores 0.6586 against 0.5. Removing
-it needs a dithered release, which trades against the framework's central claim that the released
-interval *is* the configured value. Philip decides whether to spend another campaign on that. **Do
-not rewrite the manuscript prose until he does.**
+**Decided 2026-09-19: no dither.** The residual stays and is reported. The framework keeps the
+property that the released interval *is* the configured value, and the paper states plainly that an
+adaptive adversary retains a six-microsecond arrival-phase signature on OPERATE — 0.4452 against a
+0.3333 chance level, 0.6500 when it pools twenty exchanges — while the device's own execution time
+is gone (READ vs SELECT 0.7847 → 0.5071 against 0.5). The prose is unblocked.
 
 **Next command:**
 
