@@ -79,7 +79,15 @@ Three arms, interleaved, one binary, one session:
 - **A1** — obfuscated, `anchor_req=1`: the request-anchored read lane.
 
 Policy is the campaign's own: `D_A` 20 ms, `D_R` 4 ms, `A` 20 ms, `R` 24 ms, `J` drawn from
-{2, 6, 12} ms, size carve off and proved off from a hardware readback in every block.
+{2, 6, 12} ms, size carve off and proved off from a hardware readback in every block. Eight rounds,
+24 blocks, 18,914 exchanges, every guard passed.
+
+A second run, `_bin/run_phase_test.sh`, holds the arm and the policy fixed and moves the master's
+inter-request spacing across 3, 7, 13 and 20 ms. It exists to test causally whether what survives
+the fix is arrival phase rather than device execution time, since the relay does identical work at
+every spacing. Eight blocks, 4,000 exchanges.
+
+`FINDINGS.md` records what both runs measured, the negative results included.
 
 ## Rollback
 

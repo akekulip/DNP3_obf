@@ -93,6 +93,39 @@ arrival phase differs — it follows its SELECT by 0.354 ms where a READ follows
 20.5 ms. Under Timing OFF the same control already scores 0.577, so this channel is a property of
 measuring two timestamps at all, not of the defense.
 
+## The arrival-phase explanation, tested on hardware
+
+The account above says the residual is set by when a request arrives relative to the blocker loop.
+That is a causal claim, so it was run: one arm, one policy, the relay doing identical work, at four
+different master inter-request spacings. Eight blocks, 4,000 exchanges, all guards passed.
+
+READ's release tail, median, by the master's spacing:
+
+| master spacing | 3 ms | 7 ms | 13 ms | 20 ms | range |
+|---|---|---|---|---|---|
+| A0 | 1.260 | 0.575 | 0.562 | 1.341 ms | **0.779 ms** |
+| A1 | 0.107 | 0.108 | 0.107 | 0.100 ms | **0.008 ms** |
+
+Under A0 the tail moves by 0.78 ms when nothing changes but how often the master polls. Under A1 it
+does not move at all, to within 8 microseconds. The tail is arrival phase, and request anchoring
+removes the dependence on it.
+
+The same sweep says something the eight-round run could not. A0's leakage is itself a function of
+the polling interval:
+
+| class spread of the request-to-acknowledgment median | 3 ms | 7 ms | 13 ms | 20 ms |
+|---|---|---|---|---|
+| A0 | 0.6215 | 0.0110 | 0.0140 | 0.6840 ms |
+| A1 | 0.0010 | 0.0010 | 0.0000 | 0.0105 ms |
+
+As evaluated, whether the framework leaks depends on the operator's polling interval: at 7 and 13 ms
+the three classes are separated by about 0.01 ms, at 3 and 20 ms by about 0.65 ms, and `campaign_v1`
+polled at 20 ms. That is not a property anyone would want to depend on. Under request anchoring the
+spread is at or below 0.0105 ms at every spacing tested, and the sign of the residual between
+OPERATE and the other two flips between spacings — at 7 ms OPERATE is 1 microsecond below READ, at
+20 ms it is 7 microseconds above. A stable device signature does not change sign when the master
+polls faster.
+
 ## What the fix costs
 
 **A stage: none.** The frozen program is at the 12-stage ingress ceiling and the candidate is too,
