@@ -134,7 +134,11 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
             "it answers arrives at %.3f ms; t_a must exceed %.3f ms"
             % (t_a - prop, req_at_relay, req_at_relay + prop))
 
-    e_a_target, e_r_target = t_a + d_a, t_a + d_a + c_new
+    # Both deadlines are armed from the request's own arrival at the switch, t_0. Nothing
+    # the outstation did -- neither t_A nor t_R -- enters either instant, which is the
+    # whole of the security argument and is what this drawing has to show.
+    t_0 = prop
+    e_a_target, e_r_target = t_0 + d_a, t_0 + d_a + c_new
     e_a = e_a_target
     # The model: a deadline cannot precede arrival. The switch's own processing term is drawn
     # at 1.2 ms so that an arrival and its emission are separable on the page; it is a drawing
@@ -155,15 +159,15 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     hop(ax, e_a, s, m_a, m, C_ACK)
     hop(ax, e_r, s, m_r, m, C_RESP)
 
-    # the two deadlines, armed together from t_a
+    # the two deadlines, armed together from t_0
     for x in (e_a_target, e_r_target):
         ax.plot([x, x], [r - 0.1, m + 0.30], color=C_DEADLINE, lw=0.6,
                 linestyle=(0, (1, 1.6)), zorder=2)
 
     # instants: the three that were measured are filled circles, the rest open squares
-    instant(ax, 0.0, m, r"$m_0$", C_REQ, dy=0.10, ha="left")
-    instant(ax, m_a, m, r"$m_A$", C_ACK, dy=0.10, ha="right")
-    instant(ax, m_r, m, r"$m_R$", C_RESP, dy=0.10, ha="left")
+    instant(ax, 0.0, m, "", C_REQ, dy=0.10, ha="left")
+    instant(ax, m_a, m, "", C_ACK, dy=0.10, ha="right")
+    instant(ax, m_r, m, "", C_RESP, dy=0.10, ha="left")
     instant(ax, prop, s, r"$t_0$", C_REQ, dy=0.10, dx=-0.25, ha="right", marker="s")
     instant(ax, t_a, s, r"$t_A$", C_ACK, dy=0.10, dx=0.20, ha="left", marker="s")
     # In the late case $t_R$ and $e_R$ sit within a millimetre of each other, and a label
@@ -177,7 +181,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     instant(ax, e_r, s, r"$e_R$", C_RESP, dy=-0.13, dx=0.25, ha="left", marker="s")
 
     # durations, kept clear of the lifelines: configured below, observed above
-    interval(ax, r - 0.42, t_a, e_a_target, r"$D_A$", C_DEADLINE, above=False, pad=0.0)
+    interval(ax, r - 0.42, t_0, e_a_target, r"$D_A$", C_DEADLINE, above=False, pad=0.0)
     interval(ax, r - 0.42, e_a_target, e_r_target,
              r"$\mathrm{CLRT}_{\mathrm{new}}$", C_DEADLINE, above=False, pad=0.0)
     # The response hold, written from its endpoints because the paper gives it no symbol of
@@ -186,13 +190,16 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     # different quantity, the response latency, and is not drawn here.
     if not late:
         interval(ax, r - 1.42, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
-    interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
+    # In (a) the measured interval IS the configured one. In (b) it is not, and calling it
+    # CLRT_new there would state the opposite of what the panel exists to show.
+    interval(ax, m + 1.00, m_a, m_r,
+             r"measured $\mathrm{CLRT}_{\mathrm{new}}$" if not late else "measured interval",
              C_DEADLINE, pad=0.0)
 
 
-    for name, x in (("m_0", 0.0), ("t_0", prop), ("t_A", t_a), ("t_R", t_r),
+    for name, x in (("request_at_master", 0.0), ("t_0", t_0), ("t_A", t_a), ("t_R", t_r),
                     ("e_A_deadline", e_a_target), ("e_R_deadline", e_r_target),
-                    ("e_A", e_a), ("e_R", e_r), ("m_A", m_a), ("m_R", m_r)):
+                    ("e_A", e_a), ("e_R", e_r), ("ack_at_master", m_a), ("resp_at_master", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(x, 3), kind="instant"))
     for name, v in (("D_A", d_a), ("CLRT_new_configured", c_new),
@@ -240,22 +247,19 @@ def figure_release(outdir, const, audit):
         fig, outdir, "fig_m01_release_timeline",
         caption=(
             "Release timeline of the read lane, drawn from the verified program and not from a "
-            "distribution. Points are timestamps and bars are durations; a filled circle marks "
-            "an instant that was measured and an open square one that was not. The switch arms "
-            "both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the "
-            "acknowledgment is due at $t_A+D_A$ and the response at "
-            "$t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured "
-            "$\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time "
-            "$\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The "
-            "response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is "
-            "whatever the schedule requires, and it therefore varies with the arrival $t_R$. In "
-            "(a) the response arrives before its deadline and the measured "
-            "$\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it "
-            "arrives after, the deadline is already past, the program forwards it on arrival, "
-            "and the measured value exceeds the configured one; no response hold is drawn there "
-            "because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, "
-            "$t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=%s$ ms and a "
-            "configured $\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
+            "distribution. Five instants appear, all at the switch: $t_0$ when the request "
+            "arrives, $t_A$ and $t_R$ when the outstation's acknowledgment and response arrive, "
+            "and $e_A$ and $e_R$ when each of them is released. The switch arms both deadlines "
+            "from $t_0$, so the acknowledgment is due at $t_0+D_A$ and the response at "
+            "$t_0+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$. Neither instant depends on $t_A$ or "
+            "$t_R$, so the relay's own cross-layer time $t_R-t_A$ does not reach the interval "
+            "the adversary measures. That interval is $e_R-e_A$: the master-facing propagation "
+            "is the same for both packets and cancels. The response hold $e_R-t_R$ is drawn in "
+            "(a) to show that it is not configured but is whatever the schedule requires. In "
+            "(b) the response arrives after its deadline, the program forwards it on arrival, "
+            "no hold applies and none is drawn, and the measured interval exceeds the "
+            "configured value. $D_A=%s$ ms and a configured "
+            "$\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
             % (format(d_a, ".0f"), format(c_new, ".0f"))),
         inputs=[CONSTANTS, AUDIT],
         notes=["schematic of the mechanism; no measured distribution is plotted",

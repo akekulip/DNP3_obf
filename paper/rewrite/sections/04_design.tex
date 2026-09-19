@@ -54,8 +54,11 @@ without the framework, and only the instants at which those packets leave the sw
 \begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction, drawn schematically. (a) The response arrives in
-  time. (b) It arrives late and leaves when its queue next serves it.}
+  \caption{Release timeline of one READ transaction. The five instants are all at the switch: the
+  request arrives at $t_0$, the acknowledgment and the response of the outstation at $t_A$ and
+  $t_R$, and each of them is released at $e_A$ and $e_R$. Both deadlines are armed from $t_0$,
+  so neither depends on what the outstation did. (a) The response arrives in time. (b) It
+  arrives late and leaves when its queue next serves it.}
   \label{fig:timeline}
 \end{figure}
 
