@@ -1,0 +1,24 @@
+
+=== canonical_A0.csv  n=12606 folds=8
+   native      ack medians  READ 0.5510  SELECT 0.5470  OPERATE 0.5610   spread 0.0140 ms
+   obfuscated  ack medians  READ 21.3300  SELECT 21.2370  OPERATE 20.6540   spread 0.6760 ms
+   MI native/ack_ms          0.09351 bits   null p95 0.01329   p=0.00100   inside null: False
+   MI native/clrt_ms         0.46589 bits   null p95 0.01283   p=0.00100   inside null: False
+   MI obfuscated/ack_ms      0.56838 bits   null p95 0.01247   p=0.00100   inside null: False
+   MI obfuscated/clrt_ms     0.00880 bits   null p95 0.01334   p=0.12987   inside null: True
+   ack_only    A/OFF 0.4275   A/obf 0.3333   B adaptive/obf 0.7944
+   clrt_only   A/OFF 0.7318   A/obf 0.3303   B adaptive/obf 0.3681
+   ack_clrt    A/OFF 0.7934   A/obf 0.3332   B adaptive/obf 0.7727
+
+=== canonical_A1.csv  n=12604 folds=8
+   native      ack medians  READ 0.5510  SELECT 0.5470  OPERATE 0.5610   spread 0.0140 ms
+   obfuscated  ack medians  READ 20.1000  SELECT 20.1010  OPERATE 20.1060   spread 0.0060 ms
+   MI native/ack_ms          0.09351 bits   null p95 0.01329   p=0.00100   inside null: False
+   MI native/clrt_ms         0.46589 bits   null p95 0.01283   p=0.00100   inside null: False
+   MI obfuscated/ack_ms      0.04021 bits   null p95 0.01342   p=0.00100   inside null: False
+   MI obfuscated/clrt_ms     0.03985 bits   null p95 0.01274   p=0.00100   inside null: False
+   ack_only    A/OFF 0.4275   A/obf 0.3333   B adaptive/obf 0.4514
+   clrt_only   A/OFF 0.7318   A/obf 0.3329   B adaptive/obf 0.4376
+   ack_clrt    A/OFF 0.7934   A/obf 0.3322   B adaptive/obf 0.4142
+
+wrote /home/philip/Projects/DNP3/defense4/timing/anchor_fix/analysis/scores.json

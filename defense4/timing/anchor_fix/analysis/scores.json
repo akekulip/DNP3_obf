@@ -1,0 +1,450 @@
+[
+  {
+    "file": "canonical_A0.csv",
+    "n": 12606,
+    "n_folds": 8,
+    "chance": 0.3333,
+    "classifier": "RandomForest {\"n_estimators\": 200, \"min_samples_leaf\": 5, \"random_state\": 0, \"n_jobs\": -1, \"class_weight\": \"balanced\"}",
+    "features": {
+      "ack_only": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.4275,
+          "median": 0.4285,
+          "min": 0.4047,
+          "max": 0.4431,
+          "iqr_lo": 0.4205,
+          "iqr_hi": 0.4367,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3333,
+          "median": 0.3333,
+          "min": 0.3333,
+          "max": 0.3333,
+          "iqr_lo": 0.3333,
+          "iqr_hi": 0.3333,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.7944,
+          "median": 0.7978,
+          "min": 0.768,
+          "max": 0.8112,
+          "iqr_lo": 0.7838,
+          "iqr_hi": 0.8055,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.7567,
+            0.2104,
+            0.0329
+          ],
+          [
+            0.3007,
+            0.6781,
+            0.0212
+          ],
+          [
+            0.0411,
+            0.0106,
+            0.9483
+          ]
+        ]
+      },
+      "clrt_only": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.7318,
+          "median": 0.7355,
+          "min": 0.6857,
+          "max": 0.7787,
+          "iqr_lo": 0.7235,
+          "iqr_hi": 0.737,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3303,
+          "median": 0.3294,
+          "min": 0.3246,
+          "max": 0.3382,
+          "iqr_lo": 0.3277,
+          "iqr_hi": 0.3317,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.3681,
+          "median": 0.3725,
+          "min": 0.3183,
+          "max": 0.3886,
+          "iqr_lo": 0.3662,
+          "iqr_hi": 0.3788,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.3694,
+            0.3098,
+            0.3208
+          ],
+          [
+            0.3377,
+            0.3457,
+            0.3166
+          ],
+          [
+            0.3073,
+            0.3033,
+            0.3894
+          ]
+        ]
+      },
+      "ack_clrt": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.7934,
+          "median": 0.7941,
+          "min": 0.7727,
+          "max": 0.8179,
+          "iqr_lo": 0.7849,
+          "iqr_hi": 0.7993,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3332,
+          "median": 0.3333,
+          "min": 0.3316,
+          "max": 0.3339,
+          "iqr_lo": 0.3333,
+          "iqr_hi": 0.3333,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.7727,
+          "median": 0.7705,
+          "min": 0.7461,
+          "max": 0.7931,
+          "iqr_lo": 0.7601,
+          "iqr_hi": 0.7899,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.8071,
+            0.159,
+            0.034
+          ],
+          [
+            0.4013,
+            0.5801,
+            0.0185
+          ],
+          [
+            0.0583,
+            0.0106,
+            0.9311
+          ]
+        ]
+      }
+    },
+    "mutual_information": {
+      "native/ack_ms": {
+        "observed_bits": 0.09351,
+        "null_p95_bits": 0.01329,
+        "null_p99_bits": 0.01926,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "native/clrt_ms": {
+        "observed_bits": 0.46589,
+        "null_p95_bits": 0.01283,
+        "null_p99_bits": 0.01685,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "obfuscated/ack_ms": {
+        "observed_bits": 0.56838,
+        "null_p95_bits": 0.01247,
+        "null_p99_bits": 0.01825,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "obfuscated/clrt_ms": {
+        "observed_bits": 0.0088,
+        "null_p95_bits": 0.01334,
+        "null_p99_bits": 0.01831,
+        "p_value_empirical": 0.12987,
+        "inside_null": true
+      }
+    },
+    "class_medians": {
+      "native": {
+        "READ": {
+          "ack_ms": 0.551,
+          "clrt_ms": 2.114,
+          "n": 4786
+        },
+        "SELECT": {
+          "ack_ms": 0.547,
+          "clrt_ms": 2.054,
+          "n": 755
+        },
+        "OPERATE": {
+          "ack_ms": 0.561,
+          "clrt_ms": 2.932,
+          "n": 755
+        },
+        "ack_spread_ms": 0.014
+      },
+      "obfuscated": {
+        "READ": {
+          "ack_ms": 21.33,
+          "clrt_ms": 4.001,
+          "n": 4800
+        },
+        "SELECT": {
+          "ack_ms": 21.237,
+          "clrt_ms": 4.001,
+          "n": 755
+        },
+        "OPERATE": {
+          "ack_ms": 20.654,
+          "clrt_ms": 4.0,
+          "n": 755
+        },
+        "ack_spread_ms": 0.676
+      }
+    }
+  },
+  {
+    "file": "canonical_A1.csv",
+    "n": 12604,
+    "n_folds": 8,
+    "chance": 0.3333,
+    "classifier": "RandomForest {\"n_estimators\": 200, \"min_samples_leaf\": 5, \"random_state\": 0, \"n_jobs\": -1, \"class_weight\": \"balanced\"}",
+    "features": {
+      "ack_only": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.4275,
+          "median": 0.4285,
+          "min": 0.4047,
+          "max": 0.4431,
+          "iqr_lo": 0.4205,
+          "iqr_hi": 0.4367,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3333,
+          "median": 0.3333,
+          "min": 0.3333,
+          "max": 0.3333,
+          "iqr_lo": 0.3333,
+          "iqr_hi": 0.3333,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.4514,
+          "median": 0.4612,
+          "min": 0.3837,
+          "max": 0.485,
+          "iqr_lo": 0.4379,
+          "iqr_hi": 0.4729,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.2109,
+            0.3664,
+            0.4227
+          ],
+          [
+            0.2132,
+            0.4013,
+            0.3854
+          ],
+          [
+            0.0848,
+            0.1735,
+            0.7417
+          ]
+        ]
+      },
+      "clrt_only": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.7318,
+          "median": 0.7355,
+          "min": 0.6857,
+          "max": 0.7787,
+          "iqr_lo": 0.7235,
+          "iqr_hi": 0.737,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3329,
+          "median": 0.3335,
+          "min": 0.3172,
+          "max": 0.3414,
+          "iqr_lo": 0.3304,
+          "iqr_hi": 0.3385,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.4376,
+          "median": 0.4396,
+          "min": 0.4093,
+          "max": 0.4625,
+          "iqr_lo": 0.4233,
+          "iqr_hi": 0.4478,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.3028,
+            0.2226,
+            0.4746
+          ],
+          [
+            0.253,
+            0.2662,
+            0.4808
+          ],
+          [
+            0.1338,
+            0.1232,
+            0.743
+          ]
+        ]
+      },
+      "ack_clrt": {
+        "A_fixed_tested_on_timing_off": {
+          "mean": 0.7934,
+          "median": 0.7941,
+          "min": 0.7727,
+          "max": 0.8179,
+          "iqr_lo": 0.7849,
+          "iqr_hi": 0.7993,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "A_fixed_tested_on_obfuscated": {
+          "mean": 0.3322,
+          "median": 0.3333,
+          "min": 0.3269,
+          "max": 0.3339,
+          "iqr_lo": 0.3323,
+          "iqr_hi": 0.3339,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "B_adaptive_tested_on_obfuscated": {
+          "mean": 0.4142,
+          "median": 0.4182,
+          "min": 0.3791,
+          "max": 0.4402,
+          "iqr_lo": 0.407,
+          "iqr_hi": 0.4293,
+          "n_runs": 8,
+          "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+        },
+        "confusion_B_obf_rownorm": [
+          [
+            0.4804,
+            0.2272,
+            0.2924
+          ],
+          [
+            0.4861,
+            0.2583,
+            0.2556
+          ],
+          [
+            0.347,
+            0.1497,
+            0.5033
+          ]
+        ]
+      }
+    },
+    "mutual_information": {
+      "native/ack_ms": {
+        "observed_bits": 0.09351,
+        "null_p95_bits": 0.01329,
+        "null_p99_bits": 0.01926,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "native/clrt_ms": {
+        "observed_bits": 0.46589,
+        "null_p95_bits": 0.01283,
+        "null_p99_bits": 0.01685,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "obfuscated/ack_ms": {
+        "observed_bits": 0.04021,
+        "null_p95_bits": 0.01342,
+        "null_p99_bits": 0.01716,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      },
+      "obfuscated/clrt_ms": {
+        "observed_bits": 0.03985,
+        "null_p95_bits": 0.01274,
+        "null_p99_bits": 0.01886,
+        "p_value_empirical": 0.001,
+        "inside_null": false
+      }
+    },
+    "class_medians": {
+      "native": {
+        "READ": {
+          "ack_ms": 0.551,
+          "clrt_ms": 2.114,
+          "n": 4786
+        },
+        "SELECT": {
+          "ack_ms": 0.547,
+          "clrt_ms": 2.054,
+          "n": 755
+        },
+        "OPERATE": {
+          "ack_ms": 0.561,
+          "clrt_ms": 2.932,
+          "n": 755
+        },
+        "ack_spread_ms": 0.014
+      },
+      "obfuscated": {
+        "READ": {
+          "ack_ms": 20.1,
+          "clrt_ms": 4.005,
+          "n": 4798
+        },
+        "SELECT": {
+          "ack_ms": 20.101,
+          "clrt_ms": 4.005,
+          "n": 755
+        },
+        "OPERATE": {
+          "ack_ms": 20.106,
+          "clrt_ms": 4.0,
+          "n": 755
+        },
+        "ack_spread_ms": 0.006
+      }
+    }
+  }
+]
