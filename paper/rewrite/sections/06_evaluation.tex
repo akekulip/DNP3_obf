@@ -20,7 +20,7 @@ lane draws $J$ from $\{2, 6, 12\}$~ms. A policy sweep installs 26 settings, 23 r
 three controls, with 9{,}360 exchanges in total, and a readback from the control plane confirms each
 installed setting. Every request in the main campaign was answered, and no exchange was excluded.
 
-\textbf{Adversary Models.} Following Formby et al.~\cite{formbyWhosControlYour2016}, the adversary
+\textbf{Adversary Models.} Following Formby et al.~\cite{formby2016}, the adversary
 classifies each exchange into one of three operations, READ, SELECT and OPERATE, from its CLRT and
 its request-to-acknowledgment interval, with a random forest. We report balanced accuracy, for which
 chance is 0.333, and hold out one grouped run at a time. We also estimate the mutual information
@@ -136,7 +136,7 @@ when each request arrives.
 
 \textbf{Discussion.} Operations of one device differ in execution time, e.g., by 0.8~ms between a
 poll and a control command on our relay, and device types differ in the same
-way~\cite{formbyWhosControlYour2016, linDefRecEstablishingPhysical2020}. Because the framework
+way~\cite{formby2016, defrec2020}. Because the framework
 removes the execution time whatever its source (Section~\ref{sec:design:read}), the same argument
 applies to device types. Behind the switch, every outstation whose responses arrive within the
 budget presents intervals set by the same schedule. What an adaptive adversary still learns lies in
@@ -209,7 +209,7 @@ Five limitations bound these results.
 argument in Section~\ref{sec:design:read} does not depend on the device, and the three operations of
 the relay, whose execution times differ, exercise it. However, only a measurement across
 outstations from several vendors, as Formby et al.\ and Lin et al.\ made for the original
-interval~\cite{formbyWhosControlYour2016, linDefRecEstablishingPhysical2020}, can test the
+interval~\cite{formby2016, defrec2020}, can test the
 argument for device types directly, and we leave it to future work.
 
 \textbf{For Adaptive Adversaries.} An adaptive adversary learns which operation an exchange carries

@@ -182,8 +182,8 @@ editorial or scientific.
 
 Every externally verifiable claim has a row in `reports/CLAIM_CITATION_MATRIX.md`: section,
 claim, key, source, type, exact support, verification status, action. One active bibliography
-(`../library.bib`, the Zotero export; only the cited entries were verified, and the export was
-not bulk-edited). No undefined keys, no duplicate records cited as two papers, no citation
+(`../References.bib`, which the manuscript builds from and the gate checks; `../library.bib` is the
+Zotero export it was reconciled against on 2026-09-19 and is no longer cited). No undefined keys, no duplicate records cited as two papers, no citation
 that does not support its sentence, no citation placed after several unrelated claims.
 
 ## 9. Rendering and review gates

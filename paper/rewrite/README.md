@@ -13,7 +13,7 @@ tectonic -X compile main.tex        # compile only, PDF lands beside main.tex
 
 `build.sh` fails closed if the compile fails or the gate (`pipeline/lin_check.py`) reports a hard
 failure; the scorecard goes to `pipeline/reports/main_<stamp>.{txt,json}` (untracked). The gate
-checks the flattened manuscript against `library.bib` and the compiled PDF. The reviewed build is
+checks the flattened manuscript against `References.bib` and the compiled PDF. The reviewed build is
 committed once as `main.pdf` beside this file.
 
 ## Layout
@@ -29,7 +29,8 @@ sections/05_implementation.tex  Tofino Implementation
 sections/06_evaluation.tex      Evaluation, organised by RO1..RO3, with Limitations
 sections/07_related_work.tex    Related Work (second-last)
 sections/08_conclusion.tex      Conclusion
-library.bib                     bibliography (Zotero export; cited entries verified, see reports/)
+References.bib                  bibliography the manuscript builds from (49 entries, 40 cited)
+library.bib                     Zotero export, reconciled into References.bib on 2026-09-19; not cited
 figures/ndss/                   THE FIVE FINAL FIGURES: vector PDF (authoritative),
                                 600-dpi PNG preview, figure-data CSV, caption,
                                 method and limitations notes, provenance sidecar

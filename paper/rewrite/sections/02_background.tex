@@ -17,7 +17,7 @@ timing.
 \end{figure}
 
 DNP3 carries supervisory control and data acquisition traffic over TCP between a master and an
-outstation~\cite{ieeeIEEEStandardElectric2012}. In Figure~\ref{fig:ladder}, we show the two
+outstation~\cite{dnp3std}. In Figure~\ref{fig:ladder}, we show the two
 transactions the framework protects. The master polls the outstation with a READ request, function
 code 1, and the outstation returns the requested measurements in a response, function code 0x81. A
 control command instead uses select-before-operate. The master sends a SELECT, function code 3, that
@@ -26,7 +26,7 @@ code 4, which the outstation executes and confirms with a solicited response.
 
 Because DNP3 runs over TCP, the transport layer of the outstation acknowledges each request. The
 acknowledgment travels in a segment of its own before the application answers, although TCP also
-allows it to ride on the response~\cite{eddyTransmissionControlProtocol2022}.
+allows it to ride on the response~\cite{rfc9293}.
 Each exchange appears on the wire as three packets: a request, a transport acknowledgment
 carrying no DNP3 payload, and a DNP3 response. We limit the framework to the three function codes
 above, READ, SELECT and OPERATE, and it forwards every other exchange unchanged.
@@ -39,7 +39,7 @@ link to the master.
 between the OPERATE command and the moment the commanded physical change occurs at the device.
 Formby et al.\ estimate it in two ways, from the arrival of the unsolicited event response at a tap
 and from the sequence-of-events timestamp the response carries in its
-payload~\cite{formbyWhosControlYour2016}. They report that the arrival-time estimate produced no
+payload~\cite{formby2016}. They report that the arrival-time estimate produced no
 usable results and retain the payload timestamp as the physical fingerprint.
 
 \subsection{Execution Time as a Fingerprint}
@@ -53,9 +53,9 @@ cancels. Consequently, the CLRT is dominated by the execution time of the outsta
 Execution time differs between device models, since vendors implement the same function with
 different hardware and algorithms, and it differs between the operations one device performs. Formby
 et al.\ classify DNP3 device types and models by the distribution of the
-CLRT~\cite{formbyWhosControlYour2016}, and Lin et al.\ measured the execution times of three
+CLRT~\cite{formby2016}, and Lin et al.\ measured the execution times of three
 devices, among them the SEL-751A we evaluate, and separated them by the combination of their average
-and their variation~\cite{linDefRecEstablishingPhysical2020}. The same separation holds between the operations
+and their variation~\cite{defrec2020}. The same separation holds between the operations
 of one device. For example, the median CLRT of our relay is 2.929~ms for a control command and 2.121~ms for
 a poll, while its median acknowledgment latencies for READ, SELECT and OPERATE lie within
 0.003~ms of one another. Consequently, the CLRT carries how this device performs
@@ -65,10 +65,10 @@ an operation, which is the profile a fingerprinting adversary builds.
 \label{sec:bg:switch}
 
 A programmable switch exposes a match-action pipeline, written in
-P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers, keeps state in
+P4~\cite{p4ccr2014}, that parses headers, keeps state in
 registers and places packets into output queues at line rate. Each egress port offers several queues
 served in strict priority, a primitive that can also approximate programmable
-scheduling~\cite{alcozSPPIFOApproximatingPushIn2020}. Because such a pipeline can delay a packet and
+scheduling~\cite{sppifo2020}. Because such a pipeline can delay a packet and
 release it later without a host in the loop, a switch between the master and the outstation can hold
 the acknowledgment and the response of a transaction and release them on a schedule the operator
 sets. As such, the switch can change the timing an adversary observes without changing either

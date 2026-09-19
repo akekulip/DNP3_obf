@@ -12,7 +12,7 @@ testbed we use.
 A P4 program runs to completion on each packet, and it can read a clock. However, it can neither
 sleep nor schedule a callback, so it cannot wait for a deadline by itself. The switch does offer
 several queues per port and a strict-priority
-scheduler~\cite{alcozSPPIFOApproximatingPushIn2020}. Because a scheduler decides
+scheduler~\cite{sppifo2020}. Because a scheduler decides
 which packets do not leave, we hold a packet with the scheduler rather than with a timer.
 
 \textbf{Blocker Queues.} As shown in Figure~\ref{fig:design}, the read lane uses four queues on one
@@ -70,7 +70,7 @@ Timing OFF case.
 \label{sec:impl:p4}
 
 \textbf{Switch Program.} The program has 1{,}584 lines of
-P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Native Architecture
+P4$_{16}$~\cite{p4ccr2014} for the Tofino Native Architecture
 (comments excluded), and we compiled it with the Barefoot SDE 9.13.2. It occupies all twelve ingress stages and
 six egress stages of one pipeline, with 113 tables. Its state lives in one-entry registers, each accessed once per packet.
 One 25~Gb/s port connects the master and one 1~Gb/s port connects the relay. Two further ports are
@@ -83,7 +83,7 @@ entries rather than loading a new program. The control plane refuses any release
 the smallest of the timer and horizon bounds it is given, which is 30~ms on our testbed.
 
 \textbf{Physical Device.} The outstation is an SEL-751A feeder protection relay, one of the DNP3
-device classes that Formby et al.\ fingerprint~\cite{formbyWhosControlYour2016}.
+device classes that Formby et al.\ fingerprint~\cite{formby2016}.
 
 \textbf{DNP3 Master.} The master issues READ polls and select-before-operate controls through a
 guarded driver. Every control operation addresses an isolated control point, so no operation in the

@@ -148,7 +148,7 @@ operation the outstation performed or which device produced the response. A diff
 a different device type are both a different distribution of $t_A - t_0$ and $t_R - t_0$, and both
 are absorbed in the same way by~(\ref{eq:coupling}). Therefore, a classifier that separates device
 types or operation types by these intervals, such as the one of Formby et
-al.~\cite{formbyWhosControlYour2016}, receives intervals set by the switch rather than by the
+al.~\cite{formby2016}, receives intervals set by the switch rather than by the
 device. Pooling many exchanges cannot recover what the intervals do not contain. The device can
 still reach the intervals in only one way, through responses that
 violate~(\ref{eq:availability}), and we evaluate how often this happens in
@@ -202,7 +202,7 @@ packets it receives at their original size. The blocker packets that sustain a h
 internal loopback ports and never reach a cable (Section~\ref{sec:impl}). Consequently, the
 framework adds no frame and no byte to either link. Obfuscation that pads packets or injects dummy
 ones pays a bandwidth cost that this design does not
-have~\cite{meierDittoWANTraffic2022, dyerPeekaBooStillSee2012}.
+have~\cite{ditto2022, dyer2012}.
 
 \textbf{Latency Bound.} We delay two packets per transaction. The acknowledgment leaves at
 $t_0 + D_A + \varepsilon_A$. A response that satisfies~(\ref{eq:availability}) leaves at
@@ -217,7 +217,7 @@ of the master retransmits a request whose acknowledgment does not arrive within 
 timeout $\tau_m$. The TCP stack of the outstation retransmits a response the master does not
 acknowledge within its own timeout $\tau_o$. The relay cancels a selected control point whose
 OPERATE does not follow within the select-to-operate timeout $\tau_s$, 1.0~s by default on the
-SEL-751A~\cite{selSEL751AInstructionManual}. The acknowledgment hold delays the first, the response
+SEL-751A~\cite{sel751a}. The acknowledgment hold delays the first, the response
 hold delays the second, and the holds on the SELECT response and on the OPERATE command delay the
 third. Consequently, the framework triggers none of them as long as
 \begin{equation}
@@ -227,7 +227,7 @@ D + J_{\max} + \varepsilon < \min(\tau_m, \tau_o, \tau_s) ,
 where $J_{\max}$ is the largest command hold. Condition~(\ref{eq:timers}) holds for any deployment
 whose outstation answers well within its timers, because the budget only needs to cover the
 response time of the outstation. RFC~6298 recommends a lower bound of one second on the
-retransmission timeout~\cite{paxsonComputingTCPsRetransmission2011}. On our testbed, the master
+retransmission timeout~\cite{rfc6298}. On our testbed, the master
 repeats an unacknowledged request after 200.8~ms and the relay repeats an unacknowledged response
 after 2.969~s, while $D + J_{\max}$ is 40~ms and a 28~ms budget covers 99.94\% of the read-lane
 responses of the relay (Section~\ref{sec:eval:perf}).
