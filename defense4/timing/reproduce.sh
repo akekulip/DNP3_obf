@@ -5,10 +5,10 @@
 # one the paper reports and puts the retired one behind an explicit flag, so old-corpus output
 # cannot be mistaken for current paper evidence.
 #
-#   ./reproduce.sh [OUT_DIR]        ACTIVE: campaign_v1, 22 grouped runs, 132 captures,
+#   ./reproduce.sh [OUT_DIR]        ACTIVE: campaign_v2, 22 grouped runs, 132 captures,
 #                                   63,360 exchanges, size carve disabled. This is what the
 #                                   manuscript reports. Delegates to
-#                                   evidence/campaign_v1/repro/reproduce.sh, which is the
+#                                   evidence/campaign_v2/repro/reproduce.sh, which is the
 #                                   single authority for the campaign and carries its own
 #                                   pinned environment.
 #
@@ -21,7 +21,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CAMPAIGN_REPRO="$HERE/evidence/campaign_v1/repro/reproduce.sh"
+CAMPAIGN_REPRO="$HERE/evidence/campaign_v2/repro/reproduce.sh"
 
 MODE="campaign"
 OUTDIR="$HERE/build"
@@ -39,8 +39,8 @@ done
 if [ "$MODE" = "campaign" ]; then
   [ -x "$CAMPAIGN_REPRO" ] || { echo "missing $CAMPAIGN_REPRO" >&2; exit 2; }
   echo "=============================================================================="
-  echo " ACTIVE CORPUS: campaign_v1 - the evidence the manuscript reports"
-  echo " delegating to evidence/campaign_v1/repro/reproduce.sh"
+  echo " ACTIVE CORPUS: campaign_v2 - the evidence the manuscript reports"
+  echo " delegating to evidence/campaign_v2/repro/reproduce.sh"
   echo "=============================================================================="
   exec "$CAMPAIGN_REPRO" "${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}"
 fi
@@ -50,7 +50,7 @@ cat <<'BANNER'
 ==============================================================================
  RETIRED CORPUS: final_read_sbo, one capture per arm.
  Provenance only. NO manuscript claim rests on these outputs. Do not present
- them as current paper evidence; the active corpus is campaign_v1.
+ them as current paper evidence; the active corpus is campaign_v2.
 ==============================================================================
 BANNER
 
