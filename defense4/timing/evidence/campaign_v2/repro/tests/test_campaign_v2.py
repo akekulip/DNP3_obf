@@ -673,6 +673,25 @@ def test_p4_source_hash_unchanged():
     assert sha256(p) == "7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861"
 
 
+def test_departures_use_the_configured_interval(stats):
+    # The reference must be the policy's configured interval. A literal once carried
+    # campaign_v1's 4 ms here and reported every campaign_v2 exchange as a departure.
+    assert stats["obfuscated_departures"]["reference_ms"] == CFG["scheduled_release_interval_ms"]
+
+
+def test_attribution_analyses_are_complete():
+    """proof_analyses.py ran on every grouped run, in both arms, for both contrasts.
+
+    Structural only: the values are measurements and are reported whatever they are.
+    """
+    proof = json.load(open(os.path.join(OUT, "proof.json")))
+    for arm in ("native", "obfuscated"):
+        for block in ("read_vs_select", "read_arrival_split"):
+            for f in ("clrt", "ack_clrt"):
+                assert proof[block][arm]["balanced_accuracy"][f]["n_runs"] == 22
+    assert proof["release_tail_us"]["n"] == 31680
+
+
 def test_coverage_residual_is_reported(stats):
     cov = stats["read_lane_coverage"]
     assert cov["above_budget"] > 0

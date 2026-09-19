@@ -1,13 +1,14 @@
 """Recompute every published statistic from the canonical transaction table.
 
-The two scheduling lanes are kept separate throughout, because they are anchored differently and
-pooling them produces a quantity with no operational meaning.
+The two scheduling lanes are kept separate throughout. On this build both are anchored at the
+request, but they run on different queues under different release parameters, and pooling them
+produces a quantity with no operational meaning.
 
 Read lane (READ and the SELECT phase of SBO)
-    Deadlines are anchored to the outstation's acknowledgment:
-    ``t_ack = t_A + D_A`` and ``t_resp = t_A + D_A + D_R``. The observable CLRT equals ``D_R``
-    when the response arrives before its release deadline, so the release budget
-    ``D = D_A + D_R`` is the coverage budget for this lane only.
+    Deadlines are anchored to the request: ``t_ack = T0 + D_A`` and ``t_resp = T0 + D_A + D_R``.
+    (campaign_v1's build anchored them at the outstation's acknowledgment instead.) The
+    observable CLRT equals ``D_R`` when the response arrives before its release deadline, so the
+    release budget ``D = D_A + D_R`` is the coverage budget for this lane only.
 
 Control lane (OPERATE)
     Deadlines are anchored to the request: ``t_ack = T0 + A`` and ``t_or = T0 + R`` (t_or = OPERATE response egress), so the
@@ -19,12 +20,12 @@ published with the population convention; ``validate_sweep.py`` records that dif
 than mixing the two.
 """
 from __future__ import annotations
-import csv, json, sys
+import csv, json, pathlib, sys
 import numpy as np
 
 CLASSES = ["READ", "SELECT", "OPERATE"]
 ARMS = ["native", "obfuscated"]
-READ_LANE = ["READ", "SELECT"]        # ACK-anchored; governed by the release budget D
+READ_LANE = ["READ", "SELECT"]        # request-anchored; governed by the release budget D
 CONTROL_LANE = ["OPERATE"]            # request-anchored; governed by O = R - A
 # Interval reported per class: CLRT for the read lane, master-visible response-to-ACK for OPERATE.
 # Both are t_response - t_ACK; the name differs because the anchor semantics differ.
@@ -114,10 +115,14 @@ def main(canon, budget_ms, out):
           f"(IQR {res['control_lane']['obfuscated']['iqr']:.3f} ms)")
 
     # ---- obfuscated departures from the scheduled release
-    print("\nObfuscated departures from the 4.000 ms scheduled release:")
-    res["obfuscated_departures"] = {}
+    # The reference is the configured interval, read from the policy, never a literal: this line
+    # once carried campaign_v1's 4.0 ms and reported every campaign_v2 exchange as departing.
+    sched = float(json.load(open(pathlib.Path(__file__).with_name("policy_config.json")))
+                  ["scheduled_release_interval_ms"])
+    print(f"\nObfuscated departures from the {sched:.3f} ms scheduled release:")
+    res["obfuscated_departures"] = {"reference_ms": sched}
     for c in CLASSES:
-        v = np.abs(np.array([r[3] for r in rows if r[1] == "obfuscated" and r[2] == c]) - 4.0)
+        v = np.abs(np.array([r[3] for r in rows if r[1] == "obfuscated" and r[2] == c]) - sched)
         d = {f"gt_{t}ms": int((v > t).sum()) for t in (0.05, 0.2, 1.0)}
         d["n"] = int(v.size); d["max_departure"] = round(float(v.max()), 4)
         res["obfuscated_departures"][c] = d

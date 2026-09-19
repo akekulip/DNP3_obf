@@ -2,8 +2,10 @@
 """Two explanatory diagrams for the timing model and the master's timers.
 
 Both are schematics of the verified mechanism, not plots of a distribution. Every configured
-offset is read from `evidence/campaign_v1/PROVENANCE_CONSTANTS.json` and every measured value
-from `audit_current/outputs/timeout_and_tcp_audit.json`; no number is written into this script.
+offset is read from `evidence/campaign_v2/PROVENANCE_CONSTANTS.json`; the measured interval the
+release timeline is drawn to comes from the gated `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`,
+and the timeout diagram's from `audit_current/outputs/timeout_and_tcp_audit.json`. No number is
+written into this script.
 
     python3 make_model_figures.py [OUT_DIR]     generate, then publish into the manuscript
     python3 make_model_figures.py --check       verify the published copies, generate nothing
@@ -27,7 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TIMING = HERE.parents[1]                          # defense4/timing
-REPRO = TIMING / "evidence" / "campaign_v1" / "repro"
+REPRO = TIMING / "evidence" / "campaign_v2" / "repro"
 sys.path.insert(0, str(REPRO))
 
 import figstyle_ndss as fs                                                   # noqa: E402
@@ -35,7 +37,9 @@ import matplotlib
 import matplotlib.pyplot as plt                                              # noqa: E402
 from matplotlib.patches import FancyArrowPatch                               # noqa: E402
 
-CONSTANTS = TIMING / "evidence" / "campaign_v1" / "PROVENANCE_CONSTANTS.json"
+CONSTANTS = TIMING / "evidence" / "campaign_v2" / "PROVENANCE_CONSTANTS.json"
+# The campaign's own median Timing OFF READ CLRT, from the values file the publication gate checks.
+VALUES = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "ndss" / "MANUSCRIPT_VALUES.json"
 # Where the manuscript includes these figures from, and which of them it includes.
 PUBLISH_DIR = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "model"
 PUBLISHED = ("fig_m01_release_timeline",)
@@ -218,7 +222,7 @@ def figure_release(outdir, const, audit):
     # neither the response hold nor the paper's D_R, which is the response latency. The field
     # name is historical and is kept; see defense4/timing/NOTATION_MAPPING.md.
     c_new = float(const["config"]["obfuscated_arm"]["D_R_ms"])
-    nat = audit["intervals"]["native|READ|C"]
+    nat = json.loads(VALUES.read_text())["intervals_ms"]["native/READ"]
     fs.use()
     # One column. The deadline expressions and the end-to-end bar were dropped rather than
     # shrunk: the dotted lines still mark the deadlines, the duration bars below already name
@@ -261,7 +265,7 @@ def figure_release(outdir, const, audit):
             "configured value. $D_A=%s$ ms and a configured "
             "$\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
             % (format(d_a, ".0f"), format(c_new, ".0f"))),
-        inputs=[CONSTANTS, AUDIT],
+        inputs=[CONSTANTS, VALUES],
         notes=["schematic of the mechanism; no measured distribution is plotted",
                "link propagation and the switch's processing term are drawn at a legible size, "
                "not to scale; the 1.2 ms gap between an arrival and its emission in panel (b) "
@@ -269,9 +273,10 @@ def figure_release(outdir, const, audit):
                "case (b) is the fail-open path, which bounds the tail rather than clipping it"],
         data_rows=rows, data_fields=["panel", "quantity", "value_ms", "kind"],
         method_note=(
-            "No statistic is computed. The configured offsets are read from "
-            "PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the measured median "
-            f"Timing OFF READ interval of {nat['median']:.3f} ms so the drawing is to the "
+            "No statistic is computed. The configured offsets are read from campaign_v2's "
+            "PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the campaign's median "
+            f"Timing OFF READ CLRT of {nat['median']:.3f} ms, from MANUSCRIPT_VALUES.json, so "
+            "the drawing is to the "
             "right scale. The late panel places $t_r$ beyond the release horizon to show the "
             "fail-open case; its offset is illustrative."),
         limitation_note=(

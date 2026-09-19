@@ -2,7 +2,7 @@
 
 63,360 exchanges over 22 grouped runs and 5 h 18 min, plus a 26-point policy sweep, on the build
 whose read lane arms both release deadlines at the request. Every number below is regenerated from
-the raw captures by `repro/reproduce.sh`, which ends by comparing what it rebuilt against what the
+the raw captures by `repro/reproduce.sh` (the attribution numbers by its step 5c, `proof_analyses.py`), which ends by comparing what it rebuilt against what the
 repository publishes; 132 tests pass and the publication gate reports no problems.
 
 ## The headline
@@ -45,15 +45,17 @@ acknowledgment-anchored build allowed, and it is not the device. Three measureme
 at 0.235 and OPERATE at 0.689. Two of the three classes are at or below chance.
 
 **It is six microseconds of queue phase.** OPERATE's release tail has a median of 0.107 ms against
-0.101 ms for READ and SELECT, and a tighter spread. The tail itself is 0.037 to 0.120 ms across the
-whole arm — the switch's own scheduling, not the outstation's work.
+0.101 ms for READ and SELECT, and a tighter spread. The tail's central 99 % runs from 0.036 to 0.127 ms across the
+whole arm (`proof.json`) — the switch's own scheduling, not the outstation's work.
 
 **Two identical transactions are more separable than two different ones.** Take READ alone, one
-class and one device and one execution time, and split it into the exchanges that arrived after a
-short gap and those that arrived after a long one, 24 µs apart. The same forest on the same two
-features separates *those* at 0.6586 against a 0.5 chance level — further above chance than it gets
-on the three transaction classes. Under Timing OFF the same control already scores 0.5683, so this
-channel is a property of measuring two timestamps at all.
+class and one device and one execution time, and split it at the median of the gap that preceded
+each request; the two halves' median gaps are 31 µs apart. The same forest on the same two features
+separates *those* at 0.6284 against a 0.5 chance level, where READ against SELECT, which differ in
+execution time, sits at 0.5071. Under Timing OFF the same split scores 0.5361, so part of this
+channel is a property of measuring two timestamps at all. (`repro/proof_analyses.py` →
+`proof.json`; an earlier ad-hoc version of this control, with a different split, gave 0.6586 and
+0.5683 and was never persisted, so it is superseded.)
 
 What survives is therefore the master's polling schedule, which the adversary reads directly from
 the request timestamps it can already see, and for which it needs no classifier.
@@ -64,8 +66,8 @@ suppresses the noise around a systematic six-microsecond offset, so a real offse
 see with more samples. Under Timing OFF the same pooling runs 0.8020 to 0.9388.
 
 **No cheap fix exists.** If the release landed on a grid, choosing `D_R` as a multiple of that grid
-would cancel the phase term exactly. The tail is not gridded: it is a continuous distribution over
-37 to 120 µs with 129 distinct microsecond values. Removing the residual needs a design change —
+would cancel the phase term exactly. The tail is not gridded: its central 99 % is a continuous distribution over
+36 to 127 µs, with 129 distinct whole-microsecond values across the arm (`proof.json`). Removing the residual needs a design change —
 dithering the release — and that trades directly against the property this framework sells, which
 is that the released interval *is* the value the operator configured.
 

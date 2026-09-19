@@ -89,7 +89,7 @@ def box_pair(ax, rows, col, logy=True, horizontal=False):
 
 # ================================================== GRID 1: configurability, coverage, cost (2x2)
 def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
-    """Panels (b) and (c) are the measured hardware sweep, not a resampled distribution."""
+    """Panel (b) is the measured hardware sweep, not a resampled distribution."""
     D, H = cfg["release_budget_D_ms"], cfg["fail_open_horizon_H_ms"]
     # 2x2 across the text block, not the column. At 3.5 in each panel was about 1.5 in square,
     # which is why the keys had to be pushed outside the axes and why the type looked large
@@ -186,7 +186,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                          n=s_["read_n"], ack_med_ms=s_["read_ack_med_ms"],
                          clrt_med_ms=s_["read_clrt_med_ms"]))
 
-    # ---- (d) the master's request-to-response latency, the observed cost
+    # ---- (c) the master's request-to-response latency, the observed cost
     box_pair(ax[1][1], rows, col=5, horizontal=True)
     # The class names label the rows, so no ordinate label is needed. The arms are named in a
     # key rather than by abbreviations floating beside the READ row: "OFF" and "Obf." were never
@@ -197,7 +197,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
         for c in CLASSES:
             v = sel(rows, arm, c, col=5)
             q1, q2, q3 = np.percentile(v, [25, 50, 75])
-            data.append(dict(panel="d", series=f"{F.LBL[arm]}/{c}", n=int(v.size),
+            data.append(dict(panel="c", series=f"{F.LBL[arm]}/{c}", n=int(v.size),
                              median_ms=round(float(q2), 6), q1_ms=round(float(q1), 6),
                              q3_ms=round(float(q3), 6), min_ms=round(float(v.min()), 6),
                              max_ms=round(float(v.max()), 6)))
@@ -221,40 +221,35 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            f"({cov['percent_above']:.4f}\\%) arrive too late to be held. (b) Measured hardware "
            f"sweep at a fixed total budget $D$={D:g}~ms: the measured "
            "$\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line "
-           "while the request-to-response latency stays put, so the leaking interval is set "
-           "independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed "
-           "configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the "
-           "configured $D_A$ until it saturates near $H$, beyond which "
-           "$\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. "
-           "(d) Request-to-response latency at the master, per class. Markers are medians over the sample counts "
-           "in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span "
-           "the quartiles with whiskers over the full support.",
+           "while the request-to-response latency stays at the budget, so the interval the "
+           "adversary observes is set independently of what the exchange costs. "
+           "(c) Request-to-response latency at the master, per class. Markers in (b) are medians "
+           "over the sample counts in the figure-data CSV and bars span the interquartile range; "
+           "boxes in (c) span the quartiles with whiskers over the full support.",
            inputs,
-           {"lane_separation": "panels (a)-(c) are read-lane only; OPERATE is timed from the request",
+           {"lane_separation": "panels (a) and (b) are read-lane only; OPERATE runs on the control lane",
             "added_latency_ms": add,
             "sweep_points_used": {"fixed_total_budget": [s["point"] for s in fixed],
-                                  "D_A_ramp": [s["point"] for s in ramp]},
+                                  "not_drawn_D_A_ramp": [s["point"] for s in ramp]},
             "scope": "master-facing link; internal blocker traffic not counted"},
            data_rows=data, data_fields=fields, seed=SEED,
            method_note=(
                "Panel (a) is an empirical complementary CDF over the Timing OFF read lane "
-               "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is timed "
-               "to the request and is not schedulable against D. Panels (b) and (c) plot the "
-               "16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in "
-               "(c); each is one capture under one installed dual-deadline policy, summarised by "
-               "the median over its READ transactions, with the full measured range shown in (b). "
-               "The other three captures are controls taken with the timing mechanism disabled and "
-               "are not plotted. No value is resampled or interpolated. "
-               "Panel (d) reports quartiles with whiskers over the full support."),
+               "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it runs on the "
+               "control lane under its own release parameters. Panel (b) plots the "
+               f"{len(fixed)} release policies of the hardware sweep whose total budget equals "
+               f"$D$={D:g}~ms; each is one capture under one installed dual-deadline policy, "
+               "summarised by the median over its READ transactions. The sweep's other points "
+               "(other budgets, the two envelope controls and the capture with the timing "
+               "mechanism disabled) are in the sweep tables and are not plotted here. No value is "
+               "resampled or interpolated. Panel (c) reports quartiles with whiskers over the "
+               "full support."),
            limitation_note=(
-               "The sweep offsets, the field D_A_ms and the field D_R_ms that carries the "
-               "configured CLRT_new, are read from the archived sweep_points.csv "
-               "configuration table; the driver logs record the mode and the J codebook but not "
-               "the per-point offsets, and no per-point control-plane readback exists, so the "
-               "configuration provenance for the sweep is partial. The fail-open horizon H is a "
-               "control-plane quantity computed from the pass budget and reservoir depth, not a "
-               "value the data plane enforces or that was measured directly. All points come "
-               "from one relay behind one switch."))
+               "The sweep offsets are read from sweep_points.csv, and each point's installed "
+               "parameters are confirmed by the control-plane readback archived in "
+               "sweep/provenance/. The fail-open horizon H is a control-plane quantity computed "
+               "from the pass budget and reservoir depth, not a value the data plane enforces or "
+               "that was measured directly. All points come from one relay behind one switch."))
 
 
 # ============================================================ GRID 2: distributions (2x2)

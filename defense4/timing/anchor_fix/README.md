@@ -62,7 +62,7 @@ Both programs were compiled in the same session with the same command, so the co
 | egress stages | 6 | 6 |
 | critical path through the dependency graph | 12 | 12 |
 | tables allocated | 112 | 113 |
-| compiler warnings | 10 | the same 10, textually identical |
+| compiler warnings | 9 | the same 9, textually identical |
 
 The frozen program is already at the 12-stage ingress ceiling, so the one thing that could have
 stopped this fix was a stage. It does not cost one. The allocator moves tables between stages 5
@@ -78,9 +78,11 @@ Three arms, interleaved, one binary, one session:
   comparison means anything.
 - **A1** — obfuscated, `anchor_req=1`: the request-anchored read lane.
 
-Policy is the campaign's own: `D_A` 20 ms, `D_R` 4 ms, `A` 20 ms, `R` 24 ms, `J` drawn from
+Policy is `campaign_v1`'s, so that A0 reproduces what that campaign evaluated: `D_A` 20 ms,
+`D_R` 4 ms, `A` 20 ms, `R` 24 ms, `J` drawn from
 {2, 6, 12} ms, size carve off and proved off from a hardware readback in every block. Eight rounds,
-24 blocks, 18,914 exchanges, every guard passed.
+24 blocks, 18,914 exchanges, every guard passed. `campaign_v2`, collected afterwards on the
+request-anchored build, runs `D_R` 8 ms and `R` 28 ms; see its `repro/policy_config.json`.
 
 A second run, `_bin/run_phase_test.sh`, holds the arm and the policy fixed and moves the master's
 inter-request spacing across 3, 7, 13 and 20 ms. It exists to test causally whether what survives

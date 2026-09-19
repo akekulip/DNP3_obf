@@ -63,6 +63,8 @@ import shift_vs_normalization as svn                                         # n
 PNG_DPI = 300
 DEFAULT_OUT = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "clrt"
 ROLLUP = CV1 / "DATASET_ROLLUP.json"
+# The acknowledgment hold the campaign ran, read from its policy file, never written as a literal.
+POLICY_D_A_MS = float(json.loads((REPRO / "policy_config.json").read_text())["D_A_ms"])
 CAMPAIGN_README = CV1 / "README.md"
 FRS_MANIFEST = FRS / "CAPTURE_MANIFEST.csv"
 
@@ -104,9 +106,10 @@ def load_campaign_reads():
     nanoseconds from the capture record to the interval. An earlier version read
     `derived/transactions.csv`, the frozen table produced by the original scapy extractor, whose
     timestamps were converted to float seconds first. At 2026 epoch magnitudes that conversion
-    costs up to about 238 ns, which is invisible against a 4 ms interval and decisive against a
-    1 ms bin edge that the configured value sits exactly on: it moved 2,465 of 26,400 obfuscated
-    READ observations, 9.34 percentage points, across the 4 ms boundary. The frozen table stays
+    costs up to about 238 ns, which is invisible against a millisecond interval and decisive against
+    a 1 ms bin edge that the configured value sits exactly on: on campaign_v1, whose configured
+    value was 4 ms, it moved 2,465 of 26,400 obfuscated READ observations, 9.34 percentage points,
+    across that boundary. The frozen table stays
     where it is as the historical artefact; the figures are fed from the same extraction as the
     campaign statistics.
     """
@@ -466,7 +469,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v2/derived/transactions.csv")
+                      "campaign_v2 raw captures via repro/pcap_dnp3.py")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         pct, over_pct, counts, over = panels[arm]
@@ -489,12 +492,13 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
         "%g ms, which is %.3f %% of (a) and %.3f %% of (b). The dashed line in (b) is the "
         "configured $\\mathrm{CLRT}_{\\mathrm{new}}$; the measured mean lies %.3f ms from it. "
         "Because the configured value falls "
-        "exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, "
-        "which is a property of the grid and not of the measurement; "
+        "exactly on a bin edge, the obfuscated mass divides between the %g--%g and %g--%g ms "
+        "bins, which is a property of the grid and not of the measurement; "
         "Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. "
         "(a) %s. (b) %s."
         % (w, cutoff, o_pct["native"], o_pct["obfuscated"],
            abs(float(np.mean(obf)) - target_ms),
+           target_ms - w, target_ms, target_ms, target_ms + w,
            _stats_sentence(off), _stats_sentence(obf)))
     method = _method_note(w, w_fd_main, cutoff, panels, target_ms, acc)
     limitations = _limitations_note()
@@ -612,7 +616,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
     fig.tight_layout(pad=0.3, w_pad=0.7)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v2/derived/transactions.csv")
+                      "campaign_v2 raw captures via repro/pcap_dnp3.py")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         r["main_bin_width_ms"] = round(w, 6)
@@ -689,7 +693,7 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v2/derived/transactions.csv")
+                      "campaign_v2 raw captures via repro/pcap_dnp3.py")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r in rows:
         r["main_bin_width_ms"] = round(w, 6)
@@ -771,7 +775,7 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v2/derived/transactions.csv")
+                      "campaign_v2 raw captures via repro/pcap_dnp3.py")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         r["zoom_bin_width_ms"] = round(w, 9)
@@ -807,11 +811,12 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
 
 def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
     return (
-        "READ transactions only, from the frozen canonical table "
-        "`defense4/timing/evidence/campaign_v2/derived/transactions.csv`, which covers 22 "
+        "READ transactions only, extracted from the 132 raw campaign captures under "
+        "`defense4/timing/evidence/campaign_v2/s*/raw_pcaps/` by `campaign_v2/repro/pcap_dnp3.py` "
+        "in integer nanoseconds, the reader the campaign statistics use; they cover 22 "
         "grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all "
         "timestamps taken on the master-facing link, at the single configured setting in "
-        "`campaign_v2/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 4 ms "
+        "`campaign_v2/repro/policy_config.json` (D_A = %g ms, the configured CLRT_new = %g ms "
         "carried in the field named D_R_ms, size carve disabled). No other device, corpus or "
         "policy setting enters this figure. The policy sweep captures under "
         "`campaign_v2/sweep/` are a different workload and are not part of the canonical "
@@ -852,8 +857,8 @@ def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
         "as the ordinary interval; it holds %.3f %% of the Timing OFF sample and %.3f %% of "
         "the Obfuscated sample. The same cutoff is used in both panels. The companion figure "
         "`fig_clrt_distributions_full` repeats the comparison with no cutoff at all, so no "
-        "tail is lost. Bins were not shifted off the origin: the configured 4 ms falls exactly "
-        "on an edge, which divides the obfuscated mass between the 3--4 and 4--5 ms bins, and "
+        "tail is lost. Bins were not shifted off the origin: the configured %g ms falls exactly "
+        "on an edge, which divides the obfuscated mass between the %g--%g and %g--%g ms bins, and "
         "that is left visible rather than hidden by moving the grid. "
         "Both panels share one pair of limits and one edge set, so a bar in one and a bar in "
         "its counterpart mean the same thing at the same height. The ordinate is linear and is "
@@ -864,8 +869,10 @@ def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
         "percentages to total 100 %% before the figure is written. Every statistic in the "
         "annotations and in the CSVs is computed from the raw millisecond samples, never from "
         "bin centres; sample variance uses the n-1 denominator."
-        % (acc["read_rows"], acc["non_read_rows"], acc["excluded_from_plot"],
-           w, w_fd_main, cutoff, panels["native"][1], panels["obfuscated"][1]))
+        % (POLICY_D_A_MS, target_ms,
+           acc["read_rows"], acc["non_read_rows"], acc["excluded_from_plot"],
+           w, w_fd_main, cutoff, panels["native"][1], panels["obfuscated"][1],
+           target_ms, target_ms - w, target_ms, target_ms, target_ms + w))
 
 
 def _limitations_note():
@@ -955,11 +962,11 @@ def write_run_statistics(out, by_run, by_capture, single_stats):
     rows = []
     for (run, arm), v in sorted(by_run.items()):
         rows.append(stats_row("grouped collection run", run, arm, v,
-                              "campaign_v2/derived/transactions.csv"))
+                              "campaign_v2 raw captures via repro/pcap_dnp3.py"))
     for (run, block, arm), v in sorted(by_capture.items()):
         rows.append(stats_row("capture (nested in run, not independent)",
                               "%s/%s" % (run, block), arm, v,
-                              "campaign_v2/derived/transactions.csv"))
+                              "campaign_v2 raw captures via repro/pcap_dnp3.py"))
     rows.extend(single_stats)
     path = Path(out) / "clrt_run_statistics.csv"
     with open(path, "w", newline="") as fh:

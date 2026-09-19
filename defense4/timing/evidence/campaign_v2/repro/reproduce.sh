@@ -81,6 +81,10 @@ echo "[5/8] leakage: mutual information against a permutation null, two attacker
 echo "[5b/8] leakage when the adversary pools several exchanges instead of one"
 "$PY" "$HERE/multiobs_leakage.py" "$OUT/transactions_canonical.csv" "$OUT/multiobs.json"
 
+echo "[5c/8] attribution: execution time alone, arrival spacing alone, the release tail"
+"$PY" "$HERE/proof_analyses.py" "$OUT/transactions_canonical.csv" "$HERE/policy_config.json" \
+      "$OUT/proof.json"
+
 echo "[6/8] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
 "$PY" "$HERE/make_ndss_figures.py" "$OUT/transactions_canonical.csv" "$OUT/stats.json" \
       "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json"
@@ -95,5 +99,5 @@ echo
 echo "hash manifest -> $OUT/REPRODUCED.sha256"
 ( cd "$OUT" && sha256sum transactions_canonical.csv per_capture.csv validation_report.json \
     sweep_canonical.csv sweep_summary.csv sweep_report.json \
-    stats.json replacement_stats.json leakage.json environment.json figs/*.pdf figs/*.png > REPRODUCED.sha256 )
+    stats.json replacement_stats.json leakage.json multiobs.json proof.json environment.json figs/*.pdf figs/*.png > REPRODUCED.sha256 )
 echo "done. outputs in $OUT"

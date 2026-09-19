@@ -1,44 +1,44 @@
 {
  "figure": "fig_m01_release_timeline",
- "caption": "Release timeline of the read lane, drawn from the verified program and not from a distribution. Five instants appear, all at the switch: $t_0$ when the request arrives, $t_A$ and $t_R$ when the outstation's acknowledgment and response arrive, and $e_A$ and $e_R$ when each of them is released. The switch arms both deadlines from $t_0$, so the acknowledgment is due at $t_0+D_A$ and the response at $t_0+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$. Neither instant depends on $t_A$ or $t_R$, so the relay's own cross-layer time $t_R-t_A$ does not reach the interval the adversary measures. That interval is $e_R-e_A$: the master-facing propagation is the same for both packets and cancels. The response hold $e_R-t_R$ is drawn in (a) to show that it is not configured but is whatever the schedule requires. In (b) the response arrives after its deadline, the program forwards it on arrival, no hold applies and none is drawn, and the measured interval exceeds the configured value. $D_A=20$ ms and a configured $\\mathrm{CLRT}_{\\mathrm{new}}=4$ ms are the campaign settings.",
+ "caption": "Release timeline of the read lane, drawn from the verified program and not from a distribution. Five instants appear, all at the switch: $t_0$ when the request arrives, $t_A$ and $t_R$ when the outstation's acknowledgment and response arrive, and $e_A$ and $e_R$ when each of them is released. The switch arms both deadlines from $t_0$, so the acknowledgment is due at $t_0+D_A$ and the response at $t_0+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$. Neither instant depends on $t_A$ or $t_R$, so the relay's own cross-layer time $t_R-t_A$ does not reach the interval the adversary measures. That interval is $e_R-e_A$: the master-facing propagation is the same for both packets and cancels. The response hold $e_R-t_R$ is drawn in (a) to show that it is not configured but is whatever the schedule requires. In (b) the response arrives after its deadline, the program forwards it on arrival, no hold applies and none is drawn, and the measured interval exceeds the configured value. $D_A=20$ ms and a configured $\\mathrm{CLRT}_{\\mathrm{new}}=8$ ms are the campaign settings.",
  "generation_command": "python make_model_figures.py",
- "source_commit": "d8afc2fd9e78feaafe7c816a2e79a82415907155",
+ "source_commit": "22ac6ce457d2cc9b9a0e1a3e611cabb8c5a73832",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "4095d41067f9f924c21df9304f5e87383526e5620c6b0d3cd61dcac20631c48e"
+  "sha256": "0fdec9d756774bc39479e5ec1d09554105b7ead9173bbef2dfd1e1dcc63e847b"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
   "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
-   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
-   "sha256": "fec3766319ae5c1b54c5cb4bd1d17039b1f1a65b7537d51f155215c50c9e5f75"
+   "path": "defense4/timing/evidence/campaign_v2/PROVENANCE_CONSTANTS.json",
+   "sha256": "64097665453c288868247c593e36d37efcc9445d28ce7c1d01ee14d0573bbfd5"
   },
   {
-   "path": "defense4/timing/audit_current/outputs/timeout_and_tcp_audit.json",
-   "sha256": "b73257e101cd4555d43ca674580c2a8cf59a47ce51f6c5103dc6704828a06654"
+   "path": "paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json",
+   "sha256": "702a8a21addbbb09aa070c13f222649ac964d1afed39a8e65ae332fa90210434"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.pdf",
-   "sha256": "164bff8f90b3baecdfffd1fa26275f799897d4d41cde1c229bafefe7381362fb",
+   "sha256": "6aedc8575ec1a31908d093a4fa8eb3213bc491f09a761be8da349835de225a1c",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.png",
-   "sha256": "951fc370502a37eae4ba8708a3aeba877349d1d5f68688ef99a92ea5a0e36df3",
+   "sha256": "f93ebd7000d195520cb5fe5ecdc89e350f0608a4a2825d0bea3ce2aefa1cc90b",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline_data.csv",
-   "sha256": "e63a01223486428f3605f9eabfe14ece37ed156d86861501d3a6ef5ec7140cf3",
+   "sha256": "7eb24199d320b79df2d8c7c717171e2e61771dc8d147d18a9f3d5cea5e7d446d",
    "rows": 32,
    "authoritative": true
   }
@@ -47,7 +47,7 @@
   "width": 3.48,
   "height": 2.35
  },
- "method_note": "No statistic is computed. The configured offsets are read from PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the measured median Timing OFF READ interval of 2.116 ms so the drawing is to the right scale. The late panel places $t_r$ beyond the release horizon to show the fail-open case; its offset is illustrative.",
+ "method_note": "No statistic is computed. The configured offsets are read from campaign_v2's PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the campaign's median Timing OFF READ CLRT of 2.121 ms, from MANUSCRIPT_VALUES.json, so the drawing is to the right scale. The late panel places $t_r$ beyond the release horizon to show the fail-open case; its offset is illustrative.",
  "limitation_note": "A master-facing capture contains none of $t_0$, $t_a$, $t_r$, $e_a$, $e_r$, so the switch-side instants in this diagram are recovered from the program and are not measurements. Queue residence time, the relay-facing release at $t_0+J$, release multiplicity and physical actuation are all unobserved.",
  "notes": [
   "schematic of the mechanism; no measured distribution is plotted",

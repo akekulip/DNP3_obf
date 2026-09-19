@@ -55,7 +55,7 @@ def sha256(path):
     return h.hexdigest()
 
 
-def manuscript_values(stats, leak, sweep, val, repl, pooled=None):
+def manuscript_values(stats, leak, sweep, val, repl, pooled=None, proof=None):
     """Every number the manuscript is allowed to quote, derived here and nowhere else."""
     cov = stats["read_lane_coverage"]
     pac = stats["per_arm_class"]
@@ -129,6 +129,25 @@ def manuscript_values(stats, leak, sweep, val, repl, pooled=None):
             "range": {key: [pooled["results"][key]["min"], pooled["results"][key]["max"]]
                       for key in sorted(pooled["results"])},
         },
+        # Whose timing survives: the execution-time-only and arrival-spacing-only contrasts, the
+        # arrival gap by class and the release tail, all from proof_analyses.py.
+        "attribution": None if proof is None else {
+            "read_vs_select": {a: {f: proof["read_vs_select"][a]["balanced_accuracy"][f]["mean"]
+                                   for f in ("clrt", "ack_clrt")}
+                               for a in ("native", "obfuscated")},
+            "read_vs_select_medians_ms": {a: proof["read_vs_select"][a]["medians"]
+                                          for a in ("native", "obfuscated")},
+            "read_arrival_split": {a: {
+                "half_gap_difference_us":
+                    proof["read_arrival_split"][a]["half_median_gap_difference_us"],
+                **{f: proof["read_arrival_split"][a]["balanced_accuracy"][f]["mean"]
+                   for f in ("clrt", "ack_clrt")}} for a in ("native", "obfuscated")},
+            "arrival_gap_ms": proof["arrival_gap_ms"],
+            "release_tail_us": {k: v for k, v in proof["release_tail_us"].items()
+                                if k != "definition"},
+            "campaign_span_hours": proof["campaign_span"]["hours"],
+        },
+        "obfuscated_departures": stats["obfuscated_departures"],
         "sweep": {
             "points": len(sweep),
             "fixed_budget_points": len(fixed),
@@ -167,7 +186,11 @@ def main(out_dir, update=False):
     pooled = json.load(open(pooled_path)) if pooled_path.exists() else None
     if pooled is None:
         problems.append("multiobs.json missing: the pooled adversary cannot be published")
-    values = manuscript_values(stats, leak, sweep, val, repl, pooled)
+    proof_path = out / "proof.json"
+    proof = json.load(open(proof_path)) if proof_path.exists() else None
+    if proof is None:
+        problems.append("proof.json missing: the attribution analyses cannot be published")
+    values = manuscript_values(stats, leak, sweep, val, repl, pooled, proof)
 
     # ---- 2. figures
     figs = out / "figs"
