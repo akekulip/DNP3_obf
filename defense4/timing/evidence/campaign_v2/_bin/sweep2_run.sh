@@ -45,11 +45,15 @@ SEED=5000; NFAIL=0; NOK=0
 while read -r TAG MODE DA DR; do
   [ -z "${TAG:-}" ] && continue
   SEED=$((SEED+1))
-  if bash "$HERE/sweep2_block.sh" "$TAG" "$MODE" "$DA" "$DR" "$NREAD" "$NSBO" "$SEED" >>"$LOG" 2>&1; then
+  # stdin is redirected from /dev/null on every block, because the block shells out to ssh and
+  # ssh reads stdin. Without this the first ssh swallows the rest of the here-string that feeds
+  # this loop, the loop ends after one point, and the sweep reports success having measured one
+  # policy. Observed exactly that on 2026-09-19: 1 point captured, 0 absent.
+  if bash "$HERE/sweep2_block.sh" "$TAG" "$MODE" "$DA" "$DR" "$NREAD" "$NSBO" "$SEED" >>"$LOG" 2>&1 </dev/null; then
     NOK=$((NOK+1))
   else
     log "  $TAG FAILED, retrying once"
-    if bash "$HERE/sweep2_block.sh" "$TAG" "$MODE" "$DA" "$DR" "$NREAD" "$NSBO" "$SEED" >>"$LOG" 2>&1; then
+    if bash "$HERE/sweep2_block.sh" "$TAG" "$MODE" "$DA" "$DR" "$NREAD" "$NSBO" "$SEED" >>"$LOG" 2>&1 </dev/null; then
       NOK=$((NOK+1))
     else
       # A refused point is a finding, not an error: the control plane refuses a set it cannot
@@ -58,7 +62,11 @@ while read -r TAG MODE DA DR; do
     fi
   fi
 done <<< "$POINTS"
-log "=== sweep2 COMPLETE: $NOK points captured, $NFAIL absent ==="
+NPOINTS=$(printf '%s\n' "$POINTS" | grep -c '^sw_')
+log "=== sweep2 COMPLETE: $NOK points captured, $NFAIL absent, of $NPOINTS in the set ==="
+if [ $((NOK + NFAIL)) -ne "$NPOINTS" ]; then
+  log "ERROR: the loop visited $((NOK + NFAIL)) of $NPOINTS points; the sweep is incomplete"
+fi
 
 # Restore the shipped policy before leaving the switch, and prove it took. The restore capture is
 # named sw_restore, which the validator excludes: it is a policy restoration, not a sweep point.
