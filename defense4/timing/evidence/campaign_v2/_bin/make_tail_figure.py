@@ -20,12 +20,13 @@ Two panels, and the second one is the honest half.
       what bounds the usable range.
 
   (b) the tail's distribution at the shipped policy, one series per class. READ and SELECT lie on
-      top of each other. OPERATE sits about six microseconds higher, and that offset is the whole
-      of what an adaptive adversary still recovers. It is queue phase, not the device: an OPERATE
-      arrives 0.354 ms after its own SELECT response where a READ follows its predecessor by
-      20.5 ms, so it meets the blocker loop at a different point in the cycle.
+      top of each other. OPERATE sits about six microseconds higher. Its request arrives 0.354 ms
+      after its own SELECT response where a READ follows its predecessor by 20.5 ms
+      (`repro/proof_analyses.py`), so it meets the blocker loop in a different state.
 
-    RESEARCH_PYTHON=~/.venvs/research/bin/python $RESEARCH_PYTHON make_tail_figure.py
+    $RESEARCH_PYTHON make_tail_figure.py            generate and publish into figures/tail/
+    $RESEARCH_PYTHON make_tail_figure.py --check    rebuild into a temporary directory and compare
+                                                    against the published copies and FIGURES.sha256
 """
 from __future__ import annotations
 import csv
@@ -33,7 +34,12 @@ import json
 import pathlib
 import statistics as st
 import sys
+import hashlib
+import tempfile
 
+import os
+# A fixed creation date makes the vector PDF byte-reproducible, so --check can compare hashes.
+os.environ.setdefault("SOURCE_DATE_EPOCH", "0")
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -59,7 +65,7 @@ def quantised_ms(ms: float) -> float:
     return int(round(ms * 1e6) // TICK_NS) * TICK_NS / 1e6
 
 
-def main() -> int:
+def build(outdir: pathlib.Path) -> dict:
     fs.use_ieee()
     timing = json.loads(SWEEP_TIMING.read_text())
     points = {r["point"]: r for r in csv.DictReader(open(SWEEP_POINTS))}
@@ -144,7 +150,7 @@ def main() -> int:
                          tail_ms=round(st.median(v), 6), n=len(v)))
 
     med = {c: st.median(tails[c]) for c in CLASSES}
-    fs.save(fig, FIGDIR, "fig_release_tail",
+    fs.save(fig, outdir, "fig_release_tail",
             inputs=[SWEEP_TIMING, SWEEP_POINTS, TXNS, POLICY],
             caption=(
                 "Release tail of the framework, measured on campaign_v2. (a) The tail against the "
@@ -152,9 +158,9 @@ def main() -> int:
                 "It is flat at about 0.10 ms across every hold the switch can sustain. Past the dashed "
                 "line the acknowledgment leaves at 31.07 ms whatever the setting, so the hold is not "
                 "achieved and no tail is defined. (b) Its distribution at the "
-                "shipped policy. READ and SELECT coincide; OPERATE sits about six microseconds "
-                "higher because it arrives at a different point in the blocker cycle, not because "
-                "the outstation did anything different."),
+                "campaign policy. READ and SELECT coincide; OPERATE sits about six microseconds "
+                "higher, and its request reaches the switch 0.354 ms after the SELECT response "
+                "where a READ follows its predecessor by 20.5 ms."),
             stats_note=(
                 "Tail = the measured request-to-acknowledgment median minus the acknowledgment "
                 "hold as the switch stores it, whole 256 ns ticks rounded down. Panel (a) uses the "
@@ -165,8 +171,60 @@ def main() -> int:
             data_rows=[[r["panel"], r["point"], r["txn_class"], r["d_a_ms"], r["ack_med_ms"],
                         r["tail_ms"], r["n"]] for r in rows],
             data_header=["panel", "point", "txn_class", "d_a_ms", "ack_med_ms", "tail_ms", "n"])
+    (outdir / "fig_release_tail.method.md").write_text(
+        "Panel (a): for each sweep point in mode D4 with a configured CLRT_new of 4 ms and an "
+        "acknowledgment deadline at or below the 31 ms knee, the tail is the sweep's per-class "
+        "median request-to-acknowledgment interval minus D_A as the switch stores it (whole "
+        "256 ns ticks). Panel (b): every obfuscated exchange of campaign_v2, request-to-"
+        "acknowledgment interval minus D_A = %g ms, dodged 30-bin histogram up to the 99.5th "
+        "percentile, as a percentage of each class. Both are master-facing measurements, so the "
+        "tail includes the master-to-switch path, which is not separated.\n" % d_a_ship)
+    (outdir / "fig_release_tail.limitations.md").write_text(
+        "The switch timestamps no departure, so the tail is inferred at the master and contains "
+        "the path between master and switch. One relay, one switch. Points past the knee are not "
+        "plotted because the hold is not achieved there and no tail is defined.\n")
+    return med
+
+
+AUTHORITATIVE = ["fig_release_tail.pdf", "fig_release_tail_data.csv",
+                 "fig_release_tail.caption.md", "fig_release_tail.method.md",
+                 "fig_release_tail.limitations.md"]
+
+
+def _sha(p: pathlib.Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "--check":
+        problems = []
+        with tempfile.TemporaryDirectory() as td:
+            build(pathlib.Path(td))
+            man = {}
+            if (FIGDIR / "FIGURES.sha256").exists():
+                for line in (FIGDIR / "FIGURES.sha256").read_text().splitlines():
+                    if line.strip() and not line.startswith("#"):
+                        h, n = line.split(None, 1)
+                        man[n.strip()] = h
+            for name in AUTHORITATIVE:
+                new, pub = pathlib.Path(td) / name, FIGDIR / name
+                if not pub.exists():
+                    problems.append("published %s is missing" % name)
+                elif _sha(new) != _sha(pub):
+                    problems.append("%s differs from the rebuild" % name)
+                if man.get(name) != _sha(new):
+                    problems.append("FIGURES.sha256 entry for %s does not match the rebuild" % name)
+        print("release tail figure: %d problems" % len(problems))
+        for p in problems:
+            print("  PROBLEM:", p)
+        return 1 if problems else 0
+    med = build(FIGDIR)
+    (FIGDIR / "FIGURES.sha256").write_text(
+        "# Authoritative artefacts of the release-tail family, written by make_tail_figure.py.\n"
+        "# The .png preview is not gated: its bytes vary with the interpreter build.\n"
+        + "".join("%s  %s\n" % (_sha(FIGDIR / n), n) for n in AUTHORITATIVE))
     print("fig_release_tail -> %s" % FIGDIR)
-    print("  tail medians at the shipped policy: " +
+    print("  tail medians at the campaign policy: " +
           "  ".join("%s %.6f ms" % (c, med[c]) for c in CLASSES))
     print("  OPERATE minus READ: %.1f us" % (1000.0 * (med["OPERATE"] - med["READ"])))
     return 0

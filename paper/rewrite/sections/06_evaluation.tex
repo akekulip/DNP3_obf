@@ -203,7 +203,7 @@ cost of more delay, as argued in Section~\ref{sec:design:overhead}.
 \subsection{Limitations}
 \label{sec:eval:limits}
 
-Four limitations bound these results.
+Five limitations bound these results.
 
 \textbf{For Other Devices.} We evaluate one SEL-751A behind one Tofino-1 switch. Our security
 argument in Section~\ref{sec:design:read} does not depend on the device, and the three operations of
@@ -218,9 +218,16 @@ it the execution time of the relay, and the function code already tells it the o
 an operator who wants the released intervals to carry no arrival information at all needs a release
 that does not depend on the state of the blocker queue, which we leave to future work.
 
+\textbf{For the Evaluated Attacker.} Our classifiers are random forests on two intervals, and the 22
+runs are grouped collections within one campaign on one testbed. Their spread is within-campaign
+variability rather than a confidence interval, and it says nothing about other days or deployments.
+However, the replacement itself (Section~\ref{sec:eval:ro1}) is measured on every exchange and
+depends on no classifier.
+
 \textbf{For the Relay-Facing Link.} We capture the master-facing link, where the adversary sits. As
 such, the command hold $J$ and the release toward the relay are configured values rather than
-measured ones.
+measured ones, and we observe neither how many copies of a command reach the relay nor the physical
+operation that follows.
 
 \textbf{For Retransmitted Commands.} After releasing an OPERATE, the control lane keeps its
 generation until the next SELECT and drops a retransmission that carries it. A command lost on the

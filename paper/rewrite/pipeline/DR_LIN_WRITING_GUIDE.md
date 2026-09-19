@@ -155,9 +155,9 @@ this draft, not a structure the advisor dictated.
   spread is described as the range over the 22 held-out runs, never as a confidence interval.
 * The read lane and the control lane are never pooled: the release budget `D` governs READ and
   the SELECT phase of SBO only, and OPERATE never appears in that coverage denominator.
-* The limitations in `CLAIMS_AND_LIMITATIONS.md` L1 to L12 appear in the Evaluation's
+* The limitations in `CLAIMS_AND_LIMITATIONS.md` L1 to L13 appear in the Evaluation's
   Limitations subsection, in plain text, not in a footnote.
-* Configuration provenance is PARTIAL and says so.
+* Configuration provenance is stated as `CLAIMS_AND_LIMITATIONS.md` L12 states it: read back for every block and sweep point, with `J` and `H` unobserved.
 
 ## 7. Protected text
 

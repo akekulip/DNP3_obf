@@ -1,0 +1,1 @@
+The switch timestamps no departure, so the tail is inferred at the master and contains the path between master and switch. One relay, one switch. Points past the knee are not plotted because the hold is not achieved there and no tail is defined.

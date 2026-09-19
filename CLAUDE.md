@@ -76,7 +76,7 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   control path keeps a spent OPERATE generation after release and drops a matching
   retransmission, so a command lost on the relay-facing link cannot be repaired by its own
   retransmission; that is a source-level reading, not a hardware observation
-  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance is PARTIAL. No
+  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance: every `campaign_v2` block and sweep point has a control-plane readback; the per-transaction `J` and the horizon `H` are unobserved (`CLAIMS_AND_LIMITATIONS.md` L12). No
   size, segmentation, padding or splitting claim anywhere in the manuscript.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.

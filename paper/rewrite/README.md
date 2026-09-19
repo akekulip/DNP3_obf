@@ -54,35 +54,44 @@ pipeline/reports/               EVENT_SEMANTICS_TRUTH_TABLE, LIN_TEXT_CHANGELOG,
 ## Writing rules
 
 `pipeline/DR_LIN_WRITING_GUIDE.md`. In short: the framework is the contribution and READ and
-SELECT/OPERATE are case studies; the arms are Timing OFF and Obfuscated; the read path is anchored
-to the outstation acknowledgment, where the observable is the CLRT, and the control path to
-the request, where it is R − A;
-no size claim, no system name, no firstness claim, no em dashes; every result number traces to
-`figures/ndss/MANUSCRIPT_VALUES.json`, which is regenerated from the raw captures by
-`defense4/timing/evidence/campaign_v1/repro/reproduce.sh` and is the only file the manuscript
-quotes from.
+SELECT/OPERATE are case studies; the arms are Timing OFF and Obfuscated; both lanes arm their
+deadlines at the request, so the observable is the configured `CLRT_new` on both, and the notation
+is fixed by `../../defense4/timing/NOTATION_MAPPING.md`; no size claim, no system name, no firstness
+claim, no em dashes; every result number traces to `figures/ndss/MANUSCRIPT_VALUES.json`, which is
+regenerated from the raw captures by `defense4/timing/evidence/campaign_v2/repro/reproduce.sh` and
+is the only file the manuscript quotes from.
 
 ## Claim boundaries
 
 `../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Timing only, one SEL-751A, one Tofino-1, 22
-grouped runs in one approximately five-hour campaign, master-facing; size shaping off in both
-arms; the realized per-transaction `J`, relay-facing timing and exactly-once delivery
-unobserved; classification is of transaction classes, not device models, and is scoped to the
-evaluated Random-Forest attacker; configuration provenance PARTIAL.
+grouped runs in one 5.3-hour campaign, master-facing; size shaping off in both arms; the realized
+per-transaction `J`, relay-facing timing and exactly-once delivery unobserved; classification is of
+transaction classes, not device models, and is scoped to the evaluated Random-Forest attacker; an
+adaptive attacker stays above chance, and the evidence attributes that to the arrival of requests
+at the switch; every block and sweep point has a control-plane readback.
 
 ## Regenerating the figures
 
+Each figure family has one generator, and a figure is never edited by hand:
+
 ```sh
-cd ../../defense4/timing && TIMING_PYTHON=/usr/bin/python3 ./reproduce.sh
-cp build/figures/fig0*.{pdf,png,caption.md,provenance.json} build/figures/fig0*_data.csv figures/publication/
-# figures are published only by the gate:
-#   evidence/campaign_v1/repro/publication_gate.py <OUT_DIR> --update
-# was removed on 2026-09-07, and is retired to defense4/timing/history/.
+# campaign results (figures/ndss/) and MANUSCRIPT_VALUES.json
+../../defense4/timing/evidence/campaign_v2/repro/reproduce.sh /tmp/cv2_out
+../../defense4/timing/evidence/campaign_v2/repro/.venv/bin/python \
+    ../../defense4/timing/evidence/campaign_v2/repro/publication_gate.py /tmp/cv2_out --update
+# READ CLRT histograms (figures/clrt/)
+$RESEARCH_PYTHON ../../defense4/timing/audit_current/tools/clrt_distribution_and_variance.py
+# release tail (figures/tail/)
+$RESEARCH_PYTHON ../../defense4/timing/evidence/campaign_v2/_bin/make_tail_figure.py
+# release-timeline model (figures/model/)
+$RESEARCH_PYTHON ../../defense4/timing/audit_current/tools/make_model_figures.py
+# schematics: draw.io sources, then export
+./pipeline/drawio/build.sh && ./pipeline/export_schematics.sh
 ```
 
-Each figure carries its own `.provenance.json`. Schematics: edit the SVG, then
-`./pipeline/export_schematics.sh` (Inkscape 1.x on PATH) exports PDF/PNG, mirrors them to
-`defense4/timing/figures/schematics/` and writes `figures/SCHEMATICS.sha256`.
+Each figure carries its own `.caption.md`, `.method.md`, `.limitations.md`, `_data.csv` and
+`.provenance.json`, and each directory's `FIGURES.sha256` is checked by its generator's `--check`
+mode (for the campaign figures, by the publication gate run without `--update`).
 
 ## Open items
 

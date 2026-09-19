@@ -18,10 +18,10 @@
       "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
     }
   ],
-  "caption_draft": "Release tail of the framework, measured on campaign_v2. (a) The tail against the acknowledgment hold, one series per transaction class. It is flat at about 0.10 ms across every hold the switch can sustain. Past the dashed line the acknowledgment leaves at 31.07 ms whatever the setting, so the hold is not achieved and no tail is defined. (b) Its distribution at the shipped policy. READ and SELECT coincide; OPERATE sits about six microseconds higher because it arrives at a different point in the blocker cycle, not because the outstation did anything different.",
+  "caption_draft": "Release tail of the framework, measured on campaign_v2. (a) The tail against the acknowledgment hold, one series per transaction class. It is flat at about 0.10 ms across every hold the switch can sustain. Past the dashed line the acknowledgment leaves at 31.07 ms whatever the setting, so the hold is not achieved and no tail is defined. (b) Its distribution at the campaign policy. READ and SELECT coincide; OPERATE sits about six microseconds higher, and its request reaches the switch 0.354 ms after the SELECT response where a READ follows its predecessor by 20.5 ms.",
   "statistical_method": "Tail = the measured request-to-acknowledgment median minus the acknowledgment hold as the switch stores it, whole 256 ns ticks rounded down. Panel (a) uses the sweep's per-point per-class medians at a configured interval of 4 ms; panel (b) uses every obfuscated exchange of the campaign at D_A = 20 ms. Medians: READ 0.101070, SELECT 0.100832, OPERATE 0.107031 ms.",
   "artifacts": {
-    "fig_release_tail.pdf": "61d575e123e80336e013fcb646a5012c9bc6b4a969b51243fe2fc8f4d8bf23f5",
+    "fig_release_tail.pdf": "fa97c1d0b5e2a735c703ee702b6474310002310fe8be0bc4ecac2e3c9af06e80",
     "fig_release_tail.png": "75d4e49508a23fbd50f635ca9546910a94d97dd227f1d162b1bff581d615574b",
     "fig_release_tail_data.csv": "a7ab9ab9a94c245213d1da47b7e656e66514a270e2ce39e348390e4de6d7c69e"
   },
