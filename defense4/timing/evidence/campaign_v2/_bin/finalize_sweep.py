@@ -79,7 +79,12 @@ def main() -> int:
             "D_ms": "" if da is None else da + dr,
             "clrt_med_ms": per["READ"]["clrt_med"], "clrt_sd_ms": per["READ"]["clrt_sd"],
             "ack_med_ms": per["READ"]["ack_med"],
-            "rt_med_ms": round(st.median([(x.t_resp_ns - x.t_req_ns) / 1e6 for x in rd]), 3),
+            # The sum of the two interval medians, not the median of the sum. They differ,
+            # because a median is not additive, and campaign_v1's table publishes the sum -- so
+            # repro/validate_sweep.py checks the three columns against each other on that
+            # convention. Publishing the true median of rt here makes the table internally
+            # inconsistent by about 0.01 ms and fails that check.
+            "rt_med_ms": round(per["READ"]["clrt_med"] + per["READ"]["ack_med"], 3),
             "n_read": len(rd)})
         print("  %-14s %-4s D_A=%-4s D_R=%-4s  CLRT %7.3f  ACK %7.3f  n=%d"
               % (tag, mode, da, dr, rows[-1]["clrt_med_ms"], rows[-1]["ack_med_ms"], len(rd)))

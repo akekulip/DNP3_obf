@@ -64,16 +64,18 @@ if [ "${SHAPE_VAL:-x}" != "0" ] || [ "$SHAPE_OK" -lt 1 ]; then
 
 RUN=$(timeout 400 $VI "echo '$PW' | sudo -S -p '' true 2>/dev/null
   mkdir -p $OUT; sudo -n rm -f $OUT/${TAG}.pcap
-  sudo -n nohup timeout 300 tcpdump -i $IFACE -s0 -w $OUT/${TAG}.pcap 'host 192.168.10.7 and tcp' >/dev/null 2>&1 &
-  sleep 3
+  sudo -n nohup timeout 300 tcpdump -i $IFACE -s0 -U -w $OUT/${TAG}.pcap 'host 192.168.10.7 and tcp' >/dev/null 2>&1 &
+  sleep 4
   cd /home/decps/native_parity && python3 campaign_run.py --session sweep2 --block $TAG \
     --condition $COND --mode $MODE --j-ms '$(echo $JSET | tr " " ",")' --n-read $NREAD --n-sbo $NSBO \
-    --min-gap 5 --gap-ms 20 --seed $SEED --out $OUT/${TAG}.jsonl 2>&1 | tail -1" 2>&1)
+    --min-gap 5 --gap-ms 20 --seed $SEED --out $OUT/${TAG}.jsonl 2>&1 | tail -1
+  sleep 3" 2>&1)
 
 STOP=$(timeout 120 $VI "echo '$PW' | sudo -S -p '' true 2>/dev/null
   sudo -n pkill -f '[t]cpdump -i $IFACE'; sleep 2
   sudo -n chmod 644 $OUT/${TAG}.pcap 2>/dev/null
   printf 'ALIVE=%s\\n' \$(pgrep -cf '[t]cpdump -i $IFACE' | head -1)
+  printf 'FRAMES=%s\\n' \$(tcpdump -r $OUT/${TAG}.pcap -nn 2>/dev/null | wc -l)
   stat -c 'PCAPBYTES=%s' $OUT/${TAG}.pcap 2>/dev/null || echo PCAPBYTES=0" 2>&1)
 
 printf '%s' "$RUN" | tr '\n' ' '
@@ -85,5 +87,16 @@ ALIVE=$(printf '%s' "$STOP" | grep -oE 'ALIVE=[0-9]+' | cut -d= -f2 | head -1)
 printf "alive=%s " "${ALIVE:-?}"
 if [ "${ALIVE:-1}" != "0" ]; then
   printf "\n  a capture is still running after this point (%s)\n" "${ALIVE:-unknown}" >&2; exit 5; fi
+
+# The same truncation guard the campaign block carries, and for the same reason: the first
+# campaign_v2 collection lost the tail of 55 of 66 Timing OFF captures because tcpdump was killed
+# before the kernel drained its buffer, and the sweep's own captures were short by up to 17 of 300
+# requests for exactly that reason. A short capture fails the point rather than reaching analysis.
+EXPECT=$(( 3 * (NREAD + 2 * NSBO) ))
+FRAMES=$(printf '%s' "$STOP" | grep -oE 'FRAMES=[0-9]+' | cut -d= -f2 | head -1)
+printf "frames=%s/%s " "${FRAMES:-0}" "$EXPECT"
+if [ "${FRAMES:-0}" -lt "$EXPECT" ]; then
+  printf "\n  capture is short: %s frames, expected at least %s\n" "${FRAMES:-0}" "$EXPECT" >&2
+  exit 7; fi
 printf "\n"
 exit 0
