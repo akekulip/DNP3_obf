@@ -4,32 +4,44 @@
 **Task:** rebuild the NDSS manuscript on `campaign_v2`. Plan:
 `~/.claude/plans/warm-bouncing-waterfall.md`. Running unattended; resume here after any reset.
 
-**Checkpoint: 0 done, 1 in progress.**
+**Checkpoint: 0 and 1 done, 2 running.**
 
 | # | work | state |
 |---|---|---|
-| 0 | rescue the three adversarial reviews into `paper/rewrite/reports/` | **done**, commit `4a782b20` |
-| 1 | `campaign_v2` finishes (~05:30 UTC 2026-09-19) | **running** |
-| 2 | sweep: `evidence/campaign_v2/_bin/sweep2_run.sh` | not started |
+| 0 | rescue the three adversarial reviews into `paper/rewrite/reports/` | **done**, `4a782b20` |
+| 1 | `campaign_v2` — 22 sessions, 132 captures, 63,360 exchanges, 0 anomalies | **done**, `a4d37f4f` |
+| 2 | sweep: `evidence/campaign_v2/_bin/sweep2_run.sh` | **running**, started 07:31 UTC |
 | 3 | `defense4/timing/reproduce.sh` then `publication_gate.py --update` | not started |
 | 4 | the four owed analyses + `evidence/campaign_v2/FINDINGS.md` | not started |
-| 5 | figures, Ditto + Formby | not started |
+| 5 | figures | mechanism figure **done** (`f178ccb9`); ladder, observation, timeline, 4 data figures to go |
 | 6 | prose, section by section | not started |
 | 7 | repoint `CLAIMS_AND_LIMITATIONS.md` and the writing guide | not started |
 | 8 | final verification | not started |
 
+Also done out of order, because they needed no data: the bibliography repair (`5bd7e6d8` —
+stubs completed, RFC 9293 / RFC 6298 / IEEE Std 1815-2012 now print, pruned 152 entries to the
+40 cited, 112 absolute `/home/philip` paths stripped).
+
 **Next command:**
 
 ```bash
-cat defense4/timing/evidence/campaign_v2/_bin/HEARTBEAT.txt     # expect 22/22 when done
-grep -cE 'FAILED|REFUSED|UNPROVED|INCOMPLETE' defense4/timing/evidence/campaign_v2/_bin/campaign2.log
-# when 22/22 and 0 failures:
-cd defense4/timing/evidence/campaign_v2/_bin && nohup ./sweep2_run.sh > sweep2_driver.log 2>&1 &
+tail -3 defense4/timing/evidence/campaign_v2/_bin/sweep2.log   # expect "sweep2 COMPLETE: 19 points"
+# then, when the sweep is done:
+cd defense4/timing && ./reproduce.sh /tmp/cv2_out
+# first run only, nothing is published for this dataset yet:
+evidence/campaign_v2/repro/.venv/bin/python evidence/campaign_v2/repro/publication_gate.py /tmp/cv2_out --update
 ```
 
 **State of the hardware.** The Tofino runs the corrected request-anchored build
 (`anchor_fix_build`, `tofino.bin` sha `22e542f6…`), policy `D_A` 20 ms / `D_R` 8 ms /
-`anchor_req` 1. `anchor_fix_build/launch_frozen_restore.sh` puts the frozen build back if needed.
+`anchor_req` 1. The sweep restores that policy when it finishes and proves the restore took.
+`anchor_fix_build/launch_frozen_restore.sh` puts the frozen build back if ever needed.
+
+**A bug worth not repeating.** `sweep2_run.sh` feeds its point list to a `while read` loop from a
+here-string, and the block script shells out to `ssh`, which reads stdin. The first ssh swallowed
+the rest of the list, the loop ended after one point, and the sweep reported success having
+measured one policy. Every block call now redirects `</dev/null`, and the runner asserts it
+visited every point in the set. The campaign runner was never affected: it iterates with `for`.
 
 **Do not:** modify `defense4/timing/implementation/` or any `raw_pcaps/`; push; rewrite history;
 add Claude attribution to commits; run `remove-ai-marks` or any detector-evasion tool here.
