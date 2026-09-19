@@ -170,6 +170,34 @@ so `deadline_arm_once` is a no-op and `ack_first` reads 0. Both `OUT_ACK_HOLD` a
 what moves is which counter increments. That is also a useful on-switch check that the request, and
 not the acknowledgment, did the arming.
 
+## What this obliges the manuscript to change
+
+The design section is written for the acknowledgment-anchored schedule and stops being true of the
+built system. The rewrite is one pass, not several, and it waits until the policy point is settled,
+because the numbers in it move with `D_R`. What must change:
+
+- **Section IV-B, the schedule.** The read lane's deadlines are `T_0 + D_A` and `T_0 + D_A + D_R`,
+  not `t_A + D_A`. The security argument gets stronger rather than weaker: with both lanes anchored
+  at the request, the acknowledgment latency of the outstation is outside the interval the
+  adversary measures instead of inside it.
+- **Section IV-B, the availability condition.** `t_R <= T_0 + D`, not `t_R <= t_A + D`, and the
+  latency bound's `t_A + D + \varepsilon_R` becomes `T_0 + D + \varepsilon_R`.
+- **The contradiction the reviewer raised about `\varepsilon`, which this resolves.** Section IV-B
+  says the release tail belongs to the switch rather than to the device, while Section VI obtains it
+  as the obfuscated request-to-acknowledgment median minus the Timing OFF median minus the
+  configured hold — a quantity that contains the relay's acknowledgment latency, which is the
+  device's. Under acknowledgment anchoring both statements were defensible and they disagreed.
+  Under request anchoring the tail really is the switch's: 0.102 ms, unchanged to within 8
+  microseconds across four polling intervals.
+- **Section VI, the adaptive adversary.** The paragraph that concedes 0.782 balanced accuracy and
+  attributes it to the release logic is replaced by the measured 0.414, the decomposition that
+  shows the residual is arrival phase, and the within-class control.
+- **Section VI, the release tail figure.** The tail is no longer a function of the budget in the way
+  the current figure shows, because it is no longer a function of arrival phase.
+- **Claim boundaries.** `CLAIMS_AND_LIMITATIONS.md` records that the read lane is
+  acknowledgment-anchored and that OPERATE alone is request-anchored. Both lanes are
+  request-anchored in the corrected build.
+
 ## What is not established
 
 The residual is characterised on one relay, one policy point and the evaluated Random-Forest
