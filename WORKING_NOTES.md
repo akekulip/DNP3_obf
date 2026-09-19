@@ -4,46 +4,48 @@
 **Task:** rebuild the NDSS manuscript on `campaign_v2`. Plan:
 `~/.claude/plans/warm-bouncing-waterfall.md`. Running unattended; resume here after any reset.
 
-**Checkpoint: 1 is being re-run after a capture defect. 2 done.**
+**Checkpoints 0–4 done. Next is 5, the data figures.**
 
 | # | work | state |
 |---|---|---|
-| 0 | rescue the three adversarial reviews | **done**, `4a782b20` |
-| 1 | `campaign_v2` 22 sessions | **re-running**, started 07:43 UTC, ETA ~13:05 UTC. The first collection truncated 55 of 66 Timing OFF captures; see `1dd4a3cf` |
-| 2 | sweep, 19 points | **done**, `9acea270`. Not affected: its captures are whole |
-| 3 | `defense4/timing/reproduce.sh` then `publication_gate.py --update` | blocked on 1 |
-| 4 | the four owed analyses + `evidence/campaign_v2/FINDINGS.md` | blocked on 3 |
-| 5 | figures | mechanism `f178ccb9` and release timeline `1e36d7a8` **done**; ladder, observation and the four data figures to go |
+| 0 | rescue the three adversarial reviews | **done** `4a782b20` |
+| 1 | `campaign_v2`, 22 sessions, 63,360 exchanges, 0 anomalies | **done** (re-run after a capture defect) |
+| 2 | sweep, 26 points, shipped policy restored | **done** |
+| 3 | `reproduce.sh` end to end + publication gate | **done** — 8/8 steps, 132 tests, gate 0 problems |
+| 4 | analysis + `evidence/campaign_v2/FINDINGS.md` | **done** `da61e605` |
+| 5 | figures | mechanism `f178ccb9` and timeline `1e36d7a8` done. **To do: `fig_clrt` in Formby's binned style, `fig_release_tail` rebuilt from campaign_v2's sweep, declutter `fig_policy_coverage_cost` and `fig_leakage`, review `fig_ladder` and `fig_observation`** |
 | 6 | prose, section by section | not started |
 | 7 | repoint `CLAIMS_AND_LIMITATIONS.md` and the writing guide | not started |
 | 8 | final verification | not started |
 
-Done out of order because they needed no data: the bibliography repair `5bd7e6d8`.
+**Open question for Philip, blocking the prose.** The fixed adversary is at exact chance and the
+device's execution time is gone (READ vs SELECT 0.7847 → 0.5071 against 0.5). The three-class
+adaptive adversary sits at 0.4452 against 0.3333, rising to 0.6500 when it pools twenty exchanges.
+That residual is entirely OPERATE and is six microseconds of queue phase, not the device — within
+READ alone, splitting only by arrival spacing, the same forest scores 0.6586 against 0.5. Removing
+it needs a dithered release, which trades against the framework's central claim that the released
+interval *is* the configured value. Philip decides whether to spend another campaign on that. **Do
+not rewrite the manuscript prose until he does.**
 
 **Next command:**
 
 ```bash
-cat defense4/timing/evidence/campaign_v2/_bin/HEARTBEAT.txt          # expect 22/22
-grep -cE 'FAILED|REFUSED|UNPROVED|INCOMPLETE|short' defense4/timing/evidence/campaign_v2/_bin/campaign2.log
-# then:
-cd defense4/timing && ./reproduce.sh /tmp/cv2_out
-evidence/campaign_v2/repro/.venv/bin/python \
-  evidence/campaign_v2/repro/publication_gate.py /tmp/cv2_out --update
+# figures, in this order
+$RESEARCH_PYTHON defense4/timing/audit_current/tools/clrt_distribution_and_variance.py   # fig_clrt
+# fig_release_tail must be rebuilt from evidence/campaign_v2/sweep, NOT the 2026-09-18 tail sweep
 ```
 
-**Two bugs already found and fixed; do not reintroduce either.**
+**Three bugs found and fixed today. Do not reintroduce any of them.**
 
-1. `sweep2_run.sh` fed its point list to a `while read` loop and the block shells out to `ssh`,
-   which reads stdin. The first ssh swallowed the list, the loop ended after one point, and the
-   sweep reported COMPLETE having measured one policy. Every block call now redirects
-   `</dev/null` and the runner counts points visited against points in the set.
-2. `campaign2_block.sh` killed tcpdump from a separate ssh the instant the driver returned, so
-   the kernel buffer was never drained. It cost the last half second of 55 of 66 Timing OFF
-   captures and none of the obfuscated ones — an asymmetric loss between the two arms being
-   compared. tcpdump now runs packet-buffered, the driver settles three seconds, and the block
-   counts its own frames and fails if there are fewer than three per exchange.
+1. `sweep2_run.sh` fed a `while read` loop from a here-string while the block shelled out to
+   `ssh`, which reads stdin. The loop ended after one point and reported COMPLETE.
+2. `campaign2_block.sh` and `sweep2_block.sh` killed tcpdump the instant the driver returned, so
+   the kernel buffer was never drained. It cost the tail of 55 of 66 Timing OFF captures and none
+   of the obfuscated ones — asymmetric between the two arms being compared.
+3. Two repro tests asserted campaign_v1's *defect* as expected behaviour (obfuscated MI inside the
+   null; the adaptive attacker recovering past 0.55 once the acknowledgment interval is added).
 
-Both had the same shape: a silent failure that reported success. Prefer a loud check.
+All three reported success while producing wrong data. Every one now has a loud check.
 
 **State of the hardware.** The Tofino runs the corrected request-anchored build
 (`anchor_fix_build`, `tofino.bin` sha `22e542f6…`), policy `D_A` 20 ms / `D_R` 8 ms /
@@ -53,9 +55,9 @@ Both had the same shape: a silent failure that reported success. Prefer a loud c
 **Do not:** modify `defense4/timing/implementation/` or any `raw_pcaps/`; push; rewrite history;
 add Claude attribution to commits; run `remove-ai-marks` or any detector-evasion tool here.
 
-**Decisions already taken, do not reopen:** the anchor A/B stays out of the paper; all eight
-figures are kept and redrawn; if results are not clean, diagnose and fix on hardware before
-touching the manuscript.
+**Decisions taken, do not reopen:** the anchor A/B stays out of the paper; all eight figures are
+kept and redrawn; figures follow Ditto for mechanism and Formby for distributions; structure and
+voice follow DefRec.
 <!-- RESUME:END -->
 
 # Working notes
