@@ -1,584 +1,584 @@
 {
  "figure": "fig_clrt_distributions_full",
- "caption": "**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms and no overflow category, so every tail out to the largest observation, 83.5 ms in (a) and 57.2 ms in (b), is drawn.",
+ "caption": "**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms and no overflow category, so every tail out to the largest observation, 113.5 ms in (a) and 78.4 ms in (b), is drawn.",
  "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "72ee5965b5d2bfeaf84c86b30c00bf65bd452af7",
+ "source_commit": "7baa61aa9e16f226044eaaf32977c21a9318d483",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "8dad9c1523682ad391d92328a61f89b0fff2d2db42a8a3ae791665209114385b"
+  "sha256": "813afdf2fd6bfde2fb248d645f007b9f98718e23a4df5cb5906d24f3a48b6769"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
   "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "reused_module": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
-  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
+  "sha256": "918d09485f8aff22e5737115e8803a18c0cc688b278f6ec1b73f133605394507"
  },
  "inputs": [
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b1_native.pcap",
-   "sha256": "b8fbc80c64f76cf60d142fde64a4ba99ce155d2234aed87c33c86a1497dee686"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b1_obfuscated.pcap",
+   "sha256": "3f6e743fccf1fddafb688ed8681f48b318497fe33e83268c17f3dacb85beec1f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b2_obfuscated.pcap",
-   "sha256": "1cd8a210461b0c4b2f201d9bea48ed9ef9496f674a9fbc76605c427ddc513fd7"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b2_native.pcap",
+   "sha256": "10fd81572a88320bc1c2760bd55138fd93507b023eb2e3223cf4e0d2bafed84b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b3_obfuscated.pcap",
-   "sha256": "653fcaec1b8923a7a19993c80bf8fa64ede4c469553366a06dc66f43d855b18b"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b3_native.pcap",
+   "sha256": "0727658c7fe1a81ec153bf2fa0b4e49a78bdf590166924c769e72c2fb2eef205"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b4_native.pcap",
-   "sha256": "b3589fc0345bd60027065b5101af705d06897f9a5935ee25f9f79b9f98c820b7"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b4_obfuscated.pcap",
+   "sha256": "6d32b8f0841dc11d3a82a1ea3576fe151862ac03d3b0c4719863ae6d4deb8979"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b5_obfuscated.pcap",
-   "sha256": "85723f064f051c882014987a0927397a06392ad2c4515300ba831dc32d33b9c0"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b5_native.pcap",
+   "sha256": "508bffa1010f18d83d60677f159d1a061e0536782650a018e2e628133e2e6d2b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s01/raw_pcaps/s01_b6_native.pcap",
-   "sha256": "76c315a176d8f5247408c240330ce27a22647ab84a7761ecc98c82800682ebf2"
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b6_obfuscated.pcap",
+   "sha256": "d162ac7cb5a1fff23b9f4ad209ab0358e1e1b9940a5c5b704139697be689644f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b1_native.pcap",
-   "sha256": "f36c3221ed001ef078b7473e87eea698eea570e99ce565dd6beea5217b6cea1f"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b1_native.pcap",
+   "sha256": "7f1210e237c958e2d2a814dbc8103f650d1d0f516f6534b22e3ea57436703a32"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b2_native.pcap",
-   "sha256": "b281e963709a54aa80d45cf52b737b8525770f964a4a6682d8c3555c78251e2b"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b2_native.pcap",
+   "sha256": "e2209ef7bde7de3825d3ae6c1d0e01e4674a3afdbc67bd43f2a3e37221814df3"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b3_obfuscated.pcap",
-   "sha256": "eda1c7694366d670ed7cb342bd1403673c86de23da56a690b95c21be7c0fe9fc"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b3_obfuscated.pcap",
+   "sha256": "48d82c649731e9323529a826d03c8aee5fdd7bd4d300aa1a33c4753863bbc021"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b4_obfuscated.pcap",
-   "sha256": "4bc06638b7b167fd0eb108dd131fd20bbb5c3397c79f04573fe535e3b243fa1f"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b4_obfuscated.pcap",
+   "sha256": "1eae50eb444eae871d9379b9a9d91ccf4d113f13d0b5de9aa5a65f33d4babb70"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b5_native.pcap",
-   "sha256": "cf90fefb17f63bae9a70a8c9cf38c2cd6aadd94206b3c90e10d8ddd9482fc381"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b5_native.pcap",
+   "sha256": "55bcdbc40f21d30e4922f5700171f4b2fe096381cb90513e5a2a4f9a3c71a705"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s02/raw_pcaps/s02_b6_obfuscated.pcap",
-   "sha256": "82442591f72d8d9774089da8ee39ad3eebe5ffd2bbcbf053e13555acf8c946b0"
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b6_obfuscated.pcap",
+   "sha256": "ebfc9b45c8f0c2f60b0155a68bb8baa0793c1829cdc6a007865de62f7e98d628"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b1_obfuscated.pcap",
-   "sha256": "5ddc528b385775bb624ee50eca9536b7113c0081cd2b9dee58fba8bd48f827a9"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b1_obfuscated.pcap",
+   "sha256": "1da32b3b44cee3fe16119adabb607fca930141bb9d575315c9ae8b52c9335d36"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b2_obfuscated.pcap",
-   "sha256": "b4ca77f7a78fcdeaec6fd12d967d9326aa500139608a454dc811c60e42f6662d"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b2_obfuscated.pcap",
+   "sha256": "dccdd1b1ef23466d6e529c658f73f96fc78e45f017451a97274afa6bbe071029"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b3_native.pcap",
-   "sha256": "ff0a18f42f676fd6354b899d1ad87cbace6a733761bf176d2d824717c824b8e0"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b3_native.pcap",
+   "sha256": "fa74aa5437068a8432ddc5a53d2d04d2d2808b3421261b97e551fdf56797328b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b4_native.pcap",
-   "sha256": "921a1d2e32f35e50ba1ff376fb774a91e1762427fa8e3722c16eccc1797c50c1"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b4_native.pcap",
+   "sha256": "313235639d32076b6185c50641930392263796047058e597e2c69f543d1b8011"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b5_obfuscated.pcap",
-   "sha256": "7e804d90fa809af43e099b175dd2e96c527a694c1d9419c84b5fee5d487a84a0"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b5_obfuscated.pcap",
+   "sha256": "2913a6d304cfe68479312e75d21bd6d6d8ad88e1844a0da51977620b06ea547f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s03/raw_pcaps/s03_b6_native.pcap",
-   "sha256": "a88c247e1ea83a15e24a2f005547dc5fefb2276e3b0b03bf159b599652989495"
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b6_native.pcap",
+   "sha256": "97d68d5a2d48b6f1d40d6baf916b5973ea9f3d46c52195d67a395d9e931dffd1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b1_native.pcap",
-   "sha256": "3d7c9868f1cfabd97aff8fbe75b4dfb885f9d7ee9b867248c1d88210cf155dfb"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b1_native.pcap",
+   "sha256": "6f20849c38f3c40cd89b70ad3c14e333a0f2ecfc637c985fda0e06044859c011"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b2_obfuscated.pcap",
-   "sha256": "05bbf92afcde4f6f39bb2e5ea6740e14f5fa594dc8b32c4ad369dc5a6e4a770a"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b2_obfuscated.pcap",
+   "sha256": "21a0449db238dab949d0e42909255eab8b31b9df4150e6836907be19c0f7b2c6"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b3_obfuscated.pcap",
-   "sha256": "a70600a49c041df9efed0aa544d8fe3cc436b383419f9684c071da4808d3a819"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b3_obfuscated.pcap",
+   "sha256": "a3608aab0ffe2264b660dc00ac261a17be77b43fa6c7584d3f5ca63ca60d6430"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b4_native.pcap",
-   "sha256": "e0c6a05baea3ddd166f74cd6e3f9bef5161dbf6da883ac405cd054ce66301dc3"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b4_native.pcap",
+   "sha256": "88fe57ccf001d098d112af487f9e5df5c6a6d94f70660ec69b4c57361ed9f714"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b5_obfuscated.pcap",
-   "sha256": "aa537ac689c5c7ec6dd9818ce05999656c20127c3e8089cc8e584e7b31cffbd2"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b5_obfuscated.pcap",
+   "sha256": "37093eb7eba8d1a1dac7d4347725c3c63f90a6b4362e8aae9ad17f2f4f414d5d"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s04/raw_pcaps/s04_b6_native.pcap",
-   "sha256": "587f2978e6986f790cd69aa8c7d0b8ff8bf0bd7dd2fa3e43e9c79e133efffdc2"
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b6_native.pcap",
+   "sha256": "ffad103fdaa7186d160697f6619f64e1d62a7995f922d0698a84f2346ad898c7"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b1_obfuscated.pcap",
-   "sha256": "e8a9e53ca2df7abbbe12161eba72ea08be6bf2d8a06802454aadccac0714d1ff"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b1_obfuscated.pcap",
+   "sha256": "ba9d3e5389dc5c04571b9a3be35971df998eadd5413bfaf64a8411534faf4081"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b2_native.pcap",
-   "sha256": "08aa984ceafd0f641ccc70ec217acf22bba5c20e44a8f0f326b0ef37d5d0a954"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b2_native.pcap",
+   "sha256": "d002dc862eeafebae4c1554eaba20563bb36c2d26806f3bfbc6d4e654fcbf998"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b3_native.pcap",
-   "sha256": "036349ee4d8db9c2708e46471e308beaea6f433605d30f2268f2ff583140704d"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b3_native.pcap",
+   "sha256": "65ff7c7912500590fbb12045ea72812430d68357a246d3519449440c4e63931e"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b4_obfuscated.pcap",
-   "sha256": "9f25a1f67ca027ac7b3951893af9c86b967b6f151394c01bfbb54ea124db944f"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b4_obfuscated.pcap",
+   "sha256": "4c281ae5bff93b0bb9a68705563720825e9a591d7346544e0575e46dc0c12ad5"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b5_native.pcap",
-   "sha256": "a9a779a81ca296f992880de5d38284a0f44ad85e1a39c555d35c293eac67f083"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b5_native.pcap",
+   "sha256": "9f727a900acdbec973e0f03cb240b82dbd0ef01a3bf1a362acf822893fa00de8"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s05/raw_pcaps/s05_b6_obfuscated.pcap",
-   "sha256": "7f68bff66323336b28f91d8934bc0dd772d5c26a7227ca8edef5ff7bb486f768"
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b6_obfuscated.pcap",
+   "sha256": "124f4c2a333143ab5d6233ca328e8c62ba4df473054c10e46fc0185b615e36b6"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b1_native.pcap",
-   "sha256": "b2bab6124478e6c6492f6e399dcad2d862626b62f2d625b157e064974877c0d4"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b1_native.pcap",
+   "sha256": "c251ac26d279f876daf46d53d824ccd32570793e4f1c696cbd93e8c0ba7db6c8"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b2_native.pcap",
-   "sha256": "63c18cda1ea0aab94ed6b17632cfc0f34207514e8aa769082063e4c82558c127"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b2_native.pcap",
+   "sha256": "e590f8610471e6b1b50a386898e1af745942c158e7381557e77edaf825ecef64"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b3_obfuscated.pcap",
-   "sha256": "944a92d1231ff5a80c592cc5425a28a32dadad74bf17b65bf3c7e90dc8aa484e"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b3_obfuscated.pcap",
+   "sha256": "d5117eac1052ba0f81a4f277128b7f1699eba913e416c5eca95fb7ce696cc9a2"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b4_obfuscated.pcap",
-   "sha256": "881331bc0b44118e63e272d795a0069aee143f5b6b447f8fe3aee91c4e9eb4a0"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b4_obfuscated.pcap",
+   "sha256": "8275672b9ba2c8e9e09c72f9c1ce4a0f555d69ce16404301d748b7b3eebd4d41"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b5_native.pcap",
-   "sha256": "0423b553b6e01f7efc5f649b9fcbe295a2e92e65c6bb63ecec909a53cdbd1943"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b5_native.pcap",
+   "sha256": "c6c17dda71b610009ff9fdb580c08a7cebf51b0e5068f6774fd22f6d2aa3227f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s06/raw_pcaps/s06_b6_obfuscated.pcap",
-   "sha256": "d554a64c28c5f47cfd6dd1a053b7ef37277b7ac50e180416826bdf03fca0423c"
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b6_obfuscated.pcap",
+   "sha256": "e64534c5188bfe7e098072624828f91d243f127405c5640915c855c617704f35"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b1_obfuscated.pcap",
-   "sha256": "1d4100c6f53b6a994809d3aa9bc6205e2cd7a71afc336bd4db8ef11da960293a"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b1_obfuscated.pcap",
+   "sha256": "35b8439e0c4191b7ca02f947b159cef28168d3b318613de3f5ec4dc7f4c59edc"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b2_obfuscated.pcap",
-   "sha256": "43b1e8f962db675cdc1fa1ab044f4b2c85a55712b758132675093de06cce599f"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b2_obfuscated.pcap",
+   "sha256": "cf676da6b71012f8a7d0b4474a5c8a3618d3e7b65d123c736e1ccf7f60919dc0"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b3_native.pcap",
-   "sha256": "bb01ac8789b583eab06cf333157977be2eb4ce86ef20cba64058daa9d113d297"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b3_native.pcap",
+   "sha256": "42bc54f6d1c2260e99f94ce64199486a88915dc68b9dbe31f2513c4f808db481"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b4_native.pcap",
-   "sha256": "1302947139c6e31f3885fb71c9ffeb8086c1911d283ab3518fe6a7e5996f000b"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b4_native.pcap",
+   "sha256": "9b0f112d31bb4434634ae23d0f015e10dd9c9ead843789c9c2590b1e5e43a8c6"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b5_obfuscated.pcap",
-   "sha256": "ffec8c55063f7c55269744214d144362ae18409552fc97b1a9d6b9ed1f30e4a9"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b5_obfuscated.pcap",
+   "sha256": "acb66cb31f888aa66d3d8e082bb3f2c53d787d3906e8271c92ab56e6b32ae268"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s07/raw_pcaps/s07_b6_native.pcap",
-   "sha256": "56e2d3b34f74acbba1502ddbecfb3968196c764b398acbdbed7419a459038de5"
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b6_native.pcap",
+   "sha256": "7709a10b71ee5f56d98dcc6ce5bf3779c33e75021dd4390d2fbfb9f0f5d1aafe"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b1_native.pcap",
-   "sha256": "ba048cdf3e5047dcc28e0e81f55093c5549625dcae8e874660f08bc311a3012f"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b1_native.pcap",
+   "sha256": "a74757011f1ca7c6dea1debbda9b97fe6aaa5fb06e5eb08c590f2d6ebadcb0e2"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b2_obfuscated.pcap",
-   "sha256": "a265dbf996bb9ff37d939a146eae72e46341b05f97aa0c896a5d5b4aa11767be"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b2_obfuscated.pcap",
+   "sha256": "223de0ccbfc551526efd4f26ba3f00077a394164e01d7ba7159b0219eeb5347b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b3_obfuscated.pcap",
-   "sha256": "5fdbd85e726af8234e0a21f9a5ae3b791b59e5ef72207692e009b7f603b070be"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b3_obfuscated.pcap",
+   "sha256": "3ab9e8fe3c9a8e709a163824cce7fb7265e8908c9c7700b66b296cafd7023701"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b4_native.pcap",
-   "sha256": "29c050470c7ac0a668daa4b5399647c5661f417116e84e7a2591511d770e7cc3"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b4_native.pcap",
+   "sha256": "c71466a930c9b4e6004258f226bed50e7192ff24a4e3138d8197eb465c55e5c3"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b5_obfuscated.pcap",
-   "sha256": "4d0e1b320d44621d4c31e997c6b1f00e36aecf04dad9e2eea13aeb13aad454d9"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b5_obfuscated.pcap",
+   "sha256": "25afef68e2d2367ceff3e97969feca33a63fca03c6a4e1d987d1f7cf07c82d1b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s08/raw_pcaps/s08_b6_native.pcap",
-   "sha256": "d67ef97c5df6c3db6532b3b96c4d02ff88f20390596925499ec994f834e13154"
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b6_native.pcap",
+   "sha256": "3d340ed6a8af2b6cbc7c3f961306b46ca9039d7d18f2f9f8c1a44baf7198a6dd"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b1_obfuscated.pcap",
-   "sha256": "dc6d1128e3be284a63c0201e18b97927e3b2163a1ed1b19e5e35e80739e1bda5"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b1_obfuscated.pcap",
+   "sha256": "96e95f19e9df61bf29a0364f3f506ddee51a6084fe1ae0cbe58a1e704891dba0"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b2_native.pcap",
-   "sha256": "1d4424acf414ef9c7eaa3ae8252962f7d29e488e21f1c1e29f6652b9ac264321"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b2_native.pcap",
+   "sha256": "3aaa071f27330485a60d733a0982733c6f2d20fa589c0200282491d03e04b457"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b3_native.pcap",
-   "sha256": "5f48f5408d283624aa258ce9ecfcd7a94abdb96d272133ac14d87b8e9d390e6d"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b3_native.pcap",
+   "sha256": "2f2ab9cb792692d69fdd0e06368c4ebaa47d2cc191ab4531cc7b322179fcde59"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b4_obfuscated.pcap",
-   "sha256": "805709d831354c5de15e17d20fe0133dcec2d263069b57fab5b1211239d6fe67"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b4_obfuscated.pcap",
+   "sha256": "1855e0b7bdec1952f5d308e9c9127d840cc36e94afaf66bfc09ccd10eeff4a42"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b5_native.pcap",
-   "sha256": "ef85dea2bce8cd9973c1c7b05d10addd8d81f368b009647de36e75076ebb35a6"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b5_native.pcap",
+   "sha256": "5b3bc599d1a5be5411210f829f287fb3f762f81bd358f8c439e55c40b39e090a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s09/raw_pcaps/s09_b6_obfuscated.pcap",
-   "sha256": "cd90474c2e6ef8d55ae1f6d093592bf8dec37ed8a751535206e4bb37772c1ae6"
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b6_obfuscated.pcap",
+   "sha256": "fac690e71ff207943bd436ed169c21e35624bba9a6324dd1ac496ef53596eaa1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b1_native.pcap",
-   "sha256": "1fc1eb974e2f054358362e2e1e7beae559a9b0242fdf92c582e3dfad72286d7e"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b1_native.pcap",
+   "sha256": "c3d4d2a6453c5627600bd5a9252c6ebf6eb7e29d3c6d2a0d2a16ba51d761db61"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b2_native.pcap",
-   "sha256": "5d1e02c3c10fa5ed48f56c46f5b2557532a2562c2050b64dac8d94ea79708e5a"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b2_native.pcap",
+   "sha256": "96cc8b45e49e41bfcb88d698aeeaf9bc45868a9cb53d3bb57dc5cc1f011747b2"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b3_obfuscated.pcap",
-   "sha256": "2bbbb8d573ccbe1f34dc9b3c04fdc0d4e7c574915b0762eb6cdf6d5c4c49f608"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b3_obfuscated.pcap",
+   "sha256": "572fbb4b1034975a2cee22934dfdfe9b6db9b7f7674c8e6ac7db00bc73e3467e"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b4_obfuscated.pcap",
-   "sha256": "5ee2fe360c319f87d157ed29877fb5341a582e3efd6a5e63ff9bd69597d18c42"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b4_obfuscated.pcap",
+   "sha256": "c341a269517ca0fdfb5a3979da576694b46a250a686eeaaac44ac11f200a8d20"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b5_native.pcap",
-   "sha256": "2137127e8836aa288bd2b2d47ca48709b19937d39745df8238185bfb6c8321b7"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b5_native.pcap",
+   "sha256": "bdd8778a1bb1c67d0d880dac2e5136c5137f6c2fb05c0dac77adb566c6a5af1d"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s10/raw_pcaps/s10_b6_obfuscated.pcap",
-   "sha256": "339025f2beaddab7043db1d1f01e5d4dcd1c57798768a2131a4d51dce2390132"
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b6_obfuscated.pcap",
+   "sha256": "5be67b4f415d9af42262e31475ac9a16f7bbed15913d9e78c1aa09e473c37b38"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b1_obfuscated.pcap",
-   "sha256": "690ca70f783362beef938c6010a3406639b58852dcbfccf3f642ff6971fb58ae"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b1_obfuscated.pcap",
+   "sha256": "b7cacc6957d92d8c1fa63082201d42fadd425f103177d3627a8179ffe8b1271c"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b2_obfuscated.pcap",
-   "sha256": "3a3a53090fd3797bec145677e89a40e0509d4018d2e5cb98f8da31c93e3ed772"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b2_obfuscated.pcap",
+   "sha256": "cbd9e6b0e521f2a1ad889a3296553020f90575c554896fe8122f4004046f4775"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b3_native.pcap",
-   "sha256": "5f1b901b6f663b88df636ed1547e925cd527fc1663648a30105578c7cb1bd742"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b3_native.pcap",
+   "sha256": "477c4fd27b3296d4a2dada24ee675c1ba50938efa7d87897bf207b6c47bd2030"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b4_native.pcap",
-   "sha256": "79a9dbee7fe9e3b8809c5b283b945f5e92aa68e781acb1510e8e7a880c60ccd9"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b4_native.pcap",
+   "sha256": "7ae5ccc3c48b8a08cb2b368c3129fbc7e4373927f5b9db78b561d6fa5e41d41a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b5_obfuscated.pcap",
-   "sha256": "e7b95ed8ffec3c6e13a2e73a4da20bab0941ac54de5fe45dca42e96965696098"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b5_obfuscated.pcap",
+   "sha256": "ffc0df6cb4a9f474cf679d1fa54d6e7c5eb429ea4e19ed9e27c4abdfa8d858ce"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s11/raw_pcaps/s11_b6_native.pcap",
-   "sha256": "383b091dc4d14740f5c3afed88037d124b6726d7892d4d336ff60fcf467038ed"
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b6_native.pcap",
+   "sha256": "e1abeba75580c784de8de9797cd4ef9f4b820910ed652cad7d0a35f15209f59d"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b1_native.pcap",
-   "sha256": "1950b88337602dc0daa97f8fabed9c83ab2294f0b8da5ac2020a494e24f56eef"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b1_native.pcap",
+   "sha256": "3bb292c745c0cdc8d437e62b0cf0606188c2aa5d483303ef68846d57f978b2db"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b2_obfuscated.pcap",
-   "sha256": "b646938647bdd84d1f2ee1d4702d1823bd215330e261f853bdf0a6c83bb011e9"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b2_obfuscated.pcap",
+   "sha256": "5edbba351a1ec1aaa29bd21cf4132195879b9b49d36664f2df693d2b534062b9"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b3_obfuscated.pcap",
-   "sha256": "4fdc74a1c63a86d9f62da8c8ae2635b587761f242f577e03272ff2145a023dc9"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b3_obfuscated.pcap",
+   "sha256": "7496d7f45da64369a1e19dfab8708a603bb1246d26e2d6601653ddc3e948b240"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b4_native.pcap",
-   "sha256": "e580f9abda5bf6ef217880b3831dd5a440fa67ae9bc7ea670331e1e804150b72"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b4_native.pcap",
+   "sha256": "cdc4bc9e46a395448fc9543ec794640916cc9594f369b3f4aa762e1fe4df2823"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b5_obfuscated.pcap",
-   "sha256": "b569e191a7fee265672ffa5a0c412dd2e6597072543954c50efcb8b6511f95f6"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b5_obfuscated.pcap",
+   "sha256": "ac3078e6a7ea718996d7fc2d76ab76da17cab0964941dbcc02031a4a243b43ea"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s12/raw_pcaps/s12_b6_native.pcap",
-   "sha256": "60c2322b837668ff0d60b0762df0c700f116e4f90db38d5a24e32716fb07adb5"
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b6_native.pcap",
+   "sha256": "eb31fd3407f164d32ff59f5a419ec15853176f368e85473b48cd8e6051e59366"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b1_obfuscated.pcap",
-   "sha256": "84b510769ae7fbe2b51571294b08aaaeabf7370d659232299e79da6b2309714d"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b1_obfuscated.pcap",
+   "sha256": "808532e548ad3a0f27fff4674ee5392e0a2abd5016788f7345b890ccbc6ce98f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b2_native.pcap",
-   "sha256": "4d5bce57e3fec12d650daec540096ff4918d5b9e3faeb44dd28b52defbaa4d50"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b2_native.pcap",
+   "sha256": "431fd6aef3cbbefc908095de2d064a02930c6aff785ed0e76fd11a676d14956a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b3_native.pcap",
-   "sha256": "c14b2a858377a7acd3393e4eb8d0489f82882753dedf43dc5978cad902b30354"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b3_native.pcap",
+   "sha256": "9d8c60882a46ff2c359605b2031e519acfc9f0b47eee139751295dce2b23279a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b4_obfuscated.pcap",
-   "sha256": "2a83c6816c07993406010fef9bd8cd34844f8cbbaad259d5504ab4719d931647"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b4_obfuscated.pcap",
+   "sha256": "3253219b1baf8bbbe0a95a93e8620d5720d16efba1c3105fb23fd564fc8fbf02"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b5_native.pcap",
-   "sha256": "96b0b13ca6da1f7df4bece81d31c50c4cf253e44d5d268bc13abeca1909d0974"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b5_native.pcap",
+   "sha256": "7825cbfa2d95d9b894e5f0344aba3634ae78093cc3218f40d09e4fa5a38f1625"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s13/raw_pcaps/s13_b6_obfuscated.pcap",
-   "sha256": "9530780a0bc1749963257c4b49ebe28f0ca4f2165c1ab426f79ae2b5bee854ad"
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b6_obfuscated.pcap",
+   "sha256": "c66e5f2888432683f3ad1c6fb2aa064039ebacb0eb26a8dee28af393abf60d33"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b1_native.pcap",
-   "sha256": "65166068f7015531dc5e4a0ed6b7294a4bcb521089e769add800af6533042ac0"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b1_native.pcap",
+   "sha256": "783348aba351fcf754458208d865ef5907593b286298b703b4653175c528c9ba"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b2_native.pcap",
-   "sha256": "e12219aaf63958497f19feeed8924778c26cf4234e14dedf64c139712c0216e7"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b2_native.pcap",
+   "sha256": "5d655fa6cffe68cde5a14e342e9215d3606a0b6ce7c6674a62e15c0e13c0a75e"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b3_obfuscated.pcap",
-   "sha256": "17ed3bde8733ac7d1671f899d06acdd6466c676768bfd5bb67f217d618be520f"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b3_obfuscated.pcap",
+   "sha256": "e1f77346ec2a3aa1e17dc00f0df4f3ca9302d89c65c62144eb5a540a4b670965"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b4_obfuscated.pcap",
-   "sha256": "4c13d524da67f28d3554c88710ad878d275f3582c43673fcc885717b744a3e37"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b4_obfuscated.pcap",
+   "sha256": "09175596e7f5ce9558dd07953eeef51119421ada9bae8c34f7dcf85d32a778df"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b5_native.pcap",
-   "sha256": "5ec45e42e344182b94c8648377af47a86aa84ab40624ffa137ed7e80b28f1994"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b5_native.pcap",
+   "sha256": "93564cbf16af4023965eb12a67e833339fb0b9fbdc2a04e40effb7e44461e318"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s14/raw_pcaps/s14_b6_obfuscated.pcap",
-   "sha256": "49a772dd7716592b7108caa0737710d0ea1f9b82c8709d86c81b6061ff012345"
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b6_obfuscated.pcap",
+   "sha256": "06a3c8abf726a9b9a95be7d1b51117c81623991e926baaaf71bd79d8bfd6eeef"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b1_obfuscated.pcap",
-   "sha256": "05e17ac68c13a165413d0508bec8d761bc7434aecda734fb68aaea23549ae286"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b1_obfuscated.pcap",
+   "sha256": "97956594650006f3b9124da29cc5c5daec0173adc3bfe37141632d8a0e6efdb0"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b2_obfuscated.pcap",
-   "sha256": "fc17e9d7abdc98e28a4f859b714062e529dff8ada14db438b1cefe518149a1ab"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b2_obfuscated.pcap",
+   "sha256": "185cdb44a5bab83cefa9af84248e6ba17045c3f9a3c16890a7ff35c6fb153666"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b3_native.pcap",
-   "sha256": "bf062b80334b77ace79724962c8f585d47158b555ee0f29f8df397fd48cf374d"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b3_native.pcap",
+   "sha256": "a41a53fe4387f9a69938d7e0607f03a831f5c32c5b7a23234261a8317ce418d9"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b4_native.pcap",
-   "sha256": "f8eca3b95ec833f071490786c2992b2df75e926c58c7428101d29182ef87e61b"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b4_native.pcap",
+   "sha256": "528ff4fe104a8e659ddcd07f85358c4629991aea9611959f09d693c68548590c"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b5_obfuscated.pcap",
-   "sha256": "945cb73561f5a508cc425d84216ff105e1d5fc1d905403b58f65b60b892e6d3c"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b5_obfuscated.pcap",
+   "sha256": "0c0c580a7beb1eda96adb67f8d793bc50978866120f0c64587a6ee256544f97e"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s15/raw_pcaps/s15_b6_native.pcap",
-   "sha256": "f45c03a0eb1aa97af52ae28c377d5e26ab6d7c3844113d83b449c3f03473f9e3"
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b6_native.pcap",
+   "sha256": "6afa2576b8de828ad8ff6ee48cb4c96b197052bf8dbcdb617810a36f3953f359"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b1_native.pcap",
-   "sha256": "35fef966d640b8e5fef202e754c4d526ceda9dccafe068d0a7ab50f8444534cc"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b1_native.pcap",
+   "sha256": "748ca06e01865178388cca2a7839717b148939686a34304ac72c86696bbf7cac"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b2_obfuscated.pcap",
-   "sha256": "ede880a8a187149a96fa5d1beb2f648f59edc5efa596bde725787de07f310dfb"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b2_obfuscated.pcap",
+   "sha256": "e2af403728b3e86a23848f400e645538a7c2a4552dc183babc78f9e285d21caf"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b3_obfuscated.pcap",
-   "sha256": "e5d134403afcc01afbb87a8b03f2e25d32bdd10dee6be82c9ef3a2dc4fcf2981"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b3_obfuscated.pcap",
+   "sha256": "ce3a398fd64a6c2eb59e8456ce5e538a09098d0b43cd60e99d88ba4cbc80e0cc"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b4_native.pcap",
-   "sha256": "526a9ce27c9e3dc214a08b204cafe964d4f265ea753d4ed8931b21a6e325f489"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b4_native.pcap",
+   "sha256": "270ab760a70cfdab90c9a2d5d1f906c152385607994b75d45abbc977fd0df662"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b5_obfuscated.pcap",
-   "sha256": "6be5a09d00d3faa60301a2ad8f0e3ab02865eed4836330303a7e9b6328e1901f"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b5_obfuscated.pcap",
+   "sha256": "de13b6fb2db399969bc85ed1fe2ec060fdad8bb3dccc9eadc104c1e2e44477f4"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s16/raw_pcaps/s16_b6_native.pcap",
-   "sha256": "57c04a64248f5472ab38d576b20bcb821b18d13479db4e095164be1d87abc591"
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b6_native.pcap",
+   "sha256": "a97b46258dc96ed7585f8489a238fb757fe852e8426fc3fa72902179fdf63d36"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b1_obfuscated.pcap",
-   "sha256": "64b32fd5c1aa8937f965fefaaf6c9e0b595e9e5417bdbe4eb2275788317c7f97"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b1_obfuscated.pcap",
+   "sha256": "b7e391210fcd64f01a2304f6a79db573fba81985aac40228b097318516b95298"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b2_native.pcap",
-   "sha256": "bdfae47035536050ab10b7969349346e279a2cb1dd4cc90ddbe47e390325ff60"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b2_native.pcap",
+   "sha256": "a9932a8a2c3eca086027bea62f88f3d63e58b82c488ba78129bc87aaf4e43850"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b3_native.pcap",
-   "sha256": "dafac12a7da7af8a56778aef4853a47c80d44e71be5a397dc25cc96542835a04"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b3_native.pcap",
+   "sha256": "71279e5491830854915222e39fa9fdfbd688d57f7a7317519b4e2ff704a9eab1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b4_obfuscated.pcap",
-   "sha256": "e7a81fc313bfe3c4c9bbd28cc26db66ba46f1513e18121f8f0f706c282431380"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b4_obfuscated.pcap",
+   "sha256": "abfd59c911dbe9b75ea29e131678c930adccf5cf7a3a2b7c5939bfe0ab9573d3"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b5_native.pcap",
-   "sha256": "243fafc390b554596113f5c5f8f3813ad98d17a0bbf80193fb9e243f9eb43d4f"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b5_native.pcap",
+   "sha256": "47dc54add308ab5ba7357ed0133c6df300ab955702da899c497d4e9674005aa7"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s17/raw_pcaps/s17_b6_obfuscated.pcap",
-   "sha256": "4e795f6f72471a20ee387c7f10a4ad52d80ed199f0b574d52e168cb5aa904a9f"
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b6_obfuscated.pcap",
+   "sha256": "67263b655d6ccb438b32eb7b00423150e27b12edf818f8e647c7f062308374c7"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b1_native.pcap",
-   "sha256": "f87bb0d35b1a34de8431bbff52c26fe490c204c975a65993cc9ff278066ccf1d"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b1_native.pcap",
+   "sha256": "c3a2d1bc0315a79965c3781b4880711cf7a7b60e49ab3d13dd1d367c20c3561a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b2_native.pcap",
-   "sha256": "5cc90193e7a41bdf6f91c3018235d5447152e86c931bc912cd4015bb0b4828aa"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b2_native.pcap",
+   "sha256": "d3aee3db959453cfb4d93d0201db04bf0dd668e4505002236a931ef29b46d6df"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b3_obfuscated.pcap",
-   "sha256": "3eca156321ec0d2cd9dd0ef525bfd5b5e48b31fc90236e83f9e5a528cf59a185"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b3_obfuscated.pcap",
+   "sha256": "e311aff225597ecd9b902a40e657926509dd0a0fd30e219e9b554695b4858db1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b4_obfuscated.pcap",
-   "sha256": "82390f2d51a7f307baf4fe67b2aa7c2c775f3d65c1731830174548d39bae62ee"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b4_obfuscated.pcap",
+   "sha256": "2eb1bf1907284bf8a46aeade4af7976eaf61db9d79c9be1d528b1a2fa54c5bd7"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b5_native.pcap",
-   "sha256": "88a3d54b07e474ca9889254ab533912b7b9b24e10d376b796805679357f89405"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b5_native.pcap",
+   "sha256": "97c521a897ef8474aa0a3bec2c7b7be0cdf2693fc78ca49a94ff25c2b8068298"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s18/raw_pcaps/s18_b6_obfuscated.pcap",
-   "sha256": "a7fa7aa9bde3d9e3f08b274a419cc8e648deaadb0b69fcb2e442f6bab4c09373"
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b6_obfuscated.pcap",
+   "sha256": "1c635274500f8be16ebd91be2abdfc195a35fdbb42539f94bee83d2d6517222f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b1_obfuscated.pcap",
-   "sha256": "5cbb3a1d9e094ccb6cfcc069ac262a9689da0b344cc17691f14e1fe85b4bd7cd"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b1_obfuscated.pcap",
+   "sha256": "7d4217d078d3ed7bc7875fbc05d9a39b1bf82c7ccb9a127e66afc6ee497d8365"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b2_obfuscated.pcap",
-   "sha256": "72bfb5fd9e30e6b03a87cdb9398ca0ae3e400767f774f1800c764182bb3a2765"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b2_obfuscated.pcap",
+   "sha256": "22efdcf9c6d767e7babb8f1dbd522a7929543379bd9e1b60bdf7505677e4b5f8"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b3_native.pcap",
-   "sha256": "c4d959b65fb31cb9e162da76ba57e15a11be75331c14f22542fe0869c2504f70"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b3_native.pcap",
+   "sha256": "57a86a7e716de2baf24cc2d36be66ea0548077eedec1b9c09098b0df66a5c874"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b4_native.pcap",
-   "sha256": "a1236a71c201cd4248bed4335ef88b9898d0dadbe3e9e2bbf6c451d00552bf62"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b4_native.pcap",
+   "sha256": "109c82fae22726200db953080310deabb57c3a39dfab7294165dd3e77858d0ad"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b5_obfuscated.pcap",
-   "sha256": "21ad4dfc89cac136116b19f1f40c237017b6e542314bf3029782716b1f102a91"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b5_obfuscated.pcap",
+   "sha256": "3848f4afc07d92505b2b2362bbd78fc8e12b35e449fd0c2f6460bf3b3127f628"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s19/raw_pcaps/s19_b6_native.pcap",
-   "sha256": "070b3127655ba63920e36b295c1ee78ef3a6f8527697b54f71cfa1d6e0d72fda"
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b6_native.pcap",
+   "sha256": "9e5766a896b2440fc8181136493f6fe88abca0094cbe8f4d2a7711052793abb3"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b1_native.pcap",
-   "sha256": "6205799e220d79ebc4d52a17c1014ac4f48f90571fa0e055fd97efb0fa148f18"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b1_native.pcap",
+   "sha256": "d1fe2087803d7295f78ba69e6216c77265d28ce6b138086db2afbf5e561785c1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b2_obfuscated.pcap",
-   "sha256": "88be17e15294c17fe1964e8c769a729251cc4688bf520621243c29593321183a"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b2_obfuscated.pcap",
+   "sha256": "09796a3954ffc50bf926e6225b1002fd27aa38687981e5184b0869b289d1ffc1"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b3_obfuscated.pcap",
-   "sha256": "2e64e108c155dd61fb2c37713c7c3dfabf64b46d33ed469a3db02efc2aef868e"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b3_obfuscated.pcap",
+   "sha256": "f83a96fa9f260541a1bfab6ce0241f4eb7ed03da2c469eeffbe763e3c4f74909"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b4_native.pcap",
-   "sha256": "edf2698c1482d86afb4c44fa85d04b6506ef609e36fe15777df649a3305d0c4f"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b4_native.pcap",
+   "sha256": "76ab36ca1311b7c0c8f5166e8215fdb600054ab9473a66f1ba8aad314d894ab4"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b5_obfuscated.pcap",
-   "sha256": "632e7a0091bc2b4c3529e141d29fa20e97906d02b6907fbde2afd219062c3f74"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b5_obfuscated.pcap",
+   "sha256": "bffe5432cc0c749c56b903e1a1cdac7445d3fef5807087fc633ab3d9ed7200fe"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s20/raw_pcaps/s20_b6_native.pcap",
-   "sha256": "f057e51f547edc66f15a475ecf693c93108511930b74ae9aaac9a9f3f51ccf7c"
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b6_native.pcap",
+   "sha256": "bd14bc0aad61b96e970807a3e7490b3efe81cf3ebd0f2f8a2805879ef5c98b4d"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b1_obfuscated.pcap",
-   "sha256": "2884bb8726e466f560daa34321c13cb8ceb854712f2ecd79e06ce35ccc8245d7"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b1_obfuscated.pcap",
+   "sha256": "097a6dbee97ab422167371fd6e04245ae0c2006c558716ae420cf4862632f94a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b2_native.pcap",
-   "sha256": "c1852e0607ef55979be9da0fe193b5dfb52efe996227f6eac783962cd17d59c1"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b2_native.pcap",
+   "sha256": "04b69d85ffc133f6926367fc36309981011912b5e019d8af410467778927ec3f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b3_native.pcap",
-   "sha256": "e645d47b232d1d349a3e9da1d3a8167a06f767847830d04bffa32c1966680a42"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b3_native.pcap",
+   "sha256": "8eab6908f293591ce005c715cf64bebb5a9b540d2f82ee5cae8f8860028de4cb"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b4_obfuscated.pcap",
-   "sha256": "d793ad71f7ee591a75b67c11b9eaed915f8bcc746d322ab95e56efc168336a89"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b4_obfuscated.pcap",
+   "sha256": "7f13eae0c09f7b5a7fdd8aaccb38126f4158bd8e701a1edb5cac3edd8c9c9d65"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b5_native.pcap",
-   "sha256": "9874a0b6dab29cd5fe6f35990ae3eb3ad6f82979b2cba7b22a63eab47befd38b"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b5_native.pcap",
+   "sha256": "b41887ec913468abb1ab6edec65b4806a11150123d5455fd84e6cdc5c9565d9c"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s21/raw_pcaps/s21_b6_obfuscated.pcap",
-   "sha256": "fb1b4d8ed10afa7fe1ba4f974f36e9e914833b58924967ba7cd1551fa8447da6"
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b6_obfuscated.pcap",
+   "sha256": "b4df5525a35d842a7b9ea816ef11436ebd2586d95518d3b7037ef0f913335221"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b1_native.pcap",
-   "sha256": "2155c25ff9c91a6d6c0d271379d59482be5f2893a7904da9542cc9aa6ea82971"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b1_native.pcap",
+   "sha256": "20ef243c3a76af656ccba288539f6841109058fbf4f114799f1170d236632ab8"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b2_native.pcap",
-   "sha256": "28a377c77724695a24b6f120e25cd3b3d21f9102f80f1cf36a4fafdb0c9a74be"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b2_native.pcap",
+   "sha256": "b5b3113caed97c39900a37954f18457679c6fd1cec9a06f0c91904021b20989f"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b3_obfuscated.pcap",
-   "sha256": "ea304df5e120fdcb7824dd24aab51d7539cf507f594e16c3ea99af8a306dcfc0"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b3_obfuscated.pcap",
+   "sha256": "f0526c1e73981891ada79454d61d4a51190ed91bfe4ac40bf2e6f2841e7496fd"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b4_obfuscated.pcap",
-   "sha256": "48901460fc6697c32176b8b26b8e2a9313bf112df34981d512005d14152f6c8c"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b4_obfuscated.pcap",
+   "sha256": "20ce128fe1e98eac6b9312dd8b70c3347f9bee2adee53fc63e302f4823a873d3"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b5_native.pcap",
-   "sha256": "1226bcbf778c570cee37398dafa7e81a254e1f8213adde33c52da8230f12a635"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b5_native.pcap",
+   "sha256": "12d1f50beca13b5f8620ae558b403e791ebd950c9636c7f4d5830b9268f45f76"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/s22/raw_pcaps/s22_b6_obfuscated.pcap",
-   "sha256": "b512a3c6e85bbce402bf2971780f6e07de623b420b15adf224de3db581e47c72"
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b6_obfuscated.pcap",
+   "sha256": "491ab9115816440716fe3047e18682a1c73eb41ae82eebf36a8207627e69731b"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/DATASET_ROLLUP.json",
-   "sha256": "c8db039297693f176bd8f8fc73f73d9d47d746bf78c03db492885f17ac27c5ee"
+   "path": "defense4/timing/evidence/campaign_v2/DATASET_ROLLUP.json",
+   "sha256": "99e6ac2366d2f20c55a6c12e4ef70f65f8a6821a0458d28da8c52d216f2f103a"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/README.md",
-   "sha256": "841443da022f336d8963ea17d14f911bd641b18f39c1802421c0a1ed45f9b0b2"
+   "path": "defense4/timing/evidence/campaign_v2/README.md",
+   "sha256": "712b9ac5e7de5055e3113d769d71d8ef346348f0176c5d50a9872b743495769d"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
-   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
-   "sha256": "fec3766319ae5c1b54c5cb4bd1d17039b1f1a65b7537d51f155215c50c9e5f75"
+   "path": "defense4/timing/evidence/campaign_v2/PROVENANCE_CONSTANTS.json",
+   "sha256": "64097665453c288868247c593e36d37efcc9445d28ce7c1d01ee14d0573bbfd5"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.pdf",
-   "sha256": "e41c4c88321c6a6b2426017b47ba8da21520734d77c84962cc65179c9a0b63cd",
+   "sha256": "1a5bbd6b6a25a64037a3edb5c57ca61e1c17402b9da04aa1d326d7cb40841ec8",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full.png",
-   "sha256": "dda5c4691aeadebe003b3e8f27fe0bb3eb4a9d8729946151f48750e122726e56",
+   "sha256": "eae9c308f2ab50ca3f716362df19a9a66b2906894f6c2517a735ee5695b34005",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
   },
   "data_csv": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_full_data.csv",
-   "sha256": "0397c4f6f82d175302d0fa7785aaae1f2e51b1942ebc7bf5819daf820ba24e45",
+   "sha256": "c073ac62201e3a865436f32ac04a3338ec1b96e38a1aabf6c65812800f825127",
    "rows": 2,
    "authoritative": true
   }

@@ -45,7 +45,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TIMING = HERE.parents[1]
-CV1 = TIMING / "evidence" / "campaign_v1"
+CV1 = TIMING / "evidence" / "campaign_v2"   # the active dataset; v1 is archived
 FRS = TIMING / "evidence" / "final_read_sbo"
 REPRO = CV1 / "repro"
 sys.path.insert(0, str(REPRO))
@@ -100,7 +100,7 @@ OVERFLOW_CUTOFF_MS = 15.0
 def load_campaign_reads():
     """Every READ CLRT in the main campaign, indexed by grouped run, capture and arm.
 
-    Extracted from the raw captures with `campaign_v1/repro/pcap_dnp3.py`, which carries integer
+    Extracted from the raw captures with `campaign_v2/repro/pcap_dnp3.py`, which carries integer
     nanoseconds from the capture record to the interval. An earlier version read
     `derived/transactions.csv`, the frozen table produced by the original scapy extractor, whose
     timestamps were converted to float seconds first. At 2026 epoch magnitudes that conversion
@@ -141,7 +141,7 @@ def load_campaign_reads():
     acc["dataset_rollup_anomalies"] = int(roll["anomalies_count"])
     acc["dataset_rollup_incomplete_sessions"] = len(roll["incomplete_sessions"])
     acc["excluded_from_plot"] = acc["non_finite"] + acc["non_positive"]
-    acc["extraction"] = "campaign_v1/repro/pcap_dnp3.py, integer nanoseconds"
+    acc["extraction"] = "campaign_v2/repro/pcap_dnp3.py, integer nanoseconds"
     by_arm = {a: np.sort(np.asarray(v, dtype=float)) for a, v in by_arm.items()}
     return by_run, by_capture, by_arm, acc, inputs + [ROLLUP, CAMPAIGN_README]
 
@@ -466,7 +466,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v1/derived/transactions.csv")
+                      "campaign_v2/derived/transactions.csv")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         pct, over_pct, counts, over = panels[arm]
@@ -500,7 +500,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
     limitations = _limitations_note()
     notes = ["READ only; SELECT and OPERATE are excluded by design and counted in the row "
              "accounting",
-             "one device and one configured setting; the policy sweep under campaign_v1/sweep/ "
+             "one device and one configured setting; the policy sweep under campaign_v2/sweep/ "
              "is a different workload and is not included",
              "no exclusions: every READ transaction in the canonical table is plotted",
              "overflow is a category, not an interval; values equal to the cutoff are in it",
@@ -533,7 +533,9 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         counts, over = binned_percentages(v, edges, cutoff_ms=cutoff)
         scale = 100.0 / float(v.size)
         main[arm] = (counts * scale, over * scale)
-    y_main = max(max(main[a][0].max(), main[a][1]) for a in main) * 1.18
+    # Headroom for the legend, which sits inside the axes in Formby's idiom. At 1.18 the
+    # box landed on top of the obfuscated mode.
+    y_main = max(max(main[a][0].max(), main[a][1]) for a in main) * 1.45
 
     z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
     zw = ZOOM_BIN_MS
@@ -545,52 +547,72 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         shares[arm] = 100.0 * int(counts.sum()) / float(v.size)
     y_zoom = max(zoom[a].max() for a in zoom) * 1.18
 
-    fig, axes = plt.subplots(2, 2, figsize=(fs.COL_W, 2.35))
-    for col, (arm, v) in enumerate((("native", off), ("obfuscated", obf))):
-        a0, a1 = axes[0][col], axes[1][col]
+    # Two panels, not four, and each one carries both arms as side-by-side bars in a shared
+    # bin. That is Formby et al.'s template (NDSS 2016, Figures 17 and 19), and it is the right
+    # one here for two reasons. The comparison this figure exists to make is between the arms, and
+    # side by side in one axes a reader makes it without travelling between panels. And the old
+    # 2x2 spent a whole panel on Timing OFF at the fine scale, where that arm puts 0.09 % of
+    # itself: a quarter of the figure was blank, and a reader had to be told in the panel that the
+    # emptiness was the result rather than missing data. Dodged against the other arm, the same
+    # fact reads off the picture.
+    #
+    # Where Formby is imitated and where he is not. Imitated: opaque dodged bars, one colour per
+    # series, a thin-ruled legend inside the axes, a full four-spine frame and no grid. Not
+    # imitated: his palette is not separable in greyscale, and NDSS renders in black and white, so
+    # the second arm is hatched as well as coloured. His panels also carry an in-axes title
+    # duplicating the caption; ours do not.
+    fig, axes = plt.subplots(1, 2, figsize=(fs.COL_W, 1.85))
+    a0, a1 = axes
+    HATCH = {"native": None, "obfuscated": "////"}
 
+    for arm in ("native", "obfuscated"):
         pct, over_pct = main[arm]
-        _draw_finite_bars(a0, pct, edges, arm)
-        _draw_overflow_bar(a0, over_pct, cutoff, w, arm)
-        a0.set_xlim(0.0, cutoff + 4.0 * w)
-        a0.set_ylim(0.0, y_main)
-        ticks = [0.0, 5.0, 10.0, 15.0, cutoff + 2.5 * w]
-        a0.set_xticks(ticks)
-        a0.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
-        # Panel letters sit in the corner rather than in a title: the caption refers to the
-        # panels by letter, and a second row of titles would repeat the arm names and cost
-        # height the figure does not have.
-        a0.set_title(ARM_LABEL[arm], fontsize=8)
-        for a_, letter in ((a0, "ab"[col]), (a1, "cd"[col])):
-            a_.annotate("(%s)" % letter, xy=(0.97, 0.9), xycoords="axes fraction",
-                        fontsize=8, color=fs.GREY, ha="right", va="top")
+        off_x = 0.0 if arm == "native" else w / 2.0
+        a0.bar(edges[:-1] + off_x, pct, width=w / 2.0, align="edge", color=ARM_COLOR[arm],
+               edgecolor=ARM_COLOR[arm], linewidth=0.3, hatch=HATCH[arm], zorder=3,
+               label=ARM_LABEL[arm])
+        a0.bar([cutoff + 2.0 * w + off_x], [over_pct], width=w / 2.0, align="edge",
+               color=ARM_COLOR[arm], edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///",
+               linewidth=0.6, zorder=3)
+    a0.axvline(cutoff + w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
+    a0.set_xlim(0.0, cutoff + 4.0 * w)
+    a0.set_ylim(0.0, y_main)
+    ticks = [0.0, 5.0, 10.0, 15.0, cutoff + 2.5 * w]
+    a0.set_xticks(ticks)
+    a0.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
+    a0.set_xlabel("CLRT [ms]")
+    a0.set_ylabel("Transactions [%]")
+    leg = a0.legend(loc="upper right", fontsize=8, frameon=True, handlelength=1.0,
+                    handletextpad=0.4, borderpad=0.3, labelspacing=0.25)
+    leg.get_frame().set_linewidth(0.5)
+    leg.get_frame().set_edgecolor(fs.GREY)
 
-        a1.bar(zedges[:-1], zoom[arm], width=zw, align="edge",
-               color=ARM_COLOR[arm], edgecolor="none", zorder=3)
-        a1.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        a1.set_xlim(z_lo, z_hi)
-        a1.set_ylim(0.0, y_zoom)
-        a1.set_xticks([z_lo, target_ms, z_hi])
-        a1.set_xticklabels(["%.2f" % z_lo, "%.2f" % target_ms, "%.2f" % z_hi])
-        a1.set_xlabel("CLRT [ms]")
-        # The share is the result in the lower row: the Timing OFF panel is nearly empty
-        # because that arm puts little of itself in this window, and saying so in the panel
-        # keeps a reader from reading the emptiness as missing data.
-        a1.annotate("%.2f\u2009%%" % shares[arm], xy=(0.04, 0.9), xycoords="axes fraction",
+    for arm in ("native", "obfuscated"):
+        off_x = 0.0 if arm == "native" else zw / 2.0
+        a1.bar(zedges[:-1] + off_x, zoom[arm], width=zw / 2.0, align="edge",
+               color=ARM_COLOR[arm], edgecolor=ARM_COLOR[arm], linewidth=0.3,
+               hatch=HATCH[arm], zorder=3)
+    a1.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
+    a1.set_xlim(z_lo, z_hi)
+    a1.set_ylim(0.0, y_zoom)
+    a1.set_xticks([z_lo, target_ms, z_hi])
+    a1.set_xticklabels(["%.2f" % z_lo, "%.2f" % target_ms, "%.2f" % z_hi])
+    a1.set_xlabel("CLRT [ms]")
+    # The share each arm puts inside this window IS the result of the panel, so it is written in
+    # the panel next to the arm it belongs to rather than left to the caption.
+    for i, arm in enumerate(("obfuscated", "native")):
+        a1.annotate("%.2f\u2009%% %s" % (shares[arm], ARM_LABEL[arm]),
+                    xy=(0.04, 0.94 - 0.15 * i), xycoords="axes fraction",
                     fontsize=8, color=ARM_COLOR[arm], ha="left", va="top")
 
-        if col == 0:
-            a0.set_ylabel("Transactions [%]")
-            a1.set_ylabel("Transactions [%]")
-        else:
-            a0.set_yticklabels([])
-            a1.set_yticklabels([])
-        a0.set_xlabel("CLRT [ms]")
+    for a_, letter in ((a0, "a"), (a1, "b")):
+        a_.annotate("(%s)" % letter, xy=(0.97, 0.05), xycoords="axes fraction",
+                    fontsize=8, color=fs.GREY, ha="right", va="bottom")
 
-    fig.tight_layout(pad=0.3, h_pad=0.8, w_pad=0.6)
+    fig.tight_layout(pad=0.3, w_pad=0.7)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v1/derived/transactions.csv")
+                      "campaign_v2/derived/transactions.csv")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         r["main_bin_width_ms"] = round(w, 6)
@@ -667,7 +689,7 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v1/derived/transactions.csv")
+                      "campaign_v2/derived/transactions.csv")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r in rows:
         r["main_bin_width_ms"] = round(w, 6)
@@ -749,7 +771,7 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
-                      "campaign_v1/derived/transactions.csv")
+                      "campaign_v2/derived/transactions.csv")
             for arm, v in (("native", off), ("obfuscated", obf))]
     for r, arm in zip(rows, ("native", "obfuscated")):
         r["zoom_bin_width_ms"] = round(w, 9)
@@ -786,13 +808,13 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
 def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
     return (
         "READ transactions only, from the frozen canonical table "
-        "`defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 "
+        "`defense4/timing/evidence/campaign_v2/derived/transactions.csv`, which covers 22 "
         "grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all "
         "timestamps taken on the master-facing link, at the single configured setting in "
-        "`campaign_v1/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 4 ms "
+        "`campaign_v2/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 4 ms "
         "carried in the field named D_R_ms, size carve disabled). No other device, corpus or "
         "policy setting enters this figure. The policy sweep captures under "
-        "`campaign_v1/sweep/` are a different workload and are not part of the canonical "
+        "`campaign_v2/sweep/` are a different workload and are not part of the canonical "
         "table, and the deliberate retransmission diagnostic under `relay_rto_20260915/` is a "
         "loss experiment, not an obfuscation result, and is excluded. CLRT is "
         "clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport acknowledgment "
@@ -933,11 +955,11 @@ def write_run_statistics(out, by_run, by_capture, single_stats):
     rows = []
     for (run, arm), v in sorted(by_run.items()):
         rows.append(stats_row("grouped collection run", run, arm, v,
-                              "campaign_v1/derived/transactions.csv"))
+                              "campaign_v2/derived/transactions.csv"))
     for (run, block, arm), v in sorted(by_capture.items()):
         rows.append(stats_row("capture (nested in run, not independent)",
                               "%s/%s" % (run, block), arm, v,
-                              "campaign_v1/derived/transactions.csv"))
+                              "campaign_v2/derived/transactions.csv"))
     rows.extend(single_stats)
     path = Path(out) / "clrt_run_statistics.csv"
     with open(path, "w", newline="") as fh:
@@ -963,7 +985,7 @@ def write_source_manifest(out, by_arm, acc, target_ms):
     configured for that block, and is cross-checked against the arm carried in the frozen
     table. Filenames are never the authority for the condition; a disagreement is fatal here.
     The per-capture diagnostic counters come from re-running the independent reader in
-    `campaign_v1/repro/pcap_dnp3.py` over the raw capture, so "no retransmissions" is a
+    `campaign_v2/repro/pcap_dnp3.py` over the raw capture, so "no retransmissions" is a
     measurement rather than an assumption.
     """
     sys.path.insert(0, str(REPRO))
@@ -1051,7 +1073,7 @@ def write_source_manifest(out, by_arm, acc, target_ms):
         "capture_vantage": "master-facing link at the master host NIC; CLRT = m_R - m_A",
         "configured_CLRT_new_ms": target_ms,
         "excluded_corpora": [
-            "campaign_v1/sweep/ - policy sweep, a different workload",
+            "campaign_v2/sweep/ - policy sweep, a different workload",
             "relay_rto_20260915/ - deliberate retransmission and loss diagnostic, not an "
             "obfuscation result",
             "evidence/final_read_sbo/ - superseded single-session corpus"],
