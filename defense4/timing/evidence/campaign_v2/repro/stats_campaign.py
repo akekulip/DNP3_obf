@@ -78,13 +78,16 @@ def main(canon, budget_ms, out):
     for k, d in res["ack_interval_ms"].items():
         print(f"  {k:22s} {d['median']:8.3f} [{d['iqr']:.3f}]")
 
-    # ---- READ-LANE coverage. OPERATE is request-anchored and is not schedulable against D,
-    # so it is excluded from both the numerator and the denominator.
-    lane = np.array([r[3] for r in rows if r[1] == "native" and r[2] in READ_LANE])
+    # ---- READ-LANE coverage. Both read-lane deadlines are armed at the request, so a response is
+    # on time when it arrives within D of the request: coverage is taken on the Timing OFF
+    # request-to-response time, r[5]. (The acknowledgment-anchored build of campaign_v1 needed the
+    # CLRT here instead.) OPERATE is excluded from numerator and denominator: its command is held
+    # for J before it reaches the relay, so its availability condition differs.
+    lane = np.array([r[5] for r in rows if r[1] == "native" and r[2] in READ_LANE])
     over = int((lane > budget_ms).sum())
     per_class = {}
     for c in READ_LANE:
-        v = np.array([r[3] for r in rows if r[1] == "native" and r[2] == c])
+        v = np.array([r[5] for r in rows if r[1] == "native" and r[2] == c])
         per_class[c] = {"n": int(v.size), "above_budget": int((v > budget_ms).sum())}
     res["read_lane_coverage"] = {
         "classes": READ_LANE, "budget_ms": budget_ms,
@@ -92,7 +95,8 @@ def main(canon, budget_ms, out):
         "percent_above": round(100 * over / lane.size, 4),
         "percent_covered": round(100 * (1 - over / lane.size), 4),
         "per_class": per_class,
-        "note": "OPERATE is request-anchored and is excluded from this denominator"}
+        "quantity": "Timing OFF request-to-response time, rt_ms",
+        "note": "OPERATE is excluded from this denominator: its command is held for J before it reaches the relay"}
     print(f"\nRead-lane (READ + SELECT) Timing OFF exchanges above the {budget_ms} ms release "
           f"budget: {over} of {lane.size} ({100*over/lane.size:.4f}%); "
           f"covered {100*(1-over/lane.size):.4f}%")

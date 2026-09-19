@@ -17,12 +17,23 @@ convention below, and this file is the bridge.
 
 There is no `X`, `Y`, or `C` for any of these quantities anywhere in the manuscript.
 
+## 0a. What changed on 2026-09-19: the read lane is anchored at the request
+
+`campaign_v1` ran the acknowledgment-anchored build: both read-lane deadlines hung off `t_A`, the
+outstation's acknowledgment. The shipped build, and `campaign_v2`, arm both deadlines when the
+**request** arrives at the switch, at `t_0` (`anchor_fix/src/defense4_rrc_bor_unified12.p4`,
+lines 3158 to 3175, runtime parameter `anchor_req = 1`). `D_A` keeps its name and its value, but
+it is now measured from the request: the acknowledgment is released at `t_0 + D_A`. The interval
+`e_A - t_A` still exists and is still the acknowledgment's time in the switch, but it is no
+longer a constant; it is `D_A - (t_A - t_0)`. Everything below is written for the shipped build;
+where `campaign_v1` differs, the difference is stated.
+
 ## 1. Timeline endpoints
 
 All are defined at one observation boundary. Naming an endpoint here is not a claim that it was
 captured; the right-hand column says which were actually observed.
 
-| Symbol | Event | Observed in `campaign_v1`? |
+| Symbol | Event | Observed in `campaign_v2` (and `campaign_v1`)? |
 |---|---|---|
 | `m_0` | the request leaves the master host NIC | **yes**, `t_req` |
 | `t_0` | the request arrives at the switch | no, switch-side |
@@ -42,37 +53,44 @@ plus the differential path and capture delay between the two packets, which was 
 |---|---|---|
 | `CLRT_original` | `t_R - t_A`, the outstation's own acknowledgment-to-response interval | the device; not chosen by us |
 | `CLRT_new` | `e_R - e_A`, the acknowledgment-to-response interval after obfuscation | the obfuscation objective |
-| `D_A` | `e_A - t_A`, the **ACK hold** | transport feedback and retransmission timing |
+| `D_A` | `e_A - t_0` as scheduled, the **acknowledgment deadline**, measured from the request's arrival at the switch | transport feedback and retransmission timing |
+| ACK hold | `e_A - t_A = D_A - (t_A - t_0)`; **no symbol of its own** (in `campaign_v1` it was the constant `D_A`) | not chosen; implied by the schedule |
 | response hold | `e_R - t_R`; **no symbol of its own** | not chosen; implied by the schedule |
 | `D_R` | the **response latency**: outstation transmission to master receipt, **unmeasured** | the operation, through whatever latency requirement the deployment carries |
 
 `CLRT_new` is used with one of two adjectives and never bare where the distinction matters:
 
-* **configured `CLRT_new`** — the policy value installed in the switch. In `campaign_v1` this is
-  4 ms, and it is the field named `D_R_ms`.
+* **configured `CLRT_new`** — the policy value installed in the switch. In `campaign_v2` this is
+  8 ms (4 ms in `campaign_v1`), and it is the field named `D_R_ms`.
 * **measured `CLRT_new`** — what the master records, `m_R - m_A`, in the Obfuscated arm.
 
 Identity, from the definitions alone:
 
-    CLRT_new = e_R - e_A = CLRT_original + (e_R - t_R) - D_A
+    CLRT_new = e_R - e_A = CLRT_original + (e_R - t_R) - (e_A - t_A)
 
-For ideal constant replacement the switch releases at
+For ideal constant replacement the shipped build releases at
 
-    e_A = t_A + D_A,    e_R = t_A + D_A + CLRT_new       (CLRT_new configured)
+    e_A = t_0 + D_A,    e_R = t_0 + D_A + CLRT_new       (CLRT_new configured)
 
-so the response hold that results is
+so neither release instant depends on `t_A` or `t_R`, and the two holds that result are
 
-    e_R - t_R = D_A + CLRT_new - CLRT_original
+    e_A - t_A = D_A - (t_A - t_0)
+    e_R - t_R = D_A + CLRT_new - (t_R - t_0)
 
-**These are coupled, not three independent constants.** Once `CLRT_original`, `D_A` and the
-configured `CLRT_new` are fixed, the response hold follows. A constant pair of holds would leave
-`CLRT_original`'s variation in place; replacement requires the response hold to vary with arrival
-time.
+(`campaign_v1` released at `t_A + D_A` and `t_A + D_A + CLRT_new`; there the acknowledgment hold
+was the constant `D_A` and the response hold was `D_A + CLRT_new - CLRT_original`.)
+
+**These are coupled, not independent constants.** Once the outstation's timing, `D_A` and the
+configured `CLRT_new` are fixed, both holds follow. A constant pair of holds would leave
+`CLRT_original`'s variation in place; replacement requires the holds to vary with arrival time.
 
 Ideal replacement also has a domain of validity: the response must exist before its scheduled
 release,
 
-    t_R <= t_A + D_A + CLRT_new
+    t_R <= t_0 + D_A + CLRT_new = t_0 + D
+
+so on the shipped build the budget `D` must cover the whole request-to-response latency at the
+switch, not only the part after the acknowledgment.
 
 The acknowledgment may leave before the response arrives while this still holds. That event order
 alone does not imply packet loss.
@@ -118,7 +136,7 @@ cannot be added again beside it.
 If the hold is to be broken down further, it decomposes **once**, into three disjoint intervals:
 
 1. **scheduled waiting** — from the response's arrival `t_R` to its release deadline
-   `t_A + D_A + CLRT_new`. This is nothing when the response is late and is forwarded on arrival;
+   `t_0 + D_A + CLRT_new` (`t_A + D_A + CLRT_new` in `campaign_v1`). This is nothing when the response is late and is forwarded on arrival;
 2. **post-deadline blocking** — from that deadline to the last blocking action, because the
    program stops blocking a queued packet only once the blocker queue gating it has drained.
    This is the quantity written as epsilon. It is **not measured on the loaded program**, whose
@@ -133,14 +151,16 @@ If the hold is to be broken down further, it decomposes **once**, into three dis
    epsilon in either direction: the blocker's last traffic-manager service precedes its return to
    ingress, and the ordering of the two endpoints has not been established. An earlier revision
    of this file called it a lower bound on epsilon; that claim is withdrawn. It characterizes the
-   mechanism and not any exchange in `campaign_v1`;
+   mechanism and not any exchange in either campaign. On the shipped build the master-side excess
+   of the request-to-acknowledgment interval over `D_A`, 0.101 ms median in `campaign_v2`, is the
+   release tail **plus** the master-to-switch and switch-to-master path, which are not separated;
 3. **subsequent service** — from the end of blocking to the packet actually leaving.
 
 The three sum to `e_R - t_R`. They are not additional to it.
 
 `D_R` is not `e_R - t_R`, and it is not the configured `CLRT_new`. Nor are the three quantities
 independently selectable: fixing `D_A` and the configured `CLRT_new` fixes the response hold
-through `e_R - t_R = D_A + CLRT_new - CLRT_original`, which in turn consumes part of whatever
+through `e_R - t_R = D_A + CLRT_new - (t_R - t_0)`, which in turn consumes part of whatever
 budget the application deadline allows for `D_R`. Choosing any two constrains the third. The
 constraint on `D_R` is operational — how long the answer may take — and is distinct from the transport constraint on
 `D_A`, which exists because the master's retransmission timer runs on the acknowledgment. No
@@ -151,24 +171,25 @@ which governs how long a select stays armed rather than how quickly a response m
 
 ## 3. The collision: the field named `D_R_ms`
 
-| | meaning | value in `campaign_v1` |
+| | meaning | value in `campaign_v2` (`campaign_v1`) |
 |---|---|---|
 | Paper | `D_R`, the response latency, outstation transmission to master receipt | per transaction; **unmeasured** |
-| Code and archived evidence, field `D_R_ms` | the configured acknowledgment-to-response gap | 4 ms, constant |
+| Code and archived evidence, field `D_R_ms` | the configured acknowledgment-to-response gap | 8 ms (4 ms), constant |
 
 So **the code's `D_R_ms` maps to the paper's configured `CLRT_new`**, and the paper's `D_R` has no
 archived counterpart of its own.
 
 | Code / evidence field | Where | Paper meaning under this convention |
 |---|---|---|
-| `D_A_ms` = 20.0 | `repro/policy_config.json` | `D_A`, the ACK hold. Same meaning in both conventions. |
-| `D_R_ms` = 4.0 | `repro/policy_config.json`, `sweep/sweep_points.csv` | **the configured `CLRT_new`**, not `D_R` and not the response hold |
-| `scheduled_release_interval_ms` = 4.0 | `repro/policy_config.json` | the configured `CLRT_new`, the same quantity under a second name |
-| `release_budget_D_ms` = 24.0 | `repro/policy_config.json` | `D = D_A + CLRT_new`, the schedulability budget |
-| `d_ticks` | `defense4_rrc_bor_unified12.p4:2369` | `D_A` in 256 ns ticks |
-| `da_dr` | `defense4_rrc_bor_unified12.p4:2369` | `D_A + CLRT_new` in ticks, precomputed so one MAU addition arms the response deadline |
-| `reg_deadline` | `defense4_rrc_bor_unified12.p4` | the ACK release deadline `t_A + D_A` |
-| `reg_tresp` | `defense4_rrc_bor_unified12.p4:1706` | the response release deadline `t_A + D_A + CLRT_new` |
+| `D_A_ms` = 20.0 | `campaign_v2/repro/policy_config.json` | `D_A`, the acknowledgment deadline measured from the request (in `campaign_v1`, from the acknowledgment) |
+| `D_R_ms` = 8.0 | `campaign_v2/repro/policy_config.json`, `campaign_v2/sweep/sweep_points.csv` | **the configured `CLRT_new`**, not `D_R` and not the response hold (4.0 in `campaign_v1`) |
+| `scheduled_release_interval_ms` = 8.0 | `campaign_v2/repro/policy_config.json` | the configured `CLRT_new`, the same quantity under a second name |
+| `release_budget_D_ms` = 28.0 | `campaign_v2/repro/policy_config.json` | `D = D_A + CLRT_new`, the schedulability budget (24.0 in `campaign_v1`) |
+| `anchor_req` = 1 | `tbl_bor_params`, read back per block in `campaign_v2/provenance/` | the read lane arms at the request (0 in `campaign_v1`) |
+| `d_ticks` | the P4 source | `D_A` in 256 ns ticks |
+| `da_dr` | the P4 source | `D_A + CLRT_new` in ticks, precomputed so one MAU addition arms the response deadline |
+| `reg_deadline` | the P4 source | the ACK release deadline, `t_0 + D_A` on the shipped build (`t_A + D_A` in `campaign_v1`) |
+| `reg_tresp` | the P4 source | the response release deadline, `t_0 + D_A + CLRT_new` on the shipped build (`t_A + D_A + CLRT_new` in `campaign_v1`) |
 | `clrt_ms` | `derived/transactions.csv` | measured `m_R - m_A`: `CLRT_original` in the Timing OFF arm, `CLRT_new` in the Obfuscated arm |
 | `ack_ms` | `derived/transactions.csv` | measured request-to-acknowledgment latency, `m_A - m_0` |
 | `rt_ms` / `resp_ms` | `derived/transactions.csv` | measured request-to-response latency, `m_R - m_0`. **Not** `D_R`, which starts at `t_R` |
@@ -180,9 +201,11 @@ Figure-data CSVs generated before 2026-09-09 carry the older row names `CLRT_tar
 
 ## 4. Scheduled release is not actual release
 
-`defense4_rrc_bor_unified12.p4:1706` arms the response deadline as `t_A + da_dr`, at the same
-`now_word` as the acknowledgment deadline. Both deadlines therefore hang off one instant, the
-acknowledgment's arrival.
+The shipped program computes both candidate deadlines, `now_word + d_ticks` and
+`now_word + da_dr`, when the request arrives, and with `anchor_req = 1` it writes them from that
+request (`anchor_fix/src/defense4_rrc_bor_unified12.p4`, lines 3158 to 3175). Both deadlines
+therefore hang off one instant, the request's arrival at the switch. In the frozen
+`implementation/` source that `campaign_v1` ran, the same writes happened at the acknowledgment.
 
 The implementation does **not** start a response timer at the measured acknowledgment departure.
 `e_R = e_A + CLRT_new` is the ideal relation implied by the two deadlines, not evidence that the
@@ -195,13 +218,14 @@ response release delay minus the acknowledgment release delay, plus differential
 effects. It is a signed net quantity, not a single non-negative queueing delay, and it is not a
 measurement of the drain interval.
 
-## 5. The control lane keeps its own convention
+## 5. The control lane
 
-READ and SELECT use the acknowledgment-arrival reference above. OPERATE is request-anchored: its
-deadlines are computed from `T0` rather than from `t_A`. The offsets, however, are the read lane's
-`D_A` and `D_R`, so the master-visible observable is `O = D_R`. Do not apply the read-lane
-*coverage* model to the select-before-operate exchange, since the anchor differs; do apply the
-read-lane *parameters*, since they are the ones the data plane uses.
+On the shipped build both lanes are request-anchored: READ and SELECT from `t_0`, OPERATE from
+`T0`, its arrival. (In `campaign_v1` only OPERATE was.) The control lane's offsets are the read
+lane's `D_A` and configured `CLRT_new`, so the master-visible observable is `O = CLRT_new`
+configured. Do not pool OPERATE into the read-lane *coverage* model: the OPERATE is itself held
+for the command hold `J` before it reaches the relay, so its availability condition includes
+`J`. Do apply the read-lane *parameters*, since they are the ones the data plane uses.
 
 `A` and `R` remain in the implementation and in the control plane's admission arithmetic, which
 refuses an `A` that does not exceed the largest admissible `J` plus the outstation's own
@@ -215,7 +239,7 @@ codebook `{2, 6, 12}` ms; the per-transaction draw was never observed.
 
 Write **`CLRT_original`** and **`CLRT_new`**, typeset `\mathrm{CLRT}_{\mathrm{original}}` and
 `\mathrm{CLRT}_{\mathrm{new}}`. Say **configured `CLRT_new`** for the policy value and **measured
-`CLRT_new`** for what the master records. Say **ACK hold** for `D_A` and **response hold** for
-`e_R - t_R`, which has no symbol. Say **response latency** for `D_R`. Do not write *target*,
+`CLRT_new`** for what the master records. Say **acknowledgment deadline** for `D_A`, measured from
+the request, and **response hold** for `e_R - t_R`, which has no symbol. Say **response latency** for `D_R`. Do not write *target*,
 *target CLRT*, or `CLRT_target`; do not introduce `X`, `Y`, or `C` for any of these quantities;
 and do not use `D_R` for the configured gap or for the hold.

@@ -107,9 +107,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax = [[_axes[0], _axes[1]], [None, _axes[2]]]
     data = []
 
-    # ---- (a) read-lane Timing OFF tail the budget must cover. READ and SELECT only.
+    # ---- (a) read-lane Timing OFF tail the budget must cover. READ and SELECT only. The read
+    # lane arms both deadlines at the request, so a response is on time when it reaches the switch
+    # within D of the request: the quantity D must cover is the request-to-response time, column 5,
+    # not the CLRT (which was the right quantity only for the acknowledgment-anchored build).
     for c in READ_LANE:
-        v = np.sort(sel(rows, "native", c))
+        v = np.sort(sel(rows, "native", c, col=5))
         y = 1.0 - np.arange(v.size) / v.size
         ax[0][0].step(v, y, where="post", color=CCOL[c], lw=1.1, ls=F.LS_CLASS[c],
                       marker=None, label=c, zorder=3)
@@ -121,7 +124,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][0].set_xscale("log"); ax[0][0].set_yscale("log")
     ax[0][0].xaxis.set_minor_formatter(NullFormatter())
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
-    ax[0][0].set_xlabel("$\\mathrm{CLRT}_{\\mathrm{original}}$ [ms]")
+    ax[0][0].set_xlabel("Request-to-response [ms]")
     ax[0][0].set_ylabel("Fraction exceeding")
     # The two vertical rules are named in the key rather than by italics floating at the top of
     # the panel, where they sat clear of the rules they labelled and read as stray symbols.
@@ -213,7 +216,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     F.save(fig, out, "fig_policy_coverage_cost",
            "\\textbf{The release policy is programmable, and its budget is bounded on both "
            "sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of "
-           "SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the "
+           "SBO only, whose request-to-response time exceeds a given value, with the "
            f"release budget $D$={D:g}~ms and the "
            f"control-plane admission horizon $H$={H:g}~ms, which the data plane does not "
            "enforce; at "
@@ -234,8 +237,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
             "scope": "master-facing link; internal blocker traffic not counted"},
            data_rows=data, data_fields=fields, seed=SEED,
            method_note=(
-               "Panel (a) is an empirical complementary CDF over the Timing OFF read lane "
-               "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it runs on the "
+               "Panel (a) is an empirical complementary CDF of the request-to-response time over "
+               "the Timing OFF read lane (READ and SELECT), 29,040 exchanges, because the read "
+               "lane's deadlines are armed at the request; OPERATE is excluded because it runs on the "
                "control lane under its own release parameters. Panel (b) plots the "
                f"{len(fixed)} release policies of the hardware sweep whose total budget equals "
                f"$D$={D:g}~ms; each is one capture under one installed dual-deadline policy, "
