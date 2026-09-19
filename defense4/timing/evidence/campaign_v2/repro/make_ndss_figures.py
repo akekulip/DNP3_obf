@@ -13,7 +13,7 @@ timed from the acknowledgment and are the only classes governed by the release b
 timed from the request and its master-visible observable is R - A.
 """
 from __future__ import annotations
-import csv, json, sys
+import csv, json, pathlib, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -96,12 +96,15 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # beside the plots: the labels were sized for the page and the panels for a quarter of a
     # column. At 7.16 in each panel has roughly four times the area, so the keys sit inside,
     # the class names under (d) stand up straight, and nothing is shrunk below the 8 pt floor.
-    # This figure is a figure* in the manuscript; it is the only one that spans. The height is
-    # what the 13-page budget allows: 2.85 in and above costs a fourteenth body page.
-    # One column, not the full text width. As a figure* it cost 5.4 column-inches; the same
-    # four panels at column width cost 3.1, and each keeps a readable 8 pt abscissa.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 2.85))
-    ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
+    # Three panels across the text width. Four panels at column width put each one in about 1.5
+    # square inches, which is why every key had to be pushed on top of its own data and why the
+    # type read as oversized: the labels were sized for the page and the panels for a quarter of a
+    # column. The fourth panel is gone rather than shrunk -- it plotted the measured median against
+    # the configured acknowledgment hold and, on this sweep, had two points on it, both of which
+    # panel (b) already carries. Across the text width each remaining panel has roughly three times
+    # the area, so the keys sit inside without covering anything.
+    fig, _axes = plt.subplots(1, 3, figsize=(F.PAGE_W, 1.95))
+    ax = [[_axes[0], _axes[1]], [None, _axes[2]]]
     data = []
 
     # ---- (a) read-lane Timing OFF tail the budget must cover. READ and SELECT only.
@@ -120,10 +123,11 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
     ax[0][0].set_xlabel("$\\mathrm{CLRT}_{\\mathrm{original}}$ [ms]")
     ax[0][0].set_ylabel("Fraction exceeding")
-    ax[0][0].text(D * 0.92, 2.2, "$D$", fontsize=8, ha="right", va="top", color="black")
-    ax[0][0].text(H * 1.10, 2.2, "$H$", fontsize=8, ha="left", va="top", color="black")
-    # Above the panel: inside, even a two-entry key sat on the curve it was naming.
-    F.key(ax[0][0], loc="lower left", ncol=1, handlelength=1.5, handletextpad=0.4)
+    # The two vertical rules are named in the key rather than by italics floating at the top of
+    # the panel, where they sat clear of the rules they labelled and read as stray symbols.
+    ax[0][0].plot([], [], color=F.GREY, ls=":", lw=1.0, label="budget $D$")
+    ax[0][0].plot([], [], color="black", ls="-.", lw=1.0, label="horizon $H$")
+    F.key(ax[0][0], loc="lower left", ncol=1, handlelength=1.4, handletextpad=0.4)
 
     # ---- (b) fixed total budget, the configured CLRT_new swept: the visible interval follows
     # the policy value. The archived sweep table names that configured value D_R_ms; under the
@@ -156,12 +160,11 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # column the longer label ran past the figure edge.
     ax[0][1].set_xlabel("Configured [ms]")
     ax[0][1].set_ylabel("Measured [ms]")
-    ax[0][1].annotate("request-to-response", xy=(xs[1], rt[1]), xytext=(0.02, 0.80),
-                      textcoords="axes fraction", fontsize=8, color=F.C_OPERATE,
-                      ha="left", va="top")
-    # One short token on the marks; the caption says it is the measured value.
-    ax[0][1].text(0.56, 0.26, "$\\mathrm{CLRT}_{\\mathrm{new}}$", transform=ax[0][1].transAxes,
-                  fontsize=8, color=F.ON, ha="left", va="center")
+    # Both series are named in a key. As free text they sat over their own data, and the reader
+    # had to work out which text went with which mark. The key goes bottom right, under the
+    # diagonal, which is the only empty region: upper left it covered the flat
+    # request-to-response series along its whole left half.
+    F.key(ax[0][1], loc="lower right", ncol=1, handlelength=1.4, handletextpad=0.4)
     for s in fixed:
         data.append(dict(panel="b", series="fixed_total_budget", point=s["point"],
                          D_A_ms=s["D_A_ms"], D_R_ms=s["D_R_ms"], D_ms=s["D_ms"],
@@ -170,46 +173,26 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                          clrt_min_ms=s["read_clrt_min_ms"], clrt_max_ms=s["read_clrt_max_ms"],
                          rt_med_ms=s["read_rt_med_ms"]))
 
-    # ---- (c) D_A ramp at a fixed configured CLRT_new: the fail-open horizon closes the envelope
-    ramp = sorted([s for s in sweep
-                   if s["mode"] == "D4" and not s["is_control_point"]
-                   and s["D_A_ms"] is not None and s["D_R_ms"] is not None
-                   and abs(s["D_R_ms"] - cfg["D_R_ms"]) < 1e-9], key=lambda s: s["D_A_ms"])
-    xa = np.array([s["D_A_ms"] for s in ramp])
-    ya = np.array([s["read_ack_med_ms"] for s in ramp])
-    yc = np.array([s["read_clrt_med_ms"] for s in ramp])
-    ax[1][0].plot(xa, ya, marker=F.MK["SELECT"], ms=3.4, ls="-", lw=1.1, color=F.OFF,
-                  zorder=4, label="request-to-ACK")
-    ax[1][0].plot(xa, yc, marker=F.MK["READ"], ms=3.4, ls="--", lw=1.1, color=F.ON,
-                  zorder=4, label="$\\mathrm{CLRT}_{\\mathrm{new}}$")
-    ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
-    ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel("Configured $D_A$ [ms]")
-    ax[1][0].set_ylabel("Measured median [ms]")
-    ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
-    # The two reference lines carry no in-plot text. The upper one is the control-plane
-    # admission horizon and the lower one the configured CLRT_new; both are named in the
-    # caption. The lower annotation used to sit on the axis and cross its own line.
-    ax[1][0].text(0.03, 0.70, "request-to-ACK", transform=ax[1][0].transAxes,
-                  fontsize=8, color=F.OFF, ha="left", va="bottom")
-    ax[1][0].text(0.40, 0.19, "$\\mathrm{CLRT}_{\\mathrm{new}}$",
-                  transform=ax[1][0].transAxes, fontsize=8, color=F.ON, ha="left", va="bottom")
-    for s in ramp:
-        data.append(dict(panel="c", series="D_A_ramp", point=s["point"],
-                         D_A_ms=s["D_A_ms"], D_R_ms=s["D_R_ms"], D_ms=s["D_ms"],
-                         n=s["read_n"], ack_med_ms=s["read_ack_med_ms"],
-                         clrt_med_ms=s["read_clrt_med_ms"]))
+    # The D_A ramp is not drawn. It plotted the measured median against the configured
+    # acknowledgment hold and had two points on this sweep, and both of them are already in
+    # panel (b). Its numbers stay in the figure's data file so nothing is lost by not drawing it.
+    ramp = sorted([s_ for s_ in sweep
+                   if s_["mode"] == "D4" and not s_["is_control_point"]
+                   and s_["D_A_ms"] is not None and s_["D_R_ms"] is not None
+                   and abs(s_["D_R_ms"] - cfg["D_R_ms"]) < 1e-9], key=lambda s_: s_["D_A_ms"])
+    for s_ in ramp:
+        data.append(dict(panel="not_drawn_D_A_ramp", series="D_A_ramp", point=s_["point"],
+                         D_A_ms=s_["D_A_ms"], D_R_ms=s_["D_R_ms"], D_ms=s_["D_ms"],
+                         n=s_["read_n"], ack_med_ms=s_["read_ack_med_ms"],
+                         clrt_med_ms=s_["read_clrt_med_ms"]))
 
     # ---- (d) the master's request-to-response latency, the observed cost
     box_pair(ax[1][1], rows, col=5, horizontal=True)
-    # The class names label the rows, so no ordinate label is needed. The arms are labelled
-    # in place on the READ row, right of every whisker, in the short forms Figure 8 already
-    # uses. A key has no room here: the only empty region is above 100 ms, 0.4 in wide, and a
-    # key set anywhere else covered the SELECT row's Obfuscated box.
-    ax[1][1].set_xlabel("Request-to-response [ms]"); ax[1][1].set_xlim(1, 800)
-    ax[1][1].text(115, 2.19, "OFF", fontsize=8, color=ACOL["native"], ha="left", va="center")
-    ax[1][1].text(115, 1.81, "Obf.", fontsize=8, color=ACOL["obfuscated"], ha="left",
-                  va="center")
+    # The class names label the rows, so no ordinate label is needed. The arms are named in a
+    # key rather than by abbreviations floating beside the READ row: "OFF" and "Obf." were never
+    # expanded anywhere the reader could see, and across the text width the key has room.
+    ax[1][1].set_xlabel("Request-to-response [ms]"); ax[1][1].set_xlim(1, 2000)
+    F.key(ax[1][1], loc="lower right", ncol=1, handlelength=1.2, handletextpad=0.4)
     for arm in ARMS:
         for c in CLASSES:
             v = sel(rows, arm, c, col=5)
@@ -221,9 +204,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
 
     tag(ax[0][0], "a", x=0.965, y=0.955)
     tag(ax[0][1], "b", x=0.965, y=0.06, va="bottom")
-    tag(ax[1][0], "c", x=0.965, y=0.955)
-    tag(ax[1][1], "d", x=0.965, y=0.06, va="bottom")   # top right now holds the arm labels
-    F.grid([ax[0][0], ax[0][1], ax[1][0], ax[1][1]])
+    tag(ax[1][1], "c", x=0.965, y=0.955)
+    F.grid([ax[0][0], ax[0][1], ax[1][1]])
 
     cov = stats["read_lane_coverage"]
     add = stats["added_response_latency_ms"]
@@ -518,48 +500,62 @@ def fig_leakage(leak, out, inputs):
         ax[0].bar(xb + (k - 0.5) * w, m, w * 0.88, yerr=[lo, hi], capsize=2,
                   color=face or col, alpha=al, edgecolor=col, lw=0.9, label=names[f],
                   error_kw=dict(lw=0.7, ecolor="black"))
+    # The chance line is named once, in panel (b)'s key. Naming it in both keys made (a)'s
+    # three entries wide enough to cover the tallest bar.
     ax[0].axhline(leak["chance_balanced_accuracy"], color="black", ls=":", lw=1.0, zorder=4)
-    # Over the middle group, the only span where nothing reaches above the chance line: the
-    # retrained CLRT-only bar now carries an error bar that the old right-hand placement hit.
-    ax[0].text(1.0, leak["chance_balanced_accuracy"] + 0.05, "chance", fontsize=8,
-               ha="center", va="bottom")
     ax[0].set_xticks(xb); ax[0].set_xticklabels([c[0] for c in conds])
-    ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.0)
-    # Labelled inside the fixed-OFF bars, not keyed. At one column an opaque key in any corner
-    # of this panel sat on a bar: in the upper right it covered the adaptive both-interval bar
-    # and its whisker, the adaptive result the section argues from. Set upright inside the two bars of
-    # the first group, the names cannot cover anything.
-    for k, f in enumerate(feats):
-        col, face, _ = fill[f]
-        ax[0].text(xb[0] + (k - 0.5) * w, 0.04, names[f], rotation=90, fontsize=8,
-                   ha="center", va="bottom", color=("white" if face is None else col))
+    ax[0].set_ylabel("Balanced accuracy"); ax[0].set_ylim(0, 1.06)
+    # The feature sets are named in a key. They used to be set sideways INSIDE the first pair of
+    # bars, which is a thing a figure should not have to do: the reader met the series names
+    # rotated ninety degrees and had to map them onto the other two groups by colour. The key
+    # goes over the middle group, the one span where nothing rises above the chance line.
+    F.key(ax[0], loc="upper right", ncol=1, handlelength=1.2, handletextpad=0.4)
 
-    # (b) observed MI against the within-run permutation null. No error bar on the estimate.
-    mi = leak["mutual_information"]
-    xs = np.arange(2)
-    for i, a_ in enumerate(ARMS):
-        m = mi[a_]
-        ax[1].bar(i, m["null_p99_bits"], 0.52, color="#BBBBBB", edgecolor="black", lw=0.6,
-                  zorder=2, label="null, 99th pct" if i == 0 else None)
-        ax[1].plot([i], [m["observed_bits"]], marker="D", ms=5.0, color=ACOL[a_],
-                   mec="black", mew=0.7, ls="none", zorder=5,
-                   label="observed" if i == 0 else None)
-        data.append(dict(panel="b", arm=F.LBL[a_], observed_bits=m["observed_bits"],
-                         null_mean_bits=m["null_mean_bits"], null_p95_bits=m["null_p95_bits"],
-                         null_p99_bits=m["null_p99_bits"], null_max_bits=m["null_max_bits"],
-                         p_value=m["p_value_empirical"],
+    # (b) what pooling buys the adaptive adversary. This panel used to plot the mutual
+    # information: two grey null bars and two diamonds on a logarithmic axis, with no tick a
+    # reader could read a value off. It carried two numbers, and two numbers belong in a sentence.
+    #
+    # Pooling is the better use of the space, because it is a real result that appeared in no
+    # figure at all, and because it is the one that does not flatter the framework. An adversary
+    # that averages several exchanges of the same operation suppresses the noise around a
+    # systematic offset, so it climbs: 0.447 at one exchange to 0.650 at twenty. Drawing it is the
+    # difference between reporting the result and burying it in a table.
+    # inputs is [canonical table, leakage.json]; multiobs.json is written beside the latter
+    # by the same pipeline step, so it is found rather than threaded through main().
+    pooled = json.load(open(pathlib.Path(inputs[1]).parent / "multiobs.json"))
+    ks = pooled["k_values"]
+    for a_ in ARMS:
+        ys = [pooled["results"]["ack_clrt/%s/k%d" % (a_, k)]["balanced_accuracy_mean"] for k in ks]
+        lo = [pooled["results"]["ack_clrt/%s/k%d" % (a_, k)]["min"] for k in ks]
+        hi = [pooled["results"]["ack_clrt/%s/k%d" % (a_, k)]["max"] for k in ks]
+        ax[1].plot(ks, ys, marker="o" if a_ == "native" else "s", ms=3.2, lw=1.1,
+                   color=ACOL[a_], zorder=4, label=F.LBL[a_])
+        ax[1].fill_between(ks, lo, hi, color=ACOL[a_], alpha=0.18, lw=0, zorder=2)
+        for k, y, l, h in zip(ks, ys, lo, hi):
+            data.append(dict(panel="b", arm=F.LBL[a_], k=k, balanced_accuracy=y,
+                             held_out_run_min=l, held_out_run_max=h))
+    ax[1].axhline(1 / 3, color="black", lw=0.9, ls=(0, (1, 1.6)), zorder=3, label="chance")
+    ax[1].set_xscale("log")
+    ax[1].set_xticks(ks)
+    ax[1].set_xticklabels([str(k) for k in ks])
+    ax[1].xaxis.set_minor_formatter(NullFormatter())
+    ax[1].set_xlabel("Exchanges pooled")
+    # No second ordinate label: both panels are balanced accuracy on the same 0 to 1 scale, and
+    # repeating the label and its ticks spent width on nothing.
+    ax[1].set_ylim(0.0, 1.06)
+    ax[1].set_yticklabels([])
+    F.key(ax[1], loc="lower left", ncol=1, handlelength=1.3, handletextpad=0.4)
+
+    # The mutual information is not drawn any more; every one of its numbers stays here, so the
+    # figure's data file and leakage.json still carry the estimate, its null and its p-value.
+    for a_ in ARMS:
+        m = leak["mutual_information"][a_]
+        data.append(dict(panel="not_drawn_mutual_information", arm=F.LBL[a_],
+                         observed_bits=m["observed_bits"], null_mean_bits=m["null_mean_bits"],
+                         null_p95_bits=m["null_p95_bits"], null_p99_bits=m["null_p99_bits"],
+                         null_max_bits=m["null_max_bits"], p_value=m["p_value_empirical"],
                          p_value_resolution=m["p_value_resolution"],
                          n_permutations=m["n_permutations"]))
-    ax[1].set_yscale("log")
-    # Two lines, because "Timing OFF" and "Obfuscated" set on one line abut at this width.
-    ax[1].set_xticks(xs)
-    ax[1].set_xticklabels([F.LBL[a].replace(" ", "\n") for a in ARMS])
-    ax[1].set_ylabel("Mutual information [bits]")
-    ax[1].set_xlim(-0.6, 1.6)
-    ax[1].set_ylim(min(mi[a]["observed_bits"] for a in ARMS) * 0.35,
-                   max(mi[a]["observed_bits"] for a in ARMS) * 3)
-    ax[1].yaxis.set_minor_formatter(NullFormatter())
-    F.key(ax[1], loc="upper right", ncol=1, handlelength=1.3, handletextpad=0.4)
 
     # The confusion matrices are not drawn, but their numbers are kept, so the artifact and this
     # figure's own data file still carry every one of them.
@@ -572,7 +568,8 @@ def fig_leakage(leak, out, inputs):
                                  predicted=CLASSES[j], fraction=float(cm[i, j])))
     # (a) moves to the top left: the bottom left is now inside the first bar's label.
     tag(ax[0], "a", x=0.035, y=0.955, ha="left", va="top")
-    tag(ax[1], "b", x=0.035, y=0.04, ha="left", va="bottom")
+    # Bottom right, because the key now occupies the bottom left of this panel.
+    tag(ax[1], "b", x=0.965, y=0.04, ha="right", va="bottom")
     F.grid([ax[0], ax[1]])
 
     fields = sorted({k for d in data for k in d})
@@ -585,18 +582,18 @@ def fig_leakage(leak, out, inputs):
            "span the full range across those runs, which is within-campaign variability and not "
            "a confidence interval, because the folds share training data. The fixed adversary is "
            "trained on Timing OFF traffic and applied unchanged; the adaptive adversary is "
-           "retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and "
-           "the transaction class, in bits, against the 99th percentile of a within-run "
-           "permutation null over "
-           f"{mi['native']['n_permutations']} permutations; the Timing OFF estimate lies far "
-           f"above its null (empirical $p={mi['native']['p_value_empirical']:.3f}$, the "
-           "resolution floor) and the obfuscated estimate lies inside its null "
-           f"($p={mi['obfuscated']['p_value_empirical']:.3f}$). No uncertainty interval is placed "
-           "on the point estimate. The row-normalised confusion of both attackers over all 22 "
-           "held-out runs is not drawn here; every entry is in this figure's data file and in "
+           "retrained on obfuscated traffic. (b) What pooling buys the adaptive adversary: "
+           "balanced accuracy against the number of same-operation exchanges it averages. The "
+           "band spans the 22 held-out runs, which is within-campaign variability and not a "
+           "confidence interval, because the folds share training data. Averaging suppresses "
+           "the noise around a "
+           "systematic offset, so the adversary climbs with k on obfuscated traffic as well as "
+           "on Timing OFF traffic. The mutual information and the row-normalised confusion of "
+           "both attackers are not drawn; every value is in this figure\u2019s data file and in "
            "the released leakage record.",
            inputs,
-           {"folds": leak["n_folds"], "permutations": mi["native"]["n_permutations"],
+           {"folds": leak["n_folds"],
+            "permutations": leak["mutual_information"]["native"]["n_permutations"],
             "features": "req-to-ACK and CLRT; total response latency is their sum and is excluded",
             "mi_units": "bits, converted from the estimator's nats",
             "uncertainty": leak["uncertainty_policy"],

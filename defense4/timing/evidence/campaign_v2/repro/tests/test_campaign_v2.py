@@ -455,19 +455,34 @@ def test_no_published_mi_interval(leak):
         assert "never plotted" in rej["status"]
 
 
-def test_mi_figure_plots_no_error_bar():
-    """The figure must not draw an interval around the MI point estimate.
+def test_no_uncertainty_interval_on_a_point_estimate():
+    """No figure may put an interval around the mutual-information point estimate.
 
-    Only the plotting code is inspected. The caption and the method note deliberately explain
-    that a jackknife interval was rejected, so scanning them for the word would be meaningless.
+    The mutual information is no longer drawn at all -- the panel that held it carried two
+    numbers on a logarithmic axis with no tick a reader could read a value off, and two numbers
+    belong in a sentence. This test therefore checks two things: that it is still not drawn with
+    an interval, and that nothing anywhere in the figure code constructs one.
+
+    The pooling panel that replaced it DOES carry a shaded band. That band is the full range over
+    the 22 held-out runs, which is descriptive spread and not a confidence interval, and the
+    caption says so in those words. This project withdrew two published uncertainty estimates for
+    exactly that distinction, so the caption is checked for the disclaimer rather than trusted.
     """
     src = open(os.path.join(HERE, "make_ndss_figures.py")).read()
     plotting = src.split("def fig_leakage")[1].split("F.save(")[0]
     assert "jackknife" not in plotting.lower(), "figure plots a jackknife quantity"
     assert "1.96" not in plotting, "figure draws a normal-approximation interval"
-    # the MI panel must not attach an error bar to the point estimate at all
-    mi_panel = plotting.split("mi = leak[")[1].split("# (c)")[0]
-    assert "yerr" not in mi_panel, "an error bar is attached to the MI estimate"
+    # Precisely: no mutual-information value may reach a plotting call. It is still WRITTEN to
+    # the figure's data file, which is why a blanket substring check over the function body is
+    # the wrong test -- it fails on the record-keeping it should be preserving.
+    drawn = [ln for ln in plotting.splitlines()
+             if "observed_bits" in ln and ("ax[" in ln or ".plot(" in ln or ".bar(" in ln)]
+    assert not drawn, "a mutual-information value reaches a plotting call: %s" % drawn
+    # Adjacent string literals are joined before searching, so a disclaimer that happens to fall
+    # across a line break in the source still counts. The test is about what the caption SAYS.
+    caption = re.sub(r'"\s*\n\s*"', "", src.split("def fig_leakage")[1])
+    assert "not a confidence interval" in caption, \
+        "the held-out-run spread must be disclaimed as not a confidence interval"
 
 
 def test_classifier_spread_is_descriptive_not_a_ci(leak):

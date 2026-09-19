@@ -1,12 +1,12 @@
 {
  "figure": "fig_leakage",
- "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.001$). No uncertainty interval is placed on the point estimate. The row-normalised confusion of both attackers over all 22 held-out runs is not drawn here; every entry is in this figure's data file and in the released leakage record.",
+ "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) What pooling buys the adaptive adversary: balanced accuracy against the number of same-operation exchanges it averages. The band spans the 22 held-out runs, which is within-campaign variability and not a confidence interval, because the folds share training data. Averaging suppresses the noise around a systematic offset, so the adversary climbs with k on obfuscated traffic as well as on Timing OFF traffic. The mutual information and the row-normalised confusion of both attackers are not drawn; every value is in this figure\u2019s data file and in the released leakage record.",
  "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "f0eb6d3ab89cb776c4430068a5793931d4922cd9",
+ "source_commit": "b8e777c6c374cbf15cf9fe374e9a46e6740a38f6",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
-  "sha256": "b81e46485892af8a89421d4db5232de219c61623584f88ccfafe5b11b57b4589"
+  "sha256": "c70ebc9732553691012822ad8933d2ef72e85d985bbeb2b35343a6900b7a0be0"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
@@ -26,20 +26,20 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_leakage.pdf",
-   "sha256": "a992e4590bba514c21f308ebb0ebf84d48aaaa6149906bb8c087e8a2e002750d",
+   "sha256": "0084390ab957c1bee497156007c7c562defe1b9e92e6a17fd3d4d6296c94f470",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_leakage.png",
-   "sha256": "af5199dbb99669deec7e6c7072f21008731b9b8c8ae6e1b646a75045b0c66a95",
+   "sha256": "d535ec7900f1713a86c1a7950d2d854f3cc3cbb225b7f40fd825297dc7920077",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_leakage_data.csv",
-   "sha256": "0756efe6f44d11fc5f531955530c7ccad3a762fd51abb79b6bbd629d60c4b6e6",
-   "rows": 26,
+   "sha256": "e9cd5a0788241bd417b1e8c71ed18f330b3ef3c419bfcf60eab77cd8574d064f",
+   "rows": 36,
    "authoritative": true
   }
  },

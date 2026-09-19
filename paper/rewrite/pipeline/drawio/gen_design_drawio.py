@@ -26,7 +26,7 @@ box -- each queue is named inline, which is how Ditto does it.
 """
 import html
 
-W, H = 512, 166
+W, H = 512, 176
 SLATE, RULE, SOFT = "#2F3E4E", "#C5CCD3", "#6B6B6B"
 VERM, GREY, GREEN, BLUE, AMBER = "#D55E00", "#555555", "#009E73", "#0072B2", "#E69F00"
 FONT = "Times New Roman"
@@ -85,87 +85,90 @@ def queue(y, packets, colour, name, released=""):
         text(QX + QW + 74, y - 0.5, 92, 9, released, 6, italic=True)
 
 
+# The read lane holds two packets and each one has its own blocker queue above it -- four queues,
+# not three. They are laid out as two tight pairs with a wide gap between the pairs, so the eye
+# groups them the way the mechanism does: within a pair the gap is 2 units, between pairs it is 12.
+# An earlier version spaced all four evenly and a reader counted three.
+ACK_BLK, ACK_Q = 62, 72
+RSP_BLK, RSP_Q = 92, 102
+CMD_BLK, CMD_Q = 136, 146
+
 # ---------------- the switch ----------------
-BX0, BX1, BY0, BY1 = 60, 434, 6, 160
+BX0, BX1, BY0, BY1 = 60, 434, 6, 170
 vertex(BX0, BY0, BX1 - BX0, BY1 - BY0,
        f"rounded=1;arcSize=2;fillColor=#F7F8FA;strokeColor={RULE};strokeWidth=0.7;")
 text(BX0 + 5, BY0 + 4, 120, 9, "programmable switch", 6.5)
 
 # ---------------- what arrives, on the left, each named with where it came from ----------------
 for y, what, whence, col in ((28, "request", "from master", BLUE),
-                             (76, "acknowledgment", "from outstation", GREY),
-                             (102, "response", "from outstation", GREEN)):
+                             (ACK_Q + 4, "acknowledgment", "from outstation", GREY),
+                             (RSP_Q + 4, "response", "from outstation", GREEN)):
     text(0, y - 8, 54, 9, what, 6.5, align="right", colour=SLATE)
     text(0, y - 0.5, 54, 9, whence, 6, align="right")
     arrow((56, y), (66, y), col, 0.9)
 
 # ---------------- ingress classifies every arrival ----------------
-vertex(66, 16, 14, 96, f"shape=trapezoid;direction=north;perimeter=trapezoidPerimeter;"
-                       f"fillColor=#E7EBEF;strokeColor={SLATE};strokeWidth=0.7;")
-text(58, 116, 30, 9, "classify", 6.5, align="center")
+vertex(66, 16, 14, 104, f"shape=trapezoid;direction=north;perimeter=trapezoidPerimeter;"
+                        f"fillColor=#E7EBEF;strokeColor={SLATE};strokeWidth=0.7;")
+text(58, 124, 30, 9, "classify", 6.5, align="center")
 
 # ---------------- the request arms both deadlines, then leaves ----------------
-# This is the whole of the security argument in one box: both release instants are computed from
-# the request's own arrival, so neither of them carries anything the outstation did. The instants
-# themselves are printed beside the queues they govern, not here, so the reader meets each one
-# where it acts.
 vertex(98, 19, 58, 18, f"rounded=1;arcSize=16;fillColor=#FFFFFF;strokeColor={BLUE};"
                        f"strokeWidth=0.8;fontFamily={FONT};fontSize=6.5;fontColor={SLATE};"
                        f"verticalAlign=middle;align=center;", "arm deadlines")
 arrow((80, 28), (97, 28), BLUE, 0.9)
 arrow((156, 28), (410, 28), BLUE, 0.9)
-
-# two annotations that sit above the lanes, clear of every rule and arrow
 text(146, 38, 200, 9, "blocker packets recirculate, and reach no cable", 6, colour=AMBER)
 
 # ---------------- the read lane: two held packets, each behind its own blocker queue ----------
-vertex(140, 46, 264, 66, f"rounded=0;fillColor=none;strokeColor={RULE};strokeWidth=0.6;"
+vertex(140, 46, 264, 70, f"rounded=0;fillColor=none;strokeColor={RULE};strokeWidth=0.6;"
                          f"dashed=1;dashPattern=3 2;")
-text(144, 47, 80, 9, "read lane", 6.5, colour=SLATE)
-queue(60, 4, AMBER, "blocker")
-queue(72, 1, GREY, "acknowledgment", "released at T0 + DA")
-queue(86, 4, AMBER, "blocker")
-queue(98, 1, GREEN, "response", "released at T0 + DA + DR")
-arrow((80, 76), (174, 76), GREY, 0.8)
-arrow((80, 102), (174, 102), GREEN, 0.8)
+text(144, 46, 60, 9, "read lane", 6.5, colour=SLATE)
+queue(ACK_BLK, 4, AMBER, "blocker")
+queue(ACK_Q, 1, GREY, "acknowledgment", "released at T0 + DA")
+queue(RSP_BLK, 4, AMBER, "blocker")
+queue(RSP_Q, 1, GREEN, "response", "released at T0 + DA + DR")
+arrow((80, ACK_Q + 4), (174, ACK_Q + 4), GREY, 0.8)
+arrow((80, RSP_Q + 4), (174, RSP_Q + 4), GREEN, 0.8)
 
 # ---------------- the control lane, the same alphabet at a smaller scope ------------------------
-vertex(140, 116, 264, 38, f"rounded=0;fillColor=none;strokeColor={RULE};strokeWidth=0.6;"
+vertex(140, 120, 264, 38, f"rounded=0;fillColor=none;strokeColor={RULE};strokeWidth=0.6;"
                           f"dashed=1;dashPattern=3 2;")
-text(144, 117, 80, 9, "control lane", 6.5, colour=SLATE)
-queue(130, 4, AMBER, "blocker")
-queue(142, 1, BLUE, "command", "released at T0 + J")
-arrow((127, 37), (174, 146), BLUE, 0.8, pts=((127, 146),))
-text(84, 120, 40, 9, "command only", 6, align="right", colour=BLUE)
+text(144, 120, 60, 9, "control lane", 6.5, colour=SLATE)
+queue(CMD_BLK, 4, AMBER, "blocker")
+queue(CMD_Q, 1, BLUE, "command", "released at T0 + J")
+arrow((127, 37), (174, CMD_Q + 4), BLUE, 0.8, pts=((127, CMD_Q + 4),))
+text(84, 112, 42, 9, "command only", 6, align="right", colour=BLUE)
 
 # ---------------- a strict-priority scheduler drains each held queue --------------------------
-# The blocker queue outranks the queue it guards, so nothing below it is served while a blocker
-# packet is present. Vertical position alone used to carry that; the annotation above says it.
-for y0, y1 in ((60, 84), (86, 110), (130, 154)):
+for y0, y1 in ((ACK_BLK, ACK_Q + QH), (RSP_BLK, RSP_Q + QH), (CMD_BLK, CMD_Q + QH)):
     vertex(410, y0, 9, y1 - y0, f"shape=triangle;direction=east;fillColor=#E7EBEF;"
                                 f"strokeColor={SLATE};strokeWidth=0.7;")
-# Named once, beside the scheduler it describes, rather than floating at the top of the drawing.
-text(344, 60, 60, 9, "strict priority", 6, align="right")
+text(374, 160, 60, 9, "strict priority", 6, align="right")
 
 # ---------------- what leaves, on the right, each named with where it goes ---------------------
-arrow((419, 76), (436, 76), GREY, 0.9)
-arrow((419, 102), (436, 102), GREEN, 0.9)
-arrow((419, 146), (436, 146), BLUE, 0.9)
+arrow((419, ACK_Q + 4), (436, ACK_Q + 4), GREY, 0.9)
+arrow((419, RSP_Q + 4), (436, RSP_Q + 4), GREEN, 0.9)
+arrow((419, CMD_Q + 4), (436, CMD_Q + 4), BLUE, 0.9)
 text(440, 24, 72, 9, "to outstation", 6)
-text(440, 72, 72, 9, "to master", 6)
-text(440, 98, 72, 9, "to master", 6)
-text(440, 142, 72, 9, "to outstation", 6)
+text(440, ACK_Q, 72, 9, "to master", 6)
+text(440, RSP_Q, 72, 9, "to master", 6)
+text(440, CMD_Q, 72, 9, "to outstation", 6)
 
-# ---------------- the blocker loopback, closed back into the queues it feeds -------------------
-# It leaves the scheduler, turns inside the switch and re-enters the blocker queue, which is what
-# keeps that queue non-empty until the deadline. Drawn closed because it never reaches a cable: an
-# open end would suggest blocker packets leave the switch. Each return runs in the gap above its
-# own blocker row, so it crosses no label.
-LOOP = f"endArrow=none;strokeColor={AMBER};strokeWidth=0.7;dashed=1;dashPattern=3 2;rounded=1;"
-for sched_y, ret in ((60, 56), (86, 82), (130, 126)):
-    edge((414, sched_y), (170, ret), LOOP, pts=((414, ret), (170, ret)))
-    edge((170, ret), (170, sched_y + 4), LOOP)
-    arrow((170, sched_y + 4), (175, sched_y + 4), AMBER, 0.7, dashed=True)
+# ---------------- the blocker loopback, closed at BOTH ends ------------------------------------
+# It leaves the scheduler that drains the pair, turns inside the switch and re-enters the blocker
+# queue, which is what keeps that queue non-empty until the deadline. Both ends are anchored and
+# both are visible: the vertical leg off the scheduler is ten units rather than four, and a filled
+# dot marks where it attaches. In the earlier version that leg was a four-unit stub and the route
+# read as ending in mid-air.
+LOOP = f"endArrow=none;strokeColor={AMBER};strokeWidth=0.8;dashed=1;dashPattern=3 2;rounded=1;"
+for blk_y in (ACK_BLK, RSP_BLK, CMD_BLK):
+    ret = blk_y - 10
+    vertex(412.2, blk_y - 1.8, 3.6, 3.6,
+           f"ellipse;fillColor={AMBER};strokeColor={AMBER};strokeWidth=0.5;")
+    edge((414, blk_y), (170, ret), LOOP, pts=((414, ret), (170, ret)))
+    edge((170, ret), (170, blk_y + 4), LOOP)
+    arrow((170, blk_y + 4), (175, blk_y + 4), AMBER, 0.8, dashed=True)
 
 xml = (f'<mxfile host="drawio"><diagram name="fig_design" id="des">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" '

@@ -61,14 +61,14 @@ moves from 2.937~ms under Timing OFF to 4.000~ms, and its interquartile range fa
 panel of Figure~\ref{fig:tail}, we show that the OPERATE interval follows the configured
 $\mathrm{CLRT}_{\mathrm{new}}$ and ignores every other configured offset.
 
-\begin{figure}[tbp]
+\begin{figure*}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_policy_coverage_cost}
-  \caption{Release policy and cost. (a) Coverage against the budget $D$ and the horizon $H$. (b) Measured
-  against configured interval at $D=24$~ms. (c) Acknowledgment hold against its setting. (d)
-  End-to-end response time per class.}
+  \includegraphics[width=\textwidth]{figures/ndss/fig_policy_coverage_cost}
+  \caption{Release policy and cost. (a) The Timing OFF response time the budget must cover, for the
+  read lane only. (b) Measured against configured interval at a fixed budget $D=28$~ms. (c)
+  Request-to-response time per operation, in both cases.}
   \label{fig:policy}
-\end{figure}
+\end{figure*}
 
 \textbf{Programmable Policy.} Based on one budget, an operator can place the released interval
 anywhere within it. In Figure~\ref{fig:policy}(b), we show that at a fixed budget of 24~ms, configured values
@@ -86,8 +86,11 @@ longer sustain the hold, and the released interval rises to 9.507~ms at a 36~ms 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_leakage}
-  \caption{Fingerprinting the three operations, one grouped run held out at a time. (a) Balanced accuracy
-  by adversary, whiskers spanning the 22 runs. (b) Mutual information against a permutation null.}
+  \caption{Fingerprinting the three operations, one grouped run held out at a time. (a) Balanced
+  accuracy by adversary; the fixed adversary is trained on Timing OFF traffic and applied
+  unchanged, the adaptive one is retrained on obfuscated traffic. (b) What pooling several
+  exchanges of one operation buys the adaptive adversary. Whiskers and bands span the 22 runs,
+  which is within-campaign variability and not a confidence interval.}
   \label{fig:leakage}
 \end{figure}
 
