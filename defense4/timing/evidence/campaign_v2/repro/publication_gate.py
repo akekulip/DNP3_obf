@@ -25,6 +25,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent                                  # campaign_v1/
 REPO = HERE.parents[4]                              # repository root
+# The manuscript has one set of campaign figures and they must describe the build that shipped, so
+# campaign_v2 publishes to the directory campaign_v1 used to publish to. That is a supersession,
+# not a collision: once this gate has run with --update, campaign_v1's own gate no longer matches
+# the published figures and is not expected to. campaign_v1 stays on disk as the record of the
+# build that was evaluated and found wanting, and its README says so.
 PUB_FIGS = REPO / "paper" / "rewrite" / "figures" / "ndss"
 FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_feature_overlap",
            "fig_leakage", "fig_stability"]
@@ -172,7 +177,7 @@ def main(out_dir, update=False):
         for p in sorted(PUB_FIGS.iterdir()):
             if p.is_file() and not any(p.name.startswith(s) for s in FIGURES) \
                and p.name not in ("FIGURES.sha256", VALUES_NAME,
-                                  "FIGURE_PROVENANCE_campaign_v1.md"):
+                                  "FIGURE_PROVENANCE_campaign_v2.md"):
                 p.unlink()
         for stem in FIGURES:
             for suf in SUFFIXES:

@@ -1,4 +1,17 @@
-# campaign_v1 — the active timing evidence
+# campaign_v1 — the evaluated build, archived
+
+> **Superseded as the publishing dataset, 2026-09-18.** The build this dataset evaluates arms the
+> read lane's release deadlines at the relay's own transport acknowledgment, which puts the relay's
+> acknowledgment latency inside the interval the master sees and *raises* what an adaptive adversary
+> recovers from it — 0.568 bits against 0.094 undefended. The diagnosis, the fix and the
+> before-and-after on the same hardware are in `defense4/timing/anchor_fix/FINDINGS.md`;
+> `../campaign_v2/` is the corrected build and is what the manuscript's figures are built from.
+>
+> This dataset stays on disk unchanged, because it is the record of what was evaluated and it is
+> what the correction is measured against. Its `repro/reproduce.sh` still rebuilds every number and
+> figure *of this dataset*, but its final publication gate compares against
+> `paper/rewrite/figures/ndss/`, which campaign_v2 now publishes; that comparison is expected to
+> fail and is not a defect.
 
 Real-hardware DNP3 timing evidence for the NDSS manuscript. One SEL-751A relay behind one
 Intel Tofino-1, all timestamps taken on the master-facing link. This tree supersedes
