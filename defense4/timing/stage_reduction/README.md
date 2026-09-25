@@ -1,6 +1,6 @@
 # Timing-only stage reduction
 
-The candidate compiles to **8 ingress stages and 0 egress stages**, versus 12 and
+The candidate compiles to **7 ingress stages and 0 egress stages**, versus 12 and
 6 for the request-anchored baseline. Removing sizing alone still uses 12 ingress
 stages. The source remains an offline-validated candidate: packet execution and
 hardware timing have not been validated.
@@ -9,11 +9,13 @@ hardware timing have not been validated.
 |---|---:|---:|---:|---:|
 | Request-anchored baseline | 12 | 6 | 12 | 113 |
 | Sizing removed only | 12 | 0 | 12 | 98 |
-| Optimized timing candidate | 8 | 0 | 8 | 75 |
+| Eight-stage checkpoint (`29feefaa`) | 8 | 0 | 8 | 75 |
+| Optimized timing candidate | 7 | 0 | 7 | 73 |
 
 Baseline: `../anchor_fix/src/defense4_rrc_bor_unified12.p4`, SHA256
 `4bba0949489f2a36fde842335e9256aa0b3fbda107be5998d43ef90c26d8dc56`.
-The initial recovery commit is `eb8f0ae7`; branch:
+Recovery commits: `eb8f0ae7` before changes, and `29feefaa` for the verified
+eight-stage candidate; branch:
 `optimize/timing-only-eight-stages`. Frozen sources, captures, and paper claims
 are unchanged.
 
@@ -32,8 +34,16 @@ are unchanged.
   remains post-write, while ACK/response ages remain pre-write.
 - Give the ACK-release record a separate result and use the current generation
   directly, removing the dependency on a reused write operand.
-- Place response authorization and deadline selection at stage 3. These two
-  hints prevent PHV overlay choices from introducing a ninth placement stage.
+- Select expected-ACK register access from the class driver's original inputs,
+  so it runs at stage 1 without waiting for the class byte.
+- Use the budget flag directly inside the TOKEN-only epoch action; non-TOKEN
+  epoch reads stay read-only. This removes a redundant watchdog flag dependency.
+- Group response authorization and fail-open operand writes in one mutually
+  exclusive branch after the trackers. The mode guards remain unchanged.
+- Keep the first-ACK predicate at values 0/1 in a 32-bit container, matching its
+  SALU output bus. Placement hints put response authorization at stage 2,
+  operand selection at 3, state decode at 4, and commit at 6. The compiler's
+  final PHV pass and assembled binary both meet seven stages.
 
 The terminal `tbl_commit` is still const-mapped with a fail-open default. Timing
 parameters, packet bytes, queue choices, and recirculation budgets are preserved
@@ -48,7 +58,7 @@ From the repository root (choose a new output directory for each build):
 ```bash
 python3 defense4/timing/stage_reduction/build.py \
   defense4/timing/stage_reduction/src/defense4_timing.p4 \
-  /tmp/dnp3-timing-build --max-ingress 8
+  /tmp/dnp3-timing-build --max-ingress 7
 DNP3_BFRT_JSON=/tmp/dnp3-timing-build/out/bfrt.json \
   python3 -m pytest defense4/timing/stage_reduction/tests \
   defense4/timing/stage_reduction/control/tests -q
@@ -73,10 +83,16 @@ directory and did not load a pipeline.
 
 ## Validation boundaries and retained defects
 
+The final candidate passes 55 offline regression and control-plane tests. Both
+compiler builds and the model feasibility report identify the same source hash;
+see `evidence/verification.txt` for commands and results.
+
 Source-driven differential tests cover deadline selection, arm/disarm behavior,
 first-ACK detection, BOR epoch/readiness, outcome priority, token watchdogs,
-ACK-release recording, and timestamp wrap. Mutation controls check that changed
-RegisterAction/action bodies cannot silently pass the reference model. These are
+ACK-release recording, timestamp wrap, the raw ACK tracker selector, and the
+mutually exclusive fail-open/response operand writers. Mutation controls cover
+changed RegisterAction/action bodies and the required ordering of tracker inputs
+and response authorization. These are
 fragment tests, not complete packet-sequence or concurrent-packet equivalence.
 Control tests check the generated BFRT interface and sizing-free dry-run setup.
 BFRT schema presence does not prove physical default-entry readback.

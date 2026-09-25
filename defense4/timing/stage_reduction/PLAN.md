@@ -34,3 +34,22 @@ switch was inspected read-only and runs the unrelated `mvm_tna` program.
 The parent owns candidate P4 and compiler experiments. Independent agents own
 source-driven verification, timing-only setup, and isolated model validation.
 An independent final review checks the retained diff and evidence.
+
+## Seven-stage follow-up
+
+Eight-stage recovery commit: `29feefaa` (SDE 9.13.1 and 9.13.2, 41 tests pass).
+Keep the terminal commit table and all runtime behavior. Test two redundant
+head dependencies independently: select expected-ACK read/write from the class
+driver's original raw predicates, and use budget_zero directly inside the
+TOKEN-only epoch action while making non-TOKEN epoch reads unconditional reads.
+Add differential selector/watchdog checks before retaining either change; compile
+against both SDEs and retain eight stages if seven cannot be verified.
+
+The retained candidate also groups the mutually exclusive response-authorize and
+fail-open operand writers after the session trackers. A 32-bit first-ACK predicate
+container and explicit placement hints let the final PHV pass retain seven stages.
+Both SDE 9.13.1 and 9.13.2 compile and assemble the identical source to 7 ingress /
+0 egress stages, critical path 7, and 73 allocated tables. Evidence is in
+`evidence/candidate` and `evidence/candidate_sde9132`; `29feefaa` retains the
+eight-stage source and reports. Packet execution remains unverified because the
+isolated model needs privileges unavailable in this environment.

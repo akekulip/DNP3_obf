@@ -30,7 +30,7 @@ import dnp3_wire  # noqa: E402
 DEFAULT_SDE = Path("/home/philip/bf-sde-9.13.1")
 DEFAULT_ARTIFACTS = {
     "baseline": Path("/tmp/dnp3-stage-reduction/repro_baseline/out"),
-    "candidate": Path("/tmp/dnp3-stage-reduction/clean_final/out"),
+    "candidate": Path("/tmp/dnp3-stage-reduction/seven_verified/out"),
 }
 
 

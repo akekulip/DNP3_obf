@@ -717,12 +717,8 @@ struct headers_t {
  *      added   : meta.verdict, meta.sess         (+2)
  * and every genuinely new value is 16- or 32-bit, landing in the empty H/W groups.
  *
- * CONSENSUS §4's pre-identified fix is APPLIED, not held in reserve: reg_ack_rel's
- * two SALU operands REUSE meta.tag_val (write) and meta.tag_diff (result). Both are
- * provably dead on exactly the two paths that touch reg_ack_rel — CLASS_RESP and
- * CLASS_ACK_REL both take the reg_tag `tag_read` arm, which has NO PHV input and
- * performs no write. This costs ZERO new PHV containers. It couples two registers'
- * liveness, so the coupling is spelled out at every site. */
+ * The candidate uses independent rel_diff and tag_diff fields to avoid making
+ * ACK-release recording wait for the state decoder's input consumption. */
 struct ig_meta_t {
     /* ---- parser-computed classification ---- */
     bit<8>  role;          /* ROLE_*                                              */
@@ -790,7 +786,6 @@ struct ig_meta_t {
     bit<8>  gen_stored;    /* reg_bor_gen pre-state (held-OPERATE generation, dedup)        */
     bit<8>  hold_ok;       /* Fresh OPERATE has a live, resident prepared epoch. */
     bit<8>  blk_op_live;   /* 1 = OP token carries the current epoch (ib.gen==reg_bor_epoch)*/
-    bit<8>  tok_spent;     /* 1 = an OP token (BPC_TOKEN) with budget_zero (watchdog fold)  */
     bit<8>  verdict_bor;   /* V_OP_* from reg_bor_gen decode                                */
     bit<8>  rand8;         /* per-transaction unobservable draw for J (Tofino PRNG)         */
     bit<32> j_ticks;       /* J in 256-ns ticks from the leak-safe codebook                 */
@@ -821,7 +816,7 @@ struct ig_meta_t {
      * REPLACE the removed telemetry ev_* flags (net -1 in the exhausted B0-15 group). */
     bit<8>  pgen_slot;     /* 0 = invalid id / drop, 1 = ACK blocker (id 0..63),
                             * 2 = RESP blocker (id 64..127). Only read under is_pktgen. */
-    bit<8>  ack_first;     /* SALU predicate: this ACK armed an unarmed deadline. */
+    bit<32> ack_first;     /* SALU predicate: this ACK armed an unarmed deadline. */
 
     /* ---- request-triggered pktgen ---- */
     bit<8>     is_pktgen;    /* 1 = admitted from the pktgen source (dp68)              */
@@ -944,9 +939,9 @@ parser IgParser(packet_in pkt,
         meta.dl_val_resp     = DL_NO_WRITE;
         meta.age_resp        = 32w0;
         meta.is_resp_blk     = 8w0;
-        meta.outcome         = 16w0;   /* UNIFIED12: unset -> tbl_commit default (drop) */
+        meta.outcome         = 16w0;   /* Unset -> tbl_commit fail-open default. */
         meta.pgen_slot       = 8w0;
-        meta.ack_first       = 8w0;
+        meta.ack_first       = 32w0;
         meta.clone_tag       = 32w0;
         meta.clone_ses       = 10w0;
         /* §5.6 fix: EXPLICITLY zero the parser-classification fields (implicit init_zero
@@ -1269,6 +1264,9 @@ parser IgParser(packet_in pkt,
 }
 
 /* ============================ ingress control =========================== */
+/* The deadline SALU emits a 32-bit bus. Keep its 0/1 predicate in one word:
+ * splitting it across half-word containers caused an assembler access error. */
+@pa_container_size("ingress", "meta.ack_first", 32)
 control Ingress(inout headers_t hdr,
                 inout ig_meta_t meta,
                 in    ingress_intrinsic_metadata_t              ig_intr_md,
@@ -1475,18 +1473,14 @@ control Ingress(inout headers_t hdr,
      * entirety. The armed word is written atomically ONLY when the stored word is
      * still the unarmed sentinel the ARM left behind.
      *
-     * It returns the PRE-STATE rather than the age, because Defense 3 needs to know
-     * something the baseline never asked: DID THIS ACK ARM? The held ACK never
-     * consults `expired` (it is being held, not tested for expiry), so the age is of
-     * no use to it, whereas
-     *      dl_pre == UNARMED_WORD  <=>  this is the FIRST qualifying ACK
-     * is exactly the discriminator between "arm and hold" and "duplicate: hold, but
-     * do NOT push the deadline out". A full 32-bit whole-container compare against a
-     * constant — no bit-slice, no gateway slice. */
-    RegisterAction<bit<32>, bit<1>, bit<8>>(reg_deadline) deadline_arm_once = {
-        void apply(inout bit<32> v, out bit<8> rv) {
-            rv = 8w0;
-            if (v == UNARMED_WORD) { rv = 8w1; v = meta.dl_val; }
+     * Return a 0/1 predicate for whether the pre-state was UNARMED_WORD: this ACK
+     * armed the deadline. A duplicate returns 0 and leaves the deadline unchanged.
+     * The held ACK never tests expiry, so it needs no age result. The comparison
+     * stays inside the SALU, and the predicate uses its full 32-bit output bus. */
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_deadline) deadline_arm_once = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = 32w0;
+            if (v == UNARMED_WORD) { rv = 32w1; v = meta.dl_val; }
         }
     };
 
@@ -1542,14 +1536,9 @@ control Ingress(inout headers_t hdr,
             rv = v;
         }
     };
+    /* TOKEN has its own action below; other classes never retire on a watchdog. */
     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_epoch) epoch_read = {
-        /* a live-epoch OP token whose budget is spent (missing-OPERATE watchdog) retires the
-         * epoch. meta.tok_spent folds (bor_pc==TOKEN && budget_zero) into ONE bit so the action
-         * needs only TWO comparisons (tok_spent, and ib.gen == v = the live-epoch test). */
-        void apply(inout bit<8> v, out bit<8> rv) {
-            rv = v;
-            if (meta.tok_spent == 8w1 && hdr.ib.gen == v) { v = EPOCH_NONE; }
-        }
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; }
     };
     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_epoch) epoch_retire = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = EPOCH_NONE; }
@@ -1560,7 +1549,7 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<8> v, out bit<8> rv) {
             rv = 8w0;
             if (hdr.ib.gen == v) { rv = 8w1; }
-            if (meta.tok_spent == 8w1 && hdr.ib.gen == v) { v = EPOCH_NONE; }
+            if (meta.budget_zero == 8w1 && hdr.ib.gen == v) { v = EPOCH_NONE; }
         }
     };
 
@@ -1768,6 +1757,27 @@ control Ingress(inout headers_t hdr,
             rv = hdr.tcp.ack_no - v;
         }
     };
+
+    /* Same write condition as CLASS_ARM in the class driver, selected from the
+     * original fields so the tracker need not wait for the class byte. Pktgen
+     * wins before ROLE_ARM just as in that driver; every other packet reads. */
+    action write_expected_ack() { meta.ack_diff = exp_ack_w.execute(0); }
+    action read_expected_ack() { meta.ack_diff = exp_ack_r.execute(0); }
+    table tbl_expected_ack {
+        key = {
+            meta.dequeued : ternary;
+            meta.is_pktgen : ternary;
+            meta.role : ternary;
+            meta.sess : ternary;
+        }
+        actions = { write_expected_ack; read_expected_ack; }
+        const default_action = read_expected_ack();
+        const entries = {
+            (8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0) : read_expected_ack();
+            (8w0, 8w0&&&8w0, ROLE_ARM, SESS_MASTER) : write_expected_ack();
+        }
+        size = 2;
+    }
 
     /* ================= fixed-slot timestamp registers (4) =================
      * SPARSE latency capture, write-if-zero = first occurrence.
@@ -2079,6 +2089,7 @@ control Ingress(inout headers_t hdr,
      * belt-and-suspenders that keeps the control channel up rather than blackholing a
      * hypothetical unclassified frame. The unified setup READS THESE BACK and asserts the
      * mapping (it installs nothing here — const entries need no install). */
+    @stage(6)
     table tbl_commit {
         key     = { meta.outcome : exact; }
         actions = { cmt_drop; cmt_fwd; cmt_fwd_clone;
@@ -2389,7 +2400,7 @@ control Ingress(inout headers_t hdr,
     action resp_authorise()   { meta.tag_val = TAG_PENDING_DELTA; }
     action resp_deauthorise() { meta.tag_val = 8w0; }   /* CLASS_RESP: delta 0 = read */
     action resp_untouched()   { }                       /* EVERYTHING ELSE: hands off */
-    @stage(3)
+    @stage(2)
     table tbl_resp_authorise {
         key = {
             meta.pkt_class  : exact;
@@ -2440,8 +2451,8 @@ control Ingress(inout headers_t hdr,
     action select_operate_deadlines() {
         meta.dl_val = meta.dl_cand_op; meta.dl_val_resp = meta.tresp_cand_op;
     }
-    /* Keep candidate selection parallel to response authorization. Without both
-     * hints, PHV overlay choices add a placement-only ninth stage on SDE 9.13.1. */
+    /* Operands are ready by stage 3, before the stage-4 parallel deadline access.
+     * Placement hints constrain PHV retries; they do not change packet actions. */
     @stage(3)
     table tbl_select_deadlines {
         key = { meta.bor_pc : exact; meta.hold_ok : exact; }
@@ -2450,6 +2461,7 @@ control Ingress(inout headers_t hdr,
         const entries = { (BPC_OPERATE, 8w1) : select_operate_deadlines(); }
         size = 1;
     }
+    @stage(4)
     table tbl_state_decode {
         key = {
             meta.bor_pc : ternary;
@@ -2722,45 +2734,45 @@ control Ingress(inout headers_t hdr,
         const default_action = dec_o(OUT_BYPASS);   /* ROLE_BYPASS: transparent forward */
         const entries = {
 #ifdef U_BOR
-            (BPC_OPERATE, V_OP_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_OP_DUP);
-            (BPC_OPERATE, V_OP_FRESH, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_OP_HOLD);
-            (BPC_PKTGEN_OP, 8w0&&&8w0, 8w0&&&8w0, EPOCH_NONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
-            (BPC_PKTGEN_OP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_admit_op(OUT_OP_ADMIT);
+            (BPC_OPERATE, V_OP_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_OP_DUP);
+            (BPC_OPERATE, V_OP_FRESH, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_OP_HOLD);
+            (BPC_PKTGEN_OP, 8w0&&&8w0, 8w0&&&8w0, EPOCH_NONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
+            (BPC_PKTGEN_OP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_admit_op(OUT_OP_ADMIT);
 #endif
             /* trigger clone: dropped, tested first */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_CLONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_CLONE);
+             ROLE_CLONE, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_CLONE);
             /* pktgen admission (is_pktgen=1, txn_active=1): slot 1 ack, 2 resp, 0 drop */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0) : dec_admit_ack(OUT_ADMIT_ACK);
+             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w1, 32w0&&&32w0, 8w0&&&8w0) : dec_admit_ack(OUT_ADMIT_ACK);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w2, 8w0&&&8w0, 8w0&&&8w0) : dec_admit_resp(OUT_ADMIT_RESP);
+             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w2, 32w0&&&32w0, 8w0&&&8w0) : dec_admit_resp(OUT_ADMIT_RESP);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
+             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w1, 8w0&&&8w0, 8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
             /* pktgen but no active txn (txn_active != 1): drop */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
+             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_PKTGEN_DROP);
             /* R3: fresh non-pktgen 0x88C1 (host injection): reject */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_BLOCK_REJECT);
+             ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_BLOCK_REJECT);
             /* RESPONSE: OFF forwards even a (structurally unreachable) held RESP; then hold
              * (txn_active=1, LATE iff tag_diff==0), dup (2), else bypass. The OFF arm mirrors the
              * frozen oracle exactly even on the unreachable mode=OFF&txn_active=1 state. */
@@ -2768,76 +2780,76 @@ control Ingress(inout headers_t hdr,
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_OFF_FWD);
+             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_RESP_OFF_FWD);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0) : dec_o(OUT_RESP_HOLD_LATE);
+             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0) : dec_o(OUT_RESP_HOLD_LATE);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_HOLD_EARLY);
+             8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_RESP_HOLD_EARLY);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_RESP, V_RESP, 8w2, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_DUP_SUPP);
+             8w0&&&8w0, CLASS_RESP, V_RESP, 8w2, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_RESP_DUP_SUPP);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_RESP_BYPASS_FWD);
+             8w0&&&8w0, CLASS_RESP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_RESP_BYPASS_FWD);
             /* ACK: OFF forwards; D4 holds (first arms, second dup); else reject */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
+             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0) : dec_o(OUT_ACK_HOLD);
+             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w1, 8w0&&&8w0) : dec_o(OUT_ACK_HOLD);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0) : dec_o(OUT_ACK_DUP_HOLD);
+             8w0&&&8w0, CLASS_ACK, V_ACK_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0, 8w0&&&8w0) : dec_o(OUT_ACK_DUP_HOLD);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
+             8w0&&&8w0, CLASS_ACK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ACK_REJECT);
             /* ARM (READ): D4 fresh -> clone+fwd; OFF fresh -> fwd no clone (busy slot);
              * dup -> fwd; else concurrent-escape */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_D4_DUAL, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_FRESH);
+             8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_D4_DUAL, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ARM_FRESH);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
+             8w0&&&8w0, CLASS_ARM, V_ARM_FRESH, 8w0&&&8w0, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ARM, V_ARM_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_DUP);
+             8w0&&&8w0, CLASS_ARM, V_ARM_DUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ARM_DUP);
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             8w0&&&8w0, CLASS_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
+             8w0&&&8w0, CLASS_ARM, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_ARM_BUSY);
             /* UNSUPPORTED segmentation */
             (
 #ifdef U_BOR
              8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0,
 #endif
-             ROLE_RESP_UNSUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0) : dec_o(OUT_UNSUP);
+             ROLE_RESP_UNSUP, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 32w0&&&32w0, 8w0&&&8w0) : dec_o(OUT_UNSUP);
         }
         size = 48;
     }
@@ -3018,10 +3030,6 @@ control Ingress(inout headers_t hdr,
                 if (meta.role == ROLE_BLOCK && hdr.ib.slot == SLOT_OP)  { meta.bor_pc = BPC_TOKEN; }
                 else if (meta.role == ROLE_ARM && hdr.dnp3_app.func_code == DNP3_FC_OPERATE) { meta.bor_pc = BPC_RELEASE; }
             }
-            /* fold (BPC_TOKEN && budget_zero) into ONE bit so epoch_read's watchdog needs
-             * only two SALU comparisons (this flag, and the live-epoch ib.gen==v test). */
-            meta.tok_spent = 8w0;
-            if (meta.bor_pc == BPC_TOKEN && meta.budget_zero == 8w1) { meta.tok_spent = 8w1; }
             meta.rand8 = rng_bor_j.get();      /* per-transaction, unobservable J draw */
             tbl_bor_codebook.apply();
             /* ►► blocker 3: T0-anchored OPERATE ACK/echo deadline candidates. now_word is
@@ -3084,9 +3092,8 @@ control Ingress(inout headers_t hdr,
                 }
             } else if (meta.role == ROLE_ACK) {
                 meta.pkt_class = CLASS_ACK_REL;        /* D3: the released ACK      */
-                /* Defense 4 fix: zero the preserve operand so the D2/D4 tag_read_or_mark
-                 * arm below is a pure read. dec_ack_rel overwrites this with cur_gen at
-                 * level 2, before ack_rel_rmw at level 4, so the record is unaffected. */
+                /* Zero marker delta keeps reg_tag read-only. ACK-release recording
+                 * consumes cur_gen directly, independently of this operand. */
                 meta.tag_val   = 8w0;
             } else if (meta.role == ROLE_RESP) {
                 /* D3: the released RESPONSE completes the transaction. Retiring the
@@ -3097,28 +3104,10 @@ control Ingress(inout headers_t hdr,
                 meta.tag_val = TAG_INACTIVE;
             }
 
-            /* ---------- R2: the fail-open note, one level BEFORE reg_tag ----------
-             * reg_failopen must resolve before reg_tag, because tag_arm consumes
-             * meta.fo_gen as an operand. The two accesses are mutually exclusive, so
-             * exactly one runs per packet and the register takes one access per packet
-             * exactly as reg_tag does. */
-            if (meta.pkt_class == CLASS_ARM) {
-                /* the note becomes tag_arm's second comparison operand. */
-                /* C1: OFF / FAIL_OPEN never arm — tag_val = TAG_NO_WRITE so the reg_tag
-                 * access below is a pure read (the transaction is never made active). */
-                if (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN) {
-                    meta.tag_val = TAG_NO_WRITE;
-                } else {
-                    meta.tag_val = fo_take.execute(0);
-                }
-            } else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1) {
-                fo_note.execute(0);                   /* name my own generation */
-            }
-
             /* ---------- level 1/2: the session trackers ----------
-             * All three are difference-returning. The two seeded from tbl_session's
-             * level-0 action can execute at level 1; reg_exp_ack needs the level-1
-             * exp_ack_cand and so sits at level 2. */
+             * All three return pre-state differences. Session and candidate lookup
+             * run at stage 0, so selecting the ACK access from raw class inputs lets
+             * all three tracker registers execute at stage 1. */
             /* §5.5: class-selected write-enable. exp_seq_w stores on a master->relay
              * session frame (meta.sess == SESS_MASTER); every other frame only tests.
              * In the synthetic build the tracker is control-plane-seeded and the synth
@@ -3131,16 +3120,30 @@ control Ingress(inout headers_t hdr,
                ) { meta.seq_diff = exp_seq_w.execute(0); }
             else { meta.seq_diff = exp_seq_r.execute(0); }
             meta.sport_diff = sess_port_rmw.execute(0);
-            if (meta.pkt_class == CLASS_ARM) {
-                meta.ack_diff = exp_ack_w.execute(0);   /* install EXP_ACK */
-            } else {
-                meta.ack_diff = exp_ack_r.execute(0);   /* test  EXP_ACK   */
-            }
+            tbl_expected_ack.apply();
 
             /* ►► R1: authorise the marker delta BEFORE the tag access. This runs after
              * the session trackers (which produce all three diffs) and before reg_tag,
-             * so it costs one level of dependency on the RESPONSE path only. */
-            tbl_resp_authorise.apply();
+             * Group its operand write with the mutually exclusive fail-open write
+             * so the compiler can place both at stage 2. */
+            /* ---------- R2: the fail-open note, one level BEFORE reg_tag ----------
+             * reg_failopen must resolve before reg_tag, because tag_arm consumes
+             * meta.tag_val as an operand. The two accesses are mutually exclusive, so
+             * exactly one runs per packet and the register takes one access per packet
+             * exactly as reg_tag does. */
+            if (meta.pkt_class == CLASS_RESP) { tbl_resp_authorise.apply(); }
+            else if (meta.pkt_class == CLASS_ARM) {
+                /* the note becomes tag_arm's second comparison operand. */
+                /* C1: OFF / FAIL_OPEN never arm — tag_val = TAG_NO_WRITE so the reg_tag
+                 * access below is a pure read (the transaction is never made active). */
+                if (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN) {
+                    meta.tag_val = TAG_NO_WRITE;
+                } else {
+                    meta.tag_val = fo_take.execute(0);
+                }
+            } else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1) {
+                fo_note.execute(0);                   /* name my own generation */
+            }
 
             /* ---------- level 2: tag access (+ the ACK candidate in parallel) ------
              * THREE mutually exclusive arms -> ONE SALU access on reg_tag per packet:

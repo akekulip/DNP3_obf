@@ -1,11 +1,20 @@
-Eight-stage checkpoint validation
-Source SHA256: d340e2f532a1cd622313b8f7891494a79ea6b9457d3ac51fa77f84f8682a48f1
-pytest tests + control/tests: 41 passed in 30.20s
+Seven-stage candidate validation
+Eight-stage recovery commit: 29feefaa
+Source SHA256: d2306158f59e69c622654b0577e4518e5be7a69eb927f80c3727f07f8c553090
+SDE 9.13.1 full compile/assembly: PASS, 7 ingress / 0 egress, critical path 7, 73 tables
+SDE 9.13.2 full compile/assembly: PASS, 7 ingress / 0 egress, critical path 7, 73 tables
+Final source/build/schema/model artifact hashes agree: PASS
+DNP3_BFRT_JSON=/tmp/dnp3-stage-reduction/seven_verified/out/bfrt.json
+python3 -m pytest defense4/timing/stage_reduction/tests defense4/timing/stage_reduction/control/tests -q
+Result: 55 passed in 33.09s
+Default committed-schema build evidence tests: 4 passed in 0.01s
 Timing setup dry-run: PASS
 Parameter-policy selftest: 0 failures
 Counter-map/source check: MATCH
 Python compileall: PASS
 git diff --check: PASS
 Local model packet execution: BLOCKED (CAP_NET_RAW/root unavailable)
+Source-order and semantic mutation controls included; no packet-sequence equivalence claim.
+Independent code/spec/security review: no outstanding findings; prior ordering-test gap closed.
 Independent architecture review: unavailable (configured model unsupported)
 No hardware pipeline or traffic changes.

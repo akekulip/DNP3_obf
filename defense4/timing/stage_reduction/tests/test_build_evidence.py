@@ -24,10 +24,12 @@ class TestBuildEvidence(unittest.TestCase):
     def test_compiled_schema_and_manifest_belong_to_current_source(self):
         root = Path(__file__).resolve().parents[1]
         schema = Path(os.environ.get("DNP3_BFRT_JSON", root / "evidence/candidate/bfrt.json"))
-        manifest = schema.parent / "manifest.json"
-        if not manifest.exists():
-            manifest = schema.parent.parent / "manifest.json"
-        evidence = json.loads(manifest.read_text())
+        # out/manifest.json is the compiler's own schema, not our build evidence.
+        evidence = next((data for path in (
+            schema.parent / "manifest.json", schema.parent.parent / "manifest.json")
+            if path.exists() for data in (json.loads(path.read_text()),)
+            if "source_sha256" in data and "artifact_sha256" in data), None)
+        self.assertIsNotNone(evidence, f"No build evidence manifest for {schema}")
         self.assertEqual(hashlib.sha256((root / "src/defense4_timing.p4").read_bytes()).hexdigest(),
                          evidence["source_sha256"])
         self.assertEqual(hashlib.sha256(schema.read_bytes()).hexdigest(),

@@ -2,7 +2,7 @@
 
 `model_smoke.py` is a conservative local probe for the stage-reduction
 artifacts. It validates the baseline bundle and the final candidate bundle
-(`/tmp/dnp3-stage-reduction/clean_final/out` by default), writes
+(`/tmp/dnp3-stage-reduction/seven_verified/out` by default), writes
 DNP3 SELECT/OPERATE/echo packet vectors using
 `defense4/timing/implementation/harness/dnp3_wire.py`, and attempts two local
 SDE probes for each bundle:

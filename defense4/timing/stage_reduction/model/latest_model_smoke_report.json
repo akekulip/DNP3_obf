@@ -36,33 +36,33 @@
       "compiler_version": "9.13.1 (e558d01)",
       "files": {
         "bfrt.json": {
-          "bytes": 325928,
-          "sha256": "81f7b9aed7b38bba98c5367bb45bcfccacca71a7ea259e80d6140acac47e5533"
+          "bytes": 327218,
+          "sha256": "21758163bced483dae74b4b755fd6dfb43ec67b65bb884be7731750f9f3d1c39"
         },
         "defense4_timing.conf": {
-          "bytes": 1391,
-          "sha256": "dc702175d7913ad359e7fa128ee4d104c558c046c70826d7b14e54eef874b239"
+          "bytes": 1406,
+          "sha256": "13d3faaa45be9ee4973e9f2261121bc86ae88884c840f7639e534d41abc84f2b"
         },
         "manifest.json": {
-          "bytes": 6526,
-          "sha256": "7875c695e5d8422c0ede971ef2858647debde581eb187eb2d734fba159a22f3d"
+          "bytes": 6535,
+          "sha256": "b605b92eec5c0937d8f7b899f21edde126590c94d479c5a567b3d45cf98059f8"
         },
         "pipe/context.json": {
-          "bytes": 3570765,
-          "sha256": "a535c5ec43313fabcad729f2308c668280158897f2364e273d2bb3222f44b03d"
+          "bytes": 3513646,
+          "sha256": "3a0eae4377259865156baf2c5c26def88d4e6beac264722f4699a8c957339b49"
         },
         "pipe/tofino.bin": {
-          "bytes": 1426000,
-          "sha256": "89b75ec05c1a82083226b58fea1d9070b987427b0cfc99df536e517caca7cb4c"
+          "bytes": 1425172,
+          "sha256": "2239c70dd4b19f4946cb550d9b1d35248e9d78ac87b2cef815442248cb988f1c"
         }
       },
       "label": "candidate",
       "missing": [],
       "ok": true,
-      "out_dir": "/tmp/dnp3-stage-reduction/clean_final/out",
+      "out_dir": "/tmp/dnp3-stage-reduction/seven_verified/out",
       "program_name": "defense4_timing.p4",
-      "source_p4": "/tmp/dnp3-stage-reduction/clean_final/defense4_timing.p4",
-      "source_sha256": "6d3e0e9ef4b995ac363d7a96822c0ba9b603630a21d15573337e4e8613af6d7f"
+      "source_p4": "/tmp/dnp3-stage-reduction/seven_verified/defense4_timing.p4",
+      "source_sha256": "d2306158f59e69c622654b0577e4518e5be7a69eb927f80c3727f07f8c553090"
     }
   },
   "limitations": [
@@ -75,20 +75,20 @@
     "echo": {
       "bytes": 49,
       "hex": "05642644010000002f77e0c08184000c011702000101c8000000f05a0000000000010101c80000000000000097da00ffff",
-      "path": "/tmp/dnp3-model-1790368200-1207322/vectors/echo.bin",
+      "path": "/tmp/dnp3-model-1790369401-1268126/vectors/echo.bin",
       "sha256": "c64e2b3f4ecf0227aa469a1a0abe26656d6858d6111e2c3bd4fff1f9a3ad47e7"
     },
     "echo_matches_sel_reference": true,
     "operate": {
       "bytes": 45,
       "hex": "056424c4000001004a59c0c0040c011702000101c80000000000f565000000010101c80000000000000000a27a",
-      "path": "/tmp/dnp3-model-1790368200-1207322/vectors/operate.bin",
+      "path": "/tmp/dnp3-model-1790369401-1268126/vectors/operate.bin",
       "sha256": "2a969783a91e25166dfd2760bd96267e69bf10e06baa4287e5c821915ba4bd7f"
     },
     "select": {
       "bytes": 45,
       "hex": "056424c4000001004a59c0c0030c011702000101c8000000000025dd000000010101c80000000000000000a27a",
-      "path": "/tmp/dnp3-model-1790368200-1207322/vectors/select.bin",
+      "path": "/tmp/dnp3-model-1790369401-1268126/vectors/select.bin",
       "sha256": "10c3b378497a02f652df9b01301b1a818dc2c9b75b8dcb52cbc76c227b1075ed"
     },
     "select_parse": {
@@ -117,35 +117,35 @@
       ],
       "classification": {
         "first_lines": [
-          "2026-09-25 16:30:00.347094 BF_SWITCHD DEBUG - bf_switchd: system services initialized",
-          "2026-09-25 16:30:00.347126 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /tmp/dnp3-stage-reduction/repro_baseline/out/defense4_timing.conf...",
-          "2026-09-25 16:30:00.347145 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...",
-          "2026-09-25 16:30:00.347174 BF_SWITCHD DEBUG - Configuration for dev_id 0",
-          "2026-09-25 16:30:00.347184 BF_SWITCHD DEBUG -   Family        : tofino",
-          "2026-09-25 16:30:00.347192 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0",
-          "2026-09-25 16:30:00.347201 BF_SWITCHD DEBUG -   pci_int_mode  : 0",
-          "2026-09-25 16:30:00.347210 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware",
-          "2026-09-25 16:30:00.347219 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...",
-          "2026-09-25 16:30:00.347248 BF_SWITCHD DEBUG - P4 profile for dev_id 0",
-          "2026-09-25 16:30:00.347258 BF_SWITCHD DEBUG - num P4 programs 1",
-          "2026-09-25 16:30:00.347266 BF_SWITCHD DEBUG -   p4_name: defense4_timing",
-          "2026-09-25 16:30:00.347275 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe",
-          "2026-09-25 16:30:00.347284 BF_SWITCHD DEBUG -     libpd: ",
-          "2026-09-25 16:30:00.347293 BF_SWITCHD DEBUG -     libpdthrift: ",
-          "2026-09-25 16:30:00.347301 BF_SWITCHD DEBUG -     context: /tmp/dnp3-stage-reduction/repro_baseline/out/pipe/context.json",
-          "2026-09-25 16:30:00.347310 BF_SWITCHD DEBUG -     config: /tmp/dnp3-stage-reduction/repro_baseline/out/pipe/tofino.bin",
-          "2026-09-25 16:30:00.347319 BF_SWITCHD DEBUG -   Pipes in scope [",
-          "2026-09-25 16:30:00.347328 BF_SWITCHD DEBUG - 0 ",
-          "2026-09-25 16:30:00.347336 BF_SWITCHD DEBUG - 1 ",
-          "2026-09-25 16:30:00.347345 BF_SWITCHD DEBUG - 2 ",
-          "2026-09-25 16:30:00.347354 BF_SWITCHD DEBUG - 3 ",
-          "2026-09-25 16:30:00.347363 BF_SWITCHD DEBUG - ]",
-          "2026-09-25 16:30:00.347376 BF_SWITCHD DEBUG -   diag: ",
-          "2026-09-25 16:30:00.347384 BF_SWITCHD DEBUG -   accton diag: ",
-          "2026-09-25 16:30:00.347394 BF_SWITCHD DEBUG -   Agent[0]: /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so",
-          "2026-09-25 16:30:00.405029 BF_SWITCHD DEBUG - bf_switchd: library /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so loaded",
-          "2026-09-25 16:30:00.405696 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized",
-          "2026-09-25 16:30:00.405898 BF_PLTFM ERROR - Error unable to find cdc_ethernet port",
+          "2026-09-25 16:50:01.473145 BF_SWITCHD DEBUG - bf_switchd: system services initialized",
+          "2026-09-25 16:50:01.473177 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /tmp/dnp3-stage-reduction/repro_baseline/out/defense4_timing.conf...",
+          "2026-09-25 16:50:01.473197 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...",
+          "2026-09-25 16:50:01.473225 BF_SWITCHD DEBUG - Configuration for dev_id 0",
+          "2026-09-25 16:50:01.473234 BF_SWITCHD DEBUG -   Family        : tofino",
+          "2026-09-25 16:50:01.473243 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0",
+          "2026-09-25 16:50:01.473252 BF_SWITCHD DEBUG -   pci_int_mode  : 0",
+          "2026-09-25 16:50:01.473260 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware",
+          "2026-09-25 16:50:01.473269 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...",
+          "2026-09-25 16:50:01.473299 BF_SWITCHD DEBUG - P4 profile for dev_id 0",
+          "2026-09-25 16:50:01.473308 BF_SWITCHD DEBUG - num P4 programs 1",
+          "2026-09-25 16:50:01.473316 BF_SWITCHD DEBUG -   p4_name: defense4_timing",
+          "2026-09-25 16:50:01.473325 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe",
+          "2026-09-25 16:50:01.473334 BF_SWITCHD DEBUG -     libpd: ",
+          "2026-09-25 16:50:01.473342 BF_SWITCHD DEBUG -     libpdthrift: ",
+          "2026-09-25 16:50:01.473351 BF_SWITCHD DEBUG -     context: /tmp/dnp3-stage-reduction/repro_baseline/out/pipe/context.json",
+          "2026-09-25 16:50:01.473360 BF_SWITCHD DEBUG -     config: /tmp/dnp3-stage-reduction/repro_baseline/out/pipe/tofino.bin",
+          "2026-09-25 16:50:01.473368 BF_SWITCHD DEBUG -   Pipes in scope [",
+          "2026-09-25 16:50:01.473377 BF_SWITCHD DEBUG - 0 ",
+          "2026-09-25 16:50:01.473386 BF_SWITCHD DEBUG - 1 ",
+          "2026-09-25 16:50:01.473394 BF_SWITCHD DEBUG - 2 ",
+          "2026-09-25 16:50:01.473403 BF_SWITCHD DEBUG - 3 ",
+          "2026-09-25 16:50:01.473411 BF_SWITCHD DEBUG - ]",
+          "2026-09-25 16:50:01.473423 BF_SWITCHD DEBUG -   diag: ",
+          "2026-09-25 16:50:01.473432 BF_SWITCHD DEBUG -   accton diag: ",
+          "2026-09-25 16:50:01.473441 BF_SWITCHD DEBUG -   Agent[0]: /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so",
+          "2026-09-25 16:50:01.480358 BF_SWITCHD DEBUG - bf_switchd: library /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so loaded",
+          "2026-09-25 16:50:01.480990 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized",
+          "2026-09-25 16:50:01.481225 BF_PLTFM ERROR - Error unable to find cdc_ethernet port",
           ""
         ],
         "parsed_p4_profile": true,
@@ -153,8 +153,8 @@
         "saw_program": true,
         "status_note": "timeout means bf_switchd stayed alive until the harness stopped it"
       },
-      "elapsed_s": 8.006,
-      "log": "/tmp/dnp3-model-1790368200-1207322/logs/baseline_bf_switchd.log",
+      "elapsed_s": 8.01,
+      "log": "/tmp/dnp3-model-1790369401-1268126/logs/baseline_bf_switchd.log",
       "status": "timeout",
       "timeout_s": 8
     },
@@ -175,7 +175,7 @@
         "--chip-type",
         "2",
         "--log-dir",
-        "/tmp/dnp3-model-1790368200-1207322/logs/baseline_model_logs",
+        "/tmp/dnp3-model-1790369401-1268126/logs/baseline_model_logs",
         "--pkt-log-len",
         "256"
       ],
@@ -191,7 +191,7 @@
         "unclassified_nonzero": false
       },
       "elapsed_s": 0.004,
-      "log": "/tmp/dnp3-model-1790368200-1207322/logs/baseline_tofino_model.log",
+      "log": "/tmp/dnp3-model-1790369401-1268126/logs/baseline_tofino_model.log",
       "status": 1,
       "timeout_s": 8
     },
@@ -199,7 +199,7 @@
       "argv": [
         "/home/philip/bf-sde-9.13.1/install/bin/bf_switchd",
         "--conf-file",
-        "/tmp/dnp3-stage-reduction/clean_final/out/defense4_timing.conf",
+        "/tmp/dnp3-stage-reduction/seven_verified/out/defense4_timing.conf",
         "--install-dir",
         "/home/philip/bf-sde-9.13.1/install",
         "--background",
@@ -207,35 +207,35 @@
       ],
       "classification": {
         "first_lines": [
-          "2026-09-25 16:30:08.363397 BF_SWITCHD DEBUG - bf_switchd: system services initialized",
-          "2026-09-25 16:30:08.363424 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /tmp/dnp3-stage-reduction/clean_final/out/defense4_timing.conf...",
-          "2026-09-25 16:30:08.363443 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...",
-          "2026-09-25 16:30:08.363471 BF_SWITCHD DEBUG - Configuration for dev_id 0",
-          "2026-09-25 16:30:08.363480 BF_SWITCHD DEBUG -   Family        : tofino",
-          "2026-09-25 16:30:08.363489 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0",
-          "2026-09-25 16:30:08.363499 BF_SWITCHD DEBUG -   pci_int_mode  : 0",
-          "2026-09-25 16:30:08.363508 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware",
-          "2026-09-25 16:30:08.363517 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...",
-          "2026-09-25 16:30:08.363548 BF_SWITCHD DEBUG - P4 profile for dev_id 0",
-          "2026-09-25 16:30:08.363557 BF_SWITCHD DEBUG - num P4 programs 1",
-          "2026-09-25 16:30:08.363566 BF_SWITCHD DEBUG -   p4_name: defense4_timing",
-          "2026-09-25 16:30:08.363575 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe",
-          "2026-09-25 16:30:08.363584 BF_SWITCHD DEBUG -     libpd: ",
-          "2026-09-25 16:30:08.363593 BF_SWITCHD DEBUG -     libpdthrift: ",
-          "2026-09-25 16:30:08.363602 BF_SWITCHD DEBUG -     context: /tmp/dnp3-stage-reduction/clean_final/out/pipe/context.json",
-          "2026-09-25 16:30:08.363611 BF_SWITCHD DEBUG -     config: /tmp/dnp3-stage-reduction/clean_final/out/pipe/tofino.bin",
-          "2026-09-25 16:30:08.363619 BF_SWITCHD DEBUG -   Pipes in scope [",
-          "2026-09-25 16:30:08.363628 BF_SWITCHD DEBUG - 0 ",
-          "2026-09-25 16:30:08.363641 BF_SWITCHD DEBUG - 1 ",
-          "2026-09-25 16:30:08.363650 BF_SWITCHD DEBUG - 2 ",
-          "2026-09-25 16:30:08.363658 BF_SWITCHD DEBUG - 3 ",
-          "2026-09-25 16:30:08.363667 BF_SWITCHD DEBUG - ]",
-          "2026-09-25 16:30:08.363679 BF_SWITCHD DEBUG -   diag: ",
-          "2026-09-25 16:30:08.363694 BF_SWITCHD DEBUG -   accton diag: ",
-          "2026-09-25 16:30:08.363703 BF_SWITCHD DEBUG -   Agent[0]: /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so",
-          "2026-09-25 16:30:08.370642 BF_SWITCHD DEBUG - bf_switchd: library /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so loaded",
-          "2026-09-25 16:30:08.371289 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized",
-          "2026-09-25 16:30:08.371491 BF_PLTFM ERROR - Error unable to find cdc_ethernet port",
+          "2026-09-25 16:50:09.483543 BF_SWITCHD DEBUG - bf_switchd: system services initialized",
+          "2026-09-25 16:50:09.483584 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /tmp/dnp3-stage-reduction/seven_verified/out/defense4_timing.conf...",
+          "2026-09-25 16:50:09.483613 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...",
+          "2026-09-25 16:50:09.483652 BF_SWITCHD DEBUG - Configuration for dev_id 0",
+          "2026-09-25 16:50:09.483668 BF_SWITCHD DEBUG -   Family        : tofino",
+          "2026-09-25 16:50:09.483682 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0",
+          "2026-09-25 16:50:09.483696 BF_SWITCHD DEBUG -   pci_int_mode  : 0",
+          "2026-09-25 16:50:09.483710 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware",
+          "2026-09-25 16:50:09.483725 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...",
+          "2026-09-25 16:50:09.483767 BF_SWITCHD DEBUG - P4 profile for dev_id 0",
+          "2026-09-25 16:50:09.483782 BF_SWITCHD DEBUG - num P4 programs 1",
+          "2026-09-25 16:50:09.483796 BF_SWITCHD DEBUG -   p4_name: defense4_timing",
+          "2026-09-25 16:50:09.483810 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe",
+          "2026-09-25 16:50:09.483825 BF_SWITCHD DEBUG -     libpd: ",
+          "2026-09-25 16:50:09.483839 BF_SWITCHD DEBUG -     libpdthrift: ",
+          "2026-09-25 16:50:09.483853 BF_SWITCHD DEBUG -     context: /tmp/dnp3-stage-reduction/seven_verified/out/pipe/context.json",
+          "2026-09-25 16:50:09.483867 BF_SWITCHD DEBUG -     config: /tmp/dnp3-stage-reduction/seven_verified/out/pipe/tofino.bin",
+          "2026-09-25 16:50:09.483881 BF_SWITCHD DEBUG -   Pipes in scope [",
+          "2026-09-25 16:50:09.483895 BF_SWITCHD DEBUG - 0 ",
+          "2026-09-25 16:50:09.483910 BF_SWITCHD DEBUG - 1 ",
+          "2026-09-25 16:50:09.483924 BF_SWITCHD DEBUG - 2 ",
+          "2026-09-25 16:50:09.483938 BF_SWITCHD DEBUG - 3 ",
+          "2026-09-25 16:50:09.483952 BF_SWITCHD DEBUG - ]",
+          "2026-09-25 16:50:09.483971 BF_SWITCHD DEBUG -   diag: ",
+          "2026-09-25 16:50:09.483994 BF_SWITCHD DEBUG -   accton diag: ",
+          "2026-09-25 16:50:09.484009 BF_SWITCHD DEBUG -   Agent[0]: /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so",
+          "2026-09-25 16:50:09.493963 BF_SWITCHD DEBUG - bf_switchd: library /home/philip/bf-sde-9.13.1/install/lib/libpltfm_mgr.so loaded",
+          "2026-09-25 16:50:09.494753 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized",
+          "2026-09-25 16:50:09.494887 BF_PLTFM ERROR - Error unable to find cdc_ethernet port",
           ""
         ],
         "parsed_p4_profile": true,
@@ -244,7 +244,7 @@
         "status_note": "timeout means bf_switchd stayed alive until the harness stopped it"
       },
       "elapsed_s": 8.007,
-      "log": "/tmp/dnp3-model-1790368200-1207322/logs/candidate_bf_switchd.log",
+      "log": "/tmp/dnp3-model-1790369401-1268126/logs/candidate_bf_switchd.log",
       "status": "timeout",
       "timeout_s": 8
     },
@@ -259,13 +259,13 @@
         "-f",
         "None",
         "--p4-target-config",
-        "/tmp/dnp3-stage-reduction/clean_final/out/defense4_timing.conf",
+        "/tmp/dnp3-stage-reduction/seven_verified/out/defense4_timing.conf",
         "--install-dir",
         "/home/philip/bf-sde-9.13.1/install",
         "--chip-type",
         "2",
         "--log-dir",
-        "/tmp/dnp3-model-1790368200-1207322/logs/candidate_model_logs",
+        "/tmp/dnp3-model-1790369401-1268126/logs/candidate_model_logs",
         "--pkt-log-len",
         "256"
       ],
@@ -281,7 +281,7 @@
         "unclassified_nonzero": false
       },
       "elapsed_s": 0.004,
-      "log": "/tmp/dnp3-model-1790368200-1207322/logs/candidate_tofino_model.log",
+      "log": "/tmp/dnp3-model-1790369401-1268126/logs/candidate_tofino_model.log",
       "status": 1,
       "timeout_s": 8
     },
@@ -291,13 +291,13 @@
         "-n",
         "true"
       ],
-      "elapsed_s": 0.033,
-      "log": "/tmp/dnp3-model-1790368200-1207322/logs/sudo_probe.log",
+      "elapsed_s": 0.008,
+      "log": "/tmp/dnp3-model-1790369401-1268126/logs/sudo_probe.log",
       "status": 1,
       "timeout_s": 3
     }
   },
-  "run_dir": "/tmp/dnp3-model-1790368200-1207322",
+  "run_dir": "/tmp/dnp3-model-1790369401-1268126",
   "sde": "/home/philip/bf-sde-9.13.1",
   "sde_install": "/home/philip/bf-sde-9.13.1/install"
 }

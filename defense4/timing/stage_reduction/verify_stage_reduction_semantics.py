@@ -292,10 +292,18 @@ def eval_deadline_arm_once_body(body: str, stored: int, dl_val: int, consts: dic
         new_stored = dl_val & U32 if stored == consts["UNARMED_WORD"] else stored & U32
         return rv, new_stored
 
-    sets_zero_first = "rv = 8w0;" in clean or "rv = 0;" in clean
-    sets_one_in_unarmed = re.search(r"if\s*\(\s*v\s*==\s*UNARMED_WORD\s*\)\s*\{[^}]*rv\s*=\s*8w1\s*;[^}]*v\s*=\s*meta\.dl_val\s*;", clean)
-    sets_value_in_unarmed = re.search(r"if\s*\(\s*v\s*==\s*UNARMED_WORD\s*\)\s*\{[^}]*v\s*=\s*meta\.dl_val\s*;[^}]*rv\s*=\s*8w1\s*;", clean)
-    has_else_zero = re.search(r"else\s*\{[^}]*rv\s*=\s*8w0\s*;", clean)
+    zero_literal = r"(?:8w0|32w0|0)"
+    one_literal = r"(?:8w1|32w1|1)"
+    sets_zero_first = re.search(rf"\brv\s*=\s*{zero_literal}\s*;", clean)
+    sets_one_in_unarmed = re.search(
+        rf"if\s*\(\s*v\s*==\s*UNARMED_WORD\s*\)\s*\{{[^}}]*rv\s*=\s*{one_literal}\s*;[^}}]*v\s*=\s*meta\.dl_val\s*;",
+        clean,
+    )
+    sets_value_in_unarmed = re.search(
+        rf"if\s*\(\s*v\s*==\s*UNARMED_WORD\s*\)\s*\{{[^}}]*v\s*=\s*meta\.dl_val\s*;[^}}]*rv\s*=\s*{one_literal}\s*;",
+        clean,
+    )
+    has_else_zero = re.search(rf"else\s*\{{[^}}]*rv\s*=\s*{zero_literal}\s*;", clean)
     if (sets_zero_first or has_else_zero) and (sets_one_in_unarmed or sets_value_in_unarmed):
         matched = stored == consts["UNARMED_WORD"]
         return (1 if matched else 0), (dl_val & U32 if matched else stored & U32)
@@ -670,3 +678,184 @@ def enumerate_bor_terminal_domain(consts: dict[str, int]) -> Iterable[dict[str, 
                                     "budget_zero": budget_zero,
                                     "epoch_stored": epoch_stored,
                                 }
+
+
+def assert_seven_stage_epoch_action_bodies(source: str) -> None:
+    epoch_read = _norm_p4(extract_register_action_block(source, "epoch_read"))
+    if "rv = v" not in epoch_read or re.search(r"(?<!r)\bv\s*=", epoch_read):
+        raise AssertionError("epoch_read must be a pure pre-state read")
+    epoch_token = _norm_p4(extract_register_action_block(source, "epoch_token"))
+    if "rv = 8w0" not in epoch_token:
+        raise AssertionError("epoch_token must default live predicate to zero")
+    if "if (hdr.ib.gen == v) { rv = 8w1; }" not in epoch_token:
+        raise AssertionError("epoch_token must return hdr.ib.gen == epoch pre-state")
+    if "if (meta.budget_zero == 8w1 && hdr.ib.gen == v) { v = EPOCH_NONE; }" not in epoch_token:
+        raise AssertionError("epoch_token must retire only on spent matching token")
+    if "tok_spent" in strip_comments(source):
+        raise AssertionError("seven-stage source must not use tok_spent")
+
+
+def epoch_baseline_selected(
+    *, bor_pc: int, epoch_stored: int, hdr_gen: int, budget_zero: int, consts: dict[str, int]
+) -> tuple[str, int, int]:
+    if bor_pc == consts["BPC_TOKEN"]:
+        rv, new_epoch = epoch_read_baseline(epoch_stored, hdr_gen, budget_zero, consts)
+        live = 1 if (hdr_gen & 0xFF) == (rv & 0xFF) else 0
+        return "token", live, new_epoch
+    if bor_pc == consts["BPC_PREPARE"]:
+        return "prepare", epoch_stored & 0xFF, 0 if (epoch_stored & 0xFF) == 255 else ((epoch_stored + 1) & 0xFF)
+    if bor_pc == consts["BPC_RELEASE"]:
+        return "release", epoch_stored & 0xFF, consts["EPOCH_NONE"]
+    return "read", epoch_stored & 0xFF, epoch_stored & 0xFF
+
+
+def epoch_candidate_selected(
+    *, bor_pc: int, epoch_stored: int, hdr_gen: int, budget_zero: int, consts: dict[str, int]
+) -> tuple[str, int, int]:
+    if bor_pc == consts["BPC_TOKEN"]:
+        live, new_epoch = epoch_token_candidate(epoch_stored, hdr_gen, budget_zero, consts)
+        return "token", live, new_epoch
+    if bor_pc == consts["BPC_PREPARE"]:
+        return "prepare", epoch_stored & 0xFF, 0 if (epoch_stored & 0xFF) == 255 else ((epoch_stored + 1) & 0xFF)
+    if bor_pc == consts["BPC_RELEASE"]:
+        return "release", epoch_stored & 0xFF, consts["EPOCH_NONE"]
+    return "read", epoch_stored & 0xFF, epoch_stored & 0xFF
+
+
+def assert_seven_stage_expected_ack_source(source: str) -> None:
+    clean = strip_comments(source)
+    if "tbl_expected_ack.apply()" not in clean:
+        raise AssertionError("expected-ACK selector table must be applied")
+    if "if (meta.pkt_class == CLASS_ARM) { meta.ack_diff = exp_ack_w.execute(0);" in clean:
+        raise AssertionError("old pkt_class-dependent exp_ack branch must be removed")
+    table = extract_named_block(source, "tbl_expected_ack")
+    for needle in (
+        "meta.dequeued",
+        "meta.is_pktgen",
+        "meta.role",
+        "meta.sess",
+        "write_expected_ack",
+        "read_expected_ack",
+    ):
+        if needle not in table:
+            raise AssertionError(f"tbl_expected_ack missing {needle}")
+    consts = extract_consts(source)
+    parsed = parse_const_table(source, "tbl_expected_ack", consts)
+    pktgen_arm = {"dequeued": 0, "is_pktgen": 1, "role": consts["ROLE_ARM"], "sess": consts["SESS_MASTER"]}
+    raw_arm = {"dequeued": 0, "is_pktgen": 0, "role": consts["ROLE_ARM"], "sess": consts["SESS_MASTER"]}
+    if parsed.apply(pktgen_arm) != "read_expected_ack":
+        raise AssertionError("pktgen priority read row missing")
+    if parsed.apply(raw_arm) != "write_expected_ack":
+        raise AssertionError("raw CLASS_ARM-equivalent write row missing")
+    write_body = _norm_p4(extract_named_block(source, "write_expected_ack"))
+    read_body = _norm_p4(extract_named_block(source, "read_expected_ack"))
+    if "meta.ack_diff = exp_ack_w.execute(0)" not in write_body:
+        raise AssertionError("write_expected_ack must call exp_ack_w")
+    if "meta.ack_diff = exp_ack_r.execute(0)" not in read_body:
+        raise AssertionError("read_expected_ack must call exp_ack_r")
+    exp_w = _norm_p4(extract_register_action_block(source, "exp_ack_w"))
+    if "rv = hdr.tcp.ack_no - v" not in exp_w or "v = meta.exp_ack_cand" not in exp_w:
+        raise AssertionError("exp_ack_w must return diff and install candidate")
+    exp_r = _norm_p4(extract_register_action_block(source, "exp_ack_r"))
+    if "rv = hdr.tcp.ack_no - v" not in exp_r or re.search(r"(?<!r)\bv\s*=", exp_r):
+        raise AssertionError("exp_ack_r must return diff without writing")
+
+
+def expected_ack_baseline_selector(*, dequeued: int, is_pktgen: int, role: int, sess: int, consts: dict[str, int]) -> str:
+    if dequeued == 0:
+        if is_pktgen == 1:
+            return "read_expected_ack"
+        if role == consts["ROLE_ARM"] and sess == consts["SESS_MASTER"]:
+            return "write_expected_ack"
+    return "read_expected_ack"
+
+
+def expected_ack_action_effect(action: str, *, stored: int, ack_no: int, exp_ack_cand: int) -> tuple[int, int]:
+    diff = (ack_no - stored) & U32
+    if action == "write_expected_ack":
+        return diff, exp_ack_cand & U32
+    if action == "read_expected_ack":
+        return diff, stored & U32
+    raise AssertionError(f"unexpected expected-ACK action {action!r}")
+
+
+def assert_resp_authorise_guard_source(source: str) -> None:
+    apply_block = _norm_p4(extract_named_block(source, "apply"))
+    chain = (
+        "if (meta.pkt_class == CLASS_RESP) { tbl_resp_authorise.apply(); } "
+        "else if (meta.pkt_class == CLASS_ARM)"
+    )
+    if chain not in apply_block:
+        raise AssertionError("tbl_resp_authorise must be first in the CLASS_RESP/CLASS_ARM mutually exclusive chain")
+    if apply_block.count("tbl_resp_authorise.apply();") != 1:
+        raise AssertionError("tbl_resp_authorise must have exactly one guarded apply")
+    if "else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1)" not in apply_block:
+        raise AssertionError("fail-open note branch must remain in the same mutually exclusive chain")
+    block = extract_named_block(source, "tbl_resp_authorise")
+    for needle in ("resp_authorise", "resp_deauthorise", "resp_untouched", "meta.pkt_class", "meta.seq_diff", "meta.ack_diff", "meta.sport_diff"):
+        if needle not in block:
+            raise AssertionError(f"tbl_resp_authorise missing {needle}")
+
+
+def assert_seven_stage_dependency_order(source: str) -> None:
+    apply_block = extract_named_block(source, "apply")
+    positions = {
+        "tbl_build_exp_ack": apply_block.find("tbl_build_exp_ack.apply();"),
+        "exp_seq_w": apply_block.find("exp_seq_w.execute(0)"),
+        "exp_seq_r": apply_block.find("exp_seq_r.execute(0)"),
+        "sess_port_rmw": apply_block.find("sess_port_rmw.execute(0)"),
+        "tbl_expected_ack": apply_block.find("tbl_expected_ack.apply();"),
+        "guarded_resp_authorise": apply_block.find("if (meta.pkt_class == CLASS_RESP) { tbl_resp_authorise.apply(); }"),
+    }
+    missing = [name for name, index in positions.items() if index == -1]
+    if missing:
+        raise AssertionError(f"missing seven-stage dependency-order anchor(s): {', '.join(missing)}")
+    if not positions["tbl_build_exp_ack"] < positions["tbl_expected_ack"]:
+        raise AssertionError("tbl_build_exp_ack must run before tbl_expected_ack")
+    if not positions["exp_seq_w"] < positions["guarded_resp_authorise"]:
+        raise AssertionError("exp_seq_w tracker action must run before guarded tbl_resp_authorise")
+    if not positions["exp_seq_r"] < positions["guarded_resp_authorise"]:
+        raise AssertionError("exp_seq_r tracker action must run before guarded tbl_resp_authorise")
+    if not positions["sess_port_rmw"] < positions["guarded_resp_authorise"]:
+        raise AssertionError("sess_port_rmw must run before guarded tbl_resp_authorise")
+    if not positions["tbl_expected_ack"] < positions["guarded_resp_authorise"]:
+        raise AssertionError("tbl_expected_ack must run before guarded tbl_resp_authorise")
+    assert_resp_authorise_guard_source(source)
+
+
+def resp_authorise_old_effect(table: ParsedTable, fields: dict[str, int], tag_val: int, consts: dict[str, int]) -> int:
+    action = table.apply(fields)
+    if action == "resp_authorise":
+        return consts["TAG_PENDING_DELTA"]
+    if action == "resp_deauthorise":
+        return 0
+    if action == "resp_untouched":
+        return tag_val & 0xFF
+    raise AssertionError(f"unexpected resp_authorise action {action!r}")
+
+
+def resp_authorise_guarded_effect(table: ParsedTable, fields: dict[str, int], tag_val: int, consts: dict[str, int]) -> int:
+    if fields["pkt_class"] != consts["CLASS_RESP"]:
+        return tag_val & 0xFF
+    return resp_authorise_old_effect(table, fields, tag_val, consts)
+
+
+def failopen_authorise_chain_effect(
+    *,
+    pkt_class: int,
+    mode: int,
+    budget_zero: int,
+    tag_val: int,
+    resp_authorised_tag: int,
+    fo_take_value: int,
+    consts: dict[str, int],
+) -> tuple[int, bool]:
+    if pkt_class == consts["CLASS_RESP"]:
+        return resp_authorised_tag & 0xFF, False
+    if pkt_class == consts["CLASS_ARM"]:
+        if mode == consts["MODE_OFF"] or mode == consts["MODE_FAIL_OPEN"]:
+            return consts["TAG_NO_WRITE"], False
+        return fo_take_value & 0xFF, False
+    if pkt_class == consts["CLASS_BLOCK_DEQ"] and budget_zero == 1:
+        return tag_val & 0xFF, True
+    return tag_val & 0xFF, False
