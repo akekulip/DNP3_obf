@@ -53,3 +53,11 @@ Both SDE 9.13.1 and 9.13.2 compile and assemble the identical source to 7 ingres
 `evidence/candidate` and `evidence/candidate_sde9132`; `29feefaa` retains the
 eight-stage source and reports. Packet execution remains unverified because the
 isolated model needs privileges unavailable in this environment.
+
+## Authorized hardware follow-up
+
+The user subsequently authorized loading the candidate, displacing `mvm_tna`,
+and running the master/outstation. That supersedes the original offline-only
+scope above. The 2026-09-25 smoke run passed 80 functional exchanges across OFF
+and D4, with the seven-stage source unchanged. The program is left loaded in D4;
+`hardware/20260925/README.md` records the observations and recovery state.

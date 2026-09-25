@@ -17,4 +17,14 @@ Local model packet execution: BLOCKED (CAP_NET_RAW/root unavailable)
 Source-order and semantic mutation controls included; no packet-sequence equivalence claim.
 Independent code/spec/security review: no outstanding findings; prior ordering-test gap closed.
 Independent architecture review: unavailable (configured model unsupported)
-No hardware pipeline or traffic changes.
+No hardware pipeline or traffic changes during the initial offline validation.
+
+Authorized hardware follow-up: 2026-09-25 (hardware/20260925/README.md)
+mvm_tna displaced; defense4_timing loaded and left running in D4 mode.
+Loaded SDE9.13.2 artifact hashes match this source and the 7-stage build manifest.
+Strict setup readback: PASS in OFF and D4, explicit --read-len 0 --anchor-req 1.
+Per arm: 20/20 READ, 10/10 SELECT, 10/10 OPERATE pass; 80 functional exchanges total.
+G10V2 output status before/after both arms: 32/32 online/open.
+D4 median CLRT ms: READ 3.999057, SELECT 4.000157, OPERATE 4.000514.
+Captures and application logs retained; analyze.py reproduces counts and timing.
+No packet loss/retransmission/concurrency or relay-facing J claim is established.

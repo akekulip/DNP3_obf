@@ -2,8 +2,9 @@
 
 The candidate compiles to **7 ingress stages and 0 egress stages**, versus 12 and
 6 for the request-anchored baseline. Removing sizing alone still uses 12 ingress
-stages. The source remains an offline-validated candidate: packet execution and
-hardware timing have not been validated.
+stages. The candidate is now loaded on physical Tofino and has passed a bounded
+master–SEL-751 test with timing OFF and enabled: 80 functional exchanges succeeded.
+See [hardware evidence](hardware/20260925/README.md) for captures and limits.
 
 | Build | Ingress | Egress | Critical path | Allocated tables |
 |---|---:|---:|---:|---:|
@@ -79,7 +80,8 @@ reports, and the generated candidate BFRT schema. Tests default to that schema;
 set `DNP3_BFRT_JSON` to check a fresh build. The build manifests identify full
 binary/context artifacts kept outside Git. The same candidate was compiled with
 local SDE 9.13.1 and testbed SDE 9.13.2; remote compilation used a temporary
-directory and did not load a pipeline.
+directory. The subsequent authorized hardware deployment is recorded separately
+under `hardware/20260925/`.
 
 ## Validation boundaries and retained defects
 
@@ -114,6 +116,10 @@ Two baseline issues are deliberately not repaired in this optimization:
 The compiler still reports the inherited uninitialized parser metadata warning,
 six unused telemetry/counter warnings, and two parser-unrolling warnings.
 No hardware traffic, ports, queues, mirrors, packet generators, or switch daemon
-were changed. Read-only inspection found the unrelated `mvm_tna` program running.
-Independent architecture review was unavailable because the installed reviewer
-model could not start; this is not a merge-ready or deployment-ready approval.
+were changed during the initial offline work. On 2026-09-25, explicit authorization
+covered replacing `mvm_tna` and running the master/outstation test. The seven-stage
+program remains loaded in D4 mode. Both hardware configuration passes succeeded;
+20 READs and 10 SELECT/OPERATE pairs passed in each arm, with obfuscated median
+response-minus-ACK delays near 4 ms. This smoke test does not establish complete
+equivalence or remove the retained defects above. Independent architecture review
+was unavailable because the installed reviewer model could not start.
