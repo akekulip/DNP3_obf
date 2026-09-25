@@ -1,0 +1,58 @@
+{
+ "figure": "fig_replacement_evidence",
+ "caption": "\\textbf{The mechanism replaces READ timing rather than adding a constant delay.} (a) Empirical CDF of READ CLRT under Timing OFF, a constant-shift counterfactual that moves the Timing OFF median onto the Obfuscated median, and the measured Obfuscated distribution. The constant shift preserves the Timing OFF spread; the measured Obfuscated distribution collapses around the scheduled release. (b) Paired per-run variance ratios, Obfuscated divided by Timing OFF, for READ and SELECT. A pure constant shift would sit on the dotted ratio-one line. Panel (a) uses all 26,400 READ exchanges per arm; panel (b) uses the 22 grouped runs.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
+ "deterministic_seed": 20260828,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
+ },
+ "inputs": [
+  {
+   "path": "pipeline-output/transactions_canonical.csv",
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
+  },
+  {
+   "path": "pipeline-output/replacement_stats.json",
+   "sha256": "71610d53c202395f7ef8d36990ee496c035f38e34f86ea660ce186eeec179dcb"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "pipeline-output/fig_replacement_evidence.pdf",
+   "sha256": "022b6b370280ed74140ab9aae87bcb24ea387afd4659ea37f31aec3a3aaa5254",
+   "authoritative": true
+  },
+  "png": {
+   "path": "pipeline-output/fig_replacement_evidence.png",
+   "sha256": "02c76f15225c976125dbebef11dcd61831ab679d5299840113f8d6acc36bab11",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "pipeline-output/fig_replacement_evidence_data.csv",
+   "sha256": "eca41ae4fd45ee1f79d5787c015b11b6dde9f698c5b5bcf50eed6be3f84cf95a",
+   "rows": 9431,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 3.48,
+  "height": 2.8
+ },
+ "method_note": "Panel (a) derives all three curves from the canonical transaction table. The constant-shift counterfactual is native READ CLRT minus its median plus the obfuscated READ median, so its centred distribution and variance are exactly those of Timing OFF. Panel (b) recomputes sample variance within each grouped run and class, then plots Obfuscated/Timing OFF ratios for READ and SELECT on a logarithmic ordinate. Each grey segment joins the READ and SELECT ratios from the same grouped run, and every point is computed from that run's complete class sample. replacement_stats.json is an explicit input and is checked against the canonical table for the native, obfuscated, and shifted standard deviations.",
+ "limitation_note": "The counterfactual is a deterministic shift of the observed Timing OFF READ samples, not another hardware run. The per-run ratios are descriptive within the same campaign and do not form a confidence interval or cross-deployment estimate. SELECT is the SELECT phase of SBO only.",
+ "notes": {
+  "counterfactual": "canonical READ timing shifted by median(Obfuscated)-median(Timing OFF)",
+  "json_crosscheck": "per-class standard deviations match replacement_stats.json",
+  "ratio": "sample variance of obfuscated CLRT divided by Timing OFF CLRT per grouped run"
+ },
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

@@ -1,12 +1,12 @@
 {
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) What pooling buys the adaptive adversary: balanced accuracy against the number of same-operation exchanges it averages. The band spans the 22 held-out runs, which is within-campaign variability and not a confidence interval, because the folds share training data. Averaging suppresses the noise around a systematic offset, so the adversary climbs with k on obfuscated traffic as well as on Timing OFF traffic. The mutual information and the row-normalised confusion of both attackers are not drawn; every value is in this figure\u2019s data file and in the released leakage record.",
- "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
-  "sha256": "4c95e1daabd9d923f6eebfcc2451897ddb33aa0ee511d6e24de0d644bff7e0d8"
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",

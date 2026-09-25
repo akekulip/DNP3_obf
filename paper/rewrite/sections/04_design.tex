@@ -11,11 +11,14 @@ overhead is negligible and bounded (Section~\ref{sec:design:overhead}).
 
 \begin{figure*}[t]
 \centering
-\IfFileExists{figures/fig_design.pdf}{\includegraphics[width=\textwidth]{figures/fig_design}}{\figplaceholder{One P4 pipeline read left to right: everything on the left arrives at the switch and everything on the right leaves it. The request arms both release deadlines; the read lane holds the acknowledgment and the response, each behind its own queue of blocker packets; the control lane holds a command the same way; a strict-priority scheduler drains each blocker queue first and the blocker loopback returns into it.}}
-\caption{The framework on one switch pipeline, read left to right. A request arms both release
-  deadlines from its own arrival, so neither instant carries anything the outstation did. The
-  scheduler drains each blocker queue before the queue it guards, which is what holds a packet until
-  its deadline. The figure does not show the exchanges the switch forwards unchanged.}
+\includegraphics[width=\textwidth]{figures/fig_design}
+\caption{Packet flow and its mapping to the P4 pipeline. Ingress classifies packets, arms
+  request-anchored deadlines and selects queues; the traffic manager provides the wait.
+  ACK and response queues share one strict-priority scheduler, while OPERATE requests use
+  a separate scheduler. Internal loopback bypasses egress. Returning blockers are re-enqueued
+  or dropped according to expiry; after their queue drains, the released packet returns to
+  ingress and follows the normal output path.
+  Scheduled deadlines do not include the residual release tail.}
 \label{fig:design}
 \end{figure*}
 

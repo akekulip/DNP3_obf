@@ -1,12 +1,12 @@
 {
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose request-to-response time exceeds a given value, with the release budget $D$=28~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=28~ms, 17 of 29040 (0.0585\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=28~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays at the budget, so the interval the adversary observes is set independently of what the exchange costs. (c) Request-to-response latency at the master, per class. Markers in (b) are medians over the sample counts in the figure-data CSV and bars span the interquartile range; boxes in (c) span the quartiles with whiskers over the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
-  "sha256": "4c95e1daabd9d923f6eebfcc2451897ddb33aa0ee511d6e24de0d644bff7e0d8"
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",

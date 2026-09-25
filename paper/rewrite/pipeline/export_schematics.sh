@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # export_schematics.sh - export the hand-drawn schematics (Figures 1-3) from SVG to PDF and
 # 600 dpi PNG, and mirror them into the timing tree.
+# Use --design to export only the design schematic; --check validates all three.
 #
 #   paper/rewrite/figures/fig_{ladder,observation,design}.svg   (source of truth)
 #     -> paper/rewrite/figures/<name>.pdf, <name>.png
@@ -15,6 +16,12 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PAPER_FIGS="$(cd "${HERE}/../figures" && pwd)"
 REPO="$(cd "${HERE}/../../.." && pwd)"
 MIRROR="${REPO}/defense4/timing/figures/schematics"
+
+case "${1:-}" in
+  ""|--check) FIGURE_NAMES=(fig_ladder fig_observation fig_design) ;;
+  --design) FIGURE_NAMES=(fig_design) ;;
+  *) echo "usage: $0 [--design|--check]" >&2; exit 2 ;;
+esac
 
 INKSCAPE="${INKSCAPE:-$(command -v inkscape || true)}"
 if [[ -z "${INKSCAPE}" ]]; then
@@ -55,7 +62,7 @@ if [[ "${1:-}" == "--check" ]]; then
   exit 0
 fi
 
-for name in fig_ladder fig_observation fig_design; do
+for name in "${FIGURE_NAMES[@]}"; do
   svg="${PAPER_FIGS}/${name}.svg"
   [[ -f "${svg}" ]] || { echo "missing ${svg}" >&2; exit 1; }
   "${INKSCAPE}" "${svg}" --export-type=pdf --export-filename="${PAPER_FIGS}/${name}.pdf" >/dev/null 2>&1

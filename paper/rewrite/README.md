@@ -31,14 +31,15 @@ sections/07_related_work.tex    Related Work (second-last)
 sections/08_conclusion.tex      Conclusion
 References.bib                  bibliography the manuscript builds from (49 entries, 40 cited)
 library.bib                     Zotero export, reconciled into References.bib on 2026-09-19; not cited
-figures/ndss/                   THE FIVE FINAL FIGURES: vector PDF (authoritative),
+figures/ndss/                   seven campaign figures: vector PDF (authoritative),
                                 600-dpi PNG preview, figure-data CSV, caption,
                                 method and limitations notes, provenance sidecar
 figures/fig_design.{svg,pdf}    design schematic (Section IV)
 figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder (Section II)
 figures/fig_observation.{svg,pdf}   observation model (Section III)
 figures/SCHEMATICS.sha256       hashes of the three schematics (svg, pdf, png)
-FIGURE_PROVENANCE.md            silicon -> capture -> script -> figure, by hash
+FIGURE_PROVENANCE.md            historical final_read_sbo provenance; current provenance
+                                lives in each figure's sidecar and campaign_v2/
 main.pdf.sha256                 hash of the committed build, written with PDF_MANIFEST.json by
                                 pipeline/publish_manuscript.py
 pipeline/DR_LIN_WRITING_GUIDE.md   the active writing guide (structure, voice, terminology, gates)
@@ -68,8 +69,8 @@ is the only file the manuscript quotes from.
 grouped runs in one 5.3-hour campaign, master-facing; size shaping off in both arms; the realized
 per-transaction `J`, relay-facing timing and exactly-once delivery unobserved; classification is of
 transaction classes, not device models, and is scoped to the evaluated Random-Forest attacker; an
-adaptive attacker stays above chance, and the evidence attributes that to the arrival of requests
-at the switch; every block and sweep point has a control-plane readback.
+adaptive attacker stays above chance, and the residual tests associate timing information with
+request spacing without isolating its cause; every block and sweep point has a control-plane readback.
 
 ## Regenerating the figures
 
@@ -88,11 +89,30 @@ $RESEARCH_PYTHON ../../defense4/timing/evidence/campaign_v2/_bin/make_tail_figur
 $RESEARCH_PYTHON ../../defense4/timing/audit_current/tools/make_model_figures.py
 # schematics: draw.io sources, then export
 ./pipeline/drawio/build.sh && ./pipeline/export_schematics.sh
+# mechanism only, preserving the other schematic documents
+./pipeline/drawio/build.sh --design && ./pipeline/export_schematics.sh --design
 ```
 
 Each figure carries its own `.caption.md`, `.method.md`, `.limitations.md`, `_data.csv` and
 `.provenance.json`, and each directory's `FIGURES.sha256` is checked by its generator's `--check`
 mode (for the campaign figures, by the publication gate run without `--update`).
+
+The evaluation includes two additional contrasts from the existing campaign:
+`fig_replacement_evidence` compares measured READ timing with a median-aligned constant-shift
+counterfactual and shows the paired-run variance ratios; `fig_residual_information` shows
+within-arm binary classifier results for READ versus SELECT and for arrival-gap groups within
+READ. The latter is an observational comparison, with held-out-run ranges rather than confidence
+intervals. Neither adds an experiment or changes the underlying measurements.
+
+The mechanism source `figures/fig_design.drawio` contains three pages. Only its `design` page
+is exported into the manuscript; the observation and timeline pages are retained in the editable
+document. The mechanism maps the campaign implementation's ingress decisions, two queue scheduling
+domains and internal loopback to packet flow, without attributing the campaign to the later
+seven-stage implementation. Its geometry and labels live in
+`pipeline/drawio/fig_design.spec.yaml` (JSON-compatible YAML), rendered by
+`gen_design_drawio.py` using the Python standard library. `fig_design_mapping.yaml` records the
+corresponding P4 and control-plane source anchors. Regeneration preserves both other pages
+byte-for-byte.
 
 ## Open items
 

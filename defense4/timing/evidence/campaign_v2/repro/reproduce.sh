@@ -86,7 +86,8 @@ echo "[5c/8] attribution: execution time alone, arrival spacing alone, the relea
 
 echo "[6/8] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
 "$PY" "$HERE/make_ndss_figures.py" "$OUT/transactions_canonical.csv" "$OUT/stats.json" \
-      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json"
+      "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json" \
+      "$OUT/replacement_stats.json" "$OUT/proof.json"
 
 echo "[7/8] tests"
 CV1_OUT="$OUT" "$PY" -m pytest "$HERE/tests" -q

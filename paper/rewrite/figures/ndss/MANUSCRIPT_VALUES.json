@@ -384,6 +384,57 @@
   },
   "campaign_span_hours": 5.297
  },
+ "residual_information": {
+  "read_vs_select_ack_clrt": {
+   "native": {
+    "mean": 0.7847,
+    "median": 0.7871,
+    "min": 0.7475,
+    "max": 0.8063,
+    "iqr_lo": 0.7751,
+    "iqr_hi": 0.7965,
+    "n_runs": 22,
+    "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+   },
+   "obfuscated": {
+    "mean": 0.5071,
+    "median": 0.5073,
+    "min": 0.465,
+    "max": 0.5667,
+    "iqr_lo": 0.4932,
+    "iqr_hi": 0.5146,
+    "n_runs": 22,
+    "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+   }
+  },
+  "read_arrival_split_ack_clrt": {
+   "native": {
+    "mean": 0.5361,
+    "median": 0.5372,
+    "min": 0.5141,
+    "max": 0.5668,
+    "iqr_lo": 0.5278,
+    "iqr_hi": 0.5406,
+    "n_runs": 22,
+    "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+   },
+   "obfuscated": {
+    "mean": 0.6284,
+    "median": 0.6306,
+    "min": 0.5799,
+    "max": 0.6603,
+    "iqr_lo": 0.6132,
+    "iqr_hi": 0.6428,
+    "n_runs": 22,
+    "interpretation": "within-campaign held-out-run variability across the 22 grouped runs; the folds share training data and this is a descriptive range, not a confidence interval"
+   }
+  },
+  "read_arrival_split_gap_us": {
+   "native": 28.0,
+   "obfuscated": 31.0
+  },
+  "chance": 0.5
+ },
  "obfuscated_departures": {
   "reference_ms": 8.0,
   "READ": {

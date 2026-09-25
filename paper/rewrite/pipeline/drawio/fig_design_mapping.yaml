@@ -1,0 +1,48 @@
+# Source anchors for paper/rewrite/figures/fig_design.drawio, page: design.
+# The figure is schematic: it maps packet flow to P4/TM components, not to physical stages.
+figure_page:
+  file: paper/rewrite/figures/fig_design.drawio
+  page_name: design
+  page_id: f2syMX9dHs4wIY2rpmm0
+  generated_by: paper/rewrite/pipeline/drawio/gen_design_drawio.py
+  specification: paper/rewrite/pipeline/drawio/fig_design.spec.yaml
+visual_references:
+  - DefRec Figure 2: network context and clear component boundaries
+  - Ditto Figure 3: pipeline columns, queue glyphs and internal return path
+claims:
+  ingress_classifies_and_checks_expiry:
+    p4:
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:1172-1259
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:3150-3177
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2861-2900
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:3264-3304
+  held_packets_bypass_egress_until_release:
+    p4:
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2144-2167
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2260-2281
+  normal_forwarding_after_release_uses_egress_output:
+    p4:
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2190-2200
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2279-2281
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2289-2344
+  ack_response_share_one_scheduler:
+    control:
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:61-85
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:631-669
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:898-900
+  operate_uses_separate_scheduler:
+    control:
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:61-85
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:894-900
+  blocker_source_is_minimal_pktgen_mirror_path:
+    p4:
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2224-2250
+      - defense4/timing/anchor_fix/src/defense4_rrc_bor_unified12.p4:2263-2278
+    control:
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:90-103
+      - defense4/timing/anchor_fix/control/defense4_rrc_bor_unified12_setup.py:901-903
+visual_constraints:
+  - no physical stage count or sizing claim
+  - no register names inside the paper figure
+  - no unexplained epsilon label
+  - design page exported with draw.io --page-index 2

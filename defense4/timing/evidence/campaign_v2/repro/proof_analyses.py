@@ -1,24 +1,22 @@
-"""Where the timing went: the analyses that attribute what survives obfuscation.
+"""Where timing evidence remains after obfuscation.
 
 The released-interval statistics show that the obfuscated CLRT is a configured value. What they do
-not show on their own is *whose* timing any remaining separability belongs to. Three contrasts
-answer that, and each one holds everything fixed except one source of timing.
+not show on their own is which observable timing contrasts still separate classes or request
+contexts. Three descriptive checks answer that question without assigning causality.
 
-1. **Execution time alone: READ against SELECT.** Both run on the read lane, both follow a long
-   idle gap, and the two differ in what the outstation does to answer them. A forest that
-   separates them is reading the device's execution time and nothing else.
-2. **Arrival spacing alone: READ against READ.** One class, one device, one execution time. The
-   READ exchanges of an arm are split at the median of the gap that preceded each request (the
-   request's timestamp minus the previous exchange's response in the same capture). A forest
-   that separates the two halves is reading when a request met the switch, which is the switch's
-   queue phase and not the outstation.
+1. **READ against SELECT.** Both run on the read lane and differ in the outstation work needed
+   to answer them, but they are observational classes in a measured trace rather than a
+   controlled execution-time-only experiment.
+2. **READ against READ by preceding arrival gap.** One transaction class is split at the arm's
+   median preceding gap (the request timestamp minus the previous exchange's response timestamp
+   in the same capture). This tests whether request-arrival context remains predictive within
+   READ traffic.
 3. **The arrival gap by class**, so the difference in arrival spacing between OPERATE and the
    read-lane classes is a measured quantity rather than a description.
 
 Every forest is the one the leakage analysis uses (``leakage_campaign.RF``), scored by balanced
-accuracy under leave-one-grouped-run-out, trained and tested within one arm. That is the
-retrained adversary's setting, the strongest the evaluation grants, so a contrast at chance here
-is at chance for the fixed adversary as well. Chance is 0.5 for both two-class contrasts.
+accuracy under leave-one-grouped-run-out, trained and tested within one arm. The reported scores
+are held-out-run summaries of these two-class contrasts; chance is 0.5.
 
 It also records the release tail's support at the shipped policy and the campaign's wall-clock
 span, both of which the findings quoted without an artefact until now.

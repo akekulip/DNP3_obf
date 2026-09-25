@@ -131,6 +131,52 @@ def test_pooled_classifier_input_is_hash_identified(campaign_artifacts):
                for p in prov["inputs"])
 
 
+def test_replacement_figure_uses_canonical_shift_and_per_run_variances(campaign_artifacts):
+    rows = read_csv(campaign_artifacts / "transactions_canonical.csv")
+    data = read_csv(campaign_artifacts / "figs/fig_replacement_evidence_data.csv")
+    native = np.array([float(r["clrt_ms"]) for r in rows
+                       if r["arm"] == "native" and r["txn_class"] == "READ"])
+    obf = np.array([float(r["clrt_ms"]) for r in rows
+                    if r["arm"] == "obfuscated" and r["txn_class"] == "READ"])
+    shifted = native - np.median(native) + np.median(obf)
+    for label, values in (("Timing OFF", native), ("constant shift", shifted),
+                          ("Obfuscated", obf)):
+        points = [r for r in data if r["panel"] == "a" and r["series"] == label]
+        thresholds = np.unique(values)
+        np.testing.assert_allclose([float(r["post_ack_ms"]) for r in points],
+                                   thresholds, rtol=0, atol=5e-7)
+        expected_cdf = np.searchsorted(np.sort(values), thresholds, side="right") / values.size
+        np.testing.assert_allclose([float(r["empirical_cdf"]) for r in points],
+                                   expected_cdf, rtol=0, atol=1e-12)
+        assert float(points[-1]["empirical_cdf"]) == 1.0
+    ratios = [r for r in data if r["record"] == "run_variance_ratio"]
+    assert len(ratios) == 44
+    assert {(r["run"], r["txn_class"]) for r in ratios} == {
+        (r["run"], r["txn_class"]) for r in rows if r["txn_class"] in ("READ", "SELECT")}
+    for sample in ratios:
+        rn, cls = sample["run"], sample["txn_class"]
+        nat_run = np.array([float(r["clrt_ms"]) for r in rows
+                           if r["run"] == rn and r["arm"] == "native" and r["txn_class"] == cls])
+        obf_run = np.array([float(r["clrt_ms"]) for r in rows
+                           if r["run"] == rn and r["arm"] == "obfuscated" and r["txn_class"] == cls])
+        assert float(sample["variance_ratio"]) == pytest.approx(
+            float(obf_run.var(ddof=1) / nat_run.var(ddof=1)), rel=0, abs=5e-10)
+
+
+def test_residual_information_figure_is_directly_from_proof_json(campaign_artifacts):
+    proof = json.loads((campaign_artifacts / "proof.json").read_text())
+    data = read_csv(campaign_artifacts / "figs/fig_residual_information_data.csv")
+    for panel, block in (("a", "read_vs_select"), ("b", "read_arrival_split")):
+        for arm in figures.ARMS:
+            label = figures.F.LBL[arm]
+            row = next(r for r in data if r["panel"] == panel and r["arm"] == label)
+            src = proof[block][arm]["balanced_accuracy"]["ack_clrt"]
+            assert float(row["mean"]) == pytest.approx(src["mean"], abs=1e-12)
+            assert float(row["min"]) == pytest.approx(src["min"], abs=1e-12)
+            assert float(row["max"]) == pytest.approx(src["max"], abs=1e-12)
+            assert int(row["n_runs"]) == 22
+
+
 def test_layout_check_rejects_legend_title_collision():
     figures.F.use()
     fig, ax = plt.subplots(figsize=(3.48, 2.3), layout="none")

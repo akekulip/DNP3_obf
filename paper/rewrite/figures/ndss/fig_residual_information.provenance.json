@@ -1,0 +1,64 @@
+{
+ "figure": "fig_residual_information",
+ "caption": "\\textbf{Residual timing information in two binary tasks.} Balanced accuracy of the evaluated Random-Forest attacker with request-to-ACK plus post-ACK features, trained and tested within each arm while leaving out one grouped run at a time. (a) READ versus SELECT, the read-lane pair that differs in outstation work. (b) READ split by the median preceding arrival gap within the same arm. Points are the mean over the 22 held-out runs and whiskers span the held-out-run minimum to maximum; they are not confidence intervals. The dotted line is binary chance.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
+ "deterministic_seed": 20260828,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
+ },
+ "inputs": [
+  {
+   "path": "pipeline-output/transactions_canonical.csv",
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
+  },
+  {
+   "path": "pipeline-output/proof.json",
+   "sha256": "6174c0f77c2dae12924e93e52fc06b7e989fa2452991d530e371e1fa21b1293a"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/repro/proof_analyses.py",
+   "sha256": "6538742dcc19c7a9216ef44dbf63be53242d8e106956649fe0493606a18e387e"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "pipeline-output/fig_residual_information.pdf",
+   "sha256": "3d41edcba6292dd92fd720ca5c7459a3a6cba0ffc01727de2ee191fd577b442e",
+   "authoritative": true
+  },
+  "png": {
+   "path": "pipeline-output/fig_residual_information.png",
+   "sha256": "854527e6ec0745631ae11438370bab34456e50f668593a1121710ba940bcf7ae",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "pipeline-output/fig_residual_information_data.csv",
+   "sha256": "8dcdfa353c54e7749e4540ce0c035c298349dbb12516a225d30d6f2af9921f98",
+   "rows": 4,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 3.48,
+  "height": 2.05
+ },
+ "method_note": "Values come directly from proof.json. Each contrast is a two-class balanced accuracy under leave-one-grouped-run-out over all 22 grouped runs, using the same class-weight-balanced Random-Forest configuration as the leakage analysis. Only the ACK+CLRT feature set is drawn; CLRT-only scores remain in proof.json and the manuscript values file. The READ arrival-gap split is made separately inside each arm at that arm's arm-wide median preceding gap; the preceding gap defines the label only and is not supplied as a classifier feature. The first transaction in each capture has no preceding response gap and is excluded from that split.",
+ "limitation_note": "These are observational contrasts within one campaign. The READ-vs-SELECT panel does not isolate execution time as a controlled causal variable, and the arrival-gap panel does not identify a single queue component as the cause of separability. The whiskers describe held-out-run range, not uncertainty across deployments.",
+ "notes": {
+  "features": "ACK+CLRT, the primary two-interval feature set",
+  "contrast_a": "READ versus SELECT",
+  "contrast_b": "READ exchanges above versus at/below the arm's median preceding gap",
+  "gap_threshold": "arm-wide descriptive median; the gap is not used as a classifier feature",
+  "spread": "minimum to maximum across held-out grouped runs, not a confidence interval"
+ },
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

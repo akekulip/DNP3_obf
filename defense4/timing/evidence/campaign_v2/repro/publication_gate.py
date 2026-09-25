@@ -32,7 +32,8 @@ REPO = HERE.parents[4]                              # repository root
 # build that was evaluated and found wanting, and its README says so.
 PUB_FIGS = REPO / "paper" / "rewrite" / "figures" / "ndss"
 FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_feature_overlap",
-           "fig_leakage", "fig_stability"]
+           "fig_leakage", "fig_replacement_evidence", "fig_residual_information",
+           "fig_stability"]
 # Artefacts that travel with every published figure.
 SUFFIXES = [".pdf", ".png", "_data.csv", ".provenance.json",
             ".caption.md", ".method.md", ".limitations.md"]
@@ -147,6 +148,18 @@ def manuscript_values(stats, leak, sweep, val, repl, pooled=None, proof=None):
             "release_tail_us": {k: v for k, v in proof["release_tail_us"].items()
                                 if k != "definition"},
             "campaign_span_hours": proof["campaign_span"]["hours"],
+        },
+        "residual_information": None if proof is None else {
+            "read_vs_select_ack_clrt": {
+                a: proof["read_vs_select"][a]["balanced_accuracy"]["ack_clrt"]
+                for a in ("native", "obfuscated")},
+            "read_arrival_split_ack_clrt": {
+                a: proof["read_arrival_split"][a]["balanced_accuracy"]["ack_clrt"]
+                for a in ("native", "obfuscated")},
+            "read_arrival_split_gap_us": {
+                a: proof["read_arrival_split"][a]["half_median_gap_difference_us"]
+                for a in ("native", "obfuscated")},
+            "chance": proof["chance_balanced_accuracy"],
         },
         "obfuscated_departures": stats["obfuscated_departures"],
         "sweep": {

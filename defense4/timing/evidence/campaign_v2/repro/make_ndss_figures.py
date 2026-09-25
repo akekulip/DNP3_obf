@@ -66,6 +66,37 @@ def log_limits(values):
     return float(v.min() / 1.15), float(v.max() * 1.15)
 
 
+def describe_array(values):
+    v = np.asarray(values, dtype=float)
+    q1, q2, q3 = np.percentile(v, [25, 50, 75])
+    return dict(n=int(v.size), mean=float(v.mean()), median=float(q2),
+                sd=float(v.std(ddof=1)), var=float(v.var(ddof=1)),
+                q1=float(q1), q3=float(q3), min=float(v.min()), max=float(v.max()))
+
+
+def per_run_variance_ratios(rows, classes=("READ", "SELECT")):
+    runs = sorted({r[0] for r in rows})
+    out = []
+    for rn in runs:
+        for c in classes:
+            native = np.asarray([r[3] for r in rows if r[0] == rn and r[1] == "native" and r[2] == c],
+                                dtype=float)
+            obf = np.asarray([r[3] for r in rows if r[0] == rn and r[1] == "obfuscated" and r[2] == c],
+                             dtype=float)
+            if native.size < 2 or obf.size < 2:
+                raise ValueError(f"{rn}/{c}: cannot compute variance ratio")
+            out.append(dict(run=rn, txn_class=c,
+                            native_variance_ms2=float(native.var(ddof=1)),
+                            obfuscated_variance_ms2=float(obf.var(ddof=1)),
+                            variance_ratio=float(obf.var(ddof=1) / native.var(ddof=1))))
+    return out
+
+
+def require_close(name, got, expected, rtol=5e-5, atol=5e-9):
+    if not np.isclose(got, expected, rtol=rtol, atol=atol):
+        raise ValueError(f"{name}: derived {got} does not match analysis JSON {expected}")
+
+
 def box_pair(ax, rows, col, logy=True, horizontal=False):
     """Timing OFF against Obfuscated for the three classes; whiskers span the full range.
 
@@ -629,6 +660,214 @@ def fig_leakage(leak, out, inputs):
                "This is transaction-class classification, not device-model identification."))
 
 
+# ============================================================ GRID 4: replacement evidence
+def fig_replacement_evidence(rows, repl, out, inputs):
+    read_native = sel(rows, "native", "READ", col=3)
+    read_obf = sel(rows, "obfuscated", "READ", col=3)
+    read_shift = read_native - np.median(read_native) + np.median(read_obf)
+    d_nat, d_obf, d_shift = (describe_array(v) for v in (read_native, read_obf, read_shift))
+    # Fail closed if the separately emitted replacement summary no longer describes the canonical
+    # table used for the curves. The counterfactual curve itself is derived from the table.
+    for c, vals in (("READ", (read_native, read_obf)), ("SELECT", (sel(rows, "native", "SELECT", col=3),
+                                                                   sel(rows, "obfuscated", "SELECT", col=3)))):
+        native, obf = vals
+        r = repl["read_lane"][c]
+        require_close(f"{c} native sd", float(np.std(native, ddof=1)), r["native"]["sd"])
+        require_close(f"{c} obfuscated sd", float(np.std(obf, ddof=1)), r["protected"]["sd"])
+        shifted = native - np.median(native) + np.median(obf)
+        require_close(f"{c} shifted sd", float(np.std(shifted, ddof=1)),
+                      r["counterfactual_shifted_native"]["sd"])
+
+    fig, ax = plt.subplots(1, 2, figsize=(F.COL_W, 2.8))
+    data = []
+    curves = [("Timing OFF", read_native, F.OFF, "-", 1.15),
+              ("constant shift", read_shift, "black", ":", 1.05),
+              ("Obfuscated", read_obf, F.ON, "--", 1.15)]
+    for label, vals, colour, ls, lw in curves:
+        x, y, _ = empirical_curves(vals)
+        ax[0].step(x, y, where="post", color=colour, ls=ls, lw=lw, label=label, zorder=3)
+        for xi, yi in zip(x, y):
+            data.append(dict(panel="a", record="ecdf", series=label, txn_class="READ",
+                             post_ack_ms=round(float(xi), 6), empirical_cdf=float(yi)))
+    ax[0].set_xscale("log")
+    ax[0].xaxis.set_minor_formatter(NullFormatter())
+    ax[0].set_xlim(*log_limits(np.r_[read_native, read_shift, read_obf]))
+    ax[0].set_ylim(0, 1.02)
+    ax[0].set_xlabel("READ CLRT [ms]")
+    ax[0].set_ylabel("Empirical CDF")
+    ax[0].set_title("READ distribution", fontsize=9, pad=5)
+    handles = [Line2D([0], [0], color=F.OFF, ls="-", lw=1.15, label="Timing OFF"),
+               Line2D([0], [0], color="black", ls=":", lw=1.05, label="constant shift"),
+               Line2D([0], [0], color=F.ON, ls="--", lw=1.15, label="Obfuscated")]
+    fig.legend(handles=handles, loc="outside upper center", ncol=2, frameon=False,
+               columnspacing=0.9, handlelength=1.5, handletextpad=0.45, fontsize=8)
+
+    ratios = per_run_variance_ratios(rows)
+    xloc = {"READ": 0, "SELECT": 1}
+    by_run = {}
+    for rr in ratios:
+        by_run.setdefault(rr["run"], {})[rr["txn_class"]] = rr
+    for rn, pair in sorted(by_run.items()):
+        xs = [xloc[c] for c in ("READ", "SELECT")]
+        ys = [pair[c]["variance_ratio"] for c in ("READ", "SELECT")]
+        ax[1].plot(xs, ys, color=F.GREY, alpha=0.35, lw=0.55, zorder=1)
+        ax[1].scatter(xs, ys, s=10, facecolor="white", edgecolor=F.ON, linewidth=0.6, zorder=3)
+    ax[1].axhline(1.0, color="black", ls=":", lw=0.9, zorder=2)
+    ax[1].set_yscale("log")
+    ax[1].yaxis.set_minor_formatter(NullFormatter())
+    ax[1].set_xticks([0, 1])
+    ax[1].set_xticklabels(["READ", "SELECT"])
+    ax[1].set_xlim(-0.35, 1.35)
+    vals = np.asarray([r["variance_ratio"] for r in ratios])
+    ax[1].set_ylim(vals.min() / 1.8, max(1.0, vals.max()) * 1.8)
+    ax[1].set_ylabel("Variance ratio")
+    ax[1].set_title("Obf. / OFF by run", fontsize=9, pad=5)
+
+    for r in ratios:
+        data.append(dict(panel="b", record="run_variance_ratio", run=r["run"],
+                         txn_class=r["txn_class"],
+                         native_variance_ms2=round(r["native_variance_ms2"], 9),
+                         obfuscated_variance_ms2=round(r["obfuscated_variance_ms2"], 9),
+                         variance_ratio=round(r["variance_ratio"], 9)))
+    for label, d in (("Timing OFF", d_nat), ("constant shift", d_shift), ("Obfuscated", d_obf)):
+        data.append(dict(panel="summary", record="read_summary", series=label,
+                         txn_class="READ", **{k: round(v, 9) if isinstance(v, float) else v
+                                             for k, v in d.items()}))
+    for c in ("READ", "SELECT"):
+        r = repl["read_lane"][c]
+        data.append(dict(panel="summary", record="analysis_json", txn_class=c,
+                         native_sd_ms=r["native"]["sd"],
+                         obfuscated_sd_ms=r["protected"]["sd"],
+                         shifted_native_sd_ms=r["counterfactual_shifted_native"]["sd"],
+                         variance_ratio=r["variance_ratio_prot_over_nat"]))
+
+    tag(ax[0], "a", y=0.93)
+    tag(ax[1], "b", y=0.93)
+    F.grid(list(ax))
+    fields = sorted({k for d in data for k in d})
+    n_read = int(read_native.size)
+    F.save(fig, out, "fig_replacement_evidence",
+           "\\textbf{The mechanism replaces READ timing rather than adding a constant delay.} "
+           "(a) Empirical CDF of READ CLRT under Timing OFF, a constant-shift "
+           "counterfactual that moves the Timing OFF median onto the Obfuscated median, and the "
+           "measured Obfuscated distribution. The constant shift preserves the Timing OFF spread; "
+           "the measured Obfuscated distribution collapses around the scheduled release. "
+           "(b) Paired per-run variance ratios, Obfuscated divided by Timing OFF, for READ and "
+           "SELECT. A pure constant shift would sit on the dotted ratio-one line. Panel (a) uses "
+           f"all {n_read:,} READ exchanges per arm; panel (b) uses the 22 grouped runs.",
+           inputs,
+           {"counterfactual": "canonical READ timing shifted by median(Obfuscated)-median(Timing OFF)",
+            "json_crosscheck": "per-class standard deviations match replacement_stats.json",
+            "ratio": "sample variance of obfuscated CLRT divided by Timing OFF CLRT per grouped run"},
+           data_rows=data, data_fields=fields, seed=SEED,
+           method_note=(
+               "Panel (a) derives all three curves from the canonical transaction table. The "
+               "constant-shift counterfactual is native READ CLRT minus its median plus the "
+               "obfuscated READ median, so its centred distribution and variance are exactly "
+               "those of Timing OFF. Panel (b) recomputes sample variance within each grouped "
+               "run and class, then plots Obfuscated/Timing OFF ratios for READ and SELECT on a "
+               "logarithmic ordinate. Each grey segment joins the READ and SELECT ratios from "
+               "the same grouped run, and every point is computed from that run's complete class "
+               "sample. replacement_stats.json is an explicit input and is checked against the "
+               "canonical table for the native, obfuscated, and shifted standard deviations."),
+           limitation_note=(
+               "The counterfactual is a deterministic shift of the observed Timing OFF READ "
+               "samples, not another hardware run. The per-run ratios are descriptive within the "
+               "same campaign and do not form a confidence interval or cross-deployment estimate. "
+               "SELECT is the SELECT phase of SBO only."))
+
+
+# ============================================================ GRID 5: residual information
+def fig_residual_information(proof, out, inputs):
+    needed = ["read_vs_select", "read_arrival_split", "chance_balanced_accuracy"]
+    missing = [k for k in needed if k not in proof]
+    if missing:
+        raise ValueError("proof.json missing required residual-information fields: "
+                         + ", ".join(missing))
+    fig, ax = plt.subplots(1, 2, figsize=(F.COL_W, 2.05), sharey=True)
+    panels = [("a", "read_vs_select", "READ vs SELECT"),
+              ("b", "read_arrival_split", "READ by arrival gap")]
+    data = []
+    x = np.arange(2)
+    for a, (panel, block, title) in zip(ax, panels):
+        means, los, his = [], [], []
+        for arm in ARMS:
+            d = proof[block][arm]["balanced_accuracy"]["ack_clrt"]
+            means.append(d["mean"])
+            los.append(d["mean"] - d["min"])
+            his.append(d["max"] - d["mean"])
+            row = dict(panel=panel, contrast=title, arm=F.LBL[arm], features="ACK+CLRT",
+                       mean=d["mean"], median=d["median"], min=d["min"], max=d["max"],
+                       iqr_lo=d["iqr_lo"], iqr_hi=d["iqr_hi"], n_runs=d["n_runs"],
+                       chance=proof["chance_balanced_accuracy"])
+            if block == "read_vs_select":
+                row["read_median_clrt_ms"] = proof[block][arm]["medians"]["READ"]["clrt_ms"]
+                row["select_median_clrt_ms"] = proof[block][arm]["medians"]["SELECT"]["clrt_ms"]
+                row["read_n"] = proof[block][arm]["n"]["READ"]
+                row["select_n"] = proof[block][arm]["n"]["SELECT"]
+            else:
+                row["median_gap_ms"] = proof[block][arm]["median_gap_ms"]
+                row["early_median_gap_ms"] = proof[block][arm]["half_median_gap_ms"]["early"]
+                row["late_median_gap_ms"] = proof[block][arm]["half_median_gap_ms"]["late"]
+                row["half_median_gap_difference_us"] = proof[block][arm]["half_median_gap_difference_us"]
+                row["early_n"] = proof[block][arm]["n"]["early"]
+                row["late_n"] = proof[block][arm]["n"]["late"]
+            data.append(row)
+        for i, arm in enumerate(ARMS):
+            colour = F.OFF if arm == "native" else F.ON
+            a.errorbar(x[i], means[i], yerr=[[los[i]], [his[i]]], marker="s", ms=5.2,
+                       mfc=F.arm_face(arm, colour), mec=colour, mew=0.9,
+                       color=colour, alpha=F.FILL_ALPHA[arm], capsize=2.2,
+                       lw=0, elinewidth=0.8, ecolor="black", zorder=3)
+        a.axhline(proof["chance_balanced_accuracy"], color="black", ls=":", lw=0.9, zorder=2)
+        a.set_xticks(x)
+        a.set_xticklabels(["OFF", "Obf."])
+        a.set_xlim(-0.35, 1.35)
+        a.set_title(title, fontsize=9, pad=5)
+        a.set_ylim(0, 1.0)
+        tag(a, panel, y=0.93)
+    ax[0].set_ylabel("Balanced accuracy")
+    handles = [Line2D([0], [0], marker="s", ls="", ms=5, markerfacecolor="white",
+                      markeredgecolor=F.OFF, label=F.LBL["native"]),
+               Line2D([0], [0], marker="s", ls="", ms=5, markerfacecolor=F.ON,
+                      alpha=F.FILL_ALPHA["obfuscated"], markeredgecolor=F.ON,
+                      label=F.LBL["obfuscated"])]
+    fig.legend(handles=handles, loc="outside upper center", ncol=2, frameon=False,
+               columnspacing=0.9, handletextpad=0.4, fontsize=8)
+    F.grid(list(ax))
+    fields = sorted({k for d in data for k in d})
+    F.save(fig, out, "fig_residual_information",
+           "\\textbf{Residual timing information in two binary tasks.} Balanced accuracy of the "
+           "evaluated Random-Forest attacker with request-to-ACK plus post-ACK features, trained and tested "
+           "within each arm while leaving out one grouped run at a time. (a) READ versus SELECT, "
+           "the read-lane pair that differs in outstation work. (b) READ split by the median "
+           "preceding arrival gap within the same arm. Points are the mean over the 22 held-out "
+           "runs and whiskers span the held-out-run minimum to maximum; they are not confidence "
+           "intervals. The dotted line is binary chance.",
+           inputs,
+           {"features": "ACK+CLRT, the primary two-interval feature set",
+            "contrast_a": "READ versus SELECT",
+            "contrast_b": "READ exchanges above versus at/below the arm's median preceding gap",
+            "gap_threshold": "arm-wide descriptive median; the gap is not used as a classifier feature",
+            "spread": "minimum to maximum across held-out grouped runs, not a confidence interval"},
+           data_rows=data, data_fields=fields, seed=SEED,
+           method_note=(
+               "Values come directly from proof.json. Each contrast is a two-class balanced "
+               "accuracy under leave-one-grouped-run-out over all 22 grouped runs, using the same "
+               "class-weight-balanced Random-Forest configuration as the leakage analysis. Only "
+               "the ACK+CLRT feature set is drawn; CLRT-only scores remain in proof.json and the "
+               "manuscript values file. The READ arrival-gap split is made separately inside each "
+               "arm at that arm's arm-wide median preceding gap; the preceding gap defines the "
+               "label only and is not supplied as a classifier feature. The first transaction in "
+               "each capture has no preceding response gap and is excluded from that split."),
+           limitation_note=(
+               "These are observational contrasts within one campaign. The READ-vs-SELECT panel "
+               "does not isolate execution time as a controlled causal variable, and the "
+               "arrival-gap panel does not identify a single queue component as the cause of "
+               "separability. The whiskers describe held-out-run range, not uncertainty across "
+               "deployments."))
+
+
 # ============================================================ GRID 4: stability (2x1, one column)
 def fig_stability(rows, cfg, out, inputs):
     runs = sorted({r[0] for r in rows})
@@ -693,18 +932,25 @@ def fig_stability(rows, cfg, out, inputs):
                "independent replications. Panel (b) uses a magnified ordinate."))
 
 
-def main(canon, statsf, leakf, cfgf, out, sweepf):
+def main(canon, statsf, leakf, cfgf, out, sweepf, replf, prooff):
     F.use()
     rows = load_rows(canon)
     stats = json.load(open(statsf)); leak = json.load(open(leakf)); cfg = json.load(open(cfgf))
     sweep = json.load(open(sweepf))
+    repl = json.load(open(replf))
+    proof = json.load(open(prooff))
     print("figures:")
     fig_policy_coverage_cost(rows, cfg, stats, sweep, out, [canon, cfgf, statsf, sweepf])
     fig_distributions(rows, out, [canon])
     fig_feature_overlap(rows, cfg, out, [canon, cfgf])
     fig_leakage(leak, out, [canon, leakf])
+    fig_replacement_evidence(rows, repl, out, [canon, replf])
+    fig_residual_information(proof, out, [canon, prooff,
+                                          pathlib.Path(__file__).with_name("proof_analyses.py")])
     fig_stability(rows, cfg, out, [canon, cfgf])
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:7])
+    if len(sys.argv) != 9:
+        raise SystemExit("usage: make_ndss_figures.py CANON STATS LEAK CFG OUT SWEEP REPLACEMENT PROOF")
+    main(*sys.argv[1:9])
