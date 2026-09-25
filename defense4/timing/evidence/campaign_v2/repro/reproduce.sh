@@ -2,15 +2,14 @@
 # reproduce.sh - rebuild every campaign_v2 result from the raw captures, then compare what was
 # rebuilt against what the repository publishes.
 #
-# This is campaign_v1/repro/reproduce.sh with one difference: OUT defaults to /tmp/cv2_out. The
-# analysis itself is byte-identical, and what differs between the two datasets is
-# policy_config.json (D_R 8 ms and a 28 ms budget, against 4 and 24) and the data.
+# Campaign v2 uses an 8 ms configured interval and a 28 ms budget. Extraction and
+# statistical definitions match v1; active figures and readback checks are maintained here.
 #
 # Raw captures and frozen driver logs are inputs and are never written. Everything else is
 # regenerated into a temporary tree, and step 7 is a real comparison against the published
 # artefacts, not a restatement of them.
 #
-#   ./reproduce.sh [OUT_DIR]      default OUT_DIR: /tmp/cv1_out
+#   ./reproduce.sh [OUT_DIR]      default OUT_DIR: /tmp/cv2_out
 #
 # Environment: created or synchronised from the committed lock file, so the same dependency
 # versions are used on every machine.

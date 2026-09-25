@@ -49,8 +49,8 @@ def compare_frozen_table(rows, problems):
     """Compare the regenerated table row by row against the frozen scapy-extracted table.
 
     The frozen table carries session, block, arm, txn_class and the three intervals, in
-    per-capture order. Both tables store six decimals of a millisecond, so the comparison
-    tolerance is one unit in that last stored place and is justified by nothing else.
+    per-capture order. Compare at the captures' one-microsecond timestamp quantum;
+    the frozen float-based extraction contains sub-microsecond representation noise.
     """
     frozen_path = os.path.join(ROOT, "derived", "transactions.csv")
     if not os.path.exists(frozen_path):
@@ -211,8 +211,8 @@ def main(out_dir):
                   frozen_table_rows_compared=n_compared,
                   frozen_table_comparison=("row-by-row against derived/transactions.csv on "
                                            "identity, ordering, class and the three intervals, "
-                                           "tolerance 1e-6 ms = one unit in the last stored "
-                                           "decimal place"),
+                                           "agreement after rounding to the capture's "
+                                           "1 microsecond (0.001 ms) timestamp quantum"),
                   unique_capture_hashes=len(set(hashes.values())),
                   distinct_frame_counts=sorted({c["frames"] for c in per_cap}),
                   distinct_wire_byte_counts=sorted({c["wire_bytes"] for c in per_cap}),

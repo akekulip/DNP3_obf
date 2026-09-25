@@ -1,22 +1,115 @@
-panel,point,txn_class,d_a_ms,ack_med_ms,tail_ms,n
-a,sw_D4_04_4,READ,4.0,4.107,0.107,300
-a,sw_D4_04_4,SELECT,4.0,4.107,0.107,30
-a,sw_D4_04_4,OPERATE,4.0,4.107,0.107,30
-a,sw_D4_12_4,READ,12.0,12.106,0.106,300
-a,sw_D4_12_4,SELECT,12.0,12.105,0.105,30
-a,sw_D4_12_4,OPERATE,12.0,12.106,0.106,30
-a,sw_D4_20_4,READ,20.0,20.099,0.099,300
-a,sw_D4_20_4,SELECT,20.0,20.098,0.098,30
-a,sw_D4_20_4,OPERATE,20.0,20.107,0.107,30
-a,sw_D4_24_4,READ,24.0,24.105,0.105,300
-a,sw_D4_24_4,SELECT,24.0,24.105,0.105,30
-a,sw_D4_24_4,OPERATE,24.0,24.105,0.105,30
-a,sw_D4_28_4,READ,28.0,28.106,0.106,300
-a,sw_D4_28_4,SELECT,28.0,28.106,0.106,30
-a,sw_D4_28_4,OPERATE,28.0,28.108,0.108,30
-a,sw_D4_30_4,READ,30.0,30.107,0.107128,300
-a,sw_D4_30_4,SELECT,30.0,30.108,0.108128,30
-a,sw_D4_30_4,OPERATE,30.0,30.106,0.106128,30
-b,shipped,READ,20.0,20.10107,0.10107,26400
-b,shipped,SELECT,20.0,20.100832,0.100832,2640
-b,shipped,OPERATE,20.0,20.107031,0.107031,2640
+panel,record,point,txn_class,d_a_ms,ack_med_ms,tail_ms,n,category,bin_lo_ms,bin_hi_ms,edge_convention,transactions,denominator,percent_of_class
+a,sweep_median,sw_D4_04_4,READ,4.0,4.107,0.107,300,,,,,,,
+a,sweep_median,sw_D4_04_4,SELECT,4.0,4.107,0.107,30,,,,,,,
+a,sweep_median,sw_D4_04_4,OPERATE,4.0,4.107,0.107,30,,,,,,,
+a,sweep_median,sw_D4_12_4,READ,12.0,12.106,0.106,300,,,,,,,
+a,sweep_median,sw_D4_12_4,SELECT,12.0,12.1055,0.1055,30,,,,,,,
+a,sweep_median,sw_D4_12_4,OPERATE,12.0,12.106,0.106,30,,,,,,,
+a,sweep_median,sw_D4_20_4,READ,20.0,20.099,0.099,300,,,,,,,
+a,sweep_median,sw_D4_20_4,SELECT,20.0,20.0975,0.0975,30,,,,,,,
+a,sweep_median,sw_D4_20_4,OPERATE,20.0,20.107,0.107,30,,,,,,,
+a,sweep_median,sw_D4_24_4,READ,24.0,24.105,0.105,300,,,,,,,
+a,sweep_median,sw_D4_24_4,SELECT,24.0,24.1055,0.1055,30,,,,,,,
+a,sweep_median,sw_D4_24_4,OPERATE,24.0,24.105,0.105,30,,,,,,,
+a,sweep_median,sw_D4_28_4,READ,28.0,28.106,0.106,300,,,,,,,
+a,sweep_median,sw_D4_28_4,SELECT,28.0,28.106,0.106,30,,,,,,,
+a,sweep_median,sw_D4_28_4,OPERATE,28.0,28.1075,0.1075,30,,,,,,,
+a,sweep_median,sw_D4_30_4,READ,30.0,30.107,0.107128,300,,,,,,,
+a,sweep_median,sw_D4_30_4,SELECT,30.0,30.108,0.108128,30,,,,,,,
+a,sweep_median,sw_D4_30_4,OPERATE,30.0,30.106,0.106128,30,,,,,,,
+b,class_median,shipped,READ,20.0,20.101,0.101,26400,,,,,,,
+b,class_median,shipped,SELECT,20.0,20.101,0.101,2640,,,,,,,
+b,class_median,shipped,OPERATE,20.0,20.107,0.107,2640,,,,,,,
+b,histogram_bin,shipped,READ,,,,,finite,0.029,0.032333333,"[lo, hi)",4,26400,0.015151515
+b,histogram_bin,shipped,READ,,,,,finite,0.032333333,0.035666667,"[lo, hi)",11,26400,0.041666667
+b,histogram_bin,shipped,READ,,,,,finite,0.035666667,0.039,"[lo, hi)",556,26400,2.106060606
+b,histogram_bin,shipped,READ,,,,,finite,0.039,0.042333333,"[lo, hi)",345,26400,1.306818182
+b,histogram_bin,shipped,READ,,,,,finite,0.042333333,0.045666667,"[lo, hi)",129,26400,0.488636364
+b,histogram_bin,shipped,READ,,,,,finite,0.045666667,0.049,"[lo, hi)",44,26400,0.166666667
+b,histogram_bin,shipped,READ,,,,,finite,0.049,0.052333333,"[lo, hi)",18,26400,0.068181818
+b,histogram_bin,shipped,READ,,,,,finite,0.052333333,0.055666667,"[lo, hi)",9,26400,0.034090909
+b,histogram_bin,shipped,READ,,,,,finite,0.055666667,0.059,"[lo, hi)",8,26400,0.03030303
+b,histogram_bin,shipped,READ,,,,,finite,0.059,0.062333333,"[lo, hi)",16,26400,0.060606061
+b,histogram_bin,shipped,READ,,,,,finite,0.062333333,0.065666667,"[lo, hi)",11,26400,0.041666667
+b,histogram_bin,shipped,READ,,,,,finite,0.065666667,0.069,"[lo, hi)",7,26400,0.026515152
+b,histogram_bin,shipped,READ,,,,,finite,0.069,0.072333333,"[lo, hi)",15,26400,0.056818182
+b,histogram_bin,shipped,READ,,,,,finite,0.072333333,0.075666667,"[lo, hi)",12,26400,0.045454545
+b,histogram_bin,shipped,READ,,,,,finite,0.075666667,0.079,"[lo, hi)",15,26400,0.056818182
+b,histogram_bin,shipped,READ,,,,,finite,0.079,0.082333333,"[lo, hi)",3840,26400,14.545454545
+b,histogram_bin,shipped,READ,,,,,finite,0.082333333,0.085666667,"[lo, hi)",1520,26400,5.757575758
+b,histogram_bin,shipped,READ,,,,,finite,0.085666667,0.089,"[lo, hi)",2001,26400,7.579545455
+b,histogram_bin,shipped,READ,,,,,finite,0.089,0.092333333,"[lo, hi)",1715,26400,6.496212121
+b,histogram_bin,shipped,READ,,,,,finite,0.092333333,0.095666667,"[lo, hi)",992,26400,3.757575758
+b,histogram_bin,shipped,READ,,,,,finite,0.095666667,0.099,"[lo, hi)",940,26400,3.560606061
+b,histogram_bin,shipped,READ,,,,,finite,0.099,0.102333333,"[lo, hi)",1771,26400,6.708333333
+b,histogram_bin,shipped,READ,,,,,finite,0.102333333,0.105666667,"[lo, hi)",3363,26400,12.738636364
+b,histogram_bin,shipped,READ,,,,,finite,0.105666667,0.109,"[lo, hi)",3904,26400,14.787878788
+b,histogram_bin,shipped,READ,,,,,finite,0.109,0.112333333,"[lo, hi)",3450,26400,13.068181818
+b,histogram_bin,shipped,READ,,,,,finite,0.112333333,0.115666667,"[lo, hi)",955,26400,3.617424242
+b,histogram_bin,shipped,READ,,,,,finite,0.115666667,0.119,"[lo, hi)",410,26400,1.553030303
+b,histogram_bin,shipped,READ,,,,,finite,0.119,0.122333333,"[lo, hi)",151,26400,0.571969697
+b,histogram_bin,shipped,READ,,,,,finite,0.122333333,0.125666667,"[lo, hi)",33,26400,0.125
+b,histogram_bin,shipped,READ,,,,,finite,0.125666667,0.129,"[lo, hi)",43,26400,0.162878788
+b,histogram_bin,shipped,READ,,,,,overflow,0.129,inf,"[cutoff, inf)",112,26400,0.424242424
+b,histogram_bin,shipped,SELECT,,,,,finite,0.029,0.032333333,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,SELECT,,,,,finite,0.032333333,0.035666667,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,SELECT,,,,,finite,0.035666667,0.039,"[lo, hi)",53,2640,2.007575758
+b,histogram_bin,shipped,SELECT,,,,,finite,0.039,0.042333333,"[lo, hi)",41,2640,1.553030303
+b,histogram_bin,shipped,SELECT,,,,,finite,0.042333333,0.045666667,"[lo, hi)",14,2640,0.53030303
+b,histogram_bin,shipped,SELECT,,,,,finite,0.045666667,0.049,"[lo, hi)",8,2640,0.303030303
+b,histogram_bin,shipped,SELECT,,,,,finite,0.049,0.052333333,"[lo, hi)",3,2640,0.113636364
+b,histogram_bin,shipped,SELECT,,,,,finite,0.052333333,0.055666667,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,SELECT,,,,,finite,0.055666667,0.059,"[lo, hi)",3,2640,0.113636364
+b,histogram_bin,shipped,SELECT,,,,,finite,0.059,0.062333333,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,SELECT,,,,,finite,0.062333333,0.065666667,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,SELECT,,,,,finite,0.065666667,0.069,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,SELECT,,,,,finite,0.069,0.072333333,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,SELECT,,,,,finite,0.072333333,0.075666667,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,SELECT,,,,,finite,0.075666667,0.079,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,SELECT,,,,,finite,0.079,0.082333333,"[lo, hi)",393,2640,14.886363636
+b,histogram_bin,shipped,SELECT,,,,,finite,0.082333333,0.085666667,"[lo, hi)",161,2640,6.098484848
+b,histogram_bin,shipped,SELECT,,,,,finite,0.085666667,0.089,"[lo, hi)",170,2640,6.439393939
+b,histogram_bin,shipped,SELECT,,,,,finite,0.089,0.092333333,"[lo, hi)",194,2640,7.348484848
+b,histogram_bin,shipped,SELECT,,,,,finite,0.092333333,0.095666667,"[lo, hi)",109,2640,4.128787879
+b,histogram_bin,shipped,SELECT,,,,,finite,0.095666667,0.099,"[lo, hi)",97,2640,3.674242424
+b,histogram_bin,shipped,SELECT,,,,,finite,0.099,0.102333333,"[lo, hi)",221,2640,8.371212121
+b,histogram_bin,shipped,SELECT,,,,,finite,0.102333333,0.105666667,"[lo, hi)",321,2640,12.159090909
+b,histogram_bin,shipped,SELECT,,,,,finite,0.105666667,0.109,"[lo, hi)",369,2640,13.977272727
+b,histogram_bin,shipped,SELECT,,,,,finite,0.109,0.112333333,"[lo, hi)",307,2640,11.628787879
+b,histogram_bin,shipped,SELECT,,,,,finite,0.112333333,0.115666667,"[lo, hi)",105,2640,3.977272727
+b,histogram_bin,shipped,SELECT,,,,,finite,0.115666667,0.119,"[lo, hi)",38,2640,1.439393939
+b,histogram_bin,shipped,SELECT,,,,,finite,0.119,0.122333333,"[lo, hi)",13,2640,0.492424242
+b,histogram_bin,shipped,SELECT,,,,,finite,0.122333333,0.125666667,"[lo, hi)",2,2640,0.075757576
+b,histogram_bin,shipped,SELECT,,,,,finite,0.125666667,0.129,"[lo, hi)",3,2640,0.113636364
+b,histogram_bin,shipped,SELECT,,,,,overflow,0.129,inf,"[cutoff, inf)",10,2640,0.378787879
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.029,0.032333333,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.032333333,0.035666667,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.035666667,0.039,"[lo, hi)",27,2640,1.022727273
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.039,0.042333333,"[lo, hi)",39,2640,1.477272727
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.042333333,0.045666667,"[lo, hi)",11,2640,0.416666667
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.045666667,0.049,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.049,0.052333333,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.052333333,0.055666667,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.055666667,0.059,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.059,0.062333333,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.062333333,0.065666667,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.065666667,0.069,"[lo, hi)",1,2640,0.037878788
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.069,0.072333333,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.072333333,0.075666667,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.075666667,0.079,"[lo, hi)",0,2640,0.0
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.079,0.082333333,"[lo, hi)",37,2640,1.401515152
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.082333333,0.085666667,"[lo, hi)",36,2640,1.363636364
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.085666667,0.089,"[lo, hi)",25,2640,0.946969697
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.089,0.092333333,"[lo, hi)",45,2640,1.704545455
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.092333333,0.095666667,"[lo, hi)",40,2640,1.515151515
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.095666667,0.099,"[lo, hi)",53,2640,2.007575758
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.099,0.102333333,"[lo, hi)",140,2640,5.303030303
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.102333333,0.105666667,"[lo, hi)",508,2640,19.242424242
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.105666667,0.109,"[lo, hi)",648,2640,24.545454545
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.109,0.112333333,"[lo, hi)",671,2640,25.416666667
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.112333333,0.115666667,"[lo, hi)",211,2640,7.992424242
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.115666667,0.119,"[lo, hi)",73,2640,2.765151515
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.119,0.122333333,"[lo, hi)",25,2640,0.946969697
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.122333333,0.125666667,"[lo, hi)",16,2640,0.606060606
+b,histogram_bin,shipped,OPERATE,,,,,finite,0.125666667,0.129,"[lo, hi)",11,2640,0.416666667
+b,histogram_bin,shipped,OPERATE,,,,,overflow,0.129,inf,"[cutoff, inf)",16,2640,0.606060606

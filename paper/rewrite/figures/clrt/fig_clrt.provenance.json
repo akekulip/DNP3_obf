@@ -1,16 +1,16 @@
 {
  "figure": "fig_clrt",
- "caption": "**Measured READ CLRT, at both scales.** Columns are the arms and rows the scale. Upper row: common 1 ms bins anchored at 0 ms, finite bins half-open, and one category past the break holding every transaction at or above 15 ms, 0.371 % of Timing OFF and 0.042 % of Obfuscated. Lower row: 0.005 ms bins within 0.10 ms of the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed), where the mass that the upper row's grid divides between two neighbouring bins resolves into one mode. The ordinate is the percentage of that arm's entire sample throughout, not of the window, so the rows are directly comparable; the window holds 0.09 % of Timing OFF and 99.94 % of Obfuscated.",
- "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "22ac6ce457d2cc9b9a0e1a3e611cabb8c5a73832",
+ "caption": "**Measured READ CLRT, at both scales.** Panel (a) uses common 1 ms bins anchored at 0 ms, finite bins half-open, and one category past the break holding every transaction at or above 15 ms, 0.371 % of Timing OFF and 0.042 % of Obfuscated. Panel (b) uses 0.005 ms bins within 0.10 ms of the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed), where the mass that the coarse grid divides between two neighbouring bins resolves into one mode. The ordinate is the percentage of that arm's entire sample throughout, not of the window, so the panels are directly comparable; the window holds 0.09 % of Timing OFF and 99.94 % of Obfuscated.",
+ "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+ "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "30fddb8afd691fa4a185e9e44f4d0aaf6986deb23639136a708f9631b3134196"
+  "sha256": "e0b529a8f1314980d7cf37416e1e3a93d4098d001f9ae5da53eddfd161e890c5"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
-  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "reused_module": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
@@ -566,12 +566,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt.pdf",
-   "sha256": "0f2e8e0d4de45d9a96779c4696da141b8e1c011525ea011386c297aa6657b8a9",
+   "sha256": "46a7defd0381918309ef0342753b2a187d9e18e2971723d8e9c589cef9efb738",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt.png",
-   "sha256": "8fc985bf64f3e7e1f6b651debe6475093d97724e489324c4875685eaf33dcf41",
+   "sha256": "2ba94706c9460ed94b478795f25f0bcdd229e3d3ea0fbcde6cf758480169db95",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
@@ -585,7 +585,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.48,
-  "height": 1.85
+  "height": 2.3
  },
  "method_note": "READ transactions only, extracted from the 132 raw campaign captures under `defense4/timing/evidence/campaign_v2/s*/raw_pcaps/` by `campaign_v2/repro/pcap_dnp3.py` in integer nanoseconds, the reader the campaign statistics use; they cover 22 grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all timestamps taken on the master-facing link, at the single configured setting in `campaign_v2/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 8 ms carried in the field named D_R_ms, size carve disabled). No other device, corpus or policy setting enters this figure. The policy sweep captures under `campaign_v2/sweep/` are a different workload and are not part of the canonical table, and the deliberate retransmission diagnostic under `relay_rto_20260915/` is a loss experiment, not an obfuscation result, and is excluded. CLRT is clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport acknowledgment arriving at the master host NIC and the application response arriving there, both timestamps taken at the same vantage on the master-facing link; in the notation of `defense4/timing/NOTATION_MAPPING.md` that is m_R - m_A. It is CLRT_original in the Timing OFF arm and the measured CLRT_new in the Obfuscated arm. The configured value is the policy field named D_R_ms; under the manuscript's convention that field is the configured CLRT_new and it is not D_R, which is the response latency: the response's whole journey from the outstation to the master, unmeasured here. Measured and configured quantities are never merged: the dashed line is the configuration, the bars are the measurement. Transaction accounting: the extractor pairs one request with the first transport acknowledgment and then the application response, so a retransmission cannot open a new transaction. Re-running the independent reader over all 132 campaign captures gives 63,360 exchanges with 0 retransmissions, 0 duplicate application frames, 0 malformed frames, 0 unpaired requests, 0 out-of-order timestamps and 0 frames from the wrong endpoint, matching the frozen table row for row. Of those, 52800 are READ and 10560 are SELECT or OPERATE and are not plotted here. 0 rows were dropped for a non-finite or non-positive interval, so the two arms carry equal counts and no transaction is missing a timestamp. Genuine late responses and timing outliers are retained; nothing is winsorized or smoothed. Binning follows Formby et al., NDSS 2016, who define the CLRT fingerprint as the vector of counts of an equal-width linear-bin histogram with an overflow bin for large values (their Equation 1) and plot CLRT distributions that way in their Figure 6(b); they evaluate 200-bin feature vectors for classification. The widths used here are our presentation choice and are not widths Formby states, and this figure is a plot rather than a classifier, so it carries no bin-count requirement. The main and companion panels use 1 ms bins anchored at 0 ms. Freedman-Diaconis on the Timing OFF sample gives 0.1862 ms; that rule assumes a roughly unimodal density and is reported rather than followed. Finite bins are half-open, [lo, hi), so a value equal to an interior edge belongs to the bin above it. The main view stops its finite bins at 15 ms and collects everything at or above that value, the cutoff itself included, into one overflow category drawn apart from the bins and hatched so it cannot be read as the ordinary interval; it holds 0.371 % of the Timing OFF sample and 0.042 % of the Obfuscated sample. The same cutoff is used in both panels. The companion figure `fig_clrt_distributions_full` repeats the comparison with no cutoff at all, so no tail is lost. Bins were not shifted off the origin: the configured 8 ms falls exactly on an edge, which divides the obfuscated mass between the 7--8 and 8--9 ms bins, and that is left visible rather than hidden by moving the grid. Both panels share one pair of limits and one edge set, so a bar in one and a bar in its counterpart mean the same thing at the same height. The ordinate is linear and is a percentage of that arm's own transactions, weight 100/n, so the comparison does not depend on the two arms having equal samples; it is a per-bin share and not a probability density. No smoothing, kernel or per-sample spike is drawn. Bin counts including the overflow category are checked to sum to the plotted sample and the percentages to total 100 % before the figure is written. Every statistic in the annotations and in the CSVs is computed from the raw millisecond samples, never from bin centres; sample variance uses the n-1 denominator.",
  "limitation_note": "A narrower distribution after obfuscation is a property of the released interval. It is not on its own evidence that transaction fingerprinting is mitigated: that claim rests on the classifier and mutual-information results reported separately, and reduced variance alone does not establish it. The dashed line is a configured policy value and the bars are a measurement; the two must not be read as the same kind of quantity. The residual spread in the Obfuscated arm is a net quantity, the response release delay minus the acknowledgment release delay plus differential path and capture effects; it is not attributed here to any single mechanism. The two arms are separate capture blocks, not repeated measurements of the same transaction, so no per-transaction transfer function can be read from this figure. All intervals are master-facing; the relay-facing release instants and the realized per-transaction jitter were not observed. One relay, one configured setting, one approximately five-hour window.",

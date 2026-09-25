@@ -41,8 +41,8 @@ the configured value (RO1), and (ii) what fixed and adaptive adversaries still l
   \includegraphics{figures/clrt/fig_clrt}
   \caption{READ CLRT on the master-facing link, as a percentage of each case's own transactions.
   (a) 1~ms bins, with everything at or above 15~ms in the category on the right. (b) 0.005~ms bins
-  within 0.10~ms of the configured value, dashed; the percentages name the share of each case that
-  falls inside this window.}
+  within 0.10~ms of the configured value, dashed. This window contains 0.09\% of Timing OFF
+  and 99.94\% of Obfuscated transactions, using each case's entire sample as the denominator.}
   \label{fig:hist}
 \end{figure}
 
@@ -168,7 +168,9 @@ predicts, because the holds absorb the response time of the outstation.
   \includegraphics{figures/tail/fig_release_tail}
   \caption{Release tail $\varepsilon$. (a) Against the acknowledgment deadline, one series per
   operation. Past the dashed line the acknowledgment leaves at 31.07~ms whatever the setting, so
-  the deadline is not met and no tail is defined. (b) Its distribution at the campaign policy.}
+  the deadline is not met and no tail is defined. (b) Its distribution at the campaign policy;
+  the rightmost category includes every tail at or above 0.129~ms. Percentages use each
+  operation's entire sample as the denominator.}
   \label{fig:tail}
 \end{figure}
 

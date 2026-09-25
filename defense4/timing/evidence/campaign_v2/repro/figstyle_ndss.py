@@ -127,15 +127,13 @@ def grid(axes):
 
 
 def key(ax, **kw):
-    """The legend as Ditto draws it: a white box with a thin grey border, inside the panel."""
-    opts = dict(frameon=True, framealpha=1.0, facecolor="white", edgecolor="#666666",
-                fancybox=False, borderpad=0.35, handlelength=1.6, handletextpad=0.5,
+    """Reserve space above the panel for a key; never paint it over observations."""
+    opts = dict(handlelength=1.6, handletextpad=0.5, columnspacing=0.9,
                 labelspacing=0.28, fontsize=8)
     opts.update(kw)
-    leg = ax.legend(**opts)
-    if leg is not None:
-        leg.get_frame().set_linewidth(0.5)
-    return leg
+    opts.update(loc="lower center", bbox_to_anchor=(0.5, 1.20), frameon=False,
+                borderaxespad=0.0)
+    return ax.legend(**opts)
 
 
 def nogrid(axes):
@@ -186,6 +184,40 @@ def check_min_font(fig, stem, problems):
             problems.append(f"{stem}: text {s[:28]!r} is {t.get_fontsize()} pt, below {MIN_PT} pt")
 
 
+def check_layout(fig, stem, problems):
+    """Check rendered text bounds and keep every legend outside every data rectangle."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    page = fig.bbox
+    for ax in fig.axes:
+        legend = ax.get_legend()
+        if legend is not None:
+            box = legend.get_window_extent(renderer)
+            if any(box.overlaps(a.bbox) for a in fig.axes):
+                problems.append(f"{stem}: legend overlaps a data panel")
+    for legend in fig.legends:
+        box = legend.get_window_extent(renderer)
+        if any(box.overlaps(a.bbox) for a in fig.axes):
+            problems.append(f"{stem}: shared legend overlaps a data panel")
+    legends = list(fig.legends) + [a.get_legend() for a in fig.axes if a.get_legend() is not None]
+    for ax in fig.axes:
+        # Matplotlib exposes the centre title publicly; left/right titles are separate artists.
+        for title in (ax.title, ax._left_title, ax._right_title, ax.xaxis.label, ax.yaxis.label):
+            if title.get_visible() and title.get_text().strip():
+                if any(title.get_window_extent(renderer).overlaps(leg.get_window_extent(renderer))
+                       for leg in legends):
+                    problems.append(f"{stem}: legend overlaps label {title.get_text()!r}")
+    for t in fig.findobj(match=matplotlib.text.Text):
+        if not t.get_visible() or not t.get_text().strip() or t.get_clip_on():
+            continue
+        box = t.get_window_extent(renderer)
+        # Tick locators create unused off-range Text objects; only rendered ones matter.
+        if not box.overlaps(page):
+            continue
+        if box.x0 < page.x0 - 1 or box.y0 < page.y0 - 1 or box.x1 > page.x1 + 1 or box.y1 > page.y1 + 1:
+            problems.append(f"{stem}: text {t.get_text()[:28]!r} extends beyond the canvas")
+
+
 def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=None,
          method_note="", limitation_note="", seed=None):
     """Emit the full artefact set for one figure and return the PDF path.
@@ -195,16 +227,23 @@ def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=
     """
     outdir = Path(outdir); outdir.mkdir(parents=True, exist_ok=True)
     problems = []
+    check_layout(fig, stem, problems)
     check_min_font(fig, stem, problems)
     if problems:
         raise SystemExit("figure style violation:\n  " + "\n  ".join(problems))
+
+    # Pin the validated positions for both backends. Restoring a None layout engine after
+    # PDF export consults rcParams, so also disable automatic layout during both exports.
+    # Otherwise the PNG axes can move into a manually reserved legend margin.
+    fig.set_layout_engine("none")
 
     pdf = outdir / f"{stem}.pdf"
     png = outdir / f"{stem}.png"
     # Omit the creation timestamp so the same inputs always give the same bytes.
     meta = {"CreationDate": None, "Producer": None, "Creator": None}
-    fig.savefig(pdf, facecolor="white", transparent=False, metadata=meta)
-    fig.savefig(png, facecolor="white", transparent=False, dpi=600)
+    with plt.rc_context({"figure.constrained_layout.use": False, "figure.autolayout": False}):
+        fig.savefig(pdf, facecolor="white", transparent=False, metadata=meta)
+        fig.savefig(png, facecolor="white", transparent=False, dpi=600)
     w_in, h_in = (round(float(v), 3) for v in fig.get_size_inches())
     plt.close(fig)
 

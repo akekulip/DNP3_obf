@@ -2,15 +2,15 @@
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 8~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
  "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "d752b88d89f25aea22dcb0b0782bd20ae851dad8",
+ "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
-  "sha256": "49fca14d7b1f644ded2b36baa0575b662744a4f826af6fd95564576ae06a74d5"
+  "sha256": "4c95e1daabd9d923f6eebfcc2451897ddb33aa0ee511d6e24de0d644bff7e0d8"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
-  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "c4dfa8aa14f2a2b945406d15666b139ea2eefc7f81ca4cf7f7978ac6331f884b",
+   "sha256": "d83009d9a1cac974acd04e02e85e35f03c5524acd64611f0b44279cf27dec8c9",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "bc20bad16aaef9b66feba827df1fe2d961e82534d5208cf2508b85dece6d4e5e",
+   "sha256": "68dd84867fd9b8e8229ebdb11d8d3d324576854882eae2bd0f510c8ab54822e9",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -45,14 +45,14 @@
  },
  "figure_dimensions_in": {
   "width": 3.48,
-  "height": 3.0
+  "height": 3.25
  },
  "method_note": "Each marker is the median of one transaction class within one grouped run, and the bar spans that run's interquartile range. Runs are shown in acquisition order so that drift over the campaign would be visible as a trend.",
  "limitation_note": "22 grouped runs, one approximately five-hour campaign, one SEL-751A, one Tofino-1. This is within-campaign stability only: it is not cross-session, cross-day, longitudinal, or deployment stability, and the runs are not independent replications. Panel (b) uses a magnified ordinate.",
  "notes": {
   "markers": "run median",
   "bars": "interquartile range",
-  "panel_b_ordinate": "magnified, full span 0.20 ms, disclosed in-panel and in caption",
+  "panel_b_ordinate": "magnified, full span 0.20 ms; current policy centred",
   "scope": "within-campaign only"
  },
  "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"

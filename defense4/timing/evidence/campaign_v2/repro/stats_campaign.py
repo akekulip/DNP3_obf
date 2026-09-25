@@ -51,10 +51,10 @@ def main(canon, budget_ms, out):
     rows = load(canon)
     res = {"budget_ms": budget_ms,
            "lane_definition": {
-               "read_lane": {"classes": READ_LANE, "anchor": "outstation acknowledgment t_A",
-                             "observable": "CLRT = D_R", "budget_applies": True},
+               "read_lane": {"classes": READ_LANE, "anchor": "master request T0",
+                             "observable": "measured CLRT_new = master response minus ACK", "budget_applies": True},
                "control_lane": {"classes": CONTROL_LANE, "anchor": "master request T0",
-                                "observable": "O = R - A", "budget_applies": False}},
+                                "observable": "measured CLRT_new = master response minus ACK", "budget_applies": False}},
            "sd_convention": "sample standard deviation, ddof=1",
            "per_arm_class": {}}
     print(f"{'arm':11s} {'class':8s} {'n':>6s} {'median':>8s} {'IQR':>8s} {'sd':>8s} {'max':>9s}")

@@ -95,6 +95,7 @@ ZOOM_BIN_MS = 0.005
 # sample, so the truncation costs the main view almost nothing, and nothing at all overall:
 # fig_clrt_distributions_full repeats the comparison with no cutoff and every tail drawn.
 OVERFLOW_CUTOFF_MS = 15.0
+OVERFLOW_X_BINS = 3.5
 
 
 # ------------------------------------------------------------------ data loading
@@ -231,15 +232,18 @@ def emit(fig, out, stem, caption, inputs, rows, method_note, limitation_note, no
     for. Everything else that function guarantees is kept, the minimum-type check included.
     """
     problems = []
+    fs.check_layout(fig, stem, problems)
     fs.check_min_font(fig, stem, problems)
     if problems:
         raise SystemExit("figure style violation:\n  " + "\n  ".join(problems))
+    fig.set_layout_engine("none")
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     pdf, png, data = out / (stem + ".pdf"), out / (stem + ".png"), out / (stem + "_data.csv")
-    fig.savefig(pdf, facecolor="white", transparent=False,
-                metadata={"CreationDate": None, "Producer": None, "Creator": None})
-    fig.savefig(png, facecolor="white", transparent=False, dpi=PNG_DPI)
+    with plt.rc_context({"figure.constrained_layout.use": False, "figure.autolayout": False}):
+        fig.savefig(pdf, facecolor="white", transparent=False,
+                    metadata={"CreationDate": None, "Producer": None, "Creator": None})
+        fig.savefig(png, facecolor="white", transparent=False, dpi=PNG_DPI)
     w_in, h_in = (round(float(x), 3) for x in fig.get_size_inches())
     plt.close(fig)
 
@@ -382,28 +386,20 @@ def _draw_overflow_bar(ax, pct, cutoff, w, arm):
     cannot be read as the ordinary interval [cutoff, cutoff + w). Its abscissa position carries
     no width meaning; the tick beneath it says what it is.
     """
-    ax.axvline(cutoff + w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
-    ax.bar([cutoff + 2.0 * w], [pct], width=w, align="edge", color=ARM_COLOR[arm],
+    ax.axvline(cutoff + 1.5 * w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
+    ax.bar([cutoff + OVERFLOW_X_BINS * w], [pct], width=w, align="edge", color=ARM_COLOR[arm],
            edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///", linewidth=0.6, zorder=3)
-    # At a few tenths of a percent on a 0-60 % ordinate the category is a sliver: the hatch the
-    # caption names is invisible at print size. Its value is therefore written above it, so a
-    # reader sees that the category exists and how much it holds without measuring the bar.
-    # Set vertically: only three bin widths of abscissa sit right of the break marker, so a
-    # horizontal label would straddle the marker and read as if it belonged to the finite bins.
-    ax.annotate("%.3f\u2009%%" % pct, xy=(cutoff + 2.5 * w, pct),
-                xytext=(0, 4), textcoords="offset points", ha="center", va="bottom",
-                rotation=90, fontsize=8, color=ARM_COLOR[arm], zorder=6)
 
 
 def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
                        show_legend):
     ax.set_title(title, loc="left", pad=12.0)
     ax.set_ylabel("Transactions [%]")
-    ax.set_xlim(0.0, cutoff + 4.0 * w)
+    ax.set_xlim(0.0, cutoff + 5.0 * w)
     ax.set_ylim(0.0, y_hi)
     # The overflow category is set two bin widths clear of the last finite bin, with the break
     # marker between them, so its tick cannot be misread as the cutoff tick beside it.
-    ticks = list(np.arange(0.0, cutoff + 0.1, 3.0)) + [cutoff + 2.5 * w]
+    ticks = list(np.arange(0.0, cutoff + 0.1, 3.0)) + [cutoff + (OVERFLOW_X_BINS + 0.5) * w]
     ax.set_xticks(ticks)
     ax.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
     # Only one reference mark survives: the configured value, which a reader cannot infer from
@@ -425,6 +421,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
     measured range, tails included, is kept in the companion figure.
     """
     fs.use()
+    plt.rcParams["figure.constrained_layout.use"] = False
     off, obf = by_arm["native"], by_arm["obfuscated"]
     w = MAIN_BIN_MS
     cutoff = OVERFLOW_CUTOFF_MS
@@ -441,7 +438,8 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
 
     y_hi = max(max(panels[a][0].max(), panels[a][1]) for a in panels) * 1.18
 
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True,
+                             constrained_layout=False)
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         pct, over_pct, counts, over = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
@@ -514,19 +512,20 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
 
 
 def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
-    """The same measurements at both scales, as one 2x2 rather than two stacked pairs.
+    """The same measurements at both scales, as one 1x2 rather than two stacked pairs.
 
-    Columns are the two arms and rows are the two scales, which is the small-multiples layout
-    Ditto uses for its own distribution figures. It replaces `fig_clrt_distributions` and
+    Panel (a) gives the main distribution, and panel (b) gives the configured-value zoom.
+    It replaces `fig_clrt_distributions` and
     `fig_clrt_zoom` in the manuscript: those carried the same data in two floats with two
     captions, 5.5 column-inches of figure between them, and a cross-reference from one to the
     other that a reader had to follow to see the mode resolve. Side by side the resolution
-    happens by looking down a column, and the pair costs 3.15 inches instead of 5.5.
+    happens in one place, and the pair costs one column instead of two floats.
 
     Both figures are still generated, because they are the archival full-height versions and
     their bin accounting is what the row tables are built from.
     """
     fs.use()
+    plt.rcParams["figure.constrained_layout.use"] = False
     off, obf = by_arm["native"], by_arm["obfuscated"]
 
     w, cutoff = MAIN_BIN_MS, OVERFLOW_CUTOFF_MS
@@ -537,13 +536,12 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         counts, over = binned_percentages(v, edges, cutoff_ms=cutoff)
         scale = 100.0 / float(v.size)
         main[arm] = (counts * scale, over * scale)
-    # Headroom for the legend, which sits inside the axes in Formby's idiom. At 1.18 the
-    # box landed on top of the obfuscated mode.
-    y_main = max(max(main[a][0].max(), main[a][1]) for a in main) * 1.45
+    y_main = max(max(main[a][0].max(), main[a][1]) for a in main) * 1.18
 
     z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
     zw = ZOOM_BIN_MS
-    zedges = z_lo + zw * np.arange(int(round((z_hi - z_lo) / zw)) + 1)
+    # Use the published decimal edges when counting exact capture-timestamp ties.
+    zedges = np.round(z_lo + zw * np.arange(int(round((z_hi - z_lo) / zw)) + 1), 9)
     zoom, shares = {}, {}
     for arm, v in (("native", off), ("obfuscated", obf)):
         counts, _ = np.histogram(v, bins=zedges)
@@ -555,7 +553,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
     # bin. That is Formby et al.'s template (NDSS 2016, Figures 17 and 19), and it is the right
     # one here for two reasons. The comparison this figure exists to make is between the arms, and
     # side by side in one axes a reader makes it without travelling between panels. And the old
-    # 2x2 spent a whole panel on Timing OFF at the fine scale, where that arm puts 0.09 % of
+    # four-panel draft spent a whole panel on Timing OFF at the fine scale, where that arm puts 0.09 % of
     # itself: a quarter of the figure was blank, and a reader had to be told in the panel that the
     # emptiness was the result rather than missing data. Dodged against the other arm, the same
     # fact reads off the picture.
@@ -565,7 +563,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
     # imitated: his palette is not separable in greyscale, and NDSS renders in black and white, so
     # the second arm is hatched as well as coloured. His panels also carry an in-axes title
     # duplicating the caption; ours do not.
-    fig, axes = plt.subplots(1, 2, figsize=(fs.COL_W, 1.85))
+    fig, axes = plt.subplots(1, 2, figsize=(fs.COL_W, 2.3), constrained_layout=False)
     a0, a1 = axes
     HATCH = {"native": None, "obfuscated": "////"}
 
@@ -575,21 +573,18 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         a0.bar(edges[:-1] + off_x, pct, width=w / 2.0, align="edge", color=ARM_COLOR[arm],
                edgecolor=ARM_COLOR[arm], linewidth=0.3, hatch=HATCH[arm], zorder=3,
                label=ARM_LABEL[arm])
-        a0.bar([cutoff + 2.0 * w + off_x], [over_pct], width=w / 2.0, align="edge",
+        a0.bar([cutoff + OVERFLOW_X_BINS * w + off_x], [over_pct], width=w / 2.0, align="edge",
                color=ARM_COLOR[arm], edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///",
                linewidth=0.6, zorder=3)
-    a0.axvline(cutoff + w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
-    a0.set_xlim(0.0, cutoff + 4.0 * w)
+    a0.axvline(cutoff + 1.5 * w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
+    a0.set_xlim(0.0, cutoff + 5.0 * w)
     a0.set_ylim(0.0, y_main)
-    ticks = [0.0, 5.0, 10.0, 15.0, cutoff + 2.5 * w]
+    ticks = [0.0, 5.0, 10.0, 15.0, cutoff + (OVERFLOW_X_BINS + 0.5) * w]
     a0.set_xticks(ticks)
     a0.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
+    a0.set_title("(a) Main distribution", loc="left", pad=4.0)
     a0.set_xlabel("CLRT [ms]")
     a0.set_ylabel("Transactions [%]")
-    leg = a0.legend(loc="upper right", fontsize=8, frameon=True, handlelength=1.0,
-                    handletextpad=0.4, borderpad=0.3, labelspacing=0.25)
-    leg.get_frame().set_linewidth(0.5)
-    leg.get_frame().set_edgecolor(fs.GREY)
 
     for arm in ("native", "obfuscated"):
         off_x = 0.0 if arm == "native" else zw / 2.0
@@ -601,19 +596,20 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
     a1.set_ylim(0.0, y_zoom)
     a1.set_xticks([z_lo, target_ms, z_hi])
     a1.set_xticklabels(["%.2f" % z_lo, "%.2f" % target_ms, "%.2f" % z_hi])
+    a1.set_title("(b) Zoom", loc="left", pad=4.0)
     a1.set_xlabel("CLRT [ms]")
-    # The share each arm puts inside this window IS the result of the panel, so it is written in
-    # the panel next to the arm it belongs to rather than left to the caption.
-    for i, arm in enumerate(("obfuscated", "native")):
-        a1.annotate("%.2f\u2009%% %s" % (shares[arm], ARM_LABEL[arm]),
-                    xy=(0.04, 0.94 - 0.15 * i), xycoords="axes fraction",
-                    fontsize=8, color=ARM_COLOR[arm], ha="left", va="top")
-
-    for a_, letter in ((a0, "a"), (a1, "b")):
-        a_.annotate("(%s)" % letter, xy=(0.97, 0.05), xycoords="axes fraction",
-                    fontsize=8, color=fs.GREY, ha="right", va="bottom")
-
-    fig.tight_layout(pad=0.3, w_pad=0.7)
+    handles = [
+        Line2D([], [], color=ARM_COLOR["native"], marker="s", lw=0, ms=4,
+               markerfacecolor=ARM_COLOR["native"], label=ARM_LABEL["native"]),
+        Line2D([], [], color=ARM_COLOR["obfuscated"], marker="s", lw=0, ms=4,
+               markerfacecolor=ARM_COLOR["obfuscated"], label=ARM_LABEL["obfuscated"]),
+        Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
+               label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$"),
+    ]
+    fig.set_layout_engine("none")
+    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.99),
+               ncol=3, frameon=False, handlelength=1.4, columnspacing=0.8)
+    fig.subplots_adjust(left=0.12, right=0.94, bottom=0.20, top=0.78, wspace=0.52)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
                       "campaign_v2 raw captures via repro/pcap_dnp3.py")
@@ -627,14 +623,14 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
         r["configured_CLRT_new_ms"] = target_ms
 
     caption = (
-        "**Measured READ CLRT, at both scales.** Columns are the arms and rows the scale. "
-        "Upper row: common %.0f ms bins anchored at 0 ms, finite bins half-open, and one "
+        "**Measured READ CLRT, at both scales.** Panel (a) uses common %.0f ms bins "
+        "anchored at 0 ms, finite bins half-open, and one "
         "category past the break holding every transaction at or above %g ms, %.3f %% of "
-        "Timing OFF and %.3f %% of Obfuscated. Lower row: %.3f ms bins within %.2f ms of the "
-        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed), where the mass that the upper "
-        "row's grid divides between two neighbouring bins resolves into one mode. The ordinate "
+        "Timing OFF and %.3f %% of Obfuscated. Panel (b) uses %.3f ms bins within %.2f ms of the "
+        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed), where the mass that the coarse "
+        "grid divides between two neighbouring bins resolves into one mode. The ordinate "
         "is the percentage of that arm's entire sample throughout, not of the window, so the "
-        "rows are directly comparable; the window holds %.2f %% of Timing OFF and %.2f %% of "
+        "panels are directly comparable; the window holds %.2f %% of Timing OFF and %.2f %% of "
         "Obfuscated."
         % (w, cutoff, main["native"][1], main["obfuscated"][1], zw, ZOOM_HALFWIDTH_MS,
            shares["native"], shares["obfuscated"]))
@@ -651,6 +647,7 @@ def figure_clrt_grid(by_arm, target_ms, out, inputs, acc, bin_rows):
 def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     """Companion view: the same bins over the entire measured range, no overflow, all tails."""
     fs.use()
+    plt.rcParams["figure.constrained_layout.use"] = False
     off, obf = by_arm["native"], by_arm["obfuscated"]
     w = MAIN_BIN_MS
     hi = float(max(off[-1], obf[-1]))
@@ -664,7 +661,8 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
         panels[arm] = (counts * (100.0 / float(v.size)), counts)
 
     y_hi = max(panels[a][0].max() for a in panels) * 1.18
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.8), sharex=True,
+                             constrained_layout=False)
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         pct, counts = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
@@ -723,14 +721,16 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
 def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
     """Zoom around the configured value, at a width consistent with timestamp resolution."""
     fs.use()
+    plt.rcParams["figure.constrained_layout.use"] = False
     off, obf = by_arm["native"], by_arm["obfuscated"]
     z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
     w = ZOOM_BIN_MS
     n = int(round((z_hi - z_lo) / w))
-    edges = z_lo + w * np.arange(n + 1)
+    edges = np.round(z_lo + w * np.arange(n + 1), 9)
     w_fd_zoom = freedman_diaconis_ms(obf)
 
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.7), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.7), sharex=True,
+                             constrained_layout=False)
     shares, peaks = {}, []
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         counts, _ = np.histogram(v, bins=edges)
@@ -742,15 +742,12 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         shares[arm] = 100.0 * inside / float(v.size)
         _draw_finite_bars(ax, pct, edges, arm)
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        # Panel (a) is nearly empty, and that emptiness IS the result: Timing OFF puts a small
-        # share of its transactions in this window and spreads them over every bin, so no bar
-        # clears half a percent. Without the share stated in the panel a reader sees a blank
-        # axis and has to hunt the caption for the number, so it is written where it is read.
-        ax.text(0.02, 0.94, "%.2f\u2009%% of this arm" % shares[arm],
-                transform=ax.transAxes, ha="left", va="top", fontsize=8, color=ARM_COLOR[arm])
+        # Panel (a) is nearly empty, and that emptiness IS the result. Put the window share in
+        # the panel title so the plot interior stays clear while the result remains local.
         # The bin width belongs in the caption, which states it, not in the panel title where it
         # repeats on both panels and crowds the arm name.
-        ax.set_title(_panel_title(tag, arm, ""), loc="left", fontsize=8, pad=10.0)
+        ax.set_title("%s: %.2f %% in window" % (_panel_title(tag, arm, ""), shares[arm]),
+                     loc="left", fontsize=8, pad=10.0)
         ax.set_xlim(z_lo, z_hi)
         ax.set_ylabel("Transactions [%]")
         for i in range(n):
@@ -760,8 +757,8 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
                                  arm=ARM_LABEL[arm], category="finite",
                                  bin_lo_ms=round(float(edges[i]), 9),
                                  bin_hi_ms=round(float(edges[i + 1]), 9),
-                                 edge_convention="[lo, hi); denominator is the arm's full "
-                                                 "sample, not the window",
+                                 edge_convention=("[lo, hi]" if i == n - 1 else "[lo, hi)")
+                                                 + "; denominator is the arm's full sample, not the window",
                                  transactions=int(counts[i]),
                                  percent_of_arm=round(float(pct[i]), 9)))
     top = max(peaks) * 1.18
@@ -801,7 +798,9 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
         "read at printed size. The ordinate keeps the full-condition denominator: a bar is a "
         "share of every transaction measured in that arm, so the visible subset is never "
         "renormalized to 100 %%, and the window's own share is stated on each panel. No "
-        "residual variable is introduced; the abscissa is CLRT in milliseconds throughout."
+        "residual variable is introduced; the abscissa is CLRT in milliseconds throughout. "
+        "Counting uses the published decimal bin edges: bins are [lo, hi), except the final "
+        "bin includes the window's upper endpoint."
         % (ZOOM_HALFWIDTH_MS, w, w_fd_zoom))
     limitations = _limitations_note()
     notes = ["the denominator is the arm's full sample, never the window",

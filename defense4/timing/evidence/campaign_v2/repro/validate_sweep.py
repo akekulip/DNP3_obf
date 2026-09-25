@@ -5,11 +5,10 @@ installed a release policy and the driver ran a fixed DNP3 workload through it. 
 are the only trusted input. ``sweep_points.csv`` and ``sweep_timing.json`` are treated as claims
 to be checked, never as sources.
 
-Provenance boundary recorded here rather than inferred: the driver logs carry ``mode`` and the
-``J`` codebook but not ``D_A``/``D_R``. The per-point offsets are read from ``sweep_points.csv``,
-which is the archived configuration table; no per-point control-plane readback exists in this
-tree. The point name encodes the same pair, and this script checks the table against the name so
-a disagreement is reported instead of silently inheriting either one.
+Provenance boundary recorded here rather than inferred: ``sweep_points.csv`` is the archived
+configuration table, and ``sweep/provenance/*.params.txt`` is the per-point control-plane
+readback. The point name encodes the same pair, and this script checks the table against both the
+name and the readback so a disagreement is reported instead of silently inheriting any one source.
 
 Two published columns are checked and one is corrected:
 
@@ -24,7 +23,7 @@ Two published columns are checked and one is corrected:
     auditable.
 """
 from __future__ import annotations
-import csv, hashlib, json, os, re, sys
+import ast, csv, hashlib, json, os, re, sys
 from collections import Counter
 
 import numpy as np
@@ -89,6 +88,55 @@ def read_points():
         return list(csv.DictReader(f))
 
 
+def readback_params(point, problems):
+    """Control-plane readback archived for one sweep point."""
+    path = os.path.join(SWEEP, "provenance", point + ".params.txt")
+    if not os.path.exists(path):
+        problems.append(f"{point}: missing control-plane readback {path}")
+        return None
+    params = None
+    with open(path) as handle:
+        for line in handle:
+            if line.startswith("tbl_params="):
+                try:
+                    params = ast.literal_eval(line.split("=", 1)[1].strip())
+                except (ValueError, SyntaxError):
+                    problems.append(f"{point}: malformed tbl_params readback")
+                    return None
+                break
+    if not isinstance(params, dict):
+        problems.append(f"{point}: control-plane readback has no tbl_params dictionary")
+        return None
+    return params
+
+
+def validate_readback(published, problems):
+    """Cross-check mode, timing offsets, request anchoring and disabled size shaping."""
+    point = published["point"]
+    params = readback_params(point, problems)
+    if params is None:
+        return None
+    expected = {"mode": 0 if published["mode"] == "OFF" else int(published["mode"][1:]),
+                "shape_enable": 0}
+    if published["D_A_ms"] and published["D_R_ms"]:
+        ack = float(published["D_A_ms"])
+        interval = float(published["D_R_ms"])
+        # The frozen installer floors each addend independently onto the 256 ns grid,
+        # then sums them (defense4_caseA_setup.py:config_params_d4).
+        ack_word = int(ack * 1e6) // 256 * 256
+        interval_word = int(interval * 1e6) // 256 * 256
+        expected.update(d_ticks=ack_word, da_dr=ack_word + interval_word)
+    for field, value in expected.items():
+        if params.get(field) != value:
+            problems.append(f"{point}: readback {field}={params.get(field)!r}, expected {value}")
+    path = os.path.join(SWEEP, "provenance", point + ".params.txt")
+    if published["mode"] == "D4":
+        with open(path) as handle:
+            if not re.search(r"^anchor_req\s*-\s*got=1\s*$", handle.read(), re.MULTILINE):
+                problems.append(f"{point}: readback anchor_req is not 1")
+    return sha256(path)
+
+
 def extract_point(point, problems):
     """Parse one sweep capture and return its per-transaction rows."""
     pc = os.path.join(SWEEP, "raw_pcaps", point + ".pcap")
@@ -116,9 +164,9 @@ def extract_point(point, problems):
             problems.append(f"{point}: {P.FUNC_NAME[e.func]} status {e.status} != SUCCESS")
         rows.append(dict(point=point, idx=i, txn_class=P.FUNC_NAME.get(e.func, str(e.func)),
                          func=e.func, t_req=repr(e.t_req),
-                         ack_ms=round((e.t_ack - e.t_req) * 1e3, 6),
-                         clrt_ms=round((e.t_resp - e.t_ack) * 1e3, 6),
-                         rt_ms=round((e.t_resp - e.t_req) * 1e3, 6),
+                         ack_ms=(e.t_ack_ns - e.t_req_ns) / 1e6,
+                         clrt_ms=(e.t_resp_ns - e.t_ack_ns) / 1e6,
+                         rt_ms=(e.t_resp_ns - e.t_req_ns) / 1e6,
                          status=("SUCCESS" if e.status == 0 else e.status)))
     return rows
 
@@ -173,9 +221,12 @@ def main(out_dir):
     if missing:
         problems.append(f"sweep: declared points without a capture {sorted(missing)}")
 
-    all_rows, summary = [], []
+    all_rows, summary, readback_hashes = [], [], {}
     for pub in published:
         point = pub["point"]
+        readback_hash = validate_readback(pub, problems)
+        if readback_hash is not None:
+            readback_hashes[point] = readback_hash
         rows = extract_point(point, problems)
         all_rows.extend(rows)
         s_read = summarize(rows, "READ")
@@ -234,9 +285,12 @@ def main(out_dir):
     report = dict(points=len(summary), transactions=len(all_rows),
                   manifest_entries_verified=n_manifest,
                   non_point_captures=sorted(NON_POINT_CAPTURES & on_disk),
+                  control_plane_readbacks_checked=len(readback_hashes),
+                  control_plane_readback_sha256=readback_hashes,
                   offsets_provenance=("sweep_points.csv is the archived configuration table; the "
-                                      "driver logs record mode and the J codebook but not D_A/D_R, "
-                                      "and no per-point control-plane readback exists in this tree"),
+                                      "per-point control-plane readback in sweep/provenance is "
+                                      "checked for mode, d_ticks, da_dr, shape_enable=0 and "
+                                      "anchor_req=1 for D4; its SHA-256 is recorded here"),
                   rt_med_correction=("published rt_med_ms equals ack_med_ms + clrt_med_ms, a sum of "
                                      "medians; rt_med_ms here is the median of t_resp - t_req and "
                                      "sum_of_interval_medians_ms carries the published quantity"),

@@ -1,0 +1,70 @@
+tests-final.txt
+........................................................................ [ 46%]
+........................................................................ [ 93%]
+..........                                                               [100%]
+154 passed in 20.83s
+
+publication-gate.txt
+publication gate: 0 problems
+  regenerated outputs match every published artefact
+
+clrt-check.txt
+CLRT figure manifest: 0 problems
+  every generated artefact matches FIGURES.sha256
+
+tail-check.txt
+fig_release_tail          3.48 x 2.30 in  pdf 0c4128ea91f1  png 376572213732  data 114 rows
+release tail figure: 0 problems
+
+ndss-preflight.txt
+NDSS 2027 preflight  pdf=paper/rewrite/pipeline/build/main.pdf  mode=draft
+------------------------------------------------------------------------------
+[PASS] official template  vendored NDSS template and IEEEtran.cls match the recorded hashes
+[PASS] page geometry      612 x 792 pt (US Letter), 13 pages
+[PASS] page budget        12 main-body page(s) (Ethics Considerations begins on page 12, References on page 13); limit 13. 1 of the 13 page(s) carry no body region and are excluded; a page where an excluded section begins is still counted, because the text above that heading is body. Open Science is counted, because the venue's exclusions name only Ethics Considerations, references and appendices
+[PASS] two columns        IEEEtran conference class, two columns, no \onecolumn override
+[PASS] type size          body 10 pt via documentclass[conference]; IEEEtran leading at 10 pt exceeds the 11 pt floor
+[PASS] fonts              29 fonts, all embedded, no Type 3, Times-compatible
+[PASS] publication block  NDSS 2027 publication block present on page 1
+[PASS] review cycle       cycle 'summer' -> DOI prefix 23
+[PASS] DOI                draft build: paper number not assigned, DOI renders a visible DRAFT marker (--submission will fail until it is set)
+[PASS] page numbers       \pagestyle{plain}, matching the official template
+[PASS] anonymity          no identifying string in source, PDF text, metadata, embedded bytes, URLs or acknowledgments
+[PASS] greyscale render   13 page(s) rendered in black and white for inspection at /tmp/dnp3-figure-review/preflight/ndss_gray
+------------------------------------------------------------------------------
+NDSS PREFLIGHT: PASS  (0 blocking issues)
+
+lin-compare.txt
+==============================================================================
+lin_check --compare  (non-regression gate)
+BEFORE: /home/philip/Projects/DNP3/paper/rewrite/pipeline/build/main_flat.tex  [scorecard]
+AFTER : /home/philip/Projects/DNP3/paper/rewrite/pipeline/build/main_flat.tex  [scorecard]
+==============================================================================
+sentence_health.fragments               0          0   same
+voice_fingerprint.ai_flags              0          0   same
+readability.outside_band              0.0        0.0   same
+em_dashes                               0          0   same
+stale_labels.hits                       0          0   same
+------------------------------------------------------------------------------
+  forbidden_names         PASS -> PASS  [hard]
+  stale_labels            PASS -> PASS  [hard]
+  firstness               PASS -> PASS
+  em_dashes               PASS -> PASS  [hard]
+  size_claims             PASS -> PASS  [hard]
+  structure               PASS -> PASS  [hard]
+  figures_after_refs      PASS -> PASS  [hard]
+  citations               PASS -> PASS  [hard]
+  contribution_grammar    PASS -> PASS
+  sentence_health         WARN -> WARN  [hard]
+  acronyms                WARN -> WARN
+  readability             WARN -> WARN
+  fact_hygiene            PASS -> PASS
+  connective_spine        PASS -> PASS
+  voice_fingerprint       PASS -> PASS
+VERDICT: NO REGRESSION (equal or better on every hard dimension)
+==============================================================================
+
+manuscript build
+------------------------------------------------------------------------------
+compile rc=0   gate rc=0
+BUILD RESULT: PASS

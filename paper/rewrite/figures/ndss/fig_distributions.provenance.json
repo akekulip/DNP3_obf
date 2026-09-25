@@ -1,16 +1,16 @@
 {
  "figure": "fig_distributions",
- "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 113.48~ms and the largest obfuscated one is 78.44~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible post-ACK interval (response minus ACK), not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 113.48~ms and the largest obfuscated one is 78.44~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "d752b88d89f25aea22dcb0b0782bd20ae851dad8",
+ "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
-  "sha256": "49fca14d7b1f644ded2b36baa0575b662744a4f826af6fd95564576ae06a74d5"
+  "sha256": "4c95e1daabd9d923f6eebfcc2451897ddb33aa0ee511d6e24de0d644bff7e0d8"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
-  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
@@ -22,26 +22,26 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "343f7207be2bc336b9e864709d59a63950d14de4f42bf446a1aa2329a6358291",
+   "sha256": "ce03506bd1e7d4819f07c50b9311ecb6b9017b7fdce0eae09ae0b4fe0ff17374",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "f30d4c34c6f847d127ddf69e07d96b4269172b2228e5302001da52d0ac6e7def",
+   "sha256": "aae18a1c6ddfe15ce0dedd5ab77c35758152fd280d0632c431e9ab3888f89a3f",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_distributions_data.csv",
-   "sha256": "900790900cedca0aa9db013140a43efb28b9e362b588b57dc3d44461d31b9812",
-   "rows": 246,
+   "sha256": "43b7362bfe12cb3726ef815bf093b2647e06aaab163000ec25aed00a11b74edc",
+   "rows": 7491,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
   "width": 3.48,
-  "height": 3.1
+  "height": 3.6
  },
  "method_note": "Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.",
  "limitation_note": "The OPERATE panel is the master-visible response-to-ACK interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.",
@@ -63,7 +63,7 @@
   },
   "whiskers": "full range, no observation hidden",
   "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
-  "operate_scope": "master-visible response-to-ACK interval, timed from the request"
+  "operate_scope": "master-visible response minus ACK, not total SBO time"
  },
  "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }
