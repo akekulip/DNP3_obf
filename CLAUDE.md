@@ -49,6 +49,9 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
 
 ## Hard rules
 
+- **Commit authorship:** all commits must use Philip's Git identity
+  (`akekulip <akekulip@gmail.com>`) for both author and committer. Do not add
+  co-author trailers or attribution to any other contributor.
 - **No further experimentation.** Do not run hardware, load or change a Tofino program,
   contact the SEL-751, generate traffic or captures, restart size work, add a defense or a
   protocol function, or explore compilers or implementations. Only organise the verified
