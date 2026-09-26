@@ -29,3 +29,9 @@ def test_metrics_distinguish_total_added_and_late():
 def test_distribution_rejects_unusable_data():
     for values in ([],[1,float('nan')],[1,float('inf')]):
         with pytest.raises(ValueError):report.distribution(values)
+
+
+def test_survival_counts_tied_timestamps_together():
+    values,fractions=report.survival_values([1,1,2])
+    assert values.tolist()==[1.,2.]
+    assert fractions.tolist()==[1.,1/3]

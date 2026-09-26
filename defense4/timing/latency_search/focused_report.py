@@ -8,6 +8,7 @@ from pathlib import Path
 import evaluate_focused as attacks
 import figures as shared
 import figures_random
+from matplotlib.ticker import LogLocator, FuncFormatter
 
 np=shared.np
 plt=shared.plt
@@ -54,18 +55,27 @@ def export(fig,out,stem):
     plt.close(fig)
 
 
+def survival_values(values):
+    values,counts=np.unique(np.asarray(values,dtype=float),return_counts=True)
+    return values,(counts.sum()-np.r_[0,np.cumsum(counts)[:-1]])/counts.sum()
+
+
 def plot_tails(rows,out):
     shared.set_style()
     fig,axes=plt.subplots(1,3,figsize=(7.16,2.65),sharey=True)
     plotted=[]
+    all_values=[float(r['rt_ms']) for r in rows]
     for ax,op in zip(axes,OPS):
         for arm,color,dash,label in [('native','#666666','--','Unprotected'),('obfuscated',COLORS[0],'-','Protected')]:
-            values=np.sort([float(r['rt_ms']) for r in rows if r['arm']==arm and r['txn_class']==op])
-            survival=np.arange(len(values),0,-1)/len(values)
-            ax.step(values,survival,where='post',color=color,linestyle=dash,label=label,linewidth=1)
+            values,survival=survival_values([float(r['rt_ms']) for r in rows if r['arm']==arm and r['txn_class']==op])
+            ax.step(values,survival,where='pre',color=color,linestyle=dash,label=label,linewidth=1)
             plotted.extend(dict(operation=op,arm=arm,rt_ms=float(x),fraction_at_or_above=float(y)) for x,y in zip(values,survival))
         ax.set_yscale('log');ax.set_xscale('log');ax.set_title(op)
-        ax.set_xlabel('Response latency (ms; log scale)')
+        ax.set_xlim(min(all_values)/1.1,max(all_values)*1.1)
+        ax.xaxis.set_major_locator(LogLocator(base=10,subs=(1,2,5)))
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda value,_:f'{value:g}'))
+        ax.xaxis.set_minor_locator(LogLocator(base=10,subs=()))
+        ax.set_xlabel('Response latency (ms)')
         ax.spines[['top','right']].set_visible(False)
         ax.grid(axis='y',color='.88',linewidth=.5)
     axes[0].set_ylabel('Fraction at or above latency')
