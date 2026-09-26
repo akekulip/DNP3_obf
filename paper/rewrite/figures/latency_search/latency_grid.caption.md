@@ -1,0 +1,1 @@
+Latency grid for the timing-policy search. Each cell reports the largest statistic across READ, SELECT, and OPERATE for median response time or p99 response time. The contributing operation is recorded in the CSV. Gray cells were not measured and are not interpolated.

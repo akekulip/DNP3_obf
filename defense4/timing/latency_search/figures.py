@@ -645,7 +645,7 @@ def plot_tradeoff(rows: Sequence[Mapping[str, object]], out_pdf: Path, out_png: 
         ax.tick_params(axis="both", labelsize=8)
         ax.text(0.70, 0.94, "ACK/response", transform=ax.transAxes, fontsize=7.3, color=family_style["ack_response"]["color"], va="top")
         ax.text(0.70, 0.87, "With request spacing", transform=ax.transAxes, fontsize=7.3, color=family_style["all_timing"]["color"], va="top")
-    axes[0].set_ylabel("Max protected balanced accuracy")
+    axes[0].set_ylabel("Maximum balanced accuracy")
     fig.subplots_adjust(left=0.075, right=0.985, bottom=0.22, top=0.84, wspace=0.16)
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_pdf)

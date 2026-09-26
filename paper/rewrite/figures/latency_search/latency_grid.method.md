@@ -1,0 +1,1 @@
+The grid contains fixed DA by configured CLRT-gap search cells. Search policies use J={0.25,0.5,1} ms. Historical reference policies use J={2,6,12} ms and are exported in the companion CSV rather than folded into the search grid.

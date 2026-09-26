@@ -98,3 +98,27 @@ and READ/SELECT tasks. This is approximate development uncertainty from five
 same-session acquisition repetitions, not a guarantee against all timing attackers.
 ACK/response results are reported separately from results including request spacing;
 selection retains the stricter declared-feature criterion.
+
+## Fixed-policy result
+
+The canonical screen completed all 125 blocks and 37,500 primary exchanges. Each
+block also captured both safety status polls. Capture logs report zero drops, and
+an independent Wireshark retransmission analysis flags no frames in the 125 captures
+(`results/screen_20260926T141505Z/tcp_audit.json`). All configuration and application
+checks passed. The original program, process identity and configuration were retained
+or restored, including the pre-existing overlapping codebook recorded in the snapshot;
+each experimental block instead used exactly its three verified codebook entries.
+
+The lowest tested median-delay setting, DA=5 ms and gap=1 ms, has a largest operation
+median of 6.108599 ms, a largest operation p99 of 15.44554155 ms, and a largest
+per-operation difference from the OFF median of 3.549428 ms. The repeated DA=20 ms,
+gap=8 ms reference has a largest operation median of 28.109131 ms.
+
+No protected policy passes the declared development bound. For DA=5 ms/gap=1 ms,
+the maximum tested ACK/CLRT balanced accuracies are 0.493333 (three classes) and
+0.600000 (READ/SELECT), with upper bounds 0.626667 and 0.820000. Request-spacing
+features expose the acquisition workload, including immediate SELECT-to-OPERATE
+versus 400 ms gaps between READs or SBO pairs. Their result is reported separately
+from return-timing classification. These results do not identify a confirmed
+near-chance low-delay policy. The conditional next phase is bounded class-independent
+randomization, with selected deadlines verified from hardware digests.

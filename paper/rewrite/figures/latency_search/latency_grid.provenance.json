@@ -1,0 +1,27 @@
+{
+  "figure": "latency_search_grid",
+  "interpretation": {
+    "grid": "DAxCLRT fixed search cells only; missing cells are masked, not interpolated.",
+    "metric": "Each cell is the largest statistic across READ, SELECT, and OPERATE for response time median or p99; the contributing operation is recorded in the CSV.",
+    "references": "Reference policies use the historical J set {2,6,12} ms and are exported separately from the heatmap. Search-grid policies use {0.25,0.5,1} ms."
+  },
+  "outputs_sha256": {
+    "latency_grid.pdf": "5f7e3596eea80d163cea3e181e13f2f5cbd0017953fa237ccec836fdd58acf1f",
+    "latency_grid.png": "f8257df83c5769c8490633e169517f63dd6a6e7d3f5b31607f922693ab7d5fda",
+    "latency_grid_data.csv": "4e78e1257c9ccd8f1ac1c8a2d6c9c50d197d615265a41e4e2a3fd48a5f201f26",
+    "latency_non_grid_reference_data.csv": "b6d3805ee041620e2b08026a3a20de91f461f744aed524c67895aca6ffc187cd"
+  },
+  "source": {
+    "complete_screen": true,
+    "measurements_json": "defense4/timing/latency_search/results/screen_20260926T141505Z/measurements.json",
+    "measurements_sha256": "016ac3cac98a1a9fbf87cc3a49fa2fc242bdc39103a36b3767f563adaffed460",
+    "n_blocks": 125,
+    "n_exchanges": 37500,
+    "phase": "screen"
+  },
+  "text_hashes": {
+    "caption_sha256": "b457c1a4cd2a6478d34d66937edcfb8a48fed1aef37a00c020f9820a388bc3e6",
+    "limitations_sha256": "3a8347802e329cd5c7b4f8f19e1516e6b67af0b472799191abd19ba5f1b89edc",
+    "method_sha256": "db1b510ae111694802cff00db2ddced78f2f067780f033d688830cf30f1ab93d"
+  }
+}
