@@ -27,6 +27,13 @@ The control lane retains the released OPERATE generation until the next SELECT a
 retransmission. Consequently, it does not provide recovery of a command lost toward the relay
 (Section~\ref{sec:eval:limits}).
 
+\textbf{Deadline Selection.} To vary return timing, the randomized image selects the offsets from
+a 16-entry range table indexed by an eight-bit random value. The selected offsets arm the existing
+deadline registers. The table uses the same random byte that selects $J$, so these choices can be
+correlated. A control-plane digest records the request identity and selected offsets. We match
+these records to captured requests to check the policy chosen for each exchange; the capture
+separately supplies the observed packet times.
+
 \textbf{Holding Limits.} Blockers stop on expiry, stale state or exhaustion of their pass budget.
 The control plane uses a horizon estimate $H=30.8$~ms to describe the supported hold, but this is
 not an elapsed-time limit directly enforced by the data plane. Packets outside the protected
@@ -36,12 +43,14 @@ forwards packets without scheduled holds, giving the Timing OFF case.
 \subsection{Testbed}
 \label{sec:impl:p4}
 
-\textbf{Switch Program.} We used two compiled P4$_{16}$~\cite{p4ccr2014} images of the same timing-obfuscation
+\textbf{Switch Program.} We used three compiled P4$_{16}$~\cite{p4ccr2014} images of the same timing-obfuscation
 mechanism for the Tofino Native Architecture. The main 63{,}360-exchange campaign used the image that occupied all twelve ingress
 stages and six egress stages of one Tofino-1 pipeline, with 113 tables. After simplifying the
 control logic and removing unused pipeline work, the low-latency fixed-policy study used a second
 image on the same switch and the same Barefoot SDE 9.13.2 toolchain; that image occupies seven
-ingress match-action stages, zero egress match-action stages and 73 tables. Both images implement the same request-anchored
+ingress match-action stages, zero egress match-action stages and 73 tables. The randomized image
+adds deadline selection and digest export, occupying seven ingress match-action stages, zero egress
+match-action stages and 76 tables. All three images implement the same request-anchored
 queueing abstraction and expose the same timing parameters, so we treat their timing
 measurements as separate implementation instances rather than as one mixed data set. One 25~Gb/s
 port connects the master and one 1~Gb/s port connects the relay. Two further ports are loopbacks

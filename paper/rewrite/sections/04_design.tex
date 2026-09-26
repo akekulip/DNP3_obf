@@ -73,6 +73,11 @@ the response \emph{release budget}. For example, the evaluated configuration use
 a configured CLRT of 8~ms, giving $D=28$~ms. Note that $D_A$ starts at the request, so part of this interval has already elapsed when the
 acknowledgment reaches the switch; its hold is only the remaining wait.
 
+\textbf{Per-Transaction Policies.} A fixed policy uses the same offsets on every admitted request.
+We can also select a pair of offsets per request from a configured distribution. The selection does
+not use the operation code, and the chosen offsets remain fixed for that transaction. The
+availability conditions below apply to every selected pair.
+
 \textbf{Packet Availability.} Because the switch cannot release a packet it has not received,
 the ideal schedule requires both
 \begin{equation}
