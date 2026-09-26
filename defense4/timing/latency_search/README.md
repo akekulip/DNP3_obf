@@ -1,5 +1,67 @@
 # Lower-latency timing-policy search
 
+## Focused 5/1 ms hardware study (2026-09-26)
+
+Philip selected the existing `da5_gap1_joint_amp0p5` configuration for a longer
+measurement run. The P4 source, deployed binary, seven ingress stages, queues,
+16-entry random mapping, and command-hold codebook remain unchanged. The configured
+centers are DA=5 ms and new CLRT=1 ms, with joint ±0.5 ms randomization. This is a
+characterization experiment; the preliminary variance was not a classifier pass.
+
+Frozen acquisition directory:
+`evidence/focused/random_screen_20260926T194531Z/`.
+The `protocol.json`, exact policy and schedule were committed as `e9182bcb` before
+traffic started. There are 100 protected/OFF pairs, each block containing 100 READ,
+100 SELECT and 100 OPERATE exchanges: 60,000 primary exchanges total, plus 400 safety
+polls. Repetitions 0–39 are training/tuning; repetitions 40–99 are held-out testing.
+The existing 400 ms spacing, immediate SELECT-to-OPERATE sequence and 500 ms timeout
+are preserved. Nothing in the broad sweep enters these fresh training/test sets.
+
+The broad sweep was intentionally interrupted after remote traffic completed, during
+its read-only digest-completion wait. The original exception/final status is retained;
+restoration succeeded. All 52 captured blocks (15,600 primary exchanges) were validated,
+including the last block recovered separately from the normal 51-block progress list.
+The independent TCP audit found zero retransmission flags in those 52 captures.
+
+`focused_campaign.py --prepare` freezes inputs without accessing hardware.
+`--run RUN_DIR` verifies those inputs and the live binary hashes, then runs existing
+guarded acquisition functions. A started directory cannot be replayed automatically.
+Creating `RUN_DIR/STOP_AFTER_BLOCK` stops at the next completed block boundary and
+restores the saved configuration. A failed block is retained and never automatically
+retried. The old runner has no stop-file support; do not assume this applies to it.
+
+`focused_watch.py --run RUN_DIR --out RESULTS_DIR --jobs 8` has no hardware mutation
+path. It copies only the first 80 completed blocks for training, validates them, and
+fits 180 models using five grouped tuning folds and the existing model grids. Models
+are serialized with training-data, code, protocol, environment and artifact hashes.
+Once all 200 blocks finish and restoration passes, it validates the full acquisition,
+audits TCP captures, scores the frozen models on repetitions 40–99, and generates
+statistics and figures. Analysis failures never restart acquisition.
+
+`evaluate_focused.py` exposes separate `--phase fit` and `--phase score` commands;
+both require `--measurements`, `--input`, `--protocol`, and `--models`; scoring also
+requires `--out`. Fixed models train on OFF; adaptive models train on protected traffic.
+RF, logistic regression and RBF-SVM use the existing feature families and pools of
+1, 5 and 20 known-same-operation exchanges. A separate adaptive level-aware attack
+subtracts nearest public timing levels; digest-selected offsets never enter features.
+Train/test blocks and pooled signatures are disjoint. The score includes confusion
+matrices, recall, predictions, and approximate simultaneous paired-block bootstrap
+bounds (5,000 shared resamples, 97.5% per task). ACK/CLRT and all-timing results stay
+separate. A combined bound also covers the supplemental attack. The original full
+criterion remains chance+0.05; no passing outcome is assumed or required to finish.
+
+`focused_report.py` requires complete, matching evidence and classifier results.
+It reports all-repetition and held-out timing statistics separately, paired baseline
+overhead, missing responses, capture drops, retransmission flags and responses more
+than 1 ms beyond their selected target. This descriptive late threshold is not the
+500 ms transaction timeout. Its figures retain full tails and include exact plotted
+CSV values, source hashes and captions. Generated results require visual and manuscript
+review before paper integration; the watcher does not claim that integration is done.
+
+Acquisition log: `/tmp/dnp3-focused-5-1.log`.
+Analysis log: `/tmp/dnp3-focused-analysis.log`.
+Expected results directory: `results/focused_random_screen_20260926T194531Z/`.
+
 User-authorized on 2026-09-26, including physical testbed acquisition and subsequent
 figure/manuscript updates. Recovery commit: `a0be80f0`. This is a new experiment,
 not a modification of campaign_v2 or a claim that the old campaign used seven stages.
