@@ -472,8 +472,10 @@ def summarize_run(run_dir: str | Path, *, blocks_root: str | Path | None = None,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     write_path = out_dir / "measurements.json"
-    write_path.write_text(json.dumps(measurements, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     _write_csv(out_dir / "primarytransactions.csv", all_rows)
+    measurements['primary_csv_sha256'] = _hash_file(out_dir/'primarytransactions.csv')
+    measurements['summary_code_sha256'] = _hash_file(Path(__file__))
+    write_path.write_text(json.dumps(measurements, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return measurements
 
 
