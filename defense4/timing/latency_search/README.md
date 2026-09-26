@@ -183,3 +183,10 @@ python3 defense4/timing/latency_search/figures_random.py \
 python3 defense4/timing/latency_search/figures_random.py \
   --outdir /tmp/dnp3-random-figures-preview --check
 ```
+
+`audit_tcp.py --measurements PATH --out PATH` independently runs Wireshark's
+TCP retransmission filters on every capture named by the summary. It checks
+each capture's hash before and after dissection and records the tool version,
+flagged frame numbers, warnings, and summary hash. An audit of a partial summary
+is explicitly partial; repeat it after the final strict summary. Zero flags are
+a capture-level observation, not proof that uncaptured loss is impossible.
