@@ -1,0 +1,73 @@
+{
+  "count_per_class": 10,
+  "phase": "pilot",
+  "schedule": [
+    {
+      "policy": {
+        "da": {
+          "low_byte_zero": true,
+          "quantization_error_ns": 0,
+          "realized_ms": 20.0,
+          "requested_ms": 20.0,
+          "word": 20000000
+        },
+        "gap": {
+          "low_byte_zero": true,
+          "quantization_error_ns": 0,
+          "realized_ms": 4.0,
+          "requested_ms": 4.0,
+          "word": 4000000
+        },
+        "j_set_ms": [
+          2.0,
+          6.0,
+          12.0
+        ],
+        "kind": "reference",
+        "mode": "D4",
+        "name": "ref_d4_20_4",
+        "note": "High-overhead D4 reference with the historical J codebook.",
+        "op_a_ms": 20.0,
+        "op_r_ms": 24.0,
+        "relay_dst_port": 20000,
+        "requested_da_ms": 20.0,
+        "requested_gap_ms": 4.0
+      },
+      "replicate": 0
+    },
+    {
+      "policy": {
+        "da": {
+          "low_byte_zero": true,
+          "quantization_error_ns": 0,
+          "realized_ms": 20.0,
+          "requested_ms": 20.0,
+          "word": 20000000
+        },
+        "gap": {
+          "low_byte_zero": true,
+          "quantization_error_ns": 0,
+          "realized_ms": 4.0,
+          "requested_ms": 4.0,
+          "word": 4000000
+        },
+        "j_set_ms": [
+          2.0,
+          6.0,
+          12.0
+        ],
+        "kind": "reference",
+        "mode": "OFF",
+        "name": "ref_off_20_4",
+        "note": "Timing OFF reference; codebook recorded only for restore parity.",
+        "op_a_ms": 20.0,
+        "op_r_ms": 24.0,
+        "relay_dst_port": 20000,
+        "requested_da_ms": 20.0,
+        "requested_gap_ms": 4.0
+      },
+      "replicate": 0
+    }
+  ],
+  "seed": 20260926
+}

@@ -1,0 +1,13 @@
+{
+  "event": "listener_probe_blocked_configuration",
+  "affected_pilot": "pilot_20260926T175845Z",
+  "completed_blocks": 1,
+  "completed_primary_exchanges": 30,
+  "failed_before_second_block_traffic": true,
+  "cause": "BFRT bound client119 remained alive after SIGINT because listener omitted stream teardown; client0 could not bind.",
+  "owned_listener_pid_stopped": 2705892,
+  "stop_signal": "SIGTERM",
+  "recovery": "Original fixed configuration restored successfully on randomized pipeline after listener termination; no daemon restart required.",
+  "required_fix": "Listener tears down stream on every exit; configuration/readback occurs before listener start, and next configuration waits for listener exit.",
+  "excluded_from_fixed_screen": true
+}

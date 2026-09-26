@@ -1,0 +1,28 @@
+START pilot_20260926T175845Z_r00_ref_d4_20_4
+CAPTURED pilot_20260926T175845Z_r00_ref_d4_20_4
+START pilot_20260926T175845Z_r00_ref_off_20_4
+Traceback (most recent call last):
+  File "defense4/timing/latency_search/campaign.py", line 84, in main
+    switch_apply('plan_' + p.name + '.json', log, rb)
+  File "defense4/timing/latency_search/campaign.py", line 32, in switch_apply
+    ssh(SWITCH, command, stdout=stream, stderr=subprocess.STDOUT, timeout=60)
+  File "/home/philip/Projects/DNP3/defense4/timing/latency_search/remote.py", line 15, in ssh
+    return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
+  File "/usr/lib/python3.8/subprocess.py", line 516, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', 'decps@10.10.54.81', 'DEFENSE4_HW_AUTHORIZED=1 PYTHONPATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino python3 /home/decps/dnp3_latency_20260926/configure.py apply --policy /home/decps/dnp3_latency_20260926/plan_ref_off_20_4.json --control-dir /home/decps/dnp3_latency_20260926/control --readback-output /home/decps/dnp3_latency_20260926/pilot_20260926T175845Z_r00_ref_off_20_4_readback.json']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "defense4/timing/latency_search/campaign.py", line 121, in <module>
+    main()
+  File "defense4/timing/latency_search/campaign.py", line 114, in main
+    switch_apply('restore.json', run / 'restore.log', 'restored_readback.json')
+  File "defense4/timing/latency_search/campaign.py", line 32, in switch_apply
+    ssh(SWITCH, command, stdout=stream, stderr=subprocess.STDOUT, timeout=60)
+  File "/home/philip/Projects/DNP3/defense4/timing/latency_search/remote.py", line 15, in ssh
+    return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
+  File "/usr/lib/python3.8/subprocess.py", line 516, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', 'decps@10.10.54.81', 'DEFENSE4_HW_AUTHORIZED=1 PYTHONPATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino python3 /home/decps/dnp3_latency_20260926/configure.py apply --policy /home/decps/dnp3_latency_20260926/restore.json --control-dir /home/decps/dnp3_latency_20260926/control --readback-output /home/decps/dnp3_latency_20260926/restored_readback.json']' returned non-zero exit status 1.
