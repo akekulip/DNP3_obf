@@ -167,3 +167,19 @@ switch under `/home/decps/dnp3_timing7_20260925/`. `summarize_random.py` reads t
 captured requests, application outcomes, readbacks and digests; it rejects
 missing selections, incorrect values, incomplete counts and reported capture
 loss. It preserves selected values separately from observed ACK/response times.
+
+`figures_random.py` plots the actual selected and observed timing distributions
+for an explicitly named policy. It requires a hash-matched primary CSV and exports
+the plotted exchanges, per-operation variance/median/p99, provenance, PDF and PNG.
+It retains the full response tail and uses a logarithmic CLRT axis to keep the
+central distribution readable. Pilot or incomplete inputs require `--preview`;
+these outputs are not final manuscript evidence. Example:
+
+```bash
+python3 defense4/timing/latency_search/figures_random.py \
+  --measurements defense4/timing/latency_search/results/random_pilot_20260926T181259Z/measurements.json \
+  --transactions defense4/timing/latency_search/results/random_pilot_20260926T181259Z/primarytransactions.csv \
+  --policy da5_gap1_gap_amp0p5 --preview --outdir /tmp/dnp3-random-figures-preview
+python3 defense4/timing/latency_search/figures_random.py \
+  --outdir /tmp/dnp3-random-figures-preview --check
+```
