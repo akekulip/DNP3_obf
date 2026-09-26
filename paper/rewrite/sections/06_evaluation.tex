@@ -1,40 +1,37 @@
 \section{Evaluation}
 \label{sec:eval}
 
-In this section, we perform security and performance evaluation of the framework. The security
-evaluation covers RO1 and RO2 (Section~\ref{sec:eval:sec}), and the performance evaluation covers
-RO3 (Section~\ref{sec:eval:perf}).
+In this section, we evaluate whether the framework changes timing as configured (RO1), what delay
+it adds and how that delay interacts with protocol timers (RO3), and what timing information an
+adversary still learns (RO2). We first describe the measurements used to answer these questions.
 
 \textbf{Evaluation Cases.} We compare two cases on the testbed of Section~\ref{sec:impl}. In
-\emph{Timing OFF}, the switch forwards the acknowledgment and the response of the outstation as they
-arrive. In \emph{Obfuscated}, the framework holds and releases them on the schedule of
-Section~\ref{sec:design}. Both cases run the same switch program and differ only in the release
-schedule. We timestamp every packet on the master-facing link, where the adversary sits, so every
-interval we report is one the adversary can measure.
+\emph{Timing OFF}, the switch forwards packets without scheduled holds. In \emph{Obfuscated}, it
+applies the request-anchored schedule of Section~\ref{sec:design}. Both cases run the same switch program. To measure what the adversary observes, we timestamp
+packets on the master-facing link and compute request-to-ACK time, CLRT from ACK to response, and
+total request-to-response time.
+These observations do not provide switch-departure or relay-facing timestamps.
 
-\textbf{Datasets.} We use two datasets. In the main campaign, we collected 63{,}360 DNP3 exchanges in
-132 captures and 22 grouped runs, half in each case. We interleaved the two cases over 5.3 hours
-so that drift cannot separate them. We set $D_A$ to 20~ms and the configured
-$\mathrm{CLRT}_{\mathrm{new}}$ to 8~ms, which gives a release budget $D$ of 28~ms, and the control
-lane draws $J$ from $\{2, 6, 12\}$~ms. A policy sweep installs 26 settings, 23 release policies and
-three controls, with 9{,}360 exchanges in total, and a readback from the control plane confirms each
-installed setting. Every request in the main campaign was answered, and no exchange was excluded.
+\textbf{Datasets and Settings.} We collected 63{,}360 DNP3 exchanges in 132 captures over 5.3 hours, organized into 22 paired runs
+with both cases and equal exchange counts in each case. To reduce confounding by drift, we
+interleaved Timing OFF and Obfuscated throughout the campaign. The Obfuscated configuration sets
+$D_A=20$~ms and CLRT to 8~ms, giving a 28~ms response budget, and installs the command-hold codebook
+$\{2,6,12\}$~ms. Readbacks verify each block's configuration, but the per-exchange command hold is
+unobserved. Every request in the main campaign received a response, and no exchange was excluded
+from the transaction statistics.
 
-\textbf{Adversary Models.} Following Formby et al.~\cite{formby2016}, the adversary
-classifies each exchange into one of three operations, READ, SELECT and OPERATE, from its CLRT and
-its request-to-acknowledgment interval, with a random forest. We report balanced accuracy, for which
-chance is 0.333, and hold out one grouped run at a time. We also estimate the mutual information
-between the CLRT and the operation against a null built by shuffling the labels within each run
-1{,}000 times, which measures the information available to any classifier.
+To check whether timing follows a change in policy, we also collected 9{,}360 exchanges across
+26 sweep settings: 23 release policies and three controls. Each setting has a control-plane readback. We estimate read-lane coverage from the Timing OFF
+request-to-response distribution and evaluate realized timing from Obfuscated exchanges, which are
+separate observations rather than repetitions of the same relay execution.
 
-\subsection{Security Evaluation}
+\subsection{Effectiveness of Timing Replacement}
 \label{sec:eval:sec}
-
-Security evaluation focuses on (i) whether the framework replaces the timing of the outstation with
-the configured value (RO1), and (ii) what fixed and adaptive adversaries still learn (RO2).
-
-\subsubsection{Effectiveness of Timing Replacement}
 \label{sec:eval:ro1}
+
+To evaluate RO1, we ask whether the released interval concentrates around its configured value,
+whether the change differs from adding a constant delay, and where the schedule ceases to hold.
+We evaluate READ and SELECT together as the read lane, then examine OPERATE separately.
 
 \begin{figure}[tbp]
   \centering
@@ -58,33 +55,28 @@ the configured value (RO1), and (ii) what fixed and adaptive adversaries still l
   \label{fig:replacement}
 \end{figure}
 
-\textbf{Effectiveness in RO1.} In Figure~\ref{fig:hist}, we show the READ CLRT the adversary
-measures in both cases. Under Timing OFF, the interval spans 1.007 to 113.480~ms and reflects how
-long the relay takes to answer. Under the framework, 99.94\% of READ exchanges fall within 0.10~ms
-of the configured 8~ms. From the figure, we can see that the medians move from 2.121~ms for READ and
-2.041~ms for SELECT to 8.005~ms for both, while the interquartile ranges fall from 2.772 and
-2.679~ms to 0.022 and 0.021~ms. A defense that only shifted the interval would keep the Timing OFF
-spread, since shifting a distribution leaves its variance unchanged
-(Figure~\ref{fig:replacement}). Shifting the Timing OFF READ
-intervals by a constant keeps their standard deviation of 2.889~ms, whereas the framework reduces it
-to 0.989~ms for READ and from 2.267 to 0.017~ms for SELECT. The framework therefore replaces the
-interval rather than moving it. In 21 of the 22 runs, the variance of the obfuscated READ interval
-lies below that of every Timing OFF run, and the remaining run contains responses that arrived after
-their deadline.
+\textbf{READ and SELECT.} In Figure~\ref{fig:hist}, we show the READ CLRT measured in both cases.
+Under Timing OFF, the interval spans 1.007 to 113.480~ms, whereas under Obfuscated, 99.94\% of
+READ exchanges lie within 0.10~ms of the configured 8~ms. The READ median moves from 2.121 to 8.005~ms, while its
+interquartile range falls from 2.772 to 0.022~ms. SELECT follows the same schedule: its median moves
+from 2.041 to 8.005~ms and its interquartile range falls from 2.679 to 0.021~ms.
 
-\textbf{Removing the Execution Time.} READ and SELECT follow the same path through the switch and
-differ in the work the relay performs. Under Timing OFF, a classifier trained on
-the two separates them at 0.785 balanced accuracy from both intervals, against a chance level of
-0.5. Under the framework, the same classifier, trained on obfuscated traffic, reaches 0.507, and
-the medians of the two classes are identical, 8.005~ms for the CLRT and 20.101~ms for the
-request-to-acknowledgment interval. This is because the framework removes the execution time from
-both intervals (Section~\ref{sec:design:read}); the evaluated classifier provides little
-separation between these two operations in this campaign.
+\textbf{Replacement versus a Constant Shift.} Figure~\ref{fig:replacement}(a) compares the measured
+READ distributions with a counterfactual that shifts Timing OFF by one constant to match the
+Obfuscated median. The shifted READ distribution retains its standard deviation of 2.889~ms, while the framework
+reduces it to 0.989~ms; SELECT falls from 2.267 to 0.017~ms. These reductions agree with the
+variable holds in Section~\ref{sec:design:read}: earlier arrivals wait longer, so the change is
+not simply the same added delay on every packet.
 
-\textbf{Control Lane.} The control lane achieves the same replacement for OPERATE, although the
-framework holds the command itself for a varying $J$ before it reaches the relay. The OPERATE median
-moves from 2.929~ms under Timing OFF to 8.000~ms, and its interquartile range falls from 2.729 to
-0.006~ms. As~(\ref{eq:control}) predicts, $J$ does not appear in the interval.
+In Figure~\ref{fig:replacement}(b), we show the READ and SELECT variance ratios for each paired
+run, with a line joining the two operations; both ratios remain below one in every run. Under the stronger comparison against every
+Timing OFF run, 21 of the 22 Obfuscated READ runs also have lower variance. Because the remaining run contains large deviations from the configured interval, we retain its
+observations in the plots, including the long tail discussed below.
+
+\textbf{Control Lane.} For OPERATE, the master-facing CLRT median moves from 2.929 to 8.000~ms,
+and the interquartile range falls from 2.729 to 0.006~ms. The measured interval follows the return schedule in~(\ref{eq:control}) under the installed
+command-hold codebook. Note that we evaluate timing at the master, since neither the selected $J$
+nor the relay-facing release was observed; the result is not a comparison between individual holds.
 
 \begin{figure*}[tbp]
   \centering
@@ -95,20 +87,104 @@ moves from 2.929~ms under Timing OFF to 8.000~ms, and its interquartile range fa
   \label{fig:policy}
 \end{figure*}
 
-\textbf{Programmable Policy.} Based on one budget, an operator can place the released interval
-anywhere within it. In Figure~\ref{fig:policy}(b), we show that at a fixed budget of 28~ms,
-configured values from 2 to 26~ms produce measured medians within 6~$\mu$s of the setting, while the
-median request-to-response time stays between 28.106 and 28.108~ms. Consequently, the operator sets
-the interval the adversary measures and the delay of the exchange independently. The sweep also
-shows the upper end of the range. The acknowledgment follows its deadline up to 30~ms, where the
-median request-to-acknowledgment interval is 30.107~ms and the released interval still sits at
-3.999~ms, its configured 4~ms. Beyond that setting the switch can no longer sustain the hold, the
-acknowledgment leaves at 31.07~ms whatever the setting, and the released interval grows to 9.034~ms
-at a 36~ms setting.
+\textbf{Programmable Policy.}
 \label{sec:eval:policy}
+In Figure~\ref{fig:policy}(b), we vary the configured CLRT from 2 to 26~ms at a fixed response
+budget of 28~ms. Measured CLRT medians remain within 6~$\mu$s of the setting, while median
+request-to-response time stays between 28.106 and 28.108~ms. Consequently, within these tested
+settings, an operator can change the interval without materially changing the total response delay.
+This is because changing the split between the two offsets leaves the response deadline fixed,
+provided both packets are available before their respective deadlines.
 
-\subsubsection{Effectiveness against Fingerprinting}
+The sweep also shows a holding limit. The measured request-to-ACK median follows a 30~ms deadline
+to 30.107~ms, with CLRT still at 3.999~ms for its configured 4~ms. At larger tested deadlines,
+ACK timing saturates near 31.07~ms, and CLRT reaches 9.034~ms at a 36~ms setting. Consequently, the sweep identifies where this implementation stops following the schedule under
+the tested traffic, while the control-plane horizon remains an estimate rather than a measured
+worst-case bound.
+
+\textbf{Coverage and Late Responses.} Figure~\ref{fig:policy}(a) shows the Timing OFF
+request-to-response distribution for READ and SELECT. A 28~ms budget covers 99.94\% of these
+exchanges; 17 of 29{,}040 exceed it. This is a master-facing estimate of response-budget coverage,
+not a direct test of both switch-side availability conditions. In the separate Obfuscated case,
+15 of 26{,}400 READ intervals depart from the configured value by more than 1~ms, and the maximum
+CLRT is 78.443~ms. The long tail remains visible in the Obfuscated distribution. Because the two cases contain
+different exchanges, this comparison cannot attribute individual departures to the 17 Timing OFF
+observations.
+
+\subsection{Performance and Release Accuracy}
+\label{sec:eval:perf}
+
+To evaluate RO3, we measure the added transaction delay and check whether the observed waits
+trigger retransmission or rejection of a control command. We then examine the excess over the
+configured ACK deadline to qualify how closely measured timing follows the schedule.
+
+\subsubsection{Transaction Cost}
+\label{sec:eval:cost}
+
+\textbf{Bandwidth.} Each capture carries 1{,}448 frames and 130{,}708 bytes on the master-facing
+link in both cases, or 3.017 frames and 272.308 bytes per exchange. Consequently, we observe no added external traffic on the captured link, consistent with the
+mechanism in Figure~\ref{fig:design}, where blockers remain on internal loopback paths.
+
+\textbf{Latency.} In Figure~\ref{fig:policy}(c), we show request-to-response time in both cases.
+The difference between the case medians is 25.426~ms for READ, 25.482~ms for SELECT and 24.652~ms
+for OPERATE. These differences between case medians remain below the 28~ms response budget, consistent with
+holding responses until the configured deadline; they are not per-packet hold measurements. To assess this cost on our testbed, we check the observed waits against endpoint behavior below;
+other deployments must also satisfy their application latency requirements.
+
+\subsubsection{Impact on Protocol Timers}
+\label{sec:eval:timers}
+
+\textbf{Retransmission.} Neither case contains a TCP retransmission on the master-facing captures.
+Under Obfuscated, the longest observed request-to-ACK and request-to-response waits are 20.19 and
+98.55~ms. In a separate test that withheld every acknowledgment of one request, the master
+retransmitted after 200.8~ms. The longest campaign ACK wait is about one tenth of that observed timeout. A separate loss trace
+recorded a repeated response after 2.969~s; this is one observed repetition interval, not a lower
+bound on all relay retransmissions. We use these observations to assess the tested waits, without
+treating campaign maxima as bounds on future traffic.
+
+\textbf{Select Validity.} The master issues OPERATE a median of 0.354~ms after receiving its SELECT
+response. Because the master waits for that response, its hold consumes part of the select-to-operate
+interval, as does the subsequent command hold. All 5{,}280 Obfuscated SELECT and OPERATE exchanges
+returned a success status, supporting successful protocol completion at the tested settings.
+Physical actuation and relay-facing command multiplicity were not measured.
+
+\subsubsection{Release Accuracy and Blocker Drain}
+\label{sec:eval:tail}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figures/tail/fig_release_tail}
+  \caption{Master-facing excess over the configured ACK deadline, used as a release-tail proxy.
+  (a) Against the configured deadline, one series per operation. Past the dashed line, measured
+  ACK timing stops following the setting; the excess no longer represents post-deadline release.
+  (b) Distribution at the campaign policy, including every value at or above 0.129~ms in the
+  rightmost category. Percentages use each operation's full sample. The plotted excess includes
+  path and capture effects and does not directly measure blocker-drain time.}
+  \label{fig:tail}
+\end{figure}
+
+\textbf{Measured Excess.} To examine release accuracy, we subtract configured $D_A$ from the
+measured request-to-ACK interval. In Figure~\ref{fig:tail}, we show this master-facing excess, which includes the ACK release tail
+together with request transit, return transit and capture effects.
+Because we have no switch-departure timestamps, it does not isolate the drain of the blocker queue
+or measure the response release tail.
+
+At the campaign setting, the median excess is 0.101~ms for READ and SELECT and 0.107~ms for
+OPERATE; the central 99\% of values lie between 36 and 127~$\mu$s. Across configured ACK deadlines
+from 4 to 30~ms, the median stays between 0.098 and 0.108~ms. Consequently, the measured excess remains small across the tested settings even as the configured
+deadline increases, indicating close tracking of the schedule in this range. Direct blocker-drain
+measurements would be needed to separate the contribution of the queues from the other effects. Once release precedes the configured deadline, the same subtraction
+no longer measures a post-deadline excess.
+
+\subsection{Residual Timing Information}
 \label{sec:eval:ro2}
+
+\textbf{Adversary Models.} To evaluate RO2, we classify READ, SELECT and OPERATE using a random
+forest on CLRT alone or on CLRT and request-to-ACK time. Motivated by timing fingerprinting~\cite{formby2016}, we test transaction-class information for one
+device by holding out one paired run at a time, with three-class chance balanced accuracy of 0.333.
+The fixed adversary trains on Timing OFF and is applied unchanged; the adaptive adversary retrains
+on Obfuscated traffic. We also estimate CLRT--class mutual information and compare it with a null
+from 1{,}000 within-run label permutations.
 
 \begin{figure}[tbp]
   \centering
@@ -121,32 +197,21 @@ at a 36~ms setting.
   \label{fig:leakage}
 \end{figure}
 
-\textbf{Effectiveness in RO2.} Under Timing OFF, the CLRT separates the three operations, with
-medians of 2.121, 2.041 and 2.929~ms, while their request-to-acknowledgment medians of 0.553, 0.551
-and 0.554~ms barely differ. In Figure~\ref{fig:leakage}(a), we show that a fixed adversary trained
-on Timing OFF traffic reaches 0.728 balanced accuracy from the CLRT alone and 0.803 from both
-intervals. Applied to obfuscated traffic, the same adversary falls to 0.335 and 0.333, i.e.,
-chance. The mutual information between the CLRT and the operation falls from 0.353 to 0.043~bits.
-The remaining information lies above its permutation null ($p = 0.001$), and the adaptive adversary
-below shows where it comes from.
+\textbf{Fixed Adversary.} In Figure~\ref{fig:leakage}(a), the fixed adversary reaches 0.728
+balanced accuracy under Timing OFF using CLRT and 0.803 using both intervals. After applying the classifier unchanged to Obfuscated traffic, we observe accuracy of 0.335 and
+0.333, close to chance. CLRT--class mutual information falls from 0.353 to 0.043~bits, but the
+remaining estimate exceeds its permutation null
+($p=0.001$). Consequently, the failure of this fixed classifier does not imply that the released
+timing contains no class information.
 
-\textbf{Adaptive Adversary.} An adaptive adversary retrained on obfuscated traffic reaches 0.451
-from the CLRT alone and 0.445 from both intervals. In Figure~\ref{fig:leakage}(b), we show that
-pooling helps it, as it does under Timing OFF. When it pools twenty exchanges of both intervals, its
-accuracy rises to 0.650, against 0.897 under Timing OFF. Its accuracy comes almost entirely from OPERATE, which
-it recognizes in 0.689 of cases, while it recognizes READ in 0.411 and SELECT in 0.235 of cases. We
-find evidence consistent with request spacing contributing to the remaining information.
-First, the classifier barely separates READ and SELECT
-(Figure~\ref{fig:residual}(a)). Second, exchanges within READ become
-separable when we split them by the gap that preceded each request
-(Figure~\ref{fig:residual}(b)). The two groups differ by
-31~$\mu$s in their median gap, and the same classifier separates them at 0.628 under the framework,
-against 0.536 under Timing OFF. Third, OPERATE reaches the switch in a different way from the other
-two operations. The master sends it 0.354~ms after the response to its SELECT, whereas a READ follows
-the previous exchange by 20.505~ms, and the release tail of OPERATE has a median of 107~$\mu$s,
-against 101~$\mu$s for READ and SELECT. As argued in Section~\ref{sec:design:read}, the arrival of
-a request sets the state of the blocker queue it meets, and the master, not the outstation, decides
-when each request arrives.
+\textbf{Adaptive Adversary.} After retraining, accuracy is 0.451 from CLRT alone and 0.445 from
+both intervals. The single-exchange classifier using both intervals performs best on OPERATE,
+with recall 0.689, compared with 0.411 for READ and 0.235 for SELECT. Figure~\ref{fig:leakage}(b)
+examines a separate attack that pools consecutive exchanges of the same operation within a capture.
+To construct a signature from each non-overlapping group, we use the mean, standard deviation,
+minimum and maximum of each interval. With twenty exchanges, balanced accuracy reaches 0.650 under
+Obfuscated, compared with 0.897 under Timing OFF, showing that pooling strengthens the evaluated
+adaptive attack.
 
 \begin{figure}[tbp]
   \centering
@@ -162,104 +227,47 @@ when each request arrives.
   \label{fig:residual}
 \end{figure}
 
-\textbf{Discussion.} Operations of one device differ in execution time, e.g., by 0.8~ms between a
-poll and a control command on our relay, and device types differ in the same
-way~\cite{formby2016, defrec2020}. Because the framework
-removes the execution time whatever its source (Section~\ref{sec:design:read}), the same argument
-applies to device types. Behind the switch, every outstation whose responses arrive within the
-budget presents intervals set by the same schedule. The residual tests are consistent with effects
-of the request schedule and release tail, but they do not isolate either as the sole cause of
-the adaptive adversary's accuracy.
+\textbf{READ versus SELECT.} To examine two operations handled by the same queues, we train and
+test a binary classifier separately in each case. Figure~\ref{fig:residual}(a) shows that accuracy
+from both intervals falls from 0.785 under Timing OFF to 0.507 under Obfuscated, against chance
+of 0.5. The Obfuscated medians are identical: 8.005~ms CLRT and 20.101~ms request-to-ACK time.
+The shared schedule is consistent with this reduction in timing differences, although a
+near-chance result for one classifier does not establish the absence of all execution-time information.
 
-\subsection{Performance Evaluation}
-\label{sec:eval:perf}
+\textbf{Request Spacing.} Figure~\ref{fig:residual}(b) examines READ alone, split at each case's
+median gap from the preceding response to the next request. We omit the first exchange in each
+capture, whose preceding gap is undefined. The Obfuscated groups differ by 31~$\mu$s in median
+gap, and the classifier separates them at 0.628 accuracy, compared with 0.536 under Timing OFF.
+Because the gap defines the groups but is not supplied as a classifier feature, this result
+indicates that the released intervals retain information associated with request spacing, even
+within one operation.
 
-The framework introduces overhead in two forms, bandwidth and latency, and the latency can interact
-with the timers of TCP and DNP3. We evaluate each against RO3.
-
-\subsubsection{Bandwidth and Latency Overhead}
-\label{sec:eval:cost}
-
-\textbf{Effectiveness in RO3.} We observe no bandwidth overhead. Each of the 132 captures carries
-1{,}448 frames and 130{,}708 bytes on the master-facing link in both cases, i.e., 3.017 frames and
-272.308 bytes per exchange, so the framework moves packets in time without adding a frame or a
-byte. In Figure~\ref{fig:policy}(c), we show the request-to-response time, whose median the
-framework raises by 25.426~ms for READ, 25.482~ms for SELECT and 24.652~ms for OPERATE. Each
-increase stays below the 28~ms budget, as the latency bound of Section~\ref{sec:design:overhead}
-predicts, because the holds absorb the response time of the outstation.
-
-\subsubsection{Release Accuracy}
-\label{sec:eval:tail}
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics{figures/tail/fig_release_tail}
-  \caption{Release tail $\varepsilon$. (a) Against the acknowledgment deadline, one series per
-  operation. Past the dashed line the acknowledgment leaves at 31.07~ms whatever the setting, so
-  the deadline is not met and no tail is defined. (b) Its distribution at the campaign policy;
-  the rightmost category includes every tail at or above 0.129~ms. Percentages use each
-  operation's entire sample as the denominator.}
-  \label{fig:tail}
-\end{figure}
-
-\textbf{Release Tail.} Each held packet leaves after its deadline by the release tail
-$\varepsilon$. Because the switch timestamps no departure, we obtain $\varepsilon$ on the
-master-facing link, as the request-to-acknowledgment interval minus the configured $D_A$, which
-also contains the path between the master and the switch. In the main campaign, the median is
-0.101~ms for READ and SELECT and 0.107~ms for OPERATE, and 99\% of all values lie between 36 and
-127~$\mu$s. In Figure~\ref{fig:tail}, we show that the tail does not depend on the length of the
-hold: across the sweep, its median stays between 0.098 and 0.108~ms for every setting from 4 to
-30~ms. Consequently, the release tail stays two orders of magnitude below the timers of
-Section~\ref{sec:design:overhead}.
-
-\subsubsection{Impact on Protocol Timers}
-\label{sec:eval:timers}
-
-\textbf{Retransmission.} On the master-facing captures, neither case carried a TCP retransmission.
-The longest the master waited under the framework was 20.19~ms for an acknowledgment and 98.55~ms
-for a response. In a separate test that withheld every acknowledgment of one request, the master
-repeated the request after 200.8~ms, about ten times the longest wait for an acknowledgment.
-
-\textbf{Select Validity.} The master issues its OPERATE 0.354~ms after the SELECT response reaches
-it, so the hold on that response consumes part of the select-to-operate timeout. No obfuscated
-OPERATE was refused, and all 5{,}280 SELECT and OPERATE exchanges returned a success status.
-
-\textbf{Coverage.} In Figure~\ref{fig:policy}(a), we show the Timing OFF request-to-response time of
-the read lane against the budget. At 28~ms, the budget covers 99.94\% of exchanges, and 17 of 29{,}040
-exceed it. Such a response arrives too late to be held and leaves with its own timing, which gives the
-largest released READ interval of 78.443~ms. A larger budget covers more of these exchanges at the
-cost of more delay, as argued in Section~\ref{sec:design:overhead}.
+The traffic pattern also differs across operations: an Obfuscated READ follows its predecessor
+by a median of 20.505~ms, whereas OPERATE follows SELECT by 0.354~ms. We expect request spacing and release state to contribute to the adaptive result, but this
+observational comparison does not isolate either as the cause. The design argument remains
+conditional on the residual effects identified in Section~\ref{sec:design:read}.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
 
-Five limitations bound these results.
+\textbf{Devices and Workloads.} We evaluate one SEL-751A, one Tofino-1 and one campaign.
+The 22 paired runs describe within-campaign variability, not independent deployments, and the
+held-out-run ranges are not confidence intervals. Multi-device measurements, such as those used
+for fingerprinting by Formby et al.\ and Lin et al.~\cite{formby2016, defrec2020}, are needed to
+test device-model distinguishability. Because the implementation protects one transaction at a time, requests that cannot be admitted
+bypass timing protection, which limits its coverage under concurrent traffic.
 
-\textbf{For Other Devices.} We evaluate one SEL-751A behind one Tofino-1 switch. Our security
-argument in Section~\ref{sec:design:read} does not depend on the device, and the three operations of
-the relay, whose execution times differ, exercise it. However, only a measurement across
-outstations from several vendors, as Formby et al.\ and Lin et al.\ made for the original
-interval~\cite{formby2016, defrec2020}, can test the
-argument for device types directly, and we leave it to future work.
+\textbf{Residual Information.} The results characterize the evaluated random forests and timing
+features. Adaptive accuracy remains above chance, and packets that miss their release deadlines
+can retain arrival-time variation. Neither the near-chance READ/SELECT result nor the observed
+association with request spacing establishes that all device information has been removed.
 
-\textbf{For Adaptive Adversaries.} An adaptive adversary retains some operation information, and
-the within-READ analysis finds timing information associated with request spacing
-(Section~\ref{sec:eval:ro2}). These observations do not establish how much residual information
-comes from each source. A release mechanism independent of blocker-queue state could reduce one
-source of variation, but testing that change is future work.
+\textbf{Unobserved Internal Events.} Master-facing captures do not reveal the selected command
+hold, relay-facing release, command multiplicity or physical actuation. They also do not directly
+measure blocker-drain time. Configuration readbacks establish installed settings; they do not
+supply these missing event timestamps or turn the horizon estimate into a measured bound.
 
-\textbf{For the Evaluated Attacker.} Our classifiers are random forests on two intervals, and the 22
-runs are grouped collections within one campaign on one testbed. Their spread is within-campaign
-variability rather than a confidence interval, and it says nothing about other days or deployments.
-However, the replacement itself (Section~\ref{sec:eval:ro1}) is measured on every exchange and
-depends on no classifier.
-
-\textbf{For the Relay-Facing Link.} We capture the master-facing link, where the adversary sits. As
-such, the command hold $J$ and the release toward the relay are configured values rather than
-measured ones, and we observe neither how many copies of a command reach the relay nor the physical
-operation that follows.
-
-\textbf{For Retransmitted Commands.} After releasing an OPERATE, the control lane keeps its
-generation until the next SELECT and drops a retransmission that carries it. A command lost on the
-relay-facing link is not repaired by its own retransmission, and extending the control lane to
-forward such a retransmission is future work.
+\textbf{Retransmitted Commands.} The control lane retains a released OPERATE generation until
+the next SELECT and drops a matching retransmission. Consequently, a command lost toward the relay cannot be repaired by its own retransmission, even
+though exchanges without that loss completed successfully in the campaign. We leave support for
+this recovery to future work.

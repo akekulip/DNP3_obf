@@ -2,69 +2,36 @@
 \label{sec:impl}
 
 To evaluate the framework, we implemented it on an Intel Tofino-1 switch and placed the switch
-between a DNP3 master and a physical protective relay. In this section, we first describe how the
-switch holds a packet until its deadline. Then we describe how it processes a transaction and the
-testbed we use.
+between a DNP3 master and a physical protective relay. In this section, we describe the deadline and transaction state used by the
+queueing mechanism, then present the testbed.
 
-\subsection{Holding Packets with Queues}
+\subsection{Deadline and Transaction State}
 \label{sec:impl:queues}
-
-A P4 program runs to completion on each packet, and it can read a clock. However, it can neither
-sleep nor schedule a callback, so it cannot wait for a deadline by itself. The switch does offer
-several queues per port and a strict-priority
-scheduler~\cite{sppifo2020}. Because a scheduler decides
-which packets do not leave, we hold a packet with the scheduler rather than with a timer.
-
-\textbf{Blocker Queues.} As shown in Figure~\ref{fig:design}, the read lane uses four queues on one
-internal port. Two queues carry the packets we delay, the acknowledgment and the response. Above each
-of them sits a \emph{blocker queue} of higher priority, which carries small packets the switch
-generates itself. While blocker packets keep arriving, the packet beneath them is never served, and
-the hold ends when its blocker queue runs dry. The response has its own held queue and its own
-blocker queue, so the switch can release the acknowledgment and the response independently. Blocker
-packets recirculate on an internal loopback port and never reach a cable, so neither endpoint can
-observe them. Each blocker packet carries a tag naming its transaction and lane, so a leftover blocker
-packet cannot delay a later transaction.
-
-\textbf{Deadline Check.} No counter drives the hold. When the request arrives, the program
-stores an absolute release instant for each packet, quantized to a 256~ns grid. Each of the 64 recirculating blocker packets
-compares the current timestamp against that instant on every pass. The program regenerates the
-blocker packet while the deadline lies in the future and drops it once the deadline passes.
-Consequently, the deadline decides when the held packet leaves, and the blocker packets only keep
-the queue non-empty until then.
-
-\textbf{Release Tail.} The held packet does not leave at the deadline itself. Blocker packets already
-queued when the deadline passes are served once more before the queue runs dry, and only then does
-the held packet leave. This drain time is the release tail $\varepsilon$ of
-Section~\ref{sec:design:read}, and we measure it in Section~\ref{sec:eval:tail}.
-
-\subsection{Processing a Transaction}
 \label{sec:impl:walkthrough}
 
-\textbf{Read Transaction.} When a request arrives, a table classifies it by its function code, and
-the program forwards it at once, records the transaction in flight and writes both release instants
-from the arrival timestamp of the request, as~(\ref{eq:schedule}) requires. It writes them only for
-a fresh transaction, and the later acknowledgment of the outstation finds both deadlines already
-armed and cannot move them. The
-acknowledgment and the response each wait in their held queue and leave at their scheduled instants.
-A response that arrives after its deadline is marked late and enters the same held queue, from which
-it leaves when the queue next serves it. Releasing the response clears the transaction.
+Section~\ref{sec:design:pipeline} describes the queue and pipeline mapping. Here we describe the
+state that realizes those decisions. The program stores absolute deadlines on a 256~ns grid.
+Each blocker reservoir contains 64 packets, which test the relevant deadline on every internal
+return. ACK and response blockers use separate reservoirs, while their queues share one scheduler.
+A deadline ends blocker recirculation; packets already queued still require service before release.
 
-\textbf{Control Transaction.} The control lane uses a second loopback port with one blocker queue
-above the held OPERATE request, on its way to the relay. The acknowledgment and the response of the
-OPERATE then pass through the read-lane queues, which release them at the instants
-of~(\ref{eq:control}). Placing the OPERATE on its own loopback port gives it a scheduling domain of
-its own, so the higher-priority read-lane queues cannot starve it. Both lanes share one set of
-deadline registers, so the program protects one transaction at a time. A second transaction that
-would arm while one is in flight is forwarded unprotected rather than disturbing the deadline in
-progress.
+\textbf{Transaction State.} A fresh protected request records the transaction and arms both
+return deadlines. A later acknowledgment cannot move those deadlines. The response enters its
+held queue even if it arrives late, and its release clears the read-lane transaction. Blocker tags
+allow ingress to reject tokens from an old transaction when they return. They do not remove the
+service already consumed by tokens waiting in a queue.
 
-\textbf{Failing Open.} Every path through the program ends in a forwarding decision. A packet outside
-the protected session, an unrecognized request, an acknowledgment without an armed transaction and a
-response whose transaction has already been released all leave unchanged. A budget on blocker passes
-bounds every hold, so once a blocker queue spends its budget the held packet leaves and its state
-clears. From this budget, the control plane derives the longest hold the switch can sustain, a
-horizon $H$ of 30.8~ms. With the framework disabled, the same program forwards every packet at once, which gives the
-Timing OFF case.
+\textbf{Control State.} SELECT prepares the control lane, and an admitted OPERATE selects its
+command hold. Both lanes share the return-deadline registers, protecting one transaction at a time.
+The control lane retains the released OPERATE generation until the next SELECT and drops a matching
+retransmission. Consequently, it does not provide recovery of a command lost toward the relay
+(Section~\ref{sec:eval:limits}).
+
+\textbf{Holding Limits.} Blockers stop on expiry, stale state or exhaustion of their pass budget.
+The control plane uses a horizon estimate $H=30.8$~ms to describe the supported hold, but this is
+not an elapsed-time limit directly enforced by the data plane. Packets outside the protected
+session and requests that cannot be admitted follow bypass paths. With timing disabled, the program
+forwards packets without scheduled holds, giving the Timing OFF case.
 
 \subsection{Testbed}
 \label{sec:impl:p4}

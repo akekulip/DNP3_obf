@@ -48,69 +48,65 @@ underlying traffic pattern to adversaries.
 
 In this paper, we propose an in-network timing-obfuscation framework for ICS traffic. Instead of
 padding packets or adding dummy ones, the framework changes only when the packets of a transaction
-leave the network, such that the timing an adversary measures becomes a value the operator
-configures rather than a property of the device.
+leave the network. It schedules the acknowledgment and response from the request, so packets
+that arrive in time can follow an operator-configured interval, subject to release effects.
 
 \subsection{Contributions}
 
 To overcome the two drawbacks above, we design a framework that runs on a programmable switch placed
 in front of an outstation. The switch holds the transport acknowledgment and the application
 response of the outstation, and it releases each of them at a deadline computed from the moment the
-request arrives. Because both deadlines are computed from the request, neither release depends on
-when the outstation acknowledges or answers, and the execution time of the device does not reach
-the intervals the adversary measures. Because the switch forwards the same packets it received, the
-obfuscated traffic carries nothing that marks it as obfuscated, which is what a plaintext protocol
-requires.
+request arrives. Because both deadlines are computed from the request, their scheduled values do not depend on
+when the outstation acknowledges or answers. Actual release also depends on packet availability
+and queue service. The framework works with readable protocol traffic by holding existing packets
+rather than requiring endpoint encryption.
 
 \textbf{The Framework's Role.} We position the framework as a complement to the protections an ICS
 already runs, such as intrusion detection. The framework cannot hide which operation an exchange
-carries, because DNP3 leaves the function code readable, and it adds a bounded delay to every
-exchange it protects. However, it reads no payload and changes no byte, and it requires no
+carries, because DNP3 leaves the function code readable, and the release budget controls the scheduled delay of
+protected exchanges. It leaves the application payload unchanged and requires no
 modification of the master, the outstation or the DNP3 protocol. Consequently, it can protect legacy
 devices that can neither be patched nor replaced, which are the devices that fingerprinting targets.
 
 Even though we present the framework for DNP3, the design concept can be extended to other ICS
-protocols. The schedule refers only to the arrival of a request and to the two packets that answer
-it, and not to the content of any packet. By adding the function codes of another request-response
-protocol over TCP to the classification table, the switch can hold its packets in the same way.
+protocols. The scheduling idea requires an identifiable request and returning acknowledgment and response.
+Applying it to another protocol would also require parsing, transaction matching and timer checks
+for that protocol, which we do not evaluate here.
 
 The main contributions of the paper are:
 \begin{itemize}
-  \item \textbf{Replace the execution time of a device with a configured value.} We design a release
+  \item \textbf{Replace arrival-dependent timing with scheduled intervals.} We design a release
     schedule that holds real protocol packets and computes both release deadlines from the arrival
-    of the request. As such, the switch rather than the outstation sets both intervals the adversary
-    measures, the request-to-acknowledgment interval and the cross-layer response time.
+    of the request. The operator sets the scheduled request-to-acknowledgment interval and CLRT, while
+    packet availability and residual release effects constrain how closely actual timing follows.
   \item \textbf{Obfuscate plaintext ICS traffic without adding a packet.} The framework only delays
-    packets, so it needs no encryption to hide its operation. The operator bounds the added delay by
-    choosing the release budget, and that bound keeps every exchange within the timers of TCP and
-    DNP3.
+    packets and requires no endpoint encryption. We relate the release budget to packet
+    availability and protocol timers, then evaluate the delay and observed timer behavior.
   \item \textbf{Implement the framework at line rate.} On an Intel Tofino-1 switch, we hold each
-    packet behind a strict-priority queue of blocker packets the switch generates. The queue
-    sustains a hold until its deadline without a timer. We cover both the read and the control
+    packet behind a strict-priority queue of blocker packets the switch generates. The queues sustain the wait while P4 checks deadlines on returning blockers. We cover both the read and the control
     transaction of DNP3.
 \end{itemize}
 
 For evaluation, we placed the switch between a DNP3 master and a physical SEL-751A feeder protection
-relay and collected 63{,}360 exchanges in 22 grouped runs, half of them with the framework running.
-We measured the released interval directly, and we tested it against (i) a classifier trained before
+relay and collected 63{,}360 exchanges in 22 paired runs, each containing both cases.
+We recorded packet timestamps at the master-facing link, and we tested it against (i) a classifier trained before
 the framework was deployed, (ii) an adaptive adversary that retrains on obfuscated traffic, and
 (iii) an adaptive adversary that pools many exchanges of the same operation into one signature, as
 Formby et al.\ do.
 
-Our experimental results show that the framework removes the execution time of the device from the
-interval an adversary measures while introducing negligible overhead:
+Our experimental results show reduced timing variation and fixed-classifier accuracy, together
+with the latency cost and residual information:
 \begin{itemize}
   \item The released interval settles on the configured value. The medians of READ, SELECT and
     OPERATE move from 2.121, 2.041 and 2.929~ms to 8.005, 8.005 and 8.000~ms, and the interquartile
     range of READ falls from 2.772 to 0.022~ms. The operator can place the interval anywhere from
-    2 to 26~ms within a fixed budget, and the switch delivers each setting to within 6~$\mu$s.
-  \item The interval no longer carries the execution time. READ and SELECT differ only in how long
-    the relay takes to answer them, and a classifier that separates them at 0.785 balanced accuracy
+    2 to 26~ms within a fixed budget, and the measured median follows each tested setting to within 6~$\mu$s.
+  \item Timing-based separation decreases. A classifier that separates READ and SELECT at 0.785 balanced accuracy
     under Timing OFF is at 0.507 under the framework, against a chance level of 0.5. A classifier
     trained before deployment falls from 0.803 to 0.333 on the three operations, i.e., chance. An
-    adaptive adversary reaches 0.445, and we show that it learns when requests reach the switch
-    rather than how the relay executes them.
-  \item The overhead is negligible. The framework adds no frame and no byte, and the median
-    request-to-response time of a poll rises from 2.681 to 28.107~ms, well within the 200.8~ms
-    after which the master repeats an unacknowledged request. No exchange was retransmitted.
+    adaptive adversary reaches 0.445, and the residual tests find timing information associated
+    with request spacing without isolating its cause.
+  \item The latency cost is measured. Median READ request-to-response time rises from 2.681 to
+    28.107~ms. No TCP retransmission was observed, and the longest request-to-ACK wait was
+    20.19~ms, compared with the master's separately observed 200.8~ms retransmission interval.
 \end{itemize}

@@ -3,18 +3,19 @@ Adversaries preparing attacks on industrial control systems (ICSs) such as power
 perform reconnaissance, and device fingerprinting supplies much of the knowledge they need. In ICS
 networks, the fingerprint does not have to come from the payload. The interval between the transport
 acknowledgment of an outstation and its application response carries the execution time of the
-device, and it identifies both the device and the operation it performs. Removing that execution
-time is challenging. Existing traffic obfuscation pads packets and adds dummy ones inside encrypted
-flows, whereas ICS traffic is unencrypted, and any padding or dummy packet reveals itself.
+device, and it identifies both the device and the operation it performs. Suppressing that timing variation is challenging when legacy endpoints must continue exchanging
+readable protocol messages. We focus on changing the timing of those existing exchanges.
 
-To overcome these challenges, we propose an in-network timing-obfuscation framework that replaces
-the execution time of the device with a value the operator configures. A programmable switch in
+To address this problem, we propose an in-network timing-obfuscation framework that schedules
+acknowledgments and responses around an interval the operator configures. A programmable switch in
 front of the outstation holds the acknowledgment and the response and releases each of them at a
-deadline computed from the arrival of the request, so neither release depends on anything the
-outstation does. The switch only delays the packets it receives, so both endpoints run unmodified and
+deadline computed from the arrival of the request. Packets arriving before their deadlines can
+follow this schedule, subject to queue service and the supported holding range. The switch only delays the packets it receives, so both endpoints run unmodified and
 no DNP3 byte changes. We implement the framework on an Intel Tofino-1 switch and evaluate it with a
-physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The experimental results show that,
-without adding a frame or a byte, the framework removes the execution time from the interval an
-adversary measures. The interval settles on the configured 8~ms for every operation, and a
-classifier trained before deployment falls from 0.803 balanced accuracy to chance.
+physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The experimental results show that
+the measured CLRT medians approach the configured 8~ms for READ, SELECT and OPERATE, while the
+READ interquartile range falls from 2.772 to 0.022~ms. A classifier trained before deployment
+falls from 0.803 balanced accuracy to chance, although an adaptive classifier retains accuracy
+of 0.445. The median READ request-to-response time increases to 28.107~ms, with no retransmission
+observed in the campaign.
 \end{abstract}

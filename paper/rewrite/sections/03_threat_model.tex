@@ -53,9 +53,10 @@ We specify three research objectives (RO) as follows:
     the outstation from everything they learn from the timing of an exchange, such that a fixed
     adversary performs no better than chance and whatever an adaptive adversary still learns
     reflects the switch rather than the device.
-  \item \textbf{RO3:} for the operation of the control network, we aim at negligible overhead. The
-    framework adds no packet and no byte, and it keeps every added delay within the timers of TCP
-    and DNP3, such that no request is retransmitted and no control operation is refused.
+  \item \textbf{RO3:} for the operation of the control network, we aim to keep added delay within
+    the endpoint timer margins without adding packets or bytes to the external exchange. We
+    measure the latency cost and check for retransmissions and refused control operations under
+    the evaluated settings; these observations do not establish a timer guarantee for other deployments.
 \end{itemize}
 
 \textbf{Trusted Components.} To achieve these objectives, we add only the switch and its control
@@ -65,8 +66,7 @@ outstation, and neither of them is modified.
 
 \textbf{For Payload-Based Fingerprinting.} We designed the framework to hide timing, not content.
 It forwards every packet at its original size and leaves the function codes readable, so the
-adversary still knows which operation an exchange carries. What the framework removes is how long the device
-takes to perform it. The physical operation time of Definition 2 is a second feature, and the estimate Formby et al.\ retain reads a timestamp inside the payload rather than the timing of a
+adversary still knows which operation an exchange carries. The framework aims to suppress the execution-time variation carried by the released intervals. The physical operation time of Definition 2 is a second feature, and the estimate Formby et al.\ retain reads a timestamp inside the payload rather than the timing of a
 packet~\cite{formby2016}. Such content is a different problem, and payload
 protection is complementary to the framework. We leave the combination of the two to future work.
 

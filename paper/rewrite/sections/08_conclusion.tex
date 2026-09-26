@@ -1,21 +1,19 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-Instead of padding packets or adding dummy ones, we propose an in-network framework that holds the
+We propose an in-network framework that holds the
 packets carrying the timing of an ICS device and releases them at deadlines computed from the
-arrival of the request. Because neither release depends on anything the outstation does, the
-execution time of the device reaches neither the request-to-acknowledgment interval nor the
-cross-layer response time an adversary measures, which is the interval that cross-layer
-response-time fingerprinting relies on. The framework runs without encryption and leaves the master,
+arrival of the request. For packets available before their deadlines, the schedule can absorb arrival-time variation.
+Queue service, late arrivals and the supported holding range determine how closely the observed
+intervals follow the configured values. The framework runs without encryption and leaves the master,
 the outstation and DNP3 unchanged.
 
-On a physical SEL-751A relay, the released interval settles on the configured 8~ms for every
-operation, and the interquartile range of READ falls from 2.772 to 0.022~ms. READ and SELECT, which
-differ only in execution time, become indistinguishable, and a classifier trained before deployment
-falls from 0.803 balanced accuracy to chance. An adaptive adversary reaches 0.445 by learning when
-requests reach the switch, not how the relay executes them. The framework adds no frame and no byte,
-and the median request-to-response time of a poll stays at 28.107~ms, well within every timer of TCP
-and DNP3.
+On a physical SEL-751A relay, CLRT medians for READ, SELECT and OPERATE approach the configured
+8~ms, and the READ interquartile range falls from 2.772 to 0.022~ms. A classifier trained before
+deployment falls from 0.803 balanced accuracy to chance, while an adaptive classifier retains
+0.445 accuracy and reaches 0.650 when pooling twenty exchanges. Median READ request-to-response
+time rises to 28.107~ms, with no retransmission observed in the campaign. The residual tests
+associate timing information with request spacing but do not isolate its cause.
 
 In future work, we will evaluate the framework on outstations from several vendors, and we will
-make the release independent of the state of the blocker queue.
+investigate how blocker-queue state contributes to release timing.
