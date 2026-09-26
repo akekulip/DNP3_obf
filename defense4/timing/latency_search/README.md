@@ -190,3 +190,15 @@ each capture's hash before and after dissection and records the tool version,
 flagged frame numbers, warnings, and summary hash. An audit of a partial summary
 is explicitly partial; repeat it after the final strict summary. Zero flags are
 a capture-level observation, not proof that uncaptured loss is impossible.
+
+`figures_random_tradeoff.py --measurements PATH --transactions PATH --attacks PATH
+--outdir DIRECTORY` requires the completed randomized measurement summary and full
+`evaluate_random.py` output. It rejects partial attacks, changed installed plans,
+or inconsistent OFF pairing. For latency, it uses those same five nearby OFF
+blocks: pool each operation's protected and matched OFF exchanges separately,
+subtract their medians, then take the largest operation-specific difference for
+each task. This differs from subtracting the largest total medians of two arms,
+which can refer to different operations. Exported columns retain total median
+and p99 separately. The two figures separate ACK/CLRT from all-timing attacks,
+with panels for gap-only, joint and fixed-control policies. Use a separate output
+directory from `figures_random.py`; `--check` verifies all figure and input hashes.

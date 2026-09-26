@@ -65,8 +65,8 @@ def stats_rows(rows):
     return result
 
 
-def check(outdir):
-    provenance = json.loads((outdir/"timing_realization.provenance.json").read_text())
+def check(outdir, stem="timing_realization"):
+    provenance = json.loads((outdir/(stem+".provenance.json")).read_text())
     problems = []
     for name, expected in provenance["inputs_and_code"].items():
         path = Path(name)
