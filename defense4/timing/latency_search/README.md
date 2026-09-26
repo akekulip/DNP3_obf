@@ -31,6 +31,15 @@ Freeze one finalist before 22 fresh paired confirmation blocks across two acquis
 sessions; each arm has 100 READs and 100 SBO pairs per block. Do not reuse confirmation
 data for selection. No finalist means no claim of confirmed near-chance protection.
 
+Planning correction after the fixed screen, before any confirmation acquisition:
+22 blocks is a provisional minimum, not a sufficient precision guarantee. At pool
+20 it gives only 110 signatures per class (220 binary test signatures). Even a
+pointwise 97.5% Wilson upper bound at exactly chance is about 0.566 in that binary
+case, above the 0.550 target. The actual analysis also accounts for multiple attacks
+and acquisition groups. Reassess and freeze the confirmation sample count and method
+before collecting it; do not change the acceptance threshold to compensate for
+insufficient precision. No confirmation experiment has started.
+
 Use RF, standardized logistic regression, and RBF-SVM; fixed training uses OFF,
 adaptive training uses protected traffic. Group by acquisition block, keep pools and
 sessions within partitions, tune only within development data. Preserve raw timing,
