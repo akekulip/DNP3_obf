@@ -2,9 +2,11 @@
 
 The exact source has been compiled with the switch's SDE 9.13.2 and loaded on
 physical Tofino. A repeat baseline pilot, with the random table empty, completed
-60 primary exchanges across Timing OFF and D4. This proves a bounded baseline
-check, not randomized timing behavior or classifier resistance. Randomized
-acquisition has not yet completed.
+60 primary exchanges across Timing OFF and D4. The first randomized pilot then
+completed 30 protected exchanges and 30 paired Timing OFF exchanges. All 32
+protected requests, including the two safety polls, joined exactly once to
+digests with the correct selected offsets. These are functional pilots, not
+classifier-resistance evidence or a completed randomized screen.
 
 ## Implementation
 
@@ -52,6 +54,13 @@ forwarding path are unchanged by the digest export.
   `../evidence/random_preflight_20260926/`.
 - Completed baseline pilot: `pilot_20260926T180007Z`; summary:
   `../results/noaction_pilot_20260926T180007Z/`.
+- Completed random pilot: `../evidence/randomized/random_pilot_20260926T181059Z/`.
+  It uses D_A=12 ms and gap=4 ms, independently varied over four levels each
+  within +/-0.5 ms. The selected ACK offsets observed in every operation span
+  11.499776--12.499968 ms. Median measured-minus-selected ACK and response
+  offsets are 0.105--0.111 ms; see `selected_timing_audit.json` for all 32
+  transactions. This audit includes the safety polls; statistical analysis of
+  the primary workload must exclude those two polls.
 
 The baseline pilot passed all 60 application exchanges and packet-pair checks,
 with no reported capture drops or flagged TCP retransmissions. D4 median
