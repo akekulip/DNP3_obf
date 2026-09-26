@@ -1,0 +1,56 @@
+{
+  "input_sha256": {
+    "fixed_config.json": "6190119dab65fa7c87cb81480ee16765c1622f07829222eb6bab2e9af07d746e",
+    "off_config.json": "fcb6995221bb650858db349f8b54cda7aed9961d899a851407bbb8e80a072263",
+    "plans/da4_gap4_gap_amp2.json": "4fe64f8a4644adb536658b0ae3319b1a5f805d1244dd335300c2512651ff68e1",
+    "plans/da5_gap1_gap_amp0.json": "579641fb18e001e66f5836404ed18e542c4d6647b3356d0fd478b6b9625eb5d2",
+    "plans/da5_gap1_gap_amp0p5.json": "e7b107c8fc7e72275cde53e55db839b1f20d425aca542268036b0ca64871daa9",
+    "plans/da5_gap1_joint_amp0p5.json": "1f79a229b0a57306cd8d4168a0312b74d3e4e3417df3c8fc8c226d3d0d4f7b7c",
+    "plans/da5_gap8_gap_amp4.json": "f70d1e0c8e451c4e966a265b2bf7f75fadb6b6cdd3638ad31baeb8b746a02eec",
+    "plans/da8_gap4_joint_amp2.json": "b13a0fbd6b21d9fb9729d7881e879ad29ecb9346a535b6a8848bcced15681ef8",
+    "restore_config.json": "91e8f397cf74d64daf81b2a607799e071711ccbae8a84cb7fa45730cba013372"
+  },
+  "program_identity": {
+    "artifact_paths": {
+      "bfrt.json": "/home/decps/dnp3_latency_random_20260926/build_digest_init_sde9132/out/bfrt.json",
+      "pipe/context.json": "/home/decps/dnp3_latency_random_20260926/build_digest_init_sde9132/out/pipe/context.json",
+      "pipe/tofino.bin": "/home/decps/dnp3_latency_random_20260926/build_digest_init_sde9132/out/pipe/tofino.bin"
+    },
+    "artifact_sha256": {
+      "bfrt.json": "f844426a13fd5cb30fd39aeb858af879dee675883caa2adc87bc1bac3fb3144f",
+      "pipe/context.json": "0c83ac0823137bbb731b362a8fc7aaaa7f729b1a14c88ef15412471275973e1e",
+      "pipe/tofino.bin": "a8a8cce9030ac5959f290a3db59da8b16fca24915e35221ee104f895060619c8"
+    },
+    "command": [
+      "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd",
+      "--install-dir",
+      "/home/decps/Downloads/bf-sde-9.13.2/install",
+      "--conf-file",
+      "/home/decps/dnp3_latency_random_20260926/defense4_timing_randomized.conf",
+      "--init-mode=cold",
+      "--status-port",
+      "7777"
+    ],
+    "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+    "config": "/home/decps/dnp3_latency_random_20260926/defense4_timing_randomized.conf",
+    "config_sha256": "1566569b92998c3d48286f4a03fd3fb660c1814e90c29c2a85b07445e5ff334c",
+    "egress_stages": 0,
+    "ingress_stages": 7,
+    "pid": 2704756,
+    "program": "defense4_timing",
+    "source_sha256": "8e6d0ad983acfceadae447aa7b5b4614193604b6cd87b902b1d567eaa5696478",
+    "time_ns": 1790445478979702169
+  },
+  "source_sha256": {
+    "bfrt_random_table.py": "4797bf62cfe1d8beedb91e82bbacc87f2b9380688975d5341deabe1133a919e3",
+    "configure.py": "d0fcf89121ad8263f0fa9f178de3d7bc27f91fff5f62810f1724e2e5a4333b28",
+    "policy.py": "08648ef91e9c04504ddc03228db23bc34f8f852162c30b8223101cceb92dff99",
+    "policy_planner.py": "272d2bfa4f1a7d5a97be81756f047b3b61affd1a5a7913e033a7ef9996563479",
+    "random_campaign.py": "1d521bbf93e09af94f8a5b25cd8d4066642221deccd5dcfda5034f9061f23af4",
+    "remote.py": "4713af435f332dd37d06714a304d59be78297df5a922bb93de100330571b36c9",
+    "run_block.py": "0ed3cb0993acb20436924652c4475e95ca9cfc3fdc6f7173b0832c12c28189a7",
+    "stop_block.py": "6975cdf71c1721c17630e68db12d1feaae958bdbdbcfe5653e073fe9114269d3",
+    "telemetry_join.py": "bd513b164fe95475268d759e26fa1a8ada68c24fce8c2971065ba2a2c294dedd",
+    "telemetry_listener.py": "80226fc5106bba91860408af44e637fc33c397f04628f12bbe0197e4d4c41c3a"
+  }
+}

@@ -131,3 +131,39 @@ versus 400 ms gaps between READs or SBO pairs. Their result is reported separate
 from return-timing classification. These results do not identify a confirmed
 near-chance low-delay policy. The conditional next phase is bounded class-independent
 randomization, with selected deadlines verified from hardware digests.
+
+## Randomized acquisition
+
+The candidate source `8e6d0ad9...` compiles under switch SDE 9.13.2 to seven ingress
+and zero egress match-action stages. It has an optional 16-entry deadline table
+and a digest carrying each accepted request's selected offsets. Its empty-table
+baseline passed 60 exchanges. The first randomized pilot and the lower-delay
+pilots completed another 330 exchanges, with complete request/digest joins in
+every protected block. These pilots establish bounded functionality, not attacker
+resistance. Evidence and exact source identity are documented in
+`randomized/FEASIBILITY.md`.
+
+The next screen is frozen in `evidence/random_screen_plan_20260926/manifest.json`:
+33 valid random policies, two zero-amplitude controls, five repetitions, and a
+Timing OFF block after every seven protected blocks. Each block has 100 primary
+exchanges per class, giving 200 blocks and 60,000 primary exchanges. Invalid
+configurations are excluded as complete policies; no invalid bins are removed
+from an otherwise claimed symmetric distribution. Joint policies use a 4-by-4
+Cartesian product of D_A and gap levels; gap-only policies use 16 gap levels.
+J remains the smaller three-value codebook and shares the PRNG byte, so its
+correlation with the chosen offsets must not be hidden.
+
+For each policy's fixed-attacker comparison, use the nearest OFF block in each
+repetition by median captured primary-request timestamp, with an earlier-time
+tie break. This selection does not inspect classifier scores. Keep five grouped
+repetitions and training-only nested tuning, as in the fixed screen. The strict
+acceptance criterion remains unchanged; response-timing and request-cadence
+results remain separate. No candidate has been confirmed.
+
+`random_campaign.py` restores the original fixed parameters and empties the
+random table after acquisition. This restores fixed behavior on the randomized
+binary, not the old binary itself. Its rollback binary remains available on the
+switch under `/home/decps/dnp3_timing7_20260925/`. `summarize_random.py` reads the
+captured requests, application outcomes, readbacks and digests; it rejects
+missing selections, incorrect values, incomplete counts and reported capture
+loss. It preserves selected values separately from observed ACK/response times.
