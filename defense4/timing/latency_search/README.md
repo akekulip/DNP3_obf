@@ -202,3 +202,22 @@ which can refer to different operations. Exported columns retain total median
 and p99 separately. The two figures separate ACK/CLRT from all-timing attacks,
 with panels for gap-only, joint and fixed-control policies. Use a separate output
 directory from `figures_random.py`; `--check` verifies all figure and input hashes.
+
+## Additional adaptive diagnostic
+
+After inspecting the first 20 completed randomized blocks, we added a separate
+test for learning the discrete offset levels. With public knowledge of the
+configured levels, an attacker can subtract the nearest ACK offset from the
+observed ACK delay, and the nearest gap from the observed CLRT. This transform
+does not use the operation code, class label, digest, or true per-request choice.
+The true choice is used only to audit how often nearest-level inference agrees
+with hardware telemetry, within 1 microsecond. No offset is fitted using test data.
+
+`evaluate_level_attack.py` evaluates adaptive RF, logistic and RBF-SVM classifiers
+on these residual features using the same nested grouped tuning, five repetitions,
+and pools of 1, 5 and 20. It requires complete acquisition for classification.
+`--inspect-only` can audit level inference on a partial, hash-matched summary;
+it cannot produce a classifier result. This is an exploratory addition motivated
+by early data inspection, not part of the preregistered screen. Its results are
+reported separately, and cannot relax the original acceptance criterion. A large
+overall timing variance alone does not establish resistance to this attacker.
