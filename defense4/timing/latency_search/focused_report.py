@@ -66,7 +66,7 @@ def plot_tails(rows,out):
     plotted=[]
     all_values=[float(r['rt_ms']) for r in rows]
     for ax,op in zip(axes,OPS):
-        for arm,color,dash,label in [('native','#666666','--','Unprotected'),('obfuscated',COLORS[0],'-','Protected')]:
+        for arm,color,dash,label in [('native','#666666','--','Timing OFF'),('obfuscated',COLORS[0],'-','Obfuscated')]:
             values,survival=survival_values([float(r['rt_ms']) for r in rows if r['arm']==arm and r['txn_class']==op])
             ax.step(values,survival,where='pre',color=color,linestyle=dash,label=label,linewidth=1)
             plotted.extend(dict(operation=op,arm=arm,rt_ms=float(x),fraction_at_or_above=float(y)) for x,y in zip(values,survival))
@@ -89,9 +89,9 @@ def plot_tails(rows,out):
 def plot_attacks(result,out):
     shared.set_style();fig,axes=plt.subplots(2,2,figsize=(7.16,4.4),sharex=True,sharey=True)
     plotted=[]
-    scenarios=[('fixed_on_native','Fixed, baseline','s',COLORS[3]),
-               ('fixed_on_obfuscated','Fixed, protected','o',COLORS[0]),
-               ('adaptive_on_obfuscated','Adaptive, protected','^',COLORS[1]),
+    scenarios=[('fixed_on_native','Fixed, Timing OFF','s',COLORS[3]),
+               ('fixed_on_obfuscated','Fixed, Obfuscated','o',COLORS[0]),
+               ('adaptive_on_obfuscated','Adaptive, Obfuscated','^',COLORS[1]),
                ('adaptive_on_offset_residuals','Adaptive, level-aware','D',COLORS[2])]
     for i,(task,title) in enumerate([('three_class','READ / SELECT / OPERATE'),('read_select','READ / SELECT')]):
         doc=result['tasks'][task]
@@ -148,7 +148,7 @@ def generate(results,protocol_path):
         results/'attacks_heldout.json',protocol_path,Path(__file__),Path(shared.__file__),Path(figures_random.__file__))},
         captions={
             'focused_latency_tails':'Empirical upper-tail distributions of request-to-response latency. All 100 paired repetitions; logarithmic axes; full observed tails retained.',
-            'focused_attack_accuracy':'Held-out balanced accuracy, repetitions 40–99. Each point is the strongest tested model/feature combination for that scenario and pool size. Dotted lines show chance. Simultaneous uncertainty bounds are reported in focused_statistics.json; points do not imply a confidence guarantee.'})
+            'focused_attack_accuracy':'Held-out balanced accuracy, repetitions 40–99. Each point is the strongest tested model/feature combination for that scenario and pool size. The level-aware variant uses ACK/CLRT residuals in both columns. Dotted lines show chance. Simultaneous uncertainty bounds are reported in focused_statistics.json; points do not imply a confidence guarantee.'})
     attacks.base.save(out/'focused.provenance.json',provenance)
     (out/'FIGURES.sha256').write_text(''.join(attacks.sha(p)+'  '+str(p.relative_to(out))+'\n' for p in sorted(out.rglob('*')) if p.is_file() and p.name!='FIGURES.sha256'))
     lines=['# Focused hardware results','',f"Validated primary exchanges: {len(rows):,}.",

@@ -15,5 +15,10 @@ deployment falls from 0.803 balanced accuracy to chance, while an adaptive class
 time rises to 28.107~ms, with no retransmission observed in the campaign. The residual tests
 associate timing information with request spacing but do not isolate its cause.
 
+A separate 60{,}000-exchange study retains the seven-stage implementation and randomizes around
+a 6~ms response budget. It measures a worst-operation median of 6.116~ms and disrupts fixed
+timing classifiers, while adaptive ACK/CLRT classification reaches 0.566. This lower-delay
+setting therefore preserves some timing-obfuscation benefit without meeting the full attacker criterion.
+
 In future work, we will evaluate the framework on outstations from several vendors, and we will
 investigate how blocker-queue state contributes to release timing.

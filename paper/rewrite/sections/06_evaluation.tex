@@ -25,7 +25,7 @@ To check whether timing follows a change in policy, we also collected 9{,}360 ex
 request-to-response distribution and evaluate realized timing from Obfuscated exchanges, which are
 separate observations rather than repetitions of the same relay execution.
 
-Finally, we collected a low-latency fixed-policy study with the seven-ingress-stage image described
+We also collected a low-latency fixed-policy study with the seven-ingress-stage image described
 in Section~\ref{sec:impl:p4}. This study contains 37{,}500 validated primary exchanges in 125 blocks: 25
 policies, five repetitions per policy, and 100 READ, 100 SELECT and 100 OPERATE exchanges per
 repetition. Each block also includes two safety status polls outside the primary count. The capture statistics reported zero drops, and an independent packet-filter check found no TCP
@@ -270,70 +270,69 @@ conditional on the residual effects identified in Section~\ref{sec:design:read}.
   \label{fig:latency-grid}
 \end{figure*}
 
-\subsection{Low-Latency Fixed Policies}
+\subsection{Lower-Latency Policies}
 \label{sec:eval:low-latency}
 
-The 28~ms campaign policy leaves room to reduce delay, so we measured a fixed grid of smaller
-ACK deadlines and configured CLRT values on the simplified implementation. Figure~\ref{fig:latency-grid}
-shows the resulting request-to-response times. The lowest-median-latency setting,
-$(D_A,\mathrm{CLRT}_{new})=(5,1)$~ms, has a worst-operation median of 6.109~ms and a worst-operation
-p99 of 15.446~ms. The repeated $(20,8)$~ms reference has a worst-operation median of 28.109~ms,
-so the measured worst-operation median falls by 22.001~ms. Relative to the Timing OFF reference,
-the same $(5,1)$~ms point adds 3.549~ms at the median, whereas the $(20,8)$~ms reference adds
-25.549~ms.
+\textbf{Fixed-Policy Screen.} We first ask how far the 28~ms response budget can be reduced.
+Figure~\ref{fig:latency-grid} shows the fixed-policy grid on the seven-ingress-stage image.
+At $(D_A,\mathrm{CLRT}_{new})=(5,1)$~ms, the worst-operation median request-to-response time is
+6.109~ms, compared with 28.109~ms at the repeated $(20,8)$~ms reference. The corresponding added
+medians over Timing OFF are 3.549 and 25.549~ms. The smaller setting has a worst-operation p99 of
+15.446~ms, so its configured 6~ms response budget does not bound the observed tail.
 
-The grid also shows why configured values and measured values must remain separate. The configured
-response budget is $D_A+\mathrm{CLRT}_{new}$, and the realized data-plane values are quantized to a
-256~ns grid. The measured median includes the endpoint path and capture effects, so it is about
-0.106--0.109~ms above the configured sum when the schedule is followed. At the low end, the p99 can exceed the configured median budget, consistent with the
-conditional availability requirement in Section~\ref{sec:design:read}; for example, the $(5,1)$~ms
-point has a 15.446~ms worst-operation p99 even though its median is 6.109~ms. These
-measurements therefore identify lower-cost timing configurations for this workload, but they do
-not by themselves select a final security point against an adaptive classifier.
+We screened random forests, logistic regression and radial-basis-function support-vector machines
+using ACK/CLRT and request-spacing features, with pools of 1, 5 and 20 same-operation exchanges.
+The fixed attacker trains on Timing OFF; the adaptive attacker trains on Obfuscated traffic.
+Tuning uses only training repetitions. No fixed policy meets the declared criterion: a simultaneous
+upper bound on balanced accuracy at most chance plus 0.05 for both tasks and all tested attacks.
+The $(5,1)$~ms setting reaches 0.493 on the three-class ACK/CLRT task and 0.600 on READ versus
+SELECT. Request-spacing attacks reach 1.000 across the grid. These five-repetition results motivate
+a longer measurement at low delay; they do not establish a protected operating point.
 
+\textbf{Focused Randomized Run.} We next retain the seven-stage implementation and fix the centers
+at $D_A=5$~ms and $\mathrm{CLRT}_{new}=1$~ms. The existing random table selects among four levels
+within $\pm0.5$~ms of each center, giving 16 combinations shared by all three operations.
+The command-hold codebook remains $\{0.25,0.5,1\}$~ms. We collect 100 interleaved
+Obfuscated/Timing OFF pairs, with 100 exchanges per operation in each block: 60{,}000 primary
+exchanges and 400 separate safety polls. All requests receive matching responses, capture counters
+report zero drops, and the independent TCP audit finds no retransmission flags. Table readbacks
+and packet-to-digest joins verify every selected deadline.
+
+Across 10{,}000 Obfuscated exchanges per operation, median request-to-response times are
+6.113~ms for READ, 6.116~ms for SELECT and 6.115~ms for OPERATE. The largest added median over
+its paired Timing OFF observations is 3.580~ms. The worst-operation p99 is 15.682~ms.
+Responses exceeding their selected target by more than 1~ms account for 8.88\%, 8.98\% and
+11.98\% of READ, SELECT and OPERATE, respectively. These exchanges complete successfully;
+the threshold describes timing error, not the 500~ms transaction timeout. Consequently, the
+observed variance includes both the selected randomization and late responses.
 
 \begin{figure*}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{figures/latency_search/latency_accuracy_tradeoff}
-  \caption{Latency and classifier screen for the low-latency fixed-policy study. The x-axis is
-  added median request-to-response time relative to the Timing OFF reference, taking the worst
-  operation for each task. Points show the maximum evaluated balanced accuracy on protected
-  test traffic; whiskers show the simultaneous development upper bound from five acquisition
-  repetitions. The dotted horizontal lines mark chance, and the dashed lines mark the chance-plus-0.05
-  acceptance thresholds. Filled circles are search-codebook policies, and open triangles are
-  historical-codebook references. ACK/response uses request-to-ACK and CLRT features. With request
-  spacing also gives the attacker request-cadence features, which test harness cadence in addition
-  to device timing.}
-  \label{fig:latency-tradeoff}
+  \includegraphics[width=\textwidth]{figures/latency_search/focused/focused_attack_accuracy}
+  \caption{Held-out transaction classification for the focused $(5,1)$~ms randomized policy,
+  measured from master-facing captures. Each point is the largest balanced accuracy over the
+  tested models and features for that scenario and pool size; dotted lines mark chance.
+  The level-aware adaptive variant uses ACK/CLRT residuals in both columns. Pools assume the
+  attacker can group same-operation exchanges. Training uses the first 40 pairs; testing uses
+  the later 60. The curves report point estimates, with simultaneous bounds discussed in the text.}
+  \label{fig:focused-attacks}
 \end{figure*}
 
-\textbf{Classifier Screen.} Figure~\ref{fig:latency-tradeoff} compares the latency grid with a
-classifier screen over the 24 protected policies. For each policy, we evaluated READ versus SELECT
-and the three-class READ/SELECT/OPERATE task on protected test traffic. The fixed attacker trains
-on Timing OFF traffic and is then applied to protected traffic; the adaptive attacker trains and
-tests on protected traffic with grouped held-out acquisition repetitions. We tested random forests,
-logistic regression and radial-basis-function support-vector-machine models, with nested grouped tuning restricted to the training
-repetitions, and pooling levels of 1, 5 and 20 same-operation exchanges. The screen reports the
-largest balanced accuracy over the fixed and adaptive attacks, feature families, models and pooling
-levels. We resample acquisition repetitions together across attacks and use the maximum centered
-bootstrap deviation to form an upper bound. We use 97.5\% per task for an approximate 95\% combined
-screen across the two tasks. A policy passes only if the simultaneous upper bound is at most chance plus 0.05, which is
-0.550 for READ versus SELECT and 0.383 for the three-class task. This is a development screen, not
-an independent confirmation experiment.
+\textbf{Held-Out Attackers.} We reserve the first 40 pairs for training and five-fold grouped tuning,
+then freeze all models before scoring the later 60 pairs. At pool size 20, the test set contains
+300 signatures per class. Figure~\ref{fig:focused-attacks} shows that the fixed ACK/CLRT attacker
+reaches at most 0.342 on the three-class task and 0.503 on READ versus SELECT, close to their
+chance levels of 0.333 and 0.500. Adaptive training raises these maxima to 0.531 and 0.573.
+An additional adaptive attack subtracts the nearest public ACK and CLRT levels before classification;
+it reaches 0.566 and 0.575, without using the actual selected offsets as features.
 
-For the lowest-median-latency setting, $(D_A,\mathrm{CLRT}_{new})=(5,1)$~ms, the maximum
-ACK/response balanced accuracy is 0.600 for READ versus SELECT and 0.493 for the three-class task.
-The corresponding three-class upper bound is 0.627, which exceeds the acceptance threshold.
-Pooling limits the held-out evidence: at pool size 20, each test repetition contributes only five
-same-operation signatures per class. These small groups widen the uncertainty from the five
-acquisition repetitions. Other policies yield higher observed accuracy through the same
-ACK/response features; at $(10,2)$~ms, the three-class attack reaches 0.827
-balanced accuracy. When request spacing is included, the strongest evaluated attack reaches 1.000
-balanced accuracy across the protected grid. That result reflects the same-session acquisition
-cadence available to the attacker; it should not be read as device-model identification from
-obfuscated response timing alone. Consequently, none of the 24 protected policies passes the
-strict development screen, even though the grid identifies policies with much lower measured
-latency than the 28~ms reference.
+We form approximate simultaneous upper bounds by resampling the 60 test pairs together across
+attacks 5{,}000 times and taking the maximum centered deviation. Using 97.5\% per task, the
+ACK/CLRT bounds for the original attacks are 0.572 and 0.623, above the respective thresholds
+of 0.383 and 0.550. With request spacing, adaptive accuracy reaches 0.988 and 0.987. The immediate
+SELECT-to-OPERATE sequence and 400~ms inter-operation spacing expose workload cadence.
+Thus, this policy reduces measured latency and disrupts the tested fixed timing attackers, but
+it does not meet the full criterion against adaptive timing and cadence-based attacks.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
@@ -342,7 +341,8 @@ latency than the 28~ms reference.
 The 22 paired runs in the main campaign describe within-campaign variability, and their held-out-run
 ranges are not confidence intervals. The low-latency screen uses approximate grouped-bootstrap
 confidence bounds from five same-session acquisition repetitions, so it does not provide
-independent confirmation. Multi-device measurements, such as those used
+independent confirmation. The focused randomized run separates training from 60 later test pairs,
+but these remain repetitions on the same device and workload. Multi-device measurements, such as those used
 for fingerprinting by Formby et al.\ and Lin et al.~\cite{formby2016, defrec2020}, are needed to
 test device-model distinguishability. Because the implementation protects one transaction at a time, requests that cannot be admitted
 bypass timing protection, which limits its coverage under concurrent traffic.
