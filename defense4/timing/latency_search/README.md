@@ -1,5 +1,51 @@
 # Lower-latency timing-policy search
 
+## Matched 5/10/15/20 ms hardware grid (started 2026-09-27 UTC)
+
+The active acquisition is `evidence/delay_grid/random_screen_20260927T021133Z/`.
+Its frozen protocol, 800-block schedule, 400 distinct protected/OFF pairs, policies,
+identity checks and rollback configuration were committed as `7bec7693` before traffic.
+The source and deployed seven-stage binary are unchanged. Only the DA center changes;
+CLRT remains centered at 1 ms with joint ±0.5 ms randomization and the existing
+{0.25, 0.5, 1} ms command-hold codebook. No sizing changes are included.
+
+Each of 100 rounds contains the four policies in randomized order, with each
+protected block immediately followed by a distinct Timing OFF block. Every block
+contains 100 READ, 100 SELECT and 100 OPERATE exchanges: 240,000 primary exchanges
+plus 1,600 safety polls. The schedule retains 400 ms spacing, immediate SELECT→OPERATE,
+and the 500 ms timeout. No outcome-dependent extension or policy substitution is allowed.
+
+`grid_watch.py` copies only the 320 completed blocks from rounds 0–39, validates them,
+and fits 180 models per policy (720 total). Rounds 40–99 are held out. After all 800
+blocks finish and restoration verifies, the watcher validates captures and digest joins,
+audits TCP retransmission flags, scores frozen models, and produces `grid_attacks.json`,
+`grid_report.json` and provenance-bound figures. Its results directory is
+`results/grid_random_screen_20260927T021133Z/`. Acquisition and analysis logs are
+`/tmp/dnp3-delay-grid.log` and `/tmp/dnp3-delay-grid-analysis.log` respectively.
+Analysis never configures hardware or retries acquisition. A `STOP_AFTER_BLOCK` file
+in the run directory requests a stop and restoration through the existing guarded runner.
+
+The primary criterion is the strongest fixed, adaptive or public-level-aware
+ACK/CLRT classifier. It uses shared round resampling across all four policies and
+attacks, with approximate 97.5% simultaneous upper bounds per task (two tasks).
+The passing bound is chance + 0.05. Request-spacing classifiers remain a separate
+reported diagnostic. This criterion differs explicitly from the earlier focused
+study's all-timing criterion: request cadence can reveal operations independently of
+ACK/CLRT obfuscation. Passing this grid criterion is not a universal attacker guarantee.
+Among passing policies, selection minimizes the worst-operation added pooled median,
+then worst-operation p99, then DA. If none pass, the report selects none.
+
+Coverage is measured as a tradeoff, with no hard 99.9% gate. The report separately
+counts Timing OFF responses beyond the configured DA center and estimates joint
+ACK/response availability over the 16 quantized deadline choices. This master-facing
+OFF estimate is not a direct switch-arrival measurement and cannot label particular
+protected transactions as unobfuscated. All valid samples, including tails, remain
+in variance, latency and classifier analyses. Standard deviation, variance, matched
+block median differences, total latency and added median latency are kept distinct.
+
+Figures and manuscript results will be integrated only after complete capture and
+classifier validation. Design, Implementation and the mechanism figure are unchanged.
+
 ## Focused 5/1 ms hardware study (2026-09-26)
 
 Philip selected the existing `da5_gap1_joint_amp0p5` configuration for a longer
