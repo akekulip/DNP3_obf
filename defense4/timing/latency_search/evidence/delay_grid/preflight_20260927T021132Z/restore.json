@@ -1,0 +1,96 @@
+{
+  "audit": {
+    "entry_count": 9,
+    "extra_buckets": [],
+    "missing_buckets": [],
+    "overlap_entry_count": 9,
+    "overlap_pair_count": 7,
+    "valid_policy": false
+  },
+  "bor_params_default": {
+    "a_ticks": 20000000,
+    "action_name": "Ingress.set_bor_params",
+    "anchor_req": 1,
+    "r_ticks": 24000000
+  },
+  "codebook_entries": [
+    {
+      "dst_port": 20000,
+      "high": 42,
+      "j_ticks": 1999872,
+      "low": 0,
+      "priority": 1
+    },
+    {
+      "dst_port": 20000,
+      "high": 85,
+      "j_ticks": 4000000,
+      "low": 43,
+      "priority": 2
+    },
+    {
+      "dst_port": 20000,
+      "high": 128,
+      "j_ticks": 5999872,
+      "low": 86,
+      "priority": 3
+    },
+    {
+      "dst_port": 20000,
+      "high": 171,
+      "j_ticks": 8000000,
+      "low": 129,
+      "priority": 4
+    },
+    {
+      "dst_port": 20000,
+      "high": 213,
+      "j_ticks": 9999872,
+      "low": 172,
+      "priority": 5
+    },
+    {
+      "dst_port": 20000,
+      "high": 255,
+      "j_ticks": 12000000,
+      "low": 214,
+      "priority": 6
+    },
+    {
+      "dst_port": 20000,
+      "high": 85,
+      "j_ticks": 1999872,
+      "low": 0,
+      "priority": 1
+    },
+    {
+      "dst_port": 20000,
+      "high": 170,
+      "j_ticks": 5999872,
+      "low": 86,
+      "priority": 2
+    },
+    {
+      "dst_port": 20000,
+      "high": 255,
+      "j_ticks": 12000000,
+      "low": 171,
+      "priority": 3
+    }
+  ],
+  "delete_existing_first": true,
+  "notes": [
+    "historical restoration exemption: live backup captured before latency-search mutation",
+    "not a valid latency-search policy unless its audit is clean"
+  ],
+  "params_default": {
+    "action_name": "Ingress.set_params",
+    "budget": 18000,
+    "d_ticks": 20000000,
+    "da_dr": 24000000,
+    "mode": 4,
+    "read_len": 0
+  },
+  "restoration_only": true,
+  "source_cache_drain_s": 1.0
+}
