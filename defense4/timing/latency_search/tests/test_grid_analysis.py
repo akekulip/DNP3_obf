@@ -130,3 +130,61 @@ def test_final_requires_all_blocks_and_restoration():
     for key, value in (('completed_blocks', 799), ('configuration_restored', False), ('error', 'failed')):
         with pytest.raises(RuntimeError):
             watch.verify_final(dict(good, **{key:value}), 800)
+
+
+def test_report_integration_preserves_primary_criterion_and_variance(tmp_path, monkeypatch):
+    """Exercise report assembly using explicit synthetic fixtures, never hardware evidence."""
+    import json
+    p, records = attacks()
+    run = tmp_path/'synthetic_run'
+    out = tmp_path/'synthetic_results'
+    (run/'plans').mkdir(parents=True)
+    (out/'final').mkdir(parents=True)
+    subsets = {}
+    for n, d in zip(p['policy_names'], p['delays_ms']):
+        rows = []
+        for rep in (40, 41):
+            for op in report.OPS:
+                for arm in ('native', 'obfuscated'):
+                    for i in range(2):
+                        rows.append(dict(replicate=rep, txn_class=op, arm=arm,
+                            rt_ms=3+i if arm=='native' else d+1+i,
+                            ack_ms=1 if arm=='native' else d, clrt_ms=1+i,
+                            ack_minus_selected_ms=.1, response_minus_selected_ms=.1,
+                            selected_da_ms=d, selected_gap_ms=1, selected_r_ms=d+1))
+        subsets[n] = (rows, a.policy_protocol(n, p), {})
+        plan = dict(center_da_ms=d, entries=[dict(low=0, high=255,
+                    d_ticks=d*1000000, da_dr_ticks=(d+1)*1000000)])
+        (run/'plans'/(n+'.json')).write_text(json.dumps(plan))
+        (out/n/'final').mkdir(parents=True)
+        (out/n/'final/attacks_heldout.json').write_text(json.dumps(records[n]))
+    measurement = out/'final/measurements.json'
+    transactions = out/'final/primarytransactions.csv'
+    measurement.write_text(json.dumps(dict(row_count=96, blocks={'synthetic':dict(capture=dict(dropped_packets=0))})))
+    transactions.write_text('synthetic fixture; load explicitly mocked\n')
+    (run/'protocol.json').write_text(json.dumps(p))
+    attack_doc = dict(protocol=p, complete_attack_coverage=True,
+        measurements_sha256=a.core.sha(measurement), transactions_sha256=a.core.sha(transactions),
+        policy_results_sha256={n:a.core.sha(out/n/'final/attacks_heldout.json') for n in subsets},
+        primary_ack_clrt=a.joint_bounds(records,p), all_timing_diagnostic=a.joint_bounds(records,p,'all_timing'))
+    (out/'grid_attacks.json').write_text(json.dumps(attack_doc))
+    (out/'final/tcp_audit.json').write_text(json.dumps(dict(measurements_sha256=a.core.sha(measurement),flagged_frame_count=2)))
+    monkeypatch.setattr(a, 'load', lambda *args: (p, subsets))
+    # Plot rendering is checked separately; inspect the arguments the report actually sends.
+    plotted = []
+    monkeypatch.setattr(report, 'plot_mechanism', lambda *args: None)
+    monkeypatch.setattr(report, 'plot_attacks', lambda doc,bounds,path,stem: plotted.append((stem,bounds)))
+    monkeypatch.setattr(report.figures_random, 'generate', lambda *args: None)
+    result = report.generate(run,out)
+    assert result['selection']['selected_policy'] == p['policy_names'][0]
+    assert not any(r['passes'] for task in attack_doc['all_timing_diagnostic'].values() for r in task['per_policy'].values())
+    assert result['retransmission_flagged_frames'] == 2
+    assert result['policies'][p['policy_names'][0]]['timing']['READ']['clrt_variance_ratio'] == pytest.approx(1.)
+    assert result['latencies'][p['policy_names'][0]]['worst_added_median_ms'] == 3.
+    assert 'not measured switch arrival' in result['coverage_interpretation']
+    assert [stem for stem,_ in plotted] == ['grid_ack_clrt_tradeoff','grid_all_timing_diagnostic']
+    assert json.loads((out/'grid_report.json').read_text()) == result
+    # Changed capture/model evidence must invalidate reporting.
+    transactions.write_text('changed')
+    with pytest.raises(ValueError, match='differ from measurement'):
+        report.generate(run,out)
