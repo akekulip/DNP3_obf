@@ -46,6 +46,15 @@ block median differences, total latency and added median latency are kept distin
 Figures and manuscript results will be integrated only after complete capture and
 classifier validation. Design, Implementation and the mechanism figure are unchanged.
 
+Before manuscript integration, run `audit_grid.py --run RUN_DIR --results RESULTS_DIR
+--out RESULTS_DIR/independent_audit.json`. This verifies retained raw-input and model
+hashes, the 720-model/1,008-attack inventory, disjoint training/test round identities,
+and every prediction signature against its held-out CSV source. It independently
+recomputes confusion matrices, class recall, balanced accuracy and per-round scores
+from the prediction ledgers. It also re-evaluates the shared bounds using the frozen
+analysis implementation; that is a consistency check, not an independent proof of
+the statistical method. The auditor does not deserialize models or access hardware.
+
 ## Focused 5/1 ms hardware study (2026-09-26)
 
 Philip selected the existing `da5_gap1_joint_amp0p5` configuration for a longer
