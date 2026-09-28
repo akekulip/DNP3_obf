@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import statistics
+import subprocess
 import sys
 
 HERE = Path(__file__).resolve().parent
@@ -14,11 +15,17 @@ from dnp3_timing import extract_transactions, read_packets
 
 identity = json.loads((HERE / "switch/loaded_identity.json").read_text())
 manifest = json.loads((STAGE / "evidence/candidate_sde9132/manifest.json").read_text())
-source_sha = hashlib.sha256((STAGE / "src/defense4_timing.p4").read_bytes()).hexdigest()
+source_commit = "16050715"  # source used by the 2026-09-25 hardware run
+source_path = "defense4/timing/stage_reduction/src/defense4_timing.p4"
+source = subprocess.check_output([
+    "git", "-C", str(HERE.parents[4]), "show", f"{source_commit}:{source_path}"
+])
+source_sha = hashlib.sha256(source).hexdigest()
 assert identity["source_sha256"] == manifest["source_sha256"] == source_sha
 assert identity["artifact_sha256"] == manifest["artifact_sha256"]
 assert (identity["ingress_stages"], identity["egress_stages"]) == (7, 0)
-report = {"source_sha256": source_sha, "program": identity["program"],
+report = {"source_commit": source_commit, "source_sha256": source_sha,
+          "program": identity["program"],
           "ingress_stages": 7, "egress_stages": 0, "arms": {}}
 for label, config, mode in [("timing_off", "off", 0), ("obfuscated", "d4", 4)]:
     root = HERE / "vision" / label

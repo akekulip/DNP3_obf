@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="6.8in" height="4.31in" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">DNP3 timing obfuscation with read and SBO queues</title>
+  <desc id="desc">A compact two-column paper figure. Green arrows carry requests from the DNP3 master to the SEL-751A outstation. Yellow arrows carry acknowledgments and responses back to the master. The RRC read lane has four queues and an internal blocker loopback. The BOR/SBO operate lane has OP_BLOCK and OP_HOLD and a separate blocker loopback.</desc>
+  <defs>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#56636d"/></marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f8d4e"/></marker>
+    <marker id="arrow-yellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c69100"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2b86ab"/></marker>
+    <style>
+      .title{font-family:Arial,Helvetica,sans-serif;fill:#17232d;font-size:21px;font-weight:700}
+      .section{font-family:Arial,Helvetica,sans-serif;fill:#24313b;font-size:15px;font-weight:700}
+      .label{font-family:Arial,Helvetica,sans-serif;fill:#33424d;font-size:13px}
+      .small{font-family:Arial,Helvetica,sans-serif;fill:#52616c;font-size:11px}
+      .tiny{font-family:Arial,Helvetica,sans-serif;fill:#5c6b75;font-size:10px}
+      .queue{font-family:Arial,Helvetica,sans-serif;fill:#1e2b34;font-size:12px;font-weight:700}
+      .endpoint{font-family:Arial,Helvetica,sans-serif;fill:#1e2b34;font-size:16px;font-weight:700}
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="#ffffff"/>
+
+  <!-- Compact timing transform -->
+  <rect x="365" y="13" width="470" height="38" rx="6" fill="#eaf5fb" stroke="#b7d9e8" stroke-width="1.3"/>
+  <text x="390" y="37" class="section">CLRT_original</text>
+  <line x1="525" y1="31" x2="665" y2="31" stroke="#56636d" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <text x="549" y="25" class="tiny">ACK / response gates</text>
+  <text x="685" y="37" class="section">CLRT_new</text>
+  <text x="718" y="49" class="tiny">configured target</text>
+
+  <!-- Endpoint trunks make every external path terminate at an endpoint. -->
+  <line x1="190" y1="155" x2="190" y2="705" stroke="#a9b5bc" stroke-width="2"/>
+  <line x1="1010" y1="155" x2="1010" y2="705" stroke="#a9b5bc" stroke-width="2"/>
+  <rect x="20" y="285" width="150" height="90" rx="9" fill="#f7fafb" stroke="#65737e" stroke-width="1.8"/>
+  <text x="95" y="325" class="endpoint" text-anchor="middle">DNP3 master</text>
+  <text x="95" y="347" class="small" text-anchor="middle">requests and replies</text>
+  <rect x="1030" y="285" width="150" height="90" rx="9" fill="#f7fafb" stroke="#65737e" stroke-width="1.8"/>
+  <text x="1105" y="325" class="endpoint" text-anchor="middle">SEL-751A</text>
+  <text x="1105" y="347" class="small" text-anchor="middle">outstation</text>
+  <line x1="170" y1="330" x2="190" y2="330" stroke="#a9b5bc" stroke-width="2"/>
+  <line x1="1010" y1="330" x2="1030" y2="330" stroke="#a9b5bc" stroke-width="2"/>
+
+  <!-- Switch boundary -->
+  <rect x="215" y="70" width="770" height="650" rx="11" fill="#eaf5fb" stroke="#6e8795" stroke-width="1.8"/>
+  <text x="600" y="101" class="title" text-anchor="middle">P4 timing obfuscation</text>
+  <text x="600" y="119" class="tiny" text-anchor="middle">timing only · payload unchanged</text>
+
+  <!-- Forward request path: master to outstation -->
+  <text x="246" y="143" class="small">READ / SELECT request</text>
+  <line x1="190" y1="175" x2="250" y2="175" stroke="#2f8d4e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="250" y="145" width="80" height="60" rx="6" fill="#f8fbfc" stroke="#aabac3" stroke-width="1.4"/>
+  <text x="290" y="170" class="small" text-anchor="middle">DNP3</text>
+  <text x="290" y="185" class="small" text-anchor="middle">parser</text>
+  <line x1="330" y1="175" x2="355" y2="175" stroke="#56636d" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <rect x="355" y="145" width="110" height="60" rx="6" fill="#f8fbfc" stroke="#aabac3" stroke-width="1.4"/>
+  <text x="410" y="170" class="small" text-anchor="middle">transaction</text>
+  <text x="410" y="185" class="small" text-anchor="middle">classifier</text>
+  <line x1="465" y1="175" x2="950" y2="175" stroke="#2f8d4e" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="700" y="163" class="tiny" text-anchor="middle">unmatched forward</text>
+  <text x="914" y="143" class="small" text-anchor="middle">deparser</text>
+  <line x1="950" y1="175" x2="1010" y2="175" stroke="#2f8d4e" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <!-- RRC read/SELECT return lane -->
+  <text x="600" y="228" class="section" text-anchor="middle">RRC: READ and SELECT return timing</text>
+  <line x1="1010" y1="310" x2="965" y2="310" stroke="#c69100" stroke-width="3" marker-end="url(#arrow-yellow)"/>
+  <text x="1008" y="260" class="tiny" text-anchor="end">ACK / response</text>
+  <rect x="835" y="270" width="130" height="160" rx="6" fill="#f8fbfc" stroke="#aabac3" stroke-width="1.4"/>
+  <text x="900" y="340" class="small" text-anchor="middle">classify</text>
+  <text x="900" y="356" class="small" text-anchor="middle">ACK / response</text>
+
+  <!-- Queue ladder; arrows leave the queues toward the master. -->
+  <g>
+    <rect x="500" y="250" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="269" class="queue">Q_ACK_BLOCK</text>
+    <line x1="755" y1="265" x2="700" y2="265" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="675" y="256" width="12" height="12" fill="#64c878" stroke="#327d48"/>
+    <rect x="692" y="256" width="12" height="12" fill="#64c878" stroke="#327d48"/>
+  </g>
+  <g>
+    <rect x="500" y="290" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="309" class="queue">Q_ACK_HOLD</text>
+    <line x1="835" y1="305" x2="780" y2="305" stroke="#c69100" stroke-width="2" marker-end="url(#arrow-yellow)"/>
+    <line x1="755" y1="305" x2="700" y2="305" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="675" y="296" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+    <rect x="692" y="296" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+  </g>
+  <g>
+    <rect x="500" y="355" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="374" class="queue">Q_RESP_BLOCK</text>
+    <line x1="755" y1="370" x2="700" y2="370" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="675" y="361" width="12" height="12" fill="#64c878" stroke="#327d48"/>
+    <rect x="692" y="361" width="12" height="12" fill="#327d48" stroke="#327d48"/>
+  </g>
+  <g>
+    <rect x="500" y="395" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="414" class="queue">Q_RESP_HOLD</text>
+    <line x1="835" y1="410" x2="780" y2="410" stroke="#c69100" stroke-width="2" marker-end="url(#arrow-yellow)"/>
+    <line x1="755" y1="410" x2="700" y2="410" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="675" y="401" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+    <rect x="692" y="401" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+  </g>
+
+  <!-- Queue release collector, with one complete return path to the master. -->
+  <line x1="500" y1="265" x2="430" y2="265" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="500" y1="305" x2="430" y2="305" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="500" y1="370" x2="430" y2="370" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="500" y1="410" x2="430" y2="410" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="430" y1="265" x2="430" y2="410" stroke="#56636d" stroke-width="1.8"/>
+  <rect x="330" y="305" width="90" height="55" rx="5" fill="#f8fbfc" stroke="#aabac3" stroke-width="1.4"/>
+  <text x="375" y="329" class="small" text-anchor="middle">release</text>
+  <text x="375" y="344" class="tiny" text-anchor="middle">to master</text>
+  <line x1="330" y1="335" x2="190" y2="335" stroke="#c69100" stroke-width="3" marker-end="url(#arrow-yellow)"/>
+
+  <!-- Timing labels and RRC blocker loopback. -->
+  <text x="610" y="244" class="small" fill="#1479a9">D_A</text>
+  <text x="610" y="349" class="small" fill="#1479a9">D_R</text>
+  <text x="610" y="447" class="small" fill="#1479a9">ε</text>
+  <rect x="730" y="455" width="180" height="34" rx="5" fill="#eef8fc" stroke="#2b86ab" stroke-width="1.4"/>
+  <text x="820" y="477" class="tiny" text-anchor="middle" fill="#236f8e">RRC blocker loopback</text>
+  <path d="M810 455 V265" fill="none" stroke="#2b86ab" stroke-width="2"/>
+  <line x1="810" y1="265" x2="780" y2="265" stroke="#2b86ab" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <line x1="810" y1="370" x2="780" y2="370" stroke="#2b86ab" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- BOR/SBO operate lane: request and released OPERATE travel right. -->
+  <text x="600" y="505" class="section" text-anchor="middle">BOR / SBO: OPERATE timing</text>
+  <line x1="190" y1="580" x2="500" y2="580" stroke="#2f8d4e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="300" y="566" class="small" text-anchor="middle">OPERATE request</text>
+  <g>
+    <rect x="500" y="530" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="549" class="queue">OP_BLOCK</text>
+    <line x1="655" y1="545" x2="740" y2="545" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="600" y="536" width="12" height="12" fill="#64c878" stroke="#327d48"/>
+    <rect x="617" y="536" width="12" height="12" fill="#64c878" stroke="#327d48"/>
+  </g>
+  <g>
+    <rect x="500" y="570" width="280" height="30" rx="5" fill="#ffffff" stroke="#91aab7" stroke-width="1.4"/>
+    <text x="515" y="589" class="queue">OP_HOLD</text>
+    <line x1="655" y1="585" x2="740" y2="585" stroke="#56636d" stroke-width="1.7" marker-end="url(#arrow-gray)"/>
+    <rect x="600" y="576" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+    <rect x="617" y="576" width="12" height="12" fill="#f2c742" stroke="#b28300"/>
+  </g>
+  <!-- BOR loopback enters the blocker queue from a routed internal path, without crossing the request. -->
+  <rect x="730" y="625" width="180" height="32" rx="5" fill="#eef8fc" stroke="#2b86ab" stroke-width="1.4"/>
+  <text x="820" y="646" class="tiny" text-anchor="middle" fill="#236f8e">BOR blocker loopback</text>
+  <path d="M805 625 V515 H470 V545 H500" fill="none" stroke="#2b86ab" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <!-- Common release path from both operation queues to the outstation. -->
+  <line x1="780" y1="545" x2="820" y2="545" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="780" y1="585" x2="820" y2="585" stroke="#56636d" stroke-width="1.4"/>
+  <line x1="820" y1="545" x2="820" y2="585" stroke="#56636d" stroke-width="1.8"/>
+  <line x1="820" y1="585" x2="1010" y2="585" stroke="#2f8d4e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <circle cx="860" cy="585" r="18" fill="#2ea7df" stroke="#1479a9" stroke-width="1.4"/>
+  <text x="860" y="590" class="small" text-anchor="middle" fill="#ffffff" font-weight="700">J</text>
+  <text x="940" y="571" class="small" text-anchor="middle">released OPERATE</text>
+
+  <!-- OPERATE response returns on its own complete path below the queue lane. -->
+  <line x1="1010" y1="690" x2="190" y2="690" stroke="#c69100" stroke-width="3" marker-end="url(#arrow-yellow)"/>
+  <text x="600" y="680" class="small" text-anchor="middle">OPERATE response (A, R)</text>
+
+  <!-- Direction key -->
+  <line x1="230" y1="742" x2="270" y2="742" stroke="#2f8d4e" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="279" y="746" class="tiny">request</text>
+  <line x1="355" y1="742" x2="315" y2="742" stroke="#c69100" stroke-width="2.5" marker-end="url(#arrow-yellow)"/>
+  <text x="365" y="746" class="tiny">ACK / response</text>
+  <line x1="505" y1="742" x2="545" y2="742" stroke="#2b86ab" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="555" y="746" class="tiny">internal loopback</text>
+</svg>

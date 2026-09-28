@@ -1,12 +1,4 @@
-/* Timing-only stage-reduction candidate, derived from anchor_fix/src/
- * defense4_rrc_bor_unified12.p4. Compile for Tofino-1/TNA with -DU_BOR.
- * Sizing is removed; baseline timing modes and request/ACK anchoring are retained.
- * Changes: predicate SALU outputs, masked age decisions, merged BOR outcomes,
- * parallel deadline accesses, and independent ACK-release metadata.
- * Historical measurements in inherited comments describe the baseline only.
- * This candidate has offline compile/fragment-test evidence, not hardware validation.
- * See ../README.md for reproducible checks and known baseline defects.
- */
+/* Seven-stage timing-only candidate; compile for Tofino-1/TNA with -DU_BOR. */
 #include <core.p4>
 #include <tna.p4>
 
@@ -16,139 +8,21 @@ const bit<16> ETHERTYPE_IPV4        = 0x0800;
 const bit<8>  IP_PROTO_TCP          = 8w6;
 
 #ifdef D3_SYNTH_EVENTS
-/* ##########################################################################
- * ##            SYNTHETIC-EVENT BUILD — §13 GATE 2 ONLY                   ##
- * ##########################################################################
- *
- * COMPILE-TIME SWITCH. Everything guarded by D3_SYNTH_EVENTS exists so that ONE
- * complete Defense 3 transaction can be driven end to end with NOTHING outside
- * the chip: no host injector, no physical relay, no dp11 (which is unconfigured
- * and dark). The LIVE CAMPAIGN BUILD MUST NOT DEFINE IT. With the macro undefined
- * the preprocessed source is byte-identical to the Gate-1 program that is loaded
- * on the switch — that identity is checked, not asserted (see the resource
- * ledger's synthetic row).
- *
- * ------------------------------------------------------------------------
- * WHAT IT ADDS
- * ------------------------------------------------------------------------
- * A SECOND packet-generator application (app 2) on dp68, fired by a one-shot
- * HARDWARE TIMER, emitting ONE batch of three packets spaced by the hardware
- * inter-packet gap `ipg`. The construction is the one proven in
- *   research/case_a_read_anchored_dual_release/p4/case_a_dual_min.p4
- * and the reason it must be hardware-spaced is quantitative: gRPC write skew is
- * milliseconds and D is 2 ms, so three host-armed timers cannot express the
- * event spacing at all. A scenario is exactly (ipg, event role map) — no second
- * P4 variant, no recompile.
- *
- * All three generated packets are BYTE-IDENTICAL copies of ONE buffer template.
- * The template is a REAL relay->master pure TCP ACK. Their only hardware
- * distinguishing mark is `packet_id`, which lives in the 6-byte generator header
- * — and that header is STRIPPED at the ingress deparser, so a role that must
- * survive the dp8 loopback is STAMPED INTO THE FRAME (see the ethertype stamp
- * below).
- *
- * ------------------------------------------------------------------------
- * WHICH REAL PREDICATES EACH SYNTHETIC EVENT ACTUALLY SATISFIES
- * ------------------------------------------------------------------------
- * This is the honest ledger. It is here, in the source, and not only in a
- * report, because the whole risk of a synthetic gate is quietly grading a
- * defense against a weaker predicate than the one it will run.
- *
- * packet_id 1 — the ACK, the packet Defense 3 exists to hold. It is classified
- *   by the REAL predicates almost end to end:
- *     REAL  ipv4.ihl == 5, MF == 0, frag_offset == 0    (parse_ipv4, unmodified)
- *     REAL  (tcp.flags & 0x3F) == 0x10                  (parse_tcp, unmodified)
- *     REAL  ip.total_len == 20 + 4*data_offset          (parse_tcp, unmodified)
- *     REAL  tcp.seq  == EXP_RELAY_SEQ  (exp_seq_rmw, real SALU, real decode key)
- *     REAL  tcp.ack  == EXP_ACK        (exp_ack_r,   real SALU, real decode key)
- *     REAL  master port match          (sess_port_rmw, real SALU, real decode key)
- *     REAL  generation active AND deadline unarmed      (tag_rmw + arm-once)
- *     REAL  the dec_ack_arm entry of tbl_state_decode, unmodified
- *   RELAXED, and there are exactly two:
- *     (1) `ingress_port == PORT_RELAY` — CONSENSUS §8.1's FIRST conjunct. A
- *         generated packet necessarily arrives on dp68, so the synthetic build
- *         assigns DIR_RELAY in parse_pktgen_event. This is the conjunct that
- *         CANNOT be satisfied synthetically, and it is why this build must never
- *         be the campaign build.
- *     (2) the reverse-5-tuple SESSION lookup is served by tbl_synth_role rather
- *         than tbl_session, because all three copies share one 5-tuple and the
- *         READ needs SESS_MASTER while the ACK and RESPONSE need SESS_RELAY.
- *         tbl_synth_role's actions reproduce sess_relay()/sess_master()'s writes
- *         exactly; what is NOT exercised is the ternary lookup itself.
- *   NOT LEARNED IN THE DATA PLANE: EXP_RELAY_SEQ and the master's ephemeral port
- *     are learned in the live build from a master->relay frame on a real
- *     connection (ultimately seeded by the handshake). There is no such frame
- *     here, so the control plane SEEDS reg_exp_relay_seq and reg_session_port to
- *     the template's own values. The comparisons they feed are real; their
- *     seeding is not. EXP_ACK *is* installed by the synthetic READ through the
- *     real exp_ack_w SALU (the control plane sets read_len = ack_no - seq_no so
- *     the real arithmetic lands on the template's acknowledgment).
- *
- * packet_id 0 — the READ. ROLE_ARM comes from tbl_synth_role's packet_id entry,
- *   NOT from the real DNP3 parse chain (start 0x0564 / LEN / FIR+FIN / 0xCn /
- *   func 1), because the template is a pure ACK and carries no DNP3 bytes. Its
- *   generation is control-plane action data. Everything downstream of the class
- *   assignment is real: tag_arm's compare-and-arm-once, dec_arm_fresh, the
- *   UNARMED_WORD disarm, arm_clone()'s mirror, and therefore the REAL K=64
- *   request-triggered reservoir.
- *
- * packet_id 2 — the RESPONSE. ROLE_RESP likewise comes from packet_id, not from
- *   the real §8.2 DNP3 gates (tp_ctrl & 0xC0, app_control & 0xF0, func 129).
- *   Its seq / ack / port conjuncts and its txn_active generation binding ARE
- *   real, and so is the whole unconditional-hold path it then takes.
- *
- * The DNP3 content gates are therefore NOT exercised by Gate 2 at all. They were
- * derived and validated offline against 622 transactions across 8 PCAPs, and
- * they are exercised on the wire by §14's physical SEL-751 campaign. Gate 2 is a
- * LIFECYCLE gate: hold, order, terminate, return clean.
- *
- * ------------------------------------------------------------------------
- * THE ETHERTYPE STAMP, AND WHY THE FRAME STOPS BEING BYTE-PRESERVED HERE
- * ------------------------------------------------------------------------
- * On the dp8 loopback pass the generator header is gone, so a released frame
- * would be re-parsed purely from its own bytes — and all three synthetic events
- * are the same bytes. The released RESPONSE would come back looking like an ACK,
- * be counted as a second ACK release, and never retire the generation, so the
- * transaction could not return clean. tbl_synth_role therefore rewrites
- * hdr.eth.etype to 0x88C6 (ACK) / 0x88C7 (RESPONSE) on the enqueue pass, and
- * parse_eth decodes those two values straight back to ROLE_ACK / ROLE_RESP.
- *
- * CONSEQUENCE, STATED PLAINLY: in this build a held frame is NOT byte-preserved
- * — two bytes of its ethertype are rewritten. Byte preservation is a property of
- * the LIVE build, where no MAU action writes any byte of any host frame. Gate 2
- * makes no byte-identity claim, and none should be read into it.
- * ####################################################################### */
+/* Test-only lifecycle gate; it bypasses live port/session and DNP3-class parsing,
+ * stamps synthetic roles into ethertypes, and does not prove byte preservation. */
 const bit<16> ETYPE_SYNTH_ACK  = 0x88C6;  /* stamped on the held synthetic ACK      */
 const bit<16> ETYPE_SYNTH_RESP = 0x88C7;  /* stamped on the held synthetic RESPONSE */
-/* ►► THE STALE INJECTOR'S OWN ETHERTYPE. Case F fires TWO synthetic RESPONSES -- N+1's
- * own and a stale copy from app 4 -- and until now tbl_synth_role mapped BOTH to
- * synth_resp, so nothing in any counter, register or timestamp could say which of the
- * two the switch had held and which it had forwarded. That is precisely why the case
- * was withdrawn (REPORT.md 9.8). Giving app 4 its own ethertype costs no state and
- * makes the answer visible in the MASTER-SIDE CAPTURE: a bypassed copy goes straight
- * out, a held copy leaves only after the deadline, so which is which is readable off
- * the wire rather than inferred. */
+/* Separate marker for the stale synthetic response in test captures. */
 const bit<16> ETYPE_SYNTH_RESP_ALT = 0x88C8;
 #endif
 
 /* ---- DNP3 ---- */
 const bit<16> DNP3_START       = 0x0564;   /* link-layer start magic                      */
 const bit<8>  DNP3_FC_READ     = 8w1;      /* master -> outstation : arms the transaction */
-/* RRC section 1: SELECT (0x03) and OPERATE (0x04) arm the SAME transaction state machine.
- * They are master -> outstation control requests; each is an INDEPENDENT transaction with
- * its own app-seq, ACK-before-response ordering, deadline, fail-open, cleanup and retire.
- * The parser routes all three (READ/SELECT/OPERATE) to ROLE_ARM; the only per-function
- * difference is the expected-ACK length (READ +20, SELECT/OPERATE +45), selected by the
- * keyed tbl_build_exp_ack. No new ingress MAU stage: the admission is a parser constant. */
+/* READ, SELECT and OPERATE share the arm path; keyed ACK lengths differ by function. */
 const bit<8>  DNP3_FC_SELECT   = 8w3;      /* master -> outstation : SELECT (SBO phase 1) */
 const bit<8>  DNP3_FC_OPERATE  = 8w4;      /* master -> outstation : OPERATE (SBO phase 2)*/
 const bit<8>  DNP3_FC_RESPONSE = 8w129;    /* outstation -> master : SOLICITED response   */
-
-/* RRC section 4: the dedicated Packet-Replication-Engine group for the 49 B -> [28,21]
- * carve. ig_tm_md.mcast_grp_a is set to this on the caseA response-release branch when
- * shaping is enabled; the control plane binds this MGID to TWO level-1 nodes, both egress
- * dp9, with RID 1 (prefix) and RID 2 (suffix). Distinct from any caseA pktgen mirror.
- * bit<16> to match ig_tm_md.mcast_grp_a; not typedef'd to avoid clashing with tna.p4. */
 
 /* ---- roles (parser-assigned, once per path) ---- */
 const bit<8> ROLE_BYPASS     = 0;  /* forwarded unchanged, never held, never arms         */

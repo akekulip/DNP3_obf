@@ -1,7 +1,9 @@
 # CLAUDE.md — final timing-paper repository
 
-This repository holds exactly two things: the verified timing evidence and the manuscript
-that reports it. The experiment is finished.
+This repository holds the verified timing evidence, its active manuscript, and separate
+implementation work such as stage reduction and delay search. Only `campaign_v2` currently
+supports the paper's reported results; later engineering work remains separate unless claims and
+provenance are deliberately updated.
 
 ## Layout
 
@@ -34,6 +36,7 @@ follow a stale one. Nothing was lost: each is a `git show` away.
 | `REMOVAL_MANIFEST.csv` | `6e2eff2` | the per-path record of it |
 | the six root review and correction reports of 2026-09-15 and 2026-09-16 | `48373e39` | the reviews this repository answered |
 | twenty superseded notes under `defense4/timing/`, `audit_current/` and `paper/rewrite/` | `dc721cdf` | branch maps, rerun plans, session logs, pre-rewrite reconciliations, an applied patch proposal, a duplicate writing guide and a duplicate definitions table |
+| `WORKING_NOTES.md` | removed in the repository refactor | dated session log with completed figure, paper, and experiment tasks; current authority is the map and subsystem runbooks |
 
 **One subject, one document.** The response latency `D_R` is defined in
 `defense4/timing/NOTATION_MAPPING.md` and nowhere else; the claim boundaries in
@@ -42,10 +45,9 @@ follow a stale one. Nothing was lost: each is a `git show` away.
 on 2026-09-17 a review found one that had already caused the manuscript to be edited against a
 stale definition.
 
-Everything else — size experiments, earlier defenses, prototypes, meeting material, old
-drafts — is out of scope here. It lives in git history (tag
-`archive/pre-final-timing-prune-20260824`, the original branches, the bundles) and in the
-local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
+Sizing experiments, earlier defenses, and prototypes remain engineering history. They do not
+support current manuscript claims. Refactoring them must preserve hash-bound sources, raw evidence,
+and the distinction between measurements and later candidates.
 
 ## Hard rules
 

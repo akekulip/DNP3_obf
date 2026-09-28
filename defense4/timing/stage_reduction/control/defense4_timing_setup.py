@@ -1,35 +1,8 @@
 #!/usr/bin/env python3
-# ============================================================================
-# defense4_timing_setup.py — timing-only control-plane setup for the stage-reduction
-# candidate, with full write->read->assert readback verification.
-#
-# ►► CORRECTION2 (2026-08-13): the previous version of this file was a PLACEHOLDER — it invented
-# bfrt schemas (a `tf1.tm.queue.sched_cfg` write with the wrong key handling, a `$PKTGEN_APPLICATION_CFG`
-# table that does not exist, a `$REGISTER_INDEX` register write) and it installed NOTHING for the
-# codebook / session / mirror / value_set / two pktgen apps. This version is REAL: every
-# hardware step DELEGATES to a PROVEN helper whose schema is already silicon-exercised, in a
-# fail-closed order, and the OFFLINE dry-run runs the SAME ordered sequence against a faithful
-# in-process model (ModelStore) plus a non-vacuous negative-test battery.
-#
-# Proven helpers reused (schemas NOT invented — cited file:symbol):
-#   * defense4_bor_twopipe_setup.py:75-90            _load_module pattern (bfrt_grpc lazy, import-offline-safe)
-#   * defense4_caseA_setup.py:config_params_d4       tbl_params timing install (mode/d_ticks/da_dr/read_len/budget)
-#   * defense4_caseA_setup.py:config_queues_4q       the resolve_pg + pg_queue_of + tf1.tm.queue.sched_cfg queue idiom
-#   * case_a_defense3_..._setup.py:config_session    tbl_session reverse 5-tuple x2 (sess_relay/sess_master)
-#   * case_a_defense3_..._setup.py:config_mirror     $mirror.cfg session 7 -> dp68 (INGRESS)
-#   * case_a_defense3_..._setup.py:config_value_set  pgen_recirc value_set entry (byte=(pipe<<3)|app_id, mask 0xFF)
-#   * case_a_defense3_..._setup.py:resolve_pg / pg_queue_of / reg_read / reg_write / quantize_d / get_table / get_entry
-#   * defense4_bor_twopipe_setup.py:config_pipe1_pktgen / config_pipe1_codebook  the pktgen app_cfg + codebook range idiom
-#
-# EVERY hardware op is fail-closed on a readback mismatch / warning / missing table / empty read,
-# and REFUSES to run unless DEFENSE4_HW_AUTHORIZED=1. bfrt_grpc is imported ONLY inside the hardware
-# configure functions, so import + dry-run touch no hardware. The dry-run op runs the FULL offline
-# validation AND the model configure-all (clean PASS) AND the 7 non-vacuous negative tests — this is
-# the "run against the model/CLI without loading" path.
-#
-# COMPILE/SETUP-ONLY: nothing here is silicon-validated. Loading the binary, bringing up
-# ports/queues/pktgen, and the on-silicon readback are Philip's authorized steps (H0..H3 at the rig).
-# ============================================================================
+"""Configure the seven-stage timing program with guarded BFRT readback.
+
+Imports and dry-runs stay offline; hardware smoke evidence is in hardware/20260925/.
+"""
 import argparse
 import importlib.util
 import os

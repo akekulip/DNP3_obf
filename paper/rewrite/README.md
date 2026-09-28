@@ -31,6 +31,8 @@ sections/07_related_work.tex    Related Work (second-last)
 sections/08_conclusion.tex      Conclusion
 References.bib                  bibliography the manuscript builds from (49 entries, 40 cited)
 library.bib                     Zotero export, reconciled into References.bib on 2026-09-19; not cited
+corpus/                          local reference PDFs (ignored by Git) and style notes
+archive/                         superseded paper drafts and figure exports; not build inputs
 figures/ndss/                   seven campaign figures: vector PDF (authoritative),
                                 600-dpi PNG preview, figure-data CSV, caption,
                                 method and limitations notes, provenance sidecar
@@ -118,3 +120,9 @@ byte-for-byte.
 
 The three flagged points in the verbatim Introduction, the NDSS template switch, and a licence
 file: the gate reports under `pipeline/reports/` carry the current state.
+
+## Archived paper files
+
+Older PDF and architecture-figure exports live under `archive/` so the paper root contains only
+the active manuscript and its published build. Local reference PDFs live under `corpus/`; they are
+ignored by Git and are not publication artifacts.

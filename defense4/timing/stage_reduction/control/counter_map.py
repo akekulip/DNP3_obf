@@ -1,15 +1,4 @@
-"""The single source of truth for Case A Defense 3 counter indices (CORRECTIONS.md §4.2).
-
-Before this module, the counter indices were duplicated as bare numbers in the P4, the
-setup script, setarm.py, the injector and the analyzers, and they had DRIFTED: the P4
-defines `CF_BLOCK_REJECT = 17` (added with R3), but setarm cleared only `range(17)`
-(indices 0..16), leaving index 17 cumulative across campaign blocks.
-
-These maps mirror the `const bit<8> CF_*/CD_*` declarations in
-`p4/case_a_defense3.p4`. `verify_against_p4()` reads the P4 and asserts they still
-agree, so a future edit to the P4 that is not reflected here fails loudly instead of
-silently under-resetting a counter.
-"""
+"""Counter indices shared with stage_reduction/src/defense4_timing.p4."""
 from __future__ import annotations
 import re
 

@@ -1,108 +1,47 @@
-# DNP3 in-network timing obfuscation — final paper repository
+# DNP3 timing-obfuscation research
 
-This branch holds exactly what the timing-obfuscation paper needs and nothing else: the
-program that ran on the switch, the captures it produced, the code that turns those captures
-into figures, the manuscript, and the documents that bound what may be claimed.
+This repository contains the timing-obfuscation evidence, the active paper, and separate
+implementation and delay-search work. Start with [REPOSITORY_MAP.md](REPOSITORY_MAP.md) for the
+authoritative path for each.
 
-**The active evidence is
-[`defense4/timing/evidence/campaign_v1/`](defense4/timing/evidence/campaign_v1/)**: 22 grouped
-collection runs in one approximately five-hour campaign, 132 captures, 63,360 DNP3 exchanges,
-collected with the size carve disabled in both arms. Rebuild every published number and figure
-from the raw captures with
-[`campaign_v1/repro/reproduce.sh`](defense4/timing/evidence/campaign_v1/repro/reproduce.sh).
+The paper reports the request-anchored `campaign_v2` dataset: 22 grouped runs, 132 captures, and
+63,360 DNP3 exchanges. The size carve was disabled in both arms. Later delay-search and
+stage-reduction results are separate evidence and must not be attributed to the paper unless the
+manuscript and its claim ledger are deliberately updated.
 
-The earlier `final_read_sbo` evidence and its five figures are retained for provenance and are
-**not** what the manuscript reports.
+## Main entry points
 
-**Start at [`defense4/timing/README.md`](defense4/timing/README.md)** for the evidence and at
-[`paper/rewrite/README.md`](paper/rewrite/README.md) for the manuscript. Everything below is
-orientation for someone arriving at the reduced tree.
+- [Timing evidence and notation](defense4/timing/README.md)
+- [Seven-stage candidate and hardware smoke evidence](defense4/timing/stage_reduction/README.md)
+- [Delay-search protocol and results](defense4/timing/latency_search/README.md)
+- [Active manuscript and build instructions](paper/rewrite/README.md)
+- [Repository instructions](CLAUDE.md)
 
-## What is here
-
-```
-CLAUDE.md                     repository instructions
-FINAL_TIMING_ALLOWLIST.txt    every retained path, and the rules that produced the list
-(in git history, not on disk; see the note below)
-  REMOVAL_REPORT.md           what was kept, what was removed, and why
-defense4/timing/              the canonical timing tree: evidence, analysis, figures
-paper/rewrite/                the manuscript (main.tex, sections/, library.bib, pipeline/)
-```
-
-## Reproducing the results
+## Reproduce the paper evidence
 
 ```sh
 cd defense4/timing
-evidence/campaign_v1/repro/reproduce.sh   # verifies the manifests, rebuilds every table,
-                                         # statistic and figure from the raw captures, runs
-                                         # the 131 tests, then gates against what is published
+./reproduce.sh
 ```
 
-No path outside this repository is hard-coded. The raw captures are immutable inputs; all
-output goes to `defense4/timing/build/`.
+The script verifies the manifests before rebuilding tables, statistics, and publication figures.
+Use the explicit historical option only for retired datasets.
 
-## Building the paper
+## Build the manuscript
 
 ```sh
-cd paper/rewrite && ./pipeline/build.sh      # tectonic + the manuscript gate -> pipeline/build/main.pdf
+cd paper/rewrite
+./pipeline/build.sh
 ```
 
-## What the paper claims, in one paragraph
+## Hardware work
 
-With the in-network timing mechanism disabled, the cross-layer response time of a physical
-SEL-751A varies with transaction type: median 2.116 ms for READ and 2.050 ms for the SELECT
-phase of select-before-operate, with interquartile ranges near 2.8 ms. With it enabled, both
-settle on the 4.000 ms policy value with an interquartile range of 0.006 ms. A measured
-19-point hardware sweep shows the visible interval following the configured offset while the
-end-to-end response time stays fixed. For the evaluated fixed Random-Forest attacker,
-three-class transaction identification falls from 0.651 balanced accuracy to approximately
-chance, and the mutual information between the interval and the class falls from 0.383 bits to
-0.004 bits, inside a within-run permutation null. An attacker that retrains on obfuscated
-traffic recovers to 0.651 using the acknowledgment interval, which bounds the result. The
-master-visible OPERATE response-to-acknowledgment interval remained concentrated near the
-configured 4 ms value across all 22 runs.
+Read the Tofino runbook and current connectivity map before each hardware operation. The loaded
+program can differ from both the published campaign build and the seven-stage smoke-test build.
+Inspect live state; do not infer it from a dated report. Preserve the experiment captures, logs,
+source hashes, and rollback bundle.
 
-## Three things a reader must not misread
+The repository retains sizing-related candidates and historical results for engineering context.
+The active manuscript makes no size-obfuscation claim.
 
-1. **The arms are timing modes of one binary.** In the active `campaign_v1` evidence the
-   size-shaping datapath is off in both arms, so the measurement is timing only and the
-   comparison isolates the timing-mode change. The arms are called *Timing OFF* and
-   *Obfuscated*. The retired `final_read_sbo` dataset ran with shaping active in both arms;
-   its Timing OFF arm is therefore not an unmodified relay baseline, which is one reason it is
-   no longer the publication authority.
-2. **Configuration provenance is PARTIAL.** One archived readback reports a failed assertion
-   while showing none, and the failing check cannot be recovered. It is retained unedited and
-   explained in the evidence audit.
-3. **Relay-facing behaviour was never observed.** The relay-facing port is internal to the
-   switch with no capturable tap, so the internal release timing and exactly-once delivery are
-   not demonstrated.
-
-All three are stated with their evidence in
-[`defense4/timing/CLAIMS_AND_LIMITATIONS.md`](defense4/timing/CLAIMS_AND_LIMITATIONS.md).
-
-## Size obfuscation is not part of this paper
-
-No size claim, figure or analysis is in this tree. The size research remains in the
-repository's history and on its own branches. `REMOVAL_REPORT.md` says where, and is itself in
-history rather than on disk: `git show f6dd821:REMOVAL_REPORT.md`.
-
-## What was removed, and how to get it back
-
-6,395 of 6,480 tracked files were removed from this branch. Nothing was destroyed. Every
-removed path is recoverable from the branch `cleanup/timing-read-sbo-20260824`, the tag
-`archive/pre-final-timing-prune-20260824`, commit `ef82fae`, or the bundle
-`DNP3-before-final-timing-prune-20260824.bundle`. Four root documents were dropped in the
-2026-09-15 prune and live only in history: `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md`,
-`REPOSITORY_AUDIT.md` and `CLEANUP_PLAN.md`, both at `dc721cdf`. The per-path
-`REMOVAL_MANIFEST.csv` at `6e2eff2` that
-listed each one individually was dropped on 2026-09-15 and is itself in git history; the
-references above recover any path without it.
-
-```sh
-git show archive/pre-final-timing-prune-20260824:<path>     # read one removed file
-```
-
-## No licence file
-
-This repository has never carried one. That is a gap to close before any public release, not
-something this reduction removed.
+No repository license is present; verify redistribution terms before a public release.

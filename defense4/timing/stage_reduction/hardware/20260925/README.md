@@ -57,8 +57,9 @@ verified by strict readback and the functional run by endpoint outcomes/captures
   packet captures, capture diagnostics, and process exit statuses.
 - `switch/`: successful configuration logs, BFRT configuration snapshots,
   startup/process identity, loaded configuration and recovery scripts.
-- `analyze.py`: checks source/artifact hashes, configuration, application counts,
-  output status, complete timing samples, and the observed median CLRT range.
+- `analyze.py`: checks the source hash recovered from commit `16050715`, artifact
+  hashes, configuration, application counts, output status, complete timing
+  samples, and the observed median CLRT range.
 - `SHA256SUMS`: hashes of the retained raw captures and execution evidence.
 
 From the repository root:

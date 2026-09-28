@@ -85,9 +85,12 @@ under `hardware/20260925/`.
 
 ## Validation boundaries and retained defects
 
-The final candidate passes 55 offline regression and control-plane tests. Both
-compiler builds and the model feasibility report identify the same source hash;
-see `evidence/verification.txt` for commands and results.
+The candidate passes 55 offline regression and control-plane tests. The retained
+SDE 9.13.1/9.13.2 manifests describe the original source used for the hardware
+smoke test. The current source has a comment-only cleanup and was rebuilt locally
+with SDE 9.13.1 to the same seven-ingress/zero-egress placement. The analyzer
+verifies the historical run against source commit `16050715`; it does not treat
+the cleaned working copy as the source that produced that run.
 
 Source-driven differential tests cover deadline selection, arm/disarm behavior,
 first-ACK detection, BOR epoch/readiness, outcome priority, token watchdogs,

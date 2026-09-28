@@ -1,31 +1,4 @@
-"""Single parameter-safety authority for Case A Defense 3 (CORRECTIONS.md §3).
-
-BOTH the general setup (`setup/…_setup.py::config_params`) and the campaign block
-setter (`harness/setarm.py`) must go through this module. Before this module existed
-there were two disagreeing authorities: the setup enforced a stale `a_worst = 22 ms`
-guard (which would have rejected the real D = 16 ms campaign, since H = 30.8 < 22+16)
-and a fixed `D_MAX = 40 ms` clamp that the report proves is impossible (H ≈ 30.8 ms, so
-D = 40 ms lets the budget expire before the deadline even with an instantaneous ACK);
-meanwhile the campaign wrote `tbl_params` directly with no D-max, horizon, RTO or
-poll-rate/wrap check at all.
-
-This module computes the admissible range from the fail-open horizon H rather than a
-fixed clamp, enforces the generation-wrap (poll-rate) bound R2's safety depends on, and
-is the ONE place allowed to write `tbl_params`. Pure computation (`evaluate`) has no
-bfrt dependency so it runs off-switch and in the self-test; `write_params` is the thin
-gated writer.
-
-Formulae (CORRECTIONS.md §3.1, §3.3):
-    H      = B * K / rate_dp8                         (fail-open horizon)
-    D_max  = H - a_bound - t_detect - t_drain - t_tail - M
-    admissible: D_realized <= D_max
-    RTO:        H < RTO_min - M_rto
-    wrap:       16 * T_poll,min  >  H + t_drain + M    (R2 generation-reuse safety)
-
-The value substitutions reproduce the report's "D_MAX ≈ H − a_max − ε ≈ 24 ms"
-(REPORT.md §7 / open-work): with a_bound = 3 ms and M = 3 ms, D_max ≈ 24.8 ms, so the
-D = 16 ms campaign passes and D = 40 ms is refused.
-"""
+"""Compute and validate the legacy Defense 3 delay policy; BFRT writes are disabled."""
 from __future__ import annotations
 import argparse
 import json
@@ -193,21 +166,6 @@ def write_params(table, tgt, result: dict, gc):
         "parameter_policy.write_params is disabled for defense4_timing; "
         "use defense4_timing_setup.py / config_params_d4"
     )
-    if not result.get("ok"):
-        raise ValueError("parameter policy REJECTED the configuration: %s"
-                         % "; ".join(result.get("reasons", ["<no reason>"])))
-    last = ""
-    for act in ("Ingress.set_params", "set_params"):
-        try:
-            table.default_entry_set(tgt, table.make_data([
-                gc.DataTuple("d_ticks", result["d_word"]),
-                gc.DataTuple("read_len", result["read_len"]),
-                gc.DataTuple("budget", result["budget"]),
-            ], act))
-            return act
-        except Exception as e:  # noqa: BLE001
-            last = str(e)[:120]
-    raise RuntimeError("tbl_params write failed for both action names: %s" % last)
 
 
 def _selftest() -> int:
