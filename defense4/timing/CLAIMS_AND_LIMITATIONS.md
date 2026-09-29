@@ -9,10 +9,14 @@ master-facing link. 22 grouped collection runs over 5.3 hours, 132 captures, 63,
 exchanges, plus a 26-point hardware sweep of 9,360 further exchanges. The size-shaping datapath is
 **off** in both arms, so this is a timing-only measurement.
 
-Every number below is regenerated from the raw captures by `evidence/campaign_v2/repro/reproduce.sh`
-and is published in `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`, which is the single file
-the manuscript quotes from; the publication gate fails if a rebuild drifts from it. The attribution
-numbers of C6 come from its step 5c, `repro/proof_analyses.py`. `campaign_v1` is the record of the
+The campaign reproduction script is `evidence/campaign_v2/repro/reproduce.sh`.
+`paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json` records its principal published values;
+additional numbers below come from named diagnostics and analysis outputs. The publication gate
+compares regenerated values with that JSON; it does not verify every numerical statement in the
+manuscript prose. The attribution numbers of C6 come from step 5c, `repro/proof_analyses.py`.
+The paper is frozen pending Dr. Lin's acceptance. Later focused/grid studies remain engineering
+evidence even where the current manuscript already mentions them; that authority conflict is
+tracked in `audit_current/verification_20260929/`. `campaign_v1` is the record of the
 acknowledgment-anchored build that this one replaces; its claims are recoverable with
 `git show d23fac67:defense4/timing/CLAIMS_AND_LIMITATIONS.md` and are not current.
 
@@ -80,9 +84,10 @@ at 0.7847 balanced accuracy under Timing OFF and 0.5071 under the mechanism, aga
 
 From the 26-point sweep: 23 release policies in mode D4 and three controls (the two envelope modes
 and Timing OFF). At a fixed budget `D` = 28 ms, configured `CLRT_new` of 2, 4, 8, 12, 16, 20, 24 and
-26 ms produce measured CLRT medians of 1.9995, 4.0002, 8.0055, 12.0003, 16.001, 20.000, 24.0021 and
-26.001 ms, within 6 µs of each setting, while the median request-to-response time stays between
-28.106 and 28.108 ms. The interval the adversary measures and the cost of the exchange are set
+26 ms produce measured READ CLRT medians of 1.9995, 4.000, 8.0055, 12.0005, 16.001, 20.000, 24.002 and
+26.001 ms, within 6 µs at these eight tested settings, while the READ median request-to-response time stays between
+28.106 and 28.108 ms. This 6 µs bound is specific to READ; SELECT at the 8 ms setting has a
+median of 8.012 ms. The interval the adversary measures and the cost of the exchange are set
 independently. Ramping `D_A` at a configured `CLRT_new` of 4 ms, the request-to-acknowledgment
 median tracks the setting to 30 ms (30.107 ms, CLRT still 3.999 ms) and then saturates at
 31.07 ms, beyond which the CLRT rises to 5.034, 7.035 and 9.034 ms at `D_A` of 32, 34 and 36 ms.
@@ -118,6 +123,11 @@ min_samples_leaf 5).
 | adaptive, retrained on Obfuscated | CLRT | 0.4514 |
 | adaptive, retrained on Obfuscated | req-to-ACK + CLRT | 0.4452 |
 
+The fixed model on Obfuscated traffic predicts READ for 95.45% of each true class, SELECT
+for none, and OPERATE for 4.55% (`paper/rewrite/figures/ndss/fig_leakage_data.csv`, fixed confusion rows). Its near-chance
+balanced accuracy describes this collapsed decision rule, not absence of class information
+or success against all retrained classifiers.
+
 Pooling k exchanges of one class (both intervals) takes the adaptive attacker to 0.4470, 0.5281,
 0.6151, 0.6318 and 0.6500 at k = 1, 2, 5, 10 and 20; under Timing OFF the same pooling reaches
 0.8020 to 0.9388. Mutual information between the CLRT and the class falls from 0.35314 to
@@ -135,16 +145,19 @@ The attribution is argued from these within-device controls, not from a second d
 Spread across the 22 held-out runs is reported descriptively. It is **not** a confidence
 interval: the folds share training data. No interval is placed on the MI point estimate. See L9.
 
-### C7 — No added frames or bytes, bounded latency, no retransmission
+### C7 — Captured traffic volume, latency, and master-facing retransmission observations
 
 Every capture carries 1,448 frames and 130,708 captured bytes for 480 exchanges in both arms, that
 is 3.017 frames and 272.308 bytes per exchange. Across all 63,360 exchanges every request was
-answered with a well-formed response, no capture contains a TCP retransmission, and all 5,280
+answered with a well-formed response, no master-facing capture contains an observed TCP retransmission, and all 5,280
 SELECT and OPERATE exchanges returned a success status. The median request-to-response time rises
-from 2.681 to 28.107 ms for READ, an added 25.426 ms, and by 25.482 ms for SELECT and 24.652 ms for
+from 2.681 to 28.107 ms for READ, an added 25.426 ms, and by 25.4825 ms for SELECT and 24.652 ms for
 OPERATE. The longest obfuscated waits were 20.19 ms for an acknowledgment and 98.547 ms for a
-response; the master's own retransmission timer fires at 200.8 ms
-(`audit_current/master_rto_20260916/RESULT.md`).
+response. In a separate diagnostic on a later connection, the first repeated master request
+appeared after 200.8 ms (`audit_current/master_rto_20260916/RESULT.md`). That packet observation
+is not a measured RTO, a timer-firing trace, or a lower bound for every connection; the diagnostic
+does not distinguish a tail-loss probe from RTO-based recovery. Equal frame/byte totals establish
+captured volume, not byte-for-byte equality of DNP3 payloads.
 
 ### C8 — The release tail is small and does not depend on the hold
 

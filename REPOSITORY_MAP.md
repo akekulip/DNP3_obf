@@ -4,11 +4,11 @@ Use this map to distinguish paper evidence, later experiments, and implementatio
 A dated evidence bundle and its manifest are authoritative for what ran; current live switch state
 must be checked on the hardware.
 
-## Published paper
+## Publication authority and frozen manuscript
 
 | Path | Authority |
 |---|---|
-| `defense4/timing/evidence/campaign_v2/` | Dataset and reproducibility inputs reported by the paper. |
+| `defense4/timing/evidence/campaign_v2/` | Approved publication dataset and reproducibility inputs. |
 | `defense4/timing/CLAIMS_AND_LIMITATIONS.md` | Claim boundaries and evidence qualifications. |
 | `defense4/timing/NOTATION_MAPPING.md` | Timing notation. |
 | `paper/rewrite/main.tex` and `sections/` | The single active manuscript. |
@@ -16,6 +16,10 @@ must be checked on the hardware.
 
 `campaign_v1/` is retained as the earlier acknowledgment-anchored record. `final_read_sbo/` and
 other dated audits are historical. Do not combine their measurements with `campaign_v2`.
+
+The manuscript and paper figures are frozen pending Dr. Lin's acceptance. Existing later-study
+text is an open authority conflict, not evidence approval. See the
+[September 29 verification ledger](defense4/timing/audit_current/verification_20260929/README.md).
 
 ## Separate engineering work
 

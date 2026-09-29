@@ -4,10 +4,15 @@ This repository contains the timing-obfuscation evidence, the active paper, and 
 implementation and delay-search work. Start with [REPOSITORY_MAP.md](REPOSITORY_MAP.md) for the
 authoritative path for each.
 
-The paper reports the request-anchored `campaign_v2` dataset: 22 grouped runs, 132 captures, and
-63,360 DNP3 exchanges. The size carve was disabled in both arms. Later delay-search and
+The approved publication evidence is the request-anchored `campaign_v2` dataset: 22 grouped runs,
+132 captures, and 63,360 DNP3 exchanges. The size carve was disabled in both arms. Later delay-search and
 stage-reduction results are separate evidence and must not be attributed to the paper unless the
 manuscript and its claim ledger are deliberately updated.
+
+**September 29 freeze:** Philip has deferred paper changes until Dr. Lin accepts the approach.
+Existing delay-search text in Evaluation is an unresolved authority conflict; do not treat its
+presence as approval. The [verification ledger](defense4/timing/audit_current/verification_20260929/README.md)
+records offline corrections and deferred paper findings. No testbed operations are authorized.
 
 ## Main entry points
 

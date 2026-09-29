@@ -1,9 +1,10 @@
 # CLAUDE.md — final timing-paper repository
 
 This repository holds the verified timing evidence, its active manuscript, and separate
-implementation work such as stage reduction and delay search. Only `campaign_v2` currently
-supports the paper's reported results; later engineering work remains separate unless claims and
-provenance are deliberately updated.
+implementation work such as stage reduction and delay search. The approved publication evidence
+remains `campaign_v2`. The frozen manuscript already contains later engineering results that have not been reconciled with that authority; their presence is
+an open audit finding, not approval. Promotion requires Dr. Lin's acceptance and an explicit
+claim/provenance update.
 
 ## Layout
 
@@ -54,10 +55,18 @@ and the distinction between measurements and later candidates.
 - **Commit authorship:** all commits must use Philip's Git identity
   (`akekulip <akekulip@gmail.com>`) for both author and committer. Do not add
   co-author trailers or attribution to any other contributor.
-- **No further experimentation.** Do not run hardware, load or change a Tofino program,
-  contact the SEL-751, generate traffic or captures, restart size work, add a defense or a
-  protocol function, or explore compilers or implementations. Only organise the verified
-  evidence, finish the existing figures, and write the paper.
+- **Current authorization (2026-09-29): offline audit and corrections only.** Philip
+  authorized the September 26 focused study and September 27 matched delay grid in this
+  thread; their frozen protocols record what ran. That historical authorization does not
+  authorize new experiments. Offline analysis, provenance repairs, tests, and compilation
+  of separate bug-fix candidates are authorized. Do not contact the testbed, load a
+  pipeline, change hardware configuration, or generate traffic without new authorization.
+- **Paper freeze pending Dr. Lin's acceptance.** Do not change `paper/rewrite/`, including
+  manuscript prose, figures, Design, Implementation, or the mechanism diagram. Record
+  paper findings in `defense4/timing/audit_current/verification_20260929/` instead. Existing
+  engineering-study text in the paper does not promote its results to approved evidence.
+  Preserve measured sources, binaries, captures, configurations, and results; repairs
+  belong in separate candidate/build directories. Sizing remains outside this task.
 - **Never modify** `defense4/timing/implementation/`,
   `defense4/timing/evidence/campaign_v1/s*/raw_pcaps/`,
   `defense4/timing/evidence/campaign_v1/sweep/raw_pcaps/` or
