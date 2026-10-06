@@ -1,0 +1,396 @@
+table_add dmac fwd 02:00:00:00:00:02 => 1
+table_add dmac fwd 02:00:00:00:00:01 => 0
+register_write p_mode 0 4
+register_write p_da_us 0 10000
+register_write p_gap_us 0 8000
+register_write p_budget 0 1
+register_write p_shape 0 0
+register_write p_mode_e 0 4
+register_write p_dropreq 0 0
+register_write e_budget 0 1
+register_write p_readiness_us 0 30000
+register_write p_padding 0 0
+register_write p_token_loss 0 0
+set_queue_rate 20000 2
+mc_mgrp_create 1
+mc_mgrp_create 2
+
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Adding entry to exact match table dmac
+match key:           EXACT-02:00:00:00:00:02
+action:              fwd
+runtime data:        00:01
+Entry has been added with handle 0
+RuntimeCmd: Adding entry to exact match table dmac
+match key:           EXACT-02:00:00:00:00:01
+action:              fwd
+runtime data:        00:00
+Entry has been added with handle 1
+RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: Creating multicast group 1
+RuntimeCmd: Creating multicast group 2
+RuntimeCmd: 
+
+set_crc16_parameters calc 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_0 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_1 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_2 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_3 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_4 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_5 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_6 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_7 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_8 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_9 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_10 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_11 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_12 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_13 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_14 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_15 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_16 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_17 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_18 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+set_crc16_parameters calc_19 0x3d65 0 0xffff true true
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: RuntimeCmd: 
+
+mc_node_create 1 2
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Creating node with rid 1 , port map 100 and lag map 
+node was created with handle 0
+RuntimeCmd: 
+
+mc_node_create 2 2
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Creating node with rid 2 , port map 100 and lag map 
+node was created with handle 1
+RuntimeCmd: 
+
+mc_node_create 3 0
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Creating node with rid 3 , port map 1 and lag map 
+node was created with handle 2
+RuntimeCmd: 
+
+mc_node_associate 1 0
+mc_node_associate 1 1
+mc_node_associate 1 2
+mirroring_add_mc 100 1
+
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Associating node 0 to multicast group 1
+RuntimeCmd: Associating node 1 to multicast group 1
+RuntimeCmd: Associating node 2 to multicast group 1
+RuntimeCmd: RuntimeCmd: 
+
+mc_node_create 1 0
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Creating node with rid 1 , port map 1 and lag map 
+node was created with handle 3
+RuntimeCmd: 
+
+mc_node_create 2 0
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Creating node with rid 2 , port map 1 and lag map 
+node was created with handle 4
+RuntimeCmd: 
+
+mc_node_associate 2 3
+mc_node_associate 2 4
+
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Associating node 3 to multicast group 2
+RuntimeCmd: Associating node 4 to multicast group 2
+RuntimeCmd: 
+
+register_read r_ev 0
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[0]= 3350887
+RuntimeCmd: 
+
+register_read r_ev 1
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[1]= 3380273
+RuntimeCmd: 
+
+register_read r_ev 2
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[2]= 3388430
+RuntimeCmd: 
+
+register_read r_ev 3
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[3]= 3351821
+RuntimeCmd: 
+
+register_read r_ev 4
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[4]= 3380127
+RuntimeCmd: 
+
+register_read r_ev 5
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_ev[5]= 0
+RuntimeCmd: 
+
+register_read r_history 0
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[0]= 3018659
+RuntimeCmd: 
+
+register_read r_history 1
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[1]= 3048910
+RuntimeCmd: 
+
+register_read r_history 2
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[2]= 0
+RuntimeCmd: 
+
+register_read r_history 3
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[3]= 3020131
+RuntimeCmd: 
+
+register_read r_history 4
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[4]= 0
+RuntimeCmd: 
+
+register_read r_history 5
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[5]= 3048851
+RuntimeCmd: 
+
+register_read r_history 8
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[8]= 3350887
+RuntimeCmd: 
+
+register_read r_history 9
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[9]= 3380273
+RuntimeCmd: 
+
+register_read r_history 10
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[10]= 3388430
+RuntimeCmd: 
+
+register_read r_history 11
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[11]= 3351821
+RuntimeCmd: 
+
+register_read r_history 12
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[12]= 3380127
+RuntimeCmd: 
+
+register_read r_history 13
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: r_history[13]= 0
+RuntimeCmd: 
+

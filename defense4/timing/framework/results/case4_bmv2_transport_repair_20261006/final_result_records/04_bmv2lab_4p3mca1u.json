@@ -1,0 +1,273 @@
+{
+  "outcomes": [
+    "OK",
+    "OK"
+  ],
+  "txns": [
+    {
+      "t_req": 1791316803712858065,
+      "t_A": 1791316803714150342,
+      "t_R": 1791316803804498453,
+      "e_A": 1791316803743696171,
+      "e_R": 1791316803804948528,
+      "request_seq": 1941512023,
+      "request_length": 20,
+      "wire_request_seq": 1941512023,
+      "wire_request_length": 20,
+      "app_seq": 0,
+      "operation": "READ",
+      "transaction_id": 0,
+      "switch_ev_us": {
+        "0": 3068776,
+        "1": 3099262,
+        "2": 0,
+        "3": 3070094,
+        "4": 0,
+        "5": 3099128
+      },
+      "release_outcome": "fallback"
+    },
+    {
+      "t_req": 1791316804105553228,
+      "t_A": 1791316804106206524,
+      "t_R": 1791316804196549175,
+      "e_A": 1791316804136804039,
+      "e_R": 1791316804197151997,
+      "request_seq": 1941512043,
+      "request_length": 20,
+      "wire_request_seq": 1941512043,
+      "wire_request_length": 20,
+      "app_seq": 1,
+      "operation": "READ",
+      "transaction_id": 1,
+      "switch_ev_us": {
+        "0": 3461516,
+        "1": 3492419,
+        "2": 0,
+        "3": 3462144,
+        "4": 0,
+        "5": 3492314
+      },
+      "release_outcome": "fallback"
+    }
+  ],
+  "switch_ev_us": {
+    "0": 3461516,
+    "1": 3492419,
+    "2": 0,
+    "3": 3462144,
+    "4": 0,
+    "5": 3492314
+  },
+  "elapsed_ms": [
+    92.244211002253,
+    91.78139199502766
+  ],
+  "master_view": [
+    {
+      "t": 1791316803712000004,
+      "from": "M",
+      "flags": 2,
+      "seq": 1941512022,
+      "ack": 0,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803712796970,
+      "from": "O",
+      "flags": 18,
+      "seq": 3896281669,
+      "ack": 1941512023,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803712821116,
+      "from": "M",
+      "flags": 16,
+      "seq": 1941512023,
+      "ack": 3896281670,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803712858065,
+      "from": "M",
+      "flags": 24,
+      "seq": 1941512023,
+      "ack": 3896281670,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803743696171,
+      "from": "O",
+      "flags": 16,
+      "seq": 3896281670,
+      "ack": 1941512043,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803804948528,
+      "from": "O",
+      "flags": 24,
+      "seq": 3896281670,
+      "ack": 1941512043,
+      "len": 49,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316803804960771,
+      "from": "M",
+      "flags": 16,
+      "seq": 1941512043,
+      "ack": 3896281719,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804105553228,
+      "from": "M",
+      "flags": 24,
+      "seq": 1941512043,
+      "ack": 3896281719,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804136804039,
+      "from": "O",
+      "flags": 16,
+      "seq": 3896281719,
+      "ack": 1941512063,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804197151997,
+      "from": "O",
+      "flags": 24,
+      "seq": 3896281719,
+      "ack": 1941512063,
+      "len": 49,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804197164240,
+      "from": "M",
+      "flags": 16,
+      "seq": 1941512063,
+      "ack": 3896281768,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804497680234,
+      "from": "M",
+      "flags": 17,
+      "seq": 1941512063,
+      "ack": 3896281768,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804498993911,
+      "from": "O",
+      "flags": 17,
+      "seq": 3896281768,
+      "ack": 1941512064,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316804499008709,
+      "from": "M",
+      "flags": 16,
+      "seq": 1941512064,
+      "ack": 3896281769,
+      "len": 0,
+      "csum_ok": true
+    }
+  ],
+  "split": [
+    {
+      "orig_len": 49,
+      "seq_order": [
+        49
+      ],
+      "arrival_order": [
+        49
+      ],
+      "reassembled_equal": true,
+      "contiguous": true,
+      "checksums_ok": true,
+      "prefix_flags_clear": true,
+      "dnp3_ok": true,
+      "sequence_wraps": false,
+      "equals_software_carve": false,
+      "equals_software_carve_after_ack_translation": false
+    },
+    {
+      "orig_len": 49,
+      "seq_order": [
+        49
+      ],
+      "arrival_order": [
+        49
+      ],
+      "reassembled_equal": true,
+      "contiguous": true,
+      "checksums_ok": true,
+      "prefix_flags_clear": true,
+      "dnp3_ok": true,
+      "sequence_wraps": false,
+      "equals_software_carve": false,
+      "equals_software_carve_after_ack_translation": false
+    }
+  ],
+  "request_padding": [],
+  "endpoint_responses": [
+    {
+      "transaction_id": 0,
+      "function": 1,
+      "statuses": [],
+      "request_length": 20,
+      "response_length": 49
+    },
+    {
+      "transaction_id": 1,
+      "function": 1,
+      "statuses": [],
+      "request_length": 20,
+      "response_length": 49
+    }
+  ],
+  "artifact": {
+    "source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "compiled_sha256": "de3463c7f2a11ef2d4ac418f22981de17913419f530063dc5e6e203d61fe0360",
+    "endpoint": "Python codec emulator",
+    "clock": "BMv2 48-bit microseconds",
+    "heartbeat_period_us": 1000,
+    "heartbeat_observed": {
+      "r_hb_last": 5786288,
+      "r_hb_max_gap": 1252,
+      "r_hb_count": 3643
+    },
+    "heartbeat_deviation": "1ms software service; Tofino candidate requests100us",
+    "transport_limit": "initial segmented request and overlap beyond committed cache span unsupported"
+  },
+  "params": {
+    "mode": 4,
+    "da_us": 10000,
+    "gap_us": 1000,
+    "budget": 300,
+    "loop_pps": 5000,
+    "latency_ms": 90,
+    "operation": "READ",
+    "padding": 0,
+    "token_loss": 3,
+    "readiness_us": 30000
+  }
+}

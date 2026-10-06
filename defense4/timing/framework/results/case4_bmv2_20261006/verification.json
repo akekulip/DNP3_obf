@@ -1,0 +1,212 @@
+{
+  "command": "python -m unittest test_case4_bmv2 test_bmv2_artifact",
+  "tests": 22,
+  "elapsed_seconds": 260.913,
+  "case4_passed": 13,
+  "case4_total": 13,
+  "legacy_passed": 8,
+  "legacy_total": 9,
+  "exit_code": 1,
+  "source_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+  "failure": {
+    "test": "test_ack_focused_is_d_a_zero_with_a_small_guard",
+    "configured_gap_us": 200,
+    "observed_wire_gap_us": 609.886,
+    "tolerance_us": 400,
+    "observed_deviation_us": 409.886,
+    "excess_us": 9.886,
+    "artifact": "defense4/timing/framework/results/case4_bmv2_20261006/retained_failures/final_legacy_gap200us"
+  },
+  "load_note": "The first timeout case overlapped a size compiler. The unittest runner was then paused during raw probes and resumed after both size compilers completed. Remaining timed cases and canonical SBO capture ran without root/size-agent compilers. No tolerance was widened; no failing result is reported as passing. A later root nonwire regression exposed a zero-response evidence-file error in the historical generated-ACK loss case. The metadata-only fix passed that one targeted test; the P4 source, prior 22-test outcomes, canonical raw captures and captured lab_source snapshots were not changed.",
+  "retained_failure_records": [
+    {
+      "label": "final_legacy_gap200us",
+      "original_work_dir": "/tmp/bmv2lab_7edsa8y_",
+      "files": [
+        "retained_failures/final_legacy_gap200us/bmv2_rr.json",
+        "retained_failures/final_legacy_gap200us/outstation_side.pcap",
+        "retained_failures/final_legacy_gap200us/switch.log",
+        "retained_failures/final_legacy_gap200us/master_side.pcap",
+        "retained_failures/final_legacy_gap200us/cli.log",
+        "retained_failures/final_legacy_gap200us/master_side.pcap.err",
+        "retained_failures/final_legacy_gap200us/heartbeat.log",
+        "retained_failures/final_legacy_gap200us/result.json",
+        "retained_failures/final_legacy_gap200us/outstation_side.pcap.err",
+        "retained_failures/final_legacy_gap200us/endpoint_responses.jsonl"
+      ],
+      "current_source_available": true
+    },
+    {
+      "label": "prior_ack_delay_excursion",
+      "original_work_dir": "/tmp/bmv2lab_q1wzxs5a",
+      "files": [
+        "retained_failures/prior_ack_delay_excursion/bmv2_rr.json",
+        "retained_failures/prior_ack_delay_excursion/outstation_side.pcap",
+        "retained_failures/prior_ack_delay_excursion/switch.log",
+        "retained_failures/prior_ack_delay_excursion/master_side.pcap",
+        "retained_failures/prior_ack_delay_excursion/cli.log",
+        "retained_failures/prior_ack_delay_excursion/master_side.pcap.err",
+        "retained_failures/prior_ack_delay_excursion/heartbeat.log",
+        "retained_failures/prior_ack_delay_excursion/result.json",
+        "retained_failures/prior_ack_delay_excursion/outstation_side.pcap.err",
+        "retained_failures/prior_ack_delay_excursion/endpoint_responses.jsonl"
+      ],
+      "current_source_available": false
+    },
+    {
+      "label": "prior_gap_excursion",
+      "original_work_dir": "/tmp/bmv2lab_3xnyigmi",
+      "files": [
+        "retained_failures/prior_gap_excursion/bmv2_rr.json",
+        "retained_failures/prior_gap_excursion/outstation_side.pcap",
+        "retained_failures/prior_gap_excursion/switch.log",
+        "retained_failures/prior_gap_excursion/master_side.pcap",
+        "retained_failures/prior_gap_excursion/cli.log",
+        "retained_failures/prior_gap_excursion/master_side.pcap.err",
+        "retained_failures/prior_gap_excursion/heartbeat.log",
+        "retained_failures/prior_gap_excursion/result.json",
+        "retained_failures/prior_gap_excursion/outstation_side.pcap.err",
+        "retained_failures/prior_gap_excursion/endpoint_responses.jsonl"
+      ],
+      "current_source_available": false
+    },
+    {
+      "label": "prior_first_response_late_stimulus",
+      "original_work_dir": "/tmp/bmv2lab_jnynj8ug",
+      "files": [
+        "retained_failures/prior_first_response_late_stimulus/bmv2_rr.json",
+        "retained_failures/prior_first_response_late_stimulus/outstation_side.pcap",
+        "retained_failures/prior_first_response_late_stimulus/switch.log",
+        "retained_failures/prior_first_response_late_stimulus/master_side.pcap",
+        "retained_failures/prior_first_response_late_stimulus/cli.log",
+        "retained_failures/prior_first_response_late_stimulus/master_side.pcap.err",
+        "retained_failures/prior_first_response_late_stimulus/heartbeat.log",
+        "retained_failures/prior_first_response_late_stimulus/result.json",
+        "retained_failures/prior_first_response_late_stimulus/outstation_side.pcap.err",
+        "retained_failures/prior_first_response_late_stimulus/endpoint_responses.jsonl"
+      ],
+      "current_source_available": false
+    },
+    {
+      "label": "prior_28ms_stimulus_expired",
+      "original_work_dir": "/tmp/bmv2lab_d4lk417o",
+      "files": [
+        "retained_failures/prior_28ms_stimulus_expired/bmv2_rr.json",
+        "retained_failures/prior_28ms_stimulus_expired/outstation_side.pcap",
+        "retained_failures/prior_28ms_stimulus_expired/switch.log",
+        "retained_failures/prior_28ms_stimulus_expired/master_side.pcap",
+        "retained_failures/prior_28ms_stimulus_expired/cli.log",
+        "retained_failures/prior_28ms_stimulus_expired/master_side.pcap.err",
+        "retained_failures/prior_28ms_stimulus_expired/heartbeat.log",
+        "retained_failures/prior_28ms_stimulus_expired/result.json",
+        "retained_failures/prior_28ms_stimulus_expired/outstation_side.pcap.err",
+        "retained_failures/prior_28ms_stimulus_expired/endpoint_responses.jsonl"
+      ],
+      "current_source_available": false
+    },
+    {
+      "label": "original_fallback_provenance_failure",
+      "original_work_dir": "/tmp/bmv2lab_sf71oaaj",
+      "files": [
+        "retained_failures/original_fallback_provenance_failure/bmv2_rr.json",
+        "retained_failures/original_fallback_provenance_failure/outstation_side.pcap",
+        "retained_failures/original_fallback_provenance_failure/switch.log",
+        "retained_failures/original_fallback_provenance_failure/master_side.pcap",
+        "retained_failures/original_fallback_provenance_failure/cli.log",
+        "retained_failures/original_fallback_provenance_failure/master_side.pcap.err",
+        "retained_failures/original_fallback_provenance_failure/outstation_side.pcap.err"
+      ],
+      "current_source_available": false
+    },
+    {
+      "label": "generated_ack_zero_response_evidence_error",
+      "original_work_dir": "/tmp/bmv2lab_8k_m1fmq",
+      "files": [
+        "retained_failures/generated_ack_zero_response_evidence_error/bmv2_rr.compile.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/bmv2_rr.compile_command.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/bmv2_rr.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/cli.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/component_reproduction.trace.txt",
+        "retained_failures/generated_ack_zero_response_evidence_error/failure_record.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/fixed_outstation.py",
+        "retained_failures/generated_ack_zero_response_evidence_error/fixed_run_lab.py",
+        "retained_failures/generated_ack_zero_response_evidence_error/fixed_test_generated_ack.py",
+        "retained_failures/generated_ack_zero_response_evidence_error/heartbeat.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/master_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/master_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/original_unittest.trace.txt",
+        "retained_failures/generated_ack_zero_response_evidence_error/outstation_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/outstation_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/bmv2_rr.compile.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/bmv2_rr.compile_command.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/bmv2_rr.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/cli.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/endpoint_responses.jsonl",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/heartbeat.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/master_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/master_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/outstation_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/outstation_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/result.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_control/switch.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/bmv2_rr.compile.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/bmv2_rr.compile_command.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/bmv2_rr.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/cli.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/endpoint_responses.jsonl",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/heartbeat.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/master_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/master_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/outstation_side.pcap",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/outstation_side.pcap.err",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/result.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/rerun_generated/switch.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/source_bmv2_rr.p4",
+        "retained_failures/generated_ack_zero_response_evidence_error/source_outstation.py",
+        "retained_failures/generated_ack_zero_response_evidence_error/source_run_lab.py",
+        "retained_failures/generated_ack_zero_response_evidence_error/switch.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/targeted_rerun.json",
+        "retained_failures/generated_ack_zero_response_evidence_error/targeted_rerun.stderr.log",
+        "retained_failures/generated_ack_zero_response_evidence_error/targeted_rerun.stdout.log"
+      ],
+      "current_source_available": true,
+      "pre_fix_driver_snapshots_preserved": true
+    }
+  ],
+  "metadata_fix": {
+    "scope": "Metadata-only driver correction; canonical capture and lab_source snapshots remain unchanged",
+    "root_regression_failure": {
+      "test": "test_generated_ack.GeneratedAck.test_loss_after_the_switch_cannot_be_repaired_once_the_switch_has_acknowledged",
+      "error": "FileNotFoundError reading a response evidence file when no response was sent",
+      "artifact": "defense4/timing/framework/results/case4_bmv2_20261006/retained_failures/generated_ack_zero_response_evidence_error"
+    },
+    "changes": "Initialize the empty response evidence file before READY; reject nonzero endpoint process exit before writing result; assert zero endpoint responses for the existing valid TIMEOUT case",
+    "current_file_sha256": {
+      "bmv2/lab/outstation.py": "c49baaee8f50820b9804a903976855b25d8a0f146c5399f4cc35306121234561",
+      "bmv2/lab/run_lab.py": "4b922a26555fb53fa6a271463870a0e3c94e5752518a7d204bd74b3c655572d2",
+      "tests/test_generated_ack.py": "1024a56d9a299980c7d08d45f08f810323c05988fdfe7de1aed37ae6eef37969"
+    },
+    "unchanged_p4_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+    "targeted_rerun": {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "test_generated_ack.GeneratedAck.test_loss_after_the_switch_cannot_be_repaired_once_the_switch_has_acknowledged",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 24.505180123000173,
+      "tests": 1,
+      "passed": 1,
+      "control_outcomes": [
+        "OK"
+      ],
+      "generated_outcomes": [
+        "TIMEOUT"
+      ],
+      "generated_endpoint_responses": []
+    },
+    "canonical_capture_driver_rebound": false
+  }
+}

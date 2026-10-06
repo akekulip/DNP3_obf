@@ -1,0 +1,27 @@
+{
+  "source": "case4_size_kernel.p4",
+  "source_sha256": "31b71ebf01cff0bf50a2be36a091d633fd0408077f8bfcebf227e02229a905fc",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_03/out",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_03/case4_size_kernel.p4"
+  ],
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "exit_code": 3,
+  "software_only": true,
+  "sde": "9.13.1",
+  "deployment_gate": "requires9.13.2+transportcompletion+hardwareadmission",
+  "artifact_sha256": {
+    "out/manifest.json": "7a08f5365985bca1589e366a9a09fd249f2b094e4ffe9203c13550c93b9469c7",
+    "out/bfrt.json": "9bea9baf520662d593ca0bf10a8ebf6d256f122e00efd391b330de3dfacce014",
+    "out/pipe/context.json": "3b969869351375eafb8e16c9281b53f0d1575bd266a1e471fc2e5be145e1460f",
+    "out/pipe/case4_size_kernel.bfa": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/pipe/graphs/1_table_flow_graph_egress.dot": "d3d50c17397b053f91231e8849619fae23ca64b1dd87c086303d0d9877c7a286",
+    "out/pipe/graphs/0_table_flow_graph_ingress.dot": "e59bd77816aa8aa07a2922bbf70532e3b87332e061f1e6cf6b03e583a6f20d80"
+  }
+}

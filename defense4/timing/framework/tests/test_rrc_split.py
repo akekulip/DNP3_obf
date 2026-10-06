@@ -120,6 +120,31 @@ class Carve(unittest.TestCase):
         self.assertFalse(rrc.tcp_ok(p) and rrc.ip_ok(p))
 
 
+class Case4Carve(unittest.TestCase):
+    def test_explicit_57_profile_reassembles_and_keeps_sequence_flags(self):
+        raw = packet(dnp3_frame(bytes(range(41))), seq=0xfffffff8, flags=0x19)
+        a, b = rrc.carve(raw, profile="RRC_57_CUT28")
+        p, q = rrc.parse(a), rrc.parse(b)
+        self.assertEqual((len(p.payload), len(q.payload)), (28, 29))
+        self.assertEqual(p.payload + q.payload, rrc.parse(raw).payload)
+        self.assertEqual((p.seq, q.seq), (0xfffffff8, 20))
+        self.assertEqual((p.flags, q.flags), (0x10, 0x19))
+        self.assertTrue(rrc.ip_ok(p) and rrc.ip_ok(q) and rrc.tcp_ok(p) and rrc.tcp_ok(q))
+        self.assertIsNone(rrc.carve(raw))
+
+    def test_bad_network_checksums_never_carved(self):
+        for offset in (24, 50):
+            raw = bytearray(packet(dnp3_frame())); raw[offset] ^= 1
+            self.assertIsNone(rrc.carve(bytes(raw)))
+
+    def test_truncated_and_invalid_headers_never_carved(self):
+        raw = packet(dnp3_frame())
+        for v in (raw[:-1], raw[:34], raw[:14] + bytes([0x44]) + raw[15:]):
+            self.assertIsNone(rrc.carve(v))
+        with self.assertRaises(ValueError):
+            rrc.carve(raw, profile="arbitrary")
+
+
 class Joint(unittest.TestCase):
     """Timing then size, in the verified order: the response is released at e_R, then replicated and carved."""
 

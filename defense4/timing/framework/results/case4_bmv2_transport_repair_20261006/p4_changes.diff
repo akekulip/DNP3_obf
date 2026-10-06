@@ -1,0 +1,19 @@
+--- before_bmv2_rr.p4
++++ source_bmv2_rr.p4
+@@ -144,11 +144,14 @@
+ 
+     action native_offset(in bit<32> wire, out bit<32> native) {
+         native = wire;
++        /* Retain one native byte until the entire inserted tail is acknowledged.
++         * Its retransmission replays the cached image; mapping the window right
++         * edge through this same function preserves that repair opportunity. */
+         if (lc == 2 && wire >= second + 20) {
+-            if (wire < second + 40) { native = second + 20; } else { native = wire - 20; }
++            if (wire < second + 40) { native = second + 19; } else { native = wire - 20; }
+         }
+         if (native >= 35) {
+-            if (native < 55) { native = 35; } else { native = native - 20; }
++            if (native < 55) { native = 34; } else { native = native - 20; }
+         }
+     }
+     /* Dispatch CRC work by the parser's complete-frame profile. Conditional

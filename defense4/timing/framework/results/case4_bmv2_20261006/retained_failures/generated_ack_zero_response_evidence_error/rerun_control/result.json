@@ -1,0 +1,197 @@
+{
+  "outcomes": [
+    "OK"
+  ],
+  "txns": [
+    {
+      "t_req": 1791316449822764818,
+      "t_A": 1791316450029987502,
+      "t_R": 1791316450032189236,
+      "e_A": 1791316450030306451,
+      "e_R": 1791316450032513365,
+      "request_seq": 1621482902,
+      "request_length": 20,
+      "wire_request_seq": 1621482902,
+      "wire_request_length": 20,
+      "app_seq": 0,
+      "operation": "READ",
+      "transaction_id": 0,
+      "switch_ev_us": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "release_outcome": "normal"
+    }
+  ],
+  "switch_ev_us": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "elapsed_ms": [
+    209.87983400118537
+  ],
+  "master_view": [
+    {
+      "t": 1791316449821573661,
+      "from": "M",
+      "flags": 2,
+      "seq": 1621482901,
+      "ack": 0,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316449822702731,
+      "from": "O",
+      "flags": 18,
+      "seq": 1114662510,
+      "ack": 1621482902,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316449822726396,
+      "from": "M",
+      "flags": 16,
+      "seq": 1621482902,
+      "ack": 1114662511,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316449822764818,
+      "from": "M",
+      "flags": 24,
+      "seq": 1621482902,
+      "ack": 1114662511,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450029487393,
+      "from": "M",
+      "flags": 24,
+      "seq": 1621482902,
+      "ack": 1114662511,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450030306451,
+      "from": "O",
+      "flags": 16,
+      "seq": 1114662511,
+      "ack": 1621482922,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450032513365,
+      "from": "O",
+      "flags": 24,
+      "seq": 1114662511,
+      "ack": 1621482922,
+      "len": 49,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450032522792,
+      "from": "M",
+      "flags": 16,
+      "seq": 1621482922,
+      "ack": 1114662560,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450333003424,
+      "from": "M",
+      "flags": 17,
+      "seq": 1621482922,
+      "ack": 1114662560,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450334062192,
+      "from": "O",
+      "flags": 17,
+      "seq": 1114662560,
+      "ack": 1621482923,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316450334079494,
+      "from": "M",
+      "flags": 16,
+      "seq": 1621482923,
+      "ack": 1114662561,
+      "len": 0,
+      "csum_ok": true
+    }
+  ],
+  "split": [
+    {
+      "orig_len": 49,
+      "seq_order": [
+        49
+      ],
+      "arrival_order": [
+        49
+      ],
+      "reassembled_equal": true,
+      "contiguous": true,
+      "checksums_ok": true,
+      "prefix_flags_clear": true,
+      "dnp3_ok": true,
+      "sequence_wraps": false,
+      "equals_software_carve": false,
+      "equals_software_carve_after_ack_translation": false
+    }
+  ],
+  "request_padding": [],
+  "endpoint_responses": [
+    {
+      "transaction_id": 0,
+      "function": 1,
+      "statuses": [],
+      "request_length": 20,
+      "response_length": 49
+    }
+  ],
+  "artifact": {
+    "source_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+    "compiled_sha256": "03566e9f75743a163add45086e9cbfde78f7430b6f5f4b031bfb0ef86eaf7f2b",
+    "endpoint": "Python codec emulator",
+    "clock": "BMv2 48-bit microseconds",
+    "heartbeat_period_us": 1000,
+    "heartbeat_observed": {
+      "r_hb_last": 5133263,
+      "r_hb_max_gap": 1254,
+      "r_hb_count": 3035
+    },
+    "heartbeat_deviation": "1ms software service; Tofino candidate requests100us",
+    "transport_limit": "initial segmented request and overlap beyond committed cache span unsupported"
+  },
+  "params": {
+    "mode": 0,
+    "da_us": 10000,
+    "gap_us": 1000,
+    "budget": 300,
+    "loop_pps": 5000,
+    "latency_ms": 2.0,
+    "operation": "READ",
+    "padding": 0,
+    "token_loss": 0,
+    "readiness_us": 30000
+  }
+}

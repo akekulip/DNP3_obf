@@ -1,0 +1,86 @@
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: This program violates action constraints imposed by Tofino.
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_18/case4_size_kernel.p4(238):
+ action ack_clamp_first() {hdr.tcp.ack=m.base+32w35;}
+        ^^^^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.ack[1:0]
+	egress::hdr.tcp.ack[15:2]
+	egress::hdr.tcp.ack[30:16]
+	egress::hdr.tcp.ack[31:31]
+
+  Action Egress.ack_clamp_first must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  egress::hdr.tcp.ack[1:0], written by constant 0x23
+	  egress::hdr.tcp.ack[15:2], written by constant 0x23
+	  egress::hdr.tcp.ack[30:16], written by constant 0x23
+	  egress::hdr.tcp.ack[31:31], written by constant 0x23
+	Source 2 contains the following fields:
+	  egress::m.base[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.base[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.base[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.base[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Egress.ack_clamp_first to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_18/case4_size_kernel.p4(239):
+ action ack_clamp_second() {hdr.tcp.ack=m.op_base+32w35;}
+        ^^^^^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.ack[1:0]
+	egress::hdr.tcp.ack[15:2]
+	egress::hdr.tcp.ack[30:16]
+	egress::hdr.tcp.ack[31:31]
+
+  Action Egress.ack_clamp_second must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  egress::hdr.tcp.ack[1:0], written by constant 0x23
+	  egress::hdr.tcp.ack[15:2], written by constant 0x23
+	  egress::hdr.tcp.ack[30:16], written by constant 0x23
+	  egress::hdr.tcp.ack[31:31], written by constant 0x23
+	Source 2 contains the following fields:
+	  egress::m.op_base[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.op_base[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.op_base[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.op_base[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Egress.ack_clamp_second to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_18/case4_size_kernel.p4(243):
+ action arith_step_10() {hdr.tcp.win=m.window16-m.delta_right16;}
+        ^^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.win[1:0]
+	egress::hdr.tcp.win[15:2]
+
+  Action Egress.arith_step_10 must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  egress::m.window16[1:0] @ bits 0-1
+	Source 2 contains the following fields:
+	  egress::m.delta_right16[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.window16[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.delta_right16[15:2] @ bits 2-15
+  However, Tofino supports only two PHV sources.
+  Rewrite action Egress.arith_step_10 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: Unable to slice the following group of fields due to unsatisfiable constraints: egress::m.seq_off, egress::hdr.tcp.seq, egress::m.base, egress::m.op_base, egress::m.seq_op_off, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.win32, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window16, egress::hdr.tcp.win, egress::m.delta_left16, egress::m.delta_right16, egress::m.base_old, egress::m.op_old, egress::m.seq_off, egress::hdr.tcp.seq, egress::m.base, egress::m.op_base, egress::m.seq_op_off, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.win32, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window16, egress::hdr.tcp.win, egress::m.delta_left16, egress::m.delta_right16, egress::m.base_old, egress::m.op_old, egress::m.seq_off, egress::hdr.tcp.seq, egress::m.base, egress::m.op_base, egress::m.seq_op_off, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.win32, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.base_old, egress::m.op_old, egress::m.seq_off, egress::hdr.tcp.seq, egress::m.base, egress::m.op_base, egress::m.seq_op_off, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.win32, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.base_old, egress::m.op_old
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 2 warnings generated.
+

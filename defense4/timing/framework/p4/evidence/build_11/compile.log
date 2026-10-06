@@ -1,0 +1,76 @@
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: In action Egress.arith_step_5, write ActionParam: egress::m.right_ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: egress::hdr.tcp.win;, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+error: This program violates action constraints imposed by Tofino.
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_11/case4_size_kernel.p4(223):
+ action arith_step_2() {hdr.tcp.seq=hdr.tcp.seq+m.seq_delta;}
+        ^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.seq[1:0]
+	egress::hdr.tcp.seq[15:2]
+	egress::hdr.tcp.seq[30:16]
+	egress::hdr.tcp.seq[31:31]
+
+  Action Egress.arith_step_2 must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  egress::hdr.tcp.seq[1:0] @ bits 0-1
+	  egress::hdr.tcp.seq[15:2] @ bits 2-15
+	  egress::hdr.tcp.seq[30:16] @ bits 16-30
+	  egress::hdr.tcp.seq[31:31] @ bits 31-31
+	Source 2 contains the following fields:
+	  egress::m.seq_delta[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.seq_delta[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.seq_delta[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.seq_delta[31:31] @ bits 31-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Egress.arith_step_2 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_11/case4_size_kernel.p4(235):
+ action arith_step_8() {hdr.tcp.ack=hdr.tcp.ack-m.ack_delta;}
+        ^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.ack[1:0]
+	egress::hdr.tcp.ack[15:2]
+	egress::hdr.tcp.ack[30:16]
+	egress::hdr.tcp.ack[31:31]
+
+  Action Egress.arith_step_8 must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  egress::hdr.tcp.ack[1:0] @ bits 0-1
+	  egress::hdr.tcp.ack[15:2] @ bits 2-15
+	  egress::hdr.tcp.ack[30:16] @ bits 16-30
+	  egress::hdr.tcp.ack[31:31] @ bits 31-31
+	Source 2 contains the following fields:
+	  egress::m.ack_delta[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.ack_delta[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.ack_delta[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.ack_delta[31:31] @ bits 31-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Egress.arith_step_8 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: Unable to slice the following group of fields due to unsatisfiable constraints: egress::m.base, egress::hdr.tcp.seq, egress::m.op_base, egress::m.seq_off, egress::m.seq_op_off, egress::m.seq_delta, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::hdr.tcp.win, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window_before, egress::m.window_after, egress::m.base_old, egress::m.op_old, egress::m.base, egress::hdr.tcp.seq, egress::m.op_base, egress::m.seq_off, egress::m.seq_op_off, egress::m.seq_delta, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::hdr.tcp.win, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window_before, egress::m.window_after, egress::m.base_old, egress::m.op_old, egress::m.base, egress::hdr.tcp.seq, egress::m.op_base, egress::m.seq_off, egress::m.seq_op_off, egress::m.seq_delta, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window_before, egress::m.window_after, egress::m.base_old, egress::m.op_old, egress::m.base, egress::hdr.tcp.seq, egress::m.op_base, egress::m.seq_off, egress::m.seq_op_off, egress::m.seq_delta, egress::m.ack_off, egress::hdr.tcp.ack, egress::m.ack_op_off, egress::m.right_ack, egress::m.right_off, egress::m.right_op_off, egress::m.ack_delta, egress::m.right_delta, egress::m.window_before, egress::m.window_after, egress::m.base_old, egress::m.op_old
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 12 warnings generated.
+

@@ -1,0 +1,14 @@
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_03/case4_size_kernel.p4(72): [--Werror=target-error] error: 
+In table table tbl_case4_size_kernel72, the number of bits required to go through the immediate pathway 48 (e.g. data coming from Hash, RNG, Meter Color) is greater than the available bits 32, and can not be allocated
+   m.hcrc=h_header.get({hdr.dl.magic,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});
+         ^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_03/case4_size_kernel.p4(72): [--Werror=target-error] error: The table tbl_case4_size_kernel72 with no key cannot have the action case4_size_kernel72.  This action requires hash, which can only be done through the hit pathway.  However, because the table requires overhead, the driver may need to change at runtime, and the driver can only currently program the miss pathway.  The solution may be to remove all match overhead.
+   m.hcrc=h_header.get({hdr.dl.magic,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});
+         ^
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 2 warnings generated.
+

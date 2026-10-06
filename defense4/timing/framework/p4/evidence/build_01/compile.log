@@ -1,0 +1,20 @@
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_01/case4_size_kernel.p4(39): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt, out headers_t hdr, out ig_meta_t m,
+                                                                ^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_01/case4_size_kernel.p4(39)
+parser IgParser(packet_in pkt, out headers_t hdr, out ig_meta_t m,
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_01/case4_size_kernel.p4(97): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out eg_meta_t m,out egress_intrinsic_metadata_t eg) {
+                                                              ^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_01/case4_size_kernel.p4(97)
+parser EgParser(packet_in pkt,out headers_t hdr,out eg_meta_t m,out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_01/case4_size_kernel.p4(46): [--Werror=legacy] error: Assignment source cannot be evaluated in the parser: hdr.ip/ip.total_len + 65496
+ state tcp { pkt.extract(hdr.tcp); m.payload_len=hdr.ip.total_len-16w40;
+                                                 ^^^^^^^^^^^^^^^^^^^^^^
+Compilation failed!
+
+
+1 error, 2 warnings generated.
+

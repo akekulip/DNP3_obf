@@ -1,0 +1,75 @@
+{
+  "evidence_class": "isolated BMv2 software execution with Python codec emulator",
+  "transactions": 2,
+  "requests": {
+    "native_eligible": 2,
+    "transformed": 2,
+    "bypassed_eligible": 0,
+    "native_bytes_each": 35,
+    "wire_bytes_each": 55,
+    "all_equal_transport_oracle": true
+  },
+  "responses": {
+    "eligible": 2,
+    "carved": 2,
+    "segment_lengths_each": [
+      28,
+      29
+    ],
+    "all_reassembled_equal": true,
+    "all_crc_and_transport_checksums_valid": true
+  },
+  "endpoint_statuses": [
+    {
+      "transaction_id": 0,
+      "function": 3,
+      "statuses": [
+        0,
+        0
+      ],
+      "request_length": 55,
+      "response_length": 57
+    },
+    {
+      "transaction_id": 1,
+      "function": 4,
+      "statuses": [
+        0,
+        0
+      ],
+      "request_length": 55,
+      "response_length": 57
+    }
+  ],
+  "timing": [
+    {
+      "operation": "SELECT",
+      "release_outcome": "normal",
+      "ack_after_request_us": 11151.343,
+      "response_after_ack_us": 1230.951
+    },
+    {
+      "operation": "OPERATE",
+      "release_outcome": "normal",
+      "ack_after_request_us": 10790.266,
+      "response_after_ack_us": 1122.448
+    }
+  ],
+  "heartbeat": {
+    "r_hb_last": 5431082,
+    "r_hb_max_gap": 1216,
+    "r_hb_count": 3351
+  },
+  "oracle_note": "equals_software_carve compares untranslated wire ACK headers and is false for padded controls. equals_software_carve_after_ack_translation compares the correctly translated header and is true for both. Payload reassembly and every TCP/IP checksum are independently checked.",
+  "software_acceptance_limits": [
+    "Only one SELECT/OPERATE pair and two committed insertion boundaries",
+    "Initial segmented controls unsupported",
+    "Conflicting overlaps or retransmissions outside committed cache unsupported",
+    "General ledger recovery unestablished",
+    "Old-epoch same-tuple FIN/RST rejection unestablished",
+    "No negotiated SACK/window scaling/timestamps admitted",
+    "No hardware queue/timing/activation claim"
+  ],
+  "source_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+  "compiled_sha256": "03566e9f75743a163add45086e9cbfde78f7430b6f5f4b031bfb0ef86eaf7f2b"
+}

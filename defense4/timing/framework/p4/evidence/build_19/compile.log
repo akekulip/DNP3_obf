@@ -1,0 +1,13 @@
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_19/case4_wire_only.p4(171): [--Wwarn=unused] warning: Table t_arith_step_2 is not used; removing
+ table t_arith_step_2 {key={m.seq_delta:exact;}actions={arith_step_2;seq_plus40;NoAction;}size=2;const default_action=NoAction();const entries={32w20:arith_step_2();32w40:seq_plus40();}}
+       ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_19/case4_wire_only.p4(176): [--Wwarn=unused] warning: Table t_arith_step_8 is not used; removing
+ table t_arith_step_8 {key={m.ack_mode:exact;}actions={arith_step_8;ack_minus40;ack_clamp_first;ack_clamp_second;NoAction;}size=4;const default_action=NoAction();const entries={8w1:arith_step_8();8w2:ack_minus40();8w3:ack_clamp_first();8w4:ack_clamp_second();}}
+       ^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: Inconsistent use of checksum declaration tcp_check_0 (it can be used either to verify checksum or to calculate residual, but not for both)
+error: Inconsistent use of checksum declaration tcp_check_1 (it can be used either to verify checksum or to calculate residual, but not for both)
+terminate called after throwing an instance of 'Util::CompilationError'
+  what():  Number of errors exceeded set maximum of 1
+

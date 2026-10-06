@@ -1,0 +1,31 @@
+{
+  "source": "case4_size_kernel.p4",
+  "source_sha256": "fd5b3998f5f69b275e43f1a87d215db0591f2d284830be1d8f6585e3a3468c6a",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_04/out",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_04/case4_size_kernel.p4"
+  ],
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "exit_code": 1,
+  "software_only": true,
+  "sde": "9.13.1",
+  "deployment_gate": "requires9.13.2+transportcompletion+hardwareadmission",
+  "artifact_sha256": {
+    "out/manifest.json": "26105de850a7c3225d53e3a3a7f4ec734ad6b033ff5b32d8560552cc817f175d",
+    "out/bfrt.json": "08fdc093ebb2ce868e4769b1295db9922e79575c20cc1ff16884c72223c9ded3",
+    "out/pipe/context.json": "642e86cebf4cee07a963cf8cddb374ee8db8b6940388329476f3b11be142c9d8",
+    "out/pipe/case4_size_kernel.bfa": "e9fe6a6788eb2f43028fdcf1466f253214b4331cdc76304ab90de26dec675947",
+    "out/pipe/graphs/1_table_flow_graph_egress.dot": "d48c8208147a80d6f953d4a6a6eb92ff4f3b3e727ebcd9a7a60bff0e26b93169",
+    "out/pipe/graphs/0_table_flow_graph_ingress.dot": "18a5448ed7453487c95072e043f472274ea81f6836a698cca12b9a54241ca9c9",
+    "out/pipe/graphs/4_table_flow_graph_ingress.dot": "18a5448ed7453487c95072e043f472274ea81f6836a698cca12b9a54241ca9c9",
+    "out/pipe/graphs/2_table_flow_graph_ingress.dot": "18a5448ed7453487c95072e043f472274ea81f6836a698cca12b9a54241ca9c9",
+    "out/pipe/graphs/3_table_flow_graph_egress.dot": "d48c8208147a80d6f953d4a6a6eb92ff4f3b3e727ebcd9a7a60bff0e26b93169",
+    "out/pipe/graphs/5_table_flow_graph_egress.dot": "d48c8208147a80d6f953d4a6a6eb92ff4f3b3e727ebcd9a7a60bff0e26b93169"
+  }
+}

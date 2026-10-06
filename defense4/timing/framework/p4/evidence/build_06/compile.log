@@ -1,0 +1,8 @@
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_06/case4_size_kernel.p4(54): [--Werror=legacy] error: hdr.ip.src field in tcp_check_0 is not extracted in last57. Operations on the checksum fields must be in the same parser state where the fields are extracted.
+ state last57 {pkt.extract(hdr.last57);tcp_check.add({hdr.ip.src,hdr.ip.dst,8w0,8w6,16w77,hdr.tcp,hdr.dl,hdr.block0,hdr.block1,hdr.last57});m.tcp_valid=tcp_check.verify();transition accept;}
+                                                      ^^^^^^^^^^
+Compilation failed!
+
+
+1 error, 0 warnings generated.
+

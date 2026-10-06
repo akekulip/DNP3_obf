@@ -1,0 +1,23 @@
+{
+  "source": "case4_wire_only.p4",
+  "source_sha256": "3f94ba273fc84a9d881f64b03316b1e09818359485643fd717e4a4bffa98339c",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_20/out",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_20/case4_wire_only.p4"
+  ],
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "exit_code": 3,
+  "software_only": true,
+  "sde": "9.13.1",
+  "deployment_gate": "requires9.13.2+transportcompletion+hardwareadmission",
+  "artifact_sha256": {
+    "out/manifest.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/bfrt.json": "ee1ca3737e10cc3b2dd3a09de5f5d3e6e84631d0cd1f20ea7109752a27ff3557"
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "outcomes": [
+    "OK",
+    "OK"
+  ],
+  "txns": [
+    {
+      "t_req": 1791316942454099239,
+      "t_A": 1791316942455594386,
+      "t_R": 1791316942457788406,
+      "e_A": 1791316942465214120,
+      "e_R": 1791316942466485968,
+      "request_seq": 1840324143,
+      "request_length": 20,
+      "wire_request_seq": 1840324143,
+      "wire_request_length": 20,
+      "app_seq": 0,
+      "operation": "READ",
+      "transaction_id": 0,
+      "switch_ev_us": {
+        "0": 3092728,
+        "1": 3102777,
+        "2": 3104417,
+        "3": 3094229,
+        "4": 3096421,
+        "5": 0
+      },
+      "release_outcome": "normal"
+    },
+    {
+      "t_req": 1791316942767046181,
+      "t_A": 1791316942768064984,
+      "t_R": 1791316942770295542,
+      "e_A": 1791316942777852803,
+      "e_R": 1791316942778943742,
+      "request_seq": 1840324163,
+      "request_length": 20,
+      "wire_request_seq": 1840324163,
+      "wire_request_length": 20,
+      "app_seq": 1,
+      "operation": "READ",
+      "transaction_id": 1,
+      "switch_ev_us": {
+        "0": 3405742,
+        "1": 3415747,
+        "2": 3417239,
+        "3": 3406701,
+        "4": 3408934,
+        "5": 0
+      },
+      "release_outcome": "normal"
+    }
+  ],
+  "switch_ev_us": {
+    "0": 3405742,
+    "1": 3415747,
+    "2": 3417239,
+    "3": 3406701,
+    "4": 3408934,
+    "5": 0
+  },
+  "elapsed_ms": [
+    12.508990010246634,
+    12.008779012830928
+  ],
+  "master_view": [
+    {
+      "t": 1791316942453243041,
+      "from": "M",
+      "flags": 2,
+      "seq": 1840324142,
+      "ack": 0,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942454043945,
+      "from": "O",
+      "flags": 18,
+      "seq": 1078767505,
+      "ack": 1840324143,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942454058943,
+      "from": "M",
+      "flags": 16,
+      "seq": 1840324143,
+      "ack": 1078767506,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942454099239,
+      "from": "M",
+      "flags": 24,
+      "seq": 1840324143,
+      "ack": 1078767506,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942465214120,
+      "from": "O",
+      "flags": 16,
+      "seq": 1078767506,
+      "ack": 1840324163,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942466485968,
+      "from": "O",
+      "flags": 24,
+      "seq": 1078767506,
+      "ack": 1840324163,
+      "len": 49,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942466497941,
+      "from": "M",
+      "flags": 16,
+      "seq": 1840324163,
+      "ack": 1078767555,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942767046181,
+      "from": "M",
+      "flags": 24,
+      "seq": 1840324163,
+      "ack": 1078767555,
+      "len": 20,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942777852803,
+      "from": "O",
+      "flags": 16,
+      "seq": 1078767555,
+      "ack": 1840324183,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942778943742,
+      "from": "O",
+      "flags": 24,
+      "seq": 1078767555,
+      "ack": 1840324183,
+      "len": 49,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316942778949152,
+      "from": "M",
+      "flags": 16,
+      "seq": 1840324183,
+      "ack": 1078767604,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316943079401432,
+      "from": "M",
+      "flags": 17,
+      "seq": 1840324183,
+      "ack": 1078767604,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316943080645678,
+      "from": "O",
+      "flags": 17,
+      "seq": 1078767604,
+      "ack": 1840324184,
+      "len": 0,
+      "csum_ok": true
+    },
+    {
+      "t": 1791316943080664474,
+      "from": "M",
+      "flags": 16,
+      "seq": 1840324184,
+      "ack": 1078767605,
+      "len": 0,
+      "csum_ok": true
+    }
+  ],
+  "split": [
+    {
+      "orig_len": 49,
+      "seq_order": [
+        49
+      ],
+      "arrival_order": [
+        49
+      ],
+      "reassembled_equal": true,
+      "contiguous": true,
+      "checksums_ok": true,
+      "prefix_flags_clear": true,
+      "dnp3_ok": true,
+      "sequence_wraps": false,
+      "equals_software_carve": false,
+      "equals_software_carve_after_ack_translation": false
+    },
+    {
+      "orig_len": 49,
+      "seq_order": [
+        49
+      ],
+      "arrival_order": [
+        49
+      ],
+      "reassembled_equal": true,
+      "contiguous": true,
+      "checksums_ok": true,
+      "prefix_flags_clear": true,
+      "dnp3_ok": true,
+      "sequence_wraps": false,
+      "equals_software_carve": false,
+      "equals_software_carve_after_ack_translation": false
+    }
+  ],
+  "request_padding": [],
+  "endpoint_responses": [
+    {
+      "transaction_id": 0,
+      "function": 1,
+      "statuses": [],
+      "request_length": 20,
+      "response_length": 49
+    },
+    {
+      "transaction_id": 1,
+      "function": 1,
+      "statuses": [],
+      "request_length": 20,
+      "response_length": 49
+    }
+  ],
+  "artifact": {
+    "source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "compiled_sha256": "de3463c7f2a11ef2d4ac418f22981de17913419f530063dc5e6e203d61fe0360",
+    "endpoint": "Python codec emulator",
+    "clock": "BMv2 48-bit microseconds",
+    "heartbeat_period_us": 1000,
+    "heartbeat_observed": {
+      "r_hb_last": 5682183,
+      "r_hb_max_gap": 1258,
+      "r_hb_count": 3550
+    },
+    "heartbeat_deviation": "1ms software service; Tofino candidate requests100us",
+    "transport_limit": "initial segmented request and overlap beyond committed cache span unsupported"
+  },
+  "params": {
+    "mode": 4,
+    "da_us": 10000,
+    "gap_us": 1000,
+    "budget": 1000,
+    "loop_pps": 20000,
+    "latency_ms": 2.0,
+    "operation": "READ",
+    "padding": 0,
+    "token_loss": 0,
+    "readiness_us": 30000
+  }
+}

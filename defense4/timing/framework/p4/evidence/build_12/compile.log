@@ -1,0 +1,191 @@
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+error: This program violates action constraints imposed by Tofino.
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_12/case4_size_kernel.p4(242):
+ action arith_step_2() {hdr.tcp.seq=hdr.tcp.seq+m.seq_delta;}
+        ^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.seq[1:0]
+	egress::hdr.tcp.seq[15:2]
+	egress::hdr.tcp.seq[30:16]
+	egress::hdr.tcp.seq[31:31]
+
+  Action Egress.arith_step_2 must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  egress::hdr.tcp.seq[1:0] @ bits 0-1
+	  egress::hdr.tcp.seq[15:2] @ bits 2-15
+	  egress::hdr.tcp.seq[30:16] @ bits 16-30
+	  egress::hdr.tcp.seq[31:31] @ bits 31-31
+	Source 2 contains the following fields:
+	  egress::m.seq_delta[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.seq_delta[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.seq_delta[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.seq_delta[31:31] @ bits 31-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Egress.arith_step_2 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_12/case4_size_kernel.p4(254):
+ action arith_step_8() {hdr.tcp.ack=hdr.tcp.ack-m.ack_delta;}
+        ^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.ack[1:0]
+	egress::hdr.tcp.ack[15:2]
+	egress::hdr.tcp.ack[30:16]
+	egress::hdr.tcp.ack[31:31]
+
+  Action Egress.arith_step_8 must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  egress::hdr.tcp.ack[1:0] @ bits 0-1
+	  egress::hdr.tcp.ack[15:2] @ bits 2-15
+	  egress::hdr.tcp.ack[30:16] @ bits 16-30
+	  egress::hdr.tcp.ack[31:31] @ bits 31-31
+	Source 2 contains the following fields:
+	  egress::m.ack_delta[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.ack_delta[15:2] @ bits 2-15
+	Source 4 contains the following fields:
+	  egress::m.ack_delta[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  egress::m.ack_delta[31:31] @ bits 31-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Egress.arith_step_8 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_12/case4_size_kernel.p4(334):
+     t_arith_step_10.apply();hdr.tcp.win=m.window_after[15:0];
+                                        ^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp
+	egress::hdr.tcp.win[1:0]
+	egress::hdr.tcp.win[15:2]
+	egress::hdr.tcp.flags[1:0]
+	egress::hdr.tcp.flags[2:2]
+	egress::hdr.tcp.flags[5:3]
+	egress::hdr.tcp.flags[7:6]
+	egress::hdr.tcp.reserved
+	egress::hdr.tcp.offset
+
+  Action case4_size_kernel334 must be rewritten, because it requires too many sources.
+	Source 1 is the container itself, imposed by the following fields that are unwritten in action case4_size_kernel334:
+	  egress::hdr.tcp.flags[1:0]
+	  egress::hdr.tcp.flags[2:2]
+	  egress::hdr.tcp.flags[5:3]
+	  egress::hdr.tcp.flags[7:6]
+	  egress::hdr.tcp.reserved
+	  egress::hdr.tcp.offset
+	Source 2 contains the following fields:
+	  egress::m.window_after[1:0] @ bits 0-1
+	Source 3 contains the following fields:
+	  egress::m.window_after[15:2] @ bits 2-15
+  However, Tofino supports only two PHV sources.
+  Rewrite action case4_size_kernel334 to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: PHV allocation was not successful
+84 field slices remain unallocated
+
+The following fields were not allocated: 
+    egress::m.base<32b>[1:0]
+    egress::hdr.tcp.seq<32b>[1:0]
+    egress::m.op_base<32b>[1:0]
+    egress::m.seq_off<32b>[1:0]
+    egress::m.seq_op_off<32b>[1:0]
+    egress::m.seq_delta<32b>[1:0]
+    egress::m.ack_off<32b>[1:0]
+    egress::hdr.tcp.ack<32b>[1:0]
+    egress::m.ack_op_off<32b>[1:0]
+    egress::m.right_ack<32b>[1:0]
+    egress::m.win32<32b>[1:0]
+    egress::m.right_off<32b>[1:0]
+    egress::m.right_op_off<32b>[1:0]
+    egress::m.ack_delta<32b>[1:0]
+    egress::m.right_delta<32b>[1:0]
+    egress::m.window_before<32b>[1:0]
+    egress::m.window_after<32b>[1:0]
+    egress::hdr.tcp.win<16b>[1:0]
+    egress::m.base_old<32b>[1:0]
+    egress::m.op_old<32b>[1:0]
+    egress::m.base<32b>[15:2]
+    egress::hdr.tcp.seq<32b>[15:2]
+    egress::m.op_base<32b>[15:2]
+    egress::m.seq_off<32b>[15:2]
+    egress::m.seq_op_off<32b>[15:2]
+    egress::m.seq_delta<32b>[15:2]
+    egress::m.ack_off<32b>[15:2]
+    egress::hdr.tcp.ack<32b>[15:2]
+    egress::m.ack_op_off<32b>[15:2]
+    egress::m.right_ack<32b>[15:2]
+    egress::m.win32<32b>[15:2]
+    egress::m.right_off<32b>[15:2]
+    egress::m.right_op_off<32b>[15:2]
+    egress::m.ack_delta<32b>[15:2]
+    egress::m.right_delta<32b>[15:2]
+    egress::m.window_before<32b>[15:2]
+    egress::m.window_after<32b>[15:2]
+    egress::hdr.tcp.win<16b>[15:2]
+    egress::m.base_old<32b>[15:2]
+    egress::m.op_old<32b>[15:2]
+    egress::m.base<32b>[30:16]
+    egress::hdr.tcp.seq<32b>[30:16]
+    egress::m.op_base<32b>[30:16]
+    egress::m.seq_off<32b>[30:16]
+    egress::m.seq_op_off<32b>[30:16]
+    egress::m.seq_delta<32b>[30:16]
+    egress::m.ack_off<32b>[30:16]
+    egress::hdr.tcp.ack<32b>[30:16]
+    egress::m.ack_op_off<32b>[30:16]
+    egress::m.right_ack<32b>[30:16]
+    egress::m.win32<32b>[30:16]
+    egress::m.right_off<32b>[30:16]
+    egress::m.right_op_off<32b>[30:16]
+    egress::m.ack_delta<32b>[30:16]
+    egress::m.right_delta<32b>[30:16]
+    egress::m.window_before<32b>[30:16]
+    egress::m.window_after<32b>[30:16]
+    egress::m.base_old<32b>[30:16]
+    egress::m.op_old<32b>[30:16]
+    egress::m.base<32b>[31:31]
+    egress::hdr.tcp.seq<32b>[31:31]
+    egress::m.op_base<32b>[31:31]
+    egress::m.seq_off<32b>[31:31]
+    egress::m.seq_op_off<32b>[31:31]
+    egress::m.seq_delta<32b>[31:31]
+    egress::m.ack_off<32b>[31:31]
+    egress::hdr.tcp.ack<32b>[31:31]
+    egress::m.ack_op_off<32b>[31:31]
+    egress::m.right_ack<32b>[31:31]
+    egress::m.win32<32b>[31:31]
+    egress::m.right_off<32b>[31:31]
+    egress::m.right_op_off<32b>[31:31]
+    egress::m.ack_delta<32b>[31:31]
+    egress::m.right_delta<32b>[31:31]
+    egress::m.window_before<32b>[31:31]
+    egress::m.window_after<32b>[31:31]
+    egress::m.base_old<32b>[31:31]
+    egress::m.op_old<32b>[31:31]
+    egress::hdr.tcp.flags<8b>[1:0]
+    egress::hdr.tcp.flags<8b>[2:2]
+    egress::hdr.tcp.flags<8b>[5:3]
+    egress::hdr.tcp.flags<8b>[7:6]
+    egress::hdr.tcp.reserved<4b>
+    egress::hdr.tcp.offset<4b>
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 10 warnings generated.
+

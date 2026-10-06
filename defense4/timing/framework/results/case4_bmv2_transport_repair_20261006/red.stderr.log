@@ -1,0 +1,42 @@
+test_inserted_tail_loss_withholds_native_byte_until_replay_completes (test_case4_bmv2.Case4BMv2)
+Raw wire ACK/retransmission proof, not autonomous kernel loss recovery. ... 
+======================================================================
+FAIL: test_inserted_tail_loss_withholds_native_byte_until_replay_completes (test_case4_bmv2.Case4BMv2) (base=1000)
+Raw wire ACK/retransmission proof, not autonomous kernel loss recovery.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_bmv2.py", line 221, in test_inserted_tail_loss_withholds_native_byte_until_replay_completes
+    self.assertEqual((observed.ack,struct.unpack_from(">H",observed.raw,48)[0]),
+AssertionError: Tuples differ: (1035, 0) != (1034, 1)
+
+First differing element 0:
+1035
+1034
+
+- (1035, 0)
+?     ^  ^
+
++ (1034, 1)
+?     ^  ^
+ : missing inserted tail must leave one native byte unacknowledged
+
+======================================================================
+FAIL: test_inserted_tail_loss_withholds_native_byte_until_replay_completes (test_case4_bmv2.Case4BMv2) (base=4294967280)
+Raw wire ACK/retransmission proof, not autonomous kernel loss recovery.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_bmv2.py", line 221, in test_inserted_tail_loss_withholds_native_byte_until_replay_completes
+    self.assertEqual((observed.ack,struct.unpack_from(">H",observed.raw,48)[0]),
+AssertionError: Tuples differ: (19, 0) != (18, 1)
+
+First differing element 0:
+19
+18
+
+- (19, 0)
++ (18, 1) : missing inserted tail must leave one native byte unacknowledged
+
+----------------------------------------------------------------------
+Ran 1 test in 19.982s
+
+FAILED (failures=2)

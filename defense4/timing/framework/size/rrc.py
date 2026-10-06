@@ -1,4 +1,4 @@
-"""Bounded byte-preserving response split: the RRC_49_CUT28 profile, in software.
+"""Bounded byte-preserving response splits: explicit 49-byte and 57-byte profiles, in software.
 
 Reads classic pcap and pcapng, checks IPv4/TCP checksums and DNP3 link CRCs independently, and implements
 the carve the 2026-08-12 design describes (RID 1 = payload[0:28], seq unchanged, PSH/FIN cleared; RID 2 =
@@ -10,13 +10,15 @@ from dataclasses import dataclass
 
 CUT = 28
 EXPECT_PAYLOAD = 49
+PROFILES = {"RRC_49_CUT28": 49, "RRC_57_CUT28": 57}
 PSH, FIN, SYN, RST, ACK = 0x08, 0x01, 0x02, 0x04, 0x10
 
 
 # ---- capture reading -------------------------------------------------------------------------
 def read_records(path):
     """Yield (ts_ns, raw frame) from a classic pcap or a pcapng, in file order."""
-    d = open(path, "rb").read()
+    with open(path, "rb") as capture:
+        d = capture.read()
     if d[:4] == b"\x0a\x0d\x0d\x0a":
         yield from _pcapng(d)
         return
@@ -75,12 +77,18 @@ class Pkt:
 def parse(raw):
     if len(raw) < 34 or raw[12:14] != b"\x08\x00" or raw[23] != 6:
         return None
+    if raw[14] >> 4 != 4:
+        return None
     ihl = (raw[14] & 15) * 4
+    if ihl < 20:
+        return None
     t = 14 + ihl
     if len(raw) < t + 20:
         return None
     doff = (raw[t + 12] >> 4) * 4
     tl = struct.unpack(">H", raw[16:18])[0]
+    if doff < 20 or tl < ihl + doff or len(raw) < 14 + tl:
+        return None
     sport, dport, seq, ack = struct.unpack(">HHII", raw[t:t + 12])
     return Pkt(raw, ihl, doff, sport, dport, seq, ack, raw[t + 13], raw[14 + ihl + doff:14 + tl])
 
@@ -128,8 +136,11 @@ def dnp3_frame_ok(b):
 
 
 # ---- eligibility and carve --------------------------------------------------------------------
-def eligible(p):
-    """(ok, reason). Single complete 49-byte frame, IPv4 without options, ACK set, no SYN/RST, no fragment."""
+def eligible(p, profile="RRC_49_CUT28"):
+    """(ok, reason). Single complete profile-sized frame, IPv4 without options, ACK set, no SYN/RST, no fragment."""
+    expected = PROFILES.get(profile)
+    if expected is None:
+        raise ValueError("unsupported RRC profile: %r" % profile)
     if p is None:
         return False, "not IPv4/TCP"
     if p.ihl != 20:
@@ -138,8 +149,10 @@ def eligible(p):
         return False, "fragment"
     if not p.flags & ACK or p.flags & (SYN | RST):
         return False, "flags"
-    if len(p.payload) != EXPECT_PAYLOAD:
-        return False, "payload is %d bytes, not %d" % (len(p.payload), EXPECT_PAYLOAD)
+    if not ip_ok(p) or not tcp_ok(p):
+        return False, "invalid network checksum"
+    if len(p.payload) != expected:
+        return False, "payload is %d bytes, not %d" % (len(p.payload), expected)
     if not dnp3_frame_ok(p.payload):
         return False, "payload is not one valid DNP3 frame"
     return True, ""
@@ -160,14 +173,14 @@ def _build(p, payload, seq, flags):
     return p.raw[:14] + bytes(ip) + bytes(tcp) + payload
 
 
-def carve(raw, cut=CUT):
+def carve(raw, cut=CUT, profile="RRC_49_CUT28"):
     """Return (segment1, segment2) in sequence order, or None when the packet is not eligible (unsplit).
 
     The profile is fixed: any cut other than 28 is rejected, not silently honoured."""
     if cut != CUT:
         raise ValueError("RRC_49_CUT28 is not runtime-configurable (cut=%r)" % cut)
     p = parse(raw)
-    ok, _ = eligible(p)
+    ok, _ = eligible(p, profile)
     if not ok:
         return None
     first = _build(p, p.payload[:cut], p.seq, p.flags & ~(PSH | FIN))

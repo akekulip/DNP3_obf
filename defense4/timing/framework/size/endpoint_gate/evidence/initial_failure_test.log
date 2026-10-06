@@ -1,0 +1,43 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+case4_endpoint is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+Case4 exact transformer vectors accepted through production master and
+outstation
+-------------------------------------------------------------------------------
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:50
+...............................................................................
+
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:61: FAILED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  false
+
+-------------------------------------------------------------------------------
+Case4 real SELECT failure emits no OPERATE and next transaction recovers
+-------------------------------------------------------------------------------
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:71
+...............................................................................
+
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:75: FAILED:
+  REQUIRE( deliver(m,echo).empty() )
+with expansion:
+  false
+
+-------------------------------------------------------------------------------
+Case4 decoy SELECT failure cannot produce successful SBO at endpoint
+-------------------------------------------------------------------------------
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:87
+...............................................................................
+
+/tmp/case4-endpoint-zz2o76sz/source/cpp/tests/unit/TestCase4.cpp:95: FAILED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  false
+
+===============================================================================
+test cases:  3 |  0 passed | 3 failed
+assertions: 13 | 10 passed | 3 failed
+

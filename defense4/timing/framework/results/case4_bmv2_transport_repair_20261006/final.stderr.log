@@ -1,0 +1,37 @@
+test_absolute_readiness_does_not_depend_on_token_pass_budget (test_case4_bmv2.Case4BMv2) ... ok
+test_actual_partial_cumulative_acks_and_window_edges_match_oracle (test_case4_bmv2.Case4BMv2) ... ok
+test_actual_partial_overlap_replay_and_tcp_wrap_preserve_committed_stream (test_case4_bmv2.Case4BMv2) ... ok
+test_actual_response_association_rejects_wrong_profile_flow_app_position_and_crc (test_case4_bmv2.Case4BMv2) ... ok
+test_both_lost_tokens_expire_and_the_next_transaction_recovers (test_case4_bmv2.Case4BMv2) ... ok
+test_every_transaction_has_its_own_switch_event_provenance (test_case4_bmv2.Case4BMv2) ... ok
+test_inserted_tail_loss_withholds_native_byte_until_replay_completes (test_case4_bmv2.Case4BMv2)
+Raw wire ACK/retransmission proof, not autonomous kernel loss recovery. ... ok
+test_invalid_ack_checksum_cannot_acquire_the_owner_hold (test_case4_bmv2.Case4BMv2) ... ok
+test_invalid_crc_bypasses_before_insertion_and_valid_next_packet_recovers (test_case4_bmv2.Case4BMv2) ... ok
+test_invalid_tcp_checksum_cannot_acquire_an_insertion (test_case4_bmv2.Case4BMv2) ... ok
+test_late_readiness_keeps_the_full_configured_gap (test_case4_bmv2.Case4BMv2) ... ok
+test_select_and_operate_are_timed_and_padded_in_the_p4_switch (test_case4_bmv2.Case4BMv2) ... ok
+test_timestamp_negotiation_excludes_insertion_before_first_boundary (test_case4_bmv2.Case4BMv2) ... ok
+test_tuple_reuse_after_fin_starts_a_new_translation_epoch (test_case4_bmv2.Case4BMv2) ... ok
+test_an_unsupported_payload_size_stays_unsplit_with_shaping_on (test_bmv2_artifact.BMv2Size) ... ok
+test_joint_timing_and_size (test_bmv2_artifact.BMv2Size) ... ok
+test_size_only_splits_and_does_not_hold (test_bmv2_artifact.BMv2Size) ... ok
+test_timing_only_leaves_the_response_unsplit (test_bmv2_artifact.BMv2Size) ... ok
+test_ack_focused_is_d_a_zero_with_a_small_guard (test_bmv2_artifact.BMv2VsModel) ... ok
+test_early_response_waits_for_the_deadline (test_bmv2_artifact.BMv2VsModel) ... ok
+test_late_response_is_not_delayed_further_than_the_gap (test_bmv2_artifact.BMv2VsModel) ... ok
+test_response_focused_forwards_the_ack_and_schedules_the_response (test_bmv2_artifact.BMv2VsModel) ... FAIL
+test_watchdog_fallback_then_native_late_response_and_the_next_transaction (test_bmv2_artifact.BMv2VsModel) ... ok
+
+======================================================================
+FAIL: test_response_focused_forwards_the_ack_and_schedules_the_response (test_bmv2_artifact.BMv2VsModel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_bmv2_artifact.py", line 83, in test_response_focused_forwards_the_ack_and_schedules_the_response
+    self.assertLess(t["e_A"] - t["t_A"], 1.0 * MS, "the ACK must pass at once")      # never held
+AssertionError: 1242183 not less than 1000000.0 : the ACK must pass at once
+
+----------------------------------------------------------------------
+Ran 23 tests in 247.077s
+
+FAILED (failures=1)

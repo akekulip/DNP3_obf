@@ -1,0 +1,48 @@
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C2 02 50 01 00 07 07 00
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+case4_endpoint is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+Case4 exact transformer vectors accepted through production master and
+outstation
+-------------------------------------------------------------------------------
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:51
+...............................................................................
+
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:62: FAILED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  false
+
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 06 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C1 02 50 01 00 07 07 00
+-------------------------------------------------------------------------------
+Case4 real SELECT failure emits no OPERATE and next transaction recovers
+-------------------------------------------------------------------------------
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:72
+...............................................................................
+
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:76: FAILED:
+  REQUIRE( deliver(m,echo).empty() )
+with expansion:
+  false
+
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 06 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 02 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 02 next=C2 02 50 01 00 07 07 00
+-------------------------------------------------------------------------------
+Case4 decoy SELECT failure cannot produce successful SBO at endpoint
+-------------------------------------------------------------------------------
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:88
+...............................................................................
+
+/tmp/dnp3-case4-endpoint-gate/source/cpp/tests/unit/TestCase4.cpp:96: FAILED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  false
+
+===============================================================================
+test cases:  3 |  0 passed | 3 failed
+assertions: 13 | 10 passed | 3 failed
+

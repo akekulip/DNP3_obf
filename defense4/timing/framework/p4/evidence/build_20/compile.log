@@ -1,0 +1,8 @@
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_20/case4_wire_only.p4(49): [--Werror=legacy] error: Assignment source cannot be evaluated in the parser: !ip_check.verify
+ state ip { pkt.extract(hdr.ip);ip_check.add(hdr.ip);m.ip_valid=!ip_check.verify();tcp_check.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.total_len}); transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.frag,hdr.ip.flags) {
+                                                                ^^^^^^^^^^^^^^^^^^
+Compilation failed!
+
+
+1 error, 0 warnings generated.
+

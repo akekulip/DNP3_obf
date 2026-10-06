@@ -1,0 +1,26 @@
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(176): [--Werror=overlimit] error: : RegisterAction first_rmw.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+  void apply(inout bit<32> value,out bit<32> old) {
+       ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(175)
+ RegisterAction<bit<32>,bit<8>,bit<32>>(first_base) first_rmw = {
+                                                    ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(176)
+  void apply(inout bit<32> value,out bit<32> old) {
+       ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(183): [--Werror=overlimit] error: : RegisterAction second_rmw.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+  void apply(inout bit<32> value,out bit<32> old) {
+       ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(182)
+ RegisterAction<bit<32>,bit<8>,bit<32>>(second_base) second_rmw = {
+                                                     ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_08/case4_size_kernel.p4(183)
+  void apply(inout bit<32> value,out bit<32> old) {
+       ^^^^^
+
+2 errors, 5 warnings generated.
+
