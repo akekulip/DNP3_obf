@@ -1,0 +1,18 @@
+test_component_exists_with_explicit_bounds_and_disabled_completion (test_case4_ingress_mapping.IngressMapping) ... ok
+test_each_source_inverse_action_matches_independent_edges (test_case4_ingress_mapping.IngressMapping) ... ok
+test_half_range_window_cannot_be_inflated_by_independent_wrapping (test_case4_ingress_mapping.IngressMapping) ... FAIL
+test_source_phases_map_both_window_edges_and_sequence_independently (test_case4_ingress_mapping.IngressMapping) ... ok
+test_uncommitted_boundaries_do_not_translate_even_zero_sequence_start (test_case4_ingress_mapping.IngressMapping) ... ok
+
+======================================================================
+FAIL: test_half_range_window_cannot_be_inflated_by_independent_wrapping (test_case4_ingress_mapping.IngressMapping)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_ingress_mapping.py", line 78, in test_half_range_window_cannot_be_inflated_by_independent_wrapping
+    self.assertTrue(observed.get('rejected'), 'wrapped right edge advertises 60 instead of 20 bytes')
+AssertionError: None is not true : wrapped right edge advertises 60 instead of 20 bytes
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.114s
+
+FAILED (failures=1)

@@ -1,0 +1,33 @@
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_28/case4_ingress_mapping.p4(171): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out metadata_t m,out egress_intrinsic_metadata_t eg){state start {pkt.extract(eg);transition eth;}state eth {pkt.extract(hdr.eth);transition work;}state work {pkt.extract(hdr.work);transition accept;}}
+                                                               ^
+/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_28/case4_ingress_mapping.p4(171)
+parser EgParser(packet_in pkt,out headers_t hdr,out metadata_t m,out egress_intrinsic_metadata_t eg){state start {pkt.extract(eg);transition eth;}state eth {pkt.extract(hdr.eth);transition work;}state work {pkt.extract(hdr.work);transition accept;}}
+       ^^^^^^^^
+[--Wwarn=substitution] warning: Ingress.seq_first: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_first: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_second: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_second: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_1: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_1: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_2: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_2: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_1: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_1: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_2: Table key name not supported. Replacing "hdr.work.offset[31:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_2: Table key name not supported. Replacing "hdr.work.offset[6:0]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_2_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_2_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_1_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.left_map_1_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_second_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_second_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_first_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.seq_first_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_2_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_2_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_1_large: Table key name not supported. Replacing "hdr.work.offset[31:31]" with "hdr.work.offset".
+[--Wwarn=substitution] warning: Ingress.right_map_1_large: Table key name not supported. Replacing "hdr.work.offset[30:7]" with "hdr.work.offset".
+
+0 errors, 25 warnings generated.
+

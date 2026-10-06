@@ -1,0 +1,31 @@
+{
+  "source": "case4_ingress_mapping.p4",
+  "source_sha256": "31bb330320f02b03075030a0495cbe211ce1adc5a8fdf003869d2844a3b99291",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_exit_code": 0,
+  "inputs_identity_verified": null,
+  "assembler_sha256": {
+    "out/pipe/case4_ingress_mapping.bfa": "cdcf5325af1f2e5cb063995a265746d4d10e4becc776b6774687c2fd26320fac"
+  },
+  "stage_indices": {
+    "ingress": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "egress": []
+  },
+  "stage_span": {
+    "ingress": 6,
+    "egress": null
+  },
+  "required_directions": [
+    "ingress"
+  ],
+  "within_stage_limits": true,
+  "software_only": true,
+  "scope": "standalone component compilation; no joint fit, runtime or admission proof"
+}

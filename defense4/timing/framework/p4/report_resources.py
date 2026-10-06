@@ -36,7 +36,8 @@ def summarize(build):
         assembly[relative] = expected
         for stage, direction in re.findall(r"^stage (\d+) (ingress|egress):", path.read_text(), re.M):
             stages[direction].add(int(stage))
-    if manifest["exit_code"] == 0 and not all(stages.values()):
+    required = ("ingress",) if manifest["source"] == "case4_ingress_mapping.p4" else ("ingress", "egress")
+    if manifest["exit_code"] == 0 and not all(stages[d] for d in required):
         raise ValueError("size/joint compiler evidence requires both ingress and egress stages")
     span = {direction: max(values) + 1 if values else None for direction, values in stages.items()}
     return {
@@ -48,8 +49,9 @@ def summarize(build):
         "assembler_sha256": assembly,
         "stage_indices": {direction: sorted(values) for direction, values in stages.items()},
         "stage_span": span,
+        "required_directions": list(required),
         "within_stage_limits": manifest["exit_code"] == 0 and bool(assembly)
-        and all(span.values()) and all(count <= 12 for count in span.values()),
+        and all(span[d] is not None and span[d] <= 12 for d in required),
         "software_only": True,
         "scope": (
             "joint component coexistence only; no complete Case4, runtime or admission proof"

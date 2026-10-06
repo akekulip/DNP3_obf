@@ -41,8 +41,8 @@ def map_seq(seq,first,second=None):
 def inverse_delta(ack,first,second=None):
     o=offset(ack,first)
     # Hold the final native byte while any inserted tail remains outstanding.
-    # This is the repaired software oracle; the inactive target prototype's
-    # earlier native-end clamp is explicitly unsafe and remains unfitted.
+    # The inactive target prototype now uses this repaired clamp but remains
+    # unfitted and lacks the complete transport/lifecycle implementation.
     delta=max(0,min(20,o-34))
     if second is not None:
         o2=offset(ack,second)
@@ -50,6 +50,13 @@ def inverse_delta(ack,first,second=None):
     return delta
 
 def map_ack_window(ack,win,first,second=None):
+    if not 0 <= win <= 65535:
+        raise ValueError('unscaled uint16 window required')
+    left_offset=offset(ack,first)
+    if left_offset+win >= 0x80000000:
+        raise ValueError('window crosses modular half-range')
+    if second is not None and offset(ack,second) != left_offset-offset(second,first):
+        raise ValueError('boundaries disagree on modular half-range')
     left=inverse_delta(ack,first,second)
     right=inverse_delta((ack+win)&MASK,first,second)
     return (ack-left)&MASK,win+left-right

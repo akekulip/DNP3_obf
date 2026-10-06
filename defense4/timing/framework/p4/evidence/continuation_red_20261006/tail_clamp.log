@@ -1,0 +1,24 @@
+test_carve_layout_matches_explicit_profile (test_case4_p4_size.Layout) ... ok
+test_checksum_correct_non_ipv4_is_excluded_before_padding (test_case4_p4_size.Layout) ... ok
+test_exclusive_subtract_checksum_residue_arithmetic (test_case4_p4_size.Layout) ... ok
+test_layout_matches_strict_codec_all_native_fields_and_crcs (test_case4_p4_size.Layout) ... ok
+test_partial_tail_windows_at_both_boundaries_do_not_overflow (test_case4_p4_size.Layout) ... ok
+test_resource_report_binds_source_and_assembler (test_case4_p4_size.Layout) ... ok
+test_source_has_actual_two_boundaries_and_template_state (test_case4_p4_size.Layout) ... ok
+test_source_has_real_crc_and_size_operations (test_case4_p4_size.Layout) ... ok
+test_target_tail_clamps_leave_native_byte_outstanding (test_case4_p4_size.Layout) ... FAIL
+test_two_boundary_maps_match_actual_image_transport_oracle (test_case4_p4_size.Layout) ... ok
+test_wire_ablation_retains_input_checksum_guards (test_case4_p4_size.Layout) ... ok
+
+======================================================================
+FAIL: test_target_tail_clamps_leave_native_byte_outstanding (test_case4_p4_size.Layout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_p4_size.py", line 80, in test_target_tail_clamps_leave_native_byte_outstanding
+    self.assertEqual(observed,(start+34)&0xffffffff)
+AssertionError: 1035 != 1034
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.013s
+
+FAILED (failures=1)

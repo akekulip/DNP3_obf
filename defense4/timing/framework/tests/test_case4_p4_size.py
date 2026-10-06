@@ -67,6 +67,30 @@ class Layout(unittest.TestCase):
         self.assertIn('m.tcp_sum==16w0xFFEB',s)
         self.assertNotIn('Register<bit<32>,bit<8>>(1) first_base',s)
 
+    def test_target_tail_clamps_leave_native_byte_outstanding(self):
+        # Evaluate the actual source action expression, independently of the
+        # layout oracle. This is source semantics, not silicon execution.
+        import re
+        source=(BASE/'p4/case4_size_kernel.p4').read_text()
+        for action,field in (('ack_clamp_first','base'),('ack_clamp_second','op_base')):
+            match=re.search(r'action '+action+r'\(\)\s*\{hdr.tcp.ack=m\.'+field+r'\+32w(\d+);\}',source)
+            self.assertIsNotNone(match)
+            for start in (1000,0xfffffff0):
+                observed=(start+int(match[1]))&0xffffffff
+                self.assertEqual(observed,(start+34)&0xffffffff)
+
+    def test_partial_tail_windows_at_both_boundaries_do_not_overflow(self):
+        from case4_transport import RequestLedger
+        frame=padding.build_frame(bytes.fromhex('056400c40a000100'),bytes.fromhex('c0c0030c0128010001000101640000006400000000'))
+        image=padding.expand_control(frame,padding.Decoy(201,bytes.fromhex('0101640000006400000000')))[0]
+        for base in (1000,0xfffffff0):
+            ledger=RequestLedger(base)
+            ledger.forward(base,frame,replacement=image)
+            ledger.forward((base+35)&0xffffffff,frame,replacement=image)
+            for offset in tuple(range(35,55))+tuple(range(90,110)):
+                for window in (0,1,19,20,21,65535):
+                    self.assertEqual(fixed_layout.map_ack_window((base+offset)&0xffffffff,window,base,(base+35)&0xffffffff),ledger.reverse((base+offset)&0xffffffff,window))
+
     def test_exclusive_subtract_checksum_residue_arithmetic(self):
         from test_rrc_split import packet,dnp3_frame
         self.assertTrue(hasattr(fixed_layout,'tcp_subtract_residual'))

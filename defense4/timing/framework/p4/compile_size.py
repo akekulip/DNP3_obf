@@ -14,7 +14,7 @@ inputs=source.with_suffix('.inputs.json')
 if inputs.exists():
     (build/'inputs.json').write_bytes(inputs.read_bytes())
 command=[str(compiler),'--target','tofino','--arch','tna']
-if source.name=='case4_joint_component_probe.p4':
+if source.name.startswith('case4_joint_'):
     command+=['-g','-DU_BOR']
 command+=['-o',str(build/'out'),str(snapshot)]
 with (build/'compile.log').open('w') as log:

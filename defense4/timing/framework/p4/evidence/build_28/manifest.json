@@ -1,0 +1,28 @@
+{
+  "source": "case4_ingress_mapping.p4",
+  "source_sha256": "050c2fe39090a974a06645fe2ac6d77e54acca01f9d7dc1e8d00f88d4ead68f0",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_28/out",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_28/case4_ingress_mapping.p4"
+  ],
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "exit_code": 0,
+  "software_only": true,
+  "sde": "9.13.1",
+  "deployment_gate": "requires9.13.2+transportcompletion+hardwareadmission",
+  "artifact_sha256": {
+    "out/manifest.json": "e9ea8e8083453ad1e2aac9b33d291fcfe70938470b45478c915d415f42216f5c",
+    "out/case4_ingress_mapping.conf": "46ce43446359e132966d934e7c17d3c3f0fa205f488c6c51ff70d4f09b6471e3",
+    "out/bfrt.json": "d474b260f05600f367cecc825121c08632c6ee1085ee6a38fa0822d1bef6c04d",
+    "out/pipe/context.json": "6fe302a1c005cda7fd4dcb194e1312e49ca571a336a6a9fada008eb28df578b5",
+    "out/pipe/case4_ingress_mapping.bfa": "ca62b575c315e54cf39ccd408a2e09c944ba2583f6062d90d5e4caadcda9be46",
+    "out/pipe/tofino.bin": "5bddfe51ba30347ead885a476d511a99da7319d8bd2ab09f03d4e944bff46b1c",
+    "out/pipe/graphs/0_table_flow_graph_ingress.dot": "a17bbda3a4218245fbd568feb6958cdfe9c60cf51c0feb2338997e5fe3be5fc7"
+  }
+}
