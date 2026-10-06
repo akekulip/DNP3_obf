@@ -1,16 +1,17 @@
-"""Independent event model of the READ response-ready release policy.
+"""Independent event model of the Case 4 response-ready release policy.
 
 Written from framework/contract/POLICY_CONTRACT.md, not from the P4. Times are integer
-nanoseconds on one unbounded timeline. Modular 32-bit tick decoding is provided by due() and checked
+nanoseconds on one unbounded timeline. Modular low-32 nanosecond decoding is provided by due() and checked
 separately (tests/test_model_scenarios.py); the model itself does not wrap.
 """
 from dataclasses import dataclass, field
+from itertools import groupby
 from typing import Dict, List, Optional, Tuple
 
 TICK_NS = 256
 MASK = (1 << 32) - 1
 HALF = 1 << 31
-DEFAULT_H_NS = 18000 * 1711  # 18,000 passes x ~1.711 us; an estimate, see the contract
+DEFAULT_H_NS = 30_000_000  # Absolute model readiness expiry; not a token-loop estimate.
 
 
 def quantize_ns(ns: int) -> int:
@@ -19,7 +20,8 @@ def quantize_ns(ns: int) -> int:
 
 
 def to_tick(ns: int) -> int:
-    return (ns // TICK_NS) & MASK
+    """Compatibility name: return masked low-32 nanoseconds, not a tick count."""
+    return quantize_ns(ns) & MASK
 
 
 def due(now_tick: int, deadline_tick: int) -> bool:
@@ -30,13 +32,17 @@ def due(now_tick: int, deadline_tick: int) -> bool:
 @dataclass(frozen=True)
 class Ev:
     t: int                      # ns
-    kind: str                   # REQ ACK RESP FIN
+    kind: str                   # REQ ACK RESP FIN RST
     epoch: int = 0
     seq: int = 0                # TCP seq of the segment
     length: int = 0             # payload length
     ack: int = 0                # TCP ack number
     app: int = 0                # DNP3 application sequence
-    supported: bool = True      # READ, single frame, no unsupported options
+    supported: bool = True      # Caller verified complete supported frame/profile
+    flow: Optional[Tuple[str, str, int, int]] = None  # Canonical master/outstation tuple
+    operation: str = "READ"     # Parent operation, including split control responses
+    response_seq: Optional[int] = None  # REQ: expected first response TCP sequence
+    transformed_length: Optional[int] = None  # REQ: bytes forwarded to the outstation
 
 
 @dataclass
@@ -72,7 +78,7 @@ class ResponseReadyModel:
         self._clear()
 
     def _clear(self) -> None:
-        self.epoch = None
+        self.epoch = self.flow = self.operation = self.response_seq = None
         self.t0 = self.expect_ack = self.app = None
         self.tA = self.tR = self.eA = self.eR = None
 
@@ -137,10 +143,11 @@ class ResponseReadyModel:
 
     # ---- external events --------------------------------------------------------------
     def run(self, events: List[Ev]) -> Result:
-        for ev in sorted(events, key=lambda e: e.t):
-            self._run_until(ev.t - 1)          # timers strictly earlier first; equal-time externals go first
-            self._on(ev)
-            self._run_until(ev.t)              # then timers due at this instant
+        for t, simultaneous in groupby(sorted(events, key=lambda e: e.t), key=lambda e: e.t):
+            self._run_until(t - 1)             # timers strictly earlier first
+            for ev in simultaneous:
+                self._on(ev)                  # all equal-time externals precede timers
+            self._run_until(t)
         self._run_until(None)
         self.r.state = self.s
         return self.r
@@ -155,10 +162,13 @@ class ResponseReadyModel:
             if self.s == "FALLBACK":
                 self._clear()
             self.s, self.epoch, self.t0 = "ARMED", e.epoch, e.t
-            self.expect_ack, self.app = e.seq + e.length, e.app
+            self.flow, self.operation, self.response_seq = e.flow, e.operation, e.response_seq
+            wire_length = e.length if e.transformed_length is None else e.transformed_length
+            self.expect_ack, self.app = (e.seq + wire_length) & MASK, e.app
             self.r.outs.append(Out("REQ", e.t, "forwarded"))
         elif e.kind == "ACK":
-            if self.s != "ARMED" or e.epoch != self.epoch or e.ack != self.expect_ack:
+            if (self.s != "ARMED" or e.epoch != self.epoch or e.flow != self.flow
+                    or e.ack != self.expect_ack):
                 r.outs.append(Out("ACK", e.t, "unmatched_forwarded")); r.count("ack_unmatched"); return
             if self.tA is not None or self.eA is not None:
                 r.count("dup_ack_dropped"); return
@@ -166,7 +176,14 @@ class ResponseReadyModel:
             if self.policy == "response_focused":
                 r.outs.append(Out("ACK", e.t, "forwarded"))
         elif e.kind == "RESP":
-            match = (e.epoch == self.epoch and e.ack == self.expect_ack and e.app == self.app)
+            if not e.supported:
+                r.outs.append(Out("RESP", e.t, "bypass_unsupported"))
+                r.count("bypass_unsupported")
+                return
+            match = (e.epoch == self.epoch and e.flow == self.flow
+                     and e.ack == self.expect_ack and e.app == self.app
+                     and e.operation == self.operation
+                     and (self.response_seq is None or e.seq == self.response_seq))
             if self.s == "FALLBACK" and match:
                 r.outs.append(Out("RESP", e.t, "late_native")); r.count("late_response")
                 self.s = "IDLE"; self._clear(); return
@@ -175,11 +192,14 @@ class ResponseReadyModel:
             if self.tR is not None:
                 r.count("dup_response_dropped"); return
             self.tR = e.t
-        elif e.kind == "FIN":
-            if self.s == "ARMED" and e.epoch == self.epoch:
-                if self.tA is not None and self.eA is None:
+        elif e.kind in ("FIN", "RST"):
+            if e.epoch != self.epoch or e.flow != self.flow:
+                return
+            if self.s == "ARMED":
+                if self.policy == "dual" and self.tA is not None and self.eA is None:
                     r.outs.append(Out("ACK", e.t, "reset_flush"))
-                if self.tR is not None and self.eR is None:
+                # eR is a scheduled release, not proof that the response left.
+                if self.tR is not None:
                     r.outs.append(Out("RESP", e.t, "reset_flush"))
                 r.count("reset_flush")
             self.s = "IDLE"; self._clear()

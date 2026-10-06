@@ -1,0 +1,146 @@
+{
+  "budget_summary": {
+    "attempted_transactions": 124,
+    "blocks": 2,
+    "max_duration_ms": 89600,
+    "precheck_transactions": 0,
+    "primary_transactions": 120,
+    "state_read_transactions": 4,
+    "warmup_transactions": 0
+  },
+  "build": {
+    "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+    "evidence_role": "timing_baseline_not_joint",
+    "program_source_sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a",
+    "sde": "9.13.2",
+    "sha256": "3ecbfcda8eedf257c918ec68aafbc47fad16605d7cd01cd64843185c7da0c8e6",
+    "stages_egress": 0,
+    "stages_ingress": 7
+  },
+  "collection": {
+    "attended_only": true,
+    "claim": "bounded engineering validation; older full-acceptance sample requirement remains unmet",
+    "hardware_authorized": false,
+    "required_gates": [
+      "source-bound joint SDE 9.13.2 build",
+      "verified joint compiled schema",
+      "measured timer, heartbeat, feedback, drain and release costs",
+      "bound admission",
+      "endpoint compatibility and inert point evidence",
+      "capture and restoration readiness",
+      "attended physical OPERATE authorization"
+    ],
+    "scope": "sbo_smoke",
+    "status": "blocked_pending_joint_build_and_admission"
+  },
+  "declared_on": "2026-10-06",
+  "endpoints": {
+    "master": "Vision (192.168.10.1 isolated), Python codec harness, not pydnp3",
+    "outstation": "SEL-751A 192.168.10.7:20000 via the relay leg dp64",
+    "switch": "Tofino-1, pre-test program rrc_bor_build_v2 must be restored after the run"
+  },
+  "failure_outcomes": {
+    "bypassed": "unsupported or busy request forwarded unchanged",
+    "fallback": "watchdog release, reported with its reason counter",
+    "late": "response after the hold horizon, kept in the population",
+    "malformed": "framing or CRC failure",
+    "missing": "no response within the application budget",
+    "rejected": "admission refused the point; not collected"
+  },
+  "id": "case4-case4_attended_sbo-20261006",
+  "observation_points": [
+    "master-facing capture on Vision",
+    "relay-facing capture only if a supported tap exists (otherwise stated and conclusions restricted)",
+    "switch counters before and after",
+    "control-plane readback after every write"
+  ],
+  "policy": {
+    "anchor": "request",
+    "arms": [
+      "OFF",
+      "CASE4"
+    ],
+    "completion_deadline_ms": null,
+    "da_ms": [
+      10
+    ],
+    "gap_ms": 1,
+    "heartbeat_request_us": 100,
+    "measured_drain_max_ms": null,
+    "measured_heartbeat_max_us": null,
+    "measured_release_max_us": null,
+    "padding_profile": "crob_trailing_header_one_decoy",
+    "policy_cap_ms": 40,
+    "readiness_expiry_ms": 30,
+    "split_profile": "57_28_29",
+    "translation_capacity": 2
+  },
+  "source": {
+    "evidence_role": "timing_baseline_not_joint",
+    "path": "defense4/timing/response_ready/evidence/sde_9_13_2_build_03/defense4_timing.p4",
+    "sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a"
+  },
+  "termination": {
+    "abort_on": [
+      "unexplained loss",
+      "stale completion",
+      "a stuck next transaction",
+      "readback mismatch",
+      "restoration not verified",
+      "corruption",
+      "unexpected actuation"
+    ],
+    "max_duration_ms": 89600,
+    "max_total_attempts": 124,
+    "precheck_raw_retained": true,
+    "restore_required": true,
+    "state_read_raw_retained": true,
+    "warmup_raw_retained": true
+  },
+  "tolerances": {
+    "fraction_within_50us": 0.999,
+    "median_abs_gap_error_us": 10,
+    "rule": "applied separately to verified early and late arrivals; insufficient coverage is reported, not hidden"
+  },
+  "workload": {
+    "ops": [
+      "SBO"
+    ],
+    "order": "counterbalanced",
+    "retries": "none; any retries consume newly declared attempts",
+    "run_list": [
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "sbo-off",
+        "interval_ms": 400,
+        "op": "SBO",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "sbo-case4",
+        "interval_ms": 400,
+        "op": "SBO",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      }
+    ],
+    "sbo_operate": "immediately after verified SELECT success; no spacing inside the pair",
+    "seed": 20261006
+  }
+}

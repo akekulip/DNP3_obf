@@ -20,6 +20,14 @@ roughly 3 s. The frozen policy's 200 ms is the top row, the master's. Substituti
 other is the mistake this module is built to make impossible: each bound is a separate named
 input, and none of them is called `tcp_rto`.
 
+## Historical native-ACK anchoring
+
+The legacy API defaults to anchor="native_ack" and applies only to that historical
+contract. Request anchoring uses switch-side tA/tR population bounds, with ACK
+release at max(D_A,tA,tR) and a full configured response gap. Missing switch,
+heartbeat, release or physical drain measurements remain unavailable. Recovery
+accounting is separate from the conditional normal-ready timing bound.
+
 ## The response hold is not the configured CLRT_new
 
 An earlier version of this module charged the outstation's timer only `CLRT_new` plus allowances.
@@ -164,6 +172,8 @@ class Bound:
 #: weakness. A transport timer is a property of a running connection, so only a measurement of
 #: that connection is authoritative.
 ROLE_AUTHORITATIVE: dict[str, frozenset] = {
+    "readiness_expiry_ms": frozenset({Provenance.OPERATOR_SUPPLIED, Provenance.MEASURED_THIS_CONNECTION}),
+    "completion_timeout_ms": frozenset({Provenance.OPERATOR_SUPPLIED, Provenance.MEASURED_THIS_CONNECTION}),
     "application_deadline_ms": frozenset({Provenance.OPERATOR_SUPPLIED,
                                           Provenance.MEASURED_THIS_CONNECTION}),
 }
@@ -229,10 +239,19 @@ class AdmissionInputs:
     policy_cap_ms: float                # independent ceiling; not a function of measured RTT
 
     context: PolicyContext = field(default_factory=PolicyContext)
+    anchor: str = "native_ack"  # historical compatibility; request must be explicit
+    switch_request_to_ack_min_ms: Bound | None = None
+    switch_request_to_ack_max_ms: Bound | None = None
+    switch_request_to_response_min_ms: Bound | None = None
+    switch_request_to_response_max_ms: Bound | None = None
+    readiness_expiry_ms: Bound | None = None
+    completion_timeout_ms: Bound | None = None
+    heartbeat_interval_ms: Bound | None = None
+    physical_drain_ms: Bound | None = None
 
     def required_fields(self) -> dict[str, Bound]:
         """Field name to the bound that occupies it. The key is the role; the bound is the value."""
-        return {"master_rto_ms": self.master_rto_ms,
+        result = {"master_rto_ms": self.master_rto_ms,
                 "outstation_rto_ms": self.outstation_rto_ms,
                 "application_deadline_ms": self.application_deadline_ms,
                 "clrt_original_ms": self.clrt_original_ms,
@@ -242,6 +261,15 @@ class AdmissionInputs:
                 "ack_latency_bound_ms": self.ack_latency_bound_ms,
                 "detect_ms": self.detect_ms,
                 "release_tail_ms": self.release_tail_ms}
+        if self.anchor == "request":
+            result.pop("clrt_original_ms")  # an ACK-to-response interval is not a request timestamp
+            for name in ("switch_request_to_ack_min_ms", "switch_request_to_ack_max_ms",
+                         "switch_request_to_response_min_ms", "switch_request_to_response_max_ms",
+                         "readiness_expiry_ms", "completion_timeout_ms", "heartbeat_interval_ms",
+                         "physical_drain_ms"):
+                result[name] = getattr(self, name) or Bound(name, None, Provenance.UNAVAILABLE,
+                    "no applicable switch/recovery measurement supplied")
+        return result
 
     def required_bounds(self) -> list[Bound]:
         return list(self.required_fields().values())
@@ -283,6 +311,8 @@ def validate(inp: AdmissionInputs) -> list[str]:
             errs.append("%s is %g ms, outside the representable range; check the units"
                         % (name, v))
 
+    if inp.anchor not in ("native_ack", "request"):
+        errs.append("anchor must be native_ack or request")
     num("d_a_ms", inp.d_a_ms)
     num("clrt_new_ms", inp.clrt_new_ms)
     num("safety_margin_ms", inp.safety_margin_ms)
@@ -300,7 +330,40 @@ def validate(inp: AdmissionInputs) -> list[str]:
             and inp.clrt_original_ms.value_ms > inp.native_request_to_response_ms.value_ms):
         errs.append("clrt_original_ms exceeds native_request_to_response_ms; the ACK-to-response "
                     "interval cannot be longer than the whole request-to-response interval")
+    if inp.anchor == "request":
+        fields = inp.required_fields()
+        for prefix in ("switch_request_to_ack", "switch_request_to_response"):
+            lo, hi = fields[prefix+"_min_ms"], fields[prefix+"_max_ms"]
+            if lo.is_known() and hi.is_known() and lo.value_ms > hi.value_ms:
+                errs.append(prefix+" minimum exceeds maximum")
+        ready, complete = fields["readiness_expiry_ms"], fields["completion_timeout_ms"]
+        response_max = fields["switch_request_to_response_max_ms"]
+        if ready.is_known() and response_max.is_known() and response_max.value_ms > ready.value_ms:
+            errs.append("normal-ready response maximum exceeds readiness expiry")
+        if (ready.is_known() and complete.is_known()
+                and complete.value_ms < max(ready.value_ms, inp.d_a_ms)+inp.clrt_new_ms):
+            errs.append("completion_timeout_ms must cover readiness/D_A plus the full gap")
     return errs
+
+
+def _request_hold_bounds(inp):
+    """Conservative population bounds; independent extrema can overstate the wait."""
+    f = inp.required_fields()
+    def known(*names):
+        return all(f[n].is_known() for n in names)
+    amin, amax = "switch_request_to_ack_min_ms", "switch_request_to_ack_max_ms"
+    rmin, rmax = "switch_request_to_response_min_ms", "switch_request_to_response_max_ms"
+    ack = (max(inp.d_a_ms, f[amax].value_ms, f[rmax].value_ms)-f[amin].value_ms
+           if known(amin, amax, rmax) else None)
+    response = (max(0., max(inp.d_a_ms, f[amax].value_ms)-f[rmin].value_ms)+inp.clrt_new_ms
+                if known(amax, rmin) else None)
+    recovery_names = ("readiness_expiry_ms", "completion_timeout_ms", "heartbeat_interval_ms",
+                      "release_tail_ms", "physical_drain_ms")
+    recovery = (max(f["readiness_expiry_ms"].value_ms, f["completion_timeout_ms"].value_ms,
+                    inp.d_a_ms+inp.clrt_new_ms)+f["heartbeat_interval_ms"].value_ms+
+                    f["release_tail_ms"].value_ms+f["physical_drain_ms"].value_ms
+                if known(*recovery_names) else None)
+    return ack, response, recovery
 
 
 def _response_hold_ms(inp: AdmissionInputs) -> tuple[float, list[str]]:
@@ -356,7 +419,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
     input_errors = validate(inp)
     if input_errors:
         return {"verdict": "rejected",
-                "policy": {"d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
+                "policy": {"anchor": inp.anchor, "d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
                            "policy_cap_ms": inp.policy_cap_ms,
                            "context": {"connection_id": inp.context.connection_id,
                                        "build_id": inp.context.build_id}},
@@ -386,7 +449,14 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         if n not in weak:
             weak.append(n)
 
-    response_hold, subs = _response_hold_ms(inp)
+    if inp.anchor == "request":
+        ack_hold, response_hold, recovery = _request_hold_bounds(inp)
+        subs = []
+    else:
+        response_hold, subs = _response_hold_ms(inp)
+        ack_hold, recovery = inp.d_a_ms, None
+    ack_term = ack_hold if ack_hold is not None else Bound("ack_hold_ms", None, Provenance.UNAVAILABLE)
+    response_term = response_hold if response_hold is not None else Bound("response_hold_ms", None, Provenance.UNAVAILABLE)
 
     # --- the three constraints, each charged its own complete interval ---------------------
     checks = [
@@ -395,7 +465,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         _check("master TCP retransmission", inp.master_rto_ms,
                {"network_round_trip_excluding_outstation_processing": inp.master_feedback_path_ms,
                 "outstation_ack_latency": inp.ack_latency_bound_ms,
-                "ack_hold_D_A": inp.d_a_ms,
+                "ack_hold_D_A": ack_term,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
                inp.safety_margin_ms, bound_field="master_rto_ms"),
@@ -403,7 +473,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         # hold charged here is the scheduled release minus the native arrival, which contains D_A.
         _check("outstation TCP retransmission", inp.outstation_rto_ms,
                {"network_round_trip": inp.outstation_feedback_path_ms,
-                "response_hold_in_switch": response_hold,
+                "response_hold_in_switch": response_term,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
                inp.safety_margin_ms, bound_field="outstation_rto_ms"),
@@ -411,22 +481,47 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         # plus whatever the mechanism adds to the response.
         _check("master application deadline", inp.application_deadline_ms,
                {"native_request_to_response": inp.native_request_to_response_ms,
-                "response_hold_in_switch": response_hold,
+                "response_hold_in_switch": response_term,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
                inp.safety_margin_ms, bound_field="application_deadline_ms"),
     ]
 
+    if inp.anchor == "request":
+        recovery_term = (recovery if recovery is not None else
+                         Bound("recovery_hold_bound_ms", None, Provenance.UNAVAILABLE))
+        # Charge the conservative request-relative fallback bound separately. It
+        # already includes heartbeat/release/drain, so these costs are not added
+        # again. Native path/processing terms overstate earlier elapsed portions
+        # rather than assuming that a sender has its whole RTO left at the switch.
+        checks.extend([
+            _check("master TCP recovery", inp.master_rto_ms,
+                   {"network_round_trip_excluding_outstation_processing": inp.master_feedback_path_ms,
+                    "outstation_ack_latency": inp.ack_latency_bound_ms,
+                    "recovery_hold_bound": recovery_term}, inp.safety_margin_ms,
+                   bound_field="master_rto_ms"),
+            _check("outstation TCP recovery", inp.outstation_rto_ms,
+                   {"network_round_trip": inp.outstation_feedback_path_ms,
+                    "recovery_hold_bound": recovery_term}, inp.safety_margin_ms,
+                   bound_field="outstation_rto_ms"),
+            _check("master application recovery", inp.application_deadline_ms,
+                   {"native_request_to_response": inp.native_request_to_response_ms,
+                    "recovery_hold_bound": recovery_term}, inp.safety_margin_ms,
+                   bound_field="application_deadline_ms"),
+        ])
+
     cap_ok = (inp.d_a_ms + inp.clrt_new_ms) <= inp.policy_cap_ms
-    if not cap_ok:
-        problems.append("D_A + CLRT_new exceeds the policy cap of %g ms" % inp.policy_cap_ms)
+    if inp.anchor == "request" and cap_ok:
+        cap_ok = None if recovery is None else recovery <= inp.policy_cap_ms
+    if cap_ok is False:
+        problems.append("scheduled/recovery hold exceeds the policy cap of %g ms" % inp.policy_cap_ms)
 
     failed = [c for c in checks if c.get("ok") is False]
     undecided = [c for c in checks if c.get("ok") is None]
 
-    if failed or not cap_ok:
+    if failed or cap_ok is False:
         verdict = "refused"
-    elif undecided or unknown or weak:
+    elif undecided or unknown or weak or cap_ok is None:
         verdict = "provisional"
     else:
         verdict = "admitted_conditional"
@@ -438,6 +533,10 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                      "under, the timer and deadline budgets have to be values the connection "
                      "will not beat, and CLRT_original has to be a lower bound, because a "
                      "smaller native interval makes the implied response hold longer")
+        if inp.anchor == "request":
+            statement = ("admitted conditionally for the stated switch tA/tR population and "
+                         "measured recovery costs; extrema must bound this connection and "
+                         "source build. Owner retirement alone does not establish physical drain")
     elif verdict == "refused":
         statement = "refused: a check failed or the policy cap was exceeded"
     else:
@@ -446,7 +545,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
 
     return {
         "verdict": verdict,
-        "policy": {"d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
+        "policy": {"anchor": inp.anchor, "d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
                    "policy_cap_ms": inp.policy_cap_ms,
                    "context": {"connection_id": inp.context.connection_id,
                                "build_id": inp.context.build_id}},
@@ -455,21 +554,28 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
             "statement": statement,
             "conditions": [
                 "the bounds hold for the connection and build named in the context",
-                "the response arrives on time, so the hold is D_A + CLRT_new - CLRT_original",
+                "the native_ack historical formula applies" if inp.anchor == "native_ack" else
+                "the switch tA/tR extrema cover the admitted ready-response population",
                 "the network intervals were measured with the mechanism disabled",
             ] if verdict == "admitted_conditional" else [],
             "not_established": [
                 "that the observed maxima bound every future exchange",
                 "that the corrected policy has been exercised on hardware",
+                "that owner retirement proves physical queue drain before rearming",
             ],
         },
         "input_errors": [],
-        "response_hold_ms": round(response_hold, 6),
-        "response_hold_formula": "max(0, D_A + CLRT_new - CLRT_original)",
+        "response_hold_ms": None if response_hold is None else round(response_hold, 6),
+        "ack_hold_ms": None if ack_hold is None else round(ack_hold, 6),
+        "recovery_hold_bound_ms": None if recovery is None else round(recovery, 6),
+        "response_hold_formula": ("native ACK anchor: max(0, D_A + CLRT_new - CLRT_original)"
+                                  if inp.anchor == "native_ack" else
+                                  "request anchor population: max(0,max(D_A,tA_max)-tR_min)+CLRT_new"),
         "conservative_substitutions": subs,
         "checks": checks,
         "policy_cap": {"cap_ms": inp.policy_cap_ms,
                        "requested_ms": inp.d_a_ms + inp.clrt_new_ms,
+                       "recovery_bound_ms": recovery,
                        "ok": cap_ok,
                        "note": "independent of any measured RTT, so the mechanism's own "
                                "inflation of RTT cannot raise it"},

@@ -161,6 +161,19 @@ class CommitParity(unittest.TestCase):
                     role=self.new.consts['ROLE_BLOCK'], budget_zero=1, held_valid=0,
                     token_slot=self.new.consts[slot]))[0], 'owner_release')
             return new_action, old_arg
+        # The historical spent-generation row dropped post-release transport
+        # repair. The new released-domain verdict has a separate tested effect.
+        if table_name == 'tbl_decide_fresh' and new_arg == 'OUT_OP_REPAIR':
+            self.assertEqual(fields['bor_pc'], self.new.consts['BPC_OPERATE'])
+            self.assertEqual(fields['verdict_bor'], self.new.consts['V_OP_REPAIR'])
+            self.assertEqual(new_action, 'finish_path_14')
+            actual, counts = self.new.effects([(new_action, new_arg)], fields)
+            self.assertEqual(actual['ig_tm_md.ucast_egress_port'], self.new.consts['PORT_RELAY'])
+            self.assertEqual(actual['ig_tm_md.qid'], self.new.consts['QID_FWD'])
+            self.assertEqual(actual['ig_tm_md.bypass_egress'], 0)
+            self.assertNotIn('drop', actual)
+            self.assertEqual(counts, [self.new.consts['OUT_OP_REPAIR']])
+            return new_action, new_arg
         self.assertEqual(new_arg, old_arg, (table_name, fields, old_arg, new_arg))
         outcome = self.old.consts[old_arg]
         context = dict(fields, outcome=outcome)

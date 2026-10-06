@@ -78,6 +78,13 @@ def main():
                   key=lambda p: int(p.stem.rsplit("_", 1)[-1]))
         shutil.copyfile(phv, output / "phv_allocation_summary.log")
         report["final_phv_report"] = phv.name
+        assembly = output / "out" / "pipe" / "defense4_timing.bfa"
+        shutil.copyfile(assembly, output / "assembly.bfa")
+        report["resource_report_sha256"] = {
+            name: hashlib.sha256((output / name).read_bytes()).hexdigest()
+            for name in ("table_summary.log", "table_dependency_summary.log",
+                         "mau.resources.log", "phv_allocation_summary.log", "assembly.bfa")
+        }
         report["artifact_sha256"] = {
             str(p.relative_to(output / "out")): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in (output / "out" / "bfrt.json", output / "out" / "pipe" / "context.json",

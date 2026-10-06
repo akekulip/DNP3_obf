@@ -1,9 +1,13 @@
 """Configuration profiles for the framework cases, with fail-closed activation and restoration.
 
-Cases: `off`, `combined` (D4, D_A > 0), `ack_focused` (D4, D_A = 0), `response_focused` (MODE_D2_RESP).
+Historical timing cases plus an offline Case 4 joint configuration. Case 4 activation is
+blocked until a source-bound compiled schema and write mapping support the joint mechanism.
 Mode numbers are read from the P4 source, not typed here. The program has no shaping field, so nothing in
 this module can enable shaping; that is asserted from the compiled schema on every activation.
 """
+from __future__ import annotations
+
+import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +27,9 @@ def _top():
 TICK_NS = 256
 PARAMS, BOR, RELEASE = "tbl_params", "tbl_bor_params", "tbl_read_release_params"
 A_PARAMS, A_BOR, A_REL = "Ingress.set_params", "Ingress.set_bor_params", "Ingress.set_read_release"
-CASES = ("off", "combined", "ack_focused", "response_focused")
+CASES = ("off", "combined", "ack_focused", "response_focused", "case4")
+PADDING_PROFILES = ("crob_trailing_header_one_decoy",)
+SPLIT_PROFILES = ("57_28_29", "49_28_21")
 
 
 class ActivationError(RuntimeError):
@@ -45,10 +51,33 @@ class Profile:
     loop_ns: int = 1711            # token loop period: an estimate (H = budget x loop is not a wall-clock guarantee)
     connection_id: str = ""
     build_id: str = ""
+    readiness_expiry_ms: float = 30.0
+    heartbeat_request_us: float = 100.0
+    completion_deadline_ms: float | None = None
+    measured_heartbeat_max_us: float | None = None
+    measured_drain_max_ms: float | None = None
+    measured_release_max_us: float | None = None
+    padding_profile: str = "crob_trailing_header_one_decoy"
+    split_profile: str = "57_28_29"
+    translation_capacity: int = 2
 
 
 def hold_bound_ms(p):
-    """Worst-case ACK or response hold: the watchdog horizon, which the ACK can reach even when D_A is smaller."""
+    """Case 4 measured bound, or the historical token-horizon estimate.
+
+    The legacy budget-times-loop result is retained for old profiles; it is not
+    a measured wall-clock guarantee and cannot authorize the joint mechanism.
+    """
+    if p.case == "case4":
+        measurements = (p.measured_heartbeat_max_us, p.measured_drain_max_ms,
+                        p.measured_release_max_us, p.completion_deadline_ms)
+        if any(v is None for v in measurements):
+            return None
+        # Request-anchored completion plus measured expiry service, release and drain.
+        # A requested heartbeat interval and a nominal token loop are not measurements.
+        return (max(p.readiness_expiry_ms, p.completion_deadline_ms, p.d_a_ms + p.gap_ms)
+                + p.measured_heartbeat_max_us / 1000 + p.measured_release_max_us / 1000
+                + p.measured_drain_max_ms)
     return max(p.d_a_ms, p.budget * p.loop_ns / 1e6)
 
 
@@ -56,6 +85,14 @@ def problems(p, consts):
     out = []
     if p.case not in CASES:
         return ["case %r is not one of %s" % (p.case, ", ".join(CASES))]
+    for name in ("d_a_ms", "gap_ms", "loop_ns"):
+        value = getattr(p, name)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            out.append("%s must be finite and non-negative" % name)
+    if isinstance(p.budget, bool) or not isinstance(p.budget, int) or not (1 <= p.budget < 2 ** 32):
+        out.append("budget out of range")
+    if out:
+        return out
     d, g = q(p.d_a_ms * 1e6), q(p.gap_ms * 1e6)
     if p.case == "off":
         return out
@@ -67,10 +104,31 @@ def problems(p, consts):
         out.append("%s holds nothing for D_A; D_A must be 0, got %r ms" % (p.case, p.d_a_ms))
     if d + g >= 2 ** 31:
         out.append("D_A + gap exceeds the modular half-range")
-    if hold_bound_ms(p) > MAX_HOLD_MS:
-        out.append("worst-case hold %.3f ms exceeds the %.1f ms clamp" % (hold_bound_ms(p), MAX_HOLD_MS))
-    if not (1 <= p.budget < 2 ** 32):
-        out.append("budget out of range")
+    if p.case == "case4":
+        for name in ("readiness_expiry_ms", "heartbeat_request_us"):
+            value = getattr(p, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                out.append("%s must be positive and finite" % name)
+        for name in ("completion_deadline_ms", "measured_heartbeat_max_us", "measured_drain_max_ms", "measured_release_max_us"):
+            value = getattr(p, name)
+            if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
+                                      or not math.isfinite(value) or value <= 0):
+                out.append("%s must be positive and finite when supplied" % name)
+        if p.padding_profile not in PADDING_PROFILES:
+            out.append("unsupported padding profile")
+        if p.split_profile not in SPLIT_PROFILES:
+            out.append("unsupported split profile")
+        if isinstance(p.translation_capacity, bool) or not isinstance(p.translation_capacity, int) or p.translation_capacity != 2:
+            out.append("Case 4 supports exactly two insertion boundaries")
+        if out:
+            return out
+        if p.readiness_expiry_ms + p.gap_ms > MAX_HOLD_MS:
+            out.append("readiness expiry plus gap exceeds the 40 ms policy cap")
+        if p.completion_deadline_ms is not None and p.completion_deadline_ms < max(p.readiness_expiry_ms, p.d_a_ms) + p.gap_ms:
+            out.append("completion deadline cannot truncate the requested readiness/ACK gap")
+    bound = hold_bound_ms(p)
+    if bound is not None and bound > MAX_HOLD_MS:
+        out.append("worst-case hold %.3f ms exceeds the %.1f ms clamp" % (bound, MAX_HOLD_MS))
     return out
 
 
@@ -81,6 +139,17 @@ def plan(p, consts):
     if bad:
         raise ValueError("; ".join(bad))
     d, g = q(p.d_a_ms * 1e6), q(p.gap_ms * 1e6)
+    if p.case == "case4":
+        config = {name: getattr(p, name) for name in (
+            "readiness_expiry_ms", "heartbeat_request_us", "completion_deadline_ms",
+            "measured_heartbeat_max_us", "measured_drain_max_ms", "measured_release_max_us",
+            "padding_profile", "split_profile", "translation_capacity")}
+        blockers = ["joint Case 4 compiled schema and source-bound write mapping are unavailable"]
+        if hold_bound_ms(p) is None:
+            blockers.append("measured heartbeat, drain, release and completion bounds are required")
+        return {"case": p.case, "case4": config, "quantised_ns": {"d_a": d, "gap": g},
+                "policy_cap_ms": MAX_HOLD_MS, "hold_bound_ms": hold_bound_ms(p),
+                "writes": [], "expect": {}, "activation_blockers": blockers}
     mode = {"off": consts["MODE_OFF"], "combined": consts["MODE_D4_DUAL"], "ack_focused": consts["MODE_D4_DUAL"],
             "response_focused": consts["MODE_D2_RESP"]}[p.case]
     enabled = 0 if p.case == "off" else 1
@@ -96,6 +165,8 @@ def plan(p, consts):
 
 def admission_problem(p, admission):
     """Delegate to the repository's binding check, charged with the worst-case hold (not D_A alone)."""
+    if p.case == "case4" and hold_bound_ms(p) is None:
+        return "Case 4 has no measured heartbeat/drain/release/completion bound"
     top = _top()
     tp = top.TimingOnlyProfile(connection_id=p.connection_id, build_id=p.build_id,
                                d_a_ms=hold_bound_ms(p), clrt_new_ms=p.gap_ms)
@@ -114,6 +185,14 @@ def activate(device, p, consts, *, mock, admission=None, backup_path=None):
     schema = getattr(device, "schema", None)
     if schema is not None and schema.has_field(PARAMS, "shape_enable"):
         raise ActivationError("the program exposes a shaping field; this adapter is for programs without one", record)
+    if p.case == "case4":
+        record["failure"] = {"stage": "schema", "reason": steps["activation_blockers"][0]}
+        raise ActivationError(steps["activation_blockers"][0], record)
+    if schema is not None:
+        # Validate the entire plan before any device read, backup or write.
+        # Discovering a missing field halfway through would leave partial state.
+        for table, fields in steps["writes"]:
+            schema.check_write(table, fields)
     if p.case != "off" and not mock:
         why = admission_problem(p, admission)
         if why:

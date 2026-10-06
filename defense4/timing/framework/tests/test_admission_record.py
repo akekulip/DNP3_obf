@@ -15,7 +15,7 @@ class Admission(unittest.TestCase):
     def setUpClass(cls):
         import admission_record as ar
         cls.ar = ar
-        cls.inp = ar.build(18000 * 1711 / 1e6)
+        cls.inp = ar.build(10)
         cls.v = ar.da.evaluate(cls.inp)
 
     def test_verdict_is_provisional_and_names_exactly_what_is_missing(self):
@@ -23,12 +23,14 @@ class Admission(unittest.TestCase):
         missing = set()
         for c in self.v["checks"]:
             missing |= set(c.get("missing", []))
-        self.assertEqual(missing, {"outstation_feedback_path_ms", "detect_ms", "release_tail_ms"})
+        self.assertEqual(missing, {"master_feedback_path_ms", "outstation_feedback_path_ms", "ack_latency_bound_ms",
+                                   "detect_ms", "release_tail_ms", "ack_hold_ms", "response_hold_ms", "recovery_hold_bound_ms"})
 
-    def test_the_master_timer_is_the_measured_one_and_the_cap_holds(self):
+    def test_historical_master_timer_does_not_authorise_current_recovery_cap(self):
         self.assertEqual(self.inp.master_rto_ms.value_ms, 201.0)
-        self.assertEqual(self.inp.master_rto_ms.provenance, self.ar.P.MEASURED_THIS_CONNECTION)
-        self.assertTrue(self.v["policy_cap"]["ok"])
+        self.assertEqual(self.inp.master_rto_ms.provenance, self.ar.P.INHERITED_EARLIER_BUILD)
+        self.assertIsNone(self.v["policy_cap"]["ok"])
+        self.assertIsNone(self.v["recovery_hold_bound_ms"])
 
     def test_a_provisional_verdict_does_not_authorise_the_profile(self):
         sys.path.insert(0, str(HERE.parent / "control"))

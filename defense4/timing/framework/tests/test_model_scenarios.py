@@ -9,7 +9,7 @@ from response_ready_model import (DEFAULT_H_NS, MASK, HALF, Ev, ResponseReadyMod
                                   quantize_ns, to_tick)
 
 MS = 1_000_000
-DA, GAP = 10 * MS, 999_936          # 1 ms floors to 3906 ticks of 256 ns
+DA, GAP = 10 * MS, 999_936          # 1 ms floors to 3906 quanta of 256 ns
 DAQ = quantize_ns(DA)               # realized D_A: 9,999,872 ns (control.py quantizes it too)
 REQ = dict(epoch=1, seq=1000, length=22, app=5)
 GOOD = dict(epoch=1, ack=1022, app=5)
@@ -205,9 +205,9 @@ class Clock(unittest.TestCase):
             now, dl = (base + delta) & MASK, base
             self.assertEqual(due(now, dl), delta >= 0, (base, delta))
 
-    def test_tick_conversion_wraps_at_32_bits(self):
-        self.assertEqual(to_tick((1 << 32) * 256), 0)
-        self.assertEqual(to_tick((1 << 32) * 256 - 256), MASK)
+    def test_timestamp_conversion_wraps_at_32_bit_nanoseconds(self):
+        self.assertEqual(to_tick(1 << 32), 0)
+        self.assertEqual(to_tick((1 << 32) - 256), MASK - 255)
 
 
 if __name__ == "__main__":

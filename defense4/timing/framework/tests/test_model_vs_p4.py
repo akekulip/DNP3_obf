@@ -2,8 +2,10 @@
 
 The simulator (p4_pass_sim.py) executes the source's register actions and const tables; the model
 (model/response_ready_model.py) is written from the contract. Agreement is required on outcome class,
-and on release instants within the stated token-loop tolerance. Association registers are not
-simulated (a match flag stands in), so stale/wrong-ack scenarios here test the table decisions only.
+and on release instants within the stated token-loop tolerance. These legacy scenarios use expiry_enabled=0 and a boolean match abstraction;
+stale/wrong-ack cases test table decisions only. Real-byte tracker, full-cookie and
+independent expiry regressions live in test_case4_packet_parity.py. Neither suite
+proves parser/CRC behavior, BOR OPERATE, physical queues or wire departure.
 """
 import sys
 import unittest
@@ -36,7 +38,7 @@ def both(events, da=DA, budget=18000, offset=0, mode="MODE_D4_DUAL", policy="dua
             mev.append(Ev(t, kind, epoch=1, ack=1022 if match else 5, app=5))
     horizon = ADM + (budget + 1) * TAU
     m = ResponseReadyModel(da, gap, horizon_ns=horizon, policy=policy).run(mev)
-    s = P4Sim(da, gap, tau_ns=TAU, budget=budget, adm_delay_ns=ADM, t_offset_ns=offset, mode=mode).run(events)
+    s = P4Sim(da, gap, tau_ns=TAU, budget=budget, adm_delay_ns=ADM, t_offset_ns=offset, mode=mode, expiry_enabled=0).run(events)
     mo = [(o.kind, o.t, klass(o.reason)) for o in m.outs if o.kind in ("ACK", "RESP")]
     so = [(k, t, klass(r)) for k, t, r in s.outs]
     return m, s, sorted(mo, key=lambda x: (x[1], x[0])), sorted(so, key=lambda x: (x[1], x[0]))
@@ -126,7 +128,7 @@ class AckFocusedAgree(unittest.TestCase):
     def test_request_to_ack_now_carries_the_response_latency(self):
         """What the observer still sees: with D_A = 0 the ACK moves to the response, so request-to-ACK
         becomes the device's response latency. Compression of CLRT is not removal of the information."""
-        s = P4Sim(0, 256, tau_ns=TAU, adm_delay_ns=ADM).run([(0, "REQ", True), (500_000, "ACK", True), (7 * MS, "RESP", True)])
+        s = P4Sim(0, 256, tau_ns=TAU, adm_delay_ns=ADM, expiry_enabled=0).run([(0, "REQ", True), (500_000, "ACK", True), (7 * MS, "RESP", True)])
         self.assertGreaterEqual(s.outs[0][1], 7 * MS)
 
 
@@ -157,7 +159,7 @@ class ResponseFocusedAgree(unittest.TestCase):
     def test_gap_is_constant_inside_the_window(self):
         gaps = []
         for t_r in (2 * MS + 1000, 2 * MS + 400_000, 2 * MS + 900_000):
-            s = P4Sim(DA, GAP, tau_ns=TAU, adm_delay_ns=ADM, mode="MODE_D2_RESP").run(
+            s = P4Sim(DA, GAP, tau_ns=TAU, adm_delay_ns=ADM, mode="MODE_D2_RESP", expiry_enabled=0).run(
                 [(0, "REQ", True), (2 * MS, "ACK", True), (t_r, "RESP", True)])
             a, r = s.outs
             gaps.append(r[1] - a[1])
@@ -178,7 +180,7 @@ class FaultsAndLimits(unittest.TestCase):
 
     def sim(self, events, lose=()):
         import heapq
-        s = P4Sim(self.DA2, GAP, tau_ns=TAU, budget=self.B, adm_delay_ns=ADM)
+        s = P4Sim(self.DA2, GAP, tau_ns=TAU, budget=self.B, adm_delay_ns=ADM, expiry_enabled=0)
         for t, slot in lose:
             s._n += 1
             heapq.heappush(s.queue, (t, 0, s._n, "LOSE", slot))
@@ -200,9 +202,10 @@ class FaultsAndLimits(unittest.TestCase):
         self.assertEqual(s.counters.get("completed"), 1)
 
     def test_losing_both_tokens_leaves_the_owner_armed_KNOWN_LIMITATION(self):
-        """No timeout pass runs without a token, so nothing retires the owner and every later READ is
+        """With expiry_enabled=0, no timeout pass runs without a token, so nothing retires the owner and every later READ is
         bypassed as busy until the control plane resets state. The contract wants reusable state after
-        every outcome; this is a gap in the P4, characterised here so a fix has to change this test."""
+        every outcome; the legacy path retains this limit. Enabled independent expiry is
+        separately tested with real packet fixtures."""
         s = self.sim([(0, "REQ", True), (500_000, "ACK", True), (3 * MS, "REQ", True), (50 * MS, "REQ", True)],
                      lose=[(MS, "ACK"), (MS, "RESP")])
         self.assertEqual(s.counters.get("out_arm_busy"), 2)
@@ -219,7 +222,7 @@ class Sequences(unittest.TestCase):
         self.assertEqual(s.regs["reg_owner"] & 0x80000000, 0)
 
     def test_busy_request_is_bypassed(self):
-        s = P4Sim(DA, GAP).run([(0, "REQ", True), (1 * MS, "REQ", True)])
+        s = P4Sim(DA, GAP, expiry_enabled=0).run([(0, "REQ", True), (1 * MS, "REQ", True)])
         self.assertEqual(s.counters.get("out_arm_busy"), 1)
 
     def test_nonmatching_response_forwarded_unchanged(self):

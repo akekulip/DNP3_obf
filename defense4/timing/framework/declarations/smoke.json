@@ -1,11 +1,36 @@
 {
+  "budget_summary": {
+    "attempted_transactions": 128,
+    "blocks": 4,
+    "max_duration_ms": 119200,
+    "precheck_transactions": 0,
+    "primary_transactions": 120,
+    "state_read_transactions": 8,
+    "warmup_transactions": 0
+  },
   "build": {
     "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+    "evidence_role": "timing_baseline_not_joint",
     "program_source_sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a",
     "sde": "9.13.2",
     "sha256": "3ecbfcda8eedf257c918ec68aafbc47fad16605d7cd01cd64843185c7da0c8e6",
     "stages_egress": 0,
     "stages_ingress": 7
+  },
+  "collection": {
+    "attended_only": false,
+    "claim": "bounded engineering validation; older full-acceptance sample requirement remains unmet",
+    "hardware_authorized": false,
+    "required_gates": [
+      "source-bound joint SDE 9.13.2 build",
+      "verified joint compiled schema",
+      "measured timer, heartbeat, feedback, drain and release costs",
+      "bound admission",
+      "endpoint compatibility and inert point evidence",
+      "capture and restoration readiness"
+    ],
+    "scope": "smoke",
+    "status": "blocked_pending_joint_build_and_admission"
   },
   "declared_on": "2026-10-06",
   "endpoints": {
@@ -21,7 +46,7 @@
     "missing": "no response within the application budget",
     "rejected": "admission refused the point; not collected"
   },
-  "id": "rr-read-smoke-20261006",
+  "id": "case4-smoke-20261006",
   "observation_points": [
     "master-facing capture on Vision",
     "relay-facing capture only if a supported tap exists (otherwise stated and conclusions restricted)",
@@ -32,18 +57,26 @@
     "anchor": "request",
     "arms": [
       "OFF",
-      "RESPONSE_READY"
+      "CASE4"
     ],
+    "completion_deadline_ms": null,
     "da_ms": [
-      5,
-      10,
-      15,
-      20
+      10
     ],
-    "gap_ms": 1
+    "gap_ms": 1,
+    "heartbeat_request_us": 100,
+    "measured_drain_max_ms": null,
+    "measured_heartbeat_max_us": null,
+    "measured_release_max_us": null,
+    "padding_profile": "crob_trailing_header_one_decoy",
+    "policy_cap_ms": 40,
+    "readiness_expiry_ms": 30,
+    "split_profile": "57_28_29",
+    "translation_capacity": 2
   },
   "source": {
-    "path": "defense4/timing/response_ready/src/defense4_response_ready.p4",
+    "evidence_role": "timing_baseline_not_joint",
+    "path": "defense4/timing/response_ready/evidence/sde_9_13_2_build_03/defense4_timing.p4",
     "sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a"
   },
   "termination": {
@@ -52,24 +85,92 @@
       "stale completion",
       "a stuck next transaction",
       "readback mismatch",
-      "restoration not verified"
+      "restoration not verified",
+      "corruption",
+      "unexpected actuation"
     ],
-    "max_total_attempts": 18360,
+    "max_duration_ms": 119200,
+    "max_total_attempts": 128,
+    "precheck_raw_retained": true,
     "restore_required": true,
+    "state_read_raw_retained": true,
     "warmup_raw_retained": true
   },
   "tolerances": {
-    "smoke": "no unexplained loss, corruption, stale completion or stuck next transaction; every fallback has a reason counter"
+    "fraction_within_50us": 0.999,
+    "median_abs_gap_error_us": 10,
+    "rule": "applied separately to verified early and late arrivals; insufficient coverage is reported, not hidden"
   },
   "workload": {
-    "attempted_per_block": 30,
-    "blocks": 1,
-    "interval_ms": 400,
     "ops": [
-      "READ"
+      "READ",
+      "SELECT"
     ],
     "order": "counterbalanced",
-    "seed": 20261006,
-    "warmup_exchanges": 0
+    "retries": "none; any retries consume newly declared attempts",
+    "run_list": [
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "read-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "read-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "select-off",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "id": "select-case4",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      }
+    ],
+    "sbo_operate": null,
+    "seed": 20261006
   }
 }

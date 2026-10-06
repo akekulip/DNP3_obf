@@ -1,0 +1,40 @@
+{
+  "source": "/home/philip/Projects/DNP3/defense4/timing/response_ready/src/defense4_response_ready.p4",
+  "source_sha256": "b1931eb84a04ddb782962d96dd2517be05bd82f6e2de26317435ef6da1b2ce35",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-DU_BOR",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_build_02/out",
+    "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_build_02/defense4_timing.p4"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 38.178,
+  "ingress_stages": 9,
+  "egress_stages": 0,
+  "critical_path": 9,
+  "tables": 102,
+  "context_stages": {
+    "ingress_stages": 9,
+    "egress_stages": 0
+  },
+  "final_phv_report": "phv_allocation_summary_6.log",
+  "resource_report_sha256": {
+    "table_summary.log": "f55db9e9cbeec8713d88e4a41d77b69d2972494e1a5675d3e5fcd7e2c6852133",
+    "table_dependency_summary.log": "1a400831b9d176fdc92a55157f83eb00c83c9cbe79724df1f54b9e13a012c6df",
+    "mau.resources.log": "79292b244d069570fe9f80cd1f246b213d460971917a4eee66e70f4eae86353e",
+    "phv_allocation_summary.log": "cab70d64f3d3177062b7da4f94a2c77cdb5eb6ae22472081f72c00165aaf2f25",
+    "assembly.bfa": "ce1b390dff25b0540f576db9f52b5bcc9ba4ce85a0f093a9632f13206034bbc2"
+  },
+  "artifact_sha256": {
+    "bfrt.json": "663cf814633bbf49de80c6c37e9549fa849266e7ea30c6b7e9469a97c646e418",
+    "pipe/context.json": "e32f7b393e0e18e881ca4ceab17f13f534ff9c6ed7eac248f1300aca4b833217",
+    "pipe/tofino.bin": "7e15e7c0097e4602c33e3aa43206c28ac1ca7548095cdf74b433190c636e127e"
+  }
+}

@@ -34,7 +34,11 @@ class Capacity(unittest.TestCase):
         j = src.index('size = ', i)
         mutant = src[:j] + 'size = 4' + src[src.index(';', j):]
         bad = {k: v for k, v in const_tables(mutant).items() if v[0] > (v[1] or 0)}
-        self.assertEqual(bad, {'tbl_owner_valid': (5, 4)})
+        # The working candidate adds commitment-pass ownership rows. The mutant
+        # retains the historical insufficient capacity, with the current entries.
+        self.assertEqual(bad, {'tbl_owner_valid':
+                              (const_tables(src)['tbl_owner_valid'][0], 4)})
+        self.assertGreater(bad['tbl_owner_valid'][0], 4)
 
 
 if __name__ == '__main__':

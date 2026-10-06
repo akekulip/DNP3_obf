@@ -14,7 +14,7 @@ import profiles as pf             # noqa: E402
 from schema import Schema, SchemaError   # noqa: E402
 from test_p4_release import SOURCE, sem  # noqa: E402
 
-BFRT = TIMING / "response_ready/evidence/local_build_35/out/bfrt.json"
+BFRT = TIMING / "response_ready/evidence/sde_9_13_2_build_03/out/bfrt.json"
 DT = namedtuple("DataTuple", "name value")
 CONSTS = sem.extract_consts(SOURCE.read_text())
 
@@ -65,7 +65,7 @@ def make(authorized=True, schema=None):
     return bd.BfrtDevice(schema, FakeGC, FakeInfo(schema, calls), None, authorized=authorized), calls
 
 
-@unittest.skipUnless(BFRT.exists(), "compiled schema for build 35 is not on this machine")
+@unittest.skipUnless(BFRT.exists(), "retained SDE 9.13.2 baseline schema is not on this machine")
 class Adapter(unittest.TestCase):
     def test_schema_has_no_shaping_field_and_the_expected_fields(self):
         s = Schema.from_file(BFRT)
@@ -102,7 +102,7 @@ class Adapter(unittest.TestCase):
         self.assertEqual(dev.read("tbl_read_release_params"), f)
 
 
-@unittest.skipUnless(BFRT.exists(), "compiled schema for build 35 is not on this machine")
+@unittest.skipUnless(BFRT.exists(), "retained SDE 9.13.2 baseline schema is not on this machine")
 class Profiles(unittest.TestCase):
     P = dict(connection_id="relay-sel751", build_id="rr-35")
 
@@ -200,11 +200,9 @@ class Profiles(unittest.TestCase):
         self.assertEqual([c for c in calls if c[0] == "set"], [])
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
-@unittest.skipUnless(BFRT.exists(), "compiled schema for build 35 is not on this machine")
+@unittest.skipUnless(BFRT.exists(), "retained SDE 9.13.2 baseline schema is not on this machine")
 class Runner(unittest.TestCase):
     def setUp(self):
         sys.path.insert(0, str(HERE.parent / "runner"))
@@ -244,3 +242,104 @@ class Runner(unittest.TestCase):
         self.assertEqual({t: self.dev.read(t) for t in prior}, prior)
         self.assertEqual(self.cli.run(["verify", "--case", "combined", "--d-a-ms", "10"], self.factory), 0)
         self.assertEqual(self.cli.run(["verify", "--case", "off"], self.factory), 1)
+
+
+class Case4Safety(unittest.TestCase):
+    def test_offline_case4_plan_retains_configuration_and_no_invented_writes(self):
+        p = pf.Profile('case4', 10, 1)
+        plan = pf.plan(p, CONSTS)
+        self.assertEqual(plan['case4']['readiness_expiry_ms'], 30)
+        self.assertEqual(plan['case4']['heartbeat_request_us'], 100)
+        self.assertEqual(plan['case4']['translation_capacity'], 2)
+        self.assertEqual(plan['writes'], [])
+        self.assertTrue(plan['activation_blockers'])
+
+    def test_nominal_token_loop_does_not_provide_case4_wall_clock_bound(self):
+        self.assertIsNone(pf.hold_bound_ms(pf.Profile('case4', 10, 1)))
+
+    def test_current_compiled_schema_refuses_joint_case4_before_any_write(self):
+        dev, calls = make()
+        with self.assertRaises(pf.ActivationError) as cm:
+            pf.activate(dev, pf.Profile('case4', 10, 1), CONSTS, mock=True)
+        self.assertEqual(calls, [])
+        self.assertIn('joint', str(cm.exception))
+
+    def test_case4_duration_requires_measured_heartbeat_drain_and_release(self):
+        p = pf.Profile('case4', 10, 1, measured_heartbeat_max_us=150,
+                       measured_drain_max_ms=2, measured_release_max_us=50,
+                       completion_deadline_ms=35)
+        self.assertAlmostEqual(pf.hold_bound_ms(p), 37.2)
+        self.assertTrue(pf.admission_problem(pf.Profile('case4', 10, 1), None))
+
+
+class Case4Runner(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0, str(HERE.parent / 'runner'))
+        import cli
+        self.cli = cli
+
+    def test_plan_accepts_explicit_case4_measurements(self):
+        import contextlib, io, json
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result = self.cli.run(['plan', '--case', 'case4', '--d-a-ms', '10',
+                '--completion-deadline-ms', '35', '--measured-heartbeat-max-us', '150',
+                '--measured-drain-max-ms', '2', '--measured-release-max-us', '50'])
+        self.assertEqual(result, 0)
+        self.assertAlmostEqual(json.loads(output.getvalue())['plan']['hold_bound_ms'], 37.2)
+
+    def test_verify_cannot_report_success_for_an_empty_joint_write_plan(self):
+        import contextlib, io
+        calls = []
+        with contextlib.redirect_stdout(io.StringIO()):
+            result = self.cli.run(['verify', '--case', 'case4', '--d-a-ms', '10'],
+                                  lambda: calls.append('connected'))
+        self.assertEqual(result, 1)
+        self.assertEqual(calls, [])
+
+    def test_campaign_plan_computes_aggregate_budget_without_a_device(self):
+        import contextlib, io, json
+        output = io.StringIO(); calls = []
+        with contextlib.redirect_stdout(output):
+            result = self.cli.run(['plan', '--campaign', str(HERE.parent / 'declarations/case4_campaign.json')],
+                                  lambda: calls.append('connected'))
+        self.assertEqual(result, 0)
+        self.assertEqual(json.loads(output.getvalue())['campaign_budget']['attempted_transactions'], 16168)
+        self.assertEqual(calls, [])
+
+
+class ProfileSchemaGuards(unittest.TestCase):
+    def extra_field_schema(self, name):
+        import json
+        doc = json.loads(BFRT.read_text())
+        table = next(t for t in doc['tables'] if t['name'] == 'pipe.Ingress.tbl_params')
+        action = next(a for a in table['action_specs'] if a['name'] == 'Ingress.set_params')
+        action['data'].append({'name': name, 'type': {'type': 'uint8', 'width': 8}})
+        return Schema(doc)
+
+    def test_shaping_field_guard_remains_for_case4(self):
+        dev, calls = make(schema=self.extra_field_schema('shape_enable'))
+        with self.assertRaises(pf.ActivationError) as cm:
+            pf.activate(dev, pf.Profile('case4', 10, 1), CONSTS, mock=True)
+        self.assertIn('shaping field', str(cm.exception))
+        self.assertEqual(calls, [])
+
+    def test_entire_legacy_write_plan_is_schema_checked_before_first_write(self):
+        dev, calls = make(schema=self.extra_field_schema('additional_required_field'))
+        with self.assertRaises(SchemaError):
+            pf.activate(dev, pf.Profile('combined', 10, 1), CONSTS, mock=True)
+        self.assertEqual(calls, [])
+
+    def test_case4_cap_charges_drain_cost_after_completion_deadline(self):
+        p = pf.Profile('case4', 20, 1, completion_deadline_ms=35,
+                       measured_heartbeat_max_us=150, measured_drain_max_ms=5,
+                       measured_release_max_us=50)
+        self.assertTrue(any('clamp' in s for s in pf.problems(p, CONSTS)))
+
+    def test_case4_completion_deadline_preserves_full_gap(self):
+        p = pf.Profile('case4', 20, 8, completion_deadline_ms=35)
+        self.assertTrue(any('truncate' in s for s in pf.problems(p, CONSTS)))
+
+
+if __name__ == "__main__":
+    unittest.main()

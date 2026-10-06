@@ -52,6 +52,17 @@ and the distinction between measurements and later candidates.
 
 ## Hard rules
 
+- **Current Case 4 scope (2026-10-06).** Philip authorized implementation of the
+  Case 4 plan in the current session. This supersedes the older no-size/no-BMv2
+  working-code restriction below: separate candidate code, offline tests,
+  protocol-aware command padding and response carving, isolated BMv2 work,
+  compiler evidence, analysis, and a separate framework working-paper candidate
+  are authorized. Cases 1–3 remain explanation-only history. Work directly on
+  `main`, with no new branch or push. Preserve all existing local edits and
+  frozen sources, raw measurements, and `paper/rewrite/`. New live holding,
+  padding, instrumentation, SELECT, and OPERATE runs require their actual
+  recorded authorization and admission/restoration gates; physical OPERATE is
+  attended-only. Existing OFF-smoke/timer authorization is not blanket authority.
 - **Commit authorship:** all commits must use Philip's Git identity
   (`akekulip <akekulip@gmail.com>`) for both author and committer. Do not add
   co-author trailers or attribution to any other contributor.

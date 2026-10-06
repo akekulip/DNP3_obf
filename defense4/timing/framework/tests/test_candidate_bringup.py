@@ -23,6 +23,18 @@ def frozen_sequence():
 
 
 class Bringup(unittest.TestCase):
+    def test_current_case4_constants_are_separate_and_source_bound(self):
+        import hashlib
+        source = TIMING / "response_ready/src/defense4_response_ready.p4"
+        c = json.loads((HERE.parent / "control/consts_case4.json").read_text())
+        self.assertEqual(c["_source_sha256"], hashlib.sha256(source.read_bytes()).hexdigest())
+        modes = {name: int(value) for name, value in re.findall(
+            r"const bit<8>\s+(MODE_\w+)\s*=\s*8w(\d+)\s*;", source.read_text())}
+        self.assertEqual({name: value for name, value in c.items() if name.startswith("MODE_")}, modes)
+        self.assertIs(c["_deployment_authorized"], False)
+        self.assertIn('default=str(HERE / "consts.json")', BRING)
+        self.assertNotIn('default=str(HERE / "consts_case4.json")', BRING)
+
     def test_every_helper_it_calls_is_in_the_proven_sequence(self):
         proven = {c.replace("m.", "") if c.startswith("m.") else c for c in frozen_sequence()}
         mine = {c.replace("m.", "") if c.startswith("m.") else c for c in calls(BRING.split("def main")[1])}
@@ -56,11 +68,20 @@ class Bringup(unittest.TestCase):
     def test_list_mode_touches_nothing(self):
         self.assertEqual(cb.main(["--list"]), 0)
 
-    def test_constants_file_is_bound_to_the_source(self):
+    def test_historical_constants_are_bound_to_the_retained_bringup_build(self):
         c = json.loads((HERE.parent / "control/consts.json").read_text())
         import hashlib
-        src = hashlib.sha256((TIMING / "response_ready/src/defense4_response_ready.p4").read_bytes()).hexdigest()
-        self.assertEqual(c["_source_sha256"], src)
+        baseline = TIMING / "response_ready/evidence/sde_9_13_2_build_03"
+        manifest = json.loads((baseline / "manifest.json").read_text())
+        source = baseline / "defense4_timing.p4"
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        self.assertEqual(manifest["source_sha256"], digest)
+        self.assertEqual(c["_source_sha256"], digest)
+        self.assertEqual(manifest["exit_code"], 0)
+        self.assertIn("p4c 9.13.2", manifest["compiler"])
+        modes = {name: int(value) for name, value in re.findall(
+            r"const bit<8>\s+(MODE_\w+)\s*=\s*8w(\d+)\s*;", source.read_text())}
+        self.assertEqual({name: value for name, value in c.items() if name.startswith("MODE_")}, modes)
         self.assertEqual((c["MODE_OFF"], c["MODE_D2_RESP"], c["MODE_D4_DUAL"]), (0, 2, 4))
 
 

@@ -1,0 +1,67 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2000): [--Wwarn=unused] warning: Table tbl_expected_ack is not used; removing
+    table tbl_expected_ack {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2185): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2189): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2193): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2201): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2312): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2313): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2471): [--Wwarn=unused] warning: Table tbl_held_owner is not used; removing
+    table tbl_held_owner {
+          ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2485): [--Wwarn=unused] warning: Table tbl_commit is not used; removing
+    table tbl_commit {
+          ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(888): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(886)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+[--Wwarn=target-error] warning: Tofino does not support clear-on-write semantic on re-assignment to field ingress::meta.cookie_in in parser state ingress::parse_generated_token. Try to use advance() to skip over there-assigned values and only extract them once.
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): [--Wwarn=target-error] warning: ingress::meta.cookie_in[15:0] is assigned in state ingress::parse_generated_token but has also previous assignment. See the following errors for the list of previous assignments. This re-assignment is not supported by Tofino.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): warning: ingress::meta.cookie_in[31:16] previously assigned in state ingress::parse_generated_token.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+[--Wwarn=target-error] warning: Tofino does not support clear-on-write semantic on re-assignment to field ingress::meta.cookie_in in parser state ingress::parse_generated_token. Try to use advance() to skip over there-assigned values and only extract them once.
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): [--Wwarn=target-error] warning: ingress::meta.cookie_in[15:0] is assigned in state ingress::parse_generated_token but has also previous assignment. See the following errors for the list of previous assignments. This re-assignment is not supported by Tofino.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): warning: ingress::meta.cookie_in[31:16] previously assigned in state ingress::parse_generated_token.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+[--Wwarn=target-error] warning: Tofino does not support clear-on-write semantic on re-assignment to field ingress::meta.cookie_in in parser state ingress::parse_generated_token. Try to use advance() to skip over there-assigned values and only extract them once.
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): [--Wwarn=target-error] warning: ingress::meta.cookie_in[15:0] is assigned in state ingress::parse_generated_token but has also previous assignment. See the following errors for the list of previous assignments. This re-assignment is not supported by Tofino.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(1246): warning: ingress::meta.cookie_in[31:16] previously assigned in state ingress::parse_generated_token.
+        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;
+        ^^^^^^^^^^^^^^
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2802): The stage specified for table Ingress.tbl_resp_authorise is 2, but we could not place it until stage 5
+    table tbl_resp_authorise {
+          ^^^^^^^^^^^^^^^^^^
+
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_expiry_build_03/defense4_timing.p4(2863): The stage specified for table Ingress.tbl_state_decode is 4, but we could not place it until stage 7
+    table tbl_state_decode {
+          ^^^^^^^^^^^^^^^^
+
+
+0 errors, 23 warnings generated.
+
