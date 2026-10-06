@@ -25,7 +25,7 @@ class Files(unittest.TestCase):
             self.assertEqual(self.load(n)["source"]["sha256"], hashlib.sha256(src.read_bytes()).hexdigest(), n)
 
     def test_build_identity_matches_the_9_13_2_manifest(self):
-        man = json.loads((TIMING / "response_ready/evidence/sde_9_13_2_build_02/manifest.json").read_text())
+        man = json.loads((TIMING / "response_ready/evidence/sde_9_13_2_build_03/manifest.json").read_text())
         for n in ("smoke", "main"):
             b = self.load(n)["build"]
             self.assertEqual(b["sha256"], man["artifact_sha256"]["pipe/tofino.bin"])

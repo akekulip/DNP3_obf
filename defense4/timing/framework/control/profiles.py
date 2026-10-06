@@ -9,9 +9,16 @@ from dataclasses import dataclass
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ACTIVE = HERE.parents[0] / "active_control"
-sys.path.insert(0, str(HERE.parents[3]))                       # repo root, for the defense4 package
-from defense4.timing.active_control import timing_only_profile as top   # noqa: E402  (admission binding)
+MAX_HOLD_MS = 40.0       # the control-plane clamp; a test asserts it equals timing_only_profile.MAX_D_A_MS
+
+
+def _top():
+    """The repository's admission binding. Imported lazily so this module also runs on the switch host, which has no checkout."""
+    root = HERE.parents[3]
+    if (root / "defense4").exists() and str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from defense4.timing.active_control import timing_only_profile as top   # noqa: WPS433
+    return top
 
 TICK_NS = 256
 PARAMS, BOR, RELEASE = "tbl_params", "tbl_bor_params", "tbl_read_release_params"
@@ -60,8 +67,8 @@ def problems(p, consts):
         out.append("%s holds nothing for D_A; D_A must be 0, got %r ms" % (p.case, p.d_a_ms))
     if d + g >= 2 ** 31:
         out.append("D_A + gap exceeds the modular half-range")
-    if hold_bound_ms(p) > top.MAX_D_A_MS:
-        out.append("worst-case hold %.3f ms exceeds the %.1f ms clamp" % (hold_bound_ms(p), top.MAX_D_A_MS))
+    if hold_bound_ms(p) > MAX_HOLD_MS:
+        out.append("worst-case hold %.3f ms exceeds the %.1f ms clamp" % (hold_bound_ms(p), MAX_HOLD_MS))
     if not (1 <= p.budget < 2 ** 32):
         out.append("budget out of range")
     return out
@@ -89,6 +96,7 @@ def plan(p, consts):
 
 def admission_problem(p, admission):
     """Delegate to the repository's binding check, charged with the worst-case hold (not D_A alone)."""
+    top = _top()
     tp = top.TimingOnlyProfile(connection_id=p.connection_id, build_id=p.build_id,
                                d_a_ms=hold_bound_ms(p), clrt_new_ms=p.gap_ms)
     return top._admission_problem(admission, tp)

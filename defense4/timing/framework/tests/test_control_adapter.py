@@ -137,6 +137,9 @@ class Profiles(unittest.TestCase):
         pl = pf.plan(pf.Profile("ack_focused", 0, 0.000256), CONSTS)
         self.assertEqual(pl["quantised_ns"]["gap"], 256)
 
+    def test_the_clamp_constant_equals_the_repository_value(self):
+        self.assertEqual(pf.MAX_HOLD_MS, pf._top().MAX_D_A_MS)
+
     def test_worst_case_hold_is_the_watchdog_horizon_not_d_a(self):
         self.assertAlmostEqual(pf.hold_bound_ms(pf.Profile("combined", 5.0, 1.0)), 18000 * 1711 / 1e6)
 
@@ -181,7 +184,7 @@ class Profiles(unittest.TestCase):
         adm = {"verdict": "admitted_conditional", "claim": {"kind": "admitted_conditional"},
                "policy": {"d_a_ms": pf.hold_bound_ms(prof), "clrt_new_ms": 1.0,
                           "context": {"build_id": "rr-35", "connection_id": "relay-sel751"}},
-               "checks": [{"constraint": n, "ok": True} for n in pf.top.REQUIRED_ADMISSION_CHECKS],
+               "checks": [{"constraint": n, "ok": True} for n in pf._top().REQUIRED_ADMISSION_CHECKS],
                "policy_cap": {"ok": True}}
         rec = pf.activate(dev, prof, CONSTS, mock=False, admission=adm)
         self.assertEqual(len([c for c in calls if c[0] == "set"]), 4)
