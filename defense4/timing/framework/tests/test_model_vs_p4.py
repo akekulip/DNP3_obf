@@ -19,14 +19,14 @@ MS = 1_000_000
 DA, GAP = 10 * MS, 1 * MS
 TAU, ADM = 1711, 5000
 GRID = 256
-FWD = {"late_native", "stale_forwarded", "forwarded_unchanged", "unmatched_forwarded", "forwarded_ungated"}
+FWD = {"forwarded", "late_native", "stale_forwarded", "forwarded_unchanged", "unmatched_forwarded", "forwarded_ungated"}
 
 
 def klass(reason):
     return "fwd" if reason in FWD else reason
 
 
-def both(events, da=DA, budget=18000, offset=0):
+def both(events, da=DA, budget=18000, offset=0, mode="MODE_D4_DUAL", policy="dual", gap=GAP):
     """events: (t, 'REQ'|'ACK'|'RESP', match). Returns (model outs, sim outs)."""
     mev = []
     for t, kind, match in events:
@@ -35,8 +35,8 @@ def both(events, da=DA, budget=18000, offset=0):
         else:
             mev.append(Ev(t, kind, epoch=1, ack=1022 if match else 5, app=5))
     horizon = ADM + (budget + 1) * TAU
-    m = ResponseReadyModel(da, GAP, horizon_ns=horizon).run(mev)
-    s = P4Sim(da, GAP, tau_ns=TAU, budget=budget, adm_delay_ns=ADM, t_offset_ns=offset).run(events)
+    m = ResponseReadyModel(da, gap, horizon_ns=horizon, policy=policy).run(mev)
+    s = P4Sim(da, gap, tau_ns=TAU, budget=budget, adm_delay_ns=ADM, t_offset_ns=offset, mode=mode).run(events)
     mo = [(o.kind, o.t, klass(o.reason)) for o in m.outs if o.kind in ("ACK", "RESP")]
     so = [(k, t, klass(r)) for k, t, r in s.outs]
     return m, s, sorted(mo, key=lambda x: (x[1], x[0])), sorted(so, key=lambda x: (x[1], x[0]))
@@ -104,6 +104,68 @@ class FallbackAgree(unittest.TestCase):
         m, s, mo, so = both(ev, da=self.DA2, budget=self.B)
         self.assertEqual([(k, c) for k, _, c in mo], [(k, c) for k, _, c in so], (mo, so, s.trace[-6:]))
         self.assertEqual(s.counters.get("completed"), 1)
+
+
+class AckFocusedAgree(unittest.TestCase):
+    """Case 1 needs no P4 change: MODE_D4_DUAL with D_A = 0 holds the ACK exactly until the response is
+    seen, then spaces the response by the minimal guard. Needs a control-plane profile that allows D_A = 0."""
+
+    def test_gap_is_constant_whatever_the_response_latency(self):
+        gaps = []
+        for t_r in (1 * MS, 4 * MS, 12 * MS, 25 * MS):
+            ev = [(0, "REQ", True), (500_000, "ACK", True), (t_r, "RESP", True)]
+            m, s, mo, so = both(ev, da=0, gap=256)
+            self.assertEqual([(k, c) for k, _, c in mo], [(k, c) for k, _, c in so], (mo, so))
+            ack, rsp = (next(t for k, t, _ in so if k == kind) for kind in ("ACK", "RESP"))
+            self.assertGreaterEqual(ack, t_r, "the ACK must wait for the response")
+            self.assertLessEqual(ack - t_r, 2 * TAU, "...and leave as soon as it is seen")
+            gaps.append(rsp - ack)
+        self.assertLessEqual(max(gaps) - min(gaps), 2 * TAU, gaps)
+        self.assertLessEqual(max(gaps), 2 * TAU + GRID, "the guard is one token loop, not a native spread")
+
+    def test_request_to_ack_now_carries_the_response_latency(self):
+        """What the observer still sees: with D_A = 0 the ACK moves to the response, so request-to-ACK
+        becomes the device's response latency. Compression of CLRT is not removal of the information."""
+        s = P4Sim(0, 256, tau_ns=TAU, adm_delay_ns=ADM).run([(0, "REQ", True), (500_000, "ACK", True), (7 * MS, "RESP", True)])
+        self.assertGreaterEqual(s.outs[0][1], 7 * MS)
+
+
+class ResponseFocusedAgree(unittest.TestCase):
+    """Case 2 in MODE_D2_RESP: ACK forwarded on arrival, response at max(t_R, t_A + gap)."""
+    KW = dict(mode="MODE_D2_RESP", policy="response_focused")
+
+    def check(self, events, **kw):
+        m, s, mo, so = both(events, **self.KW, **kw)
+        self.assertEqual([(k, c) for k, _, c in mo], [(k, c) for k, _, c in so], (mo, so, s.trace[:5]))
+        for (k, tm, c), (_, ts, _) in zip(mo, so):
+            if k == "ACK":
+                self.assertEqual(tm, ts, "the ACK must leave on arrival")
+            else:
+                self.assertTrue(-GRID <= ts - tm <= 2 * TAU + GRID, (k, tm, ts, ts - tm))
+        return s
+
+    def test_response_inside_the_window_waits_for_the_ack_relative_deadline(self):
+        s = self.check([(0, "REQ", True), (2 * MS, "ACK", True), (2 * MS + 300_000, "RESP", True)])
+        self.assertEqual(s.counters.get("completed"), 1)
+
+    def test_response_after_the_window_is_not_delayed(self):
+        self.check([(0, "REQ", True), (2 * MS, "ACK", True), (8 * MS, "RESP", True)])
+
+    def test_response_before_the_ack(self):
+        self.check([(0, "REQ", True), (MS, "RESP", True), (3 * MS, "ACK", True)])
+
+    def test_gap_is_constant_inside_the_window(self):
+        gaps = []
+        for t_r in (2 * MS + 1000, 2 * MS + 400_000, 2 * MS + 900_000):
+            s = P4Sim(DA, GAP, tau_ns=TAU, adm_delay_ns=ADM, mode="MODE_D2_RESP").run(
+                [(0, "REQ", True), (2 * MS, "ACK", True), (t_r, "RESP", True)])
+            a, r = s.outs
+            gaps.append(r[1] - a[1])
+        self.assertLessEqual(max(gaps) - min(gaps), 2 * TAU, gaps)
+
+    def test_back_to_back(self):
+        self.check([(0, "REQ", True), (MS, "ACK", True), (1_500_000, "RESP", True),
+                    (100 * MS, "REQ", True), (101 * MS, "ACK", True), (101_500_000, "RESP", True)])
 
 
 class FaultsAndLimits(unittest.TestCase):

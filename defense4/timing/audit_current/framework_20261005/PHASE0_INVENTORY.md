@@ -25,8 +25,8 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
 
 ## Candidate baseline (response_ready)
 
-- Source `src/defense4_response_ready.p4`, sha256 `cedded03dfbf80dec671f73cf51767a608ae9a91bda71d7e528d7ab4e5498e79 (was ceececa3… until 2026-10-06)`.
-- `python3 -B -m unittest discover -s defense4/timing/response_ready/tests`: **46 tests OK** (run this session).
+- Source `src/defense4_response_ready.p4`, sha256 `6387c588b5019ee473153bb89e572cd1bbf326daa00d3b4a514c831e6798778e` (was `cedded03…` before the Case 2 rows, `ceececa3…` before 2026-10-06).
+- `python3 -B -m unittest discover -s defense4/timing/response_ready/tests`: **47 tests OK** (run this session).
 - The "4/7 release failures, 1 failure + 2 errors recovery" in the handover are the committed *RED* logs
   (`evidence/red_p4_release.log`, `red_p4_recovery.log`, 2026-09-29), written before the implementation as the
   test-first record. They are not current failures.
@@ -42,7 +42,7 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
   Source sha256 is now `cedded03dfbf80dec671f73cf51767a608ae9a91bda71d7e528d7ab4e5498e79`.
 - Residual from the same review: in MODE_OFF / MODE_FAIL_OPEN a timeout drop leaves the owner armed
   (build 22 behaved the same). Not reachable under `control.py`, which always sets D4_DUAL.
-- Compile of the *current* source: SDE 9.13.1 `evidence/local_build_34` — 7 ingress / 0 egress, 88 tables,
+- Compile of the *current* source: SDE 9.13.1 `evidence/local_build_35` (build 34 was the source before the Case 2 rows) — 7 ingress / 0 egress, 88 tables,
   `verify_build.py` passes. Builds 32 and 33 and `sde_9_13_2_build_01` are of earlier sources and are
   correctly rejected as stale. **SDE 9.13.2 rebuild on the switch host is still to do.**
 
@@ -53,7 +53,7 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
 | `active_harness/tests` | 58 OK |
 | `active_control/tests` | 98 OK |
 | `active_probe/tests` | 39 OK |
-| `response_ready/tests` | 46 OK |
+| `response_ready/tests` | 47 OK |
 
 Total for the three assignment suites: 195, matching the assignment's count.
 

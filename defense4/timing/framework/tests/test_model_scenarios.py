@@ -73,6 +73,49 @@ class Release(unittest.TestCase):
         self.check(run([req(), ack(MS), resp(DEFAULT_H_NS)]), DEFAULT_H_NS)
 
 
+class ResponseFocused(unittest.TestCase):
+    """Case 2: the ACK is forwarded on arrival; e_R = max(t_R, t_A + gap)."""
+
+    def go(self, events, **kw):
+        return ResponseReadyModel(DA, 1 * MS, policy="response_focused", **kw).run(events)
+
+    def outs(self, r):
+        return [(o.kind, o.t, o.reason) for o in r.outs if o.kind != "REQ"]
+
+    def test_ack_is_never_held(self):
+        r = self.go([req(), ack(500_000), resp(40 * MS // 4)])
+        self.assertEqual(self.outs(r)[0], ("ACK", 500_000, "forwarded"))
+
+    def test_response_before_the_ack_relative_deadline_waits_for_it(self):
+        r = self.go([req(), ack(2 * MS), resp(2 * MS + 100_000)])
+        self.assertEqual(self.outs(r), [("ACK", 2 * MS, "forwarded"), ("RESP", 2 * MS + GAP, "normal")])
+
+    def test_response_after_the_deadline_is_not_delayed(self):
+        r = self.go([req(), ack(2 * MS), resp(8 * MS)])
+        self.assertEqual(self.outs(r)[1], ("RESP", 8 * MS, "normal"))
+
+    def test_response_first_then_ack(self):
+        r = self.go([req(), resp(MS), ack(3 * MS)])
+        self.assertEqual(self.outs(r), [("ACK", 3 * MS, "forwarded"), ("RESP", 3 * MS + GAP, "normal")])
+
+    def test_gap_is_constant_for_responses_inside_the_window(self):
+        gaps = []
+        for t_r in (2 * MS + 1, 2 * MS + 300_000, 2 * MS + 900_000):
+            o = self.outs(self.go([req(), ack(2 * MS), resp(t_r)]))
+            gaps.append(o[1][1] - o[0][1])
+        self.assertEqual(set(gaps), {GAP})
+
+    def test_response_never_arrives_leaves_ack_out_and_state_free(self):
+        r = self.go([req(), ack(MS)])
+        self.assertEqual(self.outs(r), [("ACK", MS, "forwarded")])
+        self.assertEqual(r.counters, {"fallback_no_response": 1})
+
+    def test_ack_never_arrives_response_released_by_watchdog(self):
+        r = self.go([req(), resp(MS)])
+        self.assertEqual(self.outs(r), [("RESP", DEFAULT_H_NS, "watchdog")])
+        self.assertEqual(r.counters, {"fallback_no_ack": 1})
+
+
 class Fallback(unittest.TestCase):
     def test_never_arrives(self):
         r = run([req(), ack(MS)])

@@ -61,8 +61,10 @@ class Result:
 
 class ResponseReadyModel:
     def __init__(self, da_ns: int, gap_ns: int, anchor: str = "request",
-                 horizon_ns: int = DEFAULT_H_NS):
+                 horizon_ns: int = DEFAULT_H_NS, policy: str = "dual"):
         assert anchor in ("request", "native_ack")
+        assert policy in ("dual", "response_focused")
+        self.policy = policy
         self.da, self.gap = quantize_ns(da_ns), quantize_ns(gap_ns)
         self.anchor, self.H = anchor, horizon_ns
         self.r = Result()
@@ -80,6 +82,13 @@ class ResponseReadyModel:
         if self.s != "ARMED":
             return []
         out = []
+        if self.policy == "response_focused":
+            # ACK is forwarded on arrival; only the response is scheduled, ACK-relative.
+            if self.eR is None and self.tA is not None and self.tR is not None:
+                out.append((max(self.tR, self.tA + self.gap), 0, "resp_release"))
+            if self.eR is None:
+                out.append((self.t0 + self.H, 1, "watchdog"))
+            return out
         if self.eA is None and self.tA is not None and self.tR is not None:
             if self.anchor == "request":
                 e = max(self.t0 + self.da, self.tR, self.tA)
@@ -98,11 +107,20 @@ class ResponseReadyModel:
             self.eR = t + self.gap
             self.r.outs.append(Out("ACK", t, "normal"))
         elif name == "resp_release":
+            if self.policy == "response_focused":
+                self.eR = t
             self.r.outs.append(Out("RESP", t, "normal"))
             self.r.count("normal")
             self.s = "IDLE"
             self._clear()
         elif name == "watchdog":
+            if self.policy == "response_focused":
+                # the ACK already left on arrival; only a seen response is still held
+                if self.tR is not None:
+                    self.r.outs.append(Out("RESP", t, "watchdog"))
+                self.r.count("fallback_no_response" if self.tR is None else "fallback_no_ack")
+                self.s = "FALLBACK"
+                return
             if self.tA is not None:
                 self.r.outs.append(Out("ACK", t, "watchdog"))
             if self.tR is not None:       # response was seen but the ACK never arrived
@@ -145,6 +163,8 @@ class ResponseReadyModel:
             if self.tA is not None or self.eA is not None:
                 r.count("dup_ack_dropped"); return
             self.tA = e.t
+            if self.policy == "response_focused":
+                r.outs.append(Out("ACK", e.t, "forwarded"))
         elif e.kind == "RESP":
             match = (e.epoch == self.epoch and e.ack == self.expect_ack and e.app == self.app)
             if self.s == "FALLBACK" and match:

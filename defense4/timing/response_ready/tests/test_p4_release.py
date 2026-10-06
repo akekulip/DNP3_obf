@@ -49,6 +49,27 @@ class ReleaseTables(unittest.TestCase):
         for key in ('seq_diff','ack_diff','sport_diff'):
             self.assertEqual(self.select('tbl_resp_deadline',read_release=1,anchor_req=1,pkt_class=self.c['CLASS_ACK_REL'],**{key:1}),'resp_dl_read')
 
+    def test_response_focused_mode_arms_on_the_fresh_ack(self):
+        c = self.c
+        fresh = dict(read_release=1, anchor_req=1, pkt_class=c['CLASS_ACK'])
+        self.assertEqual(self.select('tbl_resp_deadline', mode=c['MODE_D2_RESP'], **fresh), 'resp_dl_arm')
+        for mode in ('MODE_D4_DUAL', 'MODE_D3_ACK', 'MODE_OFF'):       # only mode 2 arms on the fresh ACK
+            self.assertEqual(self.select('tbl_resp_deadline', mode=c[mode], **fresh), 'resp_dl_read', mode)
+        for key in ('seq_diff', 'ack_diff', 'sport_diff'):              # an unassociated ACK never arms
+            self.assertEqual(self.select('tbl_resp_deadline', mode=c['MODE_D2_RESP'], **fresh, **{key: 1}),
+                             'resp_dl_read', key)
+        base = dict(read_release=1, owner_valid=1, txn_active=0)
+        self.assertEqual(self.select('tbl_decide_fresh', mode=c['MODE_D2_RESP'], pkt_class=c['CLASS_ACK'],
+                                     verdict=c['V_ACK_ARM'], ack_first=0, **{k: v for k, v in base.items() if k != 'owner_valid'}),
+                         'OUT_ACK_FWD_ARM')
+        self.assertEqual(self.select('tbl_decide_fresh', mode=c['MODE_D4_DUAL'], pkt_class=c['CLASS_ACK'],
+                                     verdict=c['V_ACK_ARM'], ack_first=0, read_release=1), 'OUT_ACK_DUP_HOLD')
+        for mode in ('MODE_D2_RESP', 'MODE_D4_DUAL'):
+            self.assertEqual(self.select('tbl_decide_fresh', mode=c[mode], pkt_class=c['CLASS_ARM'],
+                                         verdict=c['V_ARM_FRESH'], read_release=1), 'OUT_ARM_FRESH', mode)
+        self.assertEqual(self.select('tbl_decide_fresh', mode=c['MODE_D3_ACK'], pkt_class=c['CLASS_ARM'],
+                                     verdict=c['V_ARM_FRESH'], read_release=1), 'OUT_ARM_BUSY')
+
     def test_return_deadline_arms_once_across_wrap(self):
         body=sem.extract_register_action_block(self.source,'tresp_arm_once').replace('meta.dl_val_resp','meta.dl_val')
         for now in (0x100001,0xFFFFF001):
@@ -76,7 +97,12 @@ class ReleaseTables(unittest.TestCase):
         mutations=(
             ('test_live_blocker_waits_even_after_deadline', 'dec_loop(OUT_AB_LOOP);', 'dec_o(OUT_AB_DL);'),
             ('test_fresh_request_disarms', ': resp_dl_disarm();', ': resp_dl_rmw();'),
-            ('test_qualified_return_arms', ': resp_dl_arm();', ': resp_dl_read();'),
+            ('test_qualified_return_arms',
+             'CLASS_ACK_REL, 8w0&&&8w0, 32w0, 32w0, 16w0, 8w1, 32w0, 8w0&&&8w0) : resp_dl_arm();',
+             'CLASS_ACK_REL, 8w0&&&8w0, 32w0, 32w0, 16w0, 8w1, 32w0, 8w0&&&8w0) : resp_dl_read();'),
+            ('test_response_focused_mode_arms_on_the_fresh_ack',
+             'CLASS_ACK, 8w0&&&8w0, 32w0, 32w0, 16w0, 8w1, 32w0&&&32w0, MODE_D2_RESP) : resp_dl_arm();',
+             'CLASS_ACK, 8w0&&&8w0, 32w0, 32w0, 16w0, 8w1, 32w0&&&32w0, MODE_D2_RESP) : resp_dl_read();'),
         )
         for check, old, new in mutations:
             with self.subTest(check=check):

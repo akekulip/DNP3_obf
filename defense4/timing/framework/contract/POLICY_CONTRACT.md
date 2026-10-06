@@ -62,3 +62,19 @@ same instant (a response that makes it in time wins). The response never precede
 
 Instants are 32-bit ticks of 256 ns (wrap about 1,099 s). Comparisons decode modularly with half-range:
 `due(now, deadline) = ((now - deadline) mod 2^32) < 2^31`. Windows longer than half range are unsupported.
+
+## Per-type timing cases (2026-10-06)
+
+Only `MODE_D4_DUAL` armed in the source before this date; D1, D2 and D3 were accepted by the control plane and bypassed the
+request as busy. Two cases are now selectable from the same machinery.
+
+| case | mode / config | ACK | response | ideal rule | status |
+|---|---|---|---|---|---|
+| combined (existing) | `MODE_D4_DUAL`, D_A > 0 | held to max(t_0 + D_A, t_R) | e_A + gap | as above | offline-tested, compiled |
+| Case 1, ACK-focused | `MODE_D4_DUAL`, **D_A = 0**, gap = minimal guard | held until the response is seen, then released at once | e_A + guard | e_A = max(t_R, t_A); e_R = e_A + guard | offline-tested against the model; needs a control profile that allows D_A = 0 (`control.py` allows only 5/10/15/20 ms) |
+| Case 2, response-focused | `MODE_D2_RESP` | forwarded on arrival (never held) | held to the ACK-relative deadline | e_R = max(t_R, t_A + gap) | offline-tested, compiled (9.13.1); new P4 rows |
+
+Case 1 removes the native ACK-to-response spread but moves request-to-ACK onto the response latency, so it compresses CLRT without
+removing the information. Case 2 leaves request-to-ACK native and normalises only responses that arrive inside the window; a late
+response is not delayed. A fixed ACK shift is a separate analytical case and is not implemented. A combined-ACK device has no
+separate ACK: Case 2 never arms (no pure ACK), so the response is held to the watchdog; use a request-relative policy or bypass.

@@ -39,7 +39,7 @@ def now_word(t_ns):
 
 
 class P4Sim:
-    def __init__(self, da_ns, gap_ns, tau_ns=1711, budget=18000, adm_delay_ns=5000, t_offset_ns=0):
+    def __init__(self, da_ns, gap_ns, tau_ns=1711, budget=18000, adm_delay_ns=5000, t_offset_ns=0, mode="MODE_D4_DUAL"):
         self.src = SOURCE.read_text()
         self.c = sem.extract_consts(self.src)
         self.tables = {n: sem.parse_const_table(self.src, n, self.c) for n in (
@@ -48,7 +48,7 @@ class P4Sim:
             "tbl_build_cand_resp")}
         # control.py floors both to the 256 ns grid; the P4's due test needs the low byte of D to be zero
         self.da, self.gap = (da_ns // 256) * 256, (gap_ns // 256) * 256
-        self.tau, self.budget = tau_ns, budget
+        self.tau, self.budget, self.mode = tau_ns, budget, mode
         self.adm_delay, self.off = adm_delay_ns, t_offset_ns
         self.regs = {v: 0 for v in REG_OF.values()}
         self.outs, self.counters, self.trace = [], {}, []
@@ -103,7 +103,7 @@ class P4Sim:
         return out
 
     def base(self):
-        return dict(read_release=1, anchor_req=1, mode=self.c["MODE_D4_DUAL"], bor_pc=0, hold_ok=0)
+        return dict(read_release=1, anchor_req=1, mode=self.c[self.mode], bor_pc=0, hold_ok=0)
 
     # ---- external packets (fresh pass) -----------------------------------------------
     def _owner_pass(self, t, meta, cookie_in):
@@ -117,7 +117,7 @@ class P4Sim:
         m = self.base(); c = self.c
         m.update(pkt_class=c["CLASS_ARM"], role=c["ROLE_ARM"], sess=c["SESS_MASTER"])
         act, prior = self._owner_pass(t, m, 0)
-        assert act == "owner_admit", act
+        self.admitted = act == "owner_admit"
         m["owner"] = prior
         self._valid(m)
         free = (prior & 0x80000000) == 0 and (prior & 0xFFFF) != 0xFFFF        # tracker_write
@@ -134,6 +134,7 @@ class P4Sim:
         self.trace.append(("REQ", t, dec, outcome))
         if outcome == "OUT_ARM_FRESH":
             self.count("arm_fresh")
+            self.slot_open = {"ACK": None, "RESP": None}            # a new transaction has new tokens
             self._push(t + self.adm_delay, "ADMIT", "ACK")
             self._push(t + self.adm_delay, "ADMIT", "RESP")
         else:
@@ -151,14 +152,16 @@ class P4Sim:
         r = self.run_action(dec, t, dict(m, dl_val=self.candidate("build_cand", t)))
         m.update(verdict=r["verdict"], ack_first=r.get("ack_first", 0))
         rdl, _ = self.table("tbl_resp_deadline", **m)
-        self.run_action(rdl, t, m)
+        self.run_action(rdl, t, dict(m, dl_val_resp=self.candidate(self.table("tbl_build_cand_resp", **m)[0], t)))
         _, outcome = self.table("tbl_decide_fresh", **m)
         self.trace.append(("ACK", t, dec, outcome))
         if outcome in ("OUT_ACK_HOLD", "OUT_ACK_DUP_HOLD"):
             if self.slot_open["ACK"] is not None:           # queue already ungated: leaves at once
-                self._ack_release(t, "forwarded_ungated")
+                self._ack_release(t, self.slot_open["ACK"])
             else:
                 self.held["ACK"] = t
+        elif outcome == "OUT_ACK_FWD_ARM":
+            self.outs.append(("ACK", t, "forwarded")); self.count("ack_forwarded_armed")
         else:
             self.outs.append(("ACK", t, "unmatched_forwarded")); self.count("ack_unmatched")
 
@@ -234,7 +237,7 @@ class P4Sim:
             self._push(t + self.tau, "PASS", slot)
             return
         del self.tokens[slot]
-        self.slot_open[slot] = t
+        self.slot_open[slot] = "normal" if outcome in ("OUT_AB_DL", "OUT_RB_DL") else "forwarded_ungated"
         if outcome in ("OUT_AB_DL", "OUT_AB_TMO"):
             self.count("ack_" + outcome[-2:].lower())
             if self.held["ACK"] is not None:
@@ -252,7 +255,7 @@ class P4Sim:
         """Fault injection: the slot's token vanishes (queue ungated, no timeout pass will ever run)."""
         if self.tokens.pop(slot, None) is None:
             return
-        self.slot_open[slot] = t
+        self.slot_open[slot] = "tokens_lost"
         self.count("token_lost_" + slot.lower())
         if slot == "ACK" and self.held["ACK"] is not None:
             self._ack_release(t, "tokens_lost")

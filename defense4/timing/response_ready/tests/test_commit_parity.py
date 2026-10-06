@@ -135,6 +135,16 @@ class CommitParity(unittest.TestCase):
         if watchdog_priority:
             old_action = 'dec_o'
             old_arg = new_arg
+        # MODE_D2_RESP (response-focused, 2026-10-06) is a new feature with no counterpart in build 22:
+        # arming a request and forwarding the fresh ACK while arming its response deadline. Build 22
+        # selects ARM_BUSY / ACK_HOLD for mode 2, so there is nothing to compare against; the new
+        # rows are checked directly (effects) and by test_p4_release.test_response_focused_*.
+        if (table_name == 'tbl_decide_fresh' and fields.get('mode') == self.new.consts['MODE_D2_RESP']
+                and new_arg in ('OUT_ARM_FRESH', 'OUT_ACK_FWD_ARM')):
+            actual, new_counts = self.new.effects([(new_action, new_arg)], fields)
+            self.assertEqual(new_counts, [self.new.consts[new_arg]])
+            self.assertEqual(new_action, 'finish_path_10' if new_arg == 'OUT_ARM_FRESH' else 'finish_path_5')
+            return new_action, new_arg
         # Timeout escape is reported by the outcome counter and the owner is released inline on the
         # timeout pass (tbl_owner_admission), so the note build 22 re-enqueued is not sent. Re-sending
         # it let the note loop forever in MODE_OFF / MODE_FAIL_OPEN (test_p4_recovery
