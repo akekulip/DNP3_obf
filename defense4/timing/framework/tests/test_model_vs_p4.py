@@ -163,6 +163,10 @@ class ResponseFocusedAgree(unittest.TestCase):
             gaps.append(r[1] - a[1])
         self.assertLessEqual(max(gaps) - min(gaps), 2 * TAU, gaps)
 
+    def test_the_profile_value_d_a_zero_behaves_the_same(self):
+        """control profiles write d_ticks = 0 for this case; the request deadline must be irrelevant."""
+        self.check([(0, "REQ", True), (2 * MS, "ACK", True), (2 * MS + 300_000, "RESP", True)], da=0)
+
     def test_back_to_back(self):
         self.check([(0, "REQ", True), (MS, "ACK", True), (1_500_000, "RESP", True),
                     (100 * MS, "REQ", True), (101 * MS, "ACK", True), (101_500_000, "RESP", True)])

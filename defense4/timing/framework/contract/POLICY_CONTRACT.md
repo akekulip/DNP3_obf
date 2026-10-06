@@ -78,3 +78,10 @@ Case 1 removes the native ACK-to-response spread but moves request-to-ACK onto t
 removing the information. Case 2 leaves request-to-ACK native and normalises only responses that arrive inside the window; a late
 response is not delayed. A fixed ACK shift is a separate analytical case and is not implemented. A combined-ACK device has no
 separate ACK: Case 2 never arms (no pure ACK), so the response is held to the watchdog; use a request-relative policy or bypass.
+
+## Admission and the hold bound (2026-10-06)
+
+The ACK can be held until the response is seen, so its worst-case hold is the watchdog horizon H, not D_A; the same horizon bounds a
+response held for its ACK-relative deadline. `framework/control/profiles.py` therefore charges `max(D_A, budget x loop)` (about 30.8 ms
+at budget 18,000) against the master's request timer when it binds an admission record, and refuses a profile whose bound exceeds the
+40 ms control-plane clamp. H is an estimate (token passes times a nominal loop period), not a wall-clock guarantee.
