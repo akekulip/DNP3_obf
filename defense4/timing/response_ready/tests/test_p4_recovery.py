@@ -178,4 +178,39 @@ class RecoveryGates(unittest.TestCase):
         self.assertEqual(self.table('tbl_held_owner',read_release=1,dequeued=1,held_valid=0,outcome=self.c['OUT_AB_LOOP']),'NoAction')
         self.assertEqual(self.table('tbl_held_owner',read_release=1,dequeued=1,held_valid=1),'strip_owner')
 
+    @staticmethod
+    def _action(table, fields):
+        """The matched row's action name (table.apply returns only the outcome argument)."""
+        for row in table.rows:
+            if all((fields.get(k, 0) & m) == v for k, (v, m) in zip(table.keys, row.matches)):
+                return row.action
+        return table.default_action
+
+    def test_timeout_note_terminates_in_every_mode(self):
+        """A budget-zero token must leave the block queue for good, in every mode and both lanes.
+
+        Multi-pass: the timeout pass, then each return of whatever it re-enqueued. The single-pass
+        parity test cannot see a note that keeps coming back (reviewer finding, 2026-10-06)."""
+        c = self.c
+        owner_action = {'owner_release': 'owner_retire', 'owner_observe': 'owner_read', 'owner_admit': 'owner_arm'}
+        for mode in ('MODE_D4_DUAL', 'MODE_FAIL_OPEN', 'MODE_OFF'):
+            for slot, is_resp in (('SLOT_ACK', 0), ('SLOT_RESP', 1)):
+                stored = cookie = 0x80000012
+                trace = []
+                for _ in range(8):
+                    action = table_effect(SOURCE.read_text(), 'tbl_owner_admission', dict(
+                        read_release=1, mode=c[mode], dequeued=1, role=c['ROLE_BLOCK'], budget_zero=1,
+                        held_valid=0, token_slot=c[slot]))
+                    returned, stored = execute(SOURCE.read_text(), owner_action[action], stored, cookie_in=cookie)
+                    valid = table_effect(SOURCE.read_text(), 'tbl_owner_valid', dict(
+                        read_release=1, held_valid=0, owner=returned, role=c['ROLE_BLOCK']))
+                    action = self._action(sem.parse_const_table(SOURCE.read_text(), 'tbl_decide_deq', c), dict(
+                        role=c['ROLE_BLOCK'], is_resp_blk=is_resp, verdict=c['V_BLOCK_PENDING'], budget_zero=1,
+                        age=0, age_resp=0, read_release=1, owner_valid=1 if valid == 'owner_accept' else 0))
+                    trace.append(action)
+                    if action == 'finish_path_0':     # the drop path: the token is gone
+                        break
+                self.assertEqual(trace[-1], 'finish_path_0', (mode, slot, trace))
+                self.assertLessEqual(len(trace), 2, (mode, slot, trace))
+
 if __name__ == '__main__': unittest.main()

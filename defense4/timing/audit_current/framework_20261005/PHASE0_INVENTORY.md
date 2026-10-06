@@ -25,17 +25,26 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
 
 ## Candidate baseline (response_ready)
 
-- Source `src/defense4_response_ready.p4`, sha256 `ceececa36be84e8ef1691e3d957bf2069133c18ead6b76d4549560d17d238d73`.
-- `python3 -B -m unittest discover -s defense4/timing/response_ready/tests`: **45 tests OK** (run this session).
+- Source `src/defense4_response_ready.p4`, sha256 `cedded03dfbf80dec671f73cf51767a608ae9a91bda71d7e528d7ab4e5498e79 (was ceececa3… until 2026-10-06)`.
+- `python3 -B -m unittest discover -s defense4/timing/response_ready/tests`: **46 tests OK** (run this session).
 - The "4/7 release failures, 1 failure + 2 errors recovery" in the handover are the committed *RED* logs
   (`evidence/red_p4_release.log`, `red_p4_recovery.log`, 2026-09-29), written before the implementation as the
   test-first record. They are not current failures.
-- One genuine defect was found and fixed on 2026-10-05 (WORKING_NOTES): `tbl_decide_deq` sent the
-  timeout escapes to `finish_path_0` (drop) instead of the timeout-note path. Nine rows changed; a narrow
-  exemption was added to `test_commit_parity` for the intentional watchdog-priority repair. Not yet
-  reviewed by `code-reviewer`.
-- Compile: SDE 9.13.1 (`local_build_33`) and SDE 9.13.2 (`sde_9_13_2_build_01`) both 7 ingress / 0 egress,
-  88 tables, `verify_build.py` passes; stale build 32 is rejected as designed.
+- 2026-10-05 change (nine `tbl_decide_deq` rows to a timeout note, plus a parity-test exemption) was
+  reviewed by `code-reviewer` on 2026-10-06 and **reverted**. The returning note was not dropped by the
+  parser path any more, so in MODE_OFF and MODE_FAIL_OPEN with `read_release=1` it re-enqueued as
+  `OUT_*_TMO` on every pass (reproduced at table level; D4_DUAL terminated after one pass). That breaks the
+  finite-watchdog requirement. Fix, test first: `test_timeout_note_terminates_in_every_mode`
+  (multi-pass, both lanes, three modes) failed on the 2026-10-05 source, passes on the restored drop path.
+  The unused `finish_path_2` action was also deleted (the "every fused action exercised" gate rejects an
+  orphan). `test_commit_parity` now carries a narrower exemption that also asserts the inline
+  `owner_release` that replaces the note. Only four of the nine rows ever changed behaviour.
+  Source sha256 is now `cedded03dfbf80dec671f73cf51767a608ae9a91bda71d7e528d7ab4e5498e79`.
+- Residual from the same review: in MODE_OFF / MODE_FAIL_OPEN a timeout drop leaves the owner armed
+  (build 22 behaved the same). Not reachable under `control.py`, which always sets D4_DUAL.
+- Compile of the *current* source: SDE 9.13.1 `evidence/local_build_34` — 7 ingress / 0 egress, 88 tables,
+  `verify_build.py` passes. Builds 32 and 33 and `sde_9_13_2_build_01` are of earlier sources and are
+  correctly rejected as stale. **SDE 9.13.2 rebuild on the switch host is still to do.**
 
 ## Offline regression baseline (run this session)
 
@@ -44,7 +53,7 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
 | `active_harness/tests` | 58 OK |
 | `active_control/tests` | 98 OK |
 | `active_probe/tests` | 39 OK |
-| `response_ready/tests` | 45 OK |
+| `response_ready/tests` | 46 OK |
 
 Total for the three assignment suites: 195, matching the assignment's count.
 
@@ -52,7 +61,7 @@ Total for the three assignment suites: 195, matching the assignment's count.
 
 - campaign_v1 reproduction in its pinned environment into a new build directory, with manifest, independent
   extractor, statistics and publication comparison.
-- Locating the 2026-09-29 authorization record beyond `CLAUDE.md` text.
+- 2026-09-29 authorization: the only written record is the `CLAUDE.md` paragraph and the candidate README; no separate file exists.
 - The implementation/evidence matrix (assignment 0.4); its rows are in `STATUS_MATRIX.md` beside this file.
 - Reading the full authority list and the chronological handovers.
 

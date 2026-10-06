@@ -135,6 +135,22 @@ class CommitParity(unittest.TestCase):
         if watchdog_priority:
             old_action = 'dec_o'
             old_arg = new_arg
+        # Timeout escape is reported by the outcome counter and the owner is released inline on the
+        # timeout pass (tbl_owner_admission), so the note build 22 re-enqueued is not sent. Re-sending
+        # it let the note loop forever in MODE_OFF / MODE_FAIL_OPEN (test_p4_recovery
+        # test_timeout_note_terminates_in_every_mode). Exactly this case: new drops, old sent the note.
+        if (table_name == 'tbl_decide_deq' and fields.get('read_release') == 1
+                and old_arg in ('OUT_AB_TMO', 'OUT_RB_TMO') and new_arg == old_arg
+                and new_action == 'finish_path_0' and old_action != 'finish_path_0'):
+            actual, new_counts = self.new.effects([(new_action, new_arg)], fields)
+            self.assertEqual(actual, {'drop': 1}, (table_name, fields))
+            self.assertEqual(new_counts, [self.old.consts[old_arg]])
+            for slot in ('SLOT_ACK', 'SLOT_RESP'):   # the inline release that replaces the note
+                self.assertEqual(self.new.select('tbl_owner_admission', dict(
+                    read_release=1, mode=self.new.consts['MODE_D4_DUAL'], dequeued=1,
+                    role=self.new.consts['ROLE_BLOCK'], budget_zero=1, held_valid=0,
+                    token_slot=self.new.consts[slot]))[0], 'owner_release')
+            return new_action, old_arg
         self.assertEqual(new_arg, old_arg, (table_name, fields, old_arg, new_arg))
         outcome = self.old.consts[old_arg]
         context = dict(fields, outcome=outcome)
