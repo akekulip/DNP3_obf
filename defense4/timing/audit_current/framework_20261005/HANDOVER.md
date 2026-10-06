@@ -10,6 +10,8 @@ Your uncommitted `CLAUDE.md` edit is untouched. Untracked items from before this
 `~/framework_build_20261006/` on that host holds the SDE 9.13.2 build of the current source; nothing else there was written. Do not infer the
 loaded program from this note; read it again.
 
+Live state was read again this session: `framework/results/live_state_20261006/` (see PHASE8_HARDWARE_RUNBOOK.md). The daemon is unchanged.
+
 ## What is verified
 
 ```

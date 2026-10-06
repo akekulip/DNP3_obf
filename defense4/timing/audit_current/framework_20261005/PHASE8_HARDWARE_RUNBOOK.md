@@ -17,6 +17,20 @@ pass; three of them do not yet pass. Physical OPERATE stays attended-only and wa
 | **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **blocked** | nothing in the tree configures these for the candidate; the adapter does not read or verify them |
 | relay-facing capture point | **unknown** | state it before the run and restrict conclusions to the master-facing view if absent |
 
+## Live state, read this session (not inferred from a handover)
+
+Read-only snapshot, 2026-10-06 (`framework/results/live_state_20261006/live_snapshot_20261006.json.gz`, sha256 `43dd7c64…`, 292 tables, 190
+bulk-readable and 102 refused with the reason kept; produced by `framework/control/live_snapshot.py`, which only calls `entry_get` and
+`default_entry_get` under its own client id). `bf_switchd` pid 10674 was unchanged afterwards (about 25 h).
+
+- Loaded program `defense4_rrc_bor_unified12` (schema from `rrc_bor_build_v2`). Ports up: dev ports 9, 10, 11 (25G) and 64 (1G); no loopback mode is set on any port, so this is
+  the fresh-bring-up state, before a configuration run has put dp8 and the others into loopback.
+- `tbl_params` default: mode 3 (does not arm), `read_len` 18, budget 18,000, `shape_enable` 0. `tbl_bor_params`: a_ticks 20,000,000, r_ticks 24,000,000.
+  `tbl_session`: `sess_none`. `pktgen.app_cfg`: 7 entries. Traffic-manager, PRE and port tables are captured.
+- The live `tbl_params` **has `shape_enable`; the candidate's does not.** A restore must be written for the live program's schema, never taken from the candidate's.
+- Whether the frozen setup scripts can bring up the candidate is **not established**: a static look for table names was inconclusive (they reach tables by a
+  different access pattern), so blocker 2 stays open until a dry run against the 9.13.2 candidate schema says otherwise.
+
 ## Why loading the candidate is not safe to do unattended
 
 The only way to run a different program is to stop the single `bf_switchd` (pid 10674) and cold-start another. That drops every link and every
