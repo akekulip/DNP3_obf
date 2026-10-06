@@ -26,14 +26,13 @@ Reproduced into `framework/build/repro_20261006/`: campaign_v2 (the pinned repro
 
 ## Blockers, exactly
 
-1. ~~Restoration not rehearsed~~ **Done**, authorised and run: `RESTORATION_REHEARSAL_20261006.md` (cold restart with no candidate, one benign difference on unused port 17).
-2. **Candidate bring-up not written.** `configure-all` cannot be used unchanged: it installs the random-deadline codebook (the candidate needs it empty), verifies the old `tbl_commit` map
-   (the candidate adds outcome 44) and does not write `tbl_read_release_params`. Scoped in PHASE8_HARDWARE_RUNBOOK.md ("Candidate bring-up"), template in `stage_reduction/hardware/20260925/switch/`.
-3. **The `connect()` and CLI live paths of the adapter have never run** against a real BFRT.
-4. The relay-facing capture point is unknown; without it conclusions are limited to the master-facing view.
-5. Loading the candidate and sending READs to the SEL is the next operational step; it cuts every link and session through the switch again, and needs your go.
+1. ~~Restoration not rehearsed~~ **Done** (three restores this session, each verified identical in configuration): `RESTORATION_REHEARSAL_20261006.md`, `restore_frozen.sh`, `swap_daemon.sh`.
+2. ~~Candidate bring-up not written~~ **Done and run**: `framework/control/candidate_bringup.py`. The first load exposed a real defect (two const tables over capacity), now fixed and covered by a test; see `HARDWARE_SMOKE_20261006.md`.
+3. **Holding arms need admission**, which needs the master's and the outstation's retransmission timers measured on this connection **and build**. The master measurement (`audit_current/master_rto_20260916/master_rto.py`) drops inbound traffic on Vision for one 4-tuple with `iptables`; it was not authorised this session.
+4. The relay-facing capture point is still unknown; conclusions are limited to the master-facing view.
+5. SELECT and OPERATE are not admitted by the candidate; OPERATE stays attended-only.
 
-Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; loading the candidate and sending READ traffic to the SEL (a second cold restart; the way back is rehearsed).
+Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; authorising the timer measurements (`iptables` on Vision for one 4-tuple) so the holding arms can be admitted and run; each hardware session costs a cold restart, and the way back is rehearsed and scripted.
 
 ## Findings that change what to build next
 

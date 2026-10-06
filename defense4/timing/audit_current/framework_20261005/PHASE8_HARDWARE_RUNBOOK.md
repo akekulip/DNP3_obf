@@ -1,7 +1,7 @@
 # Phase 8 — bounded experiments: readiness, runbook and the exact blockers (2026-10-06)
 
-**Status: NOT RUN.** No candidate was loaded, no traffic was sent to the relay, and the live switch was only read (processes and file
-listings on the switch host). The assignment authorises bounded READ and non-actuating SELECT runs after the technical preconditions
+**Status: OFF-arm smoke RUN (see `HARDWARE_SMOKE_20261006.md`); holding arms NOT run.** The candidate was loaded once successfully (after a capacity defect found by the driver was fixed), brought up, and 30 READs passed in the Timing OFF case; the lab was restored afterwards.
+Earlier in the day the live switch was only read (processes, snapshots). The assignment authorises bounded READ and non-actuating SELECT runs after the technical preconditions
 pass; three of them do not yet pass. Physical OPERATE stays attended-only and was not prepared for hardware.
 
 ## Preconditions
@@ -14,7 +14,8 @@ pass; three of them do not yet pass. Physical OPERATE stays attended-only and wa
 | experiment declarations | **pass** | `framework/declarations/{smoke,main}.json`, validated, build identity bound |
 | live state identified, not inferred from a handover | **partial** | read-only: `bf_switchd` pid 10674, up about 24 h, `--conf-file …/bringup_20261005/frozen_abs.conf --init-mode=cold` |
 | **restoration procedure rehearsed** | **pass** | `RESTORATION_REHEARSAL_20261006.md`: cold restart with no candidate; one benign configuration difference (port 17 scheduler speed) |
-| **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **blocked, scoped** | see "Candidate bring-up" below |
+| **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **pass** | `framework/control/candidate_bringup.py`: `PASS (n_fail=0 n_warn=0)`; see `HARDWARE_SMOKE_20261006.md` |
+| **admission for the holding arms** | **blocked** | transport timers must be measured on this connection and build; the 2026-09-16 master timer is from the frozen build; re-measuring needs `iptables` on Vision (not authorised) |
 | relay-facing capture point | **unknown** | state it before the run and restrict conclusions to the master-facing view if absent |
 
 ## Live state, read this session (not inferred from a handover)

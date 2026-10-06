@@ -3,14 +3,14 @@
 Status words are cumulative evidence, not interchangeable labels: **implemented** (source exists), **offline-tested** (passes tests or a
 model), **compiled** (a compiler accepted the exact source), **loaded** (on the switch), **configured** (parameters read back from it),
 **hardware-measured** (captured on the lab). A passing model does not prove the P4; a passing compile does not prove queue behaviour; a capture
-at an interface does not prove application delivery. **Nothing below is loaded, configured or hardware-measured.** Historical claims and the
+at an interface does not prove application delivery. **Hardware status, 2026-10-06:** the candidate was loaded once (source `df599101…`), configured in the Timing OFF case, and 30 READs were hardware-measured through it; nothing about its holding behaviour, split or fallback has been run on hardware. Everything else below is offline. Historical claims and the
 frozen manuscript are unchanged; nothing here promotes a result to approved evidence.
 
 ## Capabilities
 
 | capability | implemented | offline-tested | compiled | loaded / configured / hw-measured | evidence |
 |---|---|---|---|---|---|
-| Response-ready READ release (dual) | yes | yes — 47 candidate tests, model-vs-P4 diff (14+ scenarios), mutation tests | SDE 9.13.1 and 9.13.2, 7 ingress / 0 egress, 88 tables, source `6387c588…` | no | `response_ready/`, `framework/tests/test_model_vs_p4.py` |
+| Response-ready READ release (dual) | yes | yes — 49 candidate tests (incl. table capacity), model-vs-P4 diff (14+ scenarios), mutation tests | SDE 9.13.1 and 9.13.2, 7 ingress / 0 egress, 88 tables, source `df599101…` | loaded and configured (OFF case); OFF-arm smoke 30/30 READ, median CLRT 2.240 ms; holding arms **not run** | `response_ready/`, `framework/tests/test_model_vs_p4.py` |
 | Recovery: fallback, next transaction, stale, wrap | yes | yes | as above | no | same; **limits**: token loss leaves the owner armed (`KNOWN_LIMITATION` test), no FIN/RST handling, tag not cleared by a timeout |
 | ACK-focused (Case 1) | by configuration only (D_A = 0) | yes (model, simulator, BMv2) | as above | no | needs a control profile that allows D_A = 0 (the adapter has one; `control.py` does not) |
 | Response-focused (Case 2) | yes — new rows, `MODE_D2_RESP` | yes (model, simulator, BMv2) | as above | no | combined-ACK devices never arm it |

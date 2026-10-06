@@ -26,6 +26,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SETUP_DIR = os.environ.get("SETUP_DIR", "/home/decps/dnp3_timing7_20260925/control")     # the modules used on 2026-09-25
+SDE_INSTALL = os.environ.get("SDE_INSTALL", "/home/decps/Downloads/bf-sde-9.13.2/install")
+sys.path.insert(0, SDE_INSTALL + "/lib/python3.8/site-packages/tofino")      # bfrt_grpc, as live_snapshot.py does
 sys.path.insert(0, SETUP_DIR)
 sys.path.insert(0, str(HERE))
 
