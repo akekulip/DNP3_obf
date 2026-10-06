@@ -5,18 +5,23 @@ import time
 import subprocess
 import sys
 import tempfile
+import signal
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 BMV2 = HERE.parent
+sys.path.insert(0, str(BMV2.parent))
+from runner.evidence import reserve_run, claim_run, sha256
 
 
 def compile_p4(name, out):
-    src = BMV2 / "p4" / (name + ".p4")
+    src = out / 'sources/p4' / (name + '.p4')
+    if not src.is_file(): raise ValueError('reserved P4 source snapshot missing')
     command=["p4c-bm2-ss", "--std", "p4-16", "-o", str(out / (name + ".json")), str(src)]
+    with (out / (name + ".compile_command.json")).open('x') as stream:
+        json.dump(command, stream, indent=2); stream.write('\n')
     r = subprocess.run(command, capture_output=True, text=True)
-    (out / (name + ".compile.log")).write_text(r.stdout+r.stderr)
-    (out / (name + ".compile_command.json")).write_text(json.dumps(command,indent=2)+"\n")
+    with (out / (name + ".compile.log")).open('x') as stream: stream.write(r.stdout+r.stderr)
     if r.returncode:
         raise RuntimeError("p4c failed:\n" + r.stderr[-1500:])
     return out / (name + ".json")
@@ -288,7 +293,7 @@ def step5(lab, work, mode=4, da_us=10_000, gap_us=1_000, budget=300, loop_pps=50
         txn.update(transaction_id=index, switch_ev_us=events,
                    release_outcome="fallback" if events[5] else "normal")
     import hashlib
-    source = BMV2 / "p4" / "bmv2_rr.p4"
+    source = work / 'sources/p4/bmv2_rr.p4'
     heartbeat_stats={}
     for name in ("r_hb_last","r_hb_max_gap","r_hb_count"):
         match=re.search(r"%s\[0\]=\s*(\d+)" % name,lab.cli("register_read %s 0" % name))
@@ -336,18 +341,52 @@ STEPS = {"step1": step1, "step3": step3, "exp_priority": exp_priority, "step5": 
          "exp_priority_lo_only": lambda lab, work: exp_priority(lab, work, "set_queue_rate 100 2 1")}
 
 
-def main():
+def main(argv=None):
+    args = list(sys.argv[1:] if argv is None else argv)
+    if len(args) not in (2, 3) or args[0] not in STEPS:
+        raise ValueError('expected supported step, fresh evidence directory and optional JSON arguments')
+    step, work = args[0], Path(args[1]).absolute()
+    kw = json.loads(args[2]) if len(args) > 2 else {}
     if os.environ.get("BMV2_LAB_INNER") != "1":
-        env = dict(os.environ, BMV2_LAB_INNER="1")
-        return subprocess.call(["unshare", "-Urnm", sys.executable, "-B", __file__, *sys.argv[1:]], env=env)
+        run = reserve_run(work, {'scope': 'private BMv2 software acquisition', 'step': step, 'parameters': kw})
+        with run:
+            inputs = {}
+            for source in sorted(HERE.glob('*.py')):
+                inputs[str(source)] = sha256(run.snapshot(source, 'lab/' + source.name))
+            for source in sorted((BMV2 / 'p4').glob('*.p4')):
+                run.snapshot(source, 'p4/' + source.name)
+            run.write_json('source_inputs.json', inputs)
+            env = dict(os.environ, BMV2_LAB_INNER='1', BMV2_RUN_TOKEN=run.token,
+                       BMV2_PARENT_NETNS=os.readlink('/proc/self/ns/net'))
+            run.record('namespace_launch', step=step)
+            child = subprocess.Popen(['unshare', '-Urnm', sys.executable, '-B', __file__, step, str(work), json.dumps(kw)], env=env, start_new_session=True)
+            try:
+                result = child.wait()
+            except BaseException:
+                # Kill the entire private acquisition group before sealing an
+                # aborted record; orphan captures must not keep writing.
+                try: os.killpg(child.pid, signal.SIGKILL)
+                except ProcessLookupError: pass
+                child.wait()
+                raise
+            run.finish('passed' if result == 0 else 'failed', {'exit_code': result, 'scope': 'software BMv2; codec endpoints'})
+            return result
+    run = claim_run(work, os.environ.get('BMV2_RUN_TOKEN', ''))
+    if os.readlink('/proc/self/ns/net') == os.environ.get('BMV2_PARENT_NETNS'):
+        raise RuntimeError('acquisition requires a distinct private network namespace')
+    for source, expected in json.loads((work / 'source_inputs.json').read_text()).items():
+        if sha256(source) != expected: raise RuntimeError('execution source changed after reservation: ' + source)
+    run.record('private_namespace_started', netns=os.readlink('/proc/self/ns/net'))
     sys.path.insert(0, str(HERE))
     from lab import Lab
-    step, work = sys.argv[1], Path(sys.argv[2])
-    kw = json.loads(sys.argv[3]) if len(sys.argv) > 3 else {}
-    work.mkdir(parents=True, exist_ok=True)
     lab = Lab(work)
     try:
-        print(json.dumps(STEPS[step](lab, work, **kw), default=str))
+        result = STEPS[step](lab, work, **kw)
+        if not (work / 'result.json').exists(): run.write_json('result.json', result)
+        print(json.dumps(result, default=str))
+    except BaseException as error:
+        run.record('acquisition_exception', exception_type=type(error).__name__, exception=str(error))
+        raise
     finally:
         lab.down()
     return 0

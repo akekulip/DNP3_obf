@@ -29,7 +29,7 @@ def available():
 
 
 def lab(step, **kw):
-    d = tempfile.mkdtemp(prefix="bmv2lab_")
+    d = str(Path(tempfile.mkdtemp(prefix="bmv2lab_")) / 'run')
     r = subprocess.run([sys.executable, "-B", str(LAB), step, d, json.dumps(kw)], capture_output=True, text=True, timeout=240)
     if r.returncode:
         raise RuntimeError("lab failed:\n" + r.stderr[-1500:])

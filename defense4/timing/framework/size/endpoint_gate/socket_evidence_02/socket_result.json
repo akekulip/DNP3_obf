@@ -1,0 +1,60 @@
+{
+  "connection": {
+    "destination": "10.0.0.2",
+    "destination_port": 20000,
+    "source": "10.0.0.1",
+    "source_port": 60939
+  },
+  "connection_id": "a00e74953b3b4a90b0b8fb7066f9cb56:{\"destination\": \"10.0.0.2\", \"destination_port\": 20000, \"source\": \"10.0.0.1\", \"source_port\": 60939}",
+  "endpoint_binary_sha256": "c664cbe8f33e0b3147739c762b1e55716406c6b54236b39236b69ffa83710177",
+  "failures": [],
+  "kernel": "5.15.0-139-generic",
+  "master": {
+    "application_calls": 1,
+    "completed_ns": 185497621367197,
+    "issued_ns": 185496980689237,
+    "opens": 1,
+    "success": true
+  },
+  "master_exit_code": 0,
+  "netns": "net:[4026532617]",
+  "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+  "outstation": {
+    "opens": 1,
+    "operate_accept_ns": 185497621020967,
+    "operate_decoy": 1,
+    "operate_real": 1,
+    "retention_ns": 432623951,
+    "select_accept_ns": 185497188397016,
+    "select_decoy": 1,
+    "select_real": 1
+  },
+  "passed": true,
+  "phases": [
+    {
+      "complete_ack": 35,
+      "kernel_retransmission_size": 1,
+      "native_size": 35,
+      "native_start": 0,
+      "prefix_ack": 34,
+      "replay_size": 21,
+      "response_size": 57,
+      "wire_size": 55,
+      "wire_start": 0
+    },
+    {
+      "complete_ack": 70,
+      "kernel_retransmission_size": 1,
+      "native_size": 35,
+      "native_start": 35,
+      "prefix_ack": 69,
+      "replay_size": 21,
+      "response_size": 57,
+      "wire_size": 55,
+      "wire_start": 55
+    }
+  ],
+  "profile_sha256": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37",
+  "scope": "production OpenDNP3 TCP sockets + Linux kernels + software image oracle; no P4 or physical endpoint",
+  "transport_sha256": "8ea57ca5af92e8fef46add550e8771703688bfa64c02b5bcc246867003fa40e5"
+}

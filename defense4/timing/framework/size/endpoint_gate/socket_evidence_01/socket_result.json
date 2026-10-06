@@ -1,0 +1,60 @@
+{
+  "connection": {
+    "destination": "10.0.0.2",
+    "destination_port": 20000,
+    "source": "10.0.0.1",
+    "source_port": 42401
+  },
+  "connection_id": "7fa1545ee34b41baac6f692923f777dc:{\"destination\": \"10.0.0.2\", \"destination_port\": 20000, \"source\": \"10.0.0.1\", \"source_port\": 42401}",
+  "endpoint_binary_sha256": "fe497f8d01e210fa5a29c6e66cce416ee18999a901c48de423aacb37df5d792c",
+  "failures": [
+    "master command status",
+    "endpoint callback select_real",
+    "endpoint callback select_decoy",
+    "endpoint callback operate_real",
+    "endpoint callback operate_decoy",
+    "exactly two phases required",
+    "phase 0 complete_ack",
+    "phase 0 kernel_retransmission_size",
+    "phase 0 replay_size",
+    "phase 0 response_size"
+  ],
+  "kernel": "5.15.0-139-generic",
+  "master": {
+    "application_calls": 1,
+    "completed_ns": 185296266418968,
+    "issued_ns": 185295766281490,
+    "opens": 1,
+    "success": false
+  },
+  "master_exit_code": 3,
+  "netns": "net:[4026532617]",
+  "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+  "outstation": {
+    "opens": 1,
+    "operate_accept_ns": 0,
+    "operate_decoy": 0,
+    "operate_real": 0,
+    "retention_ns": 0,
+    "select_accept_ns": 0,
+    "select_decoy": 0,
+    "select_real": 0
+  },
+  "passed": false,
+  "phases": [
+    {
+      "complete_ack": null,
+      "kernel_retransmission_size": null,
+      "native_size": 35,
+      "native_start": 0,
+      "prefix_ack": 34,
+      "replay_size": null,
+      "response_size": null,
+      "wire_size": 55,
+      "wire_start": 0
+    }
+  ],
+  "profile_sha256": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37",
+  "scope": "production OpenDNP3 TCP sockets + Linux kernels + software image oracle; no P4 or physical endpoint",
+  "transport_sha256": "8ea57ca5af92e8fef46add550e8771703688bfa64c02b5bcc246867003fa40e5"
+}

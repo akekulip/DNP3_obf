@@ -1,0 +1,18 @@
+{
+  "details": {
+    "exception": "exactly one complete 57-byte response per phase",
+    "exception_type": "ValueError",
+    "traceback": "Traceback (most recent call last):\n  File \"defense4/timing/framework/size/endpoint_gate/analyze_sockets.py\", line 106, in main\n    result=analyze(args.capture);run.write_json('result.json',result);run.finish('passed',result)\n  File \"defense4/timing/framework/size/endpoint_gate/analyze_sockets.py\", line 78, in analyze\n    if len(responses)!=1: raise ValueError('exactly one complete 57-byte response per phase')\nValueError: exactly one complete 57-byte response per phase\n"
+  },
+  "files_sha256": {
+    "events/000000.json": "1f7ece9c159ae47d64f288595c89d4d517180658b446f5cd07f8c9d7c6442af8",
+    "events/000001.json": "036d3922b3c59be6d200563a64cdff6e0384511cfa3bbce6cd3788bedb83a53d",
+    "input_hashes.json": "d95fa8e7f54203d4c5a497d7f5dee246a7657fce5c139cd93a537fd91cef2004",
+    "reservation.json": "eeb056c336bad0923456ee519eeb1baeb0ce9eb23874c33626e2e467a6a74e70",
+    "sources/analyze_sockets.py": "472dc0dd3e40b3d06337451f97f4f2413be2fbcda1804a3849d3d8af6cd7ac10",
+    "sources/case4_padding.py": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37",
+    "sources/rrc.py": "7d159d9fba907de3a2466b20387f4da7b6a3595dfc9f4a4886fff51544974ada"
+  },
+  "status": "failed",
+  "token": "4a5a463fa5814135aae8eec8559103bd"
+}

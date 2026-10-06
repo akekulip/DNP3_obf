@@ -1,0 +1,19 @@
+table_add dmac fwd 02:00:00:00:00:02 => 1
+table_add dmac fwd 02:00:00:00:00:01 => 0
+
+--
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Adding entry to exact match table dmac
+match key:           EXACT-02:00:00:00:00:02
+action:              fwd
+runtime data:        00:01
+Entry has been added with handle 0
+RuntimeCmd: Adding entry to exact match table dmac
+match key:           EXACT-02:00:00:00:00:01
+action:              fwd
+runtime data:        00:00
+Entry has been added with handle 1
+RuntimeCmd: 
+
