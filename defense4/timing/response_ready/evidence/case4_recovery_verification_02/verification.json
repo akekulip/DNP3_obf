@@ -1,0 +1,40 @@
+{
+  "identity": {
+    "created_at": "2026-10-06T21:38:07.810599+00:00",
+    "source_hashes": {
+      "defense4/timing/response_ready/src/defense4_response_ready.p4": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+      "defense4/timing/framework/model/response_ready_model.py": "7393d3227015b8552133993a0660f46c87f123dab9ab5e5dd3384622cce2b7dd",
+      "defense4/timing/framework/tests/p4_pass_sim.py": "6f4f1f883fbe87987c506dfa3533461281703bd238fdfb438de8efcabd4c91c7",
+      "defense4/timing/response_ready/observation_digest.py": "68d2da4012d5cf30adfd5f6f87bc9212ded7666f2dc380a0cd573beed3a3a53c",
+      "defense4/timing/response_ready/compile_instrument.py": "479da8955106eb2564ad058ee35c843d6a4d5d3956928cc736f5976919b852ec",
+      "defense4/timing/response_ready/tests/test_case4_drain_reset.py": "ca91ed4b7bfa3762e498d6c65241e6ae86e159e4e0eaee53b07cbab55d623db4",
+      "defense4/timing/response_ready/tests/test_p4_recovery.py": "bdc759508ab5ee61ea8d817cf9e79fb2b9ceba1a57f9b65088949f337d774de0",
+      "defense4/timing/framework/tests/test_case4_drain_parity.py": "7b51f5eb2bcc5913f253423fc6f07711579d9a8dd021dcc7f3375dd9d73e74fa"
+    },
+    "scope": "Offline source fragments, real-byte trusted-handoff fixtures and independent model; no hardware acquisition"
+  },
+  "runs": {
+    "scalar_pair_red.log": {
+      "tests": 14,
+      "seconds": 0.123,
+      "status": "RETAINED_FAILURE"
+    },
+    "model_source_parity.log": {
+      "tests": 26,
+      "seconds": 121.065,
+      "status": "PASS"
+    },
+    "model_packet.log": {
+      "tests": 66,
+      "seconds": 124.611,
+      "status": "PASS"
+    },
+    "response_ready.log": {
+      "tests": 100,
+      "seconds": 7.8,
+      "status": "PASS"
+    }
+  },
+  "scope": "Snapshot-bound offline verification. Recorded helper hashes identify the actual run version; later helper changes do not rebind these logs.",
+  "hardware_contact": false
+}

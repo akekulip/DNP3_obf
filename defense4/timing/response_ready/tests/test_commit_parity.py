@@ -50,9 +50,12 @@ class Program:
                  'meta.cur_gen': 0xC3, 'meta.epoch_stored': 0xC4,
                  'meta.budget_init': 18000, 'meta.cookie_in': 0x80000012,
                  'meta.next_cookie': 19}
+        state.update({'meta.' + k: v for k, v in fields.items()})
+        state.setdefault('meta.read_release', 0)
         counts = []
 
         def value(expression):
+            expression = re.sub(r'(16w(?:0x[\da-fA-F]+|\d+))\s*\+\+\s*([\w.]+)', r'((\1 << 16) | \2)', expression)
             expression = re.sub(r'\(bit<\d+>\)', '', expression)
             expression = re.sub(r'\b\d+w(0x[\da-fA-F]+|\d+)', r'\1', expression)
             def replace(match):
@@ -63,7 +66,7 @@ class Program:
                     return str(self.consts[token])
                 raise AssertionError('Unknown terminal operand: ' + token)
             expression = re.sub(r'\b[A-Za-z_]\w*(?:\.\w+)*\b', replace, expression)
-            if not re.fullmatch(r'[\d\sxXa-fA-F()+|&\-]+', expression):
+            if not re.fullmatch(r'[\d\sxXa-fA-F()+|&\-<>=]+', expression):
                 raise AssertionError('Unsupported expression: ' + expression)
             return eval(expression, {'__builtins__': {}}) & 0xFFFFFFFF
 
@@ -75,6 +78,12 @@ class Program:
                 body = re.sub(r'\bo\b', str(value(argument)), body)
             while body.strip():
                 body = body.lstrip()
+                condition = re.match(r'if\s*\((.*?)\)\s*', body)
+                if condition:
+                    branch = sem._extract_block_after(body, condition.end())
+                    remaining = body[body.index('{', condition.end()) + len(branch):]
+                    body = (branch[1:-1] if value(condition[1]) else '') + remaining
+                    continue
                 macro = re.match(r'(D3_\w+)\(\)', body)
                 if macro:
                     execute(macro[1]); body = body[macro.end():]; continue
@@ -159,7 +168,7 @@ class CommitParity(unittest.TestCase):
                 self.assertEqual(self.new.select('tbl_owner_admission', dict(
                     read_release=1, mode=self.new.consts['MODE_D4_DUAL'], dequeued=1,
                     role=self.new.consts['ROLE_BLOCK'], budget_zero=1, held_valid=0,
-                    token_slot=self.new.consts[slot]))[0], 'owner_release')
+                    token_slot=self.new.consts[slot]))[0], 'owner_release_legacy')
             return new_action, old_arg
         # The historical spent-generation row dropped post-release transport
         # repair. The new released-domain verdict has a separate tested effect.

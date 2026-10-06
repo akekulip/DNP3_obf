@@ -26,7 +26,7 @@ class IndependentExpiry(unittest.TestCase):
         self.assertEqual(self.select(), 'finish_expiry_loop')
         difference, owner = execute(self.source, 'owner_retire', 0x80000001,
                                     cookie_in=0x80000001)
-        self.assertEqual((difference, owner), (0, 1))
+        self.assertEqual((difference, owner), (0, 0x40000001))
 
     def test_post_ack_gap_is_not_cut_by_readiness_expiry(self):
         self.assertTrue('ROLE_EXPIRY_SCAN' in self.source,
@@ -74,7 +74,10 @@ class IndependentExpiry(unittest.TestCase):
         self.assertEqual(after_stale_scan, owner)
         _, after_completion = execute(self.source, 'owner_retire', owner,
                                       cookie_in=owner)
-        self.assertEqual(after_completion, 1)
+        self.assertEqual(after_completion, 0x40000001)
+        _,idle=execute(self.source, 'owner_retire', after_completion,
+                       cookie_in=after_completion, owner_nextstate=0)
+        self.assertEqual(idle,1)
 
 
 if __name__ == '__main__':

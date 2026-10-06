@@ -42,6 +42,9 @@ class Ev:
     flow: Optional[Tuple[str, str, int, int]] = None  # Canonical master/outstation tuple
     operation: str = "READ"     # Parent operation, including split control responses
     response_seq: Optional[int] = None  # REQ: expected first response TCP sequence
+    owner_cookie: Optional[int] = None  # Explicit terminal/drain evidence for the association
+    reset_seq: Optional[int] = None  # REQ: allowed TCP FIN/RST sequence, if strictly bound
+    reset_validated: Optional[bool] = None  # True only after caller verified tuple/sequence
     transformed_length: Optional[int] = None  # REQ: bytes forwarded to the outstation
 
 
@@ -67,10 +70,15 @@ class Result:
 
 class ResponseReadyModel:
     def __init__(self, da_ns: int, gap_ns: int, anchor: str = "request",
-                 horizon_ns: int = DEFAULT_H_NS, policy: str = "dual"):
+                 horizon_ns: int = DEFAULT_H_NS, policy: str = "dual",
+                 deferred_returns: bool = False):
         assert anchor in ("request", "native_ack")
         assert policy in ("dual", "response_focused")
         self.policy = policy
+        self.deferred_returns = deferred_returns
+        self.owner_cookie = 0
+        self.originals = set()
+        self.after_drain = "IDLE"
         self.da, self.gap = quantize_ns(da_ns), quantize_ns(gap_ns)
         self.anchor, self.H = anchor, horizon_ns
         self.r = Result()
@@ -78,9 +86,23 @@ class ResponseReadyModel:
         self._clear()
 
     def _clear(self) -> None:
-        self.epoch = self.flow = self.operation = self.response_seq = None
+        self.epoch = self.flow = self.operation = self.response_seq = self.reset_seq = None
         self.t0 = self.expect_ack = self.app = None
         self.tA = self.tR = self.eA = self.eR = None
+
+    def _emit_original(self, kind: str, t: int, reason: str) -> None:
+        self.r.outs.append(Out(kind, t, reason))
+        if not self.deferred_returns:
+            self.originals.discard(kind)
+
+    def _retire(self, after: str) -> None:
+        self.after_drain = after
+        if self.originals:
+            self.s = "QUARANTINED"
+        else:
+            self.s = after
+            if after == "IDLE":
+                self._clear()
 
     # ---- timers -----------------------------------------------------------------------
     def _timers(self) -> List[Tuple[int, int, str]]:
@@ -111,28 +133,27 @@ class ResponseReadyModel:
         if name == "ack_release":
             self.eA = t
             self.eR = t + self.gap
-            self.r.outs.append(Out("ACK", t, "normal"))
+            self._emit_original("ACK", t, "normal")
         elif name == "resp_release":
             if self.policy == "response_focused":
                 self.eR = t
-            self.r.outs.append(Out("RESP", t, "normal"))
+            self._emit_original("RESP", t, "normal")
             self.r.count("normal")
-            self.s = "IDLE"
-            self._clear()
+            self._retire("IDLE")
         elif name == "watchdog":
             if self.policy == "response_focused":
                 # the ACK already left on arrival; only a seen response is still held
                 if self.tR is not None:
-                    self.r.outs.append(Out("RESP", t, "watchdog"))
+                    self._emit_original("RESP", t, "watchdog")
                 self.r.count("fallback_no_response" if self.tR is None else "fallback_no_ack")
-                self.s = "FALLBACK"
+                self._retire("FALLBACK")
                 return
             if self.tA is not None:
-                self.r.outs.append(Out("ACK", t, "watchdog"))
+                self._emit_original("ACK", t, "watchdog")
             if self.tR is not None:       # response was seen but the ACK never arrived
-                self.r.outs.append(Out("RESP", t, "watchdog"))
+                self._emit_original("RESP", t, "watchdog")
             self.r.count("fallback_no_response" if self.tR is None else "fallback_no_ack")
-            self.s = "FALLBACK"
+            self._retire("FALLBACK")
 
     def _run_until(self, t_limit: Optional[int]) -> None:
         while True:
@@ -154,13 +175,27 @@ class ResponseReadyModel:
 
     def _on(self, e: Ev) -> None:
         r = self.r
+        if e.kind in ("TERMINAL_ACK", "TERMINAL_RESP", "DRAIN_COMPLETE"):
+            if e.owner_cookie != self.owner_cookie or e.epoch != self.epoch or e.flow != self.flow:
+                r.count("drain_stale"); return
+            if e.kind.startswith("TERMINAL_"):
+                self.originals.discard(e.kind[len("TERMINAL_"):])
+                return
+            if self.s != "QUARANTINED" or self.originals:
+                r.count("drain_incomplete"); return
+            r.count("drain_complete")
+            self._retire(self.after_drain)
+            return
         if e.kind == "REQ":
             if not e.supported:
                 r.outs.append(Out("REQ", e.t, "bypass_unsupported")); r.count("bypass_unsupported"); return
-            if self.s == "ARMED":
+            if self.s in ("ARMED", "QUARANTINED"):
                 r.outs.append(Out("REQ", e.t, "bypass_busy")); r.count("bypass_busy"); return
             if self.s == "FALLBACK":
                 self._clear()
+            self.owner_cookie += 1
+            self.originals.clear()
+            self.reset_seq = e.reset_seq
             self.s, self.epoch, self.t0 = "ARMED", e.epoch, e.t
             self.flow, self.operation, self.response_seq = e.flow, e.operation, e.response_seq
             wire_length = e.length if e.transformed_length is None else e.transformed_length
@@ -173,6 +208,8 @@ class ResponseReadyModel:
             if self.tA is not None or self.eA is not None:
                 r.count("dup_ack_dropped"); return
             self.tA = e.t
+            if self.policy == "dual":
+                self.originals.add("ACK")
             if self.policy == "response_focused":
                 r.outs.append(Out("ACK", e.t, "forwarded"))
         elif e.kind == "RESP":
@@ -192,14 +229,18 @@ class ResponseReadyModel:
             if self.tR is not None:
                 r.count("dup_response_dropped"); return
             self.tR = e.t
+            self.originals.add("RESP")
         elif e.kind in ("FIN", "RST"):
-            if e.epoch != self.epoch or e.flow != self.flow:
+            if (e.epoch != self.epoch or e.flow != self.flow or not e.supported
+                    or e.reset_validated is False
+                    or (self.reset_seq is not None
+                        and (e.seq != self.reset_seq or e.reset_validated is not True))):
                 return
             if self.s == "ARMED":
                 if self.policy == "dual" and self.tA is not None and self.eA is None:
-                    r.outs.append(Out("ACK", e.t, "reset_flush"))
+                    self._emit_original("ACK", e.t, "reset_flush")
                 # eR is a scheduled release, not proof that the response left.
                 if self.tR is not None:
-                    r.outs.append(Out("RESP", e.t, "reset_flush"))
+                    self._emit_original("RESP", e.t, "reset_flush")
                 r.count("reset_flush")
-            self.s = "IDLE"; self._clear()
+            self._retire("IDLE")

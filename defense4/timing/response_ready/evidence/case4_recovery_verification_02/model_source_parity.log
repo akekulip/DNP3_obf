@@ -1,0 +1,34 @@
+test_gap_is_constant_whatever_the_response_latency (test_model_vs_p4.AckFocusedAgree) ... ok
+test_request_to_ack_now_carries_the_response_latency (test_model_vs_p4.AckFocusedAgree)
+What the observer still sees: with D_A = 0 the ACK moves to the response, so request-to-ACK ... ok
+test_ack_after_deadline_and_response_pending (test_model_vs_p4.Agree) ... ok
+test_clock_wrap_exactly_at_arming (test_model_vs_p4.Agree) ... ok
+test_clock_wrap_inside_transaction (test_model_vs_p4.Agree) ... ok
+test_deadline_alone_never_releases_ack (test_model_vs_p4.Agree) ... ok
+test_early_response (test_model_vs_p4.Agree) ... ok
+test_late_response_within_watchdog (test_model_vs_p4.Agree) ... ok
+test_response_before_ack (test_model_vs_p4.Agree) ... ok
+test_response_just_after_deadline (test_model_vs_p4.Agree) ... ok
+test_next_transaction_succeeds_after_fallback (test_model_vs_p4.FallbackAgree) ... ok
+test_response_after_watchdog_is_native (test_model_vs_p4.FallbackAgree) ... ok
+test_response_never_arrives (test_model_vs_p4.FallbackAgree) ... ok
+test_ack_after_watchdog_leaves_at_arrival (test_model_vs_p4.FaultsAndLimits) ... ok
+test_losing_both_tokens_leaves_the_owner_armed_KNOWN_LIMITATION (test_model_vs_p4.FaultsAndLimits)
+With expiry_enabled=0, no timeout pass runs without a token, so nothing retires the owner and every later READ is ... ok
+test_losing_one_token_releases_that_hold_early_and_the_rest_recovers (test_model_vs_p4.FaultsAndLimits) ... ok
+test_stale_generation_survives_a_timeout (test_model_vs_p4.FaultsAndLimits) ... ok
+test_back_to_back (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_gap_is_constant_inside_the_window (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_after_the_window_is_not_delayed (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_before_the_ack (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_inside_the_window_waits_for_the_ack_relative_deadline (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_the_profile_value_d_a_zero_behaves_the_same (test_model_vs_p4.ResponseFocusedAgree)
+control profiles write d_ticks = 0 for this case; the request deadline must be irrelevant. ... ok
+test_back_to_back_without_restart (test_model_vs_p4.Sequences) ... ok
+test_busy_request_is_bypassed (test_model_vs_p4.Sequences) ... ok
+test_nonmatching_response_forwarded_unchanged (test_model_vs_p4.Sequences) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 121.065s
+
+OK

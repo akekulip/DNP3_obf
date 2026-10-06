@@ -75,6 +75,44 @@ class Case4Recovery(unittest.TestCase):
         self.assertTrue(due(to_tick((1 << 32) + 256), to_tick(256)))
 
 
+class ExplicitDrain(unittest.TestCase):
+    def test_reset_with_missing_original_prevents_rearm(self):
+        events = [request(reset_seq=9000), ack(), response(),
+                  Ev(3 * MS, "RST", epoch=1, seq=9000, reset_validated=True),
+                  request(4 * MS, epoch=2),
+                  Ev(5 * MS, "DRAIN_COMPLETE", epoch=1, owner_cookie=1),
+                  request(6 * MS, epoch=2)]
+        result = ResponseReadyModel(10 * MS, MS, deferred_returns=True).run(events)
+        self.assertEqual(result.state, "QUARANTINED")
+        self.assertEqual(result.counters["bypass_busy"], 2)
+        self.assertEqual(result.counters["drain_incomplete"], 1)
+
+    def test_terminal_originals_and_cookie_qualified_completion_enable_rearm(self):
+        events = [request(), ack(), response(),
+                  Ev(3 * MS, "RST", epoch=1),
+                  Ev(4 * MS, "TERMINAL_ACK", epoch=1, owner_cookie=2),
+                  Ev(5 * MS, "TERMINAL_ACK", epoch=1, owner_cookie=1),
+                  Ev(6 * MS, "TERMINAL_ACK", epoch=1, owner_cookie=1),
+                  Ev(7 * MS, "TERMINAL_RESP", epoch=1, owner_cookie=1),
+                  Ev(8 * MS, "DRAIN_COMPLETE", epoch=1, owner_cookie=2),
+                  Ev(9 * MS, "DRAIN_COMPLETE", epoch=1, owner_cookie=1),
+                  request(10 * MS, epoch=2)]
+        result = ResponseReadyModel(10 * MS, MS, deferred_returns=True).run(events)
+        self.assertEqual(result.counters["drain_complete"], 1)
+        self.assertEqual(result.find("REQ")[-1].reason, "forwarded")
+        self.assertEqual(result.counters["drain_stale"], 2)
+
+    def test_reset_requires_supported_validated_sequence_when_bound(self):
+        for bad in (dict(seq=9001, reset_validated=True),
+                    dict(seq=9000, reset_validated=False),
+                    dict(seq=9000, reset_validated=True, supported=False)):
+            with self.subTest(bad=bad):
+                result = ResponseReadyModel(10 * MS, MS).run([
+                    request(reset_seq=9000), ack(), response(),
+                    Ev(3 * MS, "FIN", epoch=1, **bad)])
+                self.assertEqual(result.counters, {"normal": 1})
+
+
 class PacketAssociation(unittest.TestCase):
     def event(self, kind, t, **changes):
         values = dict(epoch=1, flow=("192.0.2.1", "192.0.2.2", 30001, 20000),

@@ -1,0 +1,29 @@
+..FFF.
+======================================================================
+FAIL: test_source_duplicate_guard_mutation_drives_packet_drop (test_case4_drain_parity.DrainParity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_drain_parity.py", line 35, in test_source_duplicate_guard_mutation_drives_packet_drop
+    self.assertEqual(len(s.held_packets['ACK']),0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_source_enclosing_predicate_mutation_blocks_terminal_removal (test_case4_drain_parity.DrainParity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_drain_parity.py", line 29, in test_source_enclosing_predicate_mutation_blocks_terminal_removal
+    self.assertEqual(s.regs['reg_originals'],1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_source_removal_operand_mutation_changes_actual_credit (test_case4_drain_parity.DrainParity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_drain_parity.py", line 22, in test_source_removal_operand_mutation_changes_actual_credit
+    self.assertEqual(s.regs['reg_originals'],0)
+AssertionError: 2 != 0
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.897s
+
+FAILED (failures=3)

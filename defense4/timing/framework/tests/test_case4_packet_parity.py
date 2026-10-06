@@ -87,10 +87,11 @@ class PacketAssociation(unittest.TestCase):
         self.assertEqual(s.regs['reg_app_seq'],0)
         self.assertEqual(s.regs['reg_exp_ack'],24)
 
-    def test_duplicate_acks_retain_queue_multiplicity(self):
+    def test_duplicate_acks_preserve_one_original_envelope(self):
         s=self.sim([(0,'PACKET',wire('REQ')),(MS,'PACKET',wire('ACK')),
                     (2*MS,'PACKET',wire('ACK')),(3*MS,'PACKET',wire('RESP'))])
-        self.assertEqual(len([o for o in s.packet_outs if o[0]=='ACK']),2)
+        self.assertEqual(len([o for o in s.packet_outs if o[0]=='ACK']),1)
+        self.assertEqual(s.counters.get('dup_ack_dropped'),1)
         self.assertEqual(s.counters.get('completed'),1)
 
     def test_stale_response_return_does_not_clear_new_full_owner(self):
@@ -119,6 +120,10 @@ class ExpiryPackets(unittest.TestCase):
         s.request(0,raw=wire('REQ'))
         stale=s.cookie
         s.pulse_return(31*MS,stale)
+        # Explicit service of the empty-original drain handshake precedes rearm.
+        draining=s.regs['reg_owner']
+        s.drain_scan(31*MS+s.tau,draining)
+        s.drain_complete(31*MS+2*s.tau,draining)
         s.request(40*MS,raw=wire('REQ',app=6))
         owner,tag=s.regs['reg_owner'],s.regs['reg_tag']
         s.pulse_return(41*MS,stale)

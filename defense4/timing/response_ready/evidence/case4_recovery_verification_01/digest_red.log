@@ -1,0 +1,72 @@
+test_exact_raw_digest_maps_observed_internal_event (test_observation_digest.DigestDecode) ... ERROR
+test_pulse_zero_tuple_is_retained_without_inference (test_observation_digest.DigestDecode) ... ERROR
+test_truncated_unknown_event_or_identity_alias_refused (test_observation_digest.DigestDecode) ... 
+======================================================================
+ERROR: test_exact_raw_digest_maps_observed_internal_event (test_observation_digest.DigestDecode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 19, in test_exact_raw_digest_maps_observed_internal_event
+    record=self.decoder().decode(self.raw(),clock_domain='ingress_mac')
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 12, in decoder
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/response_ready/observation_digest.py'
+
+======================================================================
+ERROR: test_pulse_zero_tuple_is_retained_without_inference (test_observation_digest.DigestDecode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 30, in test_pulse_zero_tuple_is_retained_without_inference
+    record=self.decoder().decode(self.raw(event=6,tuple_fields=(0,0,0,0)),clock_domain='ingress_mac')
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 12, in decoder
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/response_ready/observation_digest.py'
+
+======================================================================
+ERROR: test_truncated_unknown_event_or_identity_alias_refused (test_observation_digest.DigestDecode) (raw=b'\x00\x01\x00\x04\x80\x00\x00\x01\x00\x00\x00\x02\xff\xff\xff\xf0\x00\x01\x03\x05\xc0\xa8\n\x07\xc0\xa8\n\x01N \x9c@\x00\x03\x00')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 38, in test_truncated_unknown_event_or_identity_alias_refused
+    with self.assertRaises(ValueError):self.decoder().decode(raw,clock_domain='ingress_mac')
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 12, in decoder
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/response_ready/observation_digest.py'
+
+======================================================================
+ERROR: test_truncated_unknown_event_or_identity_alias_refused (test_observation_digest.DigestDecode) (raw=b'\x00\x01\x00c\x80\x00\x00\x01\x00\x00\x00\x02\xff\xff\xff\xf0\x00\x01\x03\x05\xc0\xa8\n\x07\xc0\xa8\n\x01N \x9c@\x00\x03\x00\x1e')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 38, in test_truncated_unknown_event_or_identity_alias_refused
+    with self.assertRaises(ValueError):self.decoder().decode(raw,clock_domain='ingress_mac')
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 12, in decoder
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/response_ready/observation_digest.py'
+
+======================================================================
+ERROR: test_truncated_unknown_event_or_identity_alias_refused (test_observation_digest.DigestDecode) (raw=b'\x00\x01\x00\x04\x80\x00\x00\x01\x00\x00\x00\x02\xff\xff\xff\xf0\x00\x02\x03\x05\xc0\xa8\n\x07\xc0\xa8\n\x01N \x9c@\x00\x03\x00\x1e')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 38, in test_truncated_unknown_event_or_identity_alias_refused
+    with self.assertRaises(ValueError):self.decoder().decode(raw,clock_domain='ingress_mac')
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_observation_digest.py", line 12, in decoder
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/response_ready/observation_digest.py'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (errors=5)

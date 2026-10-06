@@ -1,0 +1,69 @@
+test_all_external_events_at_expiry_precede_watchdog (test_case4_model.Case4Recovery) ... ok
+test_default_readiness_expiry_releases_ack_at_30_ms (test_case4_model.Case4Recovery) ... ok
+test_fin_flushes_a_response_scheduled_after_ack_release (test_case4_model.Case4Recovery) ... ok
+test_late_ready_response_keeps_full_8_ms_gap_after_ack (test_case4_model.Case4Recovery) ... ok
+test_reset_never_repeats_already_forwarded_legacy_ack (test_case4_model.Case4Recovery) ... ok
+test_rst_flushes_held_traffic_and_allows_next_exchange (test_case4_model.Case4Recovery) ... ok
+test_tcp_request_end_wraps_modulo_32_bits (test_case4_model.Case4Recovery) ... ok
+test_time_comparison_uses_low32_masked_nanoseconds (test_case4_model.Case4Recovery) ... ok
+test_wrong_epoch_fin_cannot_clear_an_active_owner (test_case4_model.Case4Recovery) ... ok
+test_reset_requires_supported_validated_sequence_when_bound (test_case4_model.ExplicitDrain) ... test_reset_with_missing_original_prevents_rearm (test_case4_model.ExplicitDrain) ... ERROR
+test_terminal_originals_and_cookie_qualified_completion_enable_rearm (test_case4_model.ExplicitDrain) ... ERROR
+test_actual_packet_identity_rejects_each_wrong_input (test_case4_model.PacketAssociation) ... ok
+test_app_wrap_is_new_association_after_prior_completion (test_case4_model.PacketAssociation) ... ok
+test_unsupported_response_does_not_satisfy_readiness (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_ack_cannot_make_response_ready (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_rst_cannot_retire_owner (test_case4_model.PacketAssociation) ... ok
+
+======================================================================
+ERROR: test_reset_requires_supported_validated_sequence_when_bound (test_case4_model.ExplicitDrain) (bad={'seq': 9001, 'reset_validated': True})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 111, in test_reset_requires_supported_validated_sequence_when_bound
+    request(reset_seq=9000), ack(), response(),
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 13, in request
+    return Ev(t, "REQ", **{**dict(epoch=1, seq=1000, length=22, app=5), **kw})
+TypeError: __init__() got an unexpected keyword argument 'reset_seq'
+
+======================================================================
+ERROR: test_reset_requires_supported_validated_sequence_when_bound (test_case4_model.ExplicitDrain) (bad={'seq': 9000, 'reset_validated': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 111, in test_reset_requires_supported_validated_sequence_when_bound
+    request(reset_seq=9000), ack(), response(),
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 13, in request
+    return Ev(t, "REQ", **{**dict(epoch=1, seq=1000, length=22, app=5), **kw})
+TypeError: __init__() got an unexpected keyword argument 'reset_seq'
+
+======================================================================
+ERROR: test_reset_requires_supported_validated_sequence_when_bound (test_case4_model.ExplicitDrain) (bad={'seq': 9000, 'reset_validated': True, 'supported': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 111, in test_reset_requires_supported_validated_sequence_when_bound
+    request(reset_seq=9000), ack(), response(),
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 13, in request
+    return Ev(t, "REQ", **{**dict(epoch=1, seq=1000, length=22, app=5), **kw})
+TypeError: __init__() got an unexpected keyword argument 'reset_seq'
+
+======================================================================
+ERROR: test_reset_with_missing_original_prevents_rearm (test_case4_model.ExplicitDrain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 80, in test_reset_with_missing_original_prevents_rearm
+    events = [request(reset_seq=9000), ack(), response(),
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 13, in request
+    return Ev(t, "REQ", **{**dict(epoch=1, seq=1000, length=22, app=5), **kw})
+TypeError: __init__() got an unexpected keyword argument 'reset_seq'
+
+======================================================================
+ERROR: test_terminal_originals_and_cookie_qualified_completion_enable_rearm (test_case4_model.ExplicitDrain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_model.py", line 93, in test_terminal_originals_and_cookie_qualified_completion_enable_rearm
+    Ev(4 * MS, "TERMINAL_ACK", epoch=1, owner_cookie=2),
+TypeError: __init__() got an unexpected keyword argument 'owner_cookie'
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.001s
+
+FAILED (errors=5)

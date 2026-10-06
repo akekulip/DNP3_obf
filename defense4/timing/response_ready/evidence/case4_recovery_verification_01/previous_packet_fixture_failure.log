@@ -1,0 +1,26 @@
+test_associated_pending_duplicate_is_suppressed (test_case4_packet_parity.ExpiryPackets) ... ok
+test_both_lost_reservoirs_are_recovered_without_endpoint_feedback (test_case4_packet_parity.ExpiryPackets) ... ok
+test_enabled_single_reservoir_loss_rechecks_held_departure (test_case4_packet_parity.ExpiryPackets) ... ok
+test_late_ready_response_preserves_full_gap_beyond_readiness_expiry (test_case4_packet_parity.ExpiryPackets) ... ok
+test_readiness_scan_cannot_cut_gap_at_admitted_boundary (test_case4_packet_parity.ExpiryPackets) ... ok
+test_stale_pulse_and_commit_cannot_retire_new_owner (test_case4_packet_parity.ExpiryPackets) ... FAIL
+test_busy_request_preserves_actual_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_dnp3_requires_ack_bit_with_psh_allowed (test_case4_packet_parity.PacketAssociation) ... ok
+test_duplicate_acks_preserve_one_original_envelope (test_case4_packet_parity.PacketAssociation) ... ok
+test_packet_fields_write_real_source_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_stale_response_return_does_not_clear_new_full_owner (test_case4_packet_parity.PacketAssociation) ... ok
+test_tcp_and_app_wrap_are_real_packet_fields (test_case4_packet_parity.PacketAssociation) ... ok
+test_wrong_byte_fields_cannot_mark_response_ready (test_case4_packet_parity.PacketAssociation) ... ok
+
+======================================================================
+FAIL: test_stale_pulse_and_commit_cannot_retire_new_owner (test_case4_packet_parity.ExpiryPackets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_case4_packet_parity.py", line 129, in test_stale_pulse_and_commit_cannot_retire_new_owner
+    self.assertFalse(s.packet_outs)
+AssertionError: [('RESP', 42000000, b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00E\x00\x00<\x00\x07\x00\x00@\x06\xe5\\\xc0\xa8\n\x07\xc0\xa8\n\x01N \x9c@\x00\x00\x0f\xa0\x00\x00\x03\xfcP\x18\x10\x00R\x92\x00\x00\x05d\rD\x00\x01\x00\x03\x93\x0e\xc0\xc5\x81\x00\x00<\x01\x06\xd1\r', 'expiry_native')] is not false
+
+----------------------------------------------------------------------
+Ran 13 tests in 112.656s
+
+FAILED (failures=1)

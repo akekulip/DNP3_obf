@@ -1,0 +1,83 @@
+{
+  "source_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+  "identity": {
+    "created_at": "2026-10-06T21:41:42.406031+00:00",
+    "source_hashes": {
+      "defense4/timing/response_ready/src/defense4_response_ready.p4": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+      "defense4/timing/framework/tests/p4_pass_sim.py": "4218f8c794d146632a0f1bbc7df90769ad56dfa69d0a4433b02731d95722f331",
+      "defense4/timing/framework/tests/test_case4_drain_parity.py": "243946e74caa26ca3971d407577de7dc3199260f89f4fda97adf3ea53023529e",
+      "defense4/timing/response_ready/tests/test_p4_recovery.py": "bdc759508ab5ee61ea8d817cf9e79fb2b9ceba1a57f9b65088949f337d774de0"
+    },
+    "scope": "Offline actual original-bank control fragment; source-independent model; no full ingress/producer/cache/physical service claim"
+  },
+  "runs": {
+    "response_ready.log": {
+      "tests": 100,
+      "seconds": 7.8,
+      "status": "PASS"
+    },
+    "model_packet.log": {
+      "tests": 69,
+      "seconds": 805.771,
+      "status": "PASS"
+    },
+    "model_source_parity.log": {
+      "tests": 26,
+      "seconds": 789.604,
+      "status": "PASS"
+    }
+  },
+  "unique_tests": 195,
+  "response_log_provenance": "Reused unchanged response_ready suite from verification02: identical frozen P4, unchanged response_ready test and register-executor files; final helper changes are covered by verification03 model/packet/parity suites.",
+  "model_sha256": "7393d3227015b8552133993a0660f46c87f123dab9ab5e5dd3384622cce2b7dd",
+  "core_build": {
+    "source": "/home/philip/Projects/DNP3/defense4/timing/response_ready/src/defense4_response_ready.p4",
+    "source_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "command": [
+      "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+      "--target",
+      "tofino",
+      "--arch",
+      "tna",
+      "-g",
+      "-DU_BOR",
+      "-o",
+      "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_22/out",
+      "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_22/defense4_timing.p4"
+    ],
+    "exit_code": 3,
+    "elapsed_seconds": 17.506
+  },
+  "instrument_build": {
+    "core_source": "/home/philip/Projects/DNP3/defense4/timing/response_ready/src/defense4_response_ready.p4",
+    "core_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+    "instrument_sha256": "8dcf04c3076734cd675852c9277b9e775ef10447b12341c6ce6dd4ec143e74b1",
+    "command": [
+      "/usr/bin/python3",
+      "/home/philip/Projects/DNP3/defense4/timing/stage_reduction/build.py",
+      "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_instrument_build_05/source_instrument.p4",
+      "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_instrument_build_05/compiled",
+      "--max-ingress",
+      "12"
+    ],
+    "variant": "CASE4_INSTRUMENT",
+    "learn_bytes": 36,
+    "hardware_contact": false,
+    "exit_code": 3
+  },
+  "compile_log_sha256": {
+    "defense4/timing/response_ready/evidence/case4_recovery_core_build_22/compile.log": "d45fc2bbee6dd0d0e102d49d8239d8ac2f54e2439a3eabc7c25d5508aaffb920",
+    "defense4/timing/response_ready/evidence/case4_recovery_instrument_build_05/compiled/compile.log": "43e4f81d220a8d97db53e7ff3044f8e912aa84cd4e558fbc073d3c7734748ae0"
+  },
+  "compiler_outcome": "Full target core and instrument fail PHV allocation (31/35 unallocated slices); no fit/deployment acceptance.",
+  "limitations": [
+    "Trusted validated handoff only; full CRC/tuple/phase producer, cache, ledger and lifecycle integration absent.",
+    "Raw byte fixtures exercise association fields assuming validated handoff; simulator is a bounded actual source fragment, not full ingress or target execution.",
+    "Model deferred originals cover ACK/response; OP deadline/reset decisions use target scalar/table tests, not an OP packet or physical service model.",
+    "Physical pulse/port69/queue/drain service and wire/endpoint observations unavailable.",
+    "Policy-off forwarding does not debit originals: conservative quarantine persists; stop/drain/reconfiguration remains unqualified.",
+    "Immutable 16-bit identity stored zero-extended32 in one bank, three-bit mask stored16 in another; no target fit proved."
+  ],
+  "hardware_contact": false
+}

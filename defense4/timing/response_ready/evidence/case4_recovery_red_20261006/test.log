@@ -1,0 +1,64 @@
+test_drain_completion_requires_matching_cookie_and_zero_originals (test_case4_drain_reset.DrainReset) ... FAIL
+test_generated_cookie_has_one_parser_assignment (test_case4_drain_reset.DrainReset) ... FAIL
+test_operate_return_cannot_release_before_its_deadline (test_case4_drain_reset.DrainReset) ... FAIL
+test_quarantine_cannot_overwrite_trackers (test_case4_drain_reset.DrainReset) ... FAIL
+test_reset_requires_validated_connection_and_sequence (test_case4_drain_reset.DrainReset) ... FAIL
+test_retirement_quarantines_until_count_qualified_completion (test_case4_drain_reset.DrainReset) ... FAIL
+
+======================================================================
+FAIL: test_drain_completion_requires_matching_cookie_and_zero_originals (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 28, in test_drain_completion_requires_matching_cookie_and_zero_originals
+    self.assertTrue('table tbl_case4_drain_complete' in self.s, 'drain completion gate missing')
+AssertionError: False is not true : drain completion gate missing
+
+======================================================================
+FAIL: test_generated_cookie_has_one_parser_assignment (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 54, in test_generated_cookie_has_one_parser_assignment
+    self.assertNotIn('meta.cookie_in =', body)
+AssertionError: 'meta.cookie_in =' unexpectedly found in '{\n        pkt.extract(hdr.ib);\n        meta.role = ROLE_BLOCK;\n        meta.gen_in = hdr.ib.gen;\n        meta.cookie_in = 16w0x8000 ++ hdr.pgen.trigger_cookie;\n        meta.token_slot = hdr.ib.slot;\n        transition accept;\n    }'
+
+======================================================================
+FAIL: test_operate_return_cannot_release_before_its_deadline (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 36, in test_operate_return_cannot_release_before_its_deadline
+    self.assertTrue('table tbl_case4_operate_release' in self.s, 'OPERATE release guard missing')
+AssertionError: False is not true : OPERATE release guard missing
+
+======================================================================
+FAIL: test_quarantine_cannot_overwrite_trackers (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 24, in test_quarantine_cannot_overwrite_trackers
+    self.assertEqual(table_effect(self.s, 'tbl_tracker_admission',
+AssertionError: 'allow_trackers' != 'block_trackers'
+- allow_trackers
+? ^^  ^
++ block_trackers
+? ^  ^^
+
+
+======================================================================
+FAIL: test_reset_requires_validated_connection_and_sequence (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 46, in test_reset_requires_validated_connection_and_sequence
+    self.assertTrue('table tbl_case4_reset_qualification' in self.s, 'reset qualification missing')
+AssertionError: False is not true : reset qualification missing
+
+======================================================================
+FAIL: test_retirement_quarantines_until_count_qualified_completion (test_case4_drain_reset.DrainReset)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_case4_drain_reset.py", line 15, in test_retirement_quarantines_until_count_qualified_completion
+    self.assertEqual(owner, 0x40000001)
+AssertionError: 1 != 1073741825
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.015s
+
+FAILED (failures=6)

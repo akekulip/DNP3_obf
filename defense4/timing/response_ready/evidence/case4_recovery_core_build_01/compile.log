@@ -1,0 +1,42 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2220): [--Wwarn=unused] warning: Table tbl_expected_ack is not used; removing
+    table tbl_expected_ack {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2405): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2409): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2413): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2421): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2532): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2533): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2691): [--Wwarn=unused] warning: Table tbl_held_owner is not used; removing
+    table tbl_held_owner {
+          ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(2705): [--Wwarn=unused] warning: Table tbl_commit is not used; removing
+    table tbl_commit {
+          ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(936): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(934)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/case4_recovery_core_build_01/defense4_timing.p4(1503): [--Werror=target-error] error: Ingress.reg_owner: too many RegisterActions attached to the Register
+The target architecture limits the number of RegisterActions attached to a single Register to 4.
+Reorganize your code to meet this restriction.
+The following RegisterActions are attached to the Register: Ingress.owner_arm, Ingress.owner_read, Ingress.owner_retire, Ingress.owner_complete, Ingress.owner_ack_commit, Ingress.owner_reset
+    Register<bit<32>, bit<1>>(1, 0) reg_owner;
+                                    ^^^^^^^^^
+
+1 error, 10 warnings generated.
+

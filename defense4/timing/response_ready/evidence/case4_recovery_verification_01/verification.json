@@ -1,0 +1,67 @@
+{
+  "identity": {
+    "created_at": "2026-10-06T21:24:04.117082+00:00",
+    "source_hashes": {
+      "defense4/timing/response_ready/src/defense4_response_ready.p4": "2f8fa3e05d77f0844af0888c4b25ae463baf6e909d7574add674b4e1e45d4fff",
+      "defense4/timing/framework/model/response_ready_model.py": "7393d3227015b8552133993a0660f46c87f123dab9ab5e5dd3384622cce2b7dd",
+      "defense4/timing/framework/tests/p4_pass_sim.py": "0b521acfecb62db9f9d23492c4b7e7c7b089a71391ad3b6800c5eb1b96fd39c2",
+      "defense4/timing/response_ready/observation_digest.py": "68d2da4012d5cf30adfd5f6f87bc9212ded7666f2dc380a0cd573beed3a3a53c",
+      "defense4/timing/response_ready/compile_instrument.py": "479da8955106eb2564ad058ee35c843d6a4d5d3956928cc736f5976919b852ec"
+    },
+    "scope": "offline source fragments and independent model; no hardware acquisition"
+  },
+  "runs": {
+    "mask_default_red.log": {
+      "tests": 12,
+      "seconds": 0.111,
+      "status": "RETAINED_FAILURE"
+    },
+    "model_drain_red.log": {
+      "tests": 17,
+      "seconds": 0.001,
+      "status": "RETAINED_FAILURE"
+    },
+    "drain_parity_red.log": {
+      "tests": 2,
+      "seconds": 0.406,
+      "status": "RETAINED_FAILURE"
+    },
+    "previous_packet_fixture_failure.log": {
+      "tests": 13,
+      "seconds": 112.656,
+      "status": "RETAINED_FAILURE"
+    },
+    "digest_red.log": {
+      "tests": 3,
+      "seconds": 0.001,
+      "status": "RETAINED_FAILURE"
+    },
+    "model_source_parity.log": {
+      "tests": 26,
+      "seconds": 117.993,
+      "status": "PASS"
+    },
+    "previous_model_mixed_source_green.log": {
+      "tests": 26,
+      "seconds": 117.325,
+      "status": "PASS"
+    },
+    "bor_commit_red.log": {
+      "tests": 11,
+      "seconds": 0.115,
+      "status": "RETAINED_FAILURE"
+    },
+    "model_packet.log": {
+      "tests": 65,
+      "seconds": 120.305,
+      "status": "PASS"
+    },
+    "response_ready.log": {
+      "tests": 98,
+      "seconds": 8.29,
+      "status": "PASS"
+    }
+  },
+  "scope": "Snapshot-bound offline verification. Recorded helper hashes identify the actual run version; later helper changes do not rebind these logs.",
+  "hardware_contact": false
+}
