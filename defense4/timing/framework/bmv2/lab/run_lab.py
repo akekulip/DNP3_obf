@@ -178,12 +178,12 @@ def split_report(cap_m, cap_o):
 
 
 def step5(lab, work, mode=4, da_us=10_000, gap_us=1_000, budget=300, loop_pps=5000, latency_ms=2.0, count=3, shape=0, force_points=0,
-          dropreq=0, combined=False, gap_ms=300, budget_ms=2000):
+          dropreq=0, combined=False, gap_ms=300, budget_ms=2000, jitter_ms=0.0, seed=0):
     j = compile_p4("bmv2_rr", work)
     lab.up(loop=True).start_switch(j)
     setup_policy(lab, mode, da_us, gap_us, budget, loop_pps, shape, dropreq)
     cap_m, cap_o = lab.capture("s0", "master_side.pcap"), lab.capture("s1", "outstation_side.pcap")
-    lab.start_outstation(latency_ms=latency_ms, force_points=force_points, combined=combined)
+    lab.start_outstation(latency_ms=latency_ms, force_points=force_points, combined=combined, jitter_ms=jitter_ms, seed=seed)
     rows = lab.run_master(count=count, gap_ms=gap_ms, budget_ms=budget_ms)
     time.sleep(0.5)
     lab.down_captures()

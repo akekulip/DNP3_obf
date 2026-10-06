@@ -54,7 +54,9 @@ def response(user, force_points=0):
     return frame(body)
 
 
-def serve(host, port, latency_ms, ready, force_points=0, combined=False):
+def serve(host, port, latency_ms, ready, force_points=0, combined=False, jitter_ms=0.0, seed=0):
+    import random
+    rng = random.Random(seed)                      # the same seed gives the same latency sequence in every arm
     srv = socket.socket()
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind((host, port))
@@ -76,7 +78,7 @@ def serve(host, port, latency_ms, ready, force_points=0, combined=False):
         for user, total in deframe(buf):
             r = response(user, force_points)
             if r:
-                time.sleep(latency_ms / 1e3)
+                time.sleep((latency_ms + rng.uniform(0.0, jitter_ms)) / 1e3)
                 conn.sendall(r)                         # one send: one TCP segment on the wire
             buf = buf[total:]
 
@@ -86,7 +88,9 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=20000)
     ap.add_argument("--latency-ms", type=float, default=1.0)
+    ap.add_argument("--jitter-ms", type=float, default=0.0, help="add U(0, J) ms to the latency of every response, seeded")
+    ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--combined", action="store_true", help="delayed ACK: the acknowledgment rides the response (AB1400/ION7550 style)")
     ap.add_argument("--force-points", type=int, default=0, help="answer with this many status points instead of the requested range")
     a = ap.parse_args()
-    serve(a.host, a.port, a.latency_ms, lambda: print("READY", flush=True), a.force_points, a.combined)
+    serve(a.host, a.port, a.latency_ms, lambda: print("READY", flush=True), a.force_points, a.combined, a.jitter_ms, a.seed)

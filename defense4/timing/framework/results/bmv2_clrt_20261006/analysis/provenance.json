@@ -1,0 +1,33 @@
+{
+  "bin_edges_ms": [
+    0.0,
+    12.0,
+    0.25
+  ],
+  "denominator": "all attempted transactions per arm",
+  "display_bins": "0.25 ms, a display choice for a readable figure",
+  "environment": {
+    "matplotlib": "3.7.5",
+    "python": "3.8.10"
+  },
+  "figure": "fig_bmv2_clrt",
+  "formby_feature_vector": "B=200, H=15 ms declared (the paper leaves H a heuristic), Eq. (1) of Formby et al. NDSS 2016: B-1 bins of width H/(B-1) plus an overflow element for m > H",
+  "inputs_sha256": {
+    "response_ready": "fa2516d72aa58f00a2ad8a407e49ca0592310f7e85daaa79a06cd22cd65f33e3",
+    "timing_off": "9cf9bf87da2330374473f784e5239623049cc22bf6020b5f5f0ecb57538d35bd"
+  },
+  "outputs_sha256": {
+    "fig_bmv2_clrt.pdf": "9f0ee6725d8acdc8895640ab704ac364cab7a5c6639b30926057baaec9b18524",
+    "fig_bmv2_clrt_bins.csv": "b61ad1020c4f0730e720c3f75df5f8f2774ca2b8a4bd1d0f74787a09a4ef6288",
+    "formby_signature_B200_H15.csv": "eb97bd9cf37c5b63211d8ca0b4095bfc9a7da59f138a6d13663673283cbba2b3",
+    "response_ready_transactions.csv": "9b7619468a5586a4538b95c349bf33f413d08514b2fafb0ae20af54bdf54e2c2",
+    "stats.json": "41b6647992d5f5a930a346639dbe15c1bb257cb4febd755c165c0f57ec8b9b69",
+    "timing_off_transactions.csv": "afd76db624c908a13ea46e9ba6a6caeff6c5ccc493e3293e5597d43da4af2cb7"
+  },
+  "software_timing_note": "BMv2 software timing; not Tofino line-rate evidence",
+  "target_window_ms": [
+    0.7,
+    1.3
+  ],
+  "width_in": 3.5
+}

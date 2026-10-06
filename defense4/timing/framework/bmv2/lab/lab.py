@@ -94,8 +94,8 @@ class Lab:
         time.sleep(0.5)
         return path
 
-    def start_outstation(self, latency_ms=1.0, force_points=0, combined=False):
-        p = subprocess.Popen(["ip", "netns", "exec", "o", sys.executable, "-B", str(HERE / "outstation.py"), "--latency-ms", str(latency_ms), "--force-points", str(force_points)] + (["--combined"] if combined else []),
+    def start_outstation(self, latency_ms=1.0, force_points=0, combined=False, jitter_ms=0.0, seed=0):
+        p = subprocess.Popen(["ip", "netns", "exec", "o", sys.executable, "-B", str(HERE / "outstation.py"), "--latency-ms", str(latency_ms), "--force-points", str(force_points)] + (["--combined"] if combined else []) + ["--jitter-ms", str(jitter_ms), "--seed", str(seed)],
                              stdout=subprocess.PIPE, text=True)
         self.procs.append(p)
         if p.stdout.readline().strip() != "READY":
