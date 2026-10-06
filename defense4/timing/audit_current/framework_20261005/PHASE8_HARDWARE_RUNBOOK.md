@@ -13,7 +13,7 @@ pass; three of them do not yet pass. Physical OPERATE stays attended-only and wa
 | control adapter against the real schema | **partial** | offline only; three parameter tables; `connect()` never run |
 | experiment declarations | **pass** | `framework/declarations/{smoke,main}.json`, validated, build identity bound |
 | live state identified, not inferred from a handover | **partial** | read-only: `bf_switchd` pid 10674, up about 24 h, `--conf-file …/bringup_20261005/frozen_abs.conf --init-mode=cold` |
-| **restoration procedure rehearsed** | **blocked** | see below |
+| **restoration procedure rehearsed** | **pass** | `RESTORATION_REHEARSAL_20261006.md`: cold restart with no candidate; one benign configuration difference (port 17 scheduler speed) |
 | **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **blocked** | nothing in the tree configures these for the candidate; the adapter does not read or verify them |
 | relay-facing capture point | **unknown** | state it before the run and restrict conclusions to the master-facing view if absent |
 
