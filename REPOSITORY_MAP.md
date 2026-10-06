@@ -29,6 +29,8 @@ text is an open authority conflict, not evidence approval. See the
 | `defense4/timing/latency_search/` | Later matched-delay experiments and attacker analyses. Treat each run directory's protocol, manifests, and completion status as its authority; these results are not paper evidence by default. |
 | `defense4/timing/anchor_fix/` | Corrected request-anchoring source and findings. |
 | `defense4/timing/audit_current/` | Current claim, timing, retransmission, and measurement audits. |
+| `defense4/timing/response_ready/` | READ response-ready P4 candidate, its offline tests, compiler-report evidence and build gate. Engineering candidate; no hardware results yet. |
+| `defense4/timing/framework/` | Framework track (2026-10-06): policy contract, independent reference model, experiment-declaration validator, offline tests (`run_tests.sh`). Nothing here is paper evidence. `build/` is untracked output. |
 
 ## Frozen records and derived outputs
 
