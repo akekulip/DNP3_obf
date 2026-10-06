@@ -10,9 +10,10 @@ generation and is not itself a reservoir.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{../figures/fig_framework_mechanism.pdf}
-\caption{Working mechanism and separate size component. The read and control
-scheduling domains return through ingress. The size branch is not evidence of a
-complete joint Tofino implementation. Source, queue mapping and rendering
+\caption{Timing component and separate software size path. The Read and control
+scheduling domains return through ingress. The software path pads relay-bound
+commands and carves returning responses; it is not evidence of a complete joint
+Tofino implementation. Source, queue mapping and rendering
 provenance accompany the editable figure.}
 \label{fig:mechanism}
 \end{figure*}
@@ -51,16 +52,23 @@ ordering near expiry can still select explicit fallback before commitment.
 Completion, stale-packet rejection and next-owner admission need separate checks;
 an event-model timer does not establish physical queue drain.
 
-\textbf{Parameter constraints.} Admission accounts for the complete feedback
-interval each sender's timer spans, application and SBO deadlines, detection,
-drain and release. TCP's retransmission timer is not remaining headroom at switch
-arrival~\cite{case4_rfc6298}. Missing measurements keep admission provisional.
+\textbf{Parameter constraints.} Admission charges the complete feedback interval
+each sender's timer spans, application deadlines, detection, drain and release.
+SBO has a separate retention budget: its clock starts when the outstation accepts
+a successful SELECT and ends when it accepts the matching OPERATE. The check
+charges the native cycle and the added SELECT-response and OPERATE-request delays,
+with recovery costs counted once. Applicable physical SBO and release inputs
+remain unavailable, so current admission is provisional. TCP's retransmission
+timer is not remaining headroom at switch arrival~\cite{case4_rfc6298}.
 The policy study retains $D_A\in\{5,10,15,20\}$ ms and configured
 $\mathrm{CLRT}_{new}=1$ ms, subject to a fixed 40 ms cap. The declared hardware
 accuracy criteria are not software timing tolerances or achieved results.
 
-\textbf{Other policy capabilities.} ACK-focused scheduling moves
-request-to-ACK timing toward response readiness. Response-focused scheduling
-holds only responses that arrive inside its window. A generated-ACK prototype
+\textbf{Other policy capabilities.} Case 1, ACK-focused scheduling, moves
+request-to-ACK timing toward response readiness. Case 2, response-focused scheduling,
+holds only responses that arrive inside its window. Case 3, a generated-ACK prototype,
 accepts responsibility for downstream loss and remains incomplete. These three
 cases are explanation-only history in this assignment; Case 4 is the new target.
+Adding the same fixed delay to an ACK and its response leaves their gap unchanged.
+Fixed-target replacement instead depends on the declared availability and release
+conditions.

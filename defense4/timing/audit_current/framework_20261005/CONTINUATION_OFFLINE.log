@@ -1,0 +1,425 @@
+
+=== active_harness ===
+REFUSED: --indices must be exactly [1, 3]; got [1]
+REFUSED: --indices must be exactly [1, 3]; got [1, 3, 6]
+REFUSED: --indices must be exactly [1, 3]; got [6]
+REFUSED: live operation needs DEFENSE4_HW_AUTHORIZED=1
+----------------------------------------------------------------------
+Ran 58 tests in 0.353s
+
+OK
+dry run: building guarded SELECT/OPERATE frames, opening no socket
+  SELECT  seq=0 len=45 056424c4000001004a59c0c0030c011702010101c80000000000e403000000030101c8000000000000000015ee
+  OPERATE seq=0 len=45 056424c4000001004a59c0c0040c011702010101c8000000000034bb000000030101c8000000000000000015ee
+  SELECT  seq=1 len=45 056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee
+  OPERATE seq=1 len=45 056424c4000001004a59c1c1040c011702010101c80000000000a098000000030101c8000000000000000015ee
+frames build, pass the {1,3} guard and CRC-validate; nothing was sent
+
+=== active_control ===
+/home/philip/Projects/DNP3/defense4/timing/active_control/tests/test_timing_only_profile.py:598: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/philip/Projects/DNP3/defense4/timing/active_control/timing_only_profile.py' mode='r' encoding='UTF-8'>
+  src = open(os.path.join(ROOT, "timing_only_profile.py")).read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/philip/Projects/DNP3/defense4/timing/active_control/tests/test_timing_only_profile.py:608: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/philip/Projects/DNP3/defense4/timing/active_control/timing_only_profile.py' mode='r' encoding='UTF-8'>
+  src = open(os.path.join(ROOT, "timing_only_profile.py")).read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+----------------------------------------------------------------------
+Ran 115 tests in 0.019s
+
+OK
+
+=== active_probe ===
+----------------------------------------------------------------------
+Ran 39 tests in 0.011s
+
+OK
+
+=== response_ready ===
+----------------------------------------------------------------------
+Ran 100 tests in 7.846s
+
+OK
+
+=== framework ===
+..................................................................................................................................................................PROVEN steps kept:
+  d3.assert_dp8_speed
+  d3.config_ports
+  hw_config_bor_loopback
+  d3.disarm_port_shaper
+  hw_init_registers
+  hw_config_queues_on_port(RRC)
+  hw_config_queues_on_port(BOR)
+  hw_config_pktgen_two_apps(disabled)
+  d3.config_mirror
+  d3.config_session
+REMOVED (do not fit the candidate):
+  verify_commit_map
+  caseA.config_params_d4
+  hw_config_tbl_bor_params
+  hw_config_codebook
+  hw_verify_tbl_commit
+CANDIDATE steps:
+  tbl_bor_codebook empty
+  adapter: tbl_params / tbl_bor_params / tbl_read_release_params
+  hw_config_pktgen_two_apps(enabled)
+{
+  "admission": null,
+  "after": {
+    "tbl_bor_params": {
+      "a_ticks": 0,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 999936
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 0,
+      "da_dr": 999936,
+      "mode": 0,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 0,
+      "gap_ticks": 999936
+    }
+  },
+  "before": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "is_evidence_of_switch_state": true,
+  "plan": {
+    "case": "off",
+    "expect": {
+      "tbl_bor_params": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      },
+      "tbl_params": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      },
+      "tbl_read_release_params": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    "quantised_ns": {
+      "d_a": 0,
+      "d_a_residual": 0,
+      "gap": 999936,
+      "gap_residual": 64
+    }
+  },
+  "profile": {
+    "budget": 18000,
+    "build_id": "",
+    "case": "off",
+    "completion_deadline_ms": null,
+    "connection_id": "",
+    "d_a_ms": 0.0,
+    "gap_ms": 1.0,
+    "heartbeat_request_us": 100.0,
+    "loop_ns": 1711,
+    "measured_drain_max_ms": null,
+    "measured_heartbeat_max_us": null,
+    "measured_release_max_us": null,
+    "operation": "READ",
+    "operation_profile_sha256": "",
+    "padding_profile": "crob_trailing_header_one_decoy",
+    "readiness_expiry_ms": 30.0,
+    "split_profile": "57_28_29",
+    "translation_capacity": 2
+  },
+  "source": "switch",
+  "steps": [
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      },
+      "table": "tbl_params",
+      "wrote": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      },
+      "table": "tbl_bor_params",
+      "wrote": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    }
+  ]
+}
+{
+  "restored": true,
+  "steps": [
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      },
+      "table": "tbl_params",
+      "wrote": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      },
+      "table": "tbl_bor_params",
+      "wrote": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      }
+    }
+  ]
+}
+{
+  "read": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "verified": true
+}
+{
+  "read": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "verified": false
+}
+..................................................................................................................................................
+----------------------------------------------------------------------
+Ran 308 tests in 255.102s
+
+OK
+{
+  "plan": {
+    "case": "combined",
+    "expect": {
+      "tbl_bor_params": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      },
+      "tbl_params": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      },
+      "tbl_read_release_params": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      }
+    },
+    "quantised_ns": {
+      "d_a": 9999872,
+      "d_a_residual": 128,
+      "gap": 999936,
+      "gap_residual": 64
+    },
+    "writes": [
+      [
+        "tbl_read_release_params",
+        {
+          "action_name": "Ingress.set_read_release",
+          "enabled": 0,
+          "gap_ticks": 999936
+        }
+      ],
+      [
+        "tbl_params",
+        {
+          "action_name": "Ingress.set_params",
+          "budget": 18000,
+          "d_ticks": 9999872,
+          "da_dr": 10999808,
+          "mode": 4,
+          "read_len": 0
+        }
+      ],
+      [
+        "tbl_bor_params",
+        {
+          "a_ticks": 9999872,
+          "action_name": "Ingress.set_bor_params",
+          "anchor_req": 1,
+          "r_ticks": 10999808
+        }
+      ],
+      [
+        "tbl_read_release_params",
+        {
+          "action_name": "Ingress.set_read_release",
+          "enabled": 1,
+          "gap_ticks": 999936
+        }
+      ]
+    ]
+  },
+  "problems": []
+}
+{
+  "problems": [
+    "combined needs D_A > 0 (D_A = 0 is the ack_focused case)"
+  ]
+}
+{"refused": "a master-rto-probe rule already exists"}

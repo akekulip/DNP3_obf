@@ -4,7 +4,7 @@ meta:
   source: edited
   theme: academic-color
   layout: horizontal
-  canvas: 1000x792
+  canvas: 1000x968
   routing: orthogonal
   font:
     primary: Times New Roman
@@ -15,11 +15,12 @@ meta:
     widthPt: 515.52
     minPt: 8
   title: Case 4 timing architecture and separate size evidence
-  description: Explicit endpoint send/receive directions, three scheduling domains, ingress returns, clone-triggered
-    packet generation and independent timeout pulse; component compilation is distinct from a complete
-    joint implementation.
-  legend: Solid blue depicts packet paths, including queue returns; dashed orange depicts internal seeding
-    and control. Queue IDs, port IDs and labels carry meaning independently of color.
+  description: Proposed target timing domains with initial blocker seeds and loop
+    returns through ingress, distinct from the executed BMv2 software padding/carving
+    path; no complete target qualification.
+  legend: Solid blue depicts external packet paths and queue returns; solid orange
+    depicts generated internal packets. Dashed lines depict configuration or clone
+    triggers. Explicit labels distinguish Read/control and proposed target/software.
   replication:
     colorMode: preserve-original
     background: '#ffffff'
@@ -38,7 +39,7 @@ meta:
       confidence: high
 nodes:
 - id: title
-  label: 'Case 4 timing architecture: Tofino compile candidate'
+  label: '(a) Proposed target: Case 4 timing / size integration'
   type: text
   bounds:
     x: 112
@@ -91,7 +92,7 @@ nodes:
 - id: ingress
   label: 'Ingress
 
-    Qualify
+    Qualify / pad
 
     Hold / release'
   type: process
@@ -127,14 +128,12 @@ nodes:
 - id: egress
   label: 'Egress
 
-    Restore
-
-    Forward'
+    Carve / fwd'
   type: process
   bounds:
-    x: 752
+    x: 740
     y: 272
-    width: 120
+    width: 144
     height: 104
   style:
     fillColor: '#ffffff'
@@ -176,7 +175,7 @@ nodes:
     bold: true
     strokeWidth: 1.4
 - id: ack
-  label: 'ACK: blocker qid7
+  label: 'Read: ACK blocker qid7
 
     Held ACK: qid6'
   type: process
@@ -193,7 +192,7 @@ nodes:
     bold: false
     strokeWidth: 1.4
 - id: response
-  label: 'RESP: blocker qid5
+  label: 'Read: RESP blocker qid5
 
     Held RESP: qid4'
   type: process
@@ -225,7 +224,7 @@ nodes:
     bold: false
     strokeWidth: 1.4
 - id: operate
-  label: 'OP: blocker qid3
+  label: 'Control: OP blocker qid3
 
     Held OPERATE: qid2'
   type: process
@@ -293,7 +292,7 @@ nodes:
 - id: pktgen
   label: 'Packet generator
 
-    Seeds reservoirs'
+    Seeds via ingress'
   type: process
   bounds:
     x: 384
@@ -323,7 +322,8 @@ nodes:
     bold: false
     strokeWidth: 1.4
 - id: legend
-  label: 'Solid: packet flow; dashed: seeding / control. Endpoint boxes repeat send / receive roles.'
+  label: 'Blue: packet flow; orange: generated packets; dashed: configuration / clone
+    trigger.'
   type: text
   bounds:
     x: 8
@@ -338,23 +338,19 @@ nodes:
     bold: false
     strokeWidth: 1.4
 - id: size
-  label: 'Size: software verified; coexistence compiles; complete joint pending
-
-    Control 35 → 55; echo 57 → [28, 29]; two-boundary TCP translation
-
-    Historical READ 49 → [28, 21]; physical validation pending.'
+  label: '(b) Executed software size path: BMv2 switch / codec endpoints'
   type: text
   bounds:
     x: 8
     y: 688
     width: 984
-    height: 88
+    height: 40
   style:
     fillColor: none
     strokeColor: none
     fontColor: '#222222'
     fontSize: 17
-    bold: false
+    bold: true
     strokeWidth: 1.4
 - id: relay_input
   label: 'Relay
@@ -383,6 +379,108 @@ nodes:
     y: 440
     width: 112
     height: 72
+  style:
+    fillColor: '#eef3fb'
+    strokeColor: '#555555'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_master_request
+  label: 'Codec master
+
+    Control 35 B'
+  type: process
+  bounds:
+    x: 8
+    y: 744
+    width: 176
+    height: 64
+  style:
+    fillColor: '#eef3fb'
+    strokeColor: '#555555'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_padding
+  label: 'Padding + TCP map
+
+    SELECT / OPERATE 35 → 55'
+  type: process
+  bounds:
+    x: 280
+    y: 744
+    width: 384
+    height: 64
+  style:
+    fillColor: '#eaf0fb'
+    strokeColor: '#1f4e9e'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_relay_request
+  label: 'Codec relay
+
+    Request 55 B'
+  type: process
+  bounds:
+    x: 816
+    y: 744
+    width: 176
+    height: 64
+  style:
+    fillColor: '#eef3fb'
+    strokeColor: '#555555'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_relay_response
+  label: 'Codec relay
+
+    Echo 57 B'
+  type: process
+  bounds:
+    x: 816
+    y: 848
+    width: 176
+    height: 64
+  style:
+    fillColor: '#eef3fb'
+    strokeColor: '#555555'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_carving
+  label: 'Response carving
+
+    57 → [28, 29]'
+  type: process
+  bounds:
+    x: 344
+    y: 848
+    width: 256
+    height: 64
+  style:
+    fillColor: '#eaf0fb'
+    strokeColor: '#1f4e9e'
+    fontColor: '#222222'
+    fontSize: 17
+    bold: false
+    strokeWidth: 1.4
+- id: sw_master_response
+  label: 'Codec master
+
+    Reassemble 57 B'
+  type: process
+  bounds:
+    x: 8
+    y: 848
+    width: 224
+    height: 64
   style:
     fillColor: '#eef3fb'
     strokeColor: '#555555'
@@ -576,11 +674,11 @@ edges:
   - x: 264
     y: 400
 - to: ingress
-  type: data
+  type: primary
   style:
     strokeColor: '#c25b00'
     strokeWidth: 1.6
-    dashed: true
+    dashed: false
     exitX: 0.24
     exitY: 0
     entryX: 0.24
@@ -613,54 +711,6 @@ edges:
     entryX: 0
     entryY: 0.5
   from: clone
-- to: ack
-  type: data
-  style:
-    strokeColor: '#c25b00'
-    strokeWidth: 1.6
-    dashed: true
-    exitX: 1
-    exitY: 0.5
-    entryX: 1
-    entryY: 0.3
-  from: pktgen
-  waypoints:
-  - x: 744
-    y: 612
-  - x: 744
-    y: 171.2
-- to: response
-  type: data
-  style:
-    strokeColor: '#c25b00'
-    strokeWidth: 1.6
-    dashed: true
-    exitX: 1
-    exitY: 0.5
-    entryX: 1
-    entryY: 0.3
-  from: pktgen
-  waypoints:
-  - x: 744
-    y: 612
-  - x: 744
-    y: 267.2
-- to: operate
-  type: data
-  style:
-    strokeColor: '#c25b00'
-    strokeWidth: 1.6
-    dashed: true
-    exitX: 1
-    exitY: 0.5
-    entryX: 1
-    entryY: 0.3
-  from: pktgen
-  waypoints:
-  - x: 744
-    y: 612
-  - x: 744
-    y: 451.2
 - type: primary
   style:
     strokeColor: '#1f4e9e'
@@ -691,3 +741,67 @@ edges:
   waypoints:
   - x: 812
     y: 476
+- from: pktgen
+  to: ingress
+  type: primary
+  style:
+    strokeColor: '#c25b00'
+    strokeWidth: 1.6
+    dashed: false
+    exitX: 0.2
+    exitY: 0
+    entryX: 0.5
+    entryY: 1
+  waypoints:
+  - x: 432
+    y: 576
+  - x: 352
+    y: 576
+  - x: 352
+    y: 392
+  - x: 236
+    y: 392
+- from: sw_master_request
+  to: sw_padding
+  type: primary
+  style:
+    strokeColor: '#1f4e9e'
+    strokeWidth: 1.6
+    dashed: false
+    exitX: 1
+    exitY: 0.5
+    entryX: 0
+    entryY: 0.5
+- from: sw_padding
+  to: sw_relay_request
+  type: primary
+  style:
+    strokeColor: '#1f4e9e'
+    strokeWidth: 1.6
+    dashed: false
+    exitX: 1
+    exitY: 0.5
+    entryX: 0
+    entryY: 0.5
+- from: sw_relay_response
+  to: sw_carving
+  type: primary
+  style:
+    strokeColor: '#1f4e9e'
+    strokeWidth: 1.6
+    dashed: false
+    exitX: 0
+    exitY: 0.5
+    entryX: 1
+    entryY: 0.5
+- from: sw_carving
+  to: sw_master_response
+  type: primary
+  style:
+    strokeColor: '#1f4e9e'
+    strokeWidth: 1.6
+    dashed: false
+    exitX: 0
+    exitY: 0.5
+    entryX: 1
+    entryY: 0.5

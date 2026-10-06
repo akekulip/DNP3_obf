@@ -90,3 +90,78 @@ unchanged. Exact newer author text and manuscript promotion remain pending.
 The canonical matrix and handover contain the evidence and remaining checks;
 `EXECUTION_VERIFICATION.json` beside them preserves the aggregate result and
 targeted corrections without turning the original failures into an all-pass run.
+
+## Remaining-work execution — approved 2026-10-06
+
+Continuation base: `5a816ab26d60da5fa041b19db6d0fbe9d2f21417`, on `main`.
+Philip approved the remaining-work plan and then instructed implementation.
+The full joint target remains required; no reduced profile substitutes for it.
+The frozen corpus and pre-existing local changes remain protected.
+
+| Requirement / audited gap | Owner and implementation | Acceptance / evidence | State |
+|---|---|---|---|
+| Acquisition overwrites existing evidence | Shared exclusive run reservation; endpoint and BMv2 launchers | Existing destination refuses before side effects; failures durable; sealed inventory | Complete offline; nine sealed inventories verified |
+| Owner retires before old held originals return | Recovery phase/count conservation and immutable cookies | Old-cookie drain precedes rearm; lost-original quarantine; no count wrap | Implemented/tested source subset; target compile blocked |
+| Lost OP blockers release before J | Deadline-qualified OP commitment | Actual control/packet cases before/at/after J with both blockers absent | Implemented/tested source subset; target compile blocked |
+| Reset/full validation/parser-cookie gaps | Qualified reset outcomes and validated internal handoff | Wrong tuple/sequence cannot retire; IPv4/full-profile checks; source-bound compile | Qualified reset/seam tested; actual target producer missing |
+| Complete ingress transport/timing integration missing | Bounded preprocessing ledger and explicit dynamic-length handoff | Independent arithmetic, immutable replay, complete joint source/compile; exact failure retained | Partial: software oracle and component compile; full joint incomplete |
+| Instrument writers unused/marker unsafe | Bounded management events and separate instrument build | Decoder/wrap/loss tests; endpoint frame unchanged; resource/overhead evidence | Source/decoder tested; instrument compile/physical endpoints blocked |
+| SBO retention absent from admission | Explicit selection-budget/context inputs and observation importer | Missing/context-mismatched inputs refuse; normal/fallback costs counted once | Complete offline; measured production inputs unavailable |
+| Case4 controller has empty mutation plan | Whole-plan schema validation, source binding, backup/readback/restore | Incomplete candidates refuse; mocks inject failure at each boundary | Complete offline/mock guards; production registry empty |
+| Autonomous kernel repair unproved | Isolated pinned endpoint/TCP socket artifact | Kernel-driven loss/retransmission and application outcomes, or exact failure | One isolated Linux/OpenDNP3 socket pair verified |
+| Hardware qualification/measurement missing | Existing bounded declaration and guarded runbook | Full 9.13.2 build, measurements, authorization, restored state | Blocked by full target and external prerequisites |
+| Conceptual table/size figure/prose defects | Existing policy contract, figure generator and working paper | Explicit explanation-only cases, accurate diagrams/claims, protected-text gates | Working-only updates verified; 13 figure warnings retained; promotion blocked |
+
+Defaults remain 35-to-55 request bytes and 57-to-[28,29] response bytes;
+one protected connection/association and two insertion boundaries; 30 ms
+readiness expiry; 1 ms configured gap; requested 100 us heartbeat; fixed 40 ms
+policy cap. Keep 16,168 attempts under the 18,360 ceiling. Fresh verified
+connections are required per control trial/SBO pair; setup consumes the existing
+budget and failed setup consumes an attempt. No implicit retry or extra campaign.
+
+Ruling: use candidate processing port 69 only after independent queue/return-path
+availability is proved. No blind group-wide recirculation or port substitution.
+Bounded processing is at most 16 passes; this is not a physical latency bound.
+
+Ruling: continue independent offline work while full target fit, SDE 9.13.2,
+measurement, or live authorization is missing. No hardware contact is authorized
+by this continuation. Commit only scoped verified changes using Philip as both
+author and committer, without attribution trailers; do not push.
+
+## Continuation outcome — 2026-10-06
+
+Independent offline acceptance is implemented: exclusive evidence reservation,
+original ownership/quarantine and deadline predicates, bounded software transport
+preprocessing, SBO admission, source-bound controller refusal/rollback,
+management-observation decoding, and a pinned real Linux/OpenDNP3 kernel loss
+repair pair. Working paper and editable mechanism figure distinguish the proposed
+target from the executed software paths. The frozen corpus stays unchanged.
+
+The full target remains unfinished. Recovery core22 and instrument05 fail PHV
+placement, and exact-current composite34 also fails. The ingress arithmetic
+component alone compiles in six ingress / zero egress stages under local SDE
+9.13.1, with 27 warnings. Complete validation, replacement images, replay cache,
+handshake/assembly/retirement lifecycle, wire-ACK association and processing
+completion still require target implementation. SDK 9.13.2 qualification and
+physical measurements depend on the complete fitting source. Actual queued
+OPERATE-envelope service and policy-off ownership cleanup remain unproved. No reduced target
+or software oracle substitutes for it.
+
+`CONTINUATION_VERIFICATION.json` in the canonical audit directory binds current
+source identities, final tests, deliberately excluded legacy network modules,
+compiler outcomes, protected hashes and retained failures. The 620-test offline
+aggregate is retained as an intermediate run because the source interpreter was
+subsequently repaired; final affected tests have separate source-bound verification_03 evidence.
+Two overlapping expensive reruns were stopped as redundant and retained as
+aborted partial logs, without claiming a suite PASS.
+Final source-bound verification_03 passes 69 model/packet and 26 source-parity
+tests, zero skips; the separate frozen-P4 recovery suite has 100 passes with
+explicit reused-log provenance and an independent root run. Counts overlap
+with the 620-test aggregate and are not summed as unique coverage.
+The fresh Case 4 BMv2 run is 14/14, zero skips. Historical failed tests and
+acquisitions are preserved rather than relabelled by later successful checks.
+
+No current hardware contact, deployment, measurement, physical actuation,
+restoration, push or manuscript promotion occurred. Remaining dependencies and
+reproduction commands are in the canonical handover. Full Case 4 acceptance is
+not achieved.

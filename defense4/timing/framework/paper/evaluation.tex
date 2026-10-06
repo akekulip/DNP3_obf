@@ -18,6 +18,16 @@ OPERATE. The outstation then returns NO\_SELECT and performs no command callback
 Thus receipt of a matching OPERATE response cannot replace per-object status
 checks. These callbacks are software events, not evidence of physical inertness.
 
+A separate Linux socket gate runs one SELECT/OPERATE pair with the pinned
+production endpoints and a software replacement-image oracle. It truncates
+each initial wire request once. Independent captures show a one-byte native
+kernel retransmission and a 21-byte cached replay in each phase. Both complete
+57-byte echoes carry SUCCESS for the real and decoy objects; each software
+callback occurs once. The observed SELECT-to-OPERATE acceptance interval is
+440.139 ms against the configured 500 ms software retention budget. This single
+pair establishes the tested loss repair, not a future timing bound, general TCP
+support or Tofino execution.
+
 \textbf{Timing and stream behavior.} Source-driven packet tests compare actual
 association inputs, owner actions and constant tables with the event model.
 Namespace tests verify insertion, translation, CRCs, reassembly and application
@@ -27,10 +37,11 @@ not compared with the hardware microsecond acceptance criteria. Historical
 120-READ populations keep all seven below-target observations; focused and
 full-range histograms retain the complete attempted denominators.
 
-\textbf{Cost and resource boundary.} Recovery has a source-bound local Tofino
-compile. Fixed size processing has a component compile, while the complete
+\textbf{Cost and resource boundary.} A retained recovery snapshot has a source-bound
+local Tofino compile. Fixed size processing has a component compile, while the complete
 two-boundary transport implementation encounters target PHV/action limits.
-Component coexistence is not a complete joint fit. The controller refuses
+Component coexistence is not a complete joint fit, and these historical builds
+do not qualify revised source. The controller refuses
 activation when joint schema, byte translation, applicable timers or measured
 release costs are missing. The proposed run list has 16,168 attempts, including
 warmups and state checks, under the 18,360-attempt ceiling. No new hardware

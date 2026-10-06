@@ -4,7 +4,7 @@ This is a separate working candidate, not an approved replacement for
 `paper/rewrite`. Its three protected Introduction paragraphs are copied
 byte-for-byte, including the existing citation mappings. The newer meeting
 framework paragraph is available here only as a summary in
-`audit_current/MEETING_20261005_DIRECTION.md`. The proposed continuation follows
+[meeting direction](../../audit_current/MEETING_20261005_DIRECTION.md). The proposed continuation follows
 that positioning but is not presented as Dr. Lin's verbatim newer paragraph.
 The exact authored paragraph must be supplied before its verbatim promotion.
 
@@ -25,13 +25,20 @@ composition, constraints and realization. Platform inventories stay in
 Implementation/evidence. Evaluation separates observation points, endpoint
 success, software timing/stream behavior, cost and limitations.
 
-Claim locations map to the canonical `CLAIMS_RECONCILIATION.md` and the size
+Claim locations map to the canonical [claims reconciliation](../../audit_current/framework_20261005/CLAIMS_RECONCILIATION.md) and the size
 semantic gate manifest. The frozen campaign's timing claims remain separate.
 No submission eligibility or author acceptance is implied by a PDF build.
 
 Rebuild locally from this directory:
 
 ```sh
-python3 working_gate.py
-latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex
+python3 -B working_gate.py
+python3 -B build.py
 ```
+
+`build.py` supplies `BIBINPUTS` for the retained `paper/rewrite/References.bib`;
+direct `latexmk` without that lookup can fail in a clean build. This command
+compiles only the separate candidate and does not relax the frozen writing gate.
+The exact newer authored paragraph, Dr. Lin's acceptance and Philip's promotion
+instruction remain unavailable; a successful protected gate or PDF build supplies
+none of those decisions.

@@ -1,0 +1,116 @@
+test_ambiguous_connection_cohort_is_refused (test_admission_cohort.Cohort) ... ok
+test_committed_main_has_thirty_exchanges_excluding_precheck (test_admission_cohort.Cohort) ... ok
+test_current_candidate_does_not_inherit_baseline_timer_identity (test_admission_cohort.Cohort) ... ok
+test_full_flow_identity_and_tcp_end_wrap (test_admission_cohort.Cohort) ... ok
+test_a_provisional_verdict_does_not_authorise_the_profile (test_admission_record.Admission) ... ok
+test_control_record_exports_distinct_unavailable_retention_budget (test_admission_record.Admission) ... ok
+test_historical_master_timer_does_not_authorise_current_recovery_cap (test_admission_record.Admission) ... ok
+test_internal_observation_import_does_not_fill_physical_bounds (test_admission_record.Admission) ... ok
+test_measured_rto_evidence_is_internally_consistent (test_admission_record.Admission) ... ok
+test_record_output_refuses_overwriting_retained_evidence (test_admission_record.Admission) ... ok
+test_verdict_is_provisional_and_names_exactly_what_is_missing (test_admission_record.Admission) ... ok
+test_empty_and_bad_inputs_raise (test_analysis_stats.Stats) ... ok
+test_formby_accounts_for_every_input_without_changing_printed_bins (test_analysis_stats.Stats) ... ok
+test_formby_signature_follows_equation_1 (test_analysis_stats.Stats) ... ok
+test_formby_signature_rejects_bad_parameters (test_analysis_stats.Stats) ... ok
+test_histogram_percent_is_of_the_whole_condition_and_reports_what_fell_outside (test_analysis_stats.Stats) ... ok
+test_matches_numpy_on_random_data (test_analysis_stats.Stats) ... ok
+test_no_completion_rate_without_a_denominator (test_analysis_stats.Stats) ... ok
+test_variance_is_sample_not_population (test_analysis_stats.Stats) ... ok
+test_window_is_over_the_stated_denominator_not_the_subset (test_analysis_stats.Stats) ... ok
+test_codebook_must_be_empty_and_adapter_used_for_the_parameters (test_candidate_bringup.Bringup) ... ok
+test_current_case4_constants_are_separate_and_source_bound (test_candidate_bringup.Bringup) ... ok
+test_declared_lists_match_the_code (test_candidate_bringup.Bringup) ... ok
+test_every_helper_it_calls_is_in_the_proven_sequence (test_candidate_bringup.Bringup) ... ok
+test_historical_constants_are_bound_to_the_retained_bringup_build (test_candidate_bringup.Bringup) ... ok
+test_list_mode_touches_nothing (test_candidate_bringup.Bringup) ... PROVEN steps kept:
+  d3.assert_dp8_speed
+  d3.config_ports
+  hw_config_bor_loopback
+  d3.disarm_port_shaper
+  hw_init_registers
+  hw_config_queues_on_port(RRC)
+  hw_config_queues_on_port(BOR)
+  hw_config_pktgen_two_apps(disabled)
+  d3.config_mirror
+  d3.config_session
+REMOVED (do not fit the candidate):
+  verify_commit_map
+  caseA.config_params_d4
+  hw_config_tbl_bor_params
+  hw_config_codebook
+  hw_verify_tbl_commit
+CANDIDATE steps:
+  tbl_bor_codebook empty
+  adapter: tbl_params / tbl_bor_params / tbl_read_release_params
+  hw_config_pktgen_two_apps(enabled)
+ok
+test_pktgen_is_enabled_last_and_only_after_the_checks (test_candidate_bringup.Bringup) ... ok
+test_the_removed_steps_are_removed (test_candidate_bringup.Bringup) ... ok
+test_admission_cannot_silently_raise_fixed_policy_cap (test_case4_binding.BindingTests) ... ok
+test_compiler_proof_cannot_substitute_for_loaded_program_identity (test_case4_binding.BindingTests) ... ok
+test_control_profile_cannot_reuse_read_admission (test_case4_binding.BindingTests) ... ok
+test_deployment_boolean_cannot_replace_fresh_artifact_gate (test_case4_binding.BindingTests) ... ok
+test_interrupt_after_each_enable_restores_then_propagates_cancellation (test_case4_binding.BindingTests) ... ok
+test_invalid_operation_fails_as_validation_before_device_calls (test_case4_binding.BindingTests) ... ok
+test_mid_plan_failure_retains_failure_and_verified_rollback (test_case4_binding.BindingTests) ... ok
+test_mock_qualification_cannot_open_real_activation (test_case4_binding.BindingTests) ... ok
+test_profiles_api_accepts_only_a_qualified_mock_inventory (test_case4_binding.BindingTests) ... ok
+test_read_context_cannot_activate_a_control_inventory (test_case4_binding.BindingTests) ... ok
+test_read_inventory_cannot_enable_control_roles_or_default_padding (test_case4_binding.BindingTests) ... ok
+test_registered_profile_scope_is_checked_before_device_calls (test_case4_binding.BindingTests) ... ok
+test_second_interrupt_retains_failed_restore_and_disables_components (test_case4_binding.BindingTests) ... ok
+test_selected_padding_cannot_differ_from_inventory_configuration (test_case4_binding.BindingTests) ... ok
+test_snapshot_is_exclusive_enable_last_and_restore_deletes_created_entry (test_case4_binding.BindingTests) ... ok
+test_unregistered_component_refuses_before_device_reads (test_case4_binding.BindingTests) ... ok
+test_whole_schema_and_source_validated_before_any_device_call (test_case4_binding.BindingTests) ... ok
+test_duplicate_ack_never_creates_second_original (test_case4_drain_parity.DrainParity) ... ok
+test_quarantine_waits_for_both_originals_and_matching_completion (test_case4_drain_parity.DrainParity) ... ok
+test_source_duplicate_guard_mutation_drives_packet_drop (test_case4_drain_parity.DrainParity) ... ok
+test_source_enclosing_predicate_mutation_blocks_terminal_removal (test_case4_drain_parity.DrainParity) ... ok
+test_source_removal_operand_mutation_changes_actual_credit (test_case4_drain_parity.DrainParity) ... ok
+test_stale_original_cannot_remove_current_credit (test_case4_drain_parity.DrainParity) ... ok
+test_component_exists_with_explicit_bounds_and_disabled_completion (test_case4_ingress_mapping.IngressMapping) ... ok
+test_each_source_inverse_action_matches_independent_edges (test_case4_ingress_mapping.IngressMapping) ... ok
+test_half_range_window_cannot_be_inflated_by_independent_wrapping (test_case4_ingress_mapping.IngressMapping) ... ok
+test_source_phases_map_both_window_edges_and_sequence_independently (test_case4_ingress_mapping.IngressMapping) ... ok
+test_uncommitted_boundaries_do_not_translate_even_zero_sequence_start (test_case4_ingress_mapping.IngressMapping) ... ok
+test_all_external_events_at_expiry_precede_watchdog (test_case4_model.Case4Recovery) ... ok
+test_default_readiness_expiry_releases_ack_at_30_ms (test_case4_model.Case4Recovery) ... ok
+test_fin_flushes_a_response_scheduled_after_ack_release (test_case4_model.Case4Recovery) ... ok
+test_late_ready_response_keeps_full_8_ms_gap_after_ack (test_case4_model.Case4Recovery) ... ok
+test_reset_never_repeats_already_forwarded_legacy_ack (test_case4_model.Case4Recovery) ... ok
+test_rst_flushes_held_traffic_and_allows_next_exchange (test_case4_model.Case4Recovery) ... ok
+test_tcp_request_end_wraps_modulo_32_bits (test_case4_model.Case4Recovery) ... ok
+test_time_comparison_uses_low32_masked_nanoseconds (test_case4_model.Case4Recovery) ... ok
+test_wrong_epoch_fin_cannot_clear_an_active_owner (test_case4_model.Case4Recovery) ... ok
+test_reset_requires_supported_validated_sequence_when_bound (test_case4_model.ExplicitDrain) ... ok
+test_reset_with_missing_original_prevents_rearm (test_case4_model.ExplicitDrain) ... ok
+test_terminal_originals_and_cookie_qualified_completion_enable_rearm (test_case4_model.ExplicitDrain) ... ok
+test_actual_packet_identity_rejects_each_wrong_input (test_case4_model.PacketAssociation) ... ok
+test_app_wrap_is_new_association_after_prior_completion (test_case4_model.PacketAssociation) ... ok
+test_unsupported_response_does_not_satisfy_readiness (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_ack_cannot_make_response_ready (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_rst_cannot_retire_owner (test_case4_model.PacketAssociation) ... ok
+test_carve_layout_matches_explicit_profile (test_case4_p4_size.Layout) ... ok
+test_checksum_correct_non_ipv4_is_excluded_before_padding (test_case4_p4_size.Layout) ... ok
+test_exclusive_subtract_checksum_residue_arithmetic (test_case4_p4_size.Layout) ... ok
+test_layout_matches_strict_codec_all_native_fields_and_crcs (test_case4_p4_size.Layout) ... ok
+test_partial_tail_windows_at_both_boundaries_do_not_overflow (test_case4_p4_size.Layout) ... ok
+test_resource_report_binds_source_and_assembler (test_case4_p4_size.Layout) ... ok
+test_source_has_actual_two_boundaries_and_template_state (test_case4_p4_size.Layout) ... ok
+test_source_has_real_crc_and_size_operations (test_case4_p4_size.Layout) ... ok
+test_target_tail_clamps_leave_native_byte_outstanding (test_case4_p4_size.Layout) ... ok
+test_two_boundary_maps_match_actual_image_transport_oracle (test_case4_p4_size.Layout) ... ok
+test_wire_ablation_retains_input_checksum_guards (test_case4_p4_size.Layout) ... ok
+test_associated_pending_duplicate_is_suppressed (test_case4_packet_parity.ExpiryPackets) ... ok
+test_both_lost_reservoirs_are_recovered_without_endpoint_feedback (test_case4_packet_parity.ExpiryPackets) ... ok
+test_enabled_single_reservoir_loss_rechecks_held_departure (test_case4_packet_parity.ExpiryPackets) ... ok
+test_late_ready_response_preserves_full_gap_beyond_readiness_expiry (test_case4_packet_parity.ExpiryPackets) ... ok
+test_readiness_scan_cannot_cut_gap_at_admitted_boundary (test_case4_packet_parity.ExpiryPackets) ... ok
+test_stale_pulse_and_commit_cannot_retire_new_owner (test_case4_packet_parity.ExpiryPackets) ... ok
+test_busy_request_preserves_actual_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_dnp3_requires_ack_bit_with_psh_allowed (test_case4_packet_parity.PacketAssociation) ... ok
+test_duplicate_acks_preserve_one_original_envelope (test_case4_packet_parity.PacketAssociation) ... ok
+test_packet_fields_write_real_source_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_stale_response_return_does_not_clear_new_full_owner (test_case4_packet_parity.PacketAssociation) ... 

@@ -5,8 +5,9 @@ internal pulse scans readiness and completion even if both blocker reservoirs
 vanish. Held packets recheck eligibility; a second pass commits ACK-gap arming
 or response retirement. A released-domain marker forwards OPERATE transport
 repair after release, while the configured-session predicate isolates control
-state. The current build identity and resource reports are recorded in the
-canonical capability matrix. Compilation does not establish packet-generator
+state. Retained build identities and resource reports are recorded in the
+canonical capability matrix; they do not qualify subsequent source edits.
+Compilation does not establish packet-generator
 service, wire departure, queue drain or live restoration.
 
 The software size oracle validates complete DNP3 frames and regenerates their

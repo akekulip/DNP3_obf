@@ -8,15 +8,11 @@
     0.0,
     0.0,
     1072.0,
-    856.0
+    992.0
   ],
   "png_pixels": [
     2148,
-    1715
-  ],
-  "png_dpi": [
-    299.9994,
-    299.9994
+    1988
   ],
   "minimum_svg_font_px": 17.0,
   "minimum_final_font_pt": 8.175223880597015,
@@ -32,65 +28,61 @@
     "meaning_redundant_in_labels_and_line_styles": true
   },
   "exports": {
-    "drawio": "editable native cells",
-    "svg": "editable native vectors and text",
-    "pdf": "Inkscape vectors with embedded Times fonts",
-    "png": "Inkscape physical page at 300 DPI"
+    "preview": {
+      "status": "passed",
+      "output": "/home/philip/Projects/DNP3/.drawio-tmp/case4-mechanism/mechanism.preview.png"
+    },
+    "desktop": [
+      {
+        "status": "passed",
+        "output": "/home/philip/Projects/DNP3/.drawio-tmp/case4-mechanism/desktop-final.png"
+      },
+      {
+        "status": "passed",
+        "output": "/home/philip/Projects/DNP3/.drawio-tmp/case4-mechanism/desktop-final.pdf"
+      }
+    ]
   },
   "validation": {
     "xml": "passed",
-    "strict_routing": "not passed:13 waypoint/explicit-port policy warnings and1 intentional shared seeding-bus warning",
     "strict_exit_code": 1,
-    "warning_count": 14,
-    "info_count": 1,
+    "warning_count": 13,
     "label_fit_warnings": 0,
+    "strict_routing": "not passed; retained routing/label policy warnings",
+    "node_count": 27,
+    "edge_count": 23,
+    "warning_log": "framework/figures/strict_validation_20261006.log",
+    "visual": "Exported final PNG, Desktop vision preview and actual working-paper page2 inspected; distinct target/software panels, no clipping or connectors through unrelated nodes observed",
     "layout_metrics": {
       "node_crossings": 0,
-      "edge_crossings": 1,
-      "total_edge_length_px": 4577
+      "edge_crossings": 0,
+      "total_edge_length_px": 4128
     },
-    "visual": "FinalPNG and Desktop visionpreview inspected with Codex imageviewer; complete source/destination directions, no clipping or unrelated node crossings observed",
-    "node_count": 21,
-    "edge_count": 21,
-    "warning_log": ".drawio-tmp/case4-mechanism/strict-validation.log"
+    "manuscript": {
+      "path": "framework/paper/build/main.pdf",
+      "sha256": "11775d7cbb7d71829e648b9766ef12ebbbd416af4255b396b4ff2ddfc220d123",
+      "pages": 4,
+      "figure_page": 2,
+      "minimum_figure_font_pt": 8.15241527557373,
+      "all_fonts_embedded": true,
+      "type3_fonts": false
+    },
+    "warning_log_sha256": "d341924f2e2cd0dbf1b3c3427a262afd59097b822ebe1c4adbfa614b551505ee"
   },
-  "evidence_class": "source and compile candidate diagram; separate software sizing evidence; no hardware activation or timing claim",
-  "pdfinfo": "Creator:        Inkscape 1.4.2 (https://inkscape.org)\nProducer:       cairo 1.16.0 (https://cairographics.org)\nCreationDate:   Tue Oct  6 16:14:12 2026 EDT\nTagged:         no\nUserProperties: no\nSuspects:       no\nForm:           none\nJavaScript:     no\nPages:          1\nEncrypted:      no\nPage size:      515.52 x 411.647 pts\nPage rot:       0\nFile size:      56239 bytes\nOptimized:      no\nPDF version:    1.5\n",
-  "pdffonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nFXSPIV+TimesNewRomanPS-BoldMT        TrueType          WinAnsi          yes yes yes      6  0\nGTNTCG+TimesNewRomanPSMT             TrueType          WinAnsi          yes yes yes      7  0\nYIEEKG+TimesNewRomanPSMT             CID TrueType      Identity-H       yes yes yes      8  0\n",
-  "files": {
-    "fig_framework_mechanism.spec.yaml": "ccee57833205594c417664a4bd7573c491d16049cd24f264bd5de27837e29176",
-    "fig_framework_mechanism.drawio": "368c26e467361ed6e5c0bfe725efff877b5fed6c8c6756d0d10bccbe9d7aa176",
-    "fig_framework_mechanism.svg": "1441a8e6ec477744e5b6aca26a9f99f1ee11b4a6897b07cf262c4e114abdf44b",
-    "fig_framework_mechanism.pdf": "e497d7ff0220ad76d1e7f8ed6326f819b7f21a9c31ef054c4e42c3f326bc884a",
-    "fig_framework_mechanism.png": "4718a3d78821c806d214703968a69598fa4025ffe2c4432451d3b13009fc8e91"
-  },
-  "correction": {
-    "date": "2026-10-06",
-    "endpoint_roles": "Repeated Master and Relay boxes distinguish packet source and destination roles without depicting extra physical endpoints",
-    "request_path": [
-      "Master REQ",
-      "Ingress",
-      "Egress",
-      "Relay REQ"
-    ],
-    "reply_path": [
-      "Relay ACK/RESP",
-      "Ingress",
-      "Egress",
-      "Master ACK/RESP"
-    ],
-    "state_label": "Owner / cookie",
-    "state_limit": "Owner generation cookie does not establish connection-epoch quarantine",
-    "size_label": "Software verified; component coexistence compiles; complete joint implementation pending"
-  },
+  "evidence_class": "Proposed full target graph and separately executed software size graph; no complete target compilation or hardware claim",
   "source_bindings": {
-    "timing_source_sha256": "3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
-    "wire_component_source_sha256": "3a189e1491783f2c63f1065c43d7c32023d46e86b8704befdd245d638214d566",
-    "joint_coexistence_probe_sha256": "bada4652c28cb532e457674234f83124ef1bbbad9b3a160034fbacc51ff9b5c3",
-    "joint_probe_stage_span": {
-      "ingress": 10,
-      "egress": 10
-    },
-    "status": "Compiler coexistence only; no transport ledger, joint association or hardware execution proof"
+    "proposal_source_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+    "proposal_status": "Source identity only; historical compiler passes do not qualify this edited source",
+    "software_source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "software_evidence": "results/case4_bmv2_transport_repair_20261006/verification.json"
+  },
+  "pdfinfo": "Creator:        Inkscape 1.4.2 (https://inkscape.org)\nProducer:       cairo 1.16.0 (https://cairographics.org)\nCreationDate:   Tue Oct  6 17:20:41 2026 EDT\nTagged:         no\nUserProperties: no\nSuspects:       no\nForm:           none\nJavaScript:     no\nPages:          1\nEncrypted:      no\nPage size:      515.52 x 477.048 pts\nPage rot:       0\nFile size:      58840 bytes\nOptimized:      no\nPDF version:    1.5\n",
+  "pdffonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nVDYWMT+TimesNewRomanPS-BoldMT        TrueType          WinAnsi          yes yes yes      6  0\nFWDMKU+TimesNewRomanPSMT             TrueType          WinAnsi          yes yes yes      7  0\nYIEEKG+TimesNewRomanPSMT             CID TrueType      Identity-H       yes yes yes      8  0\n",
+  "files": {
+    "fig_framework_mechanism.spec.yaml": "29d739588bd7e1b4cc040cdff7261a73b283cee03d94ad3a95a58102f9744ac0",
+    "fig_framework_mechanism.drawio": "f21d905804aa1a53eec1994a1527c70caaf52ba00042b6818d9d0db0ed15260d",
+    "fig_framework_mechanism.svg": "64a5ffde6a354a3bee32a8c49eaf80573b4801708750fe3e62a8681872168acb",
+    "fig_framework_mechanism.pdf": "92835cc772d1d7bf35f105ff5fbb1102918c988c386b36a0160d248156653f53",
+    "fig_framework_mechanism.png": "7d45b452beadddce8a2e5d321d8803d68353c48e9f03e2301e9daf119039e481"
   }
 }

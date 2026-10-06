@@ -1,0 +1,480 @@
+{
+  "schema_version": 1,
+  "all_plan_requirements_complete": false,
+  "full_target_qualified": false,
+  "continuation_base": "5a816ab26d60da5fa041b19db6d0fbe9d2f21417",
+  "protected_base": "235e7f01f1c87115455480ebf7c8d94f569c483b",
+  "validated_implementation_revision": "467744da84899fc50c149d61f320e423ab9166da",
+  "branch": "main",
+  "authorship": {
+    "author_and_committer": "akekulip <akekulip@gmail.com>",
+    "checked_commits": [
+      "467744da84899fc50c149d61f320e423ab9166da",
+      "094cb8a2fd8bdcff760e3c244126963118cfe385",
+      "ccded997f168ca381bcd152035cf2b37127e179b",
+      "34673931461e8dad3995eafa7cbfff65666c3d77",
+      "40ac81239116e2768ccc3ffc08caca9e4aa57611",
+      "5a816ab26d60da5fa041b19db6d0fbe9d2f21417",
+      "0131fbe903256f75511855d456c958d301c6a3a3",
+      "130aac45baef277fa40cbd2164ee79972ec22be5"
+    ],
+    "contributor_trailers": false
+  },
+  "offline_aggregate": {
+    "result": {
+      "base": "5a816ab26d60da5fa041b19db6d0fbe9d2f21417",
+      "source_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+      "suites": [
+        {
+          "suite": "active_harness",
+          "tests": 58,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.408
+        },
+        {
+          "suite": "active_control",
+          "tests": 115,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.08
+        },
+        {
+          "suite": "active_probe",
+          "tests": 39,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.066
+        },
+        {
+          "suite": "response_ready",
+          "tests": 100,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 8.008
+        },
+        {
+          "suite": "framework",
+          "tests": 308,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 255.328
+        }
+      ],
+      "excluded_framework_modules": [
+        "test_bmv2_artifact",
+        "test_generated_ack",
+        "test_case4_bmv2"
+      ],
+      "exclusion_reason": "Case4BMv2 separately fresh14tests; legacyCase1-3network results retained without new campaigns",
+      "passed": true,
+      "total_tests": 620,
+      "total_skipped": 0
+    },
+    "json": {
+      "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_OFFLINE.json",
+      "sha256": "7bdda1eba0aadd355986489ec6e43f89932627577dfaf43eee3beb76c77e0b6f"
+    },
+    "log": {
+      "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_OFFLINE.log",
+      "sha256": "293f81f5c63299b62ad24517bba607e1f2a7b73f59dc806214684f44824559c6"
+    },
+    "qualification": "Intermediate all-pass run before final simulator repair. Affected modules are superseded by final source-bound suites; excluded legacy network modules are explicit."
+  },
+  "final_source_bound_verification": {
+    "identity": {
+      "created_at": "2026-10-06T21:41:42.406031+00:00",
+      "source_hashes": {
+        "defense4/timing/response_ready/src/defense4_response_ready.p4": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+        "defense4/timing/framework/tests/p4_pass_sim.py": "4218f8c794d146632a0f1bbc7df90769ad56dfa69d0a4433b02731d95722f331",
+        "defense4/timing/framework/tests/test_case4_drain_parity.py": "243946e74caa26ca3971d407577de7dc3199260f89f4fda97adf3ea53023529e",
+        "defense4/timing/response_ready/tests/test_p4_recovery.py": "bdc759508ab5ee61ea8d817cf9e79fb2b9ceba1a57f9b65088949f337d774de0"
+      },
+      "scope": "Offline actual original-bank control fragment; source-independent model; no full ingress/producer/cache/physical service claim"
+    },
+    "identity_record": {
+      "path": "defense4/timing/response_ready/evidence/case4_recovery_verification_03/identity.json",
+      "sha256": "3066068d403513b26b3f511693d3714ac06bbc2153674560c20fde1e54fed5b3"
+    },
+    "sealed_report": {
+      "path": "defense4/timing/response_ready/evidence/case4_recovery_verification_03/verification.json",
+      "sha256": "2dca750d1f6174fd42a771107a9165b29ad05e172eb11096e74a443845065411"
+    },
+    "checksums_verified": 11,
+    "unchanged_recovery_suite_provenance": "Reused unchanged response_ready suite from verification02: identical frozen P4, unchanged response_ready test and register-executor files; final helper changes are covered by verification03 model/packet/parity suites.",
+    "suites": [
+      {
+        "path": "defense4/timing/response_ready/evidence/case4_recovery_verification_03/model_packet.log",
+        "sha256": "caddb3adab94d7d131e41673545297960a2c9eacbb2ed049e747f902018a16cf",
+        "tests": 69,
+        "elapsed_seconds": 805.771,
+        "skipped": 0,
+        "passed": true
+      },
+      {
+        "path": "defense4/timing/response_ready/evidence/case4_recovery_verification_03/model_source_parity.log",
+        "sha256": "55b8f0dbd81a2a3b4c7edf991073f4c8ff19b6f11fe080eaeadb558cf869d641",
+        "tests": 26,
+        "elapsed_seconds": 789.604,
+        "skipped": 0,
+        "passed": true
+      }
+    ],
+    "total_tests": 95,
+    "scope": "All p4_pass_sim-importing modules plus model scenarios and mutation tests. Source/control/SALU/table subset; no full parser/interleaving/queue/physical proof."
+  },
+  "aborted_redundant_reruns": [
+    {
+      "record": {
+        "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_FRAMEWORK_FINAL.json",
+        "sha256": "881fd7baa5b2a5391798da9776e4dc2cb76db8b87ff2aa1b1d4c8245ed001df7"
+      },
+      "log": {
+        "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_FRAMEWORK_FINAL.log",
+        "sha256": "20005f9319d58f0b7c4a02afaa4e1c46f91f6997458c0a536188e3315c439b72"
+      },
+      "passed": false
+    },
+    {
+      "record": {
+        "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_SOURCE_FINAL.json",
+        "sha256": "d5d16c134a2a1cf00086019ddc9284f3dcf1991c08750e4b50bd896cd34b6fa3"
+      },
+      "log": {
+        "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_SOURCE_FINAL.log",
+        "sha256": "349aeb5b9db92d4ccaa1a2142c27f37e5dfe3bb102116fc72dc0c3ec131ee06b"
+      },
+      "passed": false
+    }
+  ],
+  "case4_bmv2": {
+    "log": {
+      "path": "defense4/timing/audit_current/framework_20261005/CONTINUATION_BMV2.log",
+      "sha256": "344af60708d85b57c9c774a5b508b1f9ef893b7e2aec04e4a120a7632905cf52"
+    },
+    "tests": 14,
+    "passed": 14,
+    "skipped": 0,
+    "elapsed_seconds": 152.566,
+    "source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "scope": "Python codec endpoints; fresh current Case4 only; legacy network failures preserved."
+  },
+  "compiler_results": [
+    {
+      "label": "recovery_core22",
+      "source": "defense4/timing/response_ready/src/defense4_response_ready.p4",
+      "source_sha256": "cac84a26aea5233ae01cb0f7ac220bded92a7a74c5005133dd8eeca2e53ca87a",
+      "manifest": {
+        "path": "defense4/timing/response_ready/evidence/case4_recovery_core_build_22/manifest.json",
+        "sha256": "f6b0c2bc29112dbedb1aecbd353c60dcad2686db84d8e681b852598973a09f14"
+      },
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "exit_code": 3,
+      "deployment_qualified": false
+    },
+    {
+      "label": "instrument05",
+      "source": "defense4/timing/response_ready/evidence/case4_recovery_instrument_build_05/source_instrument.p4",
+      "source_sha256": "8dcf04c3076734cd675852c9277b9e775ef10447b12341c6ce6dd4ec143e74b1",
+      "manifest": {
+        "path": "defense4/timing/response_ready/evidence/case4_recovery_instrument_build_05/compiled/manifest.json",
+        "sha256": "701c9974b4af8202c24bebb330e01ababc3ec5ef21580162ae9aad3c3d2ddf47"
+      },
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "exit_code": 3,
+      "deployment_qualified": false
+    },
+    {
+      "label": "ingress_mapping33",
+      "source": "defense4/timing/framework/p4/case4_ingress_mapping.p4",
+      "source_sha256": "31bb330320f02b03075030a0495cbe211ce1adc5a8fdf003869d2844a3b99291",
+      "manifest": {
+        "path": "defense4/timing/framework/p4/evidence/build_33/manifest.json",
+        "sha256": "58e993edcc63e4b9cfaecd2127cbfe7bdafe3ea8e1153d5d6c1a17e102ed2f8a"
+      },
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "exit_code": 0,
+      "deployment_qualified": false
+    },
+    {
+      "label": "joint_probe34",
+      "source": "defense4/timing/framework/p4/case4_joint_processing_probe.p4",
+      "source_sha256": "413e8c5bef6b92f803cd018660725c1a8beb51505c66f2fbb36b79e6a2b7b58e",
+      "manifest": {
+        "path": "defense4/timing/framework/p4/evidence/build_34/manifest.json",
+        "sha256": "1f918f19976f99fd0fc35c6159a5c1e9e99c4082305c61d83601b91005d4adeb"
+      },
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "exit_code": 3,
+      "deployment_qualified": false
+    },
+    {
+      "label": "inactive_size27",
+      "source": "defense4/timing/framework/p4/case4_size_kernel.p4",
+      "source_sha256": "aea44d202d9a9298a8556d4a60254e6909e5073798b72f091354500066d4ea26",
+      "manifest": {
+        "path": "defense4/timing/framework/p4/evidence/build_27/manifest.json",
+        "sha256": "e75b834f1c7601875d9ed8be261c771acc7cbad173d623ac8ec8d098f28383e3"
+      },
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "exit_code": 3,
+      "deployment_qualified": false
+    }
+  ],
+  "ingress_component_resources": {
+    "source": "case4_ingress_mapping.p4",
+    "source_sha256": "31bb330320f02b03075030a0495cbe211ce1adc5a8fdf003869d2844a3b99291",
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "compiler_exit_code": 0,
+    "inputs_identity_verified": null,
+    "assembler_sha256": {
+      "out/pipe/case4_ingress_mapping.bfa": "cdcf5325af1f2e5cb063995a265746d4d10e4becc776b6774687c2fd26320fac"
+    },
+    "stage_indices": {
+      "ingress": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "egress": []
+    },
+    "stage_span": {
+      "ingress": 6,
+      "egress": null
+    },
+    "required_directions": [
+      "ingress"
+    ],
+    "within_stage_limits": true,
+    "software_only": true,
+    "scope": "standalone component compilation; no joint fit, runtime or admission proof"
+  },
+  "protected_gate": {
+    "passed": true,
+    "protected_files": 2210,
+    "protected_intro_sha256": "6791f6e6c7255c2323f3f8b4a79235f8be1860b6d6bf5345256e7994a4945172",
+    "citation_keys": [
+      "ahmed2021",
+      "case4_bmv2",
+      "case4_opendnp3",
+      "case4_rfc6298",
+      "case4_rfc9293",
+      "ditto2022",
+      "dyer2012",
+      "formby2016",
+      "juarez2016",
+      "minos2025",
+      "panchenko2016",
+      "pospisil2023",
+      "securitas2026",
+      "shen2018",
+      "sirinam2018",
+      "stuxnet2011",
+      "tamaraw2014",
+      "ukraine2015",
+      "walkietalkie2017",
+      "wang2008dlp",
+      "wright2009"
+    ],
+    "scope": "Separate working candidate; no frozen-source promotion or submission authorization"
+  },
+  "sealed_inventories": [
+    {
+      "path": "defense4/timing/framework/bmv2/lab/acquisition_reservation_01/completion.json",
+      "sha256": "aad838ae490c6eb368b7871f727afb8f685f2996c85f53dfae0737a889f251c5",
+      "status": "passed",
+      "files": 30,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/context_evidence_02/completion.json",
+      "sha256": "ff2808fa3d3fcbc06b7f3511f8c1ab6ccd344929e4d0c248198c2aa9054ab4bc",
+      "status": "failed",
+      "files": 20,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/context_evidence_03/completion.json",
+      "sha256": "88540dd975499392c8db2c0f1fa73a54fbdc25ddbbb3c020e539f68c777ca16a",
+      "status": "passed",
+      "files": 23,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_analysis_01/completion.json",
+      "sha256": "8943e676f015c76a1b5589fe7e5632c78c4ddac50d820de16cef913a540f549c",
+      "status": "failed",
+      "files": 7,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_analysis_02/completion.json",
+      "sha256": "ba850b565dcb2486916ea30f1ea7fe442fa69ca0f1c8c81145ca7d7713d90087",
+      "status": "failed",
+      "files": 7,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_evidence_01/completion.json",
+      "sha256": "445caa2ac7b8525b606fd0e06962b53a0e64a332f594c294c055d883ddae75cb",
+      "status": "failed",
+      "files": 40,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_evidence_02/completion.json",
+      "sha256": "b76009754e6b59ed9691653b35a64b376f7e182e8cbf48882da289039c952824",
+      "status": "passed",
+      "files": 41,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_evidence_03/completion.json",
+      "sha256": "0ff1df8f8b5f3f3659172daa8a5376946b53ab6647b7609f10203853e7f91333",
+      "status": "passed",
+      "files": 46,
+      "all_hashes_verified": true
+    },
+    {
+      "path": "defense4/timing/framework/size/endpoint_gate/socket_evidence_03/independent_analysis/completion.json",
+      "sha256": "1afd4a2f635b5b419676228fdb1a4e44a92eb92ae0572ebc64641c211620fb8b",
+      "status": "passed",
+      "files": 8,
+      "all_hashes_verified": true
+    }
+  ],
+  "sealed_inventory_hashes_verified": 222,
+  "figure": {
+    "provenance": {
+      "path": "defense4/timing/framework/figures/figure_provenance.json",
+      "sha256": "25d4481c68158b457fc6af230e89b6e25fa3445a2fbb8baae15506f1bbc7b194"
+    },
+    "verified_export_hashes": 5,
+    "xml": "PASS",
+    "strict_warnings_retained": 13,
+    "working_paper_pages": 4,
+    "promotion_authorized": false
+  },
+  "campaign_plan": {
+    "campaign_budget": {
+      "attempted_transactions": 16168,
+      "blocks": 44,
+      "max_duration_ms": 14571200,
+      "precheck_transactions": 0,
+      "primary_transactions": 15480,
+      "state_read_transactions": 88,
+      "warmup_transactions": 600
+    },
+    "declarations": [
+      {
+        "budget": {
+          "attempted_transactions": 15660,
+          "blocks": 30,
+          "max_duration_ms": 14124000,
+          "precheck_transactions": 0,
+          "primary_transactions": 15000,
+          "state_read_transactions": 60,
+          "warmup_transactions": 600
+        },
+        "id": "case4-main-20261006",
+        "sha256": "16a52e327674598355a3ed0c7f62c7dfd8d358826b4d650848b1880f44e85185"
+      },
+      {
+        "budget": {
+          "attempted_transactions": 128,
+          "blocks": 4,
+          "max_duration_ms": 119200,
+          "precheck_transactions": 0,
+          "primary_transactions": 120,
+          "state_read_transactions": 8,
+          "warmup_transactions": 0
+        },
+        "id": "case4-smoke-20261006",
+        "sha256": "3df0523f1e3f360a3e6d53a4756a818fc4e8a5fb3c1bad803157efde0669be80"
+      },
+      {
+        "budget": {
+          "attempted_transactions": 124,
+          "blocks": 2,
+          "max_duration_ms": 89600,
+          "precheck_transactions": 0,
+          "primary_transactions": 120,
+          "state_read_transactions": 4,
+          "warmup_transactions": 0
+        },
+        "id": "case4-case4_attended_sbo-20261006",
+        "sha256": "052659b0dd558b8cd3c45210327d7880bc41f1f7e710d4764d7aacdae984f7b5"
+      },
+      {
+        "budget": {
+          "attempted_transactions": 256,
+          "blocks": 8,
+          "max_duration_ms": 238400,
+          "precheck_transactions": 0,
+          "primary_transactions": 240,
+          "state_read_transactions": 16,
+          "warmup_transactions": 0
+        },
+        "id": "case4-case4_instrumentation-20261006",
+        "sha256": "3f673ec98fdc7ce6e4d125a707996ca2540e4c86edeba086b5715d01c9c727d6"
+      }
+    ],
+    "hardware_authorized": false,
+    "problems": []
+  },
+  "budget": {
+    "attempts": 16168,
+    "ceiling": 18360,
+    "primary": 15480,
+    "warmups": 600,
+    "state_reads": 88,
+    "blocks": 44,
+    "maximum_budget_ms": 14571200,
+    "implicit_retry": false
+  },
+  "retained_history": {
+    "original_aggregate": {
+      "tests": 503,
+      "passed": 501,
+      "failed": 1,
+      "errors": 1,
+      "skipped": 0
+    },
+    "prior_bmv2": {
+      "tests": 23,
+      "passed": 22,
+      "case4_passed": 14,
+      "skipped": 0,
+      "failed_native_ack_delay_ns": 1242183,
+      "unchanged_limit_ns": 1000000
+    },
+    "older_bmv2": {
+      "tests": 22,
+      "passed": 21,
+      "failed_gap_us": 609.886,
+      "configured_gap_us": 200,
+      "unchanged_deviation_limit_us": 400
+    }
+  },
+  "remaining_dependencies": [
+    "Actual target validation/image/replay-cache producer and handshake/assembly/retirement lifecycle",
+    "Wire-ACK association before inverse translation, processing completion and verified port69 service",
+    "Full recovery/instrument/joint PHV placement; policy-off drain/debit cleanup and bank interleaving proof",
+    "Exact deployed SDK9.13.2 full-target artifacts and qualified schema/mutation inventory; production registry empty",
+    "Applicable physical timer/release/heartbeat/drain/SBO inputs, live authorization/attendance and saved-program restoration",
+    "Exact newer Dr.Lin text/acceptance and Philip manuscript-promotion instruction"
+  ],
+  "side_effects": {
+    "hardware_contact": false,
+    "deployment": false,
+    "physical_operate": false,
+    "hardware_measurements": false,
+    "current_hardware_restoration": false,
+    "push": false,
+    "frozen_manuscript_mutation": false
+  },
+  "limitations": "Offline components and one isolated kernel-repair pair do not establish complete target, general TCP, future timing bounds, physical inertness or full statistical acceptance."
+}

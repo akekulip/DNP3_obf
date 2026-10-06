@@ -102,14 +102,58 @@ before a slot is rearmed.
 | BYPASS_BUSY / BYPASS_UNSUPPORTED | forward request unchanged; leave the active association intact; unsupported response cannot establish readiness |
 | STALE_FORWARDED | forward non-matching response unchanged; leave owner intact |
 | DUP_ACK_DROPPED / DUP_RESPONSE_DROPPED | coalesce duplicate copies while the original is held; suppression does not persist after owner retirement |
-| RESET_FLUSH | matching FIN/RST releases pending originals once, including a response scheduled after ACK release; retire state |
+| RESET_FLUSH | validated matching FIN/RST flushes pending ACK/response originals once and aborts an unsent OPERATE; quarantine remains until originals terminate |
 
-`FALLBACK` in the model retains only the expired association's identity to classify a late response;
-it has no live holding timers and accepts the next supported request. Busy retransmitted requests
-are forwarded, and requests after completion can start a new association. A same TCP sequence number
-is not sufficient grounds for permanent retransmission suppression. No endpoint-visible ACK is
-generated. Both-token/single-token loss, stale tokens and internal-generation wrap require independent
-packet/pass tests: this model does not simulate reservoir occupancy or generation-qualified tokens.
+Case4 recovery conserves **original envelopes**, not blocker arrivals. The one-association profile
+holds at most one ACK, one response and one unsent OPERATE. A cookie-bound three-bit mask records
+these originals. The current source stores its zero-extended 16-bit identity in a separate 32-bit
+cookie bank and the mask in a 16-bit bank; a matching immutable-cookie read gates every mask
+mutation. A new association cannot reinitialise either bank during quarantine. Repeated ACK/response
+copies create no extra ownership credit. Each original's
+terminal forward/abort clears only its own cookie's bit, idempotently. Readiness expiry, reset and
+normal response commitment enter quarantine. A second internal completion pass may release the
+slot only after a matching cookie observes zero original bits. Lost blocker tokens are not a
+reason to wait for a configured token count; old blockers stop recycling after retirement. A lost
+**original** cannot prove termination and therefore keeps the slot quarantined until a separately
+verified drain/reset procedure. No fixed initial reservoir population establishes residual occupancy.
+
+The timing cookie has non-wrapping 16-bit association identity and distinct active, ACK-committed,
+quarantined and idle phase bits. Late matching ACK/response envelopes of a quarantined owner still
+flush natively and debit that cookie. An unsent OPERATE aborts after reset/retirement. Its ordinary
+first return checks the absolute OPERATE deadline; only a subsequent cookie-qualified commitment
+marks release and forwards it. Blocker loss alone does not authorize early OPERATE forwarding.
+Cookie exhaustion refuses reuse. Physical queue service and successful drain remain deployment gates.
+Current original-bank terminal debit requires `read_release == 1`; phase-2 native repair forwarding
+can continue after that policy is disabled. Remaining credit conservatively holds quarantine.
+Stop/drain liveness therefore requires a verified lifecycle cleanup procedure; disabling a
+configuration field is not evidence that originals terminated or a new owner can be admitted.
+
+The current standalone target source accepts Case4 state changes only through an explicitly trusted
+internal validation handoff on reserved processing port 69, EtherType 0x88C9. It requires complete
+IPv4/TCP and DNP3 CRC proof, supported profile and tuple/phase/application association flags before
+application state mutation. Pure ACK proof and reset sequence proof have separate flag profiles;
+reset also matches the connection cookie. The producer must preserve original request/response
+observation time and supply the dynamic request wire end before ACK reverse translation. **That
+complete validation/cache/transport producer is not implemented by the timing source**. Prefix
+parsing is not full-frame validation, and a proof header is not itself evidence that validation ran.
+The seam is disabled by default, restricted to the internal port and stripped before endpoint emission.
+The full joint candidate, ledger lifecycle, unsupported-after-insertion refusal and verified port 69
+service are unfinished integration gates; the timing seam alone is not a runnable joint candidate.
+
+The independent model defaults to ideal immediate terminal service for compatibility. With
+`deferred_returns=True`, explicit cookie/flow/epoch-bound TERMINAL_ACK/TERMINAL_RESP and
+DRAIN_COMPLETE events exercise quarantine without fabricating physical service. A reset sequence
+bound on the request requires both matching sequence and explicit caller validation. Legacy events
+without that binding retain their weaker epoch/flow-only reset API. Historical disabled-expiry
+source profiles retain their old immediate retirement; the current Case4 candidate requires
+independent expiry enabled. This compatibility path does not establish current recovery acceptance.
+
+Instrument variants emit bounded management learn records for ingress and **internal** commitment,
+expiry, blocker termination, reset and quarantine-completion events. They add no endpoint frame
+marker and report no wire departure or endpoint acceptance. Raw timestamp values are low 32-bit
+nanoseconds with no inferred armed marker. Pulse-only records retain their unavailable zero socket
+tuple; the offline decoder cannot establish same-socket physical intervals or manufacture packet
+observations. Core and instrument variants require independent source-bound target builds.
 
 ## Clock, admission and evidence boundary
 
@@ -143,6 +187,39 @@ acceptance gates until new source-bound builds and independent evidence establis
 this contract nor model assertions promote those capabilities to physical results. BMv2's token-
 count gating/real-packet recirculation remains software emulation.
 
+## Bounded software transport and controller gates
+
+The independent `size/case4_preprocess.py` oracle requires an exact MSS-only
+SYN/SYNACK/final-ACK identity with MSS at least 57 before insertion. An initially
+segmented SELECT or unsupported negotiation excludes insertion for the connection.
+After SELECT commits, its bounded OPERATE assembler stores exactly 35 bytes and
+a 35-bit receipt mask. Consistent duplicate/reordered fragments retain the first
+fragment's observation time and absolute 30 ms deadline; they cannot extend it.
+Conflicting bytes, incompatible objects/flags/CRC, expiry or excess processing
+passes enter sticky transport fault. Cached replay and ACK/window translation
+remain available; unfinished command suffixes are not forwarded and no ACK is
+fabricated. This software oracle is not the missing TNA validation/image producer.
+
+Control admission also needs the outstation's SELECT retention budget, measured
+from successful SELECT acceptance to matching OPERATE acceptance. The native
+holding-OFF cycle, SELECT-side response delay and complete OPERATE added cost
+are charged once, separately for normal and fallback paths. Operation/profile,
+connection/build and explicit observation endpoints must match. A master response
+timeout cannot stand in for this retention budget. Imported internal records
+cannot manufacture wire departure, queue drain or outstation acceptance; an
+observed maximum remains an observation, not a bound on future traffic.
+
+The whole controller mutation inventory binds its exact source/schema/build,
+operation/profile and policy parameters. Every keyed/register/default write is
+validated before device calls, backed up exclusively, disabled first, read back,
+and enabled last. Cancellation attempts restoration and retains failed restore
+evidence. Configuration restoration does not claim restoration of a different
+program or physical traffic/drain state. The production qualification registry
+is empty until a complete target, approved compiler, artifacts, loaded identity
+and applicable admission are verified. Mock fixtures cannot qualify activation.
+Acquisition reserves a fresh exclusive evidence directory before side effects;
+failed, aborted and interrupted runs remain available without overwrite or retry.
+
 ## Preserved explanation-only policy history
 
 The section below records earlier model/API policies. Cases 1-3 are explanation-only under the
@@ -151,14 +228,25 @@ These old status rows do not override the current source/build support matrix or
 
 ## Per-type timing cases (2026-10-06)
 
-Only `MODE_D4_DUAL` armed in the source before this date; D1, D2 and D3 were accepted by the control plane and bypassed the
-request as busy. Two cases are now selectable from the same machinery.
+The numbering below follows the meeting: Case 1 is ACK-focused, Case 2 is response-focused,
+Case 3 generates an ACK, and Case 4 combines response-ready timing with supported size processing.
+These numbers do not rename the historical defense modes. The earlier implementation made
+the ACK-focused and response-focused policies selectable; this assignment preserves that history.
 
 | case | mode / config | ACK | response | ideal rule | status |
 |---|---|---|---|---|---|
 | combined (existing) | `MODE_D4_DUAL`, D_A > 0 | held to max(t_0 + D_A, t_R) | e_A + gap | as above | offline-tested, compiled |
 | Case 1, ACK-focused | `MODE_D4_DUAL`, **D_A = 0**, gap = minimal guard | held until the response is seen, then released at once | e_A + guard | e_A = max(t_R, t_A); e_R = e_A + guard | offline-tested against the model; needs a control profile that allows D_A = 0 (`control.py` allows only 5/10/15/20 ms) |
 | Case 2, response-focused | `MODE_D2_RESP` | forwarded on arrival (never held) | held to the ACK-relative deadline | e_R = max(t_R, t_A + gap) | offline-tested, compiled (9.13.1); new P4 rows |
+| Case 3, generated ACK | historical BMv2 mode 3 | intermediary creates an ACK for the request | follows the prototype's response schedule | creates a separate ACK-to-response channel when the original device combined its ACK and response | explanation-only; receiver acceptance and checksum tests are retained, but retaining/retransmitting downstream transport responsibility is incomplete; [bounded evidence](../../audit_current/framework_20261005/PHASE7_GENERATED_ACK.md) |
+| Constant shift, analytical reference | fixed k_A and k_R, not a new implementation | native ACK + k_A | native response + k_R | CLRT_new = CLRT_original + k_R - k_A; equal shifts leave the gap unchanged | analytical transformation only; fixed shifts preserve the population variance, and do not establish physical measurements |
+
+Case 1/2 support is recorded in the [source-driven packet tests](../tests/test_model_vs_p4.py)
+and [historical BMv2 tests](../tests/test_bmv2_artifact.py). Their archived successes and failures
+remain separate from the current Case 4 implementation and its target-fit gates.
+Replacement schedules a declared target gap under its readiness/release conditions; shifting
+adds a fixed offset to an existing interval. Neither a fixed shift nor a reduced variance proves
+that visible plaintext operation/object information or device identity has been hidden.
 
 Case 1 removes the native ACK-to-response spread but moves request-to-ACK onto the response latency, so it compresses CLRT without
 removing the information. Case 2 leaves request-to-ACK native and normalises only responses that arrive inside the window; a late

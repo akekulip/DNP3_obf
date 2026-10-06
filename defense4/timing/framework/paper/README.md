@@ -10,7 +10,7 @@ software, production-stack, compiler, and physical evidence. The gate also check
 all 2,210 protected execution-base files. The four-page PDF was rendered and
 inspected at manuscript scale; fonts are embedded and no Type 3 fonts appear.
 The mechanism figure is intended for a 7.16-inch placement with labels at least
-8 pt. Fourteen routing-policy warnings remain in figure provenance; XML
+8 pt (8.152 pt measured at the actual page 2 placement). Thirteen routing/label-policy warnings remain in figure provenance; XML
 validation passes, while strict routing validation does not.
 
 `PROMOTION_PROPOSAL.md` records the remaining author/promotion decision and the
