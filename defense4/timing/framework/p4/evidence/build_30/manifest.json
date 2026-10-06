@@ -1,0 +1,29 @@
+{
+  "source": "case4_joint_processing_probe.p4",
+  "source_sha256": "817af0b1e2e280f7a6edad40d2e91aecafb627613c6a0a3f73bc304691e0a342",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-DU_BOR",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_30/out",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/p4/evidence/build_30/case4_joint_processing_probe.p4"
+  ],
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "exit_code": 3,
+  "software_only": true,
+  "sde": "9.13.1",
+  "deployment_gate": "requires9.13.2+transportcompletion+hardwareadmission",
+  "artifact_sha256": {
+    "out/manifest.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/frontend-ir.json": "4510c86e2c63be30f4b042543c75e1365044977de5be78908aa1ee549658eb4f",
+    "out/events.json": "d2fc25cb35de6b4cf21294fed545ab9ed7c9743d692ae1f2a894fd9b9c743f1b",
+    "out/bfrt.json": "667a6978c1a929250fac141989a33bfd06d051e4b6d7b18a44945cda11f1aabc",
+    "out/case4_joint_processing_probe.p4pp": "9b2190ce71ddaca631af203c4aa21d24abdeaccc767c159a5446472a8a559878"
+  },
+  "inputs_sha256": "fbf6ef5f07277d1536f7af3ed5bb2199a6cbe2c1ce7a574e9fdee372cca9aad1"
+}
