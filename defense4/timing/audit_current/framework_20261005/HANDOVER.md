@@ -28,11 +28,11 @@ Reproduced into `framework/build/repro_20261006/`: campaign_v2 (the pinned repro
 
 1. ~~Restoration not rehearsed~~ **Done** (three restores this session, each verified identical in configuration): `RESTORATION_REHEARSAL_20261006.md`, `restore_frozen.sh`, `swap_daemon.sh`.
 2. ~~Candidate bring-up not written~~ **Done and run**: `framework/control/candidate_bringup.py`. The first load exposed a real defect (two const tables over capacity), now fixed and covered by a test; see `HARDWARE_SMOKE_20261006.md`.
-3. **Holding arms need admission**, which needs the master's and the outstation's retransmission timers measured on this connection **and build**. The master measurement (`audit_current/master_rto_20260916/master_rto.py`) drops inbound traffic on Vision for one 4-tuple with `iptables`; it was not authorised this session.
+3. **Holding arms need admission.** The master's timer is now measured on this build (201 ms; `MASTER_RTO_CANDIDATE_20261006.md`), and the master checks carry it, but the verdict is still `provisional`: `detect_ms` and `release_tail_ms` (need an instrumented measurement of the mechanism on this build) and `outstation_feedback_path_ms` (needs a relay-facing observation point) are unavailable. Options are listed in that file; the activation gate admits only `admitted_conditional`.
 4. The relay-facing capture point is still unknown; conclusions are limited to the master-facing view.
 5. SELECT and OPERATE are not admitted by the candidate; OPERATE stays attended-only.
 
-Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; authorising the timer measurements (`iptables` on Vision for one 4-tuple) so the holding arms can be admitted and run; each hardware session costs a cold restart, and the way back is rehearsed and scripted.
+Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; how to clear the three remaining admission inputs (see `MASTER_RTO_CANDIDATE_20261006.md`): a recorded operator acceptance of `provisional` for a bounded smoke, an instrumented measurement build, or a relay-facing tap. Each hardware session costs a cold restart; the way back is rehearsed and scripted (four restores this session).
 
 ## Findings that change what to build next
 

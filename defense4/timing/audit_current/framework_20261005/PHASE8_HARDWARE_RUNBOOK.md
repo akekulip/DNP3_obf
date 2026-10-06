@@ -15,7 +15,7 @@ pass; three of them do not yet pass. Physical OPERATE stays attended-only and wa
 | live state identified, not inferred from a handover | **partial** | read-only: `bf_switchd` pid 10674, up about 24 h, `--conf-file …/bringup_20261005/frozen_abs.conf --init-mode=cold` |
 | **restoration procedure rehearsed** | **pass** | `RESTORATION_REHEARSAL_20261006.md`: cold restart with no candidate; one benign configuration difference (port 17 scheduler speed) |
 | **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **pass** | `framework/control/candidate_bringup.py`: `PASS (n_fail=0 n_warn=0)`; see `HARDWARE_SMOKE_20261006.md` |
-| **admission for the holding arms** | **blocked** | transport timers must be measured on this connection and build; the 2026-09-16 master timer is from the frozen build; re-measuring needs `iptables` on Vision (not authorised) |
+| **admission for the holding arms** | **blocked, narrowed** | master timer now measured on this build (201 ms kernel RTO; first repeat 204.4 ms, `MASTER_RTO_CANDIDATE_20261006.md`); verdict still `provisional`: `detect_ms`, `release_tail_ms` and `outstation_feedback_path_ms` are unavailable on this build |
 | relay-facing capture point | **unknown** | state it before the run and restrict conclusions to the master-facing view if absent |
 
 ## Live state, read this session (not inferred from a handover)

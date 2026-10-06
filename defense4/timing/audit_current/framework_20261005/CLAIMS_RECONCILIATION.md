@@ -10,7 +10,7 @@ frozen manuscript are unchanged; nothing here promotes a result to approved evid
 
 | capability | implemented | offline-tested | compiled | loaded / configured / hw-measured | evidence |
 |---|---|---|---|---|---|
-| Response-ready READ release (dual) | yes | yes — 49 candidate tests (incl. table capacity), model-vs-P4 diff (14+ scenarios), mutation tests | SDE 9.13.1 and 9.13.2, 7 ingress / 0 egress, 88 tables, source `df599101…` | loaded and configured (OFF case); OFF-arm smoke 30/30 READ, median CLRT 2.240 ms; holding arms **not run** | `response_ready/`, `framework/tests/test_model_vs_p4.py` |
+| Response-ready READ release (dual) | yes | yes — 49 candidate tests (incl. table capacity), model-vs-P4 diff (14+ scenarios), mutation tests | SDE 9.13.1 and 9.13.2, 7 ingress / 0 egress, 88 tables, source `df599101…` | loaded and configured (OFF case); OFF-arm smoke 30/30 READ, median CLRT 2.240 ms; holding arms **not run**; master timer measured on this build (kernel RTO 201 ms, first repeat 204.4 ms); admission `provisional` | `response_ready/`, `framework/tests/test_model_vs_p4.py` |
 | Recovery: fallback, next transaction, stale, wrap | yes | yes | as above | no | same; **limits**: token loss leaves the owner armed (`KNOWN_LIMITATION` test), no FIN/RST handling, tag not cleared by a timeout |
 | ACK-focused (Case 1) | by configuration only (D_A = 0) | yes (model, simulator, BMv2) | as above | no | needs a control profile that allows D_A = 0 (the adapter has one; `control.py` does not) |
 | Response-focused (Case 2) | yes — new rows, `MODE_D2_RESP` | yes (model, simulator, BMv2) | as above | no | combined-ACK devices never arm it |
