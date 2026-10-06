@@ -57,10 +57,19 @@ Not yet re-derived this session: the 32-build history, the 8.005 ms figure, the 
 
 Total for the three assignment suites: 195, matching the assignment's count.
 
+## campaign_v2 reproduction (run 2026-10-06, pinned env: Python 3.13.12, numpy 2.3.5, scikit-learn 1.7.2)
+
+The pinned repro is `evidence/campaign_v2/repro/reproduce.sh`; `campaign_v1` has no standalone entry point.
+Output went to `defense4/timing/framework/build/repro_20261006/` (untracked). Results:
+- 22 dataset manifests verified, 264 entries, 0 problems; 132 captures, 63,360 exchanges; 26 sweep points
+  (9,360 transactions) verified against 54 manifest entries, 0 problems.
+- Obfuscated median CLRT 8.005 ms for READ and SELECT, 8.000 ms for OPERATE (matches the handover's "8.005 ms").
+- Step 8 (publication gate) reports 21 problems. All 21 are path-only: for all seven figures the input, PDF and
+  data-CSV SHA-256 values equal the published ones; only the recorded output directory differs because a
+  non-default out dir was used. No golden file was updated. Frozen and tracked evidence paths are unmodified.
+
 ## Not done in Phase 0 yet
 
-- campaign_v1 reproduction in its pinned environment into a new build directory, with manifest, independent
-  extractor, statistics and publication comparison.
 - 2026-09-29 authorization: the only written record is the `CLAUDE.md` paragraph and the candidate README; no separate file exists.
 - The implementation/evidence matrix (assignment 0.4); its rows are in `STATUS_MATRIX.md` beside this file.
 - Reading the full authority list and the chronological handovers.
