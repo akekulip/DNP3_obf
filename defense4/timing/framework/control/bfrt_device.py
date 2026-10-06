@@ -17,9 +17,14 @@ class WriteRefused(RuntimeError):
 
 
 class BfrtDevice:
-    def __init__(self, schema, gc, bfrt_info, target, *, authorized=None):
+    def __init__(self, schema, gc, bfrt_info, target, *, authorized=None, loaded_identity=None):
         self.schema, self.gc, self.info, self.target = schema, gc, bfrt_info, target
         self.authorized = (os.environ.get(AUTH_ENV) == "1") if authorized is None else bool(authorized)
+        # A schema file alone cannot establish which source/artifacts are loaded.
+        # Only the separately verified loader may supply this identity. Historical
+        # three-default paths keep their existing interface; joint activation
+        # refuses absent current loaded-program evidence.
+        self.loaded_identity = dict(loaded_identity or {})
         self.log = []                                       # every call, in order, for the run record
 
     def _table(self, name):
@@ -46,6 +51,62 @@ class BfrtDevice:
         out.pop("is_default_entry", None)
         self.log.append(("read", full))
         return out
+
+    def _key(self, operation):
+        return self._table(operation.table).make_key([
+            self.gc.KeyTuple(name, value['value'], **{k:v for k,v in value.items() if k != 'value'})
+            if isinstance(value, dict) else self.gc.KeyTuple(name, value)
+            for name, value in operation.key.items()])
+
+    def read_operation(self, operation):
+        operation = self.schema.check_operation(operation)
+        if operation.kind == 'default':
+            return self.read(operation.table) or None
+        table = self._table(operation.table)
+        rows = list(table.entry_get(self.target, [self._key(operation)], {'from_hw': True}))
+        if not rows:
+            return None
+        if len(rows) != 1:
+            raise SchemaError('operation read returned multiple entries; refusing ambiguous state')
+        data = rows[0][0].to_dict()
+        data.pop('is_default_entry', None)
+        # Register reads may contain one value per pipe. Only identical banks
+        # can be represented by this target's scalar write; never pick a pipe.
+        for name, value in list(data.items()):
+            if isinstance(value, list):
+                if not value or any(item != value[0] for item in value):
+                    raise SchemaError('per-pipe register values differ; an explicit pipe mapping is required')
+                data[name] = value[0]
+        self.log.append(('read_entry', operation.table, dict(operation.key)))
+        return data
+
+    def write_operation(self, operation):
+        if not self.authorized:
+            raise WriteRefused('refusing a hardware mutation without %s=1' % AUTH_ENV)
+        operation = self.schema.check_operation(operation)
+        if operation.kind == 'default':
+            self.write(operation.table, operation.fields)
+            return
+        table = self._table(operation.table)
+        fields = dict(operation.fields)
+        action = fields.pop('action_name', None)
+        tuples = [self.gc.DataTuple(name, bool_val=value) if isinstance(value, bool) else
+                  self.gc.DataTuple(name, str_val=value) if isinstance(value, str) else
+                  self.gc.DataTuple(name, value) for name, value in fields.items()]
+        data = table.make_data(tuples, action) if action is not None else table.make_data(tuples)
+        exists = self.read_operation(operation) is not None
+        method = table.entry_mod if exists else table.entry_add
+        method(self.target, [self._key(operation)], [data])
+        self.log.append(('write_entry', operation.table, dict(operation.key), dict(operation.fields)))
+
+    def delete_operation(self, operation):
+        if not self.authorized:
+            raise WriteRefused('refusing a hardware deletion without %s=1' % AUTH_ENV)
+        operation = self.schema.check_operation(operation)
+        if operation.kind != 'entry':
+            raise SchemaError('only a formerly absent keyed entry may be removed during restoration')
+        self._table(operation.table).entry_del(self.target, [self._key(operation)])
+        self.log.append(('delete_entry', operation.table, dict(operation.key)))
 
 
 def connect(control_dir, schema_path):

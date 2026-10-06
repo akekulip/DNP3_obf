@@ -307,6 +307,16 @@ class Case4Runner(unittest.TestCase):
         self.assertEqual(json.loads(output.getvalue())['campaign_budget']['attempted_transactions'], 16168)
         self.assertEqual(calls, [])
 
+    def test_control_context_is_retained_in_offline_plan(self):
+        import contextlib, io, json
+        output=io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result=self.cli.run(['plan','--case','case4','--d-a-ms','10',
+                '--operation','SBO','--operation-profile-sha256','a'*64])
+        self.assertEqual(result,0)
+        self.assertEqual(json.loads(output.getvalue())['plan']['case4']['operation'],'SBO')
+        self.assertTrue(json.loads(output.getvalue())['plan']['activation_blockers'])
+
 
 class ProfileSchemaGuards(unittest.TestCase):
     def extra_field_schema(self, name):

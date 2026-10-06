@@ -95,6 +95,7 @@ class Applicability:
     direction: str = ""          # "master_to_outstation", "outstation_to_master" or ""
     build_id: str = ""
     timer: str = ""              # "master_rto", "outstation_rto" or ""
+    operation_profile_sha256: str = ""
 
     def matches(self, ctx: "PolicyContext", *, want_direction: str = "",
                 want_timer: str = "") -> tuple[bool, str]:
@@ -113,6 +114,9 @@ class Applicability:
         if self.build_id != ctx.build_id:
             return False, "measured on build %r, policy targets build %r" % (
                 self.build_id or "<unset>", ctx.build_id)
+        if ctx.requires_sbo and (not ctx.operation_profile_sha256 or
+                self.operation_profile_sha256 != ctx.operation_profile_sha256):
+            return False, "measurement does not match the control operation/profile"
         if want_timer and self.timer != want_timer:
             return False, "describes timer %r, this field is %r" % (
                 self.timer or "<unset>", want_timer)
@@ -128,6 +132,12 @@ class PolicyContext:
 
     connection_id: str = ""
     build_id: str = ""
+    operation: str = "READ"
+    operation_profile_sha256: str = ""
+
+    @property
+    def requires_sbo(self) -> bool:
+        return self.operation in ("SELECT", "OPERATE", "SBO")
 
 
 @dataclass(frozen=True)
@@ -172,6 +182,7 @@ class Bound:
 #: weakness. A transport timer is a property of a running connection, so only a measurement of
 #: that connection is authoritative.
 ROLE_AUTHORITATIVE: dict[str, frozenset] = {
+    "sbo_budget_ms": frozenset({Provenance.OPERATOR_SUPPLIED, Provenance.MEASURED_THIS_CONNECTION}),
     "readiness_expiry_ms": frozenset({Provenance.OPERATOR_SUPPLIED, Provenance.MEASURED_THIS_CONNECTION}),
     "completion_timeout_ms": frozenset({Provenance.OPERATOR_SUPPLIED, Provenance.MEASURED_THIS_CONNECTION}),
     "application_deadline_ms": frozenset({Provenance.OPERATOR_SUPPLIED,
@@ -183,6 +194,9 @@ DEFAULT_AUTHORITATIVE = frozenset({Provenance.MEASURED_THIS_CONNECTION})
 #: wrote on the bound, so a measurement of the outstation's timer cannot be admitted into the
 #: master's field by being renamed.
 FIELD_ROLE: dict[str, tuple[str, str]] = {          # field -> (direction, timer)
+    "sbo_budget_ms": ("select_to_operate", "outstation_select_retention"),
+    "sbo_native_cycle_ms": ("select_to_operate", ""),
+    "sbo_operate_added_ms": ("master_to_outstation", ""),
     "master_rto_ms": ("master_to_outstation", "master_rto"),
     "outstation_rto_ms": ("outstation_to_master", "outstation_rto"),
     "master_feedback_path_ms": ("master_to_outstation", ""),
@@ -193,6 +207,23 @@ FIELD_ROLE: dict[str, tuple[str, str]] = {          # field -> (direction, timer
 def _authoritative(field: str, b: Bound) -> bool:
     """Judged by the field's role. `field` is where the bound sits, not what it calls itself."""
     return b.provenance in ROLE_AUTHORITATIVE.get(field, DEFAULT_AUTHORITATIVE)
+
+
+@dataclass(frozen=True)
+class SBOInputs:
+    """Separate selection-retention budget, never the master's response timeout.
+
+    The native cycle covers successful SELECT acceptance at the outstation to
+    matching OPERATE acceptance there, with candidate holding disabled. The
+    OPERATE addition covers its complete normal/recovery hold and service costs.
+    Both observations must describe the same fresh connection and object profile.
+    """
+    budget_ms: Bound
+    native_cycle_ms: Bound
+    operate_added_ms: Bound
+    origin: str = ""
+    endpoint: str = ""
+    operation_profile_sha256: str = ""
 
 
 @dataclass(frozen=True)
@@ -248,6 +279,7 @@ class AdmissionInputs:
     completion_timeout_ms: Bound | None = None
     heartbeat_interval_ms: Bound | None = None
     physical_drain_ms: Bound | None = None
+    sbo: SBOInputs | None = None
 
     def required_fields(self) -> dict[str, Bound]:
         """Field name to the bound that occupies it. The key is the role; the bound is the value."""
@@ -269,6 +301,12 @@ class AdmissionInputs:
                          "physical_drain_ms"):
                 result[name] = getattr(self, name) or Bound(name, None, Provenance.UNAVAILABLE,
                     "no applicable switch/recovery measurement supplied")
+        if self.context.requires_sbo:
+            for name, attribute in (("sbo_budget_ms", "budget_ms"),
+                                    ("sbo_native_cycle_ms", "native_cycle_ms"),
+                                    ("sbo_operate_added_ms", "operate_added_ms")):
+                result[name] = (getattr(self.sbo, attribute) if self.sbo else
+                    Bound(name, None, Provenance.UNAVAILABLE, "no applicable SBO retention measurement supplied"))
         return result
 
     def required_bounds(self) -> list[Bound]:
@@ -313,6 +351,21 @@ def validate(inp: AdmissionInputs) -> list[str]:
 
     if inp.anchor not in ("native_ack", "request"):
         errs.append("anchor must be native_ack or request")
+    if inp.context.operation not in ("READ", "SELECT", "OPERATE", "SBO"):
+        errs.append("operation must be READ, SELECT, OPERATE or SBO")
+    if inp.sbo is not None and not inp.context.requires_sbo:
+        errs.append("SBO inputs require an explicit control operation context")
+    if inp.context.requires_sbo and inp.anchor != "request":
+        errs.append("control SBO admission requires the current request anchor")
+    profile = inp.context.operation_profile_sha256
+    if inp.context.requires_sbo and profile and (len(profile) != 64 or
+            any(c not in '0123456789abcdef' for c in profile)):
+        errs.append('control operation profile must be a SHA256 digest')
+    if inp.context.requires_sbo and inp.sbo is not None:
+        if inp.sbo.origin and inp.sbo.origin != "outstation_successful_select_accept":
+            errs.append("SBO clock origin must be successful SELECT acceptance at the outstation")
+        if inp.sbo.endpoint and inp.sbo.endpoint != "outstation_matching_operate_accept":
+            errs.append("SBO endpoint must be matching OPERATE acceptance at the outstation")
     num("d_a_ms", inp.d_a_ms)
     num("clrt_new_ms", inp.clrt_new_ms)
     num("safety_margin_ms", inp.safety_margin_ms)
@@ -443,11 +496,28 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         want_dir, want_timer = FIELD_ROLE.get(f, ("", ""))
         applicability[f] = b.applicability_problem(
             inp.context, field=f, want_direction=want_dir, want_timer=want_timer)
+        # Even an operator-supplied retention setting must belong to this timer,
+        # connection and object profile; its provenance is not an identity waiver.
+        if f.startswith("sbo_") and b.is_known() and not applicability[f]:
+            if b.applies_to is None:
+                applicability[f] = "SBO input has no applicable connection/timer/profile identity"
+            else:
+                ok, why = b.applies_to.matches(inp.context, want_direction=want_dir, want_timer=want_timer)
+                if not ok:
+                    applicability[f] = why
     misapplied = [n for n, why in applicability.items() if why]
     for n in misapplied:
         problems.append("%s: %s" % (n, applicability[n]))
         if n not in weak:
             weak.append(n)
+    if inp.context.requires_sbo:
+        if not inp.sbo or not inp.sbo.origin or not inp.sbo.endpoint:
+            unknown.append("sbo_clock_origin")
+            problems.append("SBO clock origin and expiry endpoint are unavailable")
+        if (not inp.context.operation_profile_sha256 or not inp.sbo or
+                inp.sbo.operation_profile_sha256 != inp.context.operation_profile_sha256):
+            weak.append("sbo_operation_profile")
+            problems.append("SBO object/profile identity does not match this control trial")
 
     if inp.anchor == "request":
         ack_hold, response_hold, recovery = _request_hold_bounds(inp)
@@ -510,6 +580,22 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                    bound_field="application_deadline_ms"),
         ])
 
+    if inp.context.requires_sbo:
+        # The clock started at the outstation, before SELECT response holding or
+        # master turnaround. Charge the full native cycle and both additions.
+        # Recovery already includes heartbeat/drain/release; count those once.
+        common = {"native_select_accept_to_operate_accept": fields["sbo_native_cycle_ms"],
+                  "complete_operate_added_delay": fields["sbo_operate_added_ms"]}
+        checks.extend([
+            _check("outstation SELECT retention normal", fields["sbo_budget_ms"],
+                dict(common, select_response_hold=response_term,
+                     select_detection=inp.detect_ms, select_release=inp.release_tail_ms),
+                inp.safety_margin_ms, bound_field="sbo_budget_ms"),
+            _check("outstation SELECT retention recovery", fields["sbo_budget_ms"],
+                dict(common, select_recovery_bound=recovery_term),
+                inp.safety_margin_ms, bound_field="sbo_budget_ms"),
+        ])
+
     cap_ok = (inp.d_a_ms + inp.clrt_new_ms) <= inp.policy_cap_ms
     if inp.anchor == "request" and cap_ok:
         cap_ok = None if recovery is None else recovery <= inp.policy_cap_ms
@@ -548,7 +634,12 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         "policy": {"anchor": inp.anchor, "d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
                    "policy_cap_ms": inp.policy_cap_ms,
                    "context": {"connection_id": inp.context.connection_id,
-                               "build_id": inp.context.build_id}},
+                               "build_id": inp.context.build_id,
+                               "operation": inp.context.operation,
+                               "operation_profile_sha256": inp.context.operation_profile_sha256}},
+        "sbo_clock": ({"origin": inp.sbo.origin, "endpoint": inp.sbo.endpoint,
+                       "operation_profile_sha256": inp.sbo.operation_profile_sha256}
+                      if inp.sbo is not None else None),
         "claim": {
             "kind": verdict,
             "statement": statement,

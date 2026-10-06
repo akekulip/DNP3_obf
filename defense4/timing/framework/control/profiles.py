@@ -28,7 +28,7 @@ TICK_NS = 256
 PARAMS, BOR, RELEASE = "tbl_params", "tbl_bor_params", "tbl_read_release_params"
 A_PARAMS, A_BOR, A_REL = "Ingress.set_params", "Ingress.set_bor_params", "Ingress.set_read_release"
 CASES = ("off", "combined", "ack_focused", "response_focused", "case4")
-PADDING_PROFILES = ("crob_trailing_header_one_decoy",)
+PADDING_PROFILES = ("crob_trailing_header_one_decoy", "none")
 SPLIT_PROFILES = ("57_28_29", "49_28_21")
 
 
@@ -60,6 +60,8 @@ class Profile:
     padding_profile: str = "crob_trailing_header_one_decoy"
     split_profile: str = "57_28_29"
     translation_capacity: int = 2
+    operation: str = 'READ'
+    operation_profile_sha256: str = ''
 
 
 def hold_bound_ms(p):
@@ -105,6 +107,8 @@ def problems(p, consts):
     if d + g >= 2 ** 31:
         out.append("D_A + gap exceeds the modular half-range")
     if p.case == "case4":
+        if p.operation not in ('READ', 'SELECT', 'OPERATE', 'SBO'):
+            out.append('unsupported Case 4 operation context')
         for name in ("readiness_expiry_ms", "heartbeat_request_us"):
             value = getattr(p, name)
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
@@ -132,7 +136,7 @@ def problems(p, consts):
     return out
 
 
-def plan(p, consts):
+def plan(p, consts, *, binding=None, schema=None, mock=False):
     """Ordered writes and the exact readback expected after each. The release block is disabled first and
     enabled last, so no step leaves a half-configured policy armed."""
     bad = problems(p, consts)
@@ -143,7 +147,17 @@ def plan(p, consts):
         config = {name: getattr(p, name) for name in (
             "readiness_expiry_ms", "heartbeat_request_us", "completion_deadline_ms",
             "measured_heartbeat_max_us", "measured_drain_max_ms", "measured_release_max_us",
-            "padding_profile", "split_profile", "translation_capacity")}
+            "padding_profile", "split_profile", "translation_capacity", 'operation', 'operation_profile_sha256')}
+        if binding is not None:
+            from case4_binding import preflight
+            from dataclasses import asdict
+            if schema is None:
+                raise ActivationError('compiled schema is required for a complete Case 4 inventory')
+            operations = preflight(schema, p, binding, mock=mock)
+            return dict(case=p.case, case4=config, quantised_ns={'d_a':d,'gap':g},
+                policy_cap_ms=MAX_HOLD_MS, hold_bound_ms=hold_bound_ms(p),
+                writes=[asdict(op) for op in operations], activation_blockers=[],
+                binding_identity=binding.identity(), evidence_kind='mock' if mock else 'qualified_mapping')
         blockers = ["joint Case 4 compiled schema and source-bound write mapping are unavailable"]
         if hold_bound_ms(p) is None:
             blockers.append("measured heartbeat, drain, release and completion bounds are required")
@@ -177,7 +191,7 @@ def _same(got, want):
     return {k: v for k, v in got.items()} == want
 
 
-def activate(device, p, consts, *, mock, admission=None, backup_path=None):
+def activate(device, p, consts, *, mock, admission=None, backup_path=None, binding=None, quiesced=False):
     record = {"source": "mock" if mock else "switch", "is_evidence_of_switch_state": not mock,
               "profile": p.__dict__.copy(), "steps": [], "admission": admission}
     steps = plan(p, consts)                                   # raises before any write
@@ -186,6 +200,10 @@ def activate(device, p, consts, *, mock, admission=None, backup_path=None):
     if schema is not None and schema.has_field(PARAMS, "shape_enable"):
         raise ActivationError("the program exposes a shaping field; this adapter is for programs without one", record)
     if p.case == "case4":
+        if binding is not None:
+            from case4_binding import activate as activate_inventory
+            return activate_inventory(device, p, binding, mock=mock, admission=admission,
+                                      backup_path=backup_path, quiesced=quiesced)
         record["failure"] = {"stage": "schema", "reason": steps["activation_blockers"][0]}
         raise ActivationError(steps["activation_blockers"][0], record)
     if schema is not None:
@@ -219,13 +237,20 @@ def activate(device, p, consts, *, mock, admission=None, backup_path=None):
     return record
 
 
-def restore(device, before):
+def restore(device, before, *, binding=None, mock=False):
     """Write a saved snapshot back (release disabled first, then params, bor, then the saved release) and verify."""
+    if binding is not None:
+        from case4_binding import restore as restore_inventory
+        return restore_inventory(device, binding, before, mock=mock)
     for t in (PARAMS, BOR, RELEASE):
         if not before.get(t):
             raise ActivationError("no saved state for %s; refusing to guess a restore" % t, {"before": before})
     rel = dict(before[RELEASE]); rel["enabled"] = 0
     order = [(RELEASE, rel), (PARAMS, before[PARAMS]), (BOR, before[BOR]), (RELEASE, before[RELEASE])]
+    schema = getattr(device, 'schema', None)
+    if schema is not None:
+        for table, fields in order:
+            schema.check_write(table, fields)
     steps = []
     for table, fields in order:
         device.write(table, fields)

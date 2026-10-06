@@ -1,6 +1,7 @@
 """The admission record for the candidate, assembled from the committed evidence, must keep saying what is and is not established."""
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,43 @@ class Admission(unittest.TestCase):
         self.assertEqual(self.inp.master_rto_ms.provenance, self.ar.P.INHERITED_EARLIER_BUILD)
         self.assertIsNone(self.v["policy_cap"]["ok"])
         self.assertIsNone(self.v["recovery_hold_bound_ms"])
+
+    def test_control_record_exports_distinct_unavailable_retention_budget(self):
+        inp = self.ar.build(10, operation='SBO', operation_profile_sha256='a' * 64)
+        verdict = self.ar.da.evaluate(inp)
+        self.assertEqual(verdict['policy']['context']['operation'], 'SBO')
+        self.assertEqual(verdict['verdict'], 'provisional')
+        self.assertIn('sbo_budget_ms', verdict['unknown_inputs'])
+        self.assertIn('sbo_native_cycle_ms', verdict['unknown_inputs'])
+        self.assertIn('sbo_operate_added_ms', verdict['unknown_inputs'])
+        self.assertIsNone(inp.sbo.budget_ms.value_ms)
+
+    def test_record_output_refuses_overwriting_retained_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'admission.json'
+            self.ar.write_record(path,self.v)
+            original=path.read_bytes()
+            with self.assertRaises(FileExistsError):self.ar.write_record(path,{'verdict':'other'})
+            self.assertEqual(path.read_bytes(),original)
+
+    def test_internal_observation_import_does_not_fill_physical_bounds(self):
+        from test_observations import IDENTITY,sample
+        import copy
+        import hashlib
+        baseline=self.ar.da.evaluate(self.ar.build(10,operation='SBO',operation_profile_sha256='d'*64))
+        verdict=copy.deepcopy(baseline)
+        identity=dict(IDENTITY,source_sha256=hashlib.sha256(self.ar.SOURCE.read_bytes()).hexdigest(),
+            build_id=self.ar.BUILD,connection_id=self.ar.CONN,operation_profile_sha256='d'*64)
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'observations.json'
+            path.write_text(json.dumps(dict(version=1,identity=identity,observed_at='2026-10-06T00:00:00Z',
+                samples=[sample('request_ingress',1),sample('ack_ingress',513)])))
+            self.ar.attach_observations(verdict,path,identity)
+        self.assertEqual(verdict['verdict'],'provisional')
+        self.assertEqual(verdict['unknown_inputs'],baseline['unknown_inputs'])
+        self.assertIsNone(verdict['recovery_hold_bound_ms'])
+        physical=[row for row in verdict['observation_intervals'] if row['endpoints'][1].endswith('wire_departure')]
+        self.assertTrue(all(row['value_ns'] is None for row in physical))
 
     def test_a_provisional_verdict_does_not_authorise_the_profile(self):
         sys.path.insert(0, str(HERE.parent / "control"))

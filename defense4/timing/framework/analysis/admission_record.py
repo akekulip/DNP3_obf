@@ -84,12 +84,13 @@ def smoke():
     return smoke_cohort()['rows']
 
 
-def build(hold_ms, gap_ms=1.0, target_build=None):
+def build(hold_ms, gap_ms=1.0, target_build=None, *, operation='READ', operation_profile_sha256=''):
     """hold_ms is proposed request-relative D_A, never a measured hold guarantee."""
     rows = smoke()
     rto = json.loads((RES / 'master_rto_20261006/master_rto_cand_20261006.json').read_text())
     target_build = target_build or BUILD
-    ctx = da.PolicyContext(connection_id=CONN, build_id=target_build)
+    ctx = da.PolicyContext(connection_id=CONN, build_id=target_build,
+        operation=operation, operation_profile_sha256=operation_profile_sha256)
     obs = '2026-10-06T17:05:00Z'
     applies = da.Applicability(connection_id=CONN, build_id=HISTORICAL_BUILD,
                               direction='master_to_outstation', timer='master_rto')
@@ -123,7 +124,44 @@ def build(hold_ms, gap_ms=1.0, target_build=None):
                  'switch_request_to_response_min_ms','switch_request_to_response_max_ms',
                  'heartbeat_interval_ms','physical_drain_ms'):
         inp[name] = unavailable(name,'no applicable switch/recovery measurement for '+target_build)
+    if ctx.requires_sbo:
+        inp['sbo'] = da.SBOInputs(
+            budget_ms=unavailable('sbo_budget_ms', 'outstation SELECT retention setting/origin is unverified; not the 500 ms application budget'),
+            native_cycle_ms=unavailable('sbo_native_cycle_ms', 'no source-current SELECT acceptance to matching OPERATE acceptance observation'),
+            operate_added_ms=unavailable('sbo_operate_added_ms', 'no source-current control-domain normal/recovery hold and release measurement'),
+            operation_profile_sha256=operation_profile_sha256)
     return da.AdmissionInputs(**inp)
+
+
+def attach_observations(verdict, path, identity):
+    """Attach current internal measurements without filling unavailable physical bounds.
+
+    This is an evidence import, not a promotion from internal completion to wire
+    departure, or from configured service periods to measured maxima.
+    """
+    from observations import load_observations
+    context = verdict['policy']['context']
+    expected = dict(identity, source_sha256=hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
+        build_id=context['build_id'], connection_id=context['connection_id'],
+        operation_profile_sha256=context['operation_profile_sha256'])
+    record = load_observations(path, expected)
+    verdict['observation_record'] = record.summary()
+    pairs = (('request_ingress', 'ack_ingress'), ('request_ingress', 'response_complete_ingress'),
+             ('ack_deadline', 'ack_commit'), ('response_deadline', 'response_commit'),
+             ('ack_deadline', 'blocker_termination'), ('ack_commit', 'ack_wire_departure'),
+             ('response_commit', 'response_wire_departure'))
+    verdict['observation_intervals'] = [{
+        'transaction_id': transaction, **record.interval(transaction, start, end)}
+        for transaction in sorted({s['transaction_id'] for s in record.samples})
+        for start, end in pairs]
+    return verdict
+
+
+def write_record(path, verdict):
+    """An admission output is retained evidence; never overwrite an earlier record."""
+    with Path(path).open('x', encoding='utf-8') as stream:
+        json.dump(verdict, stream, indent=1, default=str)
+        stream.write('\n')
 
 
 if __name__ == '__main__':
@@ -132,9 +170,18 @@ if __name__ == '__main__':
     parser.add_argument('--da-ms', type=float, default=10.)
     parser.add_argument('--gap-ms', type=float, default=1.)
     parser.add_argument('--target-build', default=None)
+    parser.add_argument('--operation', choices=('READ', 'SELECT', 'OPERATE', 'SBO'), default='READ')
+    parser.add_argument('--operation-profile-sha256', default='')
+    parser.add_argument('--observations', help='current internal observation JSON/JSONL; does not authorize hardware')
+    parser.add_argument('--observation-identity', help='expected collector instrument/schema identity JSON')
     args = parser.parse_args()
-    verdict = da.evaluate(build(args.da_ms, args.gap_ms, args.target_build))
+    if bool(args.observations) != bool(args.observation_identity):
+        parser.error('--observations and --observation-identity must be supplied together')
+    verdict = da.evaluate(build(args.da_ms, args.gap_ms, args.target_build,
+        operation=args.operation, operation_profile_sha256=args.operation_profile_sha256))
     verdict['historical_smoke_cohort'] = smoke_cohort()
-    Path(args.output).write_text(json.dumps(verdict, indent=1, default=str))
+    if args.observations:
+        attach_observations(verdict, args.observations, json.loads(Path(args.observation_identity).read_text()))
+    write_record(args.output, verdict)
     print('verdict:', verdict['verdict'])
     print('unknown inputs:', ', '.join(verdict['unknown_inputs']))

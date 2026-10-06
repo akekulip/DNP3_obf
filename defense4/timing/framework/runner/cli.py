@@ -27,7 +27,8 @@ def profile_from(a):
         readiness_expiry_ms=a.readiness_expiry_ms, heartbeat_request_us=a.heartbeat_request_us,
         completion_deadline_ms=a.completion_deadline_ms, measured_heartbeat_max_us=a.measured_heartbeat_max_us,
         measured_drain_max_ms=a.measured_drain_max_ms, measured_release_max_us=a.measured_release_max_us,
-        padding_profile=a.padding_profile, split_profile=a.split_profile, translation_capacity=a.translation_capacity)
+        padding_profile=a.padding_profile, split_profile=a.split_profile, translation_capacity=a.translation_capacity,
+        operation=a.operation, operation_profile_sha256=a.operation_profile_sha256)
 
 
 def run(argv, device_factory=None):
@@ -46,6 +47,9 @@ def run(argv, device_factory=None):
     ap.add_argument("--padding-profile", choices=pf.PADDING_PROFILES, default=pf.PADDING_PROFILES[0])
     ap.add_argument("--split-profile", choices=pf.SPLIT_PROFILES, default=pf.SPLIT_PROFILES[0])
     ap.add_argument("--translation-capacity", type=int, default=2)
+    ap.add_argument('--operation', choices=('READ','SELECT','OPERATE','SBO'),default='READ',
+                    help='admission scope; this command does not send endpoint traffic')
+    ap.add_argument('--operation-profile-sha256',default='',help='exact supported command/object profile identity')
     ap.add_argument("--declaration", action="append", help="offline budget plan for each declared run list")
     ap.add_argument("--campaign", help="offline campaign manifest referencing declarations relative to its directory")
     ap.add_argument("--connection-id", default="")
