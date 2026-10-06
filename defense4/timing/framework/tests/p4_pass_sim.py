@@ -156,7 +156,7 @@ class P4Sim:
         self.trace.append(("ACK", t, dec, outcome))
         if outcome in ("OUT_ACK_HOLD", "OUT_ACK_DUP_HOLD"):
             if self.slot_open["ACK"] is not None:           # queue already ungated: leaves at once
-                self._ack_release(t, "normal" if self.regs["reg_tresp"] != 0 else "watchdog")
+                self._ack_release(t, "forwarded_ungated")
             else:
                 self.held["ACK"] = t
         else:
@@ -248,6 +248,18 @@ class P4Sim:
         else:
             self.count("token_" + outcome.lower())
 
+    def lose_token(self, t, slot):
+        """Fault injection: the slot's token vanishes (queue ungated, no timeout pass will ever run)."""
+        if self.tokens.pop(slot, None) is None:
+            return
+        self.slot_open[slot] = t
+        self.count("token_lost_" + slot.lower())
+        if slot == "ACK" and self.held["ACK"] is not None:
+            self._ack_release(t, "tokens_lost")
+        elif slot == "RESP" and self.held["RESP"] is not None:
+            self.held["RESP"] = None
+            self.outs.append(("RESP", t, "tokens_lost"))
+
     def _ack_release(self, t, reason):
         """The held ACK leaves; its released pass arms the response deadline (tresp_arm_once)."""
         self.held["ACK"] = None
@@ -288,4 +300,6 @@ class P4Sim:
                 self.admit(t, arg)
             elif kind == "PASS":
                 self.token_pass(t, arg)
+            elif kind == "LOSE":
+                self.lose_token(t, arg)
         return self

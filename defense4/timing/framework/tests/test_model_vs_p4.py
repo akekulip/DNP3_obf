@@ -19,7 +19,7 @@ MS = 1_000_000
 DA, GAP = 10 * MS, 1 * MS
 TAU, ADM = 1711, 5000
 GRID = 256
-FWD = {"late_native", "stale_forwarded", "forwarded_unchanged", "unmatched_forwarded"}
+FWD = {"late_native", "stale_forwarded", "forwarded_unchanged", "unmatched_forwarded", "forwarded_ungated"}
 
 
 def klass(reason):
@@ -104,6 +104,43 @@ class FallbackAgree(unittest.TestCase):
         m, s, mo, so = both(ev, da=self.DA2, budget=self.B)
         self.assertEqual([(k, c) for k, _, c in mo], [(k, c) for k, _, c in so], (mo, so, s.trace[-6:]))
         self.assertEqual(s.counters.get("completed"), 1)
+
+
+class FaultsAndLimits(unittest.TestCase):
+    """Behaviour of the P4 when its own machinery fails, characterised from the source's tables."""
+    B, DA2 = 3000, 2 * MS
+
+    def sim(self, events, lose=()):
+        import heapq
+        s = P4Sim(self.DA2, GAP, tau_ns=TAU, budget=self.B, adm_delay_ns=ADM)
+        for t, slot in lose:
+            s._n += 1
+            heapq.heappush(s.queue, (t, 0, s._n, "LOSE", slot))
+        return s.run(events)
+
+    def test_ack_after_watchdog_leaves_at_arrival(self):
+        ev = [(0, "REQ", True), (9 * MS, "ACK", True)]
+        m, s, mo, so = both(ev, da=self.DA2, budget=self.B)
+        self.assertEqual([(k, c, t) for k, t, c in mo if k == "ACK"], [(k, c, t) for k, t, c in so if k == "ACK"])
+
+    def test_stale_generation_survives_a_timeout(self):
+        s = self.sim([(0, "REQ", True)])
+        self.assertEqual(s.regs["reg_owner"] & 0x80000000, 0)     # owner retired by the timeout
+        self.assertEqual(s.regs["reg_tag"], 0xC1)                  # generation is NOT cleared by it
+
+    def test_losing_one_token_releases_that_hold_early_and_the_rest_recovers(self):
+        s = self.sim([(0, "REQ", True), (500_000, "ACK", True), (5 * MS, "RESP", True)], lose=[(3 * MS, "ACK")])
+        self.assertEqual([(k, r) for k, _, r in s.outs], [("ACK", "tokens_lost"), ("RESP", "normal")])
+        self.assertEqual(s.counters.get("completed"), 1)
+
+    def test_losing_both_tokens_leaves_the_owner_armed_KNOWN_LIMITATION(self):
+        """No timeout pass runs without a token, so nothing retires the owner and every later READ is
+        bypassed as busy until the control plane resets state. The contract wants reusable state after
+        every outcome; this is a gap in the P4, characterised here so a fix has to change this test."""
+        s = self.sim([(0, "REQ", True), (500_000, "ACK", True), (3 * MS, "REQ", True), (50 * MS, "REQ", True)],
+                     lose=[(MS, "ACK"), (MS, "RESP")])
+        self.assertEqual(s.counters.get("out_arm_busy"), 2)
+        self.assertNotEqual(s.regs["reg_owner"] & 0x80000000, 0)
 
 
 class Sequences(unittest.TestCase):

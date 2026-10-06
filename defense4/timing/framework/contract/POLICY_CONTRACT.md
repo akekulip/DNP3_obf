@@ -46,7 +46,11 @@ Supported profile: single complete DNP3 frame in one TCP segment, READ. Everythi
 | DUP_ACK_DROPPED | second pure ACK for the armed transaction while the first is held | one released | n/a |
 | RESET_FLUSH | FIN/RST for the epoch | any held ACK released unchanged | any held response released unchanged |
 
-**P4?** for DUP_ACK_DROPPED and RESET_FLUSH: chosen as the fail-open reading of the assignment (no permanent suppression of
+**P4 status (2026-10-06, from the source and the pass simulator):** RESET_FLUSH is **model-only** — the P4 has no FIN/RST
+handling; a connection that closes mid-hold is cleaned up by the per-token watchdog within H, not immediately. Losing both
+blocker tokens leaves the owner armed (nothing runs the timeout pass), so every later READ is bypassed as busy until the
+control plane resets state (`test_losing_both_tokens_leaves_the_owner_armed_KNOWN_LIMITATION`). A timeout retires the owner
+but does not clear `reg_tag`. DUP_ACK_DROPPED and RESET_FLUSH: chosen as the fail-open reading of the assignment (no permanent suppression of
 TCP loss repair). A retransmitted request after release starts a new transaction; it is not dropped as a duplicate.
 
 ## Ordering and ties
