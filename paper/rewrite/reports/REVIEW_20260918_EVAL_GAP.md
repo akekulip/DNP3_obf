@@ -1,0 +1,23 @@
+<!--
+Rescued from the Claude session store on 2026-09-19: a second adversarial pass over the
+campaign_v1 manuscript, recorded here because it existed only in a session transcript.
+-->
+
+## Review — NDSS 2027 submission, `/home/philip/Projects/DNP3/paper/rewrite/`
+
+The one question a hostile PC member asks: **you claim a timing side channel is closed, and you attacked it with exactly one classifier, one observation at a time, at one policy setting, with no baseline defense to beat.** Everything below follows from that.
+
+Substrate for class-A work: `/home/philip/Projects/DNP3/defense4/timing/evidence/campaign_v1/derived/transactions.csv` (`session,block,arm,txn_class,clrt_ms,ack_ms,rt_ms`, 63,360 rows) — enough for every A item. Bash was disabled this session, so nothing below was run.
+
+| # | Reviewer objection | Sev | Class | Artifact to produce |
+|---|---|---|---|---|
+| 1 | "A single Random Forest is not a security argument; L8 concedes the claim away in the authors' own words." | sinks it | **A** | **Table: attacker battery.** Rows: RF (as-is), logistic regression, gradient boosting, 1-NN, QDA, and a non-parametric empirical-Bayes MAP rule on the joint `(clrt, ack)` density — the last is the *upper bound* over all classifiers on these features. Cols: arm × feature set, BA with 22-run range. Only the MAP row retires the objection. |
+| 2 | "The adversary is not limited to one exchange; it watches a whole poll cycle." | sinks it | **A** | **Figure: BA and MI vs number of aggregated exchanges** N = 1,2,5,10,20,50,100 (class-homogeneous windows, per-window mean/quantiles), both arms, both feature sets. If BA rises toward 1, the abstract's "left at chance" must be restated as per-exchange. |
+| 3 | "No baseline. Any jitter would do this — show it doesn't." | sinks it | **A** | **Table/figure: defense baselines under the same attacker.** Synthesize from the Timing OFF samples: constant shift (+22 ms), uniform and exponential jitter matched to your added latency, 1 ms quantization; run pipeline of item 1 on each. §6.2's shift counterfactual covers variance only, never BA or MI. |
+| 4 | "Your own numbers are 0.736 → 0.651 on a 0.333-chance problem, and the fix is deferred." | sinks it | **A** | **Table: as-built vs lane-equalized counterfactual.** Re-run the adaptive attacker after replacing `ack_ms` with a common scheduled value (what timing both lanes from one event yields). Shows the residual is an artifact of this schedule, not of the approach. |
+| 5 | "RO3 is proven at `D_A`=20/`CLRT_new`=4 only, where sd = 0.007 ms; `sweep_points.csv` shows sd = 1.355, 1.584, 1.261 ms at `D_A`=4, 8 and 0.406–0.570 at 28–30. RO4's 1–22 ms range is unprotected." | weakens it (kills RO3×RO4 jointly) | **A** + **C** prose | **A: fifth panel in `fig_policy`** — measured `CLRT_new` sd/IQR vs policy point, straight from the unplotted `clrt_sd_ms` column. **C:** the sweep is READ-only, 200 exchanges/point, medians only, so per-point 3-class leakage needs captures. Prose must say so *in §6.4, not §6.6*: RO3 is scoped to one operating point, the spread at other points is reported so a reader sees where the claim would have to be re-established. |
+| 6 | "Where is the delta? §7 is nine paragraphs of prose." | weakens it | **B** | **Comparison table**: Tamaraw, WTF-PAD, Traffic Morphing, Ditto, Minos, Securitas, Pacer, NetShaper, Hu et al., ours × {observable targeted, endpoint modification, added bytes, assumes encryption, latency cost, line-rate in-network, physical ICS device}. |
+| 7 | "One transaction at a time, one flow, 12/12 stages — this cannot run in a substation." | weakens it | **B** (+**C** measurement) | **Resource/capacity table** from `evidence/final_read_sbo/readbacks/mau.resources.log` and `audit_current/size_removal_candidate/STAGE_BUDGET_20260917.md`: stages, 112 tables, single-slot registers, 64 blockers, 6 queues, 2 loopbacks — plus a derived bound (protected transactions per poll period per pipe). Move the single-transaction limit into the abstract; §5.2 buries it. |
+| 8 | "MI is reported only for the channel you closed, never for the one you created." | nice-to-have | **A** | Add MI(`ack_ms`; class) and joint MI with the same within-run permutation null to `fig_leakage`(b); pull the confusion matrix (`figures/fig_t02_confusion_data.csv`) inline — "published with the artifact" does not answer a reviewer. |
+
+Shortest path to acceptance: items 1–4 are all one analysis script over `transactions.csv` and change the verdict; 5–8 are presentation debt.

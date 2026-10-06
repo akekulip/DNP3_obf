@@ -1,0 +1,1 @@
+The counterfactual is a deterministic shift of the observed Timing OFF READ samples, not another hardware run. The per-run ratios are descriptive within the same campaign and do not form a confidence interval or cross-deployment estimate. SELECT is the SELECT phase of SBO only.

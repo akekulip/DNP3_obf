@@ -1,0 +1,169 @@
+{
+ "time_ns": 1791305736089065009,
+ "identity": {
+  "match": true,
+  "want": {
+   "bfrt.json": "e9d81e16207a055f41d4599a75f3b22f38ebd3a86fca70dc7f281cf582819273",
+   "pipe/context.json": "3c83669a6cd0ae66885f837f90b826032214c5d98cd3b3c643e541c643cda492",
+   "pipe/tofino.bin": "3ecbfcda8eedf257c918ec68aafbc47fad16605d7cd01cd64843185c7da0c8e6"
+  },
+  "got": {
+   "bfrt.json": "e9d81e16207a055f41d4599a75f3b22f38ebd3a86fca70dc7f281cf582819273",
+   "pipe/context.json": "3c83669a6cd0ae66885f837f90b826032214c5d98cd3b3c643e541c643cda492",
+   "pipe/tofino.bin": "3ecbfcda8eedf257c918ec68aafbc47fad16605d7cd01cd64843185c7da0c8e6"
+  }
+ },
+ "activation": {
+  "source": "switch",
+  "is_evidence_of_switch_state": true,
+  "profile": {
+   "case": "off",
+   "d_a_ms": 0.0,
+   "gap_ms": 1.0,
+   "budget": 18000,
+   "loop_ns": 1711,
+   "connection_id": "vision-sel751-20000",
+   "build_id": "defense4_timing-df5991016285"
+  },
+  "steps": [
+   {
+    "table": "tbl_read_release_params",
+    "wrote": {
+     "action_name": "Ingress.set_read_release",
+     "enabled": 0,
+     "gap_ticks": 999936
+    },
+    "read_back": {
+     "enabled": 0,
+     "gap_ticks": 999936,
+     "action_name": "Ingress.set_read_release"
+    },
+    "match": true
+   },
+   {
+    "table": "tbl_params",
+    "wrote": {
+     "action_name": "Ingress.set_params",
+     "d_ticks": 0,
+     "read_len": 0,
+     "budget": 18000,
+     "mode": 0,
+     "da_dr": 999936
+    },
+    "read_back": {
+     "budget": 18000,
+     "d_ticks": 0,
+     "da_dr": 999936,
+     "mode": 0,
+     "read_len": 0,
+     "action_name": "Ingress.set_params"
+    },
+    "match": true
+   },
+   {
+    "table": "tbl_bor_params",
+    "wrote": {
+     "action_name": "Ingress.set_bor_params",
+     "a_ticks": 0,
+     "r_ticks": 999936,
+     "anchor_req": 1
+    },
+    "read_back": {
+     "a_ticks": 0,
+     "anchor_req": 1,
+     "r_ticks": 999936,
+     "action_name": "Ingress.set_bor_params"
+    },
+    "match": true
+   },
+   {
+    "table": "tbl_read_release_params",
+    "wrote": {
+     "action_name": "Ingress.set_read_release",
+     "enabled": 0,
+     "gap_ticks": 999936
+    },
+    "read_back": {
+     "enabled": 0,
+     "gap_ticks": 999936,
+     "action_name": "Ingress.set_read_release"
+    },
+    "match": true
+   }
+  ],
+  "admission": null,
+  "plan": {
+   "case": "off",
+   "quantised_ns": {
+    "d_a": 0,
+    "gap": 999936,
+    "d_a_residual": 0,
+    "gap_residual": 64
+   },
+   "expect": {
+    "tbl_params": {
+     "action_name": "Ingress.set_params",
+     "d_ticks": 0,
+     "read_len": 0,
+     "budget": 18000,
+     "mode": 0,
+     "da_dr": 999936
+    },
+    "tbl_bor_params": {
+     "action_name": "Ingress.set_bor_params",
+     "a_ticks": 0,
+     "r_ticks": 999936,
+     "anchor_req": 1
+    },
+    "tbl_read_release_params": {
+     "action_name": "Ingress.set_read_release",
+     "enabled": 0,
+     "gap_ticks": 999936
+    }
+   }
+  },
+  "before": {
+   "tbl_params": {
+    "budget": 18000,
+    "d_ticks": 1999872,
+    "da_dr": 1999872,
+    "mode": 3,
+    "read_len": 0,
+    "action_name": "Ingress.set_params"
+   },
+   "tbl_bor_params": {
+    "a_ticks": 20000000,
+    "anchor_req": 0,
+    "r_ticks": 24000000,
+    "action_name": "Ingress.set_bor_params"
+   },
+   "tbl_read_release_params": {
+    "enabled": 0,
+    "gap_ticks": 0,
+    "action_name": "Ingress.set_read_release"
+   }
+  },
+  "after": {
+   "tbl_params": {
+    "budget": 18000,
+    "d_ticks": 0,
+    "da_dr": 999936,
+    "mode": 0,
+    "read_len": 0,
+    "action_name": "Ingress.set_params"
+   },
+   "tbl_bor_params": {
+    "a_ticks": 0,
+    "anchor_req": 1,
+    "r_ticks": 999936,
+    "action_name": "Ingress.set_bor_params"
+   },
+   "tbl_read_release_params": {
+    "enabled": 0,
+    "gap_ticks": 999936,
+    "action_name": "Ingress.set_read_release"
+   }
+  }
+ },
+ "pass": true
+}

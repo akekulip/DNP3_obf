@@ -39,7 +39,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TIMING = HERE.parents[1]
-CV1 = TIMING / "evidence" / "campaign_v1"
+CV1 = TIMING / "evidence" / "campaign_v2"   # the active dataset; v1 is archived
 FRS = TIMING / "evidence" / "final_read_sbo"
 REPRO = CV1 / "repro"
 sys.path.insert(0, str(REPRO))
@@ -66,7 +66,7 @@ def _targets_campaign_v1():
     obf = json.loads(CV1_CONST_PATH.read_text())["config"]["obfuscated_arm"]
     c_read = float(pol["D_R_ms"])
     if abs(c_read - float(pol["scheduled_release_interval_ms"])) > 1e-9:
-        raise SystemExit("campaign_v1: D_R_ms and scheduled_release_interval_ms disagree")
+        raise SystemExit("campaign_v2: D_R_ms and scheduled_release_interval_ms disagree")
     return c_read, float(obf["R_ms"]) - float(obf["A_ms"]), [CV1_POLICY_PATH, CV1_CONST_PATH]
 
 

@@ -1,0 +1,36 @@
+{
+  "figure": "fig_release_tail",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/tail_sweep_20260918/transactions.csv",
+      "sha256": "5b3f10082b009c1dd61d77a65a20e6a1c5832dd1d582df54a74fd23b75ace26e"
+    },
+    {
+      "path": "defense4/timing/evidence/tail_sweep_20260918/blocks.csv",
+      "sha256": "4d6ada26c27c0bf1464ab383f2de999c515b4dd5fc82eb717d561aecd6adddca"
+    }
+  ],
+  "caption_draft": "The release tail $\\varepsilon$ against the budget $D$ for READ, SELECT and OPERATE, over three installs of each setting; whiskers span them, and in the shaded region the reservoir spends its pass budget and releases early. OPERATE is timed from the request, so its $\\varepsilon$ is the acknowledgment's arrival beyond $T_0 + D_A$. Lower right, each configured quantity that could set a master-visible OPERATE interval, against the interval it would set: CLRT$_{\\mathrm{new}}$ is obeyed, $A$ and $R-A$ are ignored.",
+  "statistical_method": "(a) tail = median(request-to-acknowledgment | Obfuscated) - median(same | Timing OFF blocks of the same pass) - configured hold; point is the mean over three passes, whiskers the min and max. (b) per-setting medians of the interval each quantity is supposed to govern",
+  "artifacts": {
+    "fig_release_tail.pdf": "7d8cffa501ce6f3e86078413cf00bd20eb3b22808e1302849ba4d0eb19ca6202",
+    "fig_release_tail.png": "3220dbdbe4b2ed5d5f837d77a122d480585da99b97c0364f80bd58d6cc08c3a2",
+    "fig_release_tail_data.csv": "d8f73e6d39bbb2a3a333ce6de0794ff5b88db744003c9bbe485cb425e75a6f7d"
+  },
+  "style": {
+    "width_in": 3.48,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

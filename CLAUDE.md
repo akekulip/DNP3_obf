@@ -1,16 +1,23 @@
 # CLAUDE.md — final timing-paper repository
 
-This repository holds exactly two things: the verified timing evidence and the manuscript
-that reports it. The experiment is finished.
+This repository holds the verified timing evidence, its active manuscript, and separate
+implementation work such as stage reduction and delay search. The approved publication evidence
+remains `campaign_v2`. The frozen manuscript already contains later engineering results that have not been reconciled with that authority; their presence is
+an open audit finding, not approval. Promotion requires Dr. Lin's acceptance and an explicit
+claim/provenance update.
 
 ## Layout
 
 - `defense4/timing/` — the timing authority: exact P4 source that ran, the captures,
   extraction and statistics code, tests, and the audit and claim documents. The active evidence is
-  `defense4/timing/evidence/campaign_v1/` (22 grouped runs, 132 captures, 63,360 exchanges,
-  size carve disabled); `final_read_sbo/` is historical.
+  `defense4/timing/evidence/campaign_v2/` (22 grouped runs, 132 captures, 63,360 exchanges,
+  size carve disabled and proved off per block), collected on the request-anchored build.
+  `campaign_v1/` has the same shape and is the record of the acknowledgment-anchored build it
+  replaces — kept because the correction is measured against it, not because it is current;
+  `final_read_sbo/` is historical. The fix, and the before-and-after on one set of hardware, are in
+  `defense4/timing/anchor_fix/FINDINGS.md`.
   Start at `defense4/timing/README.md`. Rebuild the active corpus with
-  `defense4/timing/reproduce.sh`, which dispatches to `campaign_v1/repro/reproduce.sh`; the
+  `defense4/timing/reproduce.sh`, which dispatches to `campaign_v2/repro/reproduce.sh`; the
   retired corpus needs the explicit `--historical` flag.
 - `paper/rewrite/` — the one active manuscript. Entry point `main.tex`, sections under
   `sections/`; build with `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
@@ -30,6 +37,7 @@ follow a stale one. Nothing was lost: each is a `git show` away.
 | `REMOVAL_MANIFEST.csv` | `6e2eff2` | the per-path record of it |
 | the six root review and correction reports of 2026-09-15 and 2026-09-16 | `48373e39` | the reviews this repository answered |
 | twenty superseded notes under `defense4/timing/`, `audit_current/` and `paper/rewrite/` | `dc721cdf` | branch maps, rerun plans, session logs, pre-rewrite reconciliations, an applied patch proposal, a duplicate writing guide and a duplicate definitions table |
+| `WORKING_NOTES.md` | removed in the repository refactor | dated session log with completed figure, paper, and experiment tasks; current authority is the map and subsystem runbooks |
 
 **One subject, one document.** The response latency `D_R` is defined in
 `defense4/timing/NOTATION_MAPPING.md` and nowhere else; the claim boundaries in
@@ -38,27 +46,40 @@ follow a stale one. Nothing was lost: each is a `git show` away.
 on 2026-09-17 a review found one that had already caused the manuscript to be edited against a
 stale definition.
 
-Everything else — size experiments, earlier defenses, prototypes, meeting material, old
-drafts — is out of scope here. It lives in git history (tag
-`archive/pre-final-timing-prune-20260824`, the original branches, the bundles) and in the
-local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
+Sizing experiments, earlier defenses, and prototypes remain engineering history. They do not
+support current manuscript claims. Refactoring them must preserve hash-bound sources, raw evidence,
+and the distinction between measurements and later candidates.
 
 ## Hard rules
 
-- **No further experimentation.** Do not run hardware, load or change a Tofino program,
-  contact the SEL-751, generate traffic or captures, restart size work, add a defense or a
-  protocol function, or explore compilers or implementations. Only organise the verified
-  evidence, finish the existing figures, and write the paper.
+- **Commit authorship:** all commits must use Philip's Git identity
+  (`akekulip <akekulip@gmail.com>`) for both author and committer. Do not add
+  co-author trailers or attribution to any other contributor.
+- **Current authorization (2026-09-29): offline audit and corrections only.** Philip
+  authorized the September 26 focused study and September 27 matched delay grid in this
+  thread; their frozen protocols record what ran. That historical authorization does not
+  authorize new experiments. Offline analysis, provenance repairs, tests, and compilation
+  of separate bug-fix candidates are authorized. Do not contact the testbed, load a
+  pipeline, change hardware configuration, or generate traffic without new authorization.
+- **Paper freeze pending Dr. Lin's acceptance.** Do not change `paper/rewrite/`, including
+  manuscript prose, figures, Design, Implementation, or the mechanism diagram. Record
+  paper findings in `defense4/timing/audit_current/verification_20260929/` instead. Existing
+  engineering-study text in the paper does not promote its results to approved evidence.
+  Preserve measured sources, binaries, captures, configurations, and results; repairs
+  belong in separate candidate/build directories. Sizing remains outside this task.
 - **Never modify** `defense4/timing/implementation/`,
   `defense4/timing/evidence/campaign_v1/s*/raw_pcaps/`,
   `defense4/timing/evidence/campaign_v1/sweep/raw_pcaps/` or
   `defense4/timing/evidence/final_read_sbo/raw_pcaps/`. They are the record of what ran.
 - **Claim boundaries** (`defense4/timing/CLAIMS_AND_LIMITATIONS.md`): the two arms are
-  *Timing OFF* and *Obfuscated*, and in `campaign_v1` the size carve is off in both, so the
-  measurement is timing only; SELECT means the SELECT phase of SBO; the read lane (READ and
-  SELECT) is ACK-anchored and is the only lane the release budget `D` governs, while OPERATE is
-  request-anchored with observable `R − A` and is never placed in the read-lane coverage
-  denominator; results are transaction-class timing, not device identification, and are scoped
+  *Timing OFF* and *Obfuscated*, and in `campaign_v2` (as in `campaign_v1`) the size carve is off
+  in both, so the measurement is timing only; SELECT means the SELECT phase of SBO; on the shipped
+  build both lanes are request-anchored (`campaign_v1`'s read lane was ACK-anchored); the read
+  lane (READ and SELECT) is the only lane the release budget `D` governs, and OPERATE, whose
+  command is held for `J`, is never placed in the read-lane coverage denominator. OPERATE's offsets
+  are the read lane's own, so its master-visible observable is `O = CLRT_new`, not `R − A`:
+  `A` and `R` are admission parameters the control plane checks, not release instants
+  (measured 2026-09-18, `evidence/tail_sweep_20260918/`; `CLAIMS_AND_LIMITATIONS.md`); results are transaction-class timing, not device identification, and are scoped
   to the evaluated Random-Forest attacker; the realized per-transaction `J` and the relay-facing
   release are unobserved. Exactly-once delivery is **not** provided and is not claimed. Two records bear on this and
   neither shows loss recovery working. On 2026-09-15 a response was withheld from the master and
@@ -69,7 +90,7 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   control path keeps a spent OPERATE generation after release and drops a matching
   retransmission, so a command lost on the relay-facing link cannot be repaired by its own
   retransmission; that is a source-level reading, not a hardware observation
-  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance is PARTIAL. No
+  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance: every `campaign_v2` block and sweep point has a control-plane readback; the per-transaction `J` and the horizon `H` are unobserved (`CLAIMS_AND_LIMITATIONS.md` L12). No
   size, segmentation, padding or splitting claim anywhere in the manuscript.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.
@@ -88,15 +109,16 @@ this repository. Re-run `build.sh` after every edit; `lin_check --compare` must 
 
 ## Figures
 
-The manuscript draws on four figure families, not one. Each has exactly one generator, and no
+The manuscript draws on five figure families, not one. Each has exactly one generator, and no
 figure may be hand-edited:
 
 | family | files | generated by |
 |---|---|---|
-| campaign results | `paper/rewrite/figures/ndss/*.pdf` | `campaign_v1/repro/reproduce.sh`, in the pinned environment under `campaign_v1/repro/` |
-| READ CLRT histograms | `paper/rewrite/figures/clrt/*.pdf` | `defense4/timing/audit_current/tools/clrt_distribution_and_variance.py` |
+| campaign results | `paper/rewrite/figures/ndss/*.pdf` | `campaign_v2/repro/reproduce.sh`, in the pinned environment under `campaign_v2/repro/`. campaign_v1 published here until 2026-09-18 and no longer does; its own gate is expected to fail against these figures |
+| READ CLRT histograms | `paper/rewrite/figures/clrt/*.pdf`; the manuscript includes only `fig_clrt`, the 2x2 of both arms at both scales | `defense4/timing/audit_current/tools/clrt_distribution_and_variance.py` |
+| release tail | `paper/rewrite/figures/tail/*.pdf` | `defense4/timing/evidence/campaign_v2/_bin/make_tail_figure.py`, from campaign_v2's sweep and campaign table (regenerated 2026-09-19; the 2026-09-18 tail sweep measured the acknowledgment-anchored build and no longer feeds the manuscript) |
 | release-timeline model | `paper/rewrite/figures/model/*.pdf` | `defense4/timing/audit_current/tools/make_model_figures.py` |
-| schematics | `paper/rewrite/figures/fig_{ladder,observation,design}.{svg,pdf,png}` | hand-drawn SVG in `paper/rewrite/figures/`, exported by `paper/rewrite/pipeline/export_schematics.sh`, which also mirrors byte-identical copies to `defense4/timing/figures/schematics/` |
+| schematics | `paper/rewrite/figures/fig_{ladder,observation,design}.{svg,pdf,png}` | all three are draw.io documents (`*.drawio`, Cisco network stencils) generated by `paper/rewrite/pipeline/drawio/build.sh`, which writes their SVG through draw.io Desktop. The SVGs are then exported by `paper/rewrite/pipeline/export_schematics.sh`, which also mirrors byte-identical copies to `defense4/timing/figures/schematics/` |
 
 Every figure carries `.caption.md`, `.method.md`, `.limitations.md`, a `_data.csv` and a
 `.provenance.json` beside it, and each directory's `FIGURES.sha256` is checked by its

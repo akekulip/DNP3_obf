@@ -22,7 +22,8 @@ grammar, tense or factual content in place. Record concerns in
 **Notation changed meaning, twice.** The convention below is the one fixed on 2026-09-09 and it
 supersedes the revision that briefly made `D_R` the response hold and introduced `CLRT_target`.
 
-* `D_A` is the **ACK hold**, `e_A - t_A`.
+* `D_A` is the **ACK deadline measured from the request**, following the 2026-09-19
+  request-anchoring update. The ACK hold is `e_A - t_A`, not a configured constant.
 * `D_R` is the **response latency**: the response's whole journey from the outstation to the
   master. It is unmeasured here, it is not `m_R - t_R`, and it is neither the hold nor the
   configured gap.
@@ -91,12 +92,19 @@ approaches assume encrypted payloads or host-side overhead; (3) why those approa
 transfer to legacy ICS traffic; (4) the proposed framework, high level; (5) a short bounded
 contribution list. No implementation detail in the Introduction.
 
-Evaluation order, revised by the meeting: what we measured and where; does the released
-interval reach its target (RO1); does the control lane behave the same way (RO2); what range of
-settings is supported (RO4); what the mechanism costs (RO5); what the attacker still learns
-(RO3); limitations. The draft defines **five** objectives, RO1 to RO5, in the threat model; keep
-those tags inside the question headings so a reader can trace them. Their number is a property of
-this draft, not a structure the advisor dictated.
+Evaluation order, updated by the author's 2026-09-25 direction: establish what was measured and
+how; evaluate timing replacement and the supported policy range (RO1); report latency, endpoint
+timer behavior and the measured excess over the ACK deadline (RO3); then examine residual timing
+information (RO2) and limitations that affect the contribution. The current threat model defines
+three objectives, RO1 to RO3. Do not restore the retired five-objective structure.
+
+Design follows the author's specified order: timing model and packet flow; parameters and their
+constraints; then queue and P4 realization. Explain the queueing idea before pipeline details.
+Keep ingress, traffic manager, egress and loopback visible in the mechanism figure, and retain
+platform and testbed details in Implementation. DefRec is the primary prose reference for Design
+and Evaluation, with `paper-voice` and `academic-humanizer` as the supporting skills. Match its
+purpose, explanation and consequence structure without importing unsupported claims or forcing
+whole-paper statistical bands onto a mathematical subsection.
 
 ## 3. Paragraph logic (Dr. Lin's method)
 
@@ -138,28 +146,26 @@ this draft, not a structure the advisor dictated.
 | timing-feature overlap (Figure 3) | clustering performance, t-SNE, UMAP |
 | transaction-class timing leakage / classifier | device identification, device-model separation |
 | CLRT (cross-layer response time) = response − ACK, master-facing | ACK-to-response "latency of the relay" without the observation point |
-| D_A = ACK hold; D_R = **response latency**, the response's whole journey from the outstation to the master, which is unmeasured here; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
-| size shaping **off in both arms** in `campaign_v1`, so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
+| D_A = acknowledgment deadline, measured from the request; D_R = **response latency**, the response's whole journey from the outstation to the master, which is unmeasured here; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (both lanes anchored to the request on the shipped build; see `NOTATION_MAPPING.md` §0a); J (control path, command hold) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
+| size shaping **off in both arms** in `campaign_v2` (and `campaign_v1`), so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
 
 ## 6. Claim gates (every sentence of results must pass)
 
 * Every number traces to `figures/ndss/MANUSCRIPT_VALUES.json`, regenerated from the raw
-  captures by `defense4/timing/evidence/campaign_v1/repro/reproduce.sh`. That file is the only
+  captures by `defense4/timing/evidence/campaign_v2/repro/reproduce.sh`. That file is the only
   source the manuscript quotes from, and the publication gate fails if it drifts from a rebuild.
 * Every figure sentence names its figure and reports the observation point.
-* The Obfuscated mutual information is quoted as "0.004 bits, inside the permutation null", with
-  the empirical p-value where the sentence needs it. (The older rule said "below 0.003 bits" and
-  applied to the retired `final_read_sbo` estimate, whose instability at the fourth decimal came
-  from a histogram bin edge at exactly 4.000 ms. The campaign_v1 estimate uses a
-  nearest-neighbour estimator and does not have that failure mode, so the value is quoted as
-  measured.) No uncertainty interval is placed on a mutual-information estimate.
+* The Obfuscated mutual information is quoted as measured, 0.043 bits in `campaign_v2`, which lies
+  **above** its permutation null (p = 0.001); the manuscript says so and attributes it with the
+  analyses in `proof.json` rather than calling it chance. No uncertainty interval is placed on a
+  mutual-information estimate.
 * Classifier accuracy is scoped to the evaluated Random-Forest attacker and feature set, and its
   spread is described as the range over the 22 held-out runs, never as a confidence interval.
 * The read lane and the control lane are never pooled: the release budget `D` governs READ and
   the SELECT phase of SBO only, and OPERATE never appears in that coverage denominator.
-* The limitations in `CLAIMS_AND_LIMITATIONS.md` L1 to L12 appear in the Evaluation's
+* The limitations in `CLAIMS_AND_LIMITATIONS.md` L1 to L13 appear in the Evaluation's
   Limitations subsection, in plain text, not in a footnote.
-* Configuration provenance is PARTIAL and says so.
+* Configuration provenance is stated as `CLAIMS_AND_LIMITATIONS.md` L12 states it: read back for every block and sweep point, with `J` and `H` unobserved.
 
 ## 7. Protected text
 
@@ -184,8 +190,8 @@ editorial or scientific.
 
 Every externally verifiable claim has a row in `reports/CLAIM_CITATION_MATRIX.md`: section,
 claim, key, source, type, exact support, verification status, action. One active bibliography
-(`../library.bib`, the Zotero export; only the cited entries were verified, and the export was
-not bulk-edited). No undefined keys, no duplicate records cited as two papers, no citation
+(`../References.bib`, which the manuscript builds from and the gate checks; `../library.bib` is the
+Zotero export it was reconciled against on 2026-09-19 and is no longer cited). No undefined keys, no duplicate records cited as two papers, no citation
 that does not support its sentence, no citation placed after several unrelated claims.
 
 ## 9. Rendering and review gates

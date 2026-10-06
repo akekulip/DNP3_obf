@@ -35,13 +35,15 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import scienceplots  # noqa: F401,E402  registers "science" / "ieee" / "no-latex"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import paper_palettes as pp  # noqa: E402
 import utils_mpl  # noqa: E402
 
 # IEEE column measures. Decide the width first; never rescale in LaTeX.
-COL_WIDTH_IN = 3.5       # single column (88.9 mm)
+# IEEEtran's \columnwidth is 251.06 pt; 3.5 in overran it by 0.94 pt on every figure.
+COL_WIDTH_IN = 3.48      # single column, usable
 PAGE_WIDTH_IN = 7.16     # double column (181.8 mm)
 
 # Times New Roman with metric-compatible fallbacks, so the figures still build on a machine
@@ -70,7 +72,23 @@ LABEL_SBO = "SBO"
 
 
 def use_ieee():
-    """Apply the IEEE conventions from utils_mpl, then this project's additions."""
+    """SciencePlots science+ieee, then the IEEE conventions from utils_mpl, then this project's.
+
+    ``science`` + ``ieee`` (garrettj403/SciencePlots) supply the tick and spine discipline that
+    makes a plot read as a journal figure: ticks inward on all four sides, minor ticks visible,
+    thin spines, frameless keys, 600 dpi.
+
+    ``no-latex`` is appended because ``science`` sets ``text.usetex``, which needs ``cm-super``
+    (for ``type1ec.sty``) and ``dvipng``, neither installed; and because the ``science``
+    preamble loads no font package, so with LaTeX on, every figure would render in Computer
+    Modern while the manuscript body is Times. The ``mathtext`` settings below keep figure text
+    and body text in one face.
+
+    The ``ieee`` style's black/red/blue/green cycle is left in place only as a fallback: every
+    series in this repository is given an explicit colour from the palette above, which is
+    colourblind-safe and holds one meaning per colour across the manuscript.
+    """
+    plt.style.use(["science", "ieee", "no-latex"])
     utils_mpl.set_global()                       # 9 pt Times, bold labels, boxed legend
     plt.rcParams.update({
         "font.family": "serif",
@@ -97,16 +115,54 @@ def use_ieee():
         "pdf.fonttype": 42,
         "ps.fonttype": 42,
         "svg.fonttype": "none",
+        # utils_mpl.set_global draws a boxed key; a frame is a patch of white over the data.
+        "legend.frameon": False,
+        "legend.borderpad": 0.2,
+        "legend.handletextpad": 0.5,
+        "legend.labelspacing": 0.25,
+        # SciencePlots ticks, trimmed for a 3.5 in column.
+        "xtick.direction": "in", "ytick.direction": "in",
+        "xtick.top": True, "ytick.right": True,
+        "xtick.minor.visible": True, "ytick.minor.visible": True,
+        "xtick.major.size": 2.6, "ytick.major.size": 2.6,
+        "xtick.minor.size": 1.4, "ytick.minor.size": 1.4,
+        "xtick.major.width": 0.5, "ytick.major.width": 0.5,
+        "xtick.minor.width": 0.4, "ytick.minor.width": 0.4,
+        # The PDF must be exactly the size asked for, so it lands at a known width in the
+        # column. SciencePlots crops to "tight", which would defeat that.
+        "savefig.bbox": "standard", "savefig.pad_inches": 0.0,
+        "figure.dpi": 600, "savefig.dpi": 600,
     })
 
 
 def grid(fig, ax, major=True, minor=True):
-    """Grid, then tight_layout. Call LAST, after every label and legend.
+    """No interior rules, then tight_layout. Call LAST, after every label and legend.
 
-    minor=False on a logarithmic axis: a decade's worth of minor lines reads as hatching.
+    The name and signature are kept because every call site in this repository uses them, and
+    the layout pass is what those sites actually depend on. What changed is the ruling: the
+    Ditto figures these plots are matched to carry no grid at all, and a panel whose interior
+    is white reads as data rather than as ruling. `major` and `minor` are accepted and ignored.
     """
     for a in (ax if isinstance(ax, (list, tuple)) else [ax]):
-        utils_mpl.set_grid(fig, a, major=major, minor=minor)
+        a.grid(False)
+        a.set_axisbelow(True)
+    fig.tight_layout()
+
+
+def key(ax, **kw):
+    """The legend as Ditto draws it: a white box with a thin grey border, inside the panel.
+
+    Frameless keys let a rule or a whisker run through the label, which is exactly the defect
+    that had to be repaired by hand on two figures here. A box costs nothing and cannot.
+    """
+    opts = dict(frameon=True, framealpha=1.0, facecolor="white", edgecolor="#666666",
+                fancybox=False, borderpad=0.35, handlelength=1.6, handletextpad=0.5,
+                labelspacing=0.28, fontsize=8)
+    opts.update(kw)
+    leg = ax.legend(**opts)
+    if leg is not None:
+        leg.get_frame().set_linewidth(0.5)
+    return leg
 
 
 def _sha256(p):

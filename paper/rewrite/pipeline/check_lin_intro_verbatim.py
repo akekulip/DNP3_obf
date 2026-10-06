@@ -27,10 +27,10 @@ REFERENCE = [
     fingerprinting shifts the focus from visited websites and user biometric behavior to device
     models and types of control operations that are critical to ICS attacks. In the 2015 attack
     that disrupted Ukrainian power grids and the Stuxnet attack that disrupted Iranian nuclear
-    power facilities, it is widely believed that adversaries stay in their systems for at least
+    power facilities, it is widely believed that adversaries stayed in their systems for at least
     6 months to perform cyber reconnaissance.""",
 
-    """To disrupt device fingerprinting, many studies present network traffic obfuscation.
+    """To disrupt device fingerprinting, many studies have presented network traffic obfuscation.
     Device fingerprinting targeting general computing environments generally relies on
     network-level features such as packet size and/or inter-packet latency observed from
     communication patterns. Consequently, existing traffic obfuscation often focuses on (i)
@@ -71,7 +71,9 @@ def installed_paragraphs() -> list[str]:
     body = INTRO.read_text()
     body = "\n".join(l for l in body.splitlines() if not l.lstrip().startswith("%"))
     body = body.split("\\label{sec:intro}", 1)[1]
-    body = body.split("In this paper, we present", 1)[0]
+    # The continuation after his paragraph 3 opens "In this paper, we ..."; the verb varies
+    # ("present", "propose"), so split on the stable prefix rather than on one wording.
+    body = body.split("In this paper, we ", 1)[0]
     return [p.strip() for p in body.split("\n\n") if p.strip()]
 
 

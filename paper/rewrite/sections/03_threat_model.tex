@@ -1,94 +1,77 @@
 \section{Threat Model and Objectives}
 \label{sec:threat}
 
+In this section, we first describe the adversary we consider and the knowledge it seeks. Then we
+specify the three research objectives the framework must achieve, RO1 to RO3, and the scope of our
+work.
+
+\subsection{Threat Model}
+\label{sec:threat:model}
+
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_observation.pdf}{\includegraphics{figures/fig_observation}}{\figplaceholder{Observation model: master, observed master-facing link, programmable switch, relay-facing link (not observed), SEL-751A outstation.}}
-\caption{Observation model. The adversary sees only the master-facing link (shaded); the relay-facing
-  link and the switch-internal lanes (dashed) are observed by neither the adversary nor us.}
+\caption{Observation model. The adversary monitors the shaded master-facing link. The dashed paths
+  are not visible to it.}
 \label{fig:observation}
 \end{figure}
 
-\textbf{The adversary.} We assume a passive observer on the master-facing link, the adversary of
-the fingerprinting attack we defend against~\cite{formbyWhosControlYour2016}, sitting where
-Figure~\ref{fig:observation} shows. It records TCP and IP headers, segment sizes and arrival
-times. It does not modify or inject packets, compromise either endpoint, control the switch or
-read its internal state, and it sees neither the relay-facing link, which in our deployment is
-inside the switch with no tap on it, nor physical breaker motion. Because DNP3 carries no
-transport security by default we assume the traffic is
-unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function codes
-directly. An adversary that probes or injects is out of scope, and the passive observer is the
-setting the traffic-obfuscation work we build on also targets.
+\textbf{Assumptions on Adversary's Capability.} We assume that an adversary has penetrated the
+control network and passively monitors the master-facing link, the position from which Formby et
+al.\ fingerprint outstations~\cite{formby2016}, as shown in
+Figure~\ref{fig:observation}. The adversary is able to record the headers, the size and the arrival
+time of every packet. Because DNP3 carries no transport security by
+default~\cite{east2009}, the adversary also reads the function code of every
+request and can label each exchange by its operation, e.g., a READ poll or the SELECT and OPERATE
+of a control command. We assume that the adversary knows the framework and the interval it
+enforces, but cannot read the internal state of the switch or monitor the link between the switch
+and the outstation. This is a practical assumption, as the switch sits at the edge of the
+outstation, and the relay-facing link can be a single cable between two devices in the same
+substation cabinet.
 
-\textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
-false data injection requires the attacker to know which devices it is dealing
-with~\cite{liuFalseDataInjection2009}, and fingerprinting supplies that knowledge without the
-payload, because the timing of the exchange carries it.
+\textbf{Adversary's Goal.} The adversary aims at fingerprinting the outstation from the timing of
+its exchanges, and from that timing it infers the make and model of the device and the operation
+each exchange performs. Based on this knowledge, the adversary can design targeted attacks, e.g.,
+false data injection that must match the devices it compromises~\cite{liufdia2009}.
+We consider two adversaries. A \emph{fixed} adversary builds its classifier from traffic captured
+before the framework is deployed and applies it afterwards. An \emph{adaptive} adversary collects
+traffic after deployment, labels it with the plaintext function codes and retrains its classifier.
+The adaptive adversary can also pool many exchanges of the same operation into one signature, as
+Formby et al.\ do~\cite{formby2016}.
 
-Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is
-the CLRT of a READ or of the SELECT phase of a control, which measures the outstation's own
-processing and which Section~\ref{sec:bg} shows carries the separation between the classes. The
-second is the master-visible interval between an OPERATE's acknowledgment and its solicited
-response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms
-on this device; the mechanism does not target it, and we report it as measured.
+\subsection{Research Objectives}
+\label{sec:threat:ro}
 
-Our own observation is narrower than the adversary's: every quantity we measure is one of three
-packet timestamps on the master-facing link, the request, the acknowledgment and the response. The
-switch's release instants and every event on the relay-facing link were not captured, and where
-the paper names them they come from the configuration.
-
-Formby et al.\ estimate the time a device physically takes to complete an operation from a
-sequence-of-events timestamp inside the outstation's application payload, and their alternative
-estimate from packet arrival times produced no usable
-result~\cite{formbyWhosControlYour2016}. What we measure is a packet-timing feature of the
-solicited control response: not physical actuation time, which we do not measure anywhere, and not
-the payload-timestamp feature, which a mechanism that moves packets without editing bytes could
-not affect. The narrower interval is still worth defending, because it separates the two classes
-on its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy
-from exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy
-value, not whether physical timing is concealed.
-
-\textbf{What our evaluation actually separates.} Our testbed has one outstation, so there is no
-second device to confuse it with and no device identification to measure. We measure whether the
-timing of an exchange still reveals \emph{which class of transaction} it was on that one device, a
-three-class problem over READ, SELECT and OPERATE whose chance is 0.333 balanced accuracy. A
-result here suppresses a class-conditioned timing feature; it does not show that two devices
-become indistinguishable.
-
-\textbf{Two conditions, not two adversaries.} The \emph{fixed} condition learns transaction
-classes from undefended traffic and applies that model unchanged once the defense is deployed,
-which is the adversary the reconnaissance setting describes. The \emph{adaptive} condition
-collects obfuscated traffic and retrains, answering what remains learnable once the defense is
-deployed: it recovers 0.651 balanced accuracy where the fixed one is left at chance. It needs no
-access the fixed one lacks, since the same passive observer sees obfuscated traffic and the
-plaintext function codes label it. Both are ours, chosen to bracket the problem, and the second
-is the one that limits our claim.
-
-\textbf{Research objectives.} We state the goal as five properties, which the evaluation answers
-in turn.
+\textbf{The Framework's Objective.} We aim at disrupting timing-based fingerprinting of an
+outstation without changing the outstation, the master or the DNP3 protocol.
+We specify three research objectives (RO) as follows:
 \begin{itemize}
-  \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
-    configurable policy value rather than the outstation's own processing signature.
-  \item \textbf{RO2 (control timing).} The master-visible OPERATE response-to-ACK interval stays at a
-    policy value while the relay-facing hold is drawn from a configured codebook of 2, 6 and
-    12~ms.
-  \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
-    transaction class, and a fixed adversary that trained on undefended traffic is reduced to
-    approximately three-class chance, which for READ, SELECT and OPERATE is 0.333 balanced
-    accuracy.
-  \item \textbf{RO4 (release policy and coverage).} The release budget, the range of policies the
-    mechanism can realize, the fraction of traffic it can cover, and the residual it leaves are
-    characterized rather than assumed.
-  \item \textbf{RO5 (cost and protocol preservation).} We measure the latency the mechanism costs and the
-    frames and bytes it adds, and the external DNP3 workload still completes: every request is
-    answered and every control operation returns a success status.
+  \item \textbf{RO1:} for both the read poll and the select-before-operate control, we aim at
+    making the CLRT the adversary measures a value the operator configures, independent of the
+    execution time of the outstation.
+  \item \textbf{RO2:} for fixed and adaptive adversaries, we aim at removing the execution time of
+    the outstation from everything they learn from the timing of an exchange, such that a fixed
+    adversary performs no better than chance and whatever an adaptive adversary still learns
+    reflects the switch rather than the device.
+  \item \textbf{RO3:} for the operation of the control network, we aim to keep added delay within
+    the endpoint timer margins without adding packets or bytes to the external exchange. We
+    measure the latency cost and check for retransmissions and refused control operations under
+    the evaluated settings; these observations do not establish a timer guarantee for other deployments.
 \end{itemize}
 
-\textbf{What is out of scope.} Two boundaries follow from the model above and hold for every
-result we report. The framework does not hide the DNP3 function codes, which stay in plaintext, so
-RO3 concerns the timing channel and not the command semantics. It also forwards every packet at
-its original size, so it adds no size or segmentation signature of its own, while the delays it
-imposes are themselves observable: an adversary who can time packets can see that something is
-holding them. Because the relay-facing link is not instrumented, as stated above, the
-per-transaction hold drawn from the configured codebook of 2, 6 and 12~ms is configured rather
-than observed, which is why RO2 is stated in terms of the master-visible interval alone.
+\textbf{Trusted Components.} To achieve these objectives, we add only the switch and its control
+plane to the trusted computing base. The control plane installs the release policy and reads it
+back, and the switch enforces it. The framework needs no cooperation from the master or the
+outstation, and neither of them is modified.
+
+\textbf{For Payload-Based Fingerprinting.} We designed the framework to hide timing, not content.
+It forwards every packet at its original size and leaves the function codes readable, so the
+adversary still knows which operation an exchange carries. The framework aims to suppress the execution-time variation carried by the released intervals. The physical operation time of Definition 2 is a second feature, and the estimate Formby et al.\ retain reads a timestamp inside the payload rather than the timing of a
+packet~\cite{formby2016}. Such content is a different problem, and payload
+protection is complementary to the framework. We leave the combination of the two to future work.
+
+\textbf{For Active Adversaries.} An adversary that injects, delays or drops packets, or that
+compromises the switch or the outstation, performs attacks beyond reconnaissance and is outside this
+model. Such an adversary still faces existing defenses, e.g., specification-based intrusion
+detection for DNP3~\cite{linbro2013}, and the framework leaves every byte those
+defenses inspect unchanged.

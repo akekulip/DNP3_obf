@@ -1,93 +1,86 @@
 {
  "figure": "fig_policy_coverage_cost",
- "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose request-to-response time exceeds a given value, with the release budget $D$=28~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=28~ms, 17 of 29040 (0.0585\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=28~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays at the budget, so the interval the adversary observes is set independently of what the exchange costs. (c) Request-to-response latency at the master, per class. Markers in (b) are medians over the sample counts in the figure-data CSV and bars span the interquartile range; boxes in (c) span the quartiles with whiskers over the full support.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
-   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
   },
   {
    "path": "pipeline-output/stats.json",
-   "sha256": "c21fd48260560e0f692dd20ba461f318070ee654e144bd8b1423878ef25bd79f"
+   "sha256": "21260ba2d8718e178ed6e9755ce769010e1fed4dfb8fad2b0a6bbe82a16a0dae"
   },
   {
    "path": "pipeline-output/sweep_summary.json",
-   "sha256": "5d240e0a07f352757542a81755ccc0ef11113b9dc7ae8b9d65a15179f6ca239c"
+   "sha256": "a2d95090eebd837e67ed373314625ce948eb55c66184db31d9564b4b1fb37457"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "e4c382e40d9db7141654bf175942ca9eb574aeabe4d2e714c50dedb5bdc2b372",
+   "sha256": "55acb2f2c50ab339b2cf3fa37d98b24330bfeda4bc3f62fbf3a97f24f4e9c051",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "e68c301a31ec5d4d0fe04e00a36c665c8ed12486e81ebb43f4d381fd013598a5",
+   "sha256": "a812a4bd340edfe4b1d62fc788e0ff4836bc5cc5fa8f95b16a1aa69d6ba8f03b",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_policy_coverage_cost_data.csv",
-   "sha256": "5ce2d9850b7e7194fe72b5f2b7a1511390e1c1fbf5cceeebb9d7c5eec5220a2a",
-   "rows": 103,
+   "sha256": "bb34de7e5372470affc6640dc787bed8006175f0cdb2f503ba0b8ad00d7d2e13",
+   "rows": 5940,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
-  "height": 3.3
+  "width": 7.16,
+  "height": 2.65
  },
- "method_note": "Panel (a) is an empirical complementary CDF over the Timing OFF read lane (READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is timed to the request and is not schedulable against D. Panels (b) and (c) plot the 16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in (c); each is one capture under one installed dual-deadline policy, summarised by the median over its READ transactions, with the full measured range shown in (b). The other three captures are controls taken with the timing mechanism disabled and are not plotted. No value is resampled or interpolated. Panel (d) reports quartiles with whiskers over the full support.",
- "limitation_note": "The sweep offsets, the field D_A_ms and the field D_R_ms that carries the configured CLRT_new, are read from the archived sweep_points.csv configuration table; the driver logs record the mode and the J codebook but not the per-point offsets, and no per-point control-plane readback exists, so the configuration provenance for the sweep is partial. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.",
+ "method_note": "Panel (a) is an empirical complementary CDF of the request-to-response time over the Timing OFF read lane (READ and SELECT), 29,040 exchanges. At a threshold x it counts strictly greater observations, including ties exactly; the zero endpoint is retained in the CSV but cannot be drawn on a log ordinate. The read lane's deadlines are armed at the request; OPERATE is excluded because it runs on the control lane under its own release parameters. Panel (b) plots the 8 release policies of the hardware sweep whose total budget equals $D$=28~ms; each is one capture under one installed dual-deadline policy, summarised by the median over its READ transactions. The sweep's other points (other budgets, the two envelope controls and the capture with the timing mechanism disabled) are in the sweep tables and are not plotted here. No value is resampled or interpolated. Panel (c) reports quartiles with whiskers over the full support.",
+ "limitation_note": "The sweep offsets are read from sweep_points.csv, and each point's installed parameters are confirmed by the control-plane readback archived in sweep/provenance/. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.",
  "notes": {
-  "lane_separation": "panels (a)-(c) are read-lane only; OPERATE is timed from the request",
+  "lane_separation": "panels (a) and (b) are read-lane only; OPERATE runs on the control lane",
   "added_latency_ms": {
-   "READ": 22.657,
-   "SELECT": 22.617,
-   "OPERATE": 21.185
+   "READ": 25.426,
+   "SELECT": 25.4825,
+   "OPERATE": 24.652
   },
   "sweep_points_used": {
    "fixed_total_budget": [
-    "sw_D4_23_1",
-    "sw_D4_22_2",
-    "sw_D4_20_4",
-    "sw_D4_16_8",
-    "sw_D4_12_12",
-    "sw_D4_08_16",
-    "sw_D4_04_20",
-    "sw_D4_02_22"
+    "sw_D4_26_2",
+    "sw_D4_24_4",
+    "sw_D4_20_8",
+    "sw_D4_16_12",
+    "sw_D4_12_16",
+    "sw_D4_08_20",
+    "sw_D4_04_24",
+    "sw_D4_02_26"
    ],
-   "D_A_ramp": [
-    "sw_D4_04_4",
-    "sw_D4_12_4",
-    "sw_D4_20_4",
-    "sw_D4_28_4",
-    "sw_D4_30_4",
-    "sw_D4_32_4",
-    "sw_D4_34_4",
-    "sw_D4_36_4",
-    "sw_D4_36_4b"
+   "not_drawn_D_A_ramp": [
+    "sw_D4_16_8",
+    "sw_D4_20_8"
    ]
   },
   "scope": "master-facing link; internal blocker traffic not counted"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

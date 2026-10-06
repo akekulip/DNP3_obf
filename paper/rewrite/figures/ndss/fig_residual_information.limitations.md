@@ -1,0 +1,1 @@
+These are observational contrasts within one campaign. The READ-vs-SELECT panel does not isolate execution time as a controlled causal variable, and the arrival-gap panel does not identify a single queue component as the cause of separability. The whiskers describe held-out-run range, not uncertainty across deployments.

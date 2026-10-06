@@ -105,9 +105,9 @@ PYFLAT
 fi
 echo
 echo "[gate] ${RESEARCH_PYTHON} lin_check.py ${GATE_INPUT}"
-"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/library.bib" --pdf "${BUILD_DIR}/${base}.pdf" | tee "${report_txt}"
+"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/References.bib" --pdf "${BUILD_DIR}/${base}.pdf" | tee "${report_txt}"
 rc_gate=${PIPESTATUS[0]}
-"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/library.bib" --pdf "${BUILD_DIR}/${base}.pdf" --json > "${report_json}"
+"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/References.bib" --pdf "${BUILD_DIR}/${base}.pdf" --json > "${report_json}"
 
 echo
 echo "[gate] report  -> ${report_txt}"

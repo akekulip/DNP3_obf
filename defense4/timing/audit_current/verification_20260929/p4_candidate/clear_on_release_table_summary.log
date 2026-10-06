@@ -1,0 +1,270 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 8
+  Number of stages for ingress table allocation: 8
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 7
+Number of tables allocated: 77
++-------+-----------------+-------------------------------------------------------------+
+| Stage | Min / Max Stage |                         Table Name                          |
++-------+-----------------+-------------------------------------------------------------+
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3022 |
+|   0   |    [ -, - ]     | tbl_defense4_timing_randomized_operate_repair_candidate3082 |
+|   0   |    [ 0, 5 ]     |                  Ingress.tbl_build_exp_ack                  |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_params                      |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3028 |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_session                     |
+|   0   |    [ 0, 5 ]     |                           cond-55                           |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3069 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3070 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3071 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3034 |
+|   0   |    [ 0, 6 ]     |                           cond-66                           |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3140 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3146 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3156 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3116 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3118 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3121 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3124 |
+|   1   |    [ 0, 5 ]     |                   Ingress.tbl_bor_params                    |
+|   1   |    [ 1, 6 ]     |                  Ingress.tbl_expected_ack                   |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3174 |
+|   1   |    [ 1, 6 ]     |                    Ingress.tbl_build_now                    |
+|   1   |    [ 0, 6 ]     |                           cond-59                           |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3075 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3076 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3079 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3080 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3077 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3172 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3173 |
+|   1   |    [ 1, 7 ]     |                  Ingress.tbl_bor_codebook                   |
+|   2   |    [ 2, 7 ]     |                 Ingress.tbl_resp_authorise                  |
+|   2   |    [ 2, 7 ]     |                           cond-76                           |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3192 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3194 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3197 |
+|   2   |    [ 1, 6 ]     |                Ingress.tbl_random_deadlines                 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3276 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3277 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3278 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3279 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3286 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3280 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3281 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3282 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3285 |
+|   2   |    [ 2, 8 ]     |                           cond-79                           |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3218 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3222 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3228 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3244 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3239 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3241 |
+|   3   |    [ 2, 7 ]     |                 Ingress.tbl_build_cand_resp                 |
+|   3   |    [ 2, 7 ]     |                   Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3091 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3288 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3289 |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3290 |
+|   3   |    [ 2, 9 ]     |                           cond-96                           |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3294 |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3295 |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3296 |
+|   4   |    [ 3, 8 ]     |                Ingress.tbl_select_deadlines                 |
+|   4   |    [ 4, 9 ]     |                   Ingress.tbl_txn_active                    |
+|   4   |    [ 0, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3037 |
+|   4   |   [ 0, 10 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3025 |
+|   5   |    [ 4, 9 ]     |                  Ingress.tbl_state_decode                   |
+|   5   |    [ 4, 9 ]     |                  Ingress.tbl_resp_deadline                  |
+|   5   |    [ 4, 9 ]     |                     Ingress.tbl_hold_ok                     |
+|   5   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3259 |
+|   5   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3265 |
+|   6   |   [ 5, 10 ]     |                  Ingress.tbl_decide_fresh                   |
+|   6   |   [ 5, 10 ]     |                   Ingress.tbl_decide_deq                    |
+|   7   |   [ 6, 11 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3325 |
+|   7   |   [ 6, 11 ]     |                     Ingress.tbl_commit                      |
++-------+-----------------+-------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 7
+  Number of stages for ingress table allocation: 7
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 7
+Number of tables allocated: 77
++-------+-----------------+-------------------------------------------------------------+
+| Stage | Min / Max Stage |                         Table Name                          |
++-------+-----------------+-------------------------------------------------------------+
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3022 |
+|   0   |    [ -, - ]     | tbl_defense4_timing_randomized_operate_repair_candidate3082 |
+|   0   |    [ 0, 5 ]     |                  Ingress.tbl_build_exp_ack                  |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_params                      |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3028 |
+|   0   |    [ 0, 5 ]     |                   Ingress.tbl_bor_params                    |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_session                     |
+|   0   |    [ 0, 5 ]     |                           cond-55                           |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3069 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3070 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3071 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3034 |
+|   0   |    [ 0, 6 ]     |                           cond-66                           |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3140 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3146 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3156 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3116 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3118 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3121 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3124 |
+|   1   |    [ 1, 6 ]     |                Ingress.tbl_random_deadlines                 |
+|   1   |    [ 1, 6 ]     |                  Ingress.tbl_expected_ack                   |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3174 |
+|   1   |    [ 1, 6 ]     |                    Ingress.tbl_build_now                    |
+|   1   |    [ 0, 6 ]     |                           cond-59                           |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3075 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3076 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3079 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3080 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3077 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3172 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3173 |
+|   2   |   [ 0, 10 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3025 |
+|   2   |    [ 2, 7 ]     |                 Ingress.tbl_resp_authorise                  |
+|   2   |    [ 2, 7 ]     |                           cond-76                           |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3192 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3194 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3197 |
+|   2   |    [ 2, 7 ]     |                 Ingress.tbl_build_cand_resp                 |
+|   2   |    [ 2, 7 ]     |                   Ingress.tbl_build_cand                    |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3091 |
+|   2   |    [ 1, 7 ]     |                  Ingress.tbl_bor_codebook                   |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3276 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3277 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3278 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3279 |
+|   2   |    [ 2, 8 ]     |                           cond-79                           |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3218 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3222 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3228 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3244 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3239 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3241 |
+|   3   |    [ 3, 8 ]     |                Ingress.tbl_select_deadlines                 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3286 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3280 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3281 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3282 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3285 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3288 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3289 |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3290 |
+|   3   |    [ 0, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3037 |
+|   4   |    [ 4, 9 ]     |                  Ingress.tbl_state_decode                   |
+|   4   |    [ 4, 9 ]     |                   Ingress.tbl_txn_active                    |
+|   4   |    [ 4, 9 ]     |                  Ingress.tbl_resp_deadline                  |
+|   4   |    [ 4, 9 ]     |                     Ingress.tbl_hold_ok                     |
+|   4   |    [ 2, 9 ]     |                           cond-96                           |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3294 |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3295 |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3296 |
+|   4   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3259 |
+|   4   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3265 |
+|   5   |   [ 5, 10 ]     |                  Ingress.tbl_decide_fresh                   |
+|   5   |   [ 5, 10 ]     |                   Ingress.tbl_decide_deq                    |
+|   6   |   [ 6, 11 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3325 |
+|   6   |   [ 6, 11 ]     |                     Ingress.tbl_commit                      |
++-------+-----------------+-------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 7
+  Number of stages for ingress table allocation: 7
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 7
+Number of tables allocated: 77
++-------+-----------------+-------------------------------------------------------------+
+| Stage | Min / Max Stage |                         Table Name                          |
++-------+-----------------+-------------------------------------------------------------+
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3022 |
+|   0   |    [ -, - ]     | tbl_defense4_timing_randomized_operate_repair_candidate3082 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3028 |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_params                      |
+|   0   |    [ 0, 5 ]     |                  Ingress.tbl_build_exp_ack                  |
+|   0   |    [ 0, 5 ]     |                   Ingress.tbl_bor_params                    |
+|   0   |    [ 0, 5 ]     |                     Ingress.tbl_session                     |
+|   0   |    [ 0, 5 ]     |                           cond-55                           |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3069 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3070 |
+|   0   |    [ 0, 5 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3071 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3034 |
+|   0   |    [ 0, 6 ]     |                           cond-66                           |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3140 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3146 |
+|   0   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3156 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3116 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3118 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3121 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3124 |
+|   1   |    [ 1, 6 ]     |                Ingress.tbl_random_deadlines                 |
+|   1   |    [ 1, 6 ]     |                    Ingress.tbl_build_now                    |
+|   1   |    [ 1, 6 ]     |                  Ingress.tbl_expected_ack                   |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3174 |
+|   1   |    [ 0, 6 ]     |                           cond-59                           |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3075 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3076 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3079 |
+|   1   |    [ 0, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3080 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3077 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3172 |
+|   1   |    [ 1, 6 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3173 |
+|   2   |   [ 0, 10 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3025 |
+|   2   |    [ 2, 7 ]     |                 Ingress.tbl_resp_authorise                  |
+|   2   |    [ 2, 7 ]     |                           cond-76                           |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3192 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3194 |
+|   2   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3197 |
+|   2   |    [ 2, 7 ]     |                 Ingress.tbl_build_cand_resp                 |
+|   2   |    [ 2, 7 ]     |                   Ingress.tbl_build_cand                    |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3091 |
+|   2   |    [ 1, 7 ]     |                  Ingress.tbl_bor_codebook                   |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3276 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3277 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3278 |
+|   2   |    [ 2, 7 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3279 |
+|   2   |    [ 2, 8 ]     |                           cond-79                           |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3218 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3222 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3228 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3244 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3239 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3241 |
+|   3   |    [ 3, 8 ]     |                Ingress.tbl_select_deadlines                 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3286 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3280 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3281 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3282 |
+|   3   |    [ 2, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3285 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3288 |
+|   3   |    [ 3, 8 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3289 |
+|   3   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3290 |
+|   3   |    [ 0, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3037 |
+|   4   |    [ 4, 9 ]     |                  Ingress.tbl_state_decode                   |
+|   4   |    [ 4, 9 ]     |                   Ingress.tbl_txn_active                    |
+|   4   |    [ 4, 9 ]     |                  Ingress.tbl_resp_deadline                  |
+|   4   |    [ 4, 9 ]     |                     Ingress.tbl_hold_ok                     |
+|   4   |    [ 2, 9 ]     |                           cond-96                           |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3294 |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3295 |
+|   4   |    [ 3, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3296 |
+|   4   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3259 |
+|   4   |    [ 4, 9 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3265 |
+|   5   |   [ 5, 10 ]     |                  Ingress.tbl_decide_fresh                   |
+|   5   |   [ 5, 10 ]     |                   Ingress.tbl_decide_deq                    |
+|   6   |   [ 6, 11 ]     | tbl_defense4_timing_randomized_operate_repair_candidate3325 |
+|   6   |   [ 6, 11 ]     |                     Ingress.tbl_commit                      |
++-------+-----------------+-------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

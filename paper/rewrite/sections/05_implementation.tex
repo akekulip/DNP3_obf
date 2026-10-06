@@ -1,141 +1,70 @@
 \section{Implementation}
 \label{sec:impl}
 
-Section~\ref{sec:design} says when each packet should leave, but a forwarding pipeline has no way
-to wait: a P4 program runs to completion per packet and can read a clock, yet it cannot sleep or
-schedule a callback.
+To evaluate the framework, we implemented it on an Intel Tofino-1 switch and placed the switch
+between a DNP3 master and a physical protective relay. In this section, we describe the deadline and transaction state used by the
+queueing mechanism, then present the testbed.
 
-\subsection{Holding a packet with queues}
+\subsection{Deadline and Transaction State}
 \label{sec:impl:queues}
-
-\begin{figure}[t]
-\centering
-\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
-\caption{How one pipeline realizes the schedule. Ingress classifies each transaction and computes
-  its release deadlines. Blocker packets drained ahead of the held packet sustain a hold until its
-  deadline expires. The four-queue ladder holds what the outstation returns; the second pair holds
-  the outgoing OPERATE, not a second reply. Solid lines are master-facing and observed; dashed
-  lines are not, as in Figure~\ref{fig:observation}.}
-\label{fig:design}
-\end{figure}
-
-What the switch does have is a traffic manager with several queues per port and a strict-priority
-scheduler, the primitive with which SP-PIFO approximates programmable scheduling on today's
-hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler decides what does \emph{not}
-leave, and we hold a packet by using that property rather than a timer.
-
-A READ uses \emph{four} queues on one internal port, as Figure~\ref{fig:design} shows. Two carry
-the packets we delay, the acknowledgment and the response, and above each of those sits a
-\emph{blocker queue} in strict priority carrying small packets the switch generates itself. While
-blockers keep arriving, the packet beneath them is never served, and each hold ends when its own
-blocker queue runs dry. The response is not simply queued behind the acknowledgment: it has its
-own held queue and its own blocker gate, which is what lets the two releases be scheduled
-independently. In descending priority the ladder is acknowledgment blockers, held
-acknowledgment, response blockers, held response.  Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
-can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
-cannot delay a later transaction.
-
-This is not a timer built from a count. The program stores an absolute release instant when the
-acknowledgment arrives, quantized to a 256~ns grid, and each of the 64 recirculating blockers
-compares the current timestamp against it: while the difference is negative the blocker is
-regenerated, and once it is not, the blocker is dropped. The deadline decides when the packet
-leaves, and the blockers only have to keep the queue non-empty until then, so the reservoir is
-sized for continuity rather than for duration.
-
-The queue does not empty at the deadline, however. Each blocker tests the deadline on its own
-pass, so those still queued when it passes are served once more before the queue runs dry and the
-held packet leaves. The release therefore trails the deadline by the time that draining takes, and
-each lane drains its own queue, the acknowledgment's above the response's;
-Section~\ref{sec:eval:limits} reports what we measured of that interval. The arrangement is what
-makes the coupling of Section~\ref{sec:design:model} implementable: the response's release instant
-is computed at the acknowledgment, so the hold absorbs whatever the outstation does without the switch measuring it.
-
-\subsection{One READ transaction}
 \label{sec:impl:walkthrough}
 
-The request arrives, a table classifies it by function code, and the program forwards it at once,
-recording that a transaction is in flight and which acknowledgment to expect. When the
-acknowledgment arrives at $t_A$, a median of 0.56~ms after the request on our relay, the
-program writes both release instants from that one timestamp, which is what puts them on the
-same instant $t_A$ that Section~\ref{sec:design:model} requires. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
-second deadline. The acknowledgment enters the hold queue and the packet generator fills the
-blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
-and the two leave in order at their scheduled instants. A response that arrives after its deadline has no remaining wait to serve, and the program marks
-it late and commits it to the same response-hold queue rather than to a bypass, as in
-Figure~\ref{fig:timeline}(b); it leaves when that queue next serves it, so its departure is
-prompt but not instantaneous. The transaction state is cleared when the response is released.
+Section~\ref{sec:design:pipeline} describes the queue and pipeline mapping. Here we describe the
+state that realizes those decisions. The program stores absolute deadlines on a 256~ns grid.
+Each blocker reservoir contains 64 packets, which test the relevant deadline on every internal
+return. ACK and response blockers use separate reservoirs, while their queues share one scheduler.
+A deadline ends blocker recirculation; packets already queued still require service before release.
 
-The two lanes hold different packets, and it is worth saying which. The four-queue ladder above
-holds what the outstation sends back, the acknowledgment and the response, for READ and for both
-phases of a control alike. The second loopback port carries a pair of queues for the opposite
-direction: blockers above a held \emph{OPERATE request}, on its way to the relay. So the control
-extension adds a hold the read path does not have, while the packets the master observes are
-released by the same machinery in both cases. Giving the OPERATE its own scheduling domain keeps
-it from being starved by the higher-priority read reservoirs.
+\textbf{Transaction State.} A fresh protected request records the transaction and arms both
+return deadlines. A later acknowledgment cannot move those deadlines. The response enters its
+held queue even if it arrives late, and its release clears the read-lane transaction. Blocker tags
+allow ingress to reject tokens from an old transaction when they return. They do not remove the
+service already consumed by tokens waiting in a queue.
 
-The queues are separate; the transaction state is not. The deadline registers are shared. Every register that
-records a transaction holds a single slot, and the control path writes the same release instants
-at OPERATE admission that the read path uses, so the program protects one transaction at a time
-rather than one per flow.
+\textbf{Control State.} SELECT prepares the control lane, and an admitted OPERATE selects its
+command hold. Both lanes share the return-deadline registers, protecting one transaction at a time.
+The control lane retains the released OPERATE generation until the next SELECT and drops a matching
+retransmission. Consequently, it does not provide recovery of a command lost toward the relay
+(Section~\ref{sec:eval:limits}).
 
-The evaluated configuration satisfies that assumption by construction: the driver serialises its
-exchanges and every capture carries one connection. Where a second transaction would arm while one
-is live, the program does not interleave them silently; the arming attempt is classified as busy
-and the packet is forwarded unprotected rather than taking the deadline already in progress. That
-is a statement about the deadline, not about the rest of the transaction's state: the expected
-relay sequence and acknowledgment are written earlier in the same pass than the busy verdict is
-reached, so we claim it for the serialized workload we evaluated and not in general. Per-flow
-protection would need per-flow state and a way to index it, which this program does not have and
-we did not evaluate.
+\textbf{Deadline Selection.} To vary return timing, the randomized image selects the offsets from
+a 16-entry range table indexed by an eight-bit random value. The selected offsets arm the existing
+deadline registers. The table uses the same random byte that selects $J$, so these choices can be
+correlated. A control-plane digest records the request identity and selected offsets. We match
+these records to captured requests to check the policy chosen for each exchange; the capture
+separately supplies the observed packet times.
 
-\subsection{Failing open}
-\label{sec:impl:failopen}
+\textbf{Holding Limits.} Blockers stop on expiry, stale state or exhaustion of their pass budget.
+The control plane uses a horizon estimate $H=30.8$~ms to describe the supported hold, but this is
+not an elapsed-time limit directly enforced by the data plane. Packets outside the protected
+session and requests that cannot be admitted follow bypass paths. With timing disabled, the program
+forwards packets without scheduled holds, giving the Timing OFF case.
 
-Almost every path through the program ends in a forwarding decision. A packet outside the protected
-session, an unrecognized request, an acknowledgment with no armed transaction and a response whose
-transaction has retired are all forwarded unchanged, so such an exchange loses its protection and
-still arrives. One path is not like that, and we state it here rather than in the evaluation: the
-control lane keeps a released OPERATE's application generation as a spent marker until the next
-SELECT clears it, and a later OPERATE carrying that generation is dropped. A retransmission the
-master sends to repair an OPERATE lost after the switch forwarded it carries exactly that
-generation, so the switch discards the packet that would have repaired the loss
-(Section~\ref{sec:eval:limits}). Every hold is bounded by a budget on blocker passes: once a reservoir has spent
-its budget the packet is released and its state cleared. That budget counts passes rather than
-elapsed time, which is why the horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms here, is
-what the control plane computes from the budget and an assumed service rate rather than a
-wall-clock deadline the data plane keeps. With the timing mode off the same program forwards
-everything immediately, which is how we collected the Timing OFF arm.
-
-\subsection{Resources and testbed}
+\subsection{Testbed}
 \label{sec:impl:p4}
 
-The program is about 1{,}560 lines of
-P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Native
-Architecture, compiled
-with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
-112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
-register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay, and two further ports are
-loopbacks carrying no cable: the first carries the four-queue read ladder, the second the control
-extension's pair, blockers above a held OPERATE, in its own scheduling domain so the OPERATE
-reservoir cannot be starved by the higher-priority read reservoirs. Six queues across two
-loopbacks in all.
+\textbf{Switch Program.} We used three compiled P4$_{16}$~\cite{p4ccr2014} images of the same timing-obfuscation
+mechanism for the Tofino Native Architecture. The main 63{,}360-exchange campaign used the image that occupied all twelve ingress
+stages and six egress stages of one Tofino-1 pipeline, with 113 tables. After simplifying the
+control logic and removing unused pipeline work, the low-latency fixed-policy study used a second
+image on the same switch and the same Barefoot SDE 9.13.2 toolchain; that image occupies seven
+ingress match-action stages, zero egress match-action stages and 73 tables. The randomized image
+adds deadline selection and digest export, occupying seven ingress match-action stages, zero egress
+match-action stages and 76 tables. All three images implement the same request-anchored
+queueing abstraction and expose the same timing parameters, so we treat their timing
+measurements as separate implementation instances rather than as one mixed data set. One 25~Gb/s
+port connects the master and one 1~Gb/s port connects the relay. Two further ports are loopbacks
+without cables, one for the read lane and one for the control lane.
 
-Every policy quantity is a runtime table entry, so an operator changes policy by writing entries
-rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
-arming table admits that mode alone, so the acknowledgment-only and response-only limits of the
-model are properties of the design and not settings of this build, and configuring them left both
-packets unheld with the measured interval the outstation's own.
+\textbf{Control Plane.} A control plane written in Python, around 900 lines in its entry module,
+brings up the ports and the queues, configures the packet generator, and writes the release policy
+into runtime tables and reads it back. An operator therefore changes the policy by writing table
+entries rather than loading a new program. The control plane refuses any release offset at or above
+the smallest of the timer and horizon bounds it is given, which is 30~ms on our testbed.
 
-The control plane, about 890 lines of Python, brings up ports and queues, installs the
-packet-generator configuration, and writes the timing parameters and reads them back. What it
-refuses is a clamp, not the admission arithmetic: a request for an acknowledgment hold above
-40~ms is rejected outright before any write, which we confirmed on the switch, and the
-acknowledgment offset $A$ on the control lane must exceed the largest admissible $J$ plus a bound
-on the outstation's acknowledgment latency. The horizon $H$ of
-Section~\ref{sec:design:params} is computed and reported, not enforced, which is exactly why the
-sweep of Section~\ref{sec:eval:policy} can install settings beyond it and find where the
-mechanism leaves its operating region. The outstation is an SEL-751A feeder
-protection relay, one of the DNP3 device classes whose timing Formby et al.\
-fingerprint~\cite{formbyWhosControlYour2016}. The master issues READ and select-before-operate
-operations to isolated control points through a guarded driver, so no control operation in the
+\textbf{Physical Device.} The outstation is an SEL-751A feeder protection relay, one of the DNP3
+device classes that Formby et al.\ fingerprint~\cite{formby2016}.
+
+\textbf{DNP3 Master.} The master issues READ polls and select-before-operate controls through a
+guarded driver. Every control operation addresses an isolated control point, so no operation in the
 evaluation moves a breaker.

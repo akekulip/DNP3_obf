@@ -1,51 +1,55 @@
 {
  "figure": "fig_leakage",
- "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.084$). No uncertainty interval is placed on the point estimate. The row-normalised confusion of both attackers over all 22 held-out runs is not drawn here; every entry is in this figure's data file and in the released leakage record.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker, by attacker condition and feature set; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) What pooling buys the adaptive adversary: balanced accuracy against the number of same-operation exchanges it averages. The band spans the 22 held-out runs, which is within-campaign variability and not a confidence interval, because the folds share training data. Averaging suppresses the noise around a systematic offset, so the adversary climbs with k on obfuscated traffic as well as on Timing OFF traffic. The mutual information and the row-normalised confusion of both attackers are not drawn; every value is in this figure\u2019s data file and in the released leakage record.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   },
   {
    "path": "pipeline-output/leakage.json",
-   "sha256": "d9b53d8b8f843099816bcfa2daf3560794e217bab315f73ac762e99a5efb6907"
+   "sha256": "0ed702565842d80a0fd34c93ffc4bc5505d4b856f096949b7062fb9deab5d819"
+  },
+  {
+   "path": "pipeline-output/multiobs.json",
+   "sha256": "95d4f79652e865379c144f4b7cf0b4c8cf221fd702d3ba0c04aa99a945a8e724"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_leakage.pdf",
-   "sha256": "d0fc12bb53b3e74d4ca3716754783c2a7aa9638e3efb8db58026b71cd7e21911",
+   "sha256": "5d3cc9d01fd1e0225c162de5c77a20bf2715d63274d785c7e73fc4f14ba68da8",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_leakage.png",
-   "sha256": "49254e66b00e2b637fd80fb208312f1b0f58382661d59e86133b9fed49f43677",
+   "sha256": "81f5e8bea08e9bde56ff9169beb098d6385221b6797d12a36e279c69d6536a45",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_leakage_data.csv",
-   "sha256": "ff5a78b3ad423294944f4dcf977791792da0b4d5acac4abbe39dc1d67ddcde89",
-   "rows": 26,
+   "sha256": "e9cd5a0788241bd417b1e8c71ed18f330b3ef3c419bfcf60eab77cd8574d064f",
+   "rows": 36,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
-  "height": 2.35
+  "width": 3.48,
+  "height": 2.75
  },
  "method_note": "Three-class problem over READ, SELECT and OPERATE; chance balanced accuracy is one third. Evaluation is leave-one-grouped-run-out over all 22 runs. Features are the two independent intervals, request-to-ACK and ACK-to-response; the total response time is their sum and carries no independent information, so it is excluded. Mutual information is estimated on the CLRT with a nearest-neighbour estimator, converted from nats to bits, and compared against a null built by permuting class labels within each grouped run, which preserves the per-run class counts. The empirical Monte Carlo p-value uses the (1+r)/(1+n) correction and its resolution is reported alongside it. Classifier spread is the descriptive range of the 22 held-out-run scores. Neither a jackknife interval on the MI estimate nor a bootstrap over the dependent fold scores is reported; both were rejected and the reasons are recorded in leakage.json.",
  "limitation_note": "Results characterise the evaluated fixed Random-Forest attacker and this feature set, and do not generalise to all fingerprinting classifiers. The 22 grouped runs come from one approximately five-hour campaign on one relay behind one switch and are not independent deployments, so the spread shown is within-campaign only. This is transaction-class classification, not device-model identification.",
@@ -57,5 +61,5 @@
   "uncertainty": "MI is reported against a within-run permutation null with an empirical Monte Carlo p-value and no error bar; classifier scores are reported with the descriptive spread of the 22 held-out-run scores and no confidence interval",
   "classifier_scope": "results characterise the evaluated fixed Random-Forest attacker and this feature set; they do not generalise to all fingerprinting classifiers"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

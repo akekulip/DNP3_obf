@@ -145,6 +145,12 @@ AUX_VERBS = {
 }
 
 VERB_BASES = {
+    # Verbs the 2026-09-18 rewrite uses in main clauses. Without them the finite-verb
+    # heuristic reports correct sentences as fragments, e.g. "Because DNP3 runs over TCP, the
+    # transport layer of the outstation acknowledges each request."
+    "acknowledge", "obtain", "cancel", "handle", "collect", "label", "pool", "summarize",
+    "sustain", "spend", "consume", "classify", "delay", "retransmit", "refuse", "exceed",
+    "absorb", "settle", "travel", "occupy", "connect", "serve", "capture", "extend",
     "make", "use", "show", "reach", "focus", "rely", "work", "know", "hold", "release", "run",
     "add", "change", "offload", "introduce", "leak", "identify", "inject", "pad", "stay",
     "shift", "apply", "need", "become", "give", "place", "send", "return", "arrive", "answer",

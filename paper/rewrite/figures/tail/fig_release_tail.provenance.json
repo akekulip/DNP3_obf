@@ -1,0 +1,348 @@
+{
+ "figure": "fig_release_tail",
+ "caption": "Release tail of the framework, measured on campaign_v2. (a) The tail against the ACK deadline, one series per transaction class. It is flat at about 0.10 ms across every deadline the switch can sustain. Past the dashed line the acknowledgment leaves at 31.07 ms whatever the setting, so the deadline is not achieved and no tail is defined. (b) Its distribution at the campaign policy, with the far right category collecting every transaction at or above 0.129 ms. READ and SELECT coincide; OPERATE sits about six microseconds higher, and its request reaches the switch 0.354 ms after the SELECT response where a READ follows its predecessor by 20.5 ms.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/_bin/make_tail_figure.py",
+ "source_commit": "21b3b26878afbfd52d1f116ae2d20b9144667132",
+ "deterministic_seed": null,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v2/_bin/make_tail_figure.py",
+  "sha256": "27a2417b8d104d2ec888e2bd45d91d3729b00862e5bdd7f80bb7f63eaeaab4c3"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/sweep_points.csv",
+   "sha256": "9b57ceaf8e9fb6d75db07d6dfc3b2a4369a42a893927caf78a140d03486ce921"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/repro/pcap_dnp3.py",
+   "sha256": "7b0d150817871c22e28d879aa1dee9b6cfbc19425d74e4a855f9bb848c3dd724"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_04_4.pcap",
+   "sha256": "24977e27b4607d04108e6e7589b31178eb8c1f34f649e7fafc9a30573d46d1b5"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_12_4.pcap",
+   "sha256": "fa28b080bd9c8005449eef6dbaa86b404c2a13c11ec91f24b1b590b06f9660a8"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_20_4.pcap",
+   "sha256": "0e1f88ba03cc282f27483d61b97634776b52925c2f623388d4c39ef828f23e85"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_24_4.pcap",
+   "sha256": "f5a3fc52e17cf127c561d3cbd410556480391f96e5cd23a38461540d35bdf58a"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_28_4.pcap",
+   "sha256": "58b444fc7577d0f46df1c2f5547467e352b9e1df15ad5985615d088fbbd81c2c"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/sweep/raw_pcaps/sw_D4_30_4.pcap",
+   "sha256": "0f697054a92569ff502e0dde3f544bebc49d432f9cc660ea750cc203acf7e592"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b1_obfuscated.pcap",
+   "sha256": "3f6e743fccf1fddafb688ed8681f48b318497fe33e83268c17f3dacb85beec1f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b4_obfuscated.pcap",
+   "sha256": "6d32b8f0841dc11d3a82a1ea3576fe151862ac03d3b0c4719863ae6d4deb8979"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s01/raw_pcaps/s01_b6_obfuscated.pcap",
+   "sha256": "d162ac7cb5a1fff23b9f4ad209ab0358e1e1b9940a5c5b704139697be689644f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b3_obfuscated.pcap",
+   "sha256": "48d82c649731e9323529a826d03c8aee5fdd7bd4d300aa1a33c4753863bbc021"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b4_obfuscated.pcap",
+   "sha256": "1eae50eb444eae871d9379b9a9d91ccf4d113f13d0b5de9aa5a65f33d4babb70"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s02/raw_pcaps/s02_b6_obfuscated.pcap",
+   "sha256": "ebfc9b45c8f0c2f60b0155a68bb8baa0793c1829cdc6a007865de62f7e98d628"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b1_obfuscated.pcap",
+   "sha256": "1da32b3b44cee3fe16119adabb607fca930141bb9d575315c9ae8b52c9335d36"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b2_obfuscated.pcap",
+   "sha256": "dccdd1b1ef23466d6e529c658f73f96fc78e45f017451a97274afa6bbe071029"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s03/raw_pcaps/s03_b5_obfuscated.pcap",
+   "sha256": "2913a6d304cfe68479312e75d21bd6d6d8ad88e1844a0da51977620b06ea547f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b2_obfuscated.pcap",
+   "sha256": "21a0449db238dab949d0e42909255eab8b31b9df4150e6836907be19c0f7b2c6"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b3_obfuscated.pcap",
+   "sha256": "a3608aab0ffe2264b660dc00ac261a17be77b43fa6c7584d3f5ca63ca60d6430"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s04/raw_pcaps/s04_b5_obfuscated.pcap",
+   "sha256": "37093eb7eba8d1a1dac7d4347725c3c63f90a6b4362e8aae9ad17f2f4f414d5d"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b1_obfuscated.pcap",
+   "sha256": "ba9d3e5389dc5c04571b9a3be35971df998eadd5413bfaf64a8411534faf4081"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b4_obfuscated.pcap",
+   "sha256": "4c281ae5bff93b0bb9a68705563720825e9a591d7346544e0575e46dc0c12ad5"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s05/raw_pcaps/s05_b6_obfuscated.pcap",
+   "sha256": "124f4c2a333143ab5d6233ca328e8c62ba4df473054c10e46fc0185b615e36b6"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b3_obfuscated.pcap",
+   "sha256": "d5117eac1052ba0f81a4f277128b7f1699eba913e416c5eca95fb7ce696cc9a2"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b4_obfuscated.pcap",
+   "sha256": "8275672b9ba2c8e9e09c72f9c1ce4a0f555d69ce16404301d748b7b3eebd4d41"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s06/raw_pcaps/s06_b6_obfuscated.pcap",
+   "sha256": "e64534c5188bfe7e098072624828f91d243f127405c5640915c855c617704f35"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b1_obfuscated.pcap",
+   "sha256": "35b8439e0c4191b7ca02f947b159cef28168d3b318613de3f5ec4dc7f4c59edc"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b2_obfuscated.pcap",
+   "sha256": "cf676da6b71012f8a7d0b4474a5c8a3618d3e7b65d123c736e1ccf7f60919dc0"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s07/raw_pcaps/s07_b5_obfuscated.pcap",
+   "sha256": "acb66cb31f888aa66d3d8e082bb3f2c53d787d3906e8271c92ab56e6b32ae268"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b2_obfuscated.pcap",
+   "sha256": "223de0ccbfc551526efd4f26ba3f00077a394164e01d7ba7159b0219eeb5347b"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b3_obfuscated.pcap",
+   "sha256": "3ab9e8fe3c9a8e709a163824cce7fb7265e8908c9c7700b66b296cafd7023701"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s08/raw_pcaps/s08_b5_obfuscated.pcap",
+   "sha256": "25afef68e2d2367ceff3e97969feca33a63fca03c6a4e1d987d1f7cf07c82d1b"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b1_obfuscated.pcap",
+   "sha256": "96e95f19e9df61bf29a0364f3f506ddee51a6084fe1ae0cbe58a1e704891dba0"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b4_obfuscated.pcap",
+   "sha256": "1855e0b7bdec1952f5d308e9c9127d840cc36e94afaf66bfc09ccd10eeff4a42"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s09/raw_pcaps/s09_b6_obfuscated.pcap",
+   "sha256": "fac690e71ff207943bd436ed169c21e35624bba9a6324dd1ac496ef53596eaa1"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b3_obfuscated.pcap",
+   "sha256": "572fbb4b1034975a2cee22934dfdfe9b6db9b7f7674c8e6ac7db00bc73e3467e"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b4_obfuscated.pcap",
+   "sha256": "c341a269517ca0fdfb5a3979da576694b46a250a686eeaaac44ac11f200a8d20"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s10/raw_pcaps/s10_b6_obfuscated.pcap",
+   "sha256": "5be67b4f415d9af42262e31475ac9a16f7bbed15913d9e78c1aa09e473c37b38"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b1_obfuscated.pcap",
+   "sha256": "b7cacc6957d92d8c1fa63082201d42fadd425f103177d3627a8179ffe8b1271c"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b2_obfuscated.pcap",
+   "sha256": "cbd9e6b0e521f2a1ad889a3296553020f90575c554896fe8122f4004046f4775"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s11/raw_pcaps/s11_b5_obfuscated.pcap",
+   "sha256": "ffc0df6cb4a9f474cf679d1fa54d6e7c5eb429ea4e19ed9e27c4abdfa8d858ce"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b2_obfuscated.pcap",
+   "sha256": "5edbba351a1ec1aaa29bd21cf4132195879b9b49d36664f2df693d2b534062b9"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b3_obfuscated.pcap",
+   "sha256": "7496d7f45da64369a1e19dfab8708a603bb1246d26e2d6601653ddc3e948b240"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s12/raw_pcaps/s12_b5_obfuscated.pcap",
+   "sha256": "ac3078e6a7ea718996d7fc2d76ab76da17cab0964941dbcc02031a4a243b43ea"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b1_obfuscated.pcap",
+   "sha256": "808532e548ad3a0f27fff4674ee5392e0a2abd5016788f7345b890ccbc6ce98f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b4_obfuscated.pcap",
+   "sha256": "3253219b1baf8bbbe0a95a93e8620d5720d16efba1c3105fb23fd564fc8fbf02"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s13/raw_pcaps/s13_b6_obfuscated.pcap",
+   "sha256": "c66e5f2888432683f3ad1c6fb2aa064039ebacb0eb26a8dee28af393abf60d33"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b3_obfuscated.pcap",
+   "sha256": "e1f77346ec2a3aa1e17dc00f0df4f3ca9302d89c65c62144eb5a540a4b670965"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b4_obfuscated.pcap",
+   "sha256": "09175596e7f5ce9558dd07953eeef51119421ada9bae8c34f7dcf85d32a778df"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s14/raw_pcaps/s14_b6_obfuscated.pcap",
+   "sha256": "06a3c8abf726a9b9a95be7d1b51117c81623991e926baaaf71bd79d8bfd6eeef"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b1_obfuscated.pcap",
+   "sha256": "97956594650006f3b9124da29cc5c5daec0173adc3bfe37141632d8a0e6efdb0"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b2_obfuscated.pcap",
+   "sha256": "185cdb44a5bab83cefa9af84248e6ba17045c3f9a3c16890a7ff35c6fb153666"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s15/raw_pcaps/s15_b5_obfuscated.pcap",
+   "sha256": "0c0c580a7beb1eda96adb67f8d793bc50978866120f0c64587a6ee256544f97e"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b2_obfuscated.pcap",
+   "sha256": "e2af403728b3e86a23848f400e645538a7c2a4552dc183babc78f9e285d21caf"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b3_obfuscated.pcap",
+   "sha256": "ce3a398fd64a6c2eb59e8456ce5e538a09098d0b43cd60e99d88ba4cbc80e0cc"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s16/raw_pcaps/s16_b5_obfuscated.pcap",
+   "sha256": "de13b6fb2db399969bc85ed1fe2ec060fdad8bb3dccc9eadc104c1e2e44477f4"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b1_obfuscated.pcap",
+   "sha256": "b7e391210fcd64f01a2304f6a79db573fba81985aac40228b097318516b95298"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b4_obfuscated.pcap",
+   "sha256": "abfd59c911dbe9b75ea29e131678c930adccf5cf7a3a2b7c5939bfe0ab9573d3"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s17/raw_pcaps/s17_b6_obfuscated.pcap",
+   "sha256": "67263b655d6ccb438b32eb7b00423150e27b12edf818f8e647c7f062308374c7"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b3_obfuscated.pcap",
+   "sha256": "e311aff225597ecd9b902a40e657926509dd0a0fd30e219e9b554695b4858db1"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b4_obfuscated.pcap",
+   "sha256": "2eb1bf1907284bf8a46aeade4af7976eaf61db9d79c9be1d528b1a2fa54c5bd7"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s18/raw_pcaps/s18_b6_obfuscated.pcap",
+   "sha256": "1c635274500f8be16ebd91be2abdfc195a35fdbb42539f94bee83d2d6517222f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b1_obfuscated.pcap",
+   "sha256": "7d4217d078d3ed7bc7875fbc05d9a39b1bf82c7ccb9a127e66afc6ee497d8365"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b2_obfuscated.pcap",
+   "sha256": "22efdcf9c6d767e7babb8f1dbd522a7929543379bd9e1b60bdf7505677e4b5f8"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s19/raw_pcaps/s19_b5_obfuscated.pcap",
+   "sha256": "3848f4afc07d92505b2b2362bbd78fc8e12b35e449fd0c2f6460bf3b3127f628"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b2_obfuscated.pcap",
+   "sha256": "09796a3954ffc50bf926e6225b1002fd27aa38687981e5184b0869b289d1ffc1"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b3_obfuscated.pcap",
+   "sha256": "f83a96fa9f260541a1bfab6ce0241f4eb7ed03da2c469eeffbe763e3c4f74909"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s20/raw_pcaps/s20_b5_obfuscated.pcap",
+   "sha256": "bffe5432cc0c749c56b903e1a1cdac7445d3fef5807087fc633ab3d9ed7200fe"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b1_obfuscated.pcap",
+   "sha256": "097a6dbee97ab422167371fd6e04245ae0c2006c558716ae420cf4862632f94a"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b4_obfuscated.pcap",
+   "sha256": "7f13eae0c09f7b5a7fdd8aaccb38126f4158bd8e701a1edb5cac3edd8c9c9d65"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s21/raw_pcaps/s21_b6_obfuscated.pcap",
+   "sha256": "b4df5525a35d842a7b9ea816ef11436ebd2586d95518d3b7037ef0f913335221"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b3_obfuscated.pcap",
+   "sha256": "f0526c1e73981891ada79454d61d4a51190ed91bfe4ac40bf2e6f2841e7496fd"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b4_obfuscated.pcap",
+   "sha256": "20ce128fe1e98eac6b9312dd8b70c3347f9bee2adee53fc63e302f4823a873d3"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v2/s22/raw_pcaps/s22_b6_obfuscated.pcap",
+   "sha256": "491ab9115816440716fe3047e18682a1c73eb41ae82eebf36a8207627e69731b"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "paper/rewrite/figures/tail/fig_release_tail.pdf",
+   "sha256": "0c4128ea91f11cccd17a87db24df92eda0dce5954e90f03363636d6282b95558",
+   "authoritative": true
+  },
+  "png": {
+   "path": "paper/rewrite/figures/tail/fig_release_tail.png",
+   "sha256": "3765722137321174fa20ebf97e3125cd8018edf7f957dec9a8ed985075aada57",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "paper/rewrite/figures/tail/fig_release_tail_data.csv",
+   "sha256": "f3ab7ad8a615ae9beb07ece73515898e2a859ed6173b2ce98b4db00445445bed",
+   "rows": 114,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 3.48,
+  "height": 2.3
+ },
+ "method_note": "Tail = the measured request-to-acknowledgment median minus the ACK deadline as the switch stores it, whole 256 ns ticks rounded down. Panel (a) uses the selected sweep pcaps' exact integer-nanosecond request-to-ACK intervals, grouped by point and class, at a configured CLRT_new of 4 ms; panel (b) uses every obfuscated exchange from the 66 campaign pcaps at D_A = 20 ms. The raw cross-class 99.5th percentile is 0.129000 ms; the plotted finite histogram range rounds that value up to the next 0.001 ms boundary, 0.129 ms. Values at or above that labelled boundary are an explicit overflow category and remain in the denominator. Frozen derived CSV and sweep JSON float summaries are not used for plotted tail values. Medians: READ 0.101000, SELECT 0.101000, OPERATE 0.107000 ms.",
+ "limitation_note": "The switch timestamps no departure, so the tail is inferred at the master and contains the path between master and switch. One relay, one switch. Points past the knee are not plotted because the hold is not achieved there and no tail is defined.",
+ "notes": [
+  "panel b retains each class's full denominator; observations at or above the 0.129 ms finite-bin cutoff are exported and drawn as overflow"
+ ],
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

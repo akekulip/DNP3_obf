@@ -15,29 +15,29 @@ devices within as entry points to inflict physical damage. Consequently, fingerp
 the focus from visited websites and user biometric behavior to device models and types of
 control operations that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian
 power grids and the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely
-believed that adversaries stay in their systems for at least 6 months to perform cyber
-reconnaissance~\cite{leeAnalysisCyberAttack2016, langnerStuxnetDissectingCyberwarfare2011}.
+believed that adversaries stayed in their systems for at least 6 months to perform cyber
+reconnaissance~\cite{ukraine2015, stuxnet2011}.
 
-To disrupt device fingerprinting, many studies present network traffic
-obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Device
+To disrupt device fingerprinting, many studies have presented network traffic
+obfuscation~\cite{wright2009, dyer2012}. Device
 fingerprinting targeting general computing environments generally relies on network-level
 features such as packet size and/or inter-packet latency observed from communication
-patterns~\cite{sirinamDeepFingerprintingUndermining2018}. Consequently, existing traffic
+patterns~\cite{sirinam2018}. Consequently, existing traffic
 obfuscation often focuses on (i) padding and splitting network packets, which hide or change the
-distribution of network packet sizes~\cite{wrightTrafficMorphingEfficient2009}, and (ii)
+distribution of network packet sizes~\cite{wright2009, walkietalkie2017, panchenko2016}, and (ii)
 delaying network packets and adding dummy ones, which disrupt the inter-packet timing
-pattern~\cite{dyerPeekaBooStillSee2012, caiSystematicApproachDeveloping2014}. Since manipulating
+pattern~\cite{dyer2012, tamaraw2014, wang2008dlp, juarez2016}. Since manipulating
 communication networks can introduce runtime overhead, recent works have begun to offload
 traffic obfuscation onto programmable network switches, which change communication patterns at
-much higher line rates than CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
-xieSecuritasDefendingTraffic2026}.
+much higher line rates than CPUs~\cite{ditto2022, minos2025, securitas2026}.
 
 Unfortunately, these methods cannot be directly applied to ICS environments for two main
 reasons. First, device fingerprinting methods on ICS devices rely on different features from the
 ones in general computing environments. Instead of using network layer knowledge, they attempt
 to use behavior on physical devices to reveal device model or types of operations. For example,
-work in~\cite{formbyWhosControlYour2016} uses the latency between the TCP acknowledge packets
-and the actual response from the same device to estimate execution time there. Since each
+work in~\cite{formby2016, shen2018, ahmed2021, pospisil2023} uses the latency between the
+TCP acknowledge packets and the actual response from the same device to estimate execution time
+there. Since each
 vendors may choose different materials or algorithms to implement the same control
 functionality, this time can be accurate in fingerprinting those devices. Second, existing
 traffic obfuscation is performed over encrypted channels, which are necessary to mix the
@@ -46,34 +46,67 @@ to a wide range of legacy devices, despite ICS network protocols may provide sec
 Directly padding or adding dummy packets can easily reveal obfuscated packets, exposing the the
 underlying traffic pattern to adversaries.
 
-In this paper, we present a framework that schedules when selected packets of an ICS transaction
-leave the network, so that a timing feature an observer measures becomes a value we choose rather
-than a property of the device. A programmable switch at the outstation edge holds the
-acknowledgment and the response of a transaction and releases each at a deadline it computes when
-the transaction begins.
-
-Because the switch forwards the same packets it received, the endpoints run unmodified firmware
-and no DNP3 byte is altered, which is what the plaintext setting requires.
-The framework is general over which packets are held and what the released interval should be, and
-we demonstrate it on two network-observable intervals: the cross-layer response time of a poll,
-the feature Formby et al.~\cite{formbyWhosControlYour2016} fingerprint, and the master-visible
-timing of a select-before-operate control command. The second is our own case rather than their
-second feature, which is the device's physical operation time and not an interval read from the
-network. These are two case studies of one mechanism, not two systems.
+In this paper, we propose an in-network timing-obfuscation framework for ICS traffic. Instead of
+padding packets or adding dummy ones, the framework changes only when the packets of a transaction
+leave the network. It schedules the acknowledgment and response from the request, so packets
+that arrive in time can follow an operator-configured interval, subject to release effects.
 
 \subsection{Contributions}
 
-To overcome the two obstacles above, we design a timing-obfuscation framework that replaces a
-selected within-transaction timing feature with a configured value by scheduling the release of
-real protocol packets, and we derive the coupling between the acknowledgment hold, the response
-hold and the configured interval that any such schedule must satisfy (Section~\ref{sec:design}).
+To overcome the two drawbacks above, we design a framework that runs on a programmable switch placed
+in front of an outstation. The switch holds the transport acknowledgment and the application
+response of the outstation, and it releases each of them at a deadline computed from the moment the
+request arrives. Because both deadlines are computed from the request, their scheduled values do not depend on
+when the outstation acknowledges or answers. Actual release also depends on packet availability
+and queue service. The framework works with readable protocol traffic by holding existing packets
+rather than requiring endpoint encryption.
 
-\textbf{Realization.} We realize the framework on an Intel Tofino-1 using paired blocker and hold
-queues that sustain a hold until a deadline expires, with a read lane timed from the outstation's
-acknowledgment and a control lane timed from the request. Forwarding stays open when a response
-arrives after its scheduled release (Section~\ref{sec:impl}).
+\textbf{The Framework's Role.} We position the framework as a complement to the protections an ICS
+already runs, such as intrusion detection. The framework cannot hide which operation an exchange
+carries, because DNP3 leaves the function code readable, and the release budget controls the scheduled delay of
+protected exchanges. It leaves the application payload unchanged and requires no
+modification of the master, the outstation or the DNP3 protocol. Consequently, it can protect legacy
+devices that can neither be patched nor replaced, which are the devices that fingerprinting targets.
 
-\textbf{Evaluation.} We evaluate the realization against a physical SEL-751A relay, reporting how
-closely the released interval reaches its configured value, what the policy can and cannot cover,
-the latency the mechanism adds, the hardware resources it uses, and what an adaptive attacker
-still learns from the features that remain (Section~\ref{sec:eval}).
+Even though we present the framework for DNP3, the design concept can be extended to other ICS
+protocols. The scheduling idea requires an identifiable request and returning acknowledgment and response.
+Applying it to another protocol would also require parsing, transaction matching and timer checks
+for that protocol, which we do not evaluate here.
+
+The main contributions of the paper are:
+\begin{itemize}
+  \item \textbf{Replace arrival-dependent timing with scheduled intervals.} We design a release
+    schedule that holds real protocol packets and computes both release deadlines from the arrival
+    of the request. The operator sets the scheduled request-to-acknowledgment interval and CLRT, while
+    packet availability and residual release effects constrain how closely actual timing follows.
+  \item \textbf{Obfuscate plaintext ICS traffic without adding a packet.} The framework only delays
+    packets and requires no endpoint encryption. We relate the release budget to packet
+    availability and protocol timers, then evaluate the delay and observed timer behavior.
+  \item \textbf{Implement the framework at line rate.} On an Intel Tofino-1 switch, we hold each
+    packet behind a strict-priority queue of blocker packets the switch generates. The queues sustain the wait while P4 checks deadlines on returning blockers. We cover both the read and the control
+    transaction of DNP3.
+\end{itemize}
+
+For evaluation, we placed the switch between a DNP3 master and a physical SEL-751A feeder protection
+relay and collected 63{,}360 exchanges in 22 paired runs, each containing both cases.
+We recorded packet timestamps at the master-facing link, and we tested it against (i) a classifier trained before
+the framework was deployed, (ii) an adaptive adversary that retrains on obfuscated traffic, and
+(iii) an adaptive adversary that pools many exchanges of the same operation into one signature, as
+Formby et al.\ do.
+
+Our experimental results show reduced timing variation and fixed-classifier accuracy, together
+with the latency cost and residual information:
+\begin{itemize}
+  \item The released interval settles on the configured value. The medians of READ, SELECT and
+    OPERATE move from 2.121, 2.041 and 2.929~ms to 8.005, 8.005 and 8.000~ms, and the interquartile
+    range of READ falls from 2.772 to 0.022~ms. The operator can place the interval anywhere from
+    2 to 26~ms within a fixed budget, and the measured median follows each tested setting to within 6~$\mu$s.
+  \item Timing-based separation decreases. A classifier that separates READ and SELECT at 0.785 balanced accuracy
+    under Timing OFF is at 0.507 under the framework, against a chance level of 0.5. A classifier
+    trained before deployment falls from 0.803 to 0.333 on the three operations, i.e., chance. An
+    adaptive adversary reaches 0.445, and the residual tests find timing information associated
+    with request spacing without isolating its cause.
+  \item The latency cost is measured. Median READ request-to-response time rises from 2.681 to
+    28.107~ms. No TCP retransmission was observed, and the longest request-to-ACK wait was
+    20.19~ms, compared with the master's separately observed 200.8~ms retransmission interval.
+\end{itemize}

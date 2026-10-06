@@ -1,0 +1,173 @@
+{
+ "verdict": "provisional",
+ "policy": {
+  "d_a_ms": 30.798,
+  "clrt_new_ms": 1.0,
+  "policy_cap_ms": 40.0,
+  "context": {
+   "connection_id": "vision-sel751-20000",
+   "build_id": "defense4_timing-df5991016285"
+  }
+ },
+ "claim": {
+  "kind": "provisional",
+  "statement": "not decided: an input is unknown, is not authoritative for its role, or cannot be shown to apply to this connection and build",
+  "conditions": [],
+  "not_established": [
+   "that the observed maxima bound every future exchange",
+   "that the corrected policy has been exercised on hardware"
+  ]
+ },
+ "input_errors": [],
+ "response_hold_ms": 30.694147,
+ "response_hold_formula": "max(0, D_A + CLRT_new - CLRT_original)",
+ "conservative_substitutions": [
+  "clrt_original_ms is used as the SMALLEST native interval to be admitted; a larger value here understates the hold and would admit a policy that a fast exchange violates"
+ ],
+ "checks": [
+  {
+   "constraint": "master TCP retransmission",
+   "ok": null,
+   "reason": "cannot be computed: detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 201.0
+  },
+  {
+   "constraint": "outstation TCP retransmission",
+   "ok": null,
+   "reason": "cannot be computed: outstation_feedback_path_ms, detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "outstation_feedback_path_ms",
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 3000.0
+  },
+  {
+   "constraint": "master application deadline",
+   "ok": null,
+   "reason": "cannot be computed: detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 500.0
+  }
+ ],
+ "policy_cap": {
+  "cap_ms": 40.0,
+  "requested_ms": 31.798,
+  "ok": true,
+  "note": "independent of any measured RTT, so the mechanism's own inflation of RTT cannot raise it"
+ },
+ "inputs": {
+  "master_rto_ms": {
+   "value_ms": 201.0,
+   "provenance": "measured on the connection this policy governs",
+   "source": "framework/results/master_rto_20261006 (TCP_INFO rto on the DNP3 socket; first repeat on the wire at 204.4 ms)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "master_rto_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "outstation_rto_ms": {
+   "value_ms": 3000.0,
+   "provenance": "measured, but on a different connection, device or build",
+   "source": "2026-09-15 relay measurement (about 3 s), frozen program, outstation-to-master direction",
+   "observed_at": "2026-09-15T00:00:00Z",
+   "bound_name": "outstation_rto_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "application_deadline_ms": {
+   "value_ms": 500.0,
+   "provenance": "supplied by the operator for this deployment",
+   "source": "the driver's per-transaction budget (--budget-ms 500)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "application_deadline_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "clrt_original_ms": {
+   "value_ms": 1.103853,
+   "provenance": "measured on the connection this policy governs",
+   "source": "framework/results/hw_smoke_20261006/cand_off_30 (31 exchanges, candidate loaded, release block disabled): smallest native CLRT",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "clrt_original_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "master_feedback_path_ms": {
+   "value_ms": 1.981,
+   "provenance": "measured on the connection this policy governs",
+   "source": "TCP_INFO rtt + 4 rttvar on the idle DNP3 socket (includes the outstation's ACK latency, so an upper bound)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "master_feedback_path_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "outstation_feedback_path_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "needs a relay-facing observation point; none exists",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "outstation_feedback_path_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "native_request_to_response_ms": {
+   "value_ms": 23.737076,
+   "provenance": "measured on the connection this policy governs",
+   "source": "framework/results/hw_smoke_20261006/cand_off_30 (31 exchanges, candidate loaded, release block disabled): largest request-to-response",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "native_request_to_response_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "ack_latency_bound_ms": {
+   "value_ms": 2.512629,
+   "provenance": "measured on the connection this policy governs",
+   "source": "framework/results/hw_smoke_20261006/cand_off_30 (31 exchanges, candidate loaded, release block disabled): largest request-to-ACK at the master port",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "ack_latency_bound_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "detect_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no instrumented measurement on this build (the 2026-09-15 value is from the frozen build)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "detect_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "release_tail_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no instrumented measurement on this build (2026-09-15: 1.705 us, frozen build)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "release_tail_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  }
+ },
+ "unknown_inputs": [
+  "outstation_feedback_path_ms",
+  "detect_ms",
+  "release_tail_ms"
+ ],
+ "inputs_not_authoritative": [
+  "outstation_rto_ms"
+ ],
+ "problems": [],
+ "unverified_cases": [
+  "the FIRST delayed exchange, where no adaptation has happened yet",
+  "reconnection, where the sender's timer restarts from its initial value",
+  "a policy change mid-session, where the previous holds do not predict the next"
+ ],
+ "remaining_headroom": "A retransmission timeout is a duration, not the time remaining. The sender's timer started when it queued the segment, which a master-facing capture of a later packet does not reveal, so knowing that the timer is 3000 ms does not say how much of it is left when the switch begins to hold. Computing the remainder needs the segment's own send timestamp, or the sender's TCP_INFO sampled and time-aligned with the capture. Rather than estimate the remainder, each check here charges the whole interval the sender's timer spans, from its transmission to the return of its feedback, so the time already elapsed when the switch begins to hold is inside the accounting instead of being assumed unused."
+}

@@ -1,0 +1,33 @@
+{
+  "source": "/home/philip/Projects/DNP3/defense4/timing/response_ready/src/defense4_response_ready.p4",
+  "source_sha256": "cedded03dfbf80dec671f73cf51767a608ae9a91bda71d7e528d7ab4e5498e79",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-DU_BOR",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_34/out",
+    "/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_34/defense4_timing.p4"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 30.661,
+  "ingress_stages": 7,
+  "egress_stages": 0,
+  "critical_path": 7,
+  "tables": 88,
+  "context_stages": {
+    "ingress_stages": 7,
+    "egress_stages": 0
+  },
+  "final_phv_report": "phv_allocation_summary_6.log",
+  "artifact_sha256": {
+    "bfrt.json": "35a077c823795eed7ee26c35a4f699f618a01c2a0db63717712605351e2484e9",
+    "pipe/context.json": "fcc9f4188f3ecad9967a4627acf16cba047c348766bfc9cecd64f196b40705cd",
+    "pipe/tofino.bin": "5eb1b8f4e557b4dde7ae6fe2c895cc3d165fe2f458d14c80cb8ca5d17d41ea3f"
+  }
+}

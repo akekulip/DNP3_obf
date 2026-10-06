@@ -1,59 +1,59 @@
 {
  "figure": "fig_stability",
- "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 8~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   },
   {
-   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
-   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+   "path": "defense4/timing/evidence/campaign_v2/repro/policy_config.json",
+   "sha256": "86b9845565fecc17544d5baf2b1052890873498306b16d8d1b35e105d804e463"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "0d9783473ddeef15faf848ce85b87e792c8c2e2a4580d4964b3a6e3138c067b3",
+   "sha256": "d83009d9a1cac974acd04e02e85e35f03c5524acd64611f0b44279cf27dec8c9",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "0d21d3bc831eac25a47826b4b8fa5d7073c3ceb41cb8f3b79c6bea4623ee0782",
+   "sha256": "68dd84867fd9b8e8229ebdb11d8d3d324576854882eae2bd0f510c8ab54822e9",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_stability_data.csv",
-   "sha256": "55aa7f12b8862b7c1d67f36fa86cb7dc5cc4579ff2182889baefe79bda85b992",
+   "sha256": "f0c7f98082d386e5982941bea9c97824357eebafc07eebd7549fa943e26d9108",
    "rows": 132,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
-  "height": 3.0
+  "width": 3.48,
+  "height": 3.25
  },
  "method_note": "Each marker is the median of one transaction class within one grouped run, and the bar spans that run's interquartile range. Runs are shown in acquisition order so that drift over the campaign would be visible as a trend.",
  "limitation_note": "22 grouped runs, one approximately five-hour campaign, one SEL-751A, one Tofino-1. This is within-campaign stability only: it is not cross-session, cross-day, longitudinal, or deployment stability, and the runs are not independent replications. Panel (b) uses a magnified ordinate.",
  "notes": {
   "markers": "run median",
   "bars": "interquartile range",
-  "panel_b_ordinate": "magnified, full span 0.20 ms, disclosed in-panel and in caption",
+  "panel_b_ordinate": "magnified, full span 0.20 ms; current policy centred",
   "scope": "within-campaign only"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

@@ -1,21 +1,21 @@
 {
  "figure": "fig_m02_timeout_model",
  "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred, measured on the master-facing link. The host's realised retransmission timeout was never recorded: the two orange bounds are the Linux documented minimum and the value RFC 6298 recommends, shown as a reference range and not as a measurement of this testbed. The application timer bounds one receive and is re-armed on each read, and is not a transaction deadline; the measured latencies are shown against it as scale, not as a claim that one read spanned a transaction.",
- "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "131ab67b60f020b0d51463b4a2b68f53be883fba",
+ "generation_command": "python make_model_figures.py",
+ "source_commit": "22ac6ce457d2cc9b9a0e1a3e611cabb8c5a73832",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "007b52a9ba840e8863a1ac74810b286e11953a00fdd564541fb364695e1681b5"
+  "sha256": "0fdec9d756774bc39479e5ec1d09554105b7ead9173bbef2dfd1e1dcc63e847b"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "aa5406fac9ec05c28f5a0e11c644a4826b1cae2c819fa21abba161c8fb890b68"
  },
  "inputs": [
   {
-   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
-   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+   "path": "defense4/timing/evidence/campaign_v2/PROVENANCE_CONSTANTS.json",
+   "sha256": "64097665453c288868247c593e36d37efcc9445d28ce7c1d01ee14d0573bbfd5"
   },
   {
    "path": "defense4/timing/audit_current/outputs/timeout_and_tcp_audit.json",
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.pdf",
-   "sha256": "1d9c37b588e32e8246b0487017494542da18ba24c639013e0261513b9fddd879",
+   "sha256": "9491045601d4a63bdf4853752b88e1608a6a04f45ce0bd527a80ecf50981640f",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.png",
-   "sha256": "304e605f025eabd9756d34fbfa481d237a03eb8c5e8f8e51dcfc5d196c3a5321",
+   "sha256": "6a1166220c9eaa96c8267171276f54af49a1f22b43d503f65d83b39a032460eb",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -55,5 +55,5 @@
   "the application timer is per-receive, re-armed on each read; it is not a transaction deadline",
   "no retransmission occurred in either arm, so no bar was ever reached"
  ],
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

@@ -1,47 +1,47 @@
 {
  "figure": "fig_distributions",
- "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
- "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "ec6f3aa2275ee8d0324ab645a3bc60aa41b56df2",
+ "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible post-ACK interval (response minus ACK), not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 113.48~ms and the largest obfuscated one is 78.44~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "generation_command": "python defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v2/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json pipeline-output/replacement_stats.json pipeline-output/proof.json",
+ "source_commit": "253893086879ef3b170cdbb53b51f3444eaeca3b",
  "deterministic_seed": 20260828,
  "analysis_script": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "26721d0db6d16b12e55a83309ce67d67c4507ce967d0a18fcde23101c053ce31"
+  "path": "defense4/timing/evidence/campaign_v2/repro/make_ndss_figures.py",
+  "sha256": "76b0cb114a38f77a3d4c3f2649c4e02ce2f8ab0e0315bbd20ca0961f89ad5748"
  },
  "style_module": {
-  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+  "path": "defense4/timing/evidence/campaign_v2/repro/figstyle_ndss.py",
+  "sha256": "385b57f22a4672d457fcb96111004f03289fb6344a83d932f9980294e2df0c47"
  },
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
+   "sha256": "80da305cc4aa72c4c0875a2ad03cd659b5c52f15dce27300eb70c6c4f1b14cfa"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "8a9d62ea72ebc4dc96fc747dd3cde5cfd43424b273669795042f7ee5ae3c1cda",
+   "sha256": "ce03506bd1e7d4819f07c50b9311ecb6b9017b7fdce0eae09ae0b4fe0ff17374",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "f91854a31f3a2c7341f2ed0c42ae4febffaa9c321ac056e0a0686024ab53104a",
+   "sha256": "aae18a1c6ddfe15ce0dedd5ab77c35758152fd280d0632c431e9ab3888f89a3f",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_distributions_data.csv",
-   "sha256": "7368e7900b1fa374a1e96f6cae20325231f4bfe3dff1d3dce0251ff7b52fb3be",
-   "rows": 246,
+   "sha256": "43b7362bfe12cb3726ef815bf093b2647e06aaab163000ec25aed00a11b74edc",
+   "rows": 7491,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
-  "height": 3.1
+  "width": 3.48,
+  "height": 3.6
  },
  "method_note": "Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.",
  "limitation_note": "The OPERATE panel is the master-visible response-to-ACK interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.",
@@ -49,21 +49,21 @@
   "clipping": "none; full support plotted",
   "maxima_ms": {
    "READ": {
-    "native": 83.458,
-    "obfuscated": 57.182
+    "native": 113.48,
+    "obfuscated": 78.443
    },
    "SELECT": {
-    "native": 24.831,
-    "obfuscated": 5.15
+    "native": 24.3,
+    "obfuscated": 8.077
    },
    "OPERATE": {
-    "native": 24.203,
-    "obfuscated": 5.662
+    "native": 19.631,
+    "obfuscated": 8.075
    }
   },
   "whiskers": "full range, no observation hidden",
   "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
-  "operate_scope": "master-visible response-to-ACK interval, timed from the request"
+  "operate_scope": "master-visible response minus ACK, not total SBO time"
  },
- "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+ "style": "SciencePlots science+no-latex base (ticks in on four sides, minor ticks, frameless keys), NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }

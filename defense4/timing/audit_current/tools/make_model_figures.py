@@ -2,8 +2,10 @@
 """Two explanatory diagrams for the timing model and the master's timers.
 
 Both are schematics of the verified mechanism, not plots of a distribution. Every configured
-offset is read from `evidence/campaign_v1/PROVENANCE_CONSTANTS.json` and every measured value
-from `audit_current/outputs/timeout_and_tcp_audit.json`; no number is written into this script.
+offset is read from `evidence/campaign_v2/PROVENANCE_CONSTANTS.json`; the measured interval the
+release timeline is drawn to comes from the gated `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`,
+and the timeout diagram's from `audit_current/outputs/timeout_and_tcp_audit.json`. No number is
+written into this script.
 
     python3 make_model_figures.py [OUT_DIR]     generate, then publish into the manuscript
     python3 make_model_figures.py --check       verify the published copies, generate nothing
@@ -27,14 +29,17 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TIMING = HERE.parents[1]                          # defense4/timing
-REPRO = TIMING / "evidence" / "campaign_v1" / "repro"
+REPRO = TIMING / "evidence" / "campaign_v2" / "repro"
 sys.path.insert(0, str(REPRO))
 
 import figstyle_ndss as fs                                                   # noqa: E402
+import matplotlib
 import matplotlib.pyplot as plt                                              # noqa: E402
 from matplotlib.patches import FancyArrowPatch                               # noqa: E402
 
-CONSTANTS = TIMING / "evidence" / "campaign_v1" / "PROVENANCE_CONSTANTS.json"
+CONSTANTS = TIMING / "evidence" / "campaign_v2" / "PROVENANCE_CONSTANTS.json"
+# The campaign's own median Timing OFF READ CLRT, from the values file the publication gate checks.
+VALUES = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "ndss" / "MANUSCRIPT_VALUES.json"
 # Where the manuscript includes these figures from, and which of them it includes.
 PUBLISH_DIR = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "model"
 PUBLISHED = ("fig_m01_release_timeline",)
@@ -53,12 +58,19 @@ APP_BUDGET_MS = 3000.0
 # never recorded, so its realised retransmission timeout is unknown; these bracket it.
 RTO_FLOOR_MS, RTO_RFC_MS = 200.0, 1000.0
 
-LANE_Y = {"master": 2.0, "switch": 1.0, "relay": 0.0}
+# The same three actors Figures 1 and 2 name, spelled the same way. They were "master",
+# "switch" and "relay" here, so the outstation changed name between figures.
+LANE_Y = {"Master": 2.0, "Switch": 1.0, "Outstation": 0.0}
 # Drawn acknowledgment-arrival instant. It must exceed request-arrival-at-relay plus one
 # propagation, that is 0.35 + 0.30 + 0.35 = 1.00 ms, or the drawing violates causality. 1.25 ms
 # leaves the relay a visible processing interval. Illustrative, not measured.
 T_A_DRAWN = 1.25
-C_REQ, C_ACK, C_RESP, C_DEADLINE = fs.C_OPERATE, fs.GREY, fs.C_READ, fs.OFF
+# Request blue, acknowledgment grey, response green, exactly as Figure 1 (fig_ladder.svg)
+# draws them. They were the other way round here, so a reader turning from Figure 1 to this
+# one saw the request change colour. Vermillion is the timing the defense controls, as the
+# measured interval is in Figure 1.
+C_REQ, C_ACK, C_RESP, C_DEADLINE = fs.C_READ, fs.GREY, fs.C_OPERATE, fs.OFF
+LABEL = "#222222"   # symbols are black; colour is carried by the marker and the arrow
 
 
 def interval(ax, y, x0, x1, label, colour, *, above=True, pad=0.13, fontsize=8):
@@ -89,18 +101,23 @@ def instant(ax, x, y, label, colour, *, dy=0.1, dx=0.0, ha="center", fontsize=8,
     ax.plot([x], [y], marker=marker, ms=3.2, color=colour, markerfacecolor=face,
             markeredgecolor=colour, markeredgewidth=0.7, zorder=4, clip_on=False)
     ax.text(x + dx, y + dy, label, ha=ha, va="bottom" if dy > 0 else "top",
-            fontsize=fontsize, color=colour, zorder=5)
+            fontsize=fontsize, color=LABEL, zorder=5)
 
 
 def lifelines(ax, t_max):
     for name, y in LANE_Y.items():
         ax.plot([0, t_max], [y, y], color="#999999", lw=0.5, zorder=1)
         ax.text(-0.015 * t_max, y, name, ha="right", va="center", fontsize=8)
-    ax.set_ylim(-1.75, 3.05)
+    ax.set_ylim(-2.05, 3.05)
     ax.set_xlim(-0.15 * t_max, t_max)
     ax.set_yticks([])
     for side in ("left", "right", "top"):
         ax.spines[side].set_visible(False)
+    # A tick needs a spine to sit on. SciencePlots puts ticks on all four sides, which on a
+    # schematic whose top and right spines are hidden leaves a row of marks floating in the
+    # white space above the diagram.
+    ax.tick_params(top=False, right=False, which="both")
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
 
 
 def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
@@ -111,7 +128,7 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     acknowledgment to propagate back. An earlier version drew the acknowledgment leaving the
     relay 0.10 ms before the request arrived.
     """
-    m, s, r = LANE_Y["master"], LANE_Y["switch"], LANE_Y["relay"]
+    m, s, r = LANE_Y["Master"], LANE_Y["Switch"], LANE_Y["Outstation"]
     prop = 0.35                                    # link propagation, drawn not measured
     relay_hop = 0.30                               # switch to relay, drawn not measured
     req_at_relay = prop + relay_hop
@@ -121,7 +138,11 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
             "it answers arrives at %.3f ms; t_a must exceed %.3f ms"
             % (t_a - prop, req_at_relay, req_at_relay + prop))
 
-    e_a_target, e_r_target = t_a + d_a, t_a + d_a + c_new
+    # Both deadlines are armed from the request's own arrival at the switch, t_0. Nothing
+    # the outstation did -- neither t_A nor t_R -- enters either instant, which is the
+    # whole of the security argument and is what this drawing has to show.
+    t_0 = prop
+    e_a_target, e_r_target = t_0 + d_a, t_0 + d_a + c_new
     e_a = e_a_target
     # The model: a deadline cannot precede arrival. The switch's own processing term is drawn
     # at 1.2 ms so that an arrival and its emission are separable on the page; it is a drawing
@@ -142,23 +163,29 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     hop(ax, e_a, s, m_a, m, C_ACK)
     hop(ax, e_r, s, m_r, m, C_RESP)
 
-    # the two deadlines, armed together from t_a
+    # the two deadlines, armed together from t_0
     for x in (e_a_target, e_r_target):
         ax.plot([x, x], [r - 0.1, m + 0.30], color=C_DEADLINE, lw=0.6,
                 linestyle=(0, (1, 1.6)), zorder=2)
 
     # instants: the three that were measured are filled circles, the rest open squares
-    instant(ax, 0.0, m, r"$m_0$", C_REQ, dy=0.10, ha="left")
-    instant(ax, m_a, m, r"$m_A$", C_ACK, dy=0.10, ha="right")
-    instant(ax, m_r, m, r"$m_R$", C_RESP, dy=0.10, ha="left")
+    instant(ax, 0.0, m, "", C_REQ, dy=0.10, ha="left")
+    instant(ax, m_a, m, "", C_ACK, dy=0.10, ha="right")
+    instant(ax, m_r, m, "", C_RESP, dy=0.10, ha="left")
     instant(ax, prop, s, r"$t_0$", C_REQ, dy=0.10, dx=-0.25, ha="right", marker="s")
     instant(ax, t_a, s, r"$t_A$", C_ACK, dy=0.10, dx=0.20, ha="left", marker="s")
-    instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
+    # In the late case $t_R$ and $e_R$ sit within a millimetre of each other, and a label
+    # written to the right of $t_R$ lands between the two squares and reads as either.
+    # There it goes to the left instead, so each label touches only its own marker.
+    if late:
+        instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=-0.25, ha="right", marker="s")
+    else:
+        instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
     instant(ax, e_a, s, r"$e_A$", C_ACK, dy=-0.13, dx=-0.20, ha="right", marker="s")
     instant(ax, e_r, s, r"$e_R$", C_RESP, dy=-0.13, dx=0.25, ha="left", marker="s")
 
     # durations, kept clear of the lifelines: configured below, observed above
-    interval(ax, r - 0.42, t_a, e_a_target, r"$D_A$", C_DEADLINE, above=False, pad=0.0)
+    interval(ax, r - 0.42, t_0, e_a_target, r"$D_A$", C_DEADLINE, above=False, pad=0.0)
     interval(ax, r - 0.42, e_a_target, e_r_target,
              r"$\mathrm{CLRT}_{\mathrm{new}}$", C_DEADLINE, above=False, pad=0.0)
     # The response hold, written from its endpoints because the paper gives it no symbol of
@@ -166,14 +193,17 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     # it does not exist because the response is forwarded on arrival. The paper's $D_R$ is a
     # different quantity, the response latency, and is not drawn here.
     if not late:
-        interval(ax, r - 1.02, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
-    interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
-             C_RESP, pad=0.0)
+        interval(ax, r - 1.42, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
+    # In (a) the measured interval IS the configured one. In (b) it is not, and calling it
+    # CLRT_new there would state the opposite of what the panel exists to show.
+    interval(ax, m + 1.00, m_a, m_r,
+             r"measured $\mathrm{CLRT}_{\mathrm{new}}$" if not late else "measured interval",
+             C_DEADLINE, pad=0.0)
 
 
-    for name, x in (("m_0", 0.0), ("t_0", prop), ("t_A", t_a), ("t_R", t_r),
+    for name, x in (("request_at_master", 0.0), ("t_0", t_0), ("t_A", t_a), ("t_R", t_r),
                     ("e_A_deadline", e_a_target), ("e_R_deadline", e_r_target),
-                    ("e_A", e_a), ("e_R", e_r), ("m_A", m_a), ("m_R", m_r)):
+                    ("e_A", e_a), ("e_R", e_r), ("ack_at_master", m_a), ("resp_at_master", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(x, 3), kind="instant"))
     for name, v in (("D_A", d_a), ("CLRT_new_configured", c_new),
@@ -183,7 +213,6 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
                     ("L_A", m_a), ("L_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(v, 3), kind="duration"))
-    ax.set_xlabel("time from the request (ms)")
 
 
 def figure_release(outdir, const, audit):
@@ -193,44 +222,50 @@ def figure_release(outdir, const, audit):
     # neither the response hold nor the paper's D_R, which is the response latency. The field
     # name is historical and is kept; see defense4/timing/NOTATION_MAPPING.md.
     c_new = float(const["config"]["obfuscated_arm"]["D_R_ms"])
-    nat = audit["intervals"]["native|READ|C"]
+    nat = json.loads(VALUES.read_text())["intervals_ms"]["native/READ"]
     fs.use()
     # One column. The deadline expressions and the end-to-end bar were dropped rather than
     # shrunk: the dotted lines still mark the deadlines, the duration bars below already name
     # D_A and CLRT_new, and the abscissa already shows the end-to-end time.
-    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 4.0))
+    # One shared time axis. Both panels drew their own 0-30 scale, which spent a line of
+    # height saying the same thing twice.
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 2.35), sharex=True)
     rows = []
     t_max = d_a + c_new + 7.5
     ladder_panel(axes[0], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
                  t_r=T_A_DRAWN + nat["median"], late=False, rows=rows, t_max=t_max)
     ladder_panel(axes[1], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
                  t_r=d_a + c_new + 1.8, late=True, rows=rows, t_max=t_max)
-    axes[0].set_title("(a) response arrives in time", fontsize=9, loc="left")
-    axes[1].set_title("(b) response arrives late", fontsize=9, loc="left")
-    axes[0].set_xlabel("")
-    fig.tight_layout(pad=0.4, h_pad=1.1)
+    axes[0].set_title("(a) response arrives in time", fontsize=8, loc="left", style="italic")
+    axes[1].set_title("(b) response arrives late", fontsize=8, loc="left", style="italic")
+    for ax in axes:
+        ax.set_xlabel("")
+        ax.set_xticks([])
+        ax.spines["bottom"].set_visible(False)
+    # The upper panel reads its times off the lower panel's axis. Left in place, its own spine
+    # was a ruled line with ticks and no numbers across the middle of the figure.
+    axes[0].tick_params(labelbottom=False, bottom=False)
+    axes[0].spines["bottom"].set_visible(False)
+    fig.tight_layout(pad=0.4, h_pad=0.6)
     return fs.save(
         fig, outdir, "fig_m01_release_timeline",
         caption=(
             "Release timeline of the read lane, drawn from the verified program and not from a "
-            "distribution. Points are timestamps and bars are durations; a filled circle marks "
-            "an instant that was measured and an open square one that was not. The switch arms "
-            "both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the "
-            "acknowledgment is due at $t_A+D_A$ and the response at "
-            "$t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured "
-            "$\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time "
-            "$\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The "
-            "response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is "
-            "whatever the schedule requires, and it therefore varies with the arrival $t_R$. In "
-            "(a) the response arrives before its deadline and the measured "
-            "$\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it "
-            "arrives after, the deadline is already past, the program forwards it on arrival, "
-            "and the measured value exceeds the configured one; no response hold is drawn there "
-            "because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, "
-            "$t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=%s$ ms and a "
-            "configured $\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
+            "distribution. Five instants appear, all at the switch: $t_0$ when the request "
+            "arrives, $t_A$ and $t_R$ when the outstation's acknowledgment and response arrive, "
+            "and $e_A$ and $e_R$ when each of them is released. The switch arms both deadlines "
+            "from $t_0$, so the acknowledgment is due at $t_0+D_A$ and the response at "
+            "$t_0+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$. Neither instant depends on $t_A$ or "
+            "$t_R$, so the relay's own cross-layer time $t_R-t_A$ does not reach the interval "
+            "the adversary measures. That interval is $e_R-e_A$: the master-facing propagation "
+            "is the same for both packets and cancels. The response hold $e_R-t_R$ is drawn in "
+            "(a) to show that it is not configured but is whatever the schedule requires. In "
+            "(b) the response arrives after its deadline, the program forwards it on arrival, "
+            "no hold applies and none is drawn, and the measured interval exceeds the "
+            "configured value. $D_A=%s$ ms and a configured "
+            "$\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
             % (format(d_a, ".0f"), format(c_new, ".0f"))),
-        inputs=[CONSTANTS, AUDIT],
+        inputs=[CONSTANTS, VALUES],
         notes=["schematic of the mechanism; no measured distribution is plotted",
                "link propagation and the switch's processing term are drawn at a legible size, "
                "not to scale; the 1.2 ms gap between an arrival and its emission in panel (b) "
@@ -238,9 +273,10 @@ def figure_release(outdir, const, audit):
                "case (b) is the fail-open path, which bounds the tail rather than clipping it"],
         data_rows=rows, data_fields=["panel", "quantity", "value_ms", "kind"],
         method_note=(
-            "No statistic is computed. The configured offsets are read from "
-            "PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the measured median "
-            f"Timing OFF READ interval of {nat['median']:.3f} ms so the drawing is to the "
+            "No statistic is computed. The configured offsets are read from campaign_v2's "
+            "PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the campaign's median "
+            f"Timing OFF READ CLRT of {nat['median']:.3f} ms, from MANUSCRIPT_VALUES.json, so "
+            "the drawing is to the "
             "right scale. The late panel places $t_r$ beyond the release horizon to show the "
             "fail-open case; its offset is illustrative."),
         limitation_note=(
@@ -316,9 +352,14 @@ def figure_timeout(outdir, const, audit):
     ax.set_xlim(0.1, 4000)
     ax.set_ylim(-0.05, 4.05)
     ax.set_yticks([])
-    ax.set_xlabel("time from the request leaving the master, log scale (ms)")
+    ax.set_xlabel("time from the request leaving the master, log scale [ms]")
     for side in ("left", "right", "top"):
         ax.spines[side].set_visible(False)
+    # A tick needs a spine to sit on. SciencePlots puts ticks on all four sides, which on a
+    # schematic whose top and right spines are hidden leaves a row of marks floating in the
+    # white space above the diagram.
+    ax.tick_params(top=False, right=False, which="both")
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.grid(True, axis="x", which="major", color="#CCCCCC", lw=0.4, zorder=0)
     ax.set_axisbelow(True)
     fig.tight_layout(pad=0.4)

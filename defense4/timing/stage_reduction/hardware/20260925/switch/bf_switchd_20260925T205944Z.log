@@ -1,0 +1,318 @@
+2026-09-25 20:59:45.754200 BF_SWITCHD DEBUG - bf_switchd: system services initialized
+2026-09-25 20:59:45.754269 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /tmp/dnp3-stage-review-le7BdybB/seven_verified/out/defense4_timing.conf...
+2026-09-25 20:59:45.754307 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...
+2026-09-25 20:59:45.754376 BF_SWITCHD DEBUG - Configuration for dev_id 0
+2026-09-25 20:59:45.754396 BF_SWITCHD DEBUG -   Family        : tofino
+2026-09-25 20:59:45.754414 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+2026-09-25 20:59:45.754431 BF_SWITCHD DEBUG -   pci_int_mode  : 0
+2026-09-25 20:59:45.754448 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-09-25 20:59:45.754465 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...
+2026-09-25 20:59:45.754520 BF_SWITCHD DEBUG - coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-09-25 20:59:45.754544 BF_SWITCHD DEBUG - P4 profile for dev_id 0
+2026-09-25 20:59:45.754561 BF_SWITCHD DEBUG - num P4 programs 1
+2026-09-25 20:59:45.754578 BF_SWITCHD DEBUG -   p4_name: defense4_timing
+2026-09-25 20:59:45.754596 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe
+2026-09-25 20:59:45.754613 BF_SWITCHD DEBUG -     libpd: 
+2026-09-25 20:59:45.754630 BF_SWITCHD DEBUG -     libpdthrift: 
+2026-09-25 20:59:45.754647 BF_SWITCHD DEBUG -     context: /tmp/dnp3-stage-review-le7BdybB/seven_verified/out/pipe/context.json
+2026-09-25 20:59:45.754665 BF_SWITCHD DEBUG -     config: /tmp/dnp3-stage-review-le7BdybB/seven_verified/out/pipe/tofino.bin
+2026-09-25 20:59:45.754682 BF_SWITCHD DEBUG -   Pipes in scope [
+2026-09-25 20:59:45.754699 BF_SWITCHD DEBUG - 0 
+2026-09-25 20:59:45.754716 BF_SWITCHD DEBUG - 1 
+2026-09-25 20:59:45.754733 BF_SWITCHD DEBUG - 2 
+2026-09-25 20:59:45.754750 BF_SWITCHD DEBUG - 3 
+2026-09-25 20:59:45.754766 BF_SWITCHD DEBUG - ]
+2026-09-25 20:59:45.754783 BF_SWITCHD DEBUG -   diag: 
+2026-09-25 20:59:45.754800 BF_SWITCHD DEBUG -   accton diag: 
+2026-09-25 20:59:45.754817 BF_SWITCHD DEBUG -   Agent[0]: /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so
+2026-09-25 20:59:45.772844 BF_SWITCHD DEBUG - bf_switchd: library /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so loaded
+2026-09-25 20:59:45.773852 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized
+2026-09-25 20:59:48.020503 BF_SWITCHD DEBUG - Device 0: Operational mode set to ASIC
+2026-09-25 20:59:48.020595 BF_SWITCHD DEBUG - Initialized the device types using platforms infra API
+2026-09-25 20:59:48.020627 BF_SWITCHD DEBUG - ASIC detected at PCI /sys/class/bf/bf0/device
+2026-09-25 20:59:48.020717 BF_SWITCHD DEBUG - ASIC pci device id is 16 (0x0010)
+Health monitor started 
+Starting PD-API RPC server on port 9090
+2026-09-25 20:59:48.035280 BF_SWITCHD DEBUG - bf_switchd: drivers initialized
+Setting core_pll_ctrl0=cd44cbfe
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|2026-09-25 20:59:53.024655 BF_PLTFM ERROR - ChkSum not matched for 33
+
+2026-09-25 20:59:53.127006 BF_PLTFM ERROR - ChkSum not matched for 34
+
+2026-09-25 20:59:53.279438 BF_SWITCHD DEBUG - bf_switchd: dev_id 0 initialized
+2026-09-25 20:59:53.279453 BF_SWITCHD DEBUG - bf_switchd: initialized 1 devices
+Adding Thrift service for bf-platforms to server
+2026-09-25 20:59:53.279562 BF_SWITCHD DEBUG - bf_switchd: thrift initialized for agent : 0
+2026-09-25 20:59:53.279578 BF_SWITCHD DEBUG - bf_switchd: spawning cli server thread
+2026-09-25 20:59:53.279784 BF_SWITCHD DEBUG - bf_switchd: spawning driver shell
+2026-09-25 20:59:53.279847 BF_SWITCHD DEBUG - bf_switchd: server started - listening on port 9999
+
+        ********************************************
+        *      WARNING: Authorised Access Only     *
+        ********************************************
+    
+bfshell> 2026-09-25 20:59:53.809475 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 8 is not valid
+2026-09-25 20:59:53.809547 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
+2026-09-25 20:59:54.420474 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 20:59:54.420653 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:00:54.334691 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:00:54.334786 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:00:54.342467 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:00:54.342546 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:00:54.347244 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$mirror.cfg Invalid arguments
+2026-09-25 21:00:54.353446 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:00:54.356054 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:00:54.366086 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.370242 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.375248 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.380313 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.384837 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.389314 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:00:54.405249 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:00:54.405389 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:00:54.413590 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:00:54.413725 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:02:02.313016 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:02:02.313111 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2200664582 Object not found
+2026-09-25 21:02:02.313161 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:02:02.313193 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:02:02.313225 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.314862 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:02:02.314914 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:02:02.316177 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:02:02.316297 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2212174233 Object not found
+2026-09-25 21:02:02.316356 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:02:02.316421 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:02:02.316470 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.317669 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:02:02.317758 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:02:02.344796 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:02:02.344916 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341150373 Object not found
+2026-09-25 21:02:02.344969 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:02:02.345010 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:02:02.345064 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.346413 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:02:02.346519 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:02:02.347813 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:02:02.347917 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2335188592 Object not found
+2026-09-25 21:02:02.347969 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:02:02.348013 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:02:02.348070 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.349511 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:02:02.349587 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:02:02.350846 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:02:02.350913 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2343239968 Object not found
+2026-09-25 21:02:02.350946 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:02:02.350974 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:02:02.351002 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.352269 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:02:02.352347 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:02:02.353520 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:02:02.353594 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341061853 Object not found
+2026-09-25 21:02:02.353630 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:02:02.353658 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:02:02.353687 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.354948 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:02:02.355012 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:02:02.443004 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.cfg ERROR : Table Key allocate not supported
+2026-09-25 21:02:02.443185 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.cfg Operation not supported
+2026-09-25 21:02:02.443273 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.443326 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:02:02.443424 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.445087 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.445215 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:02:02.446762 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.multicast_fifo ERROR : Table Key allocate not supported
+2026-09-25 21:02:02.446882 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.multicast_fifo Operation not supported
+2026-09-25 21:02:02.446974 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.447029 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:02:02.447080 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.448803 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.448974 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:02:02.450538 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.sched_cfg ERROR : Table Key allocate not supported
+2026-09-25 21:02:02.450658 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.sched_cfg Operation not supported
+2026-09-25 21:02:02.450737 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.450820 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:02:02.450901 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.452410 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:02:02.452541 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:02:02.455927 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_data Invalid arguments
+2026-09-25 21:02:02.456024 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.458675 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.egress_liveness ERROR Table entry get first not supported
+2026-09-25 21:02:02.458763 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_liveness Operation not supported
+2026-09-25 21:02:02.458798 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.464363 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_data Invalid arguments
+2026-09-25 21:02:02.464462 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:02.466865 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.ingress_liveness ERROR Table entry get first not supported
+2026-09-25 21:02:02.466945 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_liveness Operation not supported
+2026-09-25 21:02:02.466990 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:02:44.467043 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:02:44.467248 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:02:44.479732 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:02:44.479877 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:02:44.483698 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$mirror.cfg Invalid arguments
+2026-09-25 21:02:44.489431 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:02:44.492014 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:02:44.519754 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:02:44.519888 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:02:44.527529 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:02:44.527662 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:04:54.016409 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:04:54.016569 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2200664582 Object not found
+2026-09-25 21:04:54.016627 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:04:54.016647 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:04:54.016667 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.017969 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:04:54.018081 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:04:54.019452 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:04:54.019569 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2212174233 Object not found
+2026-09-25 21:04:54.019624 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:04:54.019669 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:04:54.019716 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.021173 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:04:54.021287 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:04:54.048471 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:04:54.048600 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341150373 Object not found
+2026-09-25 21:04:54.048658 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:04:54.048700 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:04:54.048742 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.050080 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:04:54.050202 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:04:54.051501 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:04:54.051600 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2335188592 Object not found
+2026-09-25 21:04:54.051662 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:04:54.051702 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:04:54.051742 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.053138 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:04:54.053241 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:04:54.054910 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:04:54.055005 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2343239968 Object not found
+2026-09-25 21:04:54.055052 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:04:54.055091 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:04:54.055131 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.056503 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:04:54.056579 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:04:54.057980 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:04:54.058057 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341061853 Object not found
+2026-09-25 21:04:54.058111 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:04:54.058162 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:04:54.058216 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.059549 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:04:54.059672 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:04:54.143270 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.cfg ERROR : Table Key allocate not supported
+2026-09-25 21:04:54.143374 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.cfg Operation not supported
+2026-09-25 21:04:54.143418 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.143442 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:04:54.143463 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.144794 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.144927 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:04:54.146141 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.multicast_fifo ERROR : Table Key allocate not supported
+2026-09-25 21:04:54.146195 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.multicast_fifo Operation not supported
+2026-09-25 21:04:54.146227 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.146249 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:04:54.146270 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.147694 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.147806 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:04:54.149461 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.sched_cfg ERROR : Table Key allocate not supported
+2026-09-25 21:04:54.149512 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.sched_cfg Operation not supported
+2026-09-25 21:04:54.149564 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.149592 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:04:54.149629 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.151194 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:04:54.151309 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:04:54.154275 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_data Invalid arguments
+2026-09-25 21:04:54.154354 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.156156 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.egress_liveness ERROR Table entry get first not supported
+2026-09-25 21:04:54.156222 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_liveness Operation not supported
+2026-09-25 21:04:54.156256 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.159695 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_data Invalid arguments
+2026-09-25 21:04:54.159773 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:04:54.161546 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.ingress_liveness ERROR Table entry get first not supported
+2026-09-25 21:04:54.161617 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_liveness Operation not supported
+2026-09-25 21:04:54.161653 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:05:44.660450 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:05:44.660556 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:05:44.670769 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:05:44.670867 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:05:44.674158 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:$mirror.cfg Invalid arguments
+2026-09-25 21:05:44.679087 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:05:44.681689 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_session Already exists
+2026-09-25 21:05:44.691250 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:05:44.695063 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:05:44.698844 BF_BFRT ERROR - BF_RT_SERVER:write_entry:3340 Table Add failed table:pipe.Ingress.tbl_bor_codebook Already exists
+2026-09-25 21:05:44.715685 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:05:44.715814 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:05:44.723367 BF_PIPE ERROR - pipe_mgr_pvs_parser_gress_scope_set:1869 Unable to set gress scope for pvs (already in use) with handle 0x1ff, device 0. Try again after deleting all entries from this pvs
+2026-09-25 21:05:44.723497 BF_BFRT ERROR - BF_RT_SERVER:setAttributeEntryScope:1342 Failed to set Attribute for entry_scope Invalid arguments
+2026-09-25 21:06:17.428177 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:06:17.428258 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2200664582 Object not found
+2026-09-25 21:06:17.428284 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:06:17.428303 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:06:17.428322 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.429851 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2094302714" not found
+2026-09-25 21:06:17.429975 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2200664582 Object not found
+2026-09-25 21:06:17.431442 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:06:17.431502 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2212174233 Object not found
+2026-09-25 21:06:17.431530 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:06:17.431552 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:06:17.431574 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.432606 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-2082793063" not found
+2026-09-25 21:06:17.432657 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2212174233 Object not found
+2026-09-25 21:06:17.455307 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:06:17.455384 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341150373 Object not found
+2026-09-25 21:06:17.455413 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:06:17.455432 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:06:17.455452 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.456426 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953816923" not found
+2026-09-25 21:06:17.456542 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341150373 Object not found
+2026-09-25 21:06:17.457663 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:06:17.457714 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2335188592 Object not found
+2026-09-25 21:06:17.457739 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:06:17.457758 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:06:17.457777 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.459172 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1959778704" not found
+2026-09-25 21:06:17.459277 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2335188592 Object not found
+2026-09-25 21:06:17.460658 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:06:17.460707 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2343239968 Object not found
+2026-09-25 21:06:17.460743 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:06:17.460777 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:06:17.460797 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.461829 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1951727328" not found
+2026-09-25 21:06:17.461930 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2343239968 Object not found
+2026-09-25 21:06:17.463143 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:06:17.463216 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2354 Table not found for id 2341061853 Object not found
+2026-09-25 21:06:17.463252 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:06:17.463283 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:06:17.463322 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.464394 BF_BFRT ERROR - bfrtTableFromIdGet:2946 Table_id "-1953905443" not found
+2026-09-25 21:06:17.464505 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2258 Table not found for id 2341061853 Object not found
+2026-09-25 21:06:17.532901 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.cfg ERROR : Table Key allocate not supported
+2026-09-25 21:06:17.533040 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.cfg Operation not supported
+2026-09-25 21:06:17.533121 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.533185 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:06:17.533247 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.534487 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.534606 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.cfg Invalid arguments
+2026-09-25 21:06:17.535838 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.multicast_fifo ERROR : Table Key allocate not supported
+2026-09-25 21:06:17.535926 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.multicast_fifo Operation not supported
+2026-09-25 21:06:17.535981 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.536028 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:06:17.536090 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.537183 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.multicast_fifo Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.537292 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.multicast_fifo Invalid arguments
+2026-09-25 21:06:17.538606 BF_BFRT ERROR - keyAllocate:747 tf1.tm.pipe.sched_cfg ERROR : Table Key allocate not supported
+2026-09-25 21:06:17.538697 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2361 Table key allocation failed. table:tf1.tm.pipe.sched_cfg Operation not supported
+2026-09-25 21:06:17.538752 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.538801 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:06:17.538866 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.539907 BF_BFRT ERROR - singlePipe_validate:713 tf1.tm.pipe.sched_cfg Invalid dev_id=0 pipe_id=65535, rc=3
+2026-09-25 21:06:17.539994 BF_BFRT ERROR - BF_RT_SERVER:table_read_default_entry:2313 Error getting default entry of table:tf1.tm.pipe.sched_cfg Invalid arguments
+2026-09-25 21:06:17.542610 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_data Invalid arguments
+2026-09-25 21:06:17.542723 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.544661 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.egress_liveness ERROR Table entry get first not supported
+2026-09-25 21:06:17.544760 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.egress_liveness Operation not supported
+2026-09-25 21:06:17.544810 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.548003 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_data Invalid arguments
+2026-09-25 21:06:17.548075 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries
+2026-09-25 21:06:17.549643 BF_BFRT ERROR - tableEntryGetFirst:636 pipe.snapshot.ingress_liveness ERROR Table entry get first not supported
+2026-09-25 21:06:17.549710 BF_BFRT ERROR - BF_RT_SERVER:table_read_all:2404 Error getting first entry of table:pipe.snapshot.ingress_liveness Operation not supported
+2026-09-25 21:06:17.549745 BF_BFRT ERROR - BF_RT_SERVER:read_entry:2721 Error reading all entries

@@ -1,0 +1,1285 @@
+{
+  "meta": {
+    "profile": "academic-paper",
+    "figureType": "architecture",
+    "palette": "okabe-ito",
+    "title": "Packet flow and P4 queue-based holding",
+    "description": "Network context and simplified pipeline; blockers have higher priority than held packets."
+  },
+  "page": {
+    "name": "design",
+    "id": "f2syMX9dHs4wIY2rpmm0",
+    "width": 512,
+    "height": 280
+  },
+  "nodes": [
+    {
+      "id": "master",
+      "kind": "box",
+      "bounds": [
+        12,
+        17,
+        62,
+        24
+      ],
+      "label": "Master",
+      "bold": true
+    },
+    {
+      "id": "switch",
+      "kind": "box",
+      "bounds": [
+        219,
+        17,
+        74,
+        24
+      ],
+      "label": "P4 switch",
+      "fill": "#F1F5F8",
+      "bold": true
+    },
+    {
+      "id": "outstation",
+      "kind": "box",
+      "bounds": [
+        437,
+        17,
+        64,
+        24
+      ],
+      "label": "Outstation",
+      "bold": true
+    },
+    {
+      "id": "requests_label",
+      "kind": "text",
+      "bounds": [
+        78,
+        3,
+        137,
+        12
+      ],
+      "label": "Requests (including OPERATE)",
+      "color": "#0072B2"
+    },
+    {
+      "id": "request_forward_label",
+      "kind": "text",
+      "bounds": [
+        321,
+        3,
+        90,
+        12
+      ],
+      "label": "Requests",
+      "color": "#0072B2"
+    },
+    {
+      "id": "reply_master_label",
+      "kind": "text",
+      "bounds": [
+        98,
+        43,
+        100,
+        12
+      ],
+      "label": "ACK / response",
+      "color": "#009E73"
+    },
+    {
+      "id": "reply_outstation_label",
+      "kind": "text",
+      "bounds": [
+        312,
+        43,
+        108,
+        12
+      ],
+      "label": "ACK / response",
+      "color": "#009E73"
+    },
+    {
+      "id": "frame",
+      "kind": "box",
+      "bounds": [
+        6,
+        65,
+        500,
+        211
+      ],
+      "label": "",
+      "fill": "#F6FAFC",
+      "stroke": "#AEB8C1",
+      "line_width": 0.8
+    },
+    {
+      "id": "frame_title",
+      "kind": "text",
+      "bounds": [
+        18,
+        70,
+        270,
+        13
+      ],
+      "label": "P4 decisions and queue-based holding",
+      "size": 9,
+      "bold": true,
+      "align": "left"
+    },
+    {
+      "id": "parse_column",
+      "kind": "box",
+      "bounds": [
+        18,
+        104,
+        31,
+        126
+      ],
+      "label": "",
+      "fill": "#F8FBFC",
+      "stroke": "#AEB8C1",
+      "dashed": true,
+      "line_width": 0.6
+    },
+    {
+      "id": "parse_title",
+      "kind": "text",
+      "bounds": [
+        14,
+        89,
+        39,
+        12
+      ],
+      "label": "Parser",
+      "color": "#555555"
+    },
+    {
+      "id": "ingress_column",
+      "kind": "box",
+      "bounds": [
+        59,
+        104,
+        126,
+        126
+      ],
+      "label": "",
+      "fill": "#EDF3F8",
+      "stroke": "#AEB8C1",
+      "dashed": true,
+      "line_width": 0.6
+    },
+    {
+      "id": "ingress_title",
+      "kind": "text",
+      "bounds": [
+        55,
+        89,
+        134,
+        12
+      ],
+      "label": "Ingress P4",
+      "color": "#555555"
+    },
+    {
+      "id": "tm_column",
+      "kind": "box",
+      "bounds": [
+        200,
+        104,
+        199,
+        126
+      ],
+      "label": "",
+      "fill": "#FBF8F0",
+      "stroke": "#AEB8C1",
+      "dashed": true,
+      "line_width": 0.6
+    },
+    {
+      "id": "tm_title",
+      "kind": "text",
+      "bounds": [
+        196,
+        89,
+        207,
+        12
+      ],
+      "label": "Traffic manager",
+      "color": "#555555"
+    },
+    {
+      "id": "egress_column",
+      "kind": "box",
+      "bounds": [
+        414,
+        104,
+        74,
+        126
+      ],
+      "label": "",
+      "fill": "#F0F6F1",
+      "stroke": "#AEB8C1",
+      "dashed": true,
+      "line_width": 0.6
+    },
+    {
+      "id": "egress_title",
+      "kind": "text",
+      "bounds": [
+        410,
+        89,
+        82,
+        12
+      ],
+      "label": "Egress / deparser",
+      "color": "#555555"
+    },
+    {
+      "id": "arrivals",
+      "kind": "text",
+      "bounds": [
+        13,
+        135,
+        39,
+        24
+      ],
+      "label": "Packet\narrivals",
+      "size": 8
+    },
+    {
+      "id": "ingress_decisions",
+      "kind": "box",
+      "bounds": [
+        64,
+        109,
+        116,
+        43
+      ],
+      "label": "Classify packet\nArm request deadlines\nSelect queue",
+      "fill": "#FFFFFF",
+      "stroke": "#B4C5D2"
+    },
+    {
+      "id": "expiry",
+      "kind": "text",
+      "bounds": [
+        66,
+        188,
+        115,
+        37
+      ],
+      "label": "On internal return:\nreloop or drop blockers;\nforward released packets",
+      "size": 8
+    },
+    {
+      "id": "blocker_source",
+      "kind": "box",
+      "bounds": [
+        19,
+        237,
+        41,
+        35
+      ],
+      "label": "Internal\nblocker\nsource",
+      "fill": "#FFF7E7",
+      "stroke": "#B87900"
+    },
+    {
+      "id": "forward_queue",
+      "kind": "box",
+      "bounds": [
+        208,
+        110,
+        183,
+        18
+      ],
+      "label": "Forwarding queues (new or released)",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1"
+    },
+    {
+      "id": "egress_pass",
+      "kind": "text",
+      "bounds": [
+        418,
+        110,
+        66,
+        18
+      ],
+      "label": "Pass-through",
+      "size": 8
+    },
+    {
+      "id": "wire_dest",
+      "kind": "text",
+      "bounds": [
+        418,
+        140,
+        66,
+        35
+      ],
+      "label": "To master\nor outstation",
+      "size": 8
+    },
+    {
+      "id": "reply_domain",
+      "kind": "text",
+      "bounds": [
+        203,
+        136,
+        117,
+        12
+      ],
+      "label": "ACK / response",
+      "bold": true
+    },
+    {
+      "id": "op_domain",
+      "kind": "text",
+      "bounds": [
+        331,
+        136,
+        68,
+        12
+      ],
+      "label": "OPERATE",
+      "bold": true
+    },
+    {
+      "id": "ack_block_row",
+      "kind": "box",
+      "bounds": [
+        208,
+        154,
+        94,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_block_0",
+      "kind": "box",
+      "bounds": [
+        208.0,
+        154,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_block_1",
+      "kind": "box",
+      "bounds": [
+        214.5,
+        154,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_block_2",
+      "kind": "box",
+      "bounds": [
+        221.0,
+        154,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_block_3",
+      "kind": "box",
+      "bounds": [
+        227.5,
+        154,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#B87900",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_block_label",
+      "kind": "text",
+      "bounds": [
+        238,
+        153,
+        67,
+        12
+      ],
+      "label": "ACK blocker"
+    },
+    {
+      "id": "ack_hold_row",
+      "kind": "box",
+      "bounds": [
+        208,
+        172,
+        94,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_hold_0",
+      "kind": "box",
+      "bounds": [
+        208.0,
+        172,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_hold_1",
+      "kind": "box",
+      "bounds": [
+        214.5,
+        172,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_hold_2",
+      "kind": "box",
+      "bounds": [
+        221.0,
+        172,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_hold_3",
+      "kind": "box",
+      "bounds": [
+        227.5,
+        172,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#555555",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "ack_hold_label",
+      "kind": "text",
+      "bounds": [
+        238,
+        171,
+        67,
+        12
+      ],
+      "label": "Held ACK"
+    },
+    {
+      "id": "resp_block_row",
+      "kind": "box",
+      "bounds": [
+        208,
+        190,
+        94,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_block_0",
+      "kind": "box",
+      "bounds": [
+        208.0,
+        190,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_block_1",
+      "kind": "box",
+      "bounds": [
+        214.5,
+        190,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_block_2",
+      "kind": "box",
+      "bounds": [
+        221.0,
+        190,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_block_3",
+      "kind": "box",
+      "bounds": [
+        227.5,
+        190,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#B87900",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_block_label",
+      "kind": "text",
+      "bounds": [
+        238,
+        189,
+        67,
+        12
+      ],
+      "label": "Response blocker"
+    },
+    {
+      "id": "resp_hold_row",
+      "kind": "box",
+      "bounds": [
+        208,
+        208,
+        94,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_hold_0",
+      "kind": "box",
+      "bounds": [
+        208.0,
+        208,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_hold_1",
+      "kind": "box",
+      "bounds": [
+        214.5,
+        208,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_hold_2",
+      "kind": "box",
+      "bounds": [
+        221.0,
+        208,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_hold_3",
+      "kind": "box",
+      "bounds": [
+        227.5,
+        208,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#009E73",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "resp_hold_label",
+      "kind": "text",
+      "bounds": [
+        238,
+        207,
+        67,
+        12
+      ],
+      "label": "Held response"
+    },
+    {
+      "id": "reply_scheduler",
+      "kind": "trapezoid",
+      "bounds": [
+        306,
+        154,
+        12,
+        64
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#2F3E4E"
+    },
+    {
+      "id": "op_block_label",
+      "kind": "text",
+      "bounds": [
+        333,
+        153,
+        48,
+        12
+      ],
+      "label": "Blocker"
+    },
+    {
+      "id": "op_block_0",
+      "kind": "box",
+      "bounds": [
+        337.0,
+        168,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_block_1",
+      "kind": "box",
+      "bounds": [
+        343.5,
+        168,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_block_2",
+      "kind": "box",
+      "bounds": [
+        350.0,
+        168,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_block_3",
+      "kind": "box",
+      "bounds": [
+        356.5,
+        168,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#B87900",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_hold_label",
+      "kind": "text",
+      "bounds": [
+        330,
+        188,
+        55,
+        12
+      ],
+      "label": "Held request"
+    },
+    {
+      "id": "op_hold_0",
+      "kind": "box",
+      "bounds": [
+        337.0,
+        203,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_hold_1",
+      "kind": "box",
+      "bounds": [
+        343.5,
+        203,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_hold_2",
+      "kind": "box",
+      "bounds": [
+        350.0,
+        203,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_hold_3",
+      "kind": "box",
+      "bounds": [
+        356.5,
+        203,
+        6.5,
+        10
+      ],
+      "label": "",
+      "fill": "#CC79A7",
+      "stroke": "#AEB8C1",
+      "line_width": 0.6
+    },
+    {
+      "id": "op_scheduler",
+      "kind": "trapezoid",
+      "bounds": [
+        385,
+        168,
+        10,
+        45
+      ],
+      "label": "",
+      "fill": "#FFFFFF",
+      "stroke": "#2F3E4E"
+    },
+    {
+      "id": "priority",
+      "kind": "text",
+      "bounds": [
+        201,
+        232,
+        113,
+        12
+      ],
+      "label": "Higher priority at top",
+      "size": 8
+    },
+    {
+      "id": "return_label",
+      "kind": "text",
+      "bounds": [
+        187,
+        257,
+        245,
+        12
+      ],
+      "label": "Internal loopback (bypasses egress)",
+      "size": 8
+    }
+  ],
+  "edges": [
+    {
+      "id": "request_in",
+      "points": [
+        [
+          74,
+          23
+        ],
+        [
+          219,
+          23
+        ]
+      ],
+      "color": "#0072B2"
+    },
+    {
+      "id": "request_out",
+      "points": [
+        [
+          293,
+          23
+        ],
+        [
+          437,
+          23
+        ]
+      ],
+      "color": "#0072B2"
+    },
+    {
+      "id": "reply_in",
+      "points": [
+        [
+          437,
+          35
+        ],
+        [
+          293,
+          35
+        ]
+      ],
+      "color": "#009E73"
+    },
+    {
+      "id": "reply_out",
+      "points": [
+        [
+          219,
+          35
+        ],
+        [
+          74,
+          35
+        ]
+      ],
+      "color": "#009E73"
+    },
+    {
+      "id": "zoom_l",
+      "points": [
+        [
+          231,
+          41
+        ],
+        [
+          231,
+          59
+        ],
+        [
+          62,
+          65
+        ]
+      ],
+      "color": "#AEB8C1",
+      "dashed": true,
+      "arrow": false
+    },
+    {
+      "id": "zoom_r",
+      "points": [
+        [
+          281,
+          41
+        ],
+        [
+          281,
+          59
+        ],
+        [
+          450,
+          65
+        ]
+      ],
+      "color": "#AEB8C1",
+      "dashed": true,
+      "arrow": false
+    },
+    {
+      "id": "parse_path",
+      "points": [
+        [
+          8,
+          119
+        ],
+        [
+          59,
+          119
+        ]
+      ],
+      "color": "#2F3E4E"
+    },
+    {
+      "id": "blocker_input",
+      "points": [
+        [
+          40,
+          237
+        ],
+        [
+          40,
+          169
+        ],
+        [
+          59,
+          169
+        ]
+      ],
+      "color": "#B87900",
+      "dashed": true
+    },
+    {
+      "id": "choose_forward",
+      "points": [
+        [
+          185,
+          119
+        ],
+        [
+          208,
+          119
+        ]
+      ],
+      "color": "#0072B2"
+    },
+    {
+      "id": "forward_to_egress",
+      "points": [
+        [
+          391,
+          119
+        ],
+        [
+          414,
+          119
+        ]
+      ],
+      "color": "#0072B2"
+    },
+    {
+      "id": "wire_output",
+      "points": [
+        [
+          488,
+          119
+        ],
+        [
+          503,
+          119
+        ]
+      ],
+      "color": "#0072B2"
+    },
+    {
+      "id": "ack_block_enqueue",
+      "points": [
+        [
+          185,
+          159
+        ],
+        [
+          208,
+          159
+        ]
+      ],
+      "color": "#B87900",
+      "dashed": true
+    },
+    {
+      "id": "ack_block_service",
+      "points": [
+        [
+          301,
+          159
+        ],
+        [
+          306,
+          159
+        ]
+      ],
+      "color": "#B87900",
+      "arrow": false
+    },
+    {
+      "id": "ack_hold_enqueue",
+      "points": [
+        [
+          185,
+          177
+        ],
+        [
+          208,
+          177
+        ]
+      ],
+      "color": "#555555",
+      "dashed": false
+    },
+    {
+      "id": "ack_hold_service",
+      "points": [
+        [
+          301,
+          177
+        ],
+        [
+          306,
+          177
+        ]
+      ],
+      "color": "#555555",
+      "arrow": false
+    },
+    {
+      "id": "resp_block_enqueue",
+      "points": [
+        [
+          185,
+          195
+        ],
+        [
+          208,
+          195
+        ]
+      ],
+      "color": "#B87900",
+      "dashed": true
+    },
+    {
+      "id": "resp_block_service",
+      "points": [
+        [
+          301,
+          195
+        ],
+        [
+          306,
+          195
+        ]
+      ],
+      "color": "#B87900",
+      "arrow": false
+    },
+    {
+      "id": "resp_hold_enqueue",
+      "points": [
+        [
+          185,
+          213
+        ],
+        [
+          208,
+          213
+        ]
+      ],
+      "color": "#009E73",
+      "dashed": false
+    },
+    {
+      "id": "resp_hold_service",
+      "points": [
+        [
+          301,
+          213
+        ],
+        [
+          306,
+          213
+        ]
+      ],
+      "color": "#009E73",
+      "arrow": false
+    },
+    {
+      "id": "op_block_service",
+      "points": [
+        [
+          363,
+          173
+        ],
+        [
+          385,
+          173
+        ]
+      ],
+      "color": "#B87900",
+      "arrow": false
+    },
+    {
+      "id": "op_hold_service",
+      "points": [
+        [
+          363,
+          208
+        ],
+        [
+          385,
+          208
+        ]
+      ],
+      "color": "#CC79A7",
+      "arrow": false
+    },
+    {
+      "id": "op_enqueue",
+      "points": [
+        [
+          185,
+          223
+        ],
+        [
+          327,
+          223
+        ],
+        [
+          327,
+          208
+        ],
+        [
+          337,
+          208
+        ]
+      ],
+      "color": "#CC79A7"
+    },
+    {
+      "id": "op_block_enqueue",
+      "points": [
+        [
+          185,
+          132
+        ],
+        [
+          325,
+          132
+        ],
+        [
+          325,
+          173
+        ],
+        [
+          337,
+          173
+        ]
+      ],
+      "color": "#B87900",
+      "dashed": true
+    },
+    {
+      "id": "reply_return",
+      "points": [
+        [
+          318,
+          185
+        ],
+        [
+          323,
+          185
+        ],
+        [
+          323,
+          248
+        ]
+      ],
+      "color": "#555555",
+      "arrow": false
+    },
+    {
+      "id": "op_return",
+      "points": [
+        [
+          395,
+          190
+        ],
+        [
+          405,
+          190
+        ],
+        [
+          405,
+          248
+        ],
+        [
+          323,
+          248
+        ]
+      ],
+      "color": "#555555",
+      "arrow": false
+    },
+    {
+      "id": "return_bundle",
+      "points": [
+        [
+          323,
+          248
+        ],
+        [
+          120,
+          248
+        ],
+        [
+          120,
+          228
+        ]
+      ],
+      "color": "#555555"
+    }
+  ]
+}

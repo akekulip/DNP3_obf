@@ -20,8 +20,11 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import scienceplots  # noqa: F401  registers the "science" / "ieee" / "no-latex" styles
 
-COL_W, PAGE_W = 3.5, 7.16          # NDSS column is 3.5 in; text block 7.16 in
+# IEEEtran's \columnwidth is 251.06 pt, not 252, so a 3.5 in figure overran every column by
+# 0.94 pt and logged an overfull box for each. 3.48 in is 250.56 pt and fits.
+COL_W, PAGE_W = 3.48, 7.16         # NDSS column is 3.48 in usable; text block 7.16 in
 SERIF = ["Nimbus Roman", "Times New Roman", "Liberation Serif", "DejaVu Serif"]
 # Colourblind-safe (Okabe-Ito). One meaning per colour across every figure.
 OFF, ON = "#D55E00", "#0072B2"      # Timing OFF (vermillion), Obfuscated (blue)
@@ -31,7 +34,18 @@ LS = {"native": "-", "obfuscated": "--"}
 MK = {"READ": "o", "SELECT": "s", "OPERATE": "^"}
 # Per-class line style, so a class is identifiable without colour.
 LS_CLASS = {"READ": "-", "SELECT": "--", "OPERATE": ":"}
-HATCH = {"native": "///", "obfuscated": "\\\\\\"}
+HATCH = {"native": "///", "obfuscated": "\\\\\\"}   # retired: hatch at column width reads as noise
+# The second, non-colour channel that keeps the two arms apart in greyscale: Timing OFF is
+# drawn open (white fill, coloured outline) and Obfuscated solid. A reader printing the
+# paper in black and white sees an empty box against a filled one, which survives
+# photocopying better than a hatch does at 3.5 in.
+FILL = {"native": "white", "obfuscated": None}   # None: use the arm colour
+FILL_ALPHA = {"native": 1.0, "obfuscated": 0.55}
+
+
+def arm_face(arm, colour):
+    """Face colour for an arm: open for Timing OFF, solid for Obfuscated."""
+    return FILL[arm] or colour
 LBL = {"native": "Timing OFF", "obfuscated": "Obfuscated"}
 
 # Smallest type allowed anywhere in a figure, at final printed size.
@@ -43,22 +57,90 @@ REPO_ROOT = Path(__file__).resolve().parents[5]
 
 
 def use():
+    """SciencePlots' tick and legend discipline, this manuscript's palette and column size.
+
+    The base is SciencePlots ``science`` + ``ieee`` (garrettj403/SciencePlots): ticks inward on
+    all four sides, minor ticks visible, thin spines, no legend frame, 600 dpi. That is what
+    makes a plot read as a journal figure rather than a matplotlib default.
+
+    ``no-latex`` is appended, for two reasons that are not preference:
+
+    * ``science`` sets ``text.usetex``, which needs ``cm-super`` (for ``type1ec.sty``) and
+      ``dvipng``; neither is installed and both need root. Without them nothing renders at all.
+    * even with them, the ``science`` preamble loads only ``amsmath`` and ``amssymb``, no font
+      package, so every figure would come out in Computer Modern while the manuscript body is
+      Times. ``mathtext`` with the Times-compatible serif below keeps the two in the same face,
+      which is also what the venue preflight's font check requires.
+
+    Three further defaults are deliberately overridden and must stay overridden:
+
+    * its ``axes.prop_cycle`` (and the ``ieee`` style's black/red/blue/green) is not
+      colourblind-safe, and this manuscript holds one meaning per colour across every figure,
+      so the Okabe-Ito palette above wins;
+    * its ``figure.figsize`` of 3.3 in is the generic two-column width, while the NDSS column
+      is 3.5 in;
+    * its ``savefig.bbox = "tight"`` crops the canvas after layout, so the emitted PDF is not
+      the size that was requested and no longer lands at a known width in the column. Layout is
+      done by ``constrained_layout`` instead and the box is left standard.
+    """
+    plt.style.use(["science", "ieee", "no-latex"])
     plt.rcParams.update({
         "font.family": "serif", "font.serif": SERIF, "font.size": 9,
         "axes.labelsize": 9, "axes.titlesize": 9, "xtick.labelsize": 8,
         "ytick.labelsize": 8, "legend.fontsize": 8, "figure.dpi": 600,
         "savefig.dpi": 600, "pdf.fonttype": 42, "ps.fonttype": 42, "svg.fonttype": "none",
-        "axes.linewidth": 0.6, "grid.linewidth": 0.4, "lines.linewidth": 1.1,
+        "axes.linewidth": 0.6, "grid.linewidth": 0.3, "lines.linewidth": 1.1,
         "figure.facecolor": "white", "axes.facecolor": "white",
         "savefig.facecolor": "white", "mathtext.fontset": "custom",
         "mathtext.rm": SERIF[0], "mathtext.it": SERIF[0] + ":italic",
+        # One meaning per colour, colourblind-safe. Overrides the SciencePlots cycle.
+        "axes.prop_cycle": matplotlib.cycler(color=[C_READ, C_SELECT, C_OPERATE, OFF, GREY]),
+        # The emitted PDF must be exactly the size the figure asked for.
+        "savefig.bbox": "standard", "savefig.pad_inches": 0.0,
+        "figure.constrained_layout.use": True,
+        "figure.constrained_layout.h_pad": 0.02, "figure.constrained_layout.w_pad": 0.02,
+        "figure.constrained_layout.hspace": 0.03, "figure.constrained_layout.wspace": 0.03,
+        # A frame around a key is a box of white drawn over the data. Direct labels and
+        # frameless keys read better at column width.
+        "legend.frameon": False, "legend.borderpad": 0.2, "legend.handletextpad": 0.5,
+        "legend.labelspacing": 0.25, "legend.borderaxespad": 0.3,
+        "xtick.major.size": 2.6, "ytick.major.size": 2.6,
+        "xtick.minor.size": 1.4, "ytick.minor.size": 1.4,
+        "xtick.major.width": 0.5, "ytick.major.width": 0.5,
+        "xtick.minor.width": 0.4, "ytick.minor.width": 0.4,
+        "xtick.major.pad": 2.0, "ytick.major.pad": 2.0,
+        "axes.labelpad": 2.0,
     })
 
 
 def grid(axes):
+    """No interior rules.
+
+    SciencePlots draws no grid and relies on minor ticks, which is the convention in IEEE and
+    NDSS figures, and it is what the Ditto figures these plots are matched to do. The hairline
+    grid this function used to add is gone: across a column-width panel it competed with the
+    data it was meant to help read. The name is kept because the call sites use it.
+    """
     for a in (axes if isinstance(axes, (list, tuple)) else [axes]):
-        a.grid(True, which="major", color="#CCCCCC", lw=0.4, zorder=0)
+        a.grid(False)
         a.set_axisbelow(True)
+
+
+def key(ax, **kw):
+    """The legend as Ditto draws it: a white box with a thin grey border, inside the panel."""
+    opts = dict(frameon=True, framealpha=1.0, facecolor="white", edgecolor="#666666",
+                fancybox=False, borderpad=0.35, handlelength=1.6, handletextpad=0.5,
+                labelspacing=0.28, fontsize=8)
+    opts.update(kw)
+    leg = ax.legend(**opts)
+    if leg is not None:
+        leg.get_frame().set_linewidth(0.5)
+    return leg
+
+
+def nogrid(axes):
+    for a in (axes if isinstance(axes, (list, tuple)) else [axes]):
+        a.grid(False)
 
 
 def sha256_file(path):
@@ -184,7 +266,9 @@ def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=
         "method_note": method_note,
         "limitation_note": limitation_note,
         "notes": notes,
-        "style": ("NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum "
+        "style": ("SciencePlots science+no-latex base (ticks in on four sides, minor ticks, "
+                  "frameless keys), NDSS 3.5 in column / 7.16 in text block, "
+                  "Times-compatible serif, minimum "
                   f"{MIN_PT} pt at printed size, Okabe-Ito palette, line style and marker vary "
                   "with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), "
                   "opaque white background"),

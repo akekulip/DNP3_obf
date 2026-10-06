@@ -1,27 +1,37 @@
-arm,attacker,features,fraction,iqr_hi,iqr_lo,matrix,max,mean,median,min,n_permutations,n_runs,null_max_bits,null_mean_bits,null_p95_bits,null_p99_bits,observed_bits,p_value,p_value_resolution,panel,predicted,true
-,fixed OFF,clrt,,0.6713,0.6326,,0.7219,0.6519,0.6436,0.5986,,22,,,,,,,,a,,
-,fixed Obf.,clrt,,0.3333,0.3331,,0.3333,0.3332,0.3333,0.3328,,22,,,,,,,,a,,
-,adapt. Obf.,clrt,,0.3333,0.3333,,0.3333,0.3333,0.3333,0.3333,,22,,,,,,,,a,,
-,fixed OFF,ack_clrt,,0.749,0.7219,,0.7825,0.7359,0.73,0.6961,,22,,,,,,,,a,,
-,fixed Obf.,ack_clrt,,0.3339,0.3333,,0.3342,0.3336,0.3336,0.3306,,22,,,,,,,,a,,
-,adapt. Obf.,ack_clrt,,0.6601,0.6432,,0.6908,0.651,0.6533,0.615,,22,,,,,,,,a,,
-Timing OFF,,,,,,,,,,,1000,,0.00916,0.00127,0.00502,0.00686,0.38342,0.001,0.001,b,,
-Obfuscated,,,,,,,,,,,1000,,0.00927,0.00124,0.005,0.00661,0.00417,0.08392,0.001,b,,
-,,,0.1374,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
-,,,0.8626,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
-,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
-,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
-,,,0.1367,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
-,,,0.0,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
-,,,0.8633,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE
-,,,0.9719,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
-,,,0.0188,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
-,,,0.0093,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
-,,,0.853,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
-,,,0.1348,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
-,,,0.0121,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
-,,,0.153,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
-,,,0.0008,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
-,,,0.8462,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE
+arm,attacker,balanced_accuracy,features,fraction,held_out_run_max,held_out_run_min,iqr_hi,iqr_lo,k,matrix,max,mean,median,min,n_permutations,n_runs,null_max_bits,null_mean_bits,null_p95_bits,null_p99_bits,observed_bits,p_value,p_value_resolution,panel,predicted,true
+,fixed OFF,,clrt,,,,0.7463,0.7142,,,0.7617,0.7284,0.721,0.6906,,22,,,,,,,,a,,
+,fixed Obf.,,clrt,,,,0.3403,0.3294,,,0.3483,0.3351,0.3342,0.3242,,22,,,,,,,,a,,
+,adaptive Obf.,,clrt,,,,0.4594,0.4434,,,0.4736,0.4514,0.4531,0.4261,,22,,,,,,,,a,,
+,fixed OFF,,ack_clrt,,,,0.8144,0.7943,,,0.83,0.8028,0.8035,0.7692,,22,,,,,,,,a,,
+,fixed Obf.,,ack_clrt,,,,0.3333,0.3333,,,0.3333,0.3333,0.3333,0.3333,,22,,,,,,,,a,,
+,adaptive Obf.,,ack_clrt,,,,0.4608,0.4322,,,0.4828,0.4452,0.4474,0.4114,,22,,,,,,,,a,,
+Timing OFF,,0.802,,,0.8347,0.7686,,,1,,,,,,,,,,,,,,,b,,
+Timing OFF,,0.8715,,,0.9178,0.8283,,,2,,,,,,,,,,,,,,,b,,
+Timing OFF,,0.8884,,,0.9667,0.8361,,,5,,,,,,,,,,,,,,,b,,
+Timing OFF,,0.9388,,,0.9917,0.8833,,,10,,,,,,,,,,,,,,,b,,
+Timing OFF,,0.897,,,0.9722,0.7444,,,20,,,,,,,,,,,,,,,b,,
+Obfuscated,,0.447,,,0.4825,0.3986,,,1,,,,,,,,,,,,,,,b,,
+Obfuscated,,0.5281,,,0.5567,0.4728,,,2,,,,,,,,,,,,,,,b,,
+Obfuscated,,0.6151,,,0.6806,0.55,,,5,,,,,,,,,,,,,,,b,,
+Obfuscated,,0.6318,,,0.6889,0.5528,,,10,,,,,,,,,,,,,,,b,,
+Obfuscated,,0.65,,,0.7222,0.5389,,,20,,,,,,,,,,,,,,,b,,
+Timing OFF,,,,,,,,,,,,,,,1000,,0.00945,0.00121,0.00487,0.00734,0.35314,0.001,0.001,not_drawn_mutual_information,,
+Obfuscated,,,,,,,,,,,,,,,1000,,0.00904,0.00122,0.00493,0.0068,0.04279,0.001,0.001,not_drawn_mutual_information,,
+,,,,0.9545,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
+,,,,0.0,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
+,,,,0.0455,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
+,,,,0.9545,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
+,,,,0.0,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
+,,,,0.0455,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
+,,,,0.9545,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
+,,,,0.0,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
+,,,,0.0455,,,,,,"A fixed, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE
+,,,,0.4112,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,READ
+,,,,0.2109,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,READ
+,,,,0.3778,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,READ
+,,,,0.4053,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,SELECT
+,,,,0.2352,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,SELECT
+,,,,0.3595,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,SELECT
+,,,,0.1924,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,READ,OPERATE
+,,,,0.1186,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,SELECT,OPERATE
+,,,,0.689,,,,,,"B adaptive, on Obfuscated",,,,,,,,,,,,,,not_drawn_confusion,OPERATE,OPERATE

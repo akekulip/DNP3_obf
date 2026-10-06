@@ -1,9 +1,6 @@
-> **Historical.** A dated record of work that preceded the campaign_v1 correction of
-> 2026-08-28. Where it names evidence, figures or claims as current, read it as describing
-> the `final_read_sbo` state of that date. The active evidence authority is
-> `defense4/timing/evidence/campaign_v1/`, the active claim authority is
-> `defense4/timing/CLAIMS_AND_LIMITATIONS.md`, and the active figures are
-> `paper/rewrite/figures/ndss/`. Kept for provenance.
+> **Historical record, 2026-08-28.** This file describes `final_read_sbo`; its references to
+> current evidence predate the later campaign correction. The paper now reports
+> `evidence/campaign_v2/`. Current claim and figure authority is listed in `REPOSITORY_MAP.md`.
 
 # Provenance — from silicon to figure
 

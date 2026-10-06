@@ -1,0 +1,28 @@
+{
+  "source": "/home/philip/Projects/DNP3/defense4/timing/stage_reduction/src/defense4_timing.p4",
+  "source_sha256": "bfc0a37eff2f350028841f9352ab2054102b60b94c26d89ee2f330b095cf052d",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-DU_BOR",
+    "-o",
+    "/tmp/dnp3-stage-reduction/timing_only/out",
+    "/tmp/dnp3-stage-reduction/timing_only/defense4_timing.p4"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 14.381,
+  "ingress_stages": 12,
+  "egress_stages": 0,
+  "critical_path": 12,
+  "tables": 98,
+  "artifact_sha256": {
+    "bfrt.json": "21cda1e1b7c749ec6306512b8ea42ef8f6a97754b73a28e4ca3cf8f6b95a6f10",
+    "pipe/context.json": "332de06212616a337f8204c326dd008a908322863959def3997623346acd7c74",
+    "pipe/tofino.bin": "c02c848d8c85b87b59e33bf161ffa6f8bc27414315e45084e47c7c52970bb4a9"
+  }
+}

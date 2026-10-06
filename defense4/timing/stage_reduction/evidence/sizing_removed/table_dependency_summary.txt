@@ -1,0 +1,207 @@
+#pipeline pipe
+#stage 0
+^--------------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_build_exp_ack_0(0,0) : ingress
+A^-------------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_session_0(0,0) : ingress
+A-^------------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2837(0,2) : ingress
+A--^------------ --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_bor_params_0(0,5) : ingress
+A---^----------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - cond-72(0,0) : ingress
+----B^---------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2878(0,0) : ingress
+-----C^--------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2879(0,0) : ingress
+------C^-------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2880(0,0) : ingress
+A-------^------- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_params_0(0,1) : ingress
+A--------^------ --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2843(0,1) : ingress
+AD--------^----- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - cond-83(0,1) : ingress
+----------C^---- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2950(0,1) : ingress
+-----------C^--- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2956(0,1) : ingress
+------------C^-- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2967(0,1) : ingress
+----------B---^- --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2926(0,1) : ingress
+B--------------^ --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2834(0,10) : ingress
+#stage 1
+-E------------C- ^-------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2928(1,1) : ingress
+-E-------------- C^------------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2931(1,1) : ingress
+-E-------------- -C^------------ ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2934(1,1) : ingress
+A------D-------- ---^----------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - cond-76(0,1) : ingress
+-----EEE-------- ---B^---------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2884(1,1) : ingress
+---------------- ----C^--------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2885(1,1) : ingress
+---------------- ---C--^-------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2888(0,1) : ingress
+---------------- ------C^------- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2889(0,1) : ingress
+---------------- -----C--^------ ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2886(1,1) : ingress
+AF-------------- ---------^----- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3003(1,2) : ingress
+AG-------------- ----------^---- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3001(1,2) : ingress
+-H-------------- ----------C^--- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3002(1,2) : ingress
+A-I------------- ------------^-- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_build_now_0(1,3) : ingress
+A--------------- -------------^- ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2895(0,3) : ingress
+A--------------- --------------^ ------------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2846(0,9) : ingress
+#stage 2
+J----------EED-- EEI------------ ^------------ ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3005(2,2) : ingress
+H--------------- --------------- C^----------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3007(2,2) : ingress
+A-------DD-EED-- EEI------------ --^---------- ------ -------- ---------- ---- -- ----- ------------- ----- - cond-91(2,2) : ingress
+--------E---KKK- --------------- --B^--------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2980(2,2) : ingress
+------------KKK- --------------- ---C^-------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2982(2,2) : ingress
+---------E-EE--- EEE------------ --C--^------- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2985(2,11) : ingress
+A--------I------ ----EEEII------ ------^------ ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing2894(2,2) : ingress
+A-------I------- ------------I-- -------^----- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_build_cand_0(2,4) : ingress
+A--------------- -------------F- --------^---- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_bor_codebook_0(1,4) : ingress
+A-------I------- ------------I-- ---------^--- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_build_cand_resp_0(2,4) : ingress
+A--------------- ----EEEII------ ----------^-- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3157(2,5) : ingress
+---------------- ----EEEEE------ ----------C^- ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3158(2,5) : ingress
+---------------- --------------- -----------C^ ------ -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3165(2,5) : ingress
+#stage 3
+A----------HLMK- HHF------FHF--- HF-KM-------- ^----- -------- ---------- ---- -- ----- ------------- ----- - tbl_resp_authorise_0(3,3) : ingress
+A--------------- ------------I-- --------I---- -^---- -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3166(2,5) : ingress
+A--------------- ----EEEII------ ------F------ --^--- -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3154(3,3) : ingress
+---------------- ----EEEEE------ ------H------ --C^-- -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3155(3,3) : ingress
+---------------- --------------- ------H------ ---C^- -------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3156(3,3) : ingress
+A-------D----D-- --D-EEEII------ ----D-------- D----^ -------- ---------- ---- -- ----- ------------- ----- - cond-96(3,4) : ingress
+#stage 4
+--------E--ENHH- EEE------------ ---HH-------- L----B ^------- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3033(4,4) : ingress
+-----------ENHH- EEE------------ ---HH-------- L----- C^------ ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3037(4,4) : ingress
+-----------ENHH- EEE------------ ---HH-------- L----- -C^----- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3043(4,4) : ingress
+-----------ENHH- EEE------------ ---HH-------- L----- --C^---- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3059(4,4) : ingress
+--------E---HHH- --------------- ---HH-------- L----- ---B^--- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3054(4,4) : ingress
+------------HHH- --------------- ---HH-------- L----- ----C^-- ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3056(4,4) : ingress
+A--------------- ----EEEII------ ------------- ----D- ------^- ---------- ---- -- ----- ------------- ----- - cond-112(3,4) : ingress
+---------------- --------------- ------------- --EEE- ------B^ ---------- ---- -- ----- ------------- ----- - tbl_defense4_timing3169(4,4) : ingress
+#stage 5
+A----------HLMK- HHF------FHF--- HF-KM--I-O--- P----- QQRQRS-- ^--------- ---- -- ----- ------------- ----- - tbl_state_decode_0(5,5) : ingress
+A--------------- --------------- ------------- F----- --H-HF-- -^-------- ---- -- ----- ------------- ----- - tbl_txn_active_0(5,7) : ingress
+A--------------- ----EEEII------ ------------- --HHF- -------I --^------- ---- -- ----- ------------- ----- - tbl_defense4_timing3170(5,5) : ingress
+---------------- ----EEEEE------ ------------- --HHH- -------- --C^------ ---- -- ----- ------------- ----- - tbl_defense4_timing3171(5,5) : ingress
+---------------- ----EEEEE------ ------------- --HHH- -------- ---C^----- ---- -- ----- ------------- ----- - tbl_defense4_timing3172(5,6) : ingress
+A--------------- ----EEEII------ ------------D -D--D- -------- ----D^---- ---- -- ----- ------------- ----- - cond-117(5,6) : ingress
+---------------- --------------- ----------EEE ------ -------- -----B^--- ---- -- ----- ------------- ----- - tbl_defense4_timing3180(5,6) : ingress
+---------------- --------------- ----------EEE ------ -------- ------C^-- ---- -- ----- ------------- ----- - tbl_defense4_timing3181(5,6) : ingress
+---------------- --------------- ------------- ------ -------- -------C^- ---- -- ----- ------------- ----- - tbl_defense4_timing3182(5,6) : ingress
+---------------- --------------- ------------- -KEEE- -------- -----B---^ ---- -- ----- ------------- ----- - tbl_defense4_timing3177(5,6) : ingress
+#stage 6
+---------------- --------------- ------------- -KEEE- -------- ---E-----A ^--- -- ----- ------------- ----- - tbl_defense4_timing3178(6,6) : ingress
+A--I-------EED-- EEI------------ -------I-O--- ------ -------- O--------- -^-- -- ----- ------------- ----- - tbl_defense4_timing3098(6,6) : ingress
+A----------ENFH- EEI------------ ---HF-------- T----- KKHKHF-- U--------- --^- -- ----- ------------- ----- - tbl_defense4_timing3138(6,9) : ingress
+-----------ENHH- EEE------------ ---HH-------- L----- KKHKHH-- V--------- --C^ -- ----- ------------- ----- - tbl_defense4_timing3144(6,9) : ingress
+#stage 7
+A--I------------ ----EEEII---I-- ---------M--- ------ -------- M--------- -M-- ^- ----- ------------- ----- - tbl_defense4_timing3102(7,7) : ingress
+A--------------- --------------- ------------- -O---- -------- ------EEIE I--- W^ ----- ------------- ----- - tbl_hold_ok_0(7,7) : ingress
+#stage 8
+A--------------- ---------D--F-- ---------G--- D----- -------- GM-------- -F-- F- ^---- ------------- ----- - tbl_defense4_timing3119(8,8) : ingress
+---------------- ---------K--H-- ---------H--- K----- -------- HK-------- -H-- H- B^--- ------------- ----- - tbl_defense4_timing3117(8,8) : ingress
+A--------------- ------------F-- ---------G--- ------ -------- GM-------- -F-- F- --^-- ------------- ----- - tbl_defense4_timing3128(8,8) : ingress
+---------------- ------------H-- ---------H--- ------ -------- H--------- -H-- H- --B^- ------------- ----- - tbl_defense4_timing3126(8,9) : ingress
+A--------------- ----EEEII---F-- ------------- -F---- -------- ---------- ---- -F ----^ ------------- ----- - tbl_defense4_timing3186(8,8) : ingress
+#stage 9
+A--------------- --------------- ------------- ------ -------- -I-------- ---- -M --ED- ^------------ ----- - tbl_tresp_expiry_0(9,9) : ingress
+A--------------- --------------- ------------- ------ -------- -I-------- ---- -M ED--- -^----------- ----- - tbl_deadline_expiry_0(9,9) : ingress
+A--------------- --------------- ------------- ------ -------- ---------- ---- -M ----I --^---------- ----- - tbl_topj_expiry_0(9,9) : ingress
+A--------------- ---------I----- ------------- I----- -------- -I-------- ---- -M -I--- ---^--------- ----- - tbl_defense4_timing3212(9,9) : ingress
+A------DDD---D-- --D-EEEII-----D ---------D--- D---D- -----D-D DD------D- ---D -D ----- DDDD^-------- ----- - cond-124(9,10) : ingress
+---------------- ----EEEEE------ ------------- ------ -------- ---------- ---- -- ----- ----C^------- ----- - cond-127(9,10) : ingress
+---------------- ----EEEEE------ ------------- ------ -------- ---------- ---- -- ----- -----C^------ ----- - tbl_defense4_timing3229(9,10) : ingress
+---------------- ----EEEEE------ ------------- ------ -------- ---------- ---- -- ----- ------C^----- ----- - cond-132(9,10) : ingress
+--------EX-X---- ------X-------X ------------- --RRR- -------X ---------- ---- -- ----- -------B^---- ----- - tbl_defense4_timing3232(9,10) : ingress
+---------------- --------------- ------------- ------ -------- ---------- ---- -- ----- --------C^--- ----- - tbl_defense4_timing3235(9,10) : ingress
+---------------- --------------- ------------- ------ -------E ---------- ---- -- ----- -----B----^-- ----- - tbl_defense4_timing3224(9,10) : ingress
+---------------- --------------- ------------- ------ -------- ------EEE- ---- -- ----- ----B------^- ----- - tbl_defense4_timing3220(9,10) : ingress
+---------------- --------------- ------------- ------ -------- ------EEE- ---- -E ----- -----------C^ ----- - tbl_defense4_timing3221(9,10) : ingress
+#stage 10
+---------------- --------------- ------------- ------ -------- ---------- ---- -E ----- --E-------C-- ^---- - tbl_defense4_timing3225(10,10) : ingress
+---------E------ --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- C^--- - tbl_defense4_timing3226(10,10) : ingress
+---------X------ --------------- ------------- ------ -------- ---------- ---- -- ----- ------------- -C^-- - tbl_defense4_timing3227(10,10) : ingress
+---------V------ --------------H ---------H--- ------ -------- H--------- ---- -H ----- HH-----C----- ---^- - tbl_decide_deq_0(10,10) : ingress
+-----HHHNX-VH--- HHH---X-------X ---------H--- N-YYY- HHEHEE-X HH-------- --HH -H ----- ---H--------C ---B^ - tbl_decide_fresh_0(10,10) : ingress
+#stage 11
+---------------F --------------- ------------- ------ -------- ---------- ---- -- ----- ------H-HFHHH HHFHF ^ tbl_commit_0(11,11) : ingress
+#dependencies
+A :  CONTROL_DEFAULT_NEXT_TABLE
+B :  CONTROL_COND_TRUE
+C :  CONTROL_COND_FALSE
+D :  ANTI_NEXT_TABLE_DATA
+E :  ACTION_READ
+F :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+G :  IXBAR_READ ACTION_READ ANTI_NEXT_TABLE_DATA
+H :  IXBAR_READ
+I :  ACTION_READ ANTI_NEXT_TABLE_DATA
+J :  CONTROL_DEFAULT_NEXT_TABLE IXBAR_READ
+K :  OUTPUT
+L :  IXBAR_READ OUTPUT
+M :  OUTPUT ANTI_NEXT_TABLE_DATA
+N :  IXBAR_READ ACTION_READ
+O :  ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+P :  IXBAR_READ ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+Q :  IXBAR_READ ANTI_TABLE_READ ANTI_ACTION_READ
+R :  ACTION_READ ANTI_TABLE_READ ANTI_ACTION_READ
+S :  ACTION_READ ANTI_TABLE_READ ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+T :  IXBAR_READ OUTPUT ANTI_NEXT_TABLE_DATA
+U :  IXBAR_READ ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+V :  IXBAR_READ ANTI_ACTION_READ
+W :  ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+X :  ANTI_ACTION_READ
+Y :  ANTI_TABLE_READ ANTI_ACTION_READ
+
+*** Table dependency chains (of minimum length 8) ***
+
+1. tbl_build_exp_ack_0(0) -> tbl_session_0(0) -> tbl_defense4_timing2928(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+2. tbl_session_0(0) -> tbl_defense4_timing2928(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+3. tbl_defense4_timing2928(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+4. tbl_defense4_timing2928(1) -> tbl_defense4_timing2931(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+5. tbl_session_0(0) -> tbl_defense4_timing2931(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+6. tbl_defense4_timing2931(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+7. tbl_defense4_timing2931(1) -> tbl_defense4_timing2934(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+8. tbl_session_0(0) -> tbl_defense4_timing2934(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+9. tbl_defense4_timing2934(1) -> tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+10. tbl_defense4_timing3005(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+11. tbl_defense4_timing3005(2) -> tbl_defense4_timing3007(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+12. tbl_defense4_timing3007(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+13. tbl_defense4_timing2928(1) -> cond-91(2) -> tbl_defense4_timing2980(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+14. tbl_defense4_timing2931(1) -> cond-91(2) -> tbl_defense4_timing2980(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+15. tbl_defense4_timing2934(1) -> cond-91(2) -> tbl_defense4_timing2980(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+16. cond-91(2) -> tbl_defense4_timing2980(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+17. tbl_defense4_timing2980(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+18. tbl_defense4_timing2980(2) -> tbl_defense4_timing2982(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+19. tbl_defense4_timing2982(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_timing3033(4) -> tbl_state_decode_0(5) -> tbl_defense4_timing3098(6) -> tbl_defense4_timing3102(7) -> tbl_defense4_timing3119(8) -> tbl_deadline_expiry_0(9) -> tbl_decide_deq_0(10) -> tbl_decide_fresh_0(10) -> tbl_commit_0(11) (ingress)
+
+20. tbl_build_exp_ack_0(0) -> cond-72(0) -> tbl_defense4_timing2878(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+21. cond-72(0) -> tbl_defense4_timing2878(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+22. tbl_defense4_timing2878(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+23. tbl_defense4_timing2878(0) -> tbl_defense4_timing2879(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+24. tbl_defense4_timing2879(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+25. tbl_defense4_timing2879(0) -> tbl_defense4_timing2880(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+26. tbl_defense4_timing2880(0) -> tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+27. tbl_defense4_timing2884(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+28. tbl_defense4_timing2884(1) -> tbl_defense4_timing2885(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+29. tbl_defense4_timing2885(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+30. tbl_defense4_timing2885(1) -> tbl_defense4_timing2886(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+31. tbl_defense4_timing2886(1) -> tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+32. tbl_defense4_timing2894(2) -> tbl_defense4_timing3154(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+33. tbl_defense4_timing2894(2) -> tbl_defense4_timing3155(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)
+
+34. tbl_defense4_timing2894(2) -> tbl_defense4_timing3156(3) -> tbl_defense4_timing3169(4) -> tbl_defense4_timing3170(5) -> tbl_defense4_timing3171(5) -> tbl_defense4_timing3178(6) -> tbl_hold_ok_0(7) -> tbl_defense4_timing3186(8) -> tbl_topj_expiry_0(9) -> tbl_defense4_timing3225(10) -> tbl_commit_0(11) (ingress)

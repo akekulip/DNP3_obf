@@ -1,0 +1,110 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 12
+Number of tables allocated: 98
++-------+-----------------+-----------------------------+
+| Stage | Min / Max Stage |         Table Name          |
++-------+-----------------+-----------------------------+
+|   0   |    [ -, - ]     |  Ingress.tbl_build_exp_ack  |
+|   0   |    [ 0, 0 ]     |     Ingress.tbl_session     |
+|   0   |    [ 0, 2 ]     |   tbl_defense4_timing2837   |
+|   0   |    [ 0, 5 ]     |   Ingress.tbl_bor_params    |
+|   0   |    [ 0, 0 ]     |           cond-72           |
+|   0   |    [ 0, 0 ]     |   tbl_defense4_timing2878   |
+|   0   |    [ 0, 0 ]     |   tbl_defense4_timing2879   |
+|   0   |    [ 0, 0 ]     |   tbl_defense4_timing2880   |
+|   0   |    [ 0, 1 ]     |     Ingress.tbl_params      |
+|   0   |    [ 0, 1 ]     |   tbl_defense4_timing2843   |
+|   0   |    [ 0, 1 ]     |           cond-83           |
+|   0   |    [ 0, 1 ]     |   tbl_defense4_timing2950   |
+|   0   |    [ 0, 1 ]     |   tbl_defense4_timing2956   |
+|   0   |    [ 0, 1 ]     |   tbl_defense4_timing2967   |
+|   0   |    [ 0, 1 ]     |   tbl_defense4_timing2926   |
+|   0   |   [ 0, 10 ]     |   tbl_defense4_timing2834   |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2928   |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2931   |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2934   |
+|   1   |    [ 0, 1 ]     |           cond-76           |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2884   |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2885   |
+|   1   |    [ 0, 1 ]     |   tbl_defense4_timing2888   |
+|   1   |    [ 0, 1 ]     |   tbl_defense4_timing2889   |
+|   1   |    [ 1, 1 ]     |   tbl_defense4_timing2886   |
+|   1   |    [ 1, 2 ]     |   tbl_defense4_timing3003   |
+|   1   |    [ 1, 2 ]     |   tbl_defense4_timing3001   |
+|   1   |    [ 1, 2 ]     |   tbl_defense4_timing3002   |
+|   1   |    [ 1, 3 ]     |    Ingress.tbl_build_now    |
+|   1   |    [ 0, 3 ]     |   tbl_defense4_timing2895   |
+|   1   |    [ 0, 9 ]     |   tbl_defense4_timing2846   |
+|   2   |    [ 2, 2 ]     |   tbl_defense4_timing3005   |
+|   2   |    [ 2, 2 ]     |   tbl_defense4_timing3007   |
+|   2   |    [ 2, 2 ]     |           cond-91           |
+|   2   |    [ 2, 2 ]     |   tbl_defense4_timing2980   |
+|   2   |    [ 2, 2 ]     |   tbl_defense4_timing2982   |
+|   2   |   [ 2, 11 ]     |   tbl_defense4_timing2985   |
+|   2   |    [ 2, 2 ]     |   tbl_defense4_timing2894   |
+|   2   |    [ 2, 4 ]     |   Ingress.tbl_build_cand    |
+|   2   |    [ 1, 4 ]     |  Ingress.tbl_bor_codebook   |
+|   2   |    [ 2, 4 ]     | Ingress.tbl_build_cand_resp |
+|   2   |    [ 2, 5 ]     |   tbl_defense4_timing3157   |
+|   2   |    [ 2, 5 ]     |   tbl_defense4_timing3158   |
+|   2   |    [ 2, 5 ]     |   tbl_defense4_timing3165   |
+|   3   |    [ 3, 3 ]     | Ingress.tbl_resp_authorise  |
+|   3   |    [ 2, 5 ]     |   tbl_defense4_timing3166   |
+|   3   |    [ 3, 3 ]     |   tbl_defense4_timing3154   |
+|   3   |    [ 3, 3 ]     |   tbl_defense4_timing3155   |
+|   3   |    [ 3, 3 ]     |   tbl_defense4_timing3156   |
+|   3   |    [ 3, 4 ]     |           cond-96           |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3033   |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3037   |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3043   |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3059   |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3054   |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3056   |
+|   4   |    [ 3, 4 ]     |          cond-112           |
+|   4   |    [ 4, 4 ]     |   tbl_defense4_timing3169   |
+|   5   |    [ 5, 5 ]     |  Ingress.tbl_state_decode   |
+|   5   |    [ 5, 7 ]     |   Ingress.tbl_txn_active    |
+|   5   |    [ 5, 5 ]     |   tbl_defense4_timing3170   |
+|   5   |    [ 5, 5 ]     |   tbl_defense4_timing3171   |
+|   5   |    [ 5, 6 ]     |   tbl_defense4_timing3172   |
+|   5   |    [ 5, 6 ]     |          cond-117           |
+|   5   |    [ 5, 6 ]     |   tbl_defense4_timing3180   |
+|   5   |    [ 5, 6 ]     |   tbl_defense4_timing3181   |
+|   5   |    [ 5, 6 ]     |   tbl_defense4_timing3182   |
+|   5   |    [ 5, 6 ]     |   tbl_defense4_timing3177   |
+|   6   |    [ 6, 6 ]     |   tbl_defense4_timing3178   |
+|   6   |    [ 6, 6 ]     |   tbl_defense4_timing3098   |
+|   6   |    [ 6, 9 ]     |   tbl_defense4_timing3138   |
+|   6   |    [ 6, 9 ]     |   tbl_defense4_timing3144   |
+|   7   |    [ 7, 7 ]     |   tbl_defense4_timing3102   |
+|   7   |    [ 7, 7 ]     |     Ingress.tbl_hold_ok     |
+|   8   |    [ 8, 8 ]     |   tbl_defense4_timing3119   |
+|   8   |    [ 8, 8 ]     |   tbl_defense4_timing3117   |
+|   8   |    [ 8, 8 ]     |   tbl_defense4_timing3128   |
+|   8   |    [ 8, 9 ]     |   tbl_defense4_timing3126   |
+|   8   |    [ 8, 8 ]     |   tbl_defense4_timing3186   |
+|   9   |    [ 9, 9 ]     |  Ingress.tbl_tresp_expiry   |
+|   9   |    [ 9, 9 ]     | Ingress.tbl_deadline_expiry |
+|   9   |    [ 9, 9 ]     |   Ingress.tbl_topj_expiry   |
+|   9   |    [ 9, 9 ]     |   tbl_defense4_timing3212   |
+|   9   |   [ 9, 10 ]     |          cond-124           |
+|   9   |   [ 9, 10 ]     |          cond-127           |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3229   |
+|   9   |   [ 9, 10 ]     |          cond-132           |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3232   |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3235   |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3224   |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3220   |
+|   9   |   [ 9, 10 ]     |   tbl_defense4_timing3221   |
+|  10   |   [ 10, 10 ]    |   tbl_defense4_timing3225   |
+|  10   |   [ 10, 10 ]    |   tbl_defense4_timing3226   |
+|  10   |   [ 10, 10 ]    |   tbl_defense4_timing3227   |
+|  10   |   [ 10, 10 ]    |   Ingress.tbl_decide_deq    |
+|  10   |   [ 10, 10 ]    |  Ingress.tbl_decide_fresh   |
+|  11   |   [ 11, 11 ]    |     Ingress.tbl_commit      |
++-------+-----------------+-----------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope

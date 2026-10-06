@@ -1,0 +1,71 @@
+--- implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4	2026-09-15 19:17:11.290148013 -0400
++++ anchor_fix/src/defense4_rrc_bor_unified12.p4	2026-09-18 20:32:41.938654262 -0400
+@@ -1003,6 +1003,7 @@
+      * re-anchor them. All 32-bit -> the roomy W PHV group (B0-15 stays flat). */
+     bit<32> a_ticks;       /* A in ticks (T_ACK_RELEASE total from T0)                       */
+     bit<32> r_ticks;       /* R in ticks (T_ECHO_RELEASE total from T0)                      */
++    bit<8>  anchor_req;    /* anchor fix: 1 = read lane arms at the REQUEST, not the relay ACK */
+     bit<32> dl_cand_op;    /* now_word + a_ticks = T0 + A (OPERATE ACK deadline word)        */
+     bit<32> tresp_cand_op; /* now_word + r_ticks = T0 + R (OPERATE echo deadline word)       */
+ #endif
+@@ -1144,6 +1145,9 @@
+         meta.age             = 32w0;
+         meta.mode            = MODE_D3_ACK;   /* default: the proven Defense 3 policy */
+         meta.da_dr           = 32w0;
++#ifdef U_BOR
++        meta.anchor_req      = 8w0;      /* anchor fix: off unless the control plane sets it */
++#endif
+         meta.tresp_cand      = 32w0;
+         meta.dl_val_resp     = DL_NO_WRITE;
+         meta.age_resp        = 32w0;
+@@ -1824,13 +1828,14 @@
+      * keyless table so the frozen caseA control plane's set_params signature is UNTOUCHED
+      * (tbl_params still has exactly its 6 fields). The unified BOR setup writes+reads-back
+      * this entry and validates A>J_max+ack_native, R>J_max+resp_native, R>=A, horizon. */
+-    action set_bor_params(bit<32> a_ticks, bit<32> r_ticks) {
+-        meta.a_ticks = a_ticks;
+-        meta.r_ticks = r_ticks;
++    action set_bor_params(bit<32> a_ticks, bit<32> r_ticks, bit<8> anchor_req) {
++        meta.a_ticks    = a_ticks;
++        meta.r_ticks    = r_ticks;
++        meta.anchor_req = anchor_req;
+     }
+     table tbl_bor_params {
+         actions = { set_bor_params; }
+-        default_action = set_bor_params(A_DEFAULT_TICKS, R_DEFAULT_TICKS);
++        default_action = set_bor_params(A_DEFAULT_TICKS, R_DEFAULT_TICKS, 8w0);
+         size = 1;
+     }
+ #endif
+@@ -3142,6 +3147,31 @@
+              * these words (dl_val != DL_NO_WRITE); the relay ACK then takes deadline_arm_once,
+              * which is a no-op because the stored word is already armed (arm-once). This is the
+              * anti-subtraction invariant: echo_release − ack_release = R − A, independent of J. */
++            /* ►► ANCHOR FIX: the same override, widened to the READ LANE.
++             * As frozen, a READ or SELECT request took dec_arm_fresh and DISARMED
++             * (dl_val = UNARMED_WORD); the relay's own TCP acknowledgment then armed
++             * t_A + D_A, so the relay's acknowledgment latency t_A - T0 sat inside the
++             * master-visible interval and was measurable. Measured on campaign_v1: that
++             * asymmetry supplies 0.555 ms of the 0.686 ms spread between the class
++             * medians of the request-to-acknowledgment interval.
++             *
++             * With anchor_req == 1 the request writes T0 + D_A and T0 + D_A + D_R here,
++             * exactly as the OPERATE does below, and the later relay acknowledgment takes
++             * deadline_arm_once / tresp_arm_once, which are no-ops because the stored word
++             * is no longer the unarmed sentinel. Nothing else moves: the blocker reservoir
++             * is already seeded at this same request (OUT_ARM_FRESH -> cmt_fwd_clone), the
++             * armed word keeps its zero low byte so tbl_deadline_expiry is unchanged, and
++             * UNARMED_WORD remains what an OFF-mode request writes.
++             *
++             * anchor_req is a runtime parameter on the existing tbl_bor_params default
++             * entry, so one loaded binary runs both schedules and a single session can
++             * interleave them. The OPERATE override below runs AFTER this one and is
++             * therefore untouched: the control lane keeps its own A and R. */
++            if (meta.anchor_req == 8w1 && meta.pkt_class == CLASS_ARM
++                                       && meta.verdict == V_ARM_FRESH) {
++                meta.dl_val      = meta.dl_cand;         /* T0 + D_A          */
++                meta.dl_val_resp = meta.tresp_cand;      /* T0 + D_A + D_R    */
++            }
+             if (meta.bor_pc == BPC_OPERATE && meta.hold_ok == 8w1) {
+                 meta.dl_val      = meta.dl_cand_op;      /* T0 + A */
+                 meta.dl_val_resp = meta.tresp_cand_op;   /* T0 + R */

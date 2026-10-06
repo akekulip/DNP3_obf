@@ -1,0 +1,86 @@
+--- implementation/control/defense4_rrc_bor_unified12_setup.py	2026-09-15 19:17:11.286147991 -0400
++++ anchor_fix/control/defense4_rrc_bor_unified12_setup.py	2026-09-18 20:33:10.006823233 -0400
+@@ -492,9 +492,12 @@
+ 
+     # 8. tbl_bor_params (A/R T0-anchored totals)
+     st.tbl_bor_params = {"a_ticks": int(round((a.op_a_ms or 0) * 1e6)),
+-                         "r_ticks": int(round((a.op_r_ms or 0) * 1e6))}
++                         "r_ticks": int(round((a.op_r_ms or 0) * 1e6)),
++                         "anchor_req": int(getattr(a, "anchor_req", 0))}
+     chk.expect("tbl_bor_params a_ticks", st.tbl_bor_params.get("a_ticks"), int(round((a.op_a_ms or 0) * 1e6)))
+     chk.expect("tbl_bor_params r_ticks", st.tbl_bor_params.get("r_ticks"), int(round((a.op_r_ms or 0) * 1e6)))
++    chk.expect("tbl_bor_params anchor_req", st.tbl_bor_params.get("anchor_req"),
++               int(getattr(a, "anchor_req", 0)))
+ 
+     # 9. tbl_bor_codebook — FULL non-overlapping coverage of buckets 0..255
+     ranges = build_codebook_coverage(_parse_ms_set(a.j_set), gap=("codebook_gap" in faults))
+@@ -551,10 +554,11 @@
+ # ===========================================================================
+ def offline_readback_selftest(chk):
+     store = {}
+-    store[("tbl_bor_params", "default")] = {"a_ticks": A_DEFAULT_TICKS, "r_ticks": R_DEFAULT_TICKS}
++    store[("tbl_bor_params", "default")] = {"a_ticks": A_DEFAULT_TICKS, "r_ticks": R_DEFAULT_TICKS,
++                                            "anchor_req": 0}
+     got = store.get(("tbl_bor_params", "default"))
+     chk.expect("selftest readback tbl_bor_params",
+-               got, {"a_ticks": A_DEFAULT_TICKS, "r_ticks": R_DEFAULT_TICKS})
++               got, {"a_ticks": A_DEFAULT_TICKS, "r_ticks": R_DEFAULT_TICKS, "anchor_req": 0})
+     store[("reg_bor_gen", 0)] = {"value": 0}
+     chk.expect("selftest readback reg_bor_gen==0", store.get(("reg_bor_gen", 0)), {"value": 0})
+     # negative control: corrupt the store; assert the local compare DETECTS it (fail-closed logic)
+@@ -813,13 +817,15 @@
+     import bfrt_grpc.client as gc
+     a_ticks = int(round((a.op_a_ms or 0) * 1e6))
+     r_ticks = int(round((a.op_r_ms or 0) * 1e6))
++    anchor_req = int(getattr(a, "anchor_req", 0))
+     t = d3.get_table(bi, "tbl_bor_params", chk)
+     if t is None:
+         chk.fail("tbl_bor_params", "not found")
+         return
+     try:
+         t.default_entry_set(tgt, t.make_data(
+-            [gc.DataTuple("a_ticks", a_ticks), gc.DataTuple("r_ticks", r_ticks)], "set_bor_params"))
++            [gc.DataTuple("a_ticks", a_ticks), gc.DataTuple("r_ticks", r_ticks),
++             gc.DataTuple("anchor_req", anchor_req)], "set_bor_params"))
+     except Exception as e:
+         chk.fail("tbl_bor_params set", str(e)[:120])
+     got = None
+@@ -833,6 +839,9 @@
+     if got:
+         chk.expect("tbl_bor_params a_ticks", got.get("a_ticks"), a_ticks)
+         chk.expect("tbl_bor_params r_ticks", got.get("r_ticks"), r_ticks)
++        # The anchor fix is worthless if it is not actually loaded, so it is asserted
++        # from hardware exactly like A and R, not assumed from the command line.
++        chk.expect("tbl_bor_params anchor_req", got.get("anchor_req"), anchor_req)
+ 
+ 
+ def hw_verify_tbl_commit(bi, tgt, chk):
+@@ -991,7 +1000,7 @@
+         "   6. pktgen port + 2 buffers + 2 mutually-exclusive patterns (0xE1:00 / 0xE1:01),\n"
+         "      value_set {0x01,0x02}, mirror session %d -> dp%d\n"
+         "   7. caseA tbl_params timing (shape_enable OFF)\n"
+-        "   8. tbl_bor_params (A=%g ms, R=%g ms)\n"
++        "   8. tbl_bor_params (A=%g ms, R=%g ms, anchor_req=%d)\n"
+         "   9. tbl_bor_codebook: NON-OVERLAPPING ranges covering buckets 0..255 EXACTLY\n"
+         "  10. tbl_session (reverse 5-tuple x2)\n"
+         "  11. PRE mgid 0x%04x -> node 0x%04x(RID1)+0x%04x(RID2) -> dp%d\n"
+@@ -1000,6 +1009,7 @@
+         "  14. enable pktgen apps + shape ONLY after every prerequisite passed\n"
+         "  Authorized run: DEFENSE4_HW_AUTHORIZED=1 python3 %s configure-all --grpc <addr> ...\n"
+         % (CLONE_SESSION_ID, PORT_PGEN, a.op_a_ms or 0, a.op_r_ms or 0,
++           int(getattr(a, "anchor_req", 0)),
+            RRC_MGID, RRC_NODE1, RRC_NODE2, PORT_VISION, os.path.basename(__file__)))
+ 
+ 
+@@ -1067,6 +1077,11 @@
+     # deadline set (ms)
+     p.add_argument("--op-a-ms", type=float, default=A_DEFAULT_TICKS / 1e6, help="A = T0->ACK release")
+     p.add_argument("--op-r-ms", type=float, default=R_DEFAULT_TICKS / 1e6, help="R = T0->echo release")
++    # anchor fix (2026-09-18): request-anchored read lane. 0 reproduces the frozen,
++    # acknowledgment-anchored schedule that campaign_v1 evaluated; 1 makes a READ or
++    # SELECT request arm its own deadlines, the way an OPERATE already does.
++    p.add_argument("--anchor-req", type=int, choices=[0, 1], default=0,
++                   help="1 = read lane arms at the request (anchor fix); 0 = as evaluated")
+     p.add_argument("--j-set", default="2 4 6 8 10 12", help="admissible J codebook (ms), nonzero")
+     p.add_argument("--native-ack-ms", type=float, default=2.0)
+     p.add_argument("--native-resp-ms", type=float, default=2.0)

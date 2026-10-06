@@ -1,26 +1,24 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-How long an outstation takes to answer is a signature an observer can profile, and the relay
-leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
-problem into the network: a switch in front of the outstation holds the packets carrying the
-device's timing and releases each at a deadline computed when the transaction begins, from the
-outstation's acknowledgment on the read path, which is READ and the SELECT phase of
-select-before-operate, and from the request for OPERATE. Consequently, the interval an observer
-sees is the operator's value rather than the device's.
+We propose an in-network framework that holds the
+packets carrying the timing of an ICS device and releases them at deadlines computed from the
+arrival of the request. For packets available before their deadlines, the schedule can absorb arrival-time variation.
+Queue service, late arrivals and the supported holding range determine how closely the observed
+intervals follow the configured values. The framework runs without encryption and leaves the master,
+the outstation and DNP3 unchanged.
 
-Evaluation on one physical relay shows the released interval concentrating on the configured
-value: its interquartile range falls from 2.78 to 0.006~ms and its standard deviation from 2.61
-to 0.63~ms. A classifier trained on that interval before deployment drops from 0.652 balanced
-accuracy to three-class chance. The framework protects the exchanges its budget can schedule and
-forwards the rest untouched.
+On a physical SEL-751A relay, CLRT medians for READ, SELECT and OPERATE approach the configured
+8~ms, and the READ interquartile range falls from 2.772 to 0.022~ms. A classifier trained before
+deployment falls from 0.803 balanced accuracy to chance, while an adaptive classifier retains
+0.445 accuracy and reaches 0.650 when pooling twenty exchanges. Median READ request-to-response
+time rises to 28.107~ms, with no retransmission observed in the campaign. The residual tests
+associate timing information with request spacing but do not isolate its cause.
 
-Three bounds limit the result. An adversary who retrains recovers to 0.651 by adding the
-request-to-acknowledgment interval, which the mechanism does not target; the evidence is one
-relay, one campaign and a transaction-class evaluation rather than a comparison between device
-models; and the switch's own release instants were never captured, so the residual around the
-configured value is a difference between two releases rather than a delay we can place inside the
-switch. An instrumented build measures an internal blocker-termination interval of about
-1.7~$\mu$s, which characterizes the mechanism without decomposing that residual. Evaluating the
-framework on outstations from several vendors, and capturing the release instants on both switch
-links, is what would attribute it.
+A separate 60{,}000-exchange study retains the seven-stage implementation and randomizes around
+a 6~ms response budget. It measures a worst-operation median of 6.116~ms and disrupts fixed
+timing classifiers, while adaptive ACK/CLRT classification reaches 0.566. This lower-delay
+setting therefore preserves some timing-obfuscation benefit without meeting the full attacker criterion.
+
+In future work, we will evaluate the framework on outstations from several vendors, and we will
+investigate how blocker-queue state contributes to release timing.

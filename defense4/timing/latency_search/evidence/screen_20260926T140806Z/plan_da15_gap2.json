@@ -1,0 +1,53 @@
+{
+  "audit": {
+    "entry_count": 3,
+    "extra_buckets": [],
+    "missing_buckets": [],
+    "overlap_entry_count": 0,
+    "overlap_pair_count": 0,
+    "valid_policy": true
+  },
+  "bor_params_default": {
+    "a_ticks": 14999808,
+    "action_name": "Ingress.set_bor_params",
+    "anchor_req": 1,
+    "r_ticks": 16999680
+  },
+  "codebook_entries": [
+    {
+      "dst_port": 20000,
+      "high": 84,
+      "j_ticks": 249856,
+      "low": 0,
+      "priority": 1
+    },
+    {
+      "dst_port": 20000,
+      "high": 169,
+      "j_ticks": 499968,
+      "low": 85,
+      "priority": 2
+    },
+    {
+      "dst_port": 20000,
+      "high": 255,
+      "j_ticks": 999936,
+      "low": 170,
+      "priority": 3
+    }
+  ],
+  "delete_existing_first": true,
+  "notes": [
+    "delete all existing codebook keys before install; exact full-coverage readback required"
+  ],
+  "params_default": {
+    "action_name": "Ingress.set_params",
+    "budget": 18000,
+    "d_ticks": 14999808,
+    "da_dr": 16999680,
+    "mode": 4,
+    "read_len": 0
+  },
+  "restoration_only": false,
+  "source_cache_drain_s": 1.0
+}

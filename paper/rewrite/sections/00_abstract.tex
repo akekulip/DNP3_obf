@@ -1,24 +1,21 @@
 \begin{abstract}
-An adversary watching a power-grid control network can tell which device it is looking at from how
-long that device takes to answer, because vendors implement the same function differently. The
-relay cannot be modified, and existing traffic obfuscation targets a different feature: it
-reshapes flow-level sizes and inter-packet times, whereas what identifies the device here is one
-interval inside a single transaction.
+Adversaries preparing attacks on industrial control systems (ICSs) such as power grids first
+perform reconnaissance, and device fingerprinting supplies much of the knowledge they need. In ICS
+networks, the fingerprint does not have to come from the payload. The interval between the transport
+acknowledgment of an outstation and its application response carries the execution time of the
+device, and it identifies both the device and the operation it performs. Suppressing that timing variation is challenging when legacy endpoints must continue exchanging
+readable protocol messages. We focus on changing the timing of those existing exchanges.
 
-We place the defense in the network instead. A programmable switch in front of the outstation
-holds the device's acknowledgment and its response, releasing each at a deadline computed from one
-common instant, the moment the outstation acknowledges the request. Because both deadlines come
-from that one instant, the device's own processing interval cancels from the gap between the two
-releases whenever the response arrives in time, so the interval an observer measures is one the
-operator sets. The switch
-forwards the packets it received, so both endpoints run unmodified and no DNP3 byte changes.
-
-We implement this on an Intel Tofino-1 and evaluate it against one physical SEL-751A protective
-relay over 63{,}360 exchanges. The measured interval settles on the configured value: its median
-is the configured 4~ms and its sample variance falls from 6.808 to 0.394~ms$^2$. A classifier
-trained on that interval before deployment is left at chance across READ, SELECT and OPERATE. An
-adversary who retrains recovers much of that from a second interval the mechanism does not target
-but does make more informative, and that residual bounds what the design achieves. The evaluation covers
-transaction-class timing for a single device at a single configuration, and does not address
-discrimination between device models.
+To address this problem, we propose an in-network timing-obfuscation framework that schedules
+acknowledgments and responses around an interval the operator configures. A programmable switch in
+front of the outstation holds the acknowledgment and the response and releases each of them at a
+deadline computed from the arrival of the request. Packets arriving before their deadlines can
+follow this schedule, subject to queue service and the supported holding range. The switch only delays the packets it receives, so both endpoints run unmodified and
+no DNP3 byte changes. We implement the framework on an Intel Tofino-1 switch and evaluate it with a
+physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The experimental results show that
+the measured CLRT medians approach the configured 8~ms for READ, SELECT and OPERATE, while the
+READ interquartile range falls from 2.772 to 0.022~ms. A classifier trained before deployment
+falls from 0.803 balanced accuracy to chance, although an adaptive classifier retains accuracy
+of 0.445. The median READ request-to-response time increases to 28.107~ms, with no retransmission
+observed in the campaign.
 \end{abstract}

@@ -1,0 +1,75 @@
+{
+  "build": {
+    "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+    "program_source_sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a",
+    "sde": "9.13.2",
+    "sha256": "3ecbfcda8eedf257c918ec68aafbc47fad16605d7cd01cd64843185c7da0c8e6",
+    "stages_egress": 0,
+    "stages_ingress": 7
+  },
+  "declared_on": "2026-10-06",
+  "endpoints": {
+    "master": "Vision (192.168.10.1 isolated), Python codec harness, not pydnp3",
+    "outstation": "SEL-751A 192.168.10.7:20000 via the relay leg dp64",
+    "switch": "Tofino-1, pre-test program rrc_bor_build_v2 must be restored after the run"
+  },
+  "failure_outcomes": {
+    "bypassed": "unsupported or busy request forwarded unchanged",
+    "fallback": "watchdog release, reported with its reason counter",
+    "late": "response after the hold horizon, kept in the population",
+    "malformed": "framing or CRC failure",
+    "missing": "no response within the application budget",
+    "rejected": "admission refused the point; not collected"
+  },
+  "id": "rr-read-smoke-20261006",
+  "observation_points": [
+    "master-facing capture on Vision",
+    "relay-facing capture only if a supported tap exists (otherwise stated and conclusions restricted)",
+    "switch counters before and after",
+    "control-plane readback after every write"
+  ],
+  "policy": {
+    "anchor": "request",
+    "arms": [
+      "OFF",
+      "RESPONSE_READY"
+    ],
+    "da_ms": [
+      5,
+      10,
+      15,
+      20
+    ],
+    "gap_ms": 1
+  },
+  "source": {
+    "path": "defense4/timing/response_ready/src/defense4_response_ready.p4",
+    "sha256": "df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a"
+  },
+  "termination": {
+    "abort_on": [
+      "unexplained loss",
+      "stale completion",
+      "a stuck next transaction",
+      "readback mismatch",
+      "restoration not verified"
+    ],
+    "max_total_attempts": 18360,
+    "restore_required": true,
+    "warmup_raw_retained": true
+  },
+  "tolerances": {
+    "smoke": "no unexplained loss, corruption, stale completion or stuck next transaction; every fallback has a reason counter"
+  },
+  "workload": {
+    "attempted_per_block": 30,
+    "blocks": 1,
+    "interval_ms": 400,
+    "ops": [
+      "READ"
+    ],
+    "order": "counterbalanced",
+    "seed": 20261006,
+    "warmup_exchanges": 0
+  }
+}
