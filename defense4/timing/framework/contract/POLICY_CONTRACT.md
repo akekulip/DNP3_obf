@@ -85,3 +85,16 @@ The ACK can be held until the response is seen, so its worst-case hold is the wa
 response held for its ACK-relative deadline. `framework/control/profiles.py` therefore charges `max(D_A, budget x loop)` (about 30.8 ms
 at budget 18,000) against the master's request timer when it binds an admission record, and refuses a profile whose bound exceeds the
 40 ms control-plane clamp. H is an estimate (token passes times a nominal loop period), not a wall-clock guarantee.
+
+## Size and joint composition (2026-10-06)
+
+Three mechanisms stay separate: (1) endpoint or request-profile choice that yields equal-length native responses, (2) switch splitting of one
+TCP byte stream into segments, (3) insertion or padding of protocol units. Only (2) is modelled here, as the fixed profile `RRC_49_CUT28`:
+a single complete 49-byte DNP3 frame becomes payload[0:28] (sequence unchanged, PSH/FIN cleared) and payload[28:49] (sequence + 28, original
+flags), with IPv4 total length and both checksums recomputed and TCP options preserved. Anything else (another length, IPv4 options, a
+fragment, SYN/RST, no ACK, a bad DNP3 CRC, two frames) is forwarded unsplit and counted. The cut is not configurable.
+
+Order is release, then replicate, then carve; both segments leave at the release instant e_R. Splitting does not change timing, and an
+unsupported payload is released on time and not split. Sequence order is [28, 21]; capture arrival order in the 2026-08-12 traces is [21, 28]
+for every pair, which is not corruption. Response parity says nothing about request size, function code or object type, which stay visible,
+and no DPI-equality claim follows. Mechanism (3) is not demonstrated on Tofino and is not attempted.
