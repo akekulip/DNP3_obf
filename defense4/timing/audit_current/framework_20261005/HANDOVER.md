@@ -2,7 +2,7 @@
 
 **Read `STATUS.md` first.**
 
-Branch `codex/framework-implementation-20261005` in `/home/philip/Projects/DNP3`; **pushed to origin** (no force, no other branch; see the push section below). Base `origin/main` = `f8be278eb`.
+Repository `/home/philip/Projects/DNP3`, **on `main`**: the framework track was merged by pull request #6 (merge commit `20eef2019`, 2026-10-06). It was built on `codex/framework-implementation-20261005`, which remains on the remote and is not needed. Work directly on `main`; no new branches. Base `origin/main` = `f8be278eb`.
 All commits are by `akekulip <akekulip@gmail.com>`, author and committer, with no co-author trailers; keep it that way. Your uncommitted `CLAUDE.md` edit is untouched, as are untracked items from before this track.
 
 ## State of the lab
@@ -59,4 +59,4 @@ Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.m
 
 `defense4/timing/framework/{contract,model,tests,control,runner,size,bmv2,analysis,declarations,figures,results}`; reports in
 `defense4/timing/audit_current/framework_20261005/` (PHASE0_INVENTORY, STATUS_MATRIX, PHASE7_GENERATED_ACK, BMV2_ARTIFACT,
-PHASE8_HARDWARE_RUNBOOK, PHASE9_MEASUREMENT_DESIGN, CLAIMS_RECONCILIATION). Review commits are listed by `git log codex/framework-implementation-20261005 ^origin/main --oneline | head`.
+PHASE8_HARDWARE_RUNBOOK, PHASE9_MEASUREMENT_DESIGN, CLAIMS_RECONCILIATION). The framework-track commits are `git log 817355077..20eef2019 --oneline` (the 117 commits before them are earlier local work).

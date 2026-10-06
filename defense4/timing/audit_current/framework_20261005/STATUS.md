@@ -1,7 +1,7 @@
 # Framework track — current status (updated 2026-10-06, after the master-timer measurement)
 
 Start here; `HANDOVER.md` has the commands and blockers, `CLAIMS_RECONCILIATION.md` the per-capability evidence, `STATUS_MATRIX.md` the full matrix.
-Branch `codex/framework-implementation-20261005`, base `origin/main` `f8be278eb`. All commits are by `akekulip <akekulip@gmail.com>`, author and committer, with no
+**On `main`** since pull request #6 (merge commit `20eef2019`, 2026-10-06; previous `main` `f8be278eb`). The work was done on `codex/framework-implementation-20261005`, which is left on the remote (not deleted). From here on, work and commit directly on `main`; no new branches. All commits are by `akekulip <akekulip@gmail.com>`, author and committer, with no
 co-author trailers. Offline tests: **391 pass** (58 + 98 + 39 + 49 + 147, `defense4/timing/framework/run_tests.sh`).
 
 ## Phases
@@ -43,4 +43,4 @@ OPERATE (not admitted; OPERATE stays attended-only); a relay-facing capture; a T
 
 - How to clear admission: a recorded operator acceptance of `provisional` for a bounded smoke, an instrumented measurement build, or a relay-facing tap (`MASTER_RTO_CANDIDATE_20261006.md`).
 - The dated scope-change line in `CLAUDE.md` (it carries your own uncommitted edits, so it was left alone).
-- Whether to open a pull request; none was opened.
+- Whether to delete the remote branch `codex/framework-implementation-20261005`; it is kept, since the repository rules forbid deleting remote branches without being told to.

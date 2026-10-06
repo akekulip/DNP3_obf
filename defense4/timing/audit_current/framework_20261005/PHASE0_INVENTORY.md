@@ -13,7 +13,7 @@ point allowlist and the attended-OPERATE rule are unchanged. Historical claims a
 |---|---|
 | remote `origin/main` (checked 2026-10-06) | `f8be278eb` — equals the SHA in the assignment; single head |
 | local branch at start | `optimize/timing-only-eight-stages` @ `817355077`; `origin/main` is its ancestor, 117 local commits ahead, 0 behind |
-| review branch | `codex/framework-implementation-20261005`, created in place (untracked work could not move to a worktree) |
+| review branch | `codex/framework-implementation-20261005`, created in place (untracked work could not move to a worktree); merged to `main` by PR #6 (`20eef2019`) |
 | baseline commit | `e8cc2d148` — response_ready candidate, compiler `out/` trees excluded (SDK artifacts) |
 | archive revisions | `ef82faed3` (pre-final-timing-prune) and `9ffa9102d` resolve locally as commits |
 | AGENTS.md | none in the repository; `CLAUDE.md` is the instruction file |
