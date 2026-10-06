@@ -14,7 +14,7 @@ pass; three of them do not yet pass. Physical OPERATE stays attended-only and wa
 | experiment declarations | **pass** | `framework/declarations/{smoke,main}.json`, validated, build identity bound |
 | live state identified, not inferred from a handover | **partial** | read-only: `bf_switchd` pid 10674, up about 24 h, `--conf-file …/bringup_20261005/frozen_abs.conf --init-mode=cold` |
 | **restoration procedure rehearsed** | **pass** | `RESTORATION_REHEARSAL_20261006.md`: cold restart with no candidate; one benign configuration difference (port 17 scheduler speed) |
-| **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **blocked** | nothing in the tree configures these for the candidate; the adapter does not read or verify them |
+| **candidate bring-up (ports, TM queues, pktgen, mirror/PRE, session tables) written against the new schema** | **blocked, scoped** | see "Candidate bring-up" below |
 | relay-facing capture point | **unknown** | state it before the run and restrict conclusions to the master-facing view if absent |
 
 ## Live state, read this session (not inferred from a handover)
@@ -30,6 +30,21 @@ bulk-readable and 102 refused with the reason kept; produced by `framework/contr
 - The live `tbl_params` **has `shape_enable`; the candidate's does not.** A restore must be written for the live program's schema, never taken from the candidate's.
 - Whether the frozen setup scripts can bring up the candidate is **not established**: a static look for table names was inconclusive (they reach tables by a
   different access pattern), so blocker 2 stays open until a dry run against the 9.13.2 candidate schema says otherwise.
+
+## Candidate bring-up, scoped from the 2026-09-25 record
+
+The 2026-09-25 smoke (`stage_reduction/hardware/20260925/`) loaded a 7-stage `defense4_timing` program (same family and program name) with
+`launch_timing.sh` (a conf naming the build's `bfrt.json`, `context.json`, `tofino.bin`; cold start) and then `defense4_timing_setup.py configure-all --read-len 0`
+(strict readback, `PASS n_fail=0`; D4, request anchoring, offsets 20/24 ms, budget 18,000). dp8 and dp10 were MAC-near loopbacks; 21 of 21 READ, SELECT and OPERATE per arm passed.
+That is the template, with three differences that make `configure-all` unusable **unchanged** for the response-ready candidate:
+
+1. It installs the random-deadline codebook (`hw_config_codebook`); the candidate's contract requires that table to be **empty**.
+2. It strictly verifies the old `tbl_commit` map (`hw_verify_tbl_commit`); the candidate has a new outcome (`OUT_ACK_FWD_ARM` = 44) the old map does not cover.
+3. It does not write `tbl_read_release_params`; that is the adapter's job (`framework/control/profiles.py`), after the rest.
+
+So the bring-up to write is: the same port, loopback, shaper, register, queue, pktgen (disabled), mirror and session steps, `--read-len 0`, **no** codebook, **no** old commit
+verification (replaced by readback of the candidate's own tables), the three parameter tables through the adapter with the release table enabled last, and pktgen enabled last of all.
+Every failure path is the rehearsed restore. It has not been written or run.
 
 ## Why loading the candidate is not safe to do unattended
 

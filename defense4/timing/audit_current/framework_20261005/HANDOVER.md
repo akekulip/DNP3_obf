@@ -26,13 +26,14 @@ Reproduced into `framework/build/repro_20261006/`: campaign_v2 (the pinned repro
 
 ## Blockers, exactly
 
-1. **Restoration has not been rehearsed.** Stop and cold-restart `bf_switchd` with `frozen_abs.conf`, replay `ports_up.py`/`up2`–`up4`, apply
-   `dnp3_latency_20260926/off_config.json`, and read back ports, queue ladder, pktgen, mirror/PRE and the parameter tables. Only then is a candidate load defensible.
-2. **No candidate bring-up exists for the 9.13.2 schema** (ports, TM queues, packet generator, mirror and PRE, session tables). The adapter covers three tables.
-3. **The `connect()` and CLI live paths have never run**; `bfrt_grpc` exists only on the switch host.
+1. ~~Restoration not rehearsed~~ **Done**, authorised and run: `RESTORATION_REHEARSAL_20261006.md` (cold restart with no candidate, one benign difference on unused port 17).
+2. **Candidate bring-up not written.** `configure-all` cannot be used unchanged: it installs the random-deadline codebook (the candidate needs it empty), verifies the old `tbl_commit` map
+   (the candidate adds outcome 44) and does not write `tbl_read_release_params`. Scoped in PHASE8_HARDWARE_RUNBOOK.md ("Candidate bring-up"), template in `stage_reduction/hardware/20260925/switch/`.
+3. **The `connect()` and CLI live paths of the adapter have never run** against a real BFRT.
 4. The relay-facing capture point is unknown; without it conclusions are limited to the master-facing view.
+5. Loading the candidate and sending READs to the SEL is the next operational step; it cuts every link and session through the switch again, and needs your go.
 
-Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; whether the Tofino can be cold-restarted unattended for step 1.
+Decisions that are yours: push of the branch; the scope-change line in `CLAUDE.md`; loading the candidate and sending READ traffic to the SEL (a second cold restart; the way back is rehearsed).
 
 ## Findings that change what to build next
 
