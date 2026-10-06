@@ -1,0 +1,105 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(1935): [--Wwarn=unused] warning: Table tbl_expected_ack is not used; removing
+    table tbl_expected_ack {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2024): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2028): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2032): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2040): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2151): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(2152): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(875): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_15/defense4_timing.p4(873)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: Cannot find a slicing to satisfy @pa_container_size pragma(s): ingress::hdr.ib.cookie_word, ingress::meta.owner_diff, ingress::meta.cookie_in, ingress::meta.owner, ingress::hdr.held_owner.cookie_word, ingress::meta.legacy_cookie, ingress::meta.clone_tag, ingress::meta.next_cookie, ingress::hdr.pgen.trigger_cookie
+SUPERCLUSTER Uid: 464
+    slice lists:	
+        [ ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..87] deparsed solitary no_split exact_containers [0:15]
+          ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..71] deparsed solitary no_split exact_containers [16:23]
+          ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..63] deparsed solitary no_split exact_containers [24:31] ]
+        [ ingress::meta.owner_diff<32> meta solitary no_split [0:15]
+          ingress::meta.owner_diff<32> meta solitary no_split [16:23]
+          ingress::meta.owner_diff<32> meta solitary no_split [24:31] ]
+        [ ingress::meta.cookie_in<32> ^0 ^bit[0..31] meta solitary no_split [0:15]
+          ingress::meta.cookie_in<32> ^0 ^bit[0..15] meta solitary no_split [16:23]
+          ingress::meta.cookie_in<32> ^0 ^bit[0..7] meta solitary no_split [24:31] ]
+        [ ingress::meta.owner<32> meta solitary no_split [0:15]
+          ingress::meta.owner<32> meta solitary no_split [16:23]
+          ingress::meta.owner<32> meta solitary no_split [24:31] ]
+        [ ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..31] deparsed solitary no_split exact_containers [0:15]
+          ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..15] deparsed solitary no_split exact_containers [16:23]
+          ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..7] deparsed solitary no_split exact_containers [24:31] ]
+        [ ingress::meta.legacy_cookie<16> meta solitary no_split [0:7]
+          ingress::meta.legacy_cookie<16> meta solitary no_split [8:15] ]
+        [ ingress::meta.gen_in<8> ^0 ^bit[0..7] meta [0:7] ]
+        [ ingress::meta.gen_stored<8> meta [0:7] ]
+        [ ingress::meta.tag_val<8> meta [0:7] ]
+        [ ingress::meta.tag_diff<8> meta [0:7] ]
+        [ ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [0:7]
+          ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [8:15]
+          ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [16:31] ]
+        [ ingress::meta.next_cookie<16> meta solitary no_split [0:7]
+          ingress::meta.next_cookie<16> meta solitary no_split [8:15] ]
+        [ ingress::hdr.pgen.trigger_cookie<16> ^0 ^bit[0..31] solitary no_split [0:7]
+          ingress::hdr.pgen.trigger_cookie<16> ^0 ^bit[0..23] solitary no_split [8:15] ]
+    rotational clusters:	
+        [[ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..87] deparsed solitary no_split exact_containers [0:15]], [ingress::meta.owner_diff<32> meta solitary no_split [0:15], ingress::meta.cookie_in<32> ^0 ^bit[0..31] meta solitary no_split [0:15], ingress::meta.owner<32> meta solitary no_split [0:15]], [ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..31] deparsed solitary no_split exact_containers [0:15]]]
+        [[ingress::meta.legacy_cookie<16> meta solitary no_split [0:7]], [ingress::meta.gen_in<8> ^0 ^bit[0..7] meta [0:7], ingress::meta.gen_stored<8> meta [0:7]], [ingress::meta.tag_val<8> meta [0:7]], [ingress::meta.tag_diff<8> meta [0:7]], [ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [0:7]], [ingress::meta.owner_diff<32> meta solitary no_split [16:23], ingress::meta.cookie_in<32> ^0 ^bit[0..15] meta solitary no_split [16:23], ingress::meta.next_cookie<16> meta solitary no_split [0:7], ingress::meta.owner<32> meta solitary no_split [16:23]], [ingress::hdr.pgen.trigger_cookie<16> ^0 ^bit[0..31] solitary no_split [0:7]], [ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..71] deparsed solitary no_split exact_containers [16:23]], [ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..15] deparsed solitary no_split exact_containers [16:23]]]
+        [[ingress::meta.owner_diff<32> meta solitary no_split [24:31], ingress::meta.cookie_in<32> ^0 ^bit[0..7] meta solitary no_split [24:31], ingress::meta.next_cookie<16> meta solitary no_split [8:15], ingress::meta.owner<32> meta solitary no_split [24:31]], [ingress::hdr.pgen.trigger_cookie<16> ^0 ^bit[0..23] solitary no_split [8:15]], [ingress::hdr.ib.cookie_word<32> ^0 ^bit[0..63] deparsed solitary no_split exact_containers [24:31]], [ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [8:15]], [ingress::meta.legacy_cookie<16> meta solitary no_split [8:15]], [ingress::hdr.held_owner.cookie_word<32> ^0 ^bit[0..7] deparsed solitary no_split exact_containers [24:31]]]
+        [[ingress::meta.clone_tag<32> meta mirror%{127:ingress::ig_intr_md_for_dprsr.mirror_type#2}% solitary no_split exact_containers [16:31]]]
+
+error: PHV allocation was not successful
+28 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::hdr.ib.cookie_word<32b>[15:0]
+    ingress::meta.owner_diff<32b>[15:0]
+    ingress::meta.cookie_in<32b>[15:0]
+    ingress::meta.owner<32b>[15:0]
+    ingress::hdr.held_owner.cookie_word<32b>[15:0]
+    ingress::meta.legacy_cookie<16b>[7:0]
+    ingress::meta.gen_in<8b>
+    ingress::meta.gen_stored<8b>
+    ingress::meta.tag_val<8b>
+    ingress::meta.tag_diff<8b>
+    ingress::meta.clone_tag<32b>[7:0]
+    ingress::meta.owner_diff<32b>[23:16]
+    ingress::meta.cookie_in<32b>[23:16]
+    ingress::meta.next_cookie<16b>[7:0]
+    ingress::meta.owner<32b>[23:16]
+    ingress::hdr.pgen.trigger_cookie<16b>[7:0]
+    ingress::hdr.ib.cookie_word<32b>[23:16]
+    ingress::hdr.held_owner.cookie_word<32b>[23:16]
+    ingress::meta.owner_diff<32b>[31:24]
+    ingress::meta.cookie_in<32b>[31:24]
+    ingress::meta.next_cookie<16b>[15:8]
+    ingress::meta.owner<32b>[31:24]
+    ingress::hdr.pgen.trigger_cookie<16b>[15:8]
+    ingress::hdr.ib.cookie_word<32b>[31:24]
+    ingress::meta.clone_tag<32b>[15:8]
+    ingress::meta.legacy_cookie<16b>[15:8]
+    ingress::hdr.held_owner.cookie_word<32b>[31:24]
+    ingress::meta.clone_tag<32b>[31:16]
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 10 warnings generated.
+

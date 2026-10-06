@@ -1,0 +1,12 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_08/defense4_timing.p4(2926): [--Werror=type-error] error: Entry
+            (8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0) : dec_o(OUT_PKTGEN_DROP);
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ---- Actual error:
+  Cannot cast implicitly type 'bit<8>' to type 'bit<32>'
+  ---- Originating from:
+  /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_08/defense4_timing.p4(2926): Table entry has type 'tuple<bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<32>, bit<8>, bit<8>>' which is not the expected type 'tuple<bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>, bit<8>>'
+              (8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0) : dec_o(OUT_PKTGEN_DROP);
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1 error, 0 warnings generated.
+

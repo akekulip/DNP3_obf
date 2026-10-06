@@ -1,0 +1,64 @@
+test_disabled_parity (test_p4_release.ReleaseTables) ... ok
+test_fresh_request_disarms (test_p4_release.ReleaseTables) ... FAIL
+test_live_blocker_waits_even_after_deadline (test_p4_release.ReleaseTables) ... FAIL
+test_native_ack_does_not_arm (test_p4_release.ReleaseTables) ... FAIL
+test_pending_requires_deadline (test_p4_release.ReleaseTables) ... ok
+test_qualified_return_arms (test_p4_release.ReleaseTables) ... FAIL
+test_watchdog_live_and_pending (test_p4_release.ReleaseTables) ... ok
+
+======================================================================
+FAIL: test_fresh_request_disarms (test_p4_release.ReleaseTables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_p4_release.py", line 31, in test_fresh_request_disarms
+    self.assertEqual(self.select('tbl_resp_deadline',read_release=1,anchor_req=1,pkt_class=self.c['CLASS_ARM'],tag_diff=0xC0),'resp_dl_disarm')
+AssertionError: 'resp_dl_rmw' != 'resp_dl_disarm'
+- resp_dl_rmw
+?           -
++ resp_dl_disarm
+?         ++++
+
+
+======================================================================
+FAIL: test_live_blocker_waits_even_after_deadline (test_p4_release.ReleaseTables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_p4_release.py", line 20, in test_live_blocker_waits_even_after_deadline
+    self.assertEqual(self.select('tbl_decide_deq', read_release=1, role=self.c['ROLE_BLOCK'], verdict=self.c['V_BLOCK_LIVE'], age=age), 'OUT_AB_LOOP')
+AssertionError: 'OUT_AB_DL' != 'OUT_AB_LOOP'
+- OUT_AB_DL
+?        -
++ OUT_AB_LOOP
+?         +++
+
+
+======================================================================
+FAIL: test_native_ack_does_not_arm (test_p4_release.ReleaseTables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_p4_release.py", line 34, in test_native_ack_does_not_arm
+    self.assertEqual(self.select('tbl_resp_deadline',read_release=1,anchor_req=1,pkt_class=self.c['CLASS_ACK'],tag_diff=0x3F),'resp_dl_read')
+AssertionError: 'resp_dl_arm' != 'resp_dl_read'
+- resp_dl_arm
+?          ^^
++ resp_dl_read
+?         ++ ^
+
+
+======================================================================
+FAIL: test_qualified_return_arms (test_p4_release.ReleaseTables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/response_ready/tests/test_p4_release.py", line 37, in test_qualified_return_arms
+    self.assertEqual(self.select('tbl_resp_deadline',read_release=1,anchor_req=1,pkt_class=self.c['CLASS_ACK_REL']),'resp_dl_arm')
+AssertionError: 'resp_dl_read' != 'resp_dl_arm'
+- resp_dl_read
+?          ^^^
++ resp_dl_arm
+?         + ^
+
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.075s
+
+FAILED (failures=4)

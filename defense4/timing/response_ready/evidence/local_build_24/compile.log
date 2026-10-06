@@ -1,0 +1,52 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(1927): [--Wwarn=unused] warning: Table tbl_expected_ack is not used; removing
+    table tbl_expected_ack {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2035): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2039): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2043): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2051): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2162): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2163): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(875): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(873)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(1746): The stage specified for table Ingress.tbl_random_deadlines is 1, but we could not place it until stage 2
+    table tbl_random_deadlines {
+          ^^^^^^^^^^^^^^^^^^^^
+
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2705): The stage specified for table Ingress.tbl_select_deadlines is 3, but we could not place it until stage 4
+    table tbl_select_deadlines {
+          ^^^^^^^^^^^^^^^^^^^^
+
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2652): The stage specified for table Ingress.tbl_resp_authorise is 2, but we could not place it until stage 4
+    table tbl_resp_authorise {
+          ^^^^^^^^^^^^^^^^^^
+
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2713): The stage specified for table Ingress.tbl_state_decode is 4, but we could not place it until stage 7
+    table tbl_state_decode {
+          ^^^^^^^^^^^^^^^^
+
+warning: /home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_24/defense4_timing.p4(2335): The stage specified for table Ingress.tbl_commit is 6, but we could not place it until stage 10
+    table tbl_commit {
+          ^^^^^^^^^^
+
+
+0 errors, 15 warnings generated.
+

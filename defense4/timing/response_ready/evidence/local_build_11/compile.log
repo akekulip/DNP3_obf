@@ -1,0 +1,89 @@
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(1915): [--Wwarn=unused] warning: Table tbl_expected_ack is not used; removing
+    table tbl_expected_ack {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2004): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2008): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2012): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2020): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2131): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2132): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(873): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(871)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: This program violates action constraints imposed by Tofino.
+
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2228):
+    action cmt_fwd_clone_ready() { { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
+           ^^^^^^^^^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::meta
+	ingress::meta.clone_tag[7:0]
+	ingress::meta.clone_tag[15:8]
+	ingress::meta.clone_tag[31:16]
+
+  Action Ingress.cmt_fwd_clone_ready must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::meta.clone_tag[31:16], written by constant 0xe101
+	Source 2 contains the following fields:
+	  ingress::meta.next_cookie[7:0] @ bits 0-7
+	Source 3 contains the following fields:
+	  ingress::meta.next_cookie[15:8] @ bits 8-15
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.cmt_fwd_clone_ready to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/response_ready/evidence/local_build_11/defense4_timing.p4(2279):
+    action stamp_owner() {
+           ^^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.held_owner
+	ingress::hdr.held_owner.cookie[7:0]
+	ingress::hdr.held_owner.cookie[15:8]
+	ingress::hdr.held_owner.pad
+	ingress::hdr.held_owner.gen
+
+  Action Ingress.stamp_owner must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::hdr.held_owner.pad, written by constant 0x0
+	Source 2 contains the following fields:
+	  ingress::meta.owner[23:16] @ bits 16-23
+  Slices of source 2 are not allocated at the same offsets within the container as the destination slices.
+  Tofino does not support action data/constant with rotated PHV source at the same time.
+
+	Source 3 contains the following fields:
+	  ingress::meta.owner[31:24] @ bits 24-31
+  Slices of source 3 are not allocated at the same offsets within the container as the destination slices.
+  Tofino does not support action data/constant with rotated PHV source at the same time.
+
+	Source 4 contains the following fields:
+	  ingress::meta.cur_gen @ bits 0-7
+  Slices of source 4 are not allocated at the same offsets within the container as the destination slices.
+  Tofino does not support action data/constant with rotated PHV source at the same time.
+
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.stamp_owner to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::hdr.pgen.packet_id, ingress::hdr.pgen.packet_id, ingress::hdr.pgen.packet_id, ingress::meta.gen_in, ingress::meta.gen_stored, ingress::meta.carried_owner, ingress::meta.tag_val, ingress::meta.tag_diff, ingress::meta.clone_tag, ingress::meta.carried_cookie, ingress::hdr.pgen.key_or_batch, ingress::meta.owner_diff, ingress::meta.cookie_in, ingress::meta.next_cookie, ingress::meta.owner, ingress::hdr.ib.cookie, ingress::hdr.held_owner.cookie, ingress::meta.carried_cookie, ingress::hdr.pgen.key_or_batch, ingress::meta.owner_diff, ingress::meta.cookie_in, ingress::meta.next_cookie, ingress::meta.owner, ingress::hdr.ib.cookie, ingress::meta.clone_tag, ingress::hdr.held_owner.cookie, ingress::hdr.pgen.key_or_batch, ingress::hdr.pgen.pipe_app, ingress::hdr.held_owner.pad, ingress::hdr.ib.gen, ingress::meta.cur_gen, ingress::meta.epoch_stored, ingress::hdr.held_owner.gen, ingress::hdr.ib.slot, ingress::hdr.ib.role, ingress::meta.clone_tag, ingress::meta.owner_diff, ingress::meta.cookie_in, ingress::meta.owner
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 10 warnings generated.
+
