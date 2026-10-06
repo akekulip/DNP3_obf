@@ -1,0 +1,39 @@
+\section{Implementation}
+The Tofino candidate extends the existing response-ready program. A single owner
+stores TCP positions and the DNP3 application sequence. A separate periodic
+internal pulse scans readiness and completion even if both blocker reservoirs
+vanish. Held packets recheck eligibility; a second pass commits ACK-gap arming
+or response retirement. A released-domain marker forwards OPERATE transport
+repair after release, while the configured-session predicate isolates control
+state. The current build identity and resource reports are recorded in the
+canonical capability matrix. Compilation does not establish packet-generator
+service, wire departure, queue drain or live restoration.
+
+The software size oracle validates complete DNP3 frames and regenerates their
+link CRCs. One native control command has a 35-byte TCP payload; appending a
+separate Group 12 Variation 1 header and one object produces 55 bytes. Its native
+response is 37 bytes, while the accepted padded response is 57 bytes. The added
+application bytes cross a CRC-block boundary, making the request-stream delta
+20 bytes. The response policy splits that exact 57-byte profile into 28 and
+29 bytes. The historical 49-byte profile remains a separate 28/21 carve.
+
+Insertion changes the TCP byte space. The software ledger retains two original
+and rewritten request images for one SELECT/OPERATE pair. It replays rewritten
+bytes on whole, partial and overlapping retransmissions and inverts cumulative
+or partial acknowledgment positions. An acknowledgment inside an inserted tail
+keeps the last native byte outstanding until the complete wire image is
+acknowledged; replay of that byte supplies the cached missing suffix. It maps
+the unscaled receive-window right
+edge through the same transformation~\cite{case4_rfc9293}. It continues existing
+translation after insertion capacity is reached. Unsupported negotiated
+features must exclude insertion before bytes change; a feature refusal after
+insertion cannot erase the ledger.
+
+The BMv2 artifact uses private namespaces and Python codec endpoints. Its token
+count gates and recirculating real held packets emulate the blocker principle;
+they do not reproduce Tofino's queue server. The software heartbeat is 1 ms,
+separate from the proposed 100 microsecond hardware pulse. We use the BMv2
+architecture documentation to identify those interfaces~\cite{case4_bmv2}.
+An independent pinned OpenDNP3 master/outstation gate tests production command
+serialization, SBO state and statuses~\cite{case4_opendnp3}. These endpoint
+contexts are not the Python endpoints of the namespace experiment.

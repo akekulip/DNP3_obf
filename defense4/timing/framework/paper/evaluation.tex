@@ -1,0 +1,54 @@
+\section{Evaluation}
+\textbf{Measurement boundary.} We distinguish the frozen physical timing
+campaign, the historical Timing OFF smoke, the production-stack semantic gate,
+packet simulations and the current namespace switch. The frozen campaign has
+63,360 exchanges in 22 grouped runs and uses request-anchored 20/8 ms timing with
+size processing off. It is not a measurement of Case 4 padding or current
+response-ready recovery. The OFF smoke contains 30 main 49-byte READ responses
+and one separate 58-byte precheck. The main cohort's master-facing median CLRT
+is 2.232 ms, with a range from 1.104 to 22.387 ms. A master-facing capture does
+not identify the outstation's transmission endpoint or full response latency
+$D_R$.
+
+\textbf{Endpoint acceptance.} The isolated production-stack gate accepts the
+trailing-header command profile and returns SUCCESS for the real and decoy
+objects in both phases. It also exposes a failure that a parser-only test misses:
+the unmodified master ignores a failed trailing decoy SELECT and still emits
+OPERATE. The outstation then returns NO\_SELECT and performs no command callback.
+Thus receipt of a matching OPERATE response cannot replace per-object status
+checks. These callbacks are software events, not evidence of physical inertness.
+
+\textbf{Timing and stream behavior.} Source-driven packet tests compare actual
+association inputs, owner actions and constant tables with the event model.
+Namespace tests verify insertion, translation, CRCs, reassembly and application
+outcomes on captured packets. Exact test counts, failures and skips belong to the
+retained verification record. Software timing has scheduling excursions and is
+not compared with the hardware microsecond acceptance criteria. Historical
+120-READ populations keep all seven below-target observations; focused and
+full-range histograms retain the complete attempted denominators.
+
+\textbf{Cost and resource boundary.} Recovery has a source-bound local Tofino
+compile. Fixed size processing has a component compile, while the complete
+two-boundary transport implementation encounters target PHV/action limits.
+Component coexistence is not a complete joint fit. The controller refuses
+activation when joint schema, byte translation, applicable timers or measured
+release costs are missing. The proposed run list has 16,168 attempts, including
+warmups and state checks, under the 18,360-attempt ceiling. No new hardware
+campaign has been collected for this candidate.
+
+\subsection{Limitations}
+Full-frame CRC admission, connection-epoch quarantine, immediate matching
+FIN/RST flush and drain before owner reuse remain incomplete in the Tofino
+recovery component. Control command hold needs source-current packet and
+hardware coverage. Normal commitment near readiness expiry can lose to explicit
+fallback, even if the ideal model sees a response just before expiry. Current
+hardware timing inputs remain unavailable. The software ledger and namespace
+tests do not close the target translation fit. Plaintext function codes and
+object identities remain visible; matching sizes and compressed CLRT do not
+establish hidden device identity or reconnaissance prevention.
+
+Formby et al. form device signatures from CLRT histogram counts with a heuristic
+overflow threshold~\cite{formby2016}. Our existing software populations have no
+device labels. We therefore export features with negative, exact-threshold and
+overflow accounting without reporting device classification accuracy or a
+uniform chance baseline. No classifier result is inferred from reduced variance.

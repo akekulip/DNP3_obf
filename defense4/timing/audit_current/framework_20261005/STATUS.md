@@ -1,46 +1,36 @@
-# Framework track — current status (updated 2026-10-06, after the master-timer measurement)
+# Framework / Case 4 status — 2026-10-06
 
-Start here; `HANDOVER.md` has the commands and blockers, `CLAIMS_RECONCILIATION.md` the per-capability evidence, `STATUS_MATRIX.md` the full matrix.
-**On `main`** since pull request #6 (merge commit `20eef2019`, 2026-10-06; previous `main` `f8be278eb`). The work was done on `codex/framework-implementation-20261005`, which is left on the remote (not deleted). From here on, work and commit directly on `main`; no new branches. All commits are by `akekulip <akekulip@gmail.com>`, author and committer, with no
-co-author trailers. Offline tests: **391 pass** (58 + 98 + 39 + 49 + 147, `defense4/timing/framework/run_tests.sh`).
+Case 4 has executable software contracts, production-stack endpoint checks, a real BMv2 packet artifact, bounded declarations and local Tofino component builds. **A complete joint hardware implementation and campaign acquisition remain blocked.** No switch operation, physical OPERATE, holding-arm measurement or new hardware campaign occurred during this implementation.
 
-## Phases
+[STATUS_MATRIX.md](STATUS_MATRIX.md) records the cumulative evidence; [CLAIMS_RECONCILIATION.md](CLAIMS_RECONCILIATION.md) limits each claim; [HANDOVER.md](HANDOVER.md) gives continuation commands and blockers. The protected execution base is `235e7f01f1c87115455480ebf7c8d94f569c483b`. Work is on `main`; recovery/association/admission is committed as `130aac45baef277fa40cbd2164ee79972ec22be5` under Philip's identity. Size and packet evidence is committed as `0131fbe903256f75511855d456c958d301c6a3a3`; the final artifact commit is identified by `git rev-parse HEAD`. Commits must use Philip's configured identity, `akekulip <akekulip@gmail.com>`, as author and committer, with no co-author or co-contributor trailers.
 
-| phase | status | where |
+## Completed evidence
+
+| Capability | Current evidence | Boundary |
 |---|---|---|
-| 0 inventory, baseline, campaign_v2 reproduction | done; gate differences are path-only | `PHASE0_INVENTORY.md` |
-| 1 contract, layout, declarations | done | `framework/contract`, `framework/declarations` |
-| 2 response-ready release and recovery | offline-tested, compiled, **loaded and OFF-arm smoke on hardware**; holding behaviour not run on hardware | `framework/model`, `framework/tests`, `response_ready/` |
-| 3 per-type cases | Case 1 (D_A = 0) and Case 2 (`MODE_D2_RESP`) offline-tested and compiled | contract, `response_ready/src` |
-| 4 size and joint | software only; 120 captured segment pairs reproduced byte for byte; **no Tofino compile of the combination** | `framework/size` |
-| 5 adapter and compile gates | adapter ran live inside the bring-up (`PASS`); SDE 9.13.1 and 9.13.2 builds of source `df599101…`, 7 ingress / 0 egress | `framework/control` |
-| 6 BMv2 | done, software timing; gating emulated (priority queues do not gate) | `BMV2_ARTIFACT.md` |
-| 7 generated ACK | software only; transport requirement unmet; not a paper case | `PHASE7_GENERATED_ACK.md` |
-| 8 hardware | OFF-arm smoke 30/30 READ; master timer measured; **holding arms blocked on admission** | `HARDWARE_SMOKE_20261006.md`, `MASTER_RTO_CANDIDATE_20261006.md` |
-| 9 measurement design | written | `PHASE9_MEASUREMENT_DESIGN.md` |
-| 10 analysis and figures | BMv2 populations and Formby signature; no classifier (no device labels) | `framework/analysis`, `framework/results` |
-| 11 figure, reconciliation, handover | mechanism diagram, claims reconciliation, handover | `framework/figures` |
+| Request-anchored timing, association and recovery | 83 response-ready source tests; 13 real-byte pass-simulator tests and 26 legacy tests pass. Busy trackers, application sequence, full cookies, independent expiry and held commitment are covered. | Source fragments and ideal queues do not prove the complete parser, CRC, physical departure or BOR pipeline. |
+| Local timing build | `response_ready/evidence/case4_recovery_build_04`: source `3f759d06…`, p4c 9.13.1 `e558d01`, 10 ingress / 0 egress stages, 104 tables; exact-source resource verifier passes. | Offline SDK only; deployment and joint flags remain false. The earlier recovery03 failed a gateway input limit. |
+| Size semantics | Pinned OpenDNP3 gate passes **46 assertions in 4 test cases**. Explicit inert trailing-header decoy semantics and primary status/echo handling are exercised. | Production software stack, separate from BMv2's Python codec emulator; no physical relay compatibility or actuation claim. |
+| BMv2 Case 4 | All **14 current Case 4 tests pass**; the complete current BMv2 suite is **22/23**. Retained SELECT/OPERATE pair succeeds: native request 35 bytes, transformed wire request 55 bytes, echoed response 57 bytes carved to `[28,29]`, checksums and reassembly valid. | Two transactions, one pair; software timing and bounded transport cache. Current captured wire gaps are 791.516 / 851.790 us at configured 1,000 us; 1 ms software heartbeat has a 1,224 us maximum. These are software measurements, not requested Tofino 100 us service. |
+| Target size / coexistence | Corrected joint26 (`bada4652…`) compiles at 10/10 stages with exact current timing/wire input hashes. Retained standalone wire24 compiles at 9/12 for its older source. | Narrow component coexistence only: no complete TCP ledger or ingress CRC/shape/phase association. IPv4-version and TCP reserved/urgent/ECN eligibility guards are included in the corrected component; target runtime remains unproved. Archived full-ledger build 18 failed the PHV ACK-clamp expression. |
+| Control and declarations | Historical/current constants are separately source-bound; the Case 4 adapter refuses joint activation before connecting; its write plan is empty while the supported joint schema is absent. Declaration total is **16,168 <= 18,360** attempts, with warmups and state READs retained. | This is a bounded engineering matrix, not a collected campaign or 6,000-per-cell acceptance result. OPERATE is a separate attended declaration with `hardware_authorized=false`. |
+| Admission | Request-anchor accounting and separate fallback timer/cap checks are implemented. Current record is provisional with 12 unavailable inputs; ACK, response and recovery hold bounds are null. | Nominal token budget times loop period, TCP_INFO SRTT+4RTTVAR, and historical OFF captures establish no current switch bound. |
+| Analysis and manuscript | Historical OFF main cohort is 30 exchanges; precheck is excluded. Software SBO cohort is two eligible/transformed exchanges. Campaign-v2 path-only reproduction verification passes. Working paper builds to four pages; protected writing/hash gate passes for 2,210 files. | Reanalysis and a separate working draft; no device classifier, new physical population, author promotion or submission approval. |
 
-## Hardware, as run on 2026-10-06 (every session ended with the original program restored and its configuration verified identical)
+## Final validation and retained failures
 
-1. Restoration rehearsal with no candidate (cold restart, port replay from a snapshot). One benign difference on unused port 17.
-2. First candidate load **failed**: two const tables over their declared size (`bf_device_add … Not enough space`). Fixed, tested, rebuilt; lab restored.
-3. Candidate (source `df5991016285…`) loaded; bring-up `PASS (0 fail, 0 warn)`; 30/30 READ in the Timing OFF case, median CLRT 2.240 ms; restored.
-4. Master retransmission timer measured on the candidate build: kernel RTO 201 ms, first repeat 204.4 ms; `iptables` rule removed and verified; restored.
-Four restores, the switch is on `defense4_rrc_bor_unified12` / `frozen_abs.conf`, one daemon.
+The earlier BMv2 run remains **21/22 passing**, with its unchanged artifacts: a retained legacy D_A=0 / 200 us gap test measured 609.886 us, exceeding its unchanged 400 us deviation tolerance by 9.886 us. The failure and earlier failed artifacts are retained with provenance in `framework/results/case4_bmv2_20261006/verification.json`.
 
-## What is established, in one paragraph
+The aggregate offline run completed **503 tests in 319.06 s: 501 passed, one failed and one errored, with zero skips** (`OFFLINE_REGRESSION_20261006.log`). The generated-ACK error was a missing zero-response evidence file; the driver fix passes its targeted rerun. The failure compared historical constants against changed source; explicit historical/current bindings now pass all eight bring-up tests. These targeted corrections do not rewrite the original aggregate result.
 
-The candidate loads on the Tofino, brings up with strict readback and is transparent in the OFF arm. Its release rule, recovery, both cases and the split agree with an independent
-model and with BMv2 on real packets, and the admission rules correctly refuse to let it hold traffic until three inputs exist on this build.
+The final repaired BMv2 run completed **23 tests in 247.077 s: 22 passed, one failed, zero skips**, with all 14 Case 4 tests passing, source `0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a`. The retained legacy response-focused native-ACK forwarding test measured **1,242,183 ns** against its unchanged **1,000,000 ns** limit, an excess of **242,183 ns**. No rerun or tolerance change replaced that result. Current capture/failure evidence and a verified 231-file manifest are under `framework/results/case4_bmv2_transport_repair_20261006/`; the older 138-file manifest remains immutable.
 
-## What is not
+The inserted-tail ACK defect is repaired in the Python oracle and BMv2: the last native byte stays unacknowledged until the peer acknowledges the inserted tail, including both boundaries, wrap and zero-window handling. Twelve transport and nine P4 source/oracle tests pass; actual P4 ACK/cache packet loss fixtures pass in the final suite. Receiver duplicate trimming and sender-owned replay are exercised; autonomous kernel TCP repair remains unproved. The inactive full target prototype retains its unsafe clamp and has no successful fit. The older successful SBO artifact remains its original no-loss record.
 
-Any holding behaviour on hardware (D_A, gap, fallback, split); the data-plane terms `detect_ms` and `release_tail_ms`; the outstation's timer and feedback path on this build; SELECT and
-OPERATE (not admitted; OPERATE stays attended-only); a relay-facing capture; a Tofino fit of the split with the 7-stage release; token-loss and FIN/RST gaps in the P4 (a `KNOWN_LIMITATION` test records the first).
+## Historical hardware evidence
 
-## Decisions still yours
+The retained source `df599101…` was loaded and configured earlier on 2026-10-06 for Timing OFF. The main smoke contains **30 READs**; the capture contains **31 exchanges including a separate precheck**. Historical master TCP_INFO RTO was 201 ms, with first repeat at 204.4 ms. These are historical baseline observations, not evidence for the changed Case 4 source, hardware holding, padding, splitting or fallback. Recorded restoration checks remain in the earlier reports; current live state has not been re-read here.
 
-- How to clear admission: a recorded operator acceptance of `provisional` for a bounded smoke, an instrumented measurement build, or a relay-facing tap (`MASTER_RTO_CANDIDATE_20261006.md`).
-- The dated scope-change line in `CLAUDE.md` (it carries your own uncommitted edits, so it was left alone).
-- Whether to delete the remote branch `codex/framework-implementation-20261005`; it is kept, since the repository rules forbid deleting remote branches without being told to.
+## Remaining acceptance scope
+
+A deployable, exact-source SDE 9.13.2 joint build; complete translation/partial-ACK/overlap/retransmission ledger and checksum/eligibility integration; measured heartbeat, commitment and drain bounds; hardware admission and acquisition; connection epoch/FIN/RST quarantine; and full BOR pipeline behavior remain unresolved. Near readiness expiry, a return that loses to retirement before normal ACK commitment is explicitly native fallback. A response timestamp below 30 ms alone does not prove a normal full-gap outcome. The exact newer Dr. Lin paragraph is absent, so working-paper promotion remains blocked.

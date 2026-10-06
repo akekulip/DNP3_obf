@@ -1,0 +1,444 @@
+{
+ "verdict": "provisional",
+ "policy": {
+  "anchor": "request",
+  "d_a_ms": 10.0,
+  "clrt_new_ms": 1.0,
+  "policy_cap_ms": 40.0,
+  "context": {
+   "connection_id": "vision-sel751-20000",
+   "build_id": "case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09"
+  }
+ },
+ "claim": {
+  "kind": "provisional",
+  "statement": "not decided: an input is unknown, is not authoritative for its role, or cannot be shown to apply to this connection and build",
+  "conditions": [],
+  "not_established": [
+   "that the observed maxima bound every future exchange",
+   "that the corrected policy has been exercised on hardware",
+   "that owner retirement proves physical queue drain before rearming"
+  ]
+ },
+ "input_errors": [],
+ "response_hold_ms": null,
+ "ack_hold_ms": null,
+ "recovery_hold_bound_ms": null,
+ "response_hold_formula": "request anchor population: max(0,max(D_A,tA_max)-tR_min)+CLRT_new",
+ "conservative_substitutions": [],
+ "checks": [
+  {
+   "constraint": "master TCP retransmission",
+   "ok": null,
+   "reason": "cannot be computed: master_feedback_path_ms, ack_latency_bound_ms, ack_hold_ms, detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "master_feedback_path_ms",
+    "ack_latency_bound_ms",
+    "ack_hold_ms",
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 201.0
+  },
+  {
+   "constraint": "outstation TCP retransmission",
+   "ok": null,
+   "reason": "cannot be computed: outstation_feedback_path_ms, response_hold_ms, detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "outstation_feedback_path_ms",
+    "response_hold_ms",
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 3000.0
+  },
+  {
+   "constraint": "master application deadline",
+   "ok": null,
+   "reason": "cannot be computed: response_hold_ms, detect_ms, release_tail_ms unavailable",
+   "missing": [
+    "response_hold_ms",
+    "detect_ms",
+    "release_tail_ms"
+   ],
+   "bound_ms": 500.0
+  },
+  {
+   "constraint": "master TCP recovery",
+   "ok": null,
+   "reason": "cannot be computed: master_feedback_path_ms, ack_latency_bound_ms, recovery_hold_bound_ms unavailable",
+   "missing": [
+    "master_feedback_path_ms",
+    "ack_latency_bound_ms",
+    "recovery_hold_bound_ms"
+   ],
+   "bound_ms": 201.0
+  },
+  {
+   "constraint": "outstation TCP recovery",
+   "ok": null,
+   "reason": "cannot be computed: outstation_feedback_path_ms, recovery_hold_bound_ms unavailable",
+   "missing": [
+    "outstation_feedback_path_ms",
+    "recovery_hold_bound_ms"
+   ],
+   "bound_ms": 3000.0
+  },
+  {
+   "constraint": "master application recovery",
+   "ok": null,
+   "reason": "cannot be computed: recovery_hold_bound_ms unavailable",
+   "missing": [
+    "recovery_hold_bound_ms"
+   ],
+   "bound_ms": 500.0
+  }
+ ],
+ "policy_cap": {
+  "cap_ms": 40.0,
+  "requested_ms": 11.0,
+  "recovery_bound_ms": null,
+  "ok": null,
+  "note": "independent of any measured RTT, so the mechanism's own inflation of RTT cannot raise it"
+ },
+ "inputs": {
+  "master_rto_ms": {
+   "value_ms": 201.0,
+   "provenance": "inherited from an earlier build's measurements",
+   "source": "TCP_INFO on historical df599 DNP3 socket; first repeat at 204.4 ms; not a timer measurement on the new candidate",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "master_rto_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "outstation_rto_ms": {
+   "value_ms": 3000.0,
+   "provenance": "measured, but on a different connection, device or build",
+   "source": "2026-09-15 frozen relay setting; not the current candidate",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "outstation_rto_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "application_deadline_ms": {
+   "value_ms": 500.0,
+   "provenance": "supplied by the operator for this deployment",
+   "source": "driver per-transaction budget (--budget-ms 500)",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "application_deadline_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "master_feedback_path_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "TCP_INFO SRTT+4RTTVAR is an estimator, not a measured feedback path upper bound",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "master_feedback_path_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "outstation_feedback_path_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no relay-facing measurement",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "outstation_feedback_path_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "native_request_to_response_ms": {
+   "value_ms": 23.737076,
+   "provenance": "inherited from an earlier build's measurements",
+   "source": "cand_off_30: 30 main READs; one separate precheck excluded; historical master-facing capture; observed application-facing maximum, no future guarantee",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "native_request_to_response_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "ack_latency_bound_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "cand_off_30: 30 main READs; one separate precheck excluded; historical master-facing capture; request-to-ACK includes paths and does not isolate outstation ACK latency",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "ack_latency_bound_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "detect_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no detection measurement for current source",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "detect_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "release_tail_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no commitment/release measurement for current source",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "release_tail_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "switch_request_to_ack_min_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "switch_request_to_ack_min_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "switch_request_to_ack_max_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "switch_request_to_ack_max_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "switch_request_to_response_min_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "switch_request_to_response_min_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "switch_request_to_response_max_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "switch_request_to_response_max_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "readiness_expiry_ms": {
+   "value_ms": 30.0,
+   "provenance": "supplied by the operator for this deployment",
+   "source": "fixed requested readiness policy",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "readiness_expiry_ms",
+   "authoritative_for_role": true,
+   "applicability_problem": ""
+  },
+  "completion_timeout_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "completion setting not yet admitted",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "completion_timeout_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "heartbeat_interval_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "heartbeat_interval_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  },
+  "physical_drain_ms": {
+   "value_ms": null,
+   "provenance": "not available",
+   "source": "no applicable switch/recovery measurement for case4-source-3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09",
+   "observed_at": "2026-10-06T17:05:00Z",
+   "bound_name": "physical_drain_ms",
+   "authoritative_for_role": false,
+   "applicability_problem": ""
+  }
+ },
+ "unknown_inputs": [
+  "master_feedback_path_ms",
+  "outstation_feedback_path_ms",
+  "ack_latency_bound_ms",
+  "detect_ms",
+  "release_tail_ms",
+  "switch_request_to_ack_min_ms",
+  "switch_request_to_ack_max_ms",
+  "switch_request_to_response_min_ms",
+  "switch_request_to_response_max_ms",
+  "completion_timeout_ms",
+  "heartbeat_interval_ms",
+  "physical_drain_ms"
+ ],
+ "inputs_not_authoritative": [
+  "master_rto_ms",
+  "outstation_rto_ms",
+  "native_request_to_response_ms"
+ ],
+ "problems": [],
+ "unverified_cases": [
+  "the FIRST delayed exchange, where no adaptation has happened yet",
+  "reconnection, where the sender's timer restarts from its initial value",
+  "a policy change mid-session, where the previous holds do not predict the next"
+ ],
+ "remaining_headroom": "A retransmission timeout is a duration, not the time remaining. The sender's timer started when it queued the segment, which a master-facing capture of a later packet does not reveal, so knowing that the timer is 3000 ms does not say how much of it is left when the switch begins to hold. Computing the remainder needs the segment's own send timestamp, or the sender's TCP_INFO sampled and time-aligned with the capture. Rather than estimate the remainder, each check here charges the whole interval the sender's timer spans, from its transmission to the return of its feedback, so the time already elapsed when the switch begins to hold is inside the accounting instead of being assumed unused.",
+ "historical_smoke_cohort": {
+  "rows": [
+   [
+    1.350257,
+    23.737076,
+    22.386819
+   ],
+   [
+    1.454977,
+    2.572498,
+    1.117521
+   ],
+   [
+    0.397343,
+    2.610784,
+    2.213441
+   ],
+   [
+    0.39541,
+    1.779456,
+    1.384046
+   ],
+   [
+    0.894418,
+    5.582815,
+    4.688397
+   ],
+   [
+    0.445298,
+    3.935938,
+    3.49064
+   ],
+   [
+    0.4446,
+    2.668044,
+    2.223444
+   ],
+   [
+    0.505816,
+    1.633332,
+    1.127516
+   ],
+   [
+    0.964681,
+    2.142433,
+    1.177752
+   ],
+   [
+    0.405203,
+    2.645606,
+    2.240403
+   ],
+   [
+    0.523495,
+    7.035645,
+    6.51215
+   ],
+   [
+    0.496812,
+    1.644102,
+    1.14729
+   ],
+   [
+    1.472621,
+    2.581093,
+    1.108472
+   ],
+   [
+    0.401991,
+    2.620031,
+    2.21804
+   ],
+   [
+    0.503918,
+    7.520035,
+    7.016117
+   ],
+   [
+    0.406062,
+    5.685441,
+    5.279379
+   ],
+   [
+    1.193839,
+    2.297692,
+    1.103853
+   ],
+   [
+    0.546027,
+    7.045772,
+    6.499745
+   ],
+   [
+    0.45593,
+    1.595597,
+    1.139667
+   ],
+   [
+    0.687898,
+    5.813977,
+    5.126079
+   ],
+   [
+    0.480771,
+    4.193767,
+    3.712996
+   ],
+   [
+    2.512629,
+    4.197353,
+    1.684724
+   ],
+   [
+    1.099129,
+    5.124808,
+    4.025679
+   ],
+   [
+    0.461289,
+    4.154078,
+    3.692789
+   ],
+   [
+    0.402058,
+    2.594846,
+    2.192788
+   ],
+   [
+    0.513099,
+    4.804963,
+    4.291864
+   ],
+   [
+    0.461426,
+    4.259874,
+    3.798448
+   ],
+   [
+    1.50119,
+    4.323203,
+    2.822013
+   ],
+   [
+    2.471453,
+    3.634987,
+    1.163534
+   ],
+   [
+    0.702946,
+    1.85308,
+    1.150134
+   ]
+  ],
+  "main_count": 30,
+  "main_client_port": 38257,
+  "precheck_count": 1,
+  "observation_point": "master-facing capture",
+  "historical_build": "defense4_timing-df5991016285"
+ }
+}

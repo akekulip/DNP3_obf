@@ -1,0 +1,988 @@
+active_harness 58
+active_control 105
+active_probe 39
+response_ready 83
+framework 218
+test_guarded_builders_pass_the_codec (test_active_harness.TestCodecAgainstFrozenReference) ... ok
+test_iin_is_skipped_so_the_qualifier_is_read_correctly (test_active_harness.TestCodecAgainstFrozenReference)
+The frozen SBO decoder read obj[2] as the qualifier; with the IIN present that ... ok
+test_reference_response_parses_and_crcs_validate (test_active_harness.TestCodecAgainstFrozenReference) ... ok
+test_crc_failure_is_counted_and_the_parser_resynchronises (test_active_harness.TestCrcValidation) ... ok
+test_header_crc_corruption_is_detected (test_active_harness.TestCrcValidation) ... ok
+test_payload_corruption_is_detected (test_active_harness.TestCrcValidation) ... ok
+test_user_block_crc_corruption_is_detected (test_active_harness.TestCrcValidation) ... ok
+test_a_timeout_is_set_before_the_send (test_active_harness.TestDeadlineIsAnInvariant) ... ok
+test_a_valid_response_after_the_budget_is_not_reported_ok (test_active_harness.TestDeadlineIsAnInvariant)
+Defect: a 50 ms transaction returned OK after 200 ms. ... ok
+test_deadline_exceeded_is_distinct_from_timeout (test_active_harness.TestDeadlineIsAnInvariant)
+A late valid response and no response at all are different facts. ... ok
+test_the_send_is_bounded_by_the_budget (test_active_harness.TestDeadlineIsAnInvariant)
+Defect: sendall had no timeout, so a blocked send defeated the deadline. ... ok
+test_a_response_missing_a_requested_point_is_rejected (test_active_harness.TestEveryRequiredControlObject) ... ok
+test_a_response_with_an_extra_point_is_rejected (test_active_harness.TestEveryRequiredControlObject) ... ok
+test_a_response_with_the_points_reversed_is_rejected (test_active_harness.TestEveryRequiredControlObject) ... ok
+test_failure_on_either_point_is_rejected (test_active_harness.TestEveryRequiredControlObject) ... ok
+test_the_gate_uses_this_validation (test_active_harness.TestEveryRequiredControlObject)
+The SBO gate must inherit the per-object check, not a weaker one of its own. ... ok
+test_a_crob_response_does_not_answer_a_read (test_active_harness.TestReadResponseObjects) ... ok
+test_the_right_object_is_accepted (test_active_harness.TestReadResponseObjects) ... ok
+test_the_wrong_variation_is_rejected (test_active_harness.TestReadResponseObjects) ... ok
+test_a_lone_start_octet_is_not_dropped (test_active_harness.TestReassembly) ... ok
+test_byte_at_a_time_delivery (test_active_harness.TestReassembly) ... ok
+test_excess_bytes_are_preserved_not_discarded (test_active_harness.TestReassembly) ... ok
+test_frame_split_across_every_boundary (test_active_harness.TestReassembly) ... ok
+test_leading_garbage_is_skipped_and_counted (test_active_harness.TestReassembly) ... ok
+test_two_coalesced_frames_in_one_read (test_active_harness.TestReassembly) ... ok
+test_both_drivers_build_their_frames_through_the_frozen_guard (test_active_harness.TestRerunEntryPoints) ... ok
+test_the_named_entry_points_exist_and_are_the_tested_ones (test_active_harness.TestRerunEntryPoints) ... ok
+test_every_defined_status_name_is_reported (test_active_harness.TestResponseValidation) ... ok
+test_nonzero_crob_status_is_rejected_when_success_required (test_active_harness.TestResponseValidation) ... ok
+test_sequence_mismatch_is_rejected (test_active_harness.TestResponseValidation) ... ok
+test_truncated_object_block_is_reported (test_active_harness.TestResponseValidation) ... ok
+test_wrong_function_is_rejected (test_active_harness.TestResponseValidation) ... ok
+test_wrong_group_variation_qualifier_are_rejected (test_active_harness.TestResponseValidation) ... ok
+test_wrong_points_are_rejected (test_active_harness.TestResponseValidation) ... ok
+test_authorized_set_is_exactly_one_and_three (test_active_harness.TestSafetyGuardsPreserved) ... ok
+test_breaker_close_index_is_refused_at_construction (test_active_harness.TestSafetyGuardsPreserved) ... ok
+test_driver_refuses_an_index_set_that_is_not_the_authorized_set (test_active_harness.TestSafetyGuardsPreserved) ... REFUSED: --indices must be exactly [1, 3]; got [1]
+REFUSED: --indices must be exactly [1, 3]; got [1, 3, 6]
+REFUSED: --indices must be exactly [1, 3]; got [6]
+ok
+test_dry_run_is_the_default_and_sends_nothing (test_active_harness.TestSafetyGuardsPreserved) ... ok
+test_frozen_files_are_not_importable_as_writable_copies (test_active_harness.TestSafetyGuardsPreserved)
+The bridge must read the frozen directory, not a local duplicate. ... ok
+test_guarded_helper_refuses_a_forbidden_index (test_active_harness.TestSafetyGuardsPreserved) ... ok
+test_live_refuses_without_the_authorization_variable (test_active_harness.TestSafetyGuardsPreserved) ... REFUSED: live operation needs DEFENSE4_HW_AUTHORIZED=1
+ok
+test_operate_follows_a_valid_select (test_active_harness.TestSelectGate) ... ok
+test_operate_is_not_attempted_after_a_failed_select (test_active_harness.TestSelectGate) ... ok
+test_select_and_operate_use_different_sequence_numbers (test_active_harness.TestSelectGate) ... ok
+test_select_only_never_sends_an_operate (test_active_harness.TestSelectGate) ... ok
+test_failure_when_the_select_times_out (test_active_harness.TestSelectOnlyExitStatus) ... ok
+test_success_when_the_select_succeeds (test_active_harness.TestSelectOnlyExitStatus) ... ok
+test_a_stale_response_does_not_complete_the_transaction (test_active_harness.TestSessionDeadlines) ... ok
+test_corrupt_bytes_give_a_framing_outcome (test_active_harness.TestSessionDeadlines) ... ok
+test_each_receive_gets_a_strictly_smaller_timeout (test_active_harness.TestSessionDeadlines)
+The direct witness that the remaining budget is passed down, not the full one. ... ok
+test_invalid_response_is_distinguished_from_timeout (test_active_harness.TestSessionDeadlines) ... ok
+test_leftover_bytes_are_reported_and_kept (test_active_harness.TestSessionDeadlines) ... ok
+test_only_a_stale_response_times_out (test_active_harness.TestSessionDeadlines) ... ok
+test_peer_close_is_distinguished_from_timeout (test_active_harness.TestSessionDeadlines) ... ok
+test_remaining_budget_is_passed_to_the_receive (test_active_harness.TestSessionDeadlines) ... ok
+test_the_budget_bounds_the_transaction_not_one_read (test_active_harness.TestSessionDeadlines)
+Trickled bytes that never complete a frame must not renew the budget. ... ok
+test_timeout_is_an_explicit_outcome (test_active_harness.TestSessionDeadlines) ... ok
+test_valid_response_completes (test_active_harness.TestSessionDeadlines) ... ok
+test_each_check_charges_its_whole_interval_not_only_the_hold (test_delay_admission.TestBudgetAccounting) ... ok
+test_no_path_allowance_is_charged_twice_in_one_check (test_delay_admission.TestBudgetAccounting) ... ok
+test_the_consumed_total_is_the_sum_of_its_stated_terms (test_delay_admission.TestBudgetAccounting) ... ok
+test_a_negative_ack_hold_is_rejected (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict) ... ok
+test_a_valid_policy_is_not_rejected (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict)
+Non-vacuity: the validator must not reject everything. ... ok
+test_a_zero_policy_cap_is_rejected (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict) ... ok
+test_an_inconsistent_pair_is_rejected (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict) ... ok
+test_an_out_of_range_value_is_read_as_a_unit_error (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict) ... ok
+test_nonfinite_values_are_rejected (test_delay_admission.TestInvalidNumbersAreRejectedBeforeAnyVerdict) ... ok
+test_a_long_outstation_timer_does_not_rescue_a_master_violation (test_delay_admission.TestMasterAndOutstationAreNotInterchangeable) ... ok
+test_the_master_check_does_not_move_with_the_response_hold_alone (test_delay_admission.TestMasterAndOutstationAreNotInterchangeable) ... ok
+test_the_two_timers_are_separate_named_inputs (test_delay_admission.TestMasterAndOutstationAreNotInterchangeable) ... ok
+test_a_missing_bound_is_not_silently_given_a_number (test_delay_admission.TestMissingTermsCannotBecomeZero) ... ok
+test_a_missing_detection_term_leaves_the_check_undecided (test_delay_admission.TestMissingTermsCannotBecomeZero) ... ok
+test_an_undecided_check_never_reports_ok_true (test_delay_admission.TestMissingTermsCannotBecomeZero) ... ok
+test_a_sound_policy_still_reaches_the_best_verdict (test_delay_admission.TestNonVacuity) ... ok
+test_a_claim_of_being_measured_here_needs_an_observation_time (test_delay_admission.TestProvenanceAndApplicability) ... ok
+test_a_measurement_from_another_build_is_not_authoritative_here (test_delay_admission.TestProvenanceAndApplicability) ... ok
+test_a_measurement_from_another_connection_is_not_authoritative_here (test_delay_admission.TestProvenanceAndApplicability) ... ok
+test_an_operator_supplied_deadline_is_authoritative_for_its_role (test_delay_admission.TestProvenanceAndApplicability)
+A requirement does not have to masquerade as a measurement. ... ok
+test_an_operator_supplied_transport_timer_is_not_authoritative (test_delay_admission.TestProvenanceAndApplicability) ... ok
+test_inherited_constants_do_not_support_an_admitted_verdict (test_delay_admission.TestProvenanceAndApplicability) ... ok
+test_a_bound_must_be_named_for_the_field_it_fills (test_delay_admission.TestRoleIsNotDecidedByLabel) ... ok
+test_an_empty_context_admits_nothing_authoritatively (test_delay_admission.TestRoleIsNotDecidedByLabel) ... ok
+test_an_outstation_measurement_cannot_fill_the_master_field (test_delay_admission.TestRoleIsNotDecidedByLabel) ... ok
+test_the_conservative_direction_of_the_native_interval_is_stated (test_delay_admission.TestRoleIsNotDecidedByLabel) ... ok
+test_the_verdict_names_the_policy_it_evaluated (test_delay_admission.TestRoleIsNotDecidedByLabel) ... ok
+test_cap_does_not_move_when_the_measured_timers_grow (test_delay_admission.TestThePolicyCapIsIndependent) ... ok
+test_cap_is_enforced_against_the_requested_holds (test_delay_admission.TestThePolicyCapIsIndependent) ... ok
+test_inflating_the_measured_paths_cannot_license_a_longer_hold (test_delay_admission.TestThePolicyCapIsIndependent)
+The feedback loop grows, the cap does not, so the cap still binds. ... ok
+test_hold_is_floored_at_zero_not_negative (test_delay_admission.TestTheResponseHoldContainsTheAckHold) ... ok
+test_raising_the_ack_hold_raises_the_outstation_consumption (test_delay_admission.TestTheResponseHoldContainsTheAckHold)
+The conclusion that was wrong: D_A did not move the outstation check at all. ... ok
+test_the_reviewed_counterexample_is_now_refused (test_delay_admission.TestTheResponseHoldContainsTheAckHold)
+D_A=20, CLRT_new=4, native 1 ms: the response waits 23 ms, not 4 ms. ... ok
+test_unknown_native_interval_is_conservative_not_ignored (test_delay_admission.TestTheResponseHoldContainsTheAckHold) ... ok
+test_a_duration_is_not_presented_as_a_countdown (test_delay_admission.TestWhatIsNotEstablished) ... ok
+test_hardware_execution_is_never_claimed (test_delay_admission.TestWhatIsNotEstablished) ... ok
+test_the_best_verdict_is_explicitly_conditional (test_delay_admission.TestWhatIsNotEstablished) ... ok
+test_the_statement_distinguishes_the_roles_of_its_inputs (test_delay_admission.TestWhatIsNotEstablished)
+The 2026-09-17 review: the statement called every input an observed maximum. ... ok
+test_the_unverified_cases_are_named_in_every_verdict (test_delay_admission.TestWhatIsNotEstablished) ... ok
+test_there_is_no_unconditional_verified_flag (test_delay_admission.TestWhatIsNotEstablished) ... ok
+test_invalid_anchor_and_inverted_intervals_rejected (test_request_anchor_admission.RequestAnchor) ... ok
+test_legacy_formula_is_explicitly_native_ack (test_request_anchor_admission.RequestAnchor) ... ok
+test_missing_switch_or_recovery_measurements_are_not_zero (test_request_anchor_admission.RequestAnchor) ... ok
+test_ready_population_bound_contains_full_gap_and_late_response (test_request_anchor_admission.RequestAnchor) ... ok
+test_recovery_cap_includes_heartbeat_release_and_physical_drain (test_request_anchor_admission.RequestAnchor) ... ok
+test_recovery_must_fit_timers_even_when_ready_exchange_fits (test_request_anchor_admission.RequestAnchor) ... ok
+test_unknown_native_interval_is_not_substituted_for_switch_response (test_request_anchor_admission.RequestAnchor) ... ok
+test_a_genuine_admission_for_another_connection_is_not_permission (test_timing_only_profile.TestAdmissionIsWiredIn)
+The second 2026-09-17 counterexample: a real evaluation, of the wrong connection. ... ok
+test_a_missing_build_identity_is_not_agreement (test_timing_only_profile.TestAdmissionIsWiredIn)
+The third 2026-09-17 counterexample: identity was checked only when present. ... ok
+test_a_non_mock_activation_requires_an_admission_record (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_a_profile_that_names_no_connection_cannot_be_authorised (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_a_refused_policy_is_never_applied (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_a_rejected_policy_is_never_applied (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_a_verdict_with_matching_delays_but_no_checks_is_not_permission (test_timing_only_profile.TestAdmissionIsWiredIn)
+The first 2026-09-17 counterexample. ... ok
+test_acceptance_is_by_allowlist_not_by_excluding_bad_verdicts (test_timing_only_profile.TestAdmissionIsWiredIn)
+The 2026-09-16 counterexamples: empty, unknown and provisional all installed. ... ok
+test_admission_for_a_different_build_is_not_permission (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_admission_for_a_different_policy_is_not_permission (test_timing_only_profile.TestAdmissionIsWiredIn)
+An admission computed for a 9 ms schedule must not install a 24 ms one. ... ok
+test_an_admission_whose_checks_did_not_pass_is_not_permission (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_an_admitted_policy_proceeds (test_timing_only_profile.TestAdmissionIsWiredIn) ... ok
+test_a_late_failure_reports_what_was_left_configured (test_timing_only_profile.TestFailuresKeepTheirEvidence)
+The 2026-09-16 counterexample: an OSError after pktgen escaped bare. ... ok
+test_a_rejected_profile_attaches_its_problems (test_timing_only_profile.TestFailuresKeepTheirEvidence) ... ok
+test_a_write_that_cannot_be_read_back_is_still_reported_as_left_active (test_timing_only_profile.TestFailuresKeepTheirEvidence)
+The 2026-09-17 counterexample. ... ok
+test_device_write_failure_aborts_and_does_not_arm_pktgen (test_timing_only_profile.TestFailuresKeepTheirEvidence) ... ok
+test_invalid_profile_is_rejected_before_any_write (test_timing_only_profile.TestFailuresKeepTheirEvidence) ... ok
+test_the_partial_record_is_attached_to_the_error (test_timing_only_profile.TestFailuresKeepTheirEvidence)
+The docstring promised this and the code did not do it. ... ok
+test_it_imports_nothing_from_the_frozen_implementation (test_timing_only_profile.TestImportsResolveWhereIntended) ... ok
+test_module_file_is_inside_this_repository (test_timing_only_profile.TestImportsResolveWhereIntended) ... ok
+test_no_absolute_user_paths_are_baked_in (test_timing_only_profile.TestImportsResolveWhereIntended) ... ok
+test_every_record_states_that_no_adapter_is_implemented (test_timing_only_profile.TestMockIsNeverEvidence) ... ok
+test_live_label_is_only_set_when_the_caller_says_so (test_timing_only_profile.TestMockIsNeverEvidence) ... ok
+test_mock_run_is_labelled_and_disclaims_switch_state (test_timing_only_profile.TestMockIsNeverEvidence) ... ok
+test_the_plan_names_what_it_does_not_configure (test_timing_only_profile.TestMockIsNeverEvidence) ... ok
+test_a_mode_that_never_arms_is_rejected_and_explained (test_timing_only_profile.TestModesMatchTheLoadedBuild) ... ok
+test_only_the_modes_that_arm_are_offered (test_timing_only_profile.TestModesMatchTheLoadedBuild) ... ok
+test_the_plan_records_which_modes_never_arm (test_timing_only_profile.TestModesMatchTheLoadedBuild) ... ok
+test_an_exactly_aligned_delay_reports_no_residual (test_timing_only_profile.TestQuantisation) ... ok
+test_quantisation_residual_is_reported_not_absorbed (test_timing_only_profile.TestQuantisation) ... ok
+test_quantize_refuses_a_nonfinite_duration (test_timing_only_profile.TestQuantisation) ... ok
+test_a_generic_success_flag_does_not_satisfy_a_field_expectation (test_timing_only_profile.TestReadbackMismatch)
+`{"ok": True}` is not evidence that d_ticks holds the intended value. ... ok
+test_mismatch_stops_the_sequence_rather_than_continuing (test_timing_only_profile.TestReadbackMismatch) ... ok
+test_missing_field_counts_as_a_mismatch_not_a_pass (test_timing_only_profile.TestReadbackMismatch) ... ok
+test_wrong_timing_word_is_detected_and_aborts (test_timing_only_profile.TestReadbackMismatch) ... ok
+test_an_unreadable_shape_field_is_not_treated_as_off (test_timing_only_profile.TestShapingNeverEnabled)
+Absence is not evidence of zero. The probe itself must refuse. ... ok
+test_module_contains_no_code_that_enables_shaping (test_timing_only_profile.TestShapingNeverEnabled)
+Source-level check on EXECUTABLE lines only. ... ok
+test_no_step_enables_shaping_and_the_last_asserts_it_off (test_timing_only_profile.TestShapingNeverEnabled) ... ok
+test_no_write_ever_sets_shape_enable_to_one (test_timing_only_profile.TestShapingNeverEnabled) ... ok
+test_shaping_is_established_before_any_traffic_path (test_timing_only_profile.TestShapingNeverEnabled)
+Order matters: configuring forwarding first is how a run carries traffic unintended. ... ok
+test_shaping_is_reread_from_its_own_table_after_every_step (test_timing_only_profile.TestShapingNeverEnabled) ... ok
+test_shaping_turning_on_mid_sequence_is_caught_at_that_step (test_timing_only_profile.TestShapingNeverEnabled)
+A later step enabling shaping as a side effect is caught where it happened. ... ok
+test_the_source_scan_would_actually_catch_a_real_violation (test_timing_only_profile.TestShapingNeverEnabled) ... ok
+test_a_clean_profile_has_no_problems (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+Non-vacuity: the negative tests above would be meaningless if nothing ever passed. ... ok
+test_a_hold_above_the_enforced_clamp_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+The control plane refuses above 40 ms; this must refuse before reaching it. ... ok
+test_a_ladder_out_of_descending_order_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_a_non_integer_budget_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_a_port_the_binary_does_not_use_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_a_positive_delay_that_truncates_to_zero_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+0.0001 ms is 100 ns, below one 256 ns tick, so it is no hold at all. ... ok
+test_an_empty_queue_plan_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+The 2026-09-16 counterexample: empty plans produced no validation errors. ... ok
+test_an_out_of_range_port_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_an_out_of_range_queue_id_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_an_unknown_build_is_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_duplicate_ports_are_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_duplicate_priorities_are_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_nan_and_infinity_are_reported_not_raised (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense) ... ok
+test_queue_id_need_not_equal_priority (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+They are separate numbers. Requiring identity was an assumption, not a constraint. ... ok
+test_queue_ids_the_binary_does_not_use_are_rejected (test_timing_only_profile.TestValidationDoesNotRaiseOrAdmitNonsense)
+Renaming a queue does not change where the compiled program enqueues. ... ok
+test_a_failed_install_is_cleaned_up_and_confirmed_absent (test_rto_probe_plan.TestCleanupProtection)
+A non-zero install is not proof that nothing was applied. ... ok
+test_a_failure_during_verification_still_removes_the_rule (test_rto_probe_plan.TestCleanupProtection)
+The defect: protection began after verification, so this path leaked a rule. ... ok
+test_an_exception_from_the_runner_still_removes_the_rule (test_rto_probe_plan.TestCleanupProtection) ... ok
+test_an_install_that_raises_on_return_is_cleaned_up (test_rto_probe_plan.TestCleanupProtection)
+The counterexample from the 2026-09-17 review. ... ok
+test_execution_refuses_a_watchdog_shorter_than_the_hold (test_rto_probe_plan.TestCleanupProtection) ... ok
+test_execution_revalidates_a_mutated_hold (test_rto_probe_plan.TestCleanupProtection)
+The second counterexample: a plan is a dictionary and can be edited after `plan()`. ... ok
+test_every_step_records_its_return_code (test_rto_probe_plan.TestErrorsCarryTheirEvidence) ... ok
+test_the_record_is_attached_to_the_raised_error (test_rto_probe_plan.TestErrorsCarryTheirEvidence) ... ok
+test_a_complete_plan_executes (test_rto_probe_plan.TestIncompletePlansAreNotExecuted)
+Non-vacuity: the refusals above must not reject every plan. ... ok
+test_an_unread_shape_state_is_refused_at_execution (test_rto_probe_plan.TestIncompletePlansAreNotExecuted) ... ok
+test_an_unset_context_is_refused_at_execution (test_rto_probe_plan.TestIncompletePlansAreNotExecuted) ... ok
+test_an_unset_source_port_is_refused_at_execution (test_rto_probe_plan.TestIncompletePlansAreNotExecuted) ... ok
+test_removal_targets_this_probes_rule (test_rto_probe_plan.TestOwnership) ... ok
+test_the_rule_carries_a_probe_specific_comment (test_rto_probe_plan.TestOwnership) ... ok
+test_two_plans_do_not_share_an_identity (test_rto_probe_plan.TestOwnership) ... ok
+test_a_failed_delete_is_reported (test_rto_probe_plan.TestRemovalIsVerifiedHonestly) ... ok
+test_only_the_absent_code_establishes_absence (test_rto_probe_plan.TestRemovalIsVerifiedHonestly) ... ok
+test_permission_denied_is_not_successful_removal (test_rto_probe_plan.TestRemovalIsVerifiedHonestly)
+The defect: any non-zero code counted as absence, including 'permission denied'. ... ok
+test_the_inbound_experiment_matches_on_the_input_interface (test_rto_probe_plan.TestTheExecutedSelectionMatchesTheDocumentedOne) ... ok
+test_the_inbound_rule_does_not_catch_pure_acknowledgments (test_rto_probe_plan.TestTheExecutedSelectionMatchesTheDocumentedOne)
+A rule with no length bound would also drop the outstation's own ACKs. ... ok
+test_the_interface_is_actually_enforced (test_rto_probe_plan.TestTheExecutedSelectionMatchesTheDocumentedOne)
+The defect: the plan named an interface the rule never matched on. ... ok
+test_the_two_directions_are_different_experiments (test_rto_probe_plan.TestTheExecutedSelectionMatchesTheDocumentedOne) ... ok
+test_a_network_address_is_refused (test_rto_probe_plan.TestTheGuard)
+The probe is scoped to one connection; a prefix is not one connection. ... ok
+test_a_nonfinite_slice_is_refused (test_rto_probe_plan.TestTheGuard) ... ok
+test_a_nonpositive_or_nonfinite_hold_is_refused (test_rto_probe_plan.TestTheGuard)
+NaN fails every comparison, so `<= 0` alone let it through. ... ok
+test_apply_refuses_without_live (test_rto_probe_plan.TestTheGuard) ... ok
+test_apply_refuses_without_the_environment_guard (test_rto_probe_plan.TestTheGuard) ... ok
+test_planning_is_pure (test_rto_probe_plan.TestTheGuard) ... ok
+test_a_blocked_workload_is_abandoned_rather_than_waited_on (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded)
+The watchdog must act while the workload is still running, not after it returns. ... ok
+test_a_forty_second_hold_actually_advances_the_clock (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded)
+The defect: the record said 40 s and the call returned in 0.24 ms. ... ok
+test_a_workload_receives_the_requested_duration (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded) ... ok
+test_a_workload_that_returns_early_is_not_a_completed_hold (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded)
+The 2026-09-16 counterexample: status completed, elapsed 0 s, requested 40 s. ... ok
+test_a_workload_that_serves_the_hold_completes (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded)
+Non-vacuity: a workload that actually holds must still be able to succeed. ... ok
+test_the_watchdog_bounds_a_workload_that_overruns (test_rto_probe_plan.TestTheHoldIsTakenNotRecorded) ... ok
+test_an_illegal_tcp_header_length_is_refused (test_rto_probe_plan.TestTheSelector) ... ok
+test_an_unsupported_ip_header_is_refused (test_rto_probe_plan.TestTheSelector) ... ok
+test_psh_is_not_used_as_a_payload_test (test_rto_probe_plan.TestTheSelector) ... ok
+test_the_length_bound_is_computed_from_the_observed_header (test_rto_probe_plan.TestTheSelector) ... ok
+test_the_margin_to_the_smallest_data_segment_is_reported (test_rto_probe_plan.TestTheSelector) ... ok
+test_corruption_outlier_not_dropped (test_analysis.AnalysisTests) ... ok
+test_full_requires_four_das_and_unknown_outliers_count (test_analysis.AnalysisTests) ... ok
+test_loss_retained_and_coverage (test_analysis.AnalysisTests) ... ok
+test_missing_normal_is_retained (test_analysis.AnalysisTests) ... ok
+test_observed_latency_stats_keep_available_timestamps (test_analysis.AnalysisTests) ... ok
+test_profile_floors_cannot_be_lowered (test_analysis.AnalysisTests) ... ok
+test_reject_invalid (test_analysis.AnalysisTests) ... ok
+test_separate_groups_and_sample_variance (test_analysis.AnalysisTests) ... ok
+test_full_manifest_and_retransmit_gates (test_analysis.CampaignEvidenceTests) ... ok
+test_smoke_separate_and_order_failure_retained (test_analysis.CampaignEvidenceTests) ... ok
+test_eight_stages_and_missing_bor_failed_compile (test_build_gate.BuildGateTests) ... ok
+test_stale_source_or_snapshot (test_build_gate.BuildGateTests) ... ok
+test_tampered_context_or_bfrt (test_build_gate.BuildGateTests) ... ok
+test_valid_seven_retained_or_output (test_build_gate.BuildGateTests) ... ok
+test_wrong_final_report_even_with_old_seven (test_build_gate.BuildGateTests) ... ok
+test_ack_and_historical_disabled_policy_do_not_use_app_fields (test_case4_association.ApplicationAssociation) ... ok
+test_busy_owner_cannot_overwrite_application_identity (test_case4_association.ApplicationAssociation) ... ok
+test_every_wrong_application_sequence_is_rejected (test_case4_association.ApplicationAssociation) ... ok
+test_guard_runs_before_response_mark_and_state_decode (test_case4_association.ApplicationAssociation) ... ok
+test_zero_sequence_is_written_after_wrap (test_case4_association.ApplicationAssociation) ... ok
+test_9132_build_eligibility_is_explicit_and_never_deployment_authorization (test_case4_build_gate.Case4BuildGate) ... ok
+test_cli_explicit_profile_accepts_real_target_limit (test_case4_build_gate.Case4BuildGate) ... ok
+test_compiler_manifest_must_match_target_and_architecture (test_case4_build_gate.Case4BuildGate) ... ok
+test_default_seven_stage_gate_is_unchanged (test_case4_build_gate.Case4BuildGate) ... ok
+test_missing_or_tampered_resources_fail (test_case4_build_gate.Case4BuildGate) ... ok
+test_target_compiler_register_and_salu_mismatches_fail (test_case4_build_gate.Case4BuildGate) ... ok
+test_thirteen_stage_candidate_is_refused (test_case4_build_gate.Case4BuildGate) ... ok
+test_constant_entries_cannot_exceed_compiled_table_capacity (test_case4_build_gate.Case4ConstCapacity) ... ok
+test_empty_phv_report_is_a_failed_gate_not_an_exception (test_case4_build_gate.Case4ReportFailures) ... ok
+test_wrong_resource_run_identity_is_rejected_even_with_updated_hash (test_case4_build_gate.Case4ReportFailures) ... ok
+test_data_parser_requires_ack_bit (test_case4_duplicate.DuplicateResponse) ... ok
+test_pending_associated_response_is_suppressed_in_case4 (test_case4_duplicate.DuplicateResponse) ... ok
+test_both_reservoirs_absent_pulse_still_retires_owner (test_case4_expiry.IndependentExpiry) ... ok
+test_expiry_register_uses_nanoseconds_across_wrap (test_case4_expiry.IndependentExpiry) ... ok
+test_post_ack_gap_is_not_cut_by_readiness_expiry (test_case4_expiry.IndependentExpiry) ... ok
+test_pulse_is_internal_and_carries_full_owner_cookie (test_case4_expiry.IndependentExpiry) ... ok
+test_stale_scan_cannot_retire_a_newly_committed_ack_gap (test_case4_expiry.IndependentExpiry) ... ok
+test_unarmed_before_deadline_disabled_or_idle_pulse_drops (test_case4_expiry.IndependentExpiry) ... ok
+test_ack_requires_response_or_explicit_expiry (test_case4_held_release.HeldRelease) ... ok
+test_lost_ack_reservoir_does_not_release_before_deadline (test_case4_held_release.HeldRelease) ... ok
+test_lost_response_reservoir_preserves_full_gap (test_case4_held_release.HeldRelease) ... ok
+test_only_commit_pass_retires_response_owner (test_case4_held_release.HeldRelease) ... ok
+test_retired_owner_flushes_native_without_rearming_gap (test_case4_held_release.HeldRelease) ... ok
+test_stale_commit_cannot_forward (test_case4_held_release.HeldRelease) ... ok
+test_busy_owner_cannot_prepare_or_arm_control_state (test_case4_operate_repair.OperateRepair) ... ok
+test_held_duplicate_drops_but_released_repair_forwards (test_case4_operate_repair.OperateRepair) ... ok
+test_matching_release_marks_all_application_sequences (test_case4_operate_repair.OperateRepair) ... ok
+test_repair_verdict_alone_cannot_admit_unqualified_traffic (test_case4_operate_repair.OperateRepair) ... ok
+test_stale_release_does_not_mark_other_generation (test_case4_operate_repair.OperateRepair) ... ok
+test_bad_port_counts_once_and_drops (test_commit_parity.CommitParity) ... ok
+test_every_terminal_row_effect_and_count (test_commit_parity.CommitParity) ... ok
+test_indexed_counter_contract_is_explicit (test_commit_parity.CommitParity) ... ok
+test_wrong_queue_and_double_count_mutations_fail (test_commit_parity.CommitParity) ... ok
+test_apply_sdk_surface_backup_and_readback_failure (test_control.ApplyTests) ... ok
+test_apply_requires_guards_before_connection (test_control.ControlTests) ... ok
+test_fixed_plan (test_control.ControlTests) ... ok
+test_readback_strict_and_bfrt_wrapper (test_control.ControlTests) ... ok
+test_schema_exact (test_control.ControlTests) ... ok
+test_busy_request_blocks_tracker_writes (test_p4_recovery.RecoveryGates) ... ok
+test_cookie_exhaustion_never_reuses_identity (test_p4_recovery.RecoveryGates) ... ok
+test_enabled_watchdog_priority_and_domain (test_p4_recovery.RecoveryGates) ... ok
+test_guarded_tracker_tables_use_admission_prestate (test_p4_recovery.RecoveryGates) ... ok
+test_integrated_pending_release_and_duplicate_return (test_p4_recovery.RecoveryGates) ... ok
+test_old_trigger_cookie_is_rejected_after_generation_alias (test_p4_recovery.RecoveryGates) ... ok
+test_pending_retransmission_after_watchdog_bypasses (test_p4_recovery.RecoveryGates) ... ok
+test_pending_timeout_then_next_request (test_p4_recovery.RecoveryGates) ... ok
+test_retirement_predicate_mutation_detected (test_p4_recovery.RecoveryGates) ... ok
+test_shim_table_does_not_rewrite_blockers (test_p4_recovery.RecoveryGates) ... ok
+test_stale_returns_do_not_retire_new_owner (test_p4_recovery.RecoveryGates) ... ok
+test_timeout_note_terminates_in_every_mode (test_p4_recovery.RecoveryGates)
+A budget-zero token must leave the block queue for good, in every mode and both lanes. ... ok
+test_watchdog_rearms_without_feedback_packet (test_p4_recovery.RecoveryGates) ... ok
+test_disabled_parity (test_p4_release.ReleaseTables) ... ok
+test_fresh_request_disarms (test_p4_release.ReleaseTables) ... ok
+test_live_blocker_waits_even_after_deadline (test_p4_release.ReleaseTables) ... ok
+test_native_ack_does_not_arm (test_p4_release.ReleaseTables) ... ok
+test_pending_requires_deadline (test_p4_release.ReleaseTables) ... ok
+test_qualified_return_arms (test_p4_release.ReleaseTables) ... ok
+test_release_mutations_are_detected (test_p4_release.ReleaseTables) ... ok
+test_response_focused_mode_arms_on_the_fresh_ack (test_p4_release.ReleaseTables) ... ok
+test_return_deadline_arms_once_across_wrap (test_p4_release.ReleaseTables) ... ok
+test_watchdog_live_and_pending (test_p4_release.ReleaseTables) ... ok
+test_every_const_table_has_room_for_its_entries (test_table_capacity.Capacity) ... ok
+test_the_scan_catches_the_defect_that_the_hardware_found (test_table_capacity.Capacity) ... ok
+test_ambiguous_connection_cohort_is_refused (test_admission_cohort.Cohort) ... ok
+test_committed_main_has_thirty_exchanges_excluding_precheck (test_admission_cohort.Cohort) ... ok
+test_current_candidate_does_not_inherit_baseline_timer_identity (test_admission_cohort.Cohort) ... ok
+test_full_flow_identity_and_tcp_end_wrap (test_admission_cohort.Cohort) ... ok
+test_a_provisional_verdict_does_not_authorise_the_profile (test_admission_record.Admission) ... ok
+test_historical_master_timer_does_not_authorise_current_recovery_cap (test_admission_record.Admission) ... ok
+test_measured_rto_evidence_is_internally_consistent (test_admission_record.Admission) ... ok
+test_verdict_is_provisional_and_names_exactly_what_is_missing (test_admission_record.Admission) ... ok
+test_empty_and_bad_inputs_raise (test_analysis_stats.Stats) ... ok
+test_formby_accounts_for_every_input_without_changing_printed_bins (test_analysis_stats.Stats) ... ok
+test_formby_signature_follows_equation_1 (test_analysis_stats.Stats) ... ok
+test_formby_signature_rejects_bad_parameters (test_analysis_stats.Stats) ... ok
+test_histogram_percent_is_of_the_whole_condition_and_reports_what_fell_outside (test_analysis_stats.Stats) ... ok
+test_matches_numpy_on_random_data (test_analysis_stats.Stats) ... ok
+test_no_completion_rate_without_a_denominator (test_analysis_stats.Stats) ... ok
+test_variance_is_sample_not_population (test_analysis_stats.Stats) ... ok
+test_window_is_over_the_stated_denominator_not_the_subset (test_analysis_stats.Stats) ... ok
+test_codebook_must_be_empty_and_adapter_used_for_the_parameters (test_candidate_bringup.Bringup) ... ok
+test_constants_file_is_bound_to_the_source (test_candidate_bringup.Bringup) ... FAIL
+test_declared_lists_match_the_code (test_candidate_bringup.Bringup) ... ok
+test_every_helper_it_calls_is_in_the_proven_sequence (test_candidate_bringup.Bringup) ... ok
+test_list_mode_touches_nothing (test_candidate_bringup.Bringup) ... ok
+test_pktgen_is_enabled_last_and_only_after_the_checks (test_candidate_bringup.Bringup) ... ok
+test_the_removed_steps_are_removed (test_candidate_bringup.Bringup) ... ok
+test_all_external_events_at_expiry_precede_watchdog (test_case4_model.Case4Recovery) ... ok
+test_default_readiness_expiry_releases_ack_at_30_ms (test_case4_model.Case4Recovery) ... ok
+test_fin_flushes_a_response_scheduled_after_ack_release (test_case4_model.Case4Recovery) ... ok
+test_late_ready_response_keeps_full_8_ms_gap_after_ack (test_case4_model.Case4Recovery) ... ok
+test_reset_never_repeats_already_forwarded_legacy_ack (test_case4_model.Case4Recovery) ... ok
+test_rst_flushes_held_traffic_and_allows_next_exchange (test_case4_model.Case4Recovery) ... ok
+test_tcp_request_end_wraps_modulo_32_bits (test_case4_model.Case4Recovery) ... ok
+test_time_comparison_uses_low32_masked_nanoseconds (test_case4_model.Case4Recovery) ... ok
+test_wrong_epoch_fin_cannot_clear_an_active_owner (test_case4_model.Case4Recovery) ... ok
+test_actual_packet_identity_rejects_each_wrong_input (test_case4_model.PacketAssociation) ... ok
+test_app_wrap_is_new_association_after_prior_completion (test_case4_model.PacketAssociation) ... ok
+test_unsupported_response_does_not_satisfy_readiness (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_ack_cannot_make_response_ready (test_case4_model.PacketAssociation) ... ok
+test_wrong_flow_rst_cannot_retire_owner (test_case4_model.PacketAssociation) ... ok
+test_carve_layout_matches_explicit_profile (test_case4_p4_size.Layout) ... ok
+test_exclusive_subtract_checksum_residue_arithmetic (test_case4_p4_size.Layout) ... ok
+test_layout_matches_strict_codec_all_native_fields_and_crcs (test_case4_p4_size.Layout) ... ok
+test_resource_report_binds_source_and_assembler (test_case4_p4_size.Layout) ... ok
+test_source_has_actual_two_boundaries_and_template_state (test_case4_p4_size.Layout) ... ok
+test_source_has_real_crc_and_size_operations (test_case4_p4_size.Layout) ... ok
+test_two_boundary_maps_match_actual_image_transport_oracle (test_case4_p4_size.Layout) ... ok
+test_wire_ablation_retains_input_checksum_guards (test_case4_p4_size.Layout) ... ok
+test_associated_pending_duplicate_is_suppressed (test_case4_packet_parity.ExpiryPackets) ... ok
+test_both_lost_reservoirs_are_recovered_without_endpoint_feedback (test_case4_packet_parity.ExpiryPackets) ... ok
+test_enabled_single_reservoir_loss_rechecks_held_departure (test_case4_packet_parity.ExpiryPackets) ... ok
+test_late_ready_response_preserves_full_gap_beyond_readiness_expiry (test_case4_packet_parity.ExpiryPackets) ... ok
+test_readiness_scan_cannot_cut_gap_at_admitted_boundary (test_case4_packet_parity.ExpiryPackets) ... ok
+test_stale_pulse_and_commit_cannot_retire_new_owner (test_case4_packet_parity.ExpiryPackets) ... ok
+test_busy_request_preserves_actual_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_dnp3_requires_ack_bit_with_psh_allowed (test_case4_packet_parity.PacketAssociation) ... ok
+test_duplicate_acks_retain_queue_multiplicity (test_case4_packet_parity.PacketAssociation) ... ok
+test_packet_fields_write_real_source_trackers (test_case4_packet_parity.PacketAssociation) ... ok
+test_stale_response_return_does_not_clear_new_full_owner (test_case4_packet_parity.PacketAssociation) ... ok
+test_tcp_and_app_wrap_are_real_packet_fields (test_case4_packet_parity.PacketAssociation) ... ok
+test_wrong_byte_fields_cannot_mark_response_ready (test_case4_packet_parity.PacketAssociation) ... ok
+test_decoy_collision_refuses_padding_and_status_must_be_zero (test_case4_padding.Padding) ... ok
+test_invalid_or_unsupported_unchanged (test_case4_padding.Padding) ... ok
+test_native_fields_sequence_addresses_preserved_separate_header (test_case4_padding.Padding) ... ok
+test_select_operate_same_object_set (test_case4_padding.Padding) ... ok
+test_only_one_matching_select_operate_pair_ever_grows (test_case4_transport.ControlConnection) ... ok
+test_operate_first_and_mismatched_native_fields_never_insert (test_case4_transport.ControlConnection) ... ok
+test_active_ledger_continues_translation_for_unsupported_new_request (test_case4_transport.Transport) ... ok
+test_conflicting_overlap_refused_without_losing_translation (test_case4_transport.Transport) ... ok
+test_every_partial_ack_and_window_maps_with_independent_piecewise_oracle (test_case4_transport.Transport) ... ok
+test_out_of_order_new_insert_refused_still_translates_committed_template (test_case4_transport.Transport) ... ok
+test_resegmented_overlapping_and_reordered_retransmissions_match_image (test_case4_transport.Transport) ... ok
+test_two_requests_ack_and_capacity_freeze_translation (test_case4_transport.Transport) ... ok
+test_unsupported_negotiation_prevents_insert_before_epoch (test_case4_transport.Transport) ... ok
+test_wrap_duplicate_loss_recovery_and_reset (test_case4_transport.Transport) ... ok
+test_schema_has_no_shaping_field_and_the_expected_fields (test_control_adapter.Adapter) ... ok
+test_unauthorised_write_is_refused_but_read_works (test_control_adapter.Adapter) ... ok
+test_unknown_table_action_field_and_overflow_are_refused_before_any_device_call (test_control_adapter.Adapter) ... ok
+test_write_then_read_round_trips_ints_without_the_default_flag (test_control_adapter.Adapter) ... ok
+test_campaign_plan_computes_aggregate_budget_without_a_device (test_control_adapter.Case4Runner) ... ok
+test_plan_accepts_explicit_case4_measurements (test_control_adapter.Case4Runner) ... ok
+test_verify_cannot_report_success_for_an_empty_joint_write_plan (test_control_adapter.Case4Runner) ... ok
+test_case4_duration_requires_measured_heartbeat_drain_and_release (test_control_adapter.Case4Safety) ... ok
+test_current_compiled_schema_refuses_joint_case4_before_any_write (test_control_adapter.Case4Safety) ... ok
+test_nominal_token_loop_does_not_provide_case4_wall_clock_bound (test_control_adapter.Case4Safety) ... ok
+test_offline_case4_plan_retains_configuration_and_no_invented_writes (test_control_adapter.Case4Safety) ... ok
+test_case4_cap_charges_drain_cost_after_completion_deadline (test_control_adapter.ProfileSchemaGuards) ... ok
+test_case4_completion_deadline_preserves_full_gap (test_control_adapter.ProfileSchemaGuards) ... ok
+test_entire_legacy_write_plan_is_schema_checked_before_first_write (test_control_adapter.ProfileSchemaGuards) ... ok
+test_shaping_field_guard_remains_for_case4 (test_control_adapter.ProfileSchemaGuards) ... ok
+test_a_bound_admission_lets_the_writes_through (test_control_adapter.Profiles)
+Positive path against the fake device (so the record's `source` says switch only because mock=False). ... ok
+test_ack_focused_guard_is_one_tick (test_control_adapter.Profiles) ... ok
+test_activation_without_admission_writes_nothing_on_a_real_run (test_control_adapter.Profiles) ... ok
+test_admission_for_another_policy_does_not_authorise_this_one (test_control_adapter.Profiles) ... ok
+test_combined_values_match_the_candidates_own_plan (test_control_adapter.Profiles) ... ok
+test_invalid_profiles_are_rejected_before_any_write (test_control_adapter.Profiles) ... ok
+test_mock_run_is_labelled_and_verifies_every_table (test_control_adapter.Profiles) ... ok
+test_modes_come_from_the_source (test_control_adapter.Profiles) ... ok
+test_readback_mismatch_stops_activation_and_keeps_the_evidence (test_control_adapter.Profiles) ... ok
+test_release_is_disarmed_first_and_enabled_last (test_control_adapter.Profiles) ... ok
+test_restore_returns_the_saved_state_and_refuses_to_guess (test_control_adapter.Profiles) ... ok
+test_the_clamp_constant_equals_the_repository_value (test_control_adapter.Profiles) ... ok
+test_worst_case_hold_is_the_watchdog_horizon_not_d_a (test_control_adapter.Profiles) ... ok
+test_backup_is_written_first_never_overwritten_and_restores (test_control_adapter.Runner) ... ok
+test_execute_needs_signoff_and_backup_and_leaves_no_write_without_them (test_control_adapter.Runner) ... ok
+test_plan_is_offline_and_reports_problems (test_control_adapter.Runner) ... dry run: building guarded SELECT/OPERATE frames, opening no socket
+  SELECT  seq=0 len=45 056424c4000001004a59c0c0030c011702010101c80000000000e403000000030101c8000000000000000015ee
+  OPERATE seq=0 len=45 056424c4000001004a59c0c0040c011702010101c8000000000034bb000000030101c8000000000000000015ee
+  SELECT  seq=1 len=45 056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee
+  OPERATE seq=1 len=45 056424c4000001004a59c1c1040c011702010101c80000000000a098000000030101c8000000000000000015ee
+frames build, pass the {1,3} guard and CRC-validate; nothing was sent
+PROVEN steps kept:
+  d3.assert_dp8_speed
+  d3.config_ports
+  hw_config_bor_loopback
+  d3.disarm_port_shaper
+  hw_init_registers
+  hw_config_queues_on_port(RRC)
+  hw_config_queues_on_port(BOR)
+  hw_config_pktgen_two_apps(disabled)
+  d3.config_mirror
+  d3.config_session
+REMOVED (do not fit the candidate):
+  verify_commit_map
+  caseA.config_params_d4
+  hw_config_tbl_bor_params
+  hw_config_codebook
+  hw_verify_tbl_commit
+CANDIDATE steps:
+  tbl_bor_codebook empty
+  adapter: tbl_params / tbl_bor_params / tbl_read_release_params
+  hw_config_pktgen_two_apps(enabled)
+{
+  "admission": null,
+  "after": {
+    "tbl_bor_params": {
+      "a_ticks": 0,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 999936
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 0,
+      "da_dr": 999936,
+      "mode": 0,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 0,
+      "gap_ticks": 999936
+    }
+  },
+  "before": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "is_evidence_of_switch_state": true,
+  "plan": {
+    "case": "off",
+    "expect": {
+      "tbl_bor_params": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      },
+      "tbl_params": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      },
+      "tbl_read_release_params": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    "quantised_ns": {
+      "d_a": 0,
+      "d_a_residual": 0,
+      "gap": 999936,
+      "gap_residual": 64
+    }
+  },
+  "profile": {
+    "budget": 18000,
+    "build_id": "",
+    "case": "off",
+    "completion_deadline_ms": null,
+    "connection_id": "",
+    "d_a_ms": 0.0,
+    "gap_ms": 1.0,
+    "heartbeat_request_us": 100.0,
+    "loop_ns": 1711,
+    "measured_drain_max_ms": null,
+    "measured_heartbeat_max_us": null,
+    "measured_release_max_us": null,
+    "padding_profile": "crob_trailing_header_one_decoy",
+    "readiness_expiry_ms": 30.0,
+    "split_profile": "57_28_29",
+    "translation_capacity": 2
+  },
+  "source": "switch",
+  "steps": [
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      },
+      "table": "tbl_params",
+      "wrote": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 0,
+        "da_dr": 999936,
+        "mode": 0,
+        "read_len": 0
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      },
+      "table": "tbl_bor_params",
+      "wrote": {
+        "a_ticks": 0,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    }
+  ]
+}
+{
+  "restored": true,
+  "steps": [
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 0,
+        "gap_ticks": 999936
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      },
+      "table": "tbl_params",
+      "wrote": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      },
+      "table": "tbl_bor_params",
+      "wrote": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      }
+    },
+    {
+      "match": true,
+      "read_back": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      },
+      "table": "tbl_read_release_params",
+      "wrote": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      }
+    }
+  ]
+}
+{
+  "read": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "verified": true
+}
+{
+  "read": {
+    "tbl_bor_params": {
+      "a_ticks": 9999872,
+      "action_name": "Ingress.set_bor_params",
+      "anchor_req": 1,
+      "r_ticks": 10999808
+    },
+    "tbl_params": {
+      "action_name": "Ingress.set_params",
+      "budget": 18000,
+      "d_ticks": 9999872,
+      "da_dr": 10999808,
+      "mode": 4,
+      "read_len": 0
+    },
+    "tbl_read_release_params": {
+      "action_name": "Ingress.set_read_release",
+      "enabled": 1,
+      "gap_ticks": 999936
+    }
+  },
+  "verified": false
+}
+ok
+test_digest_is_stable_and_sensitive (test_declaration.Declaration) ... ok
+test_every_failure_class_must_be_accounted (test_declaration.Declaration) ... ok
+test_good_declaration_passes (test_declaration.Declaration) ... ok
+test_missing_section_fails (test_declaration.Declaration) ... ok
+test_operate_is_rejected (test_declaration.Declaration) ... ok
+test_stage_limit_enforced (test_declaration.Declaration) ... ok
+test_unrecorded_seed_and_bad_hash_rejected (test_declaration.Declaration) ... ok
+test_warmup_requires_retained_raw (test_declaration.Declaration) ... ok
+test_duplicate_cartesian_dimensions_are_rejected (test_declaration.MalformedDeclarations) ... ok
+test_structured_values_fail_closed_without_type_errors (test_declaration.MalformedDeclarations) ... ok
+test_all_attempts_count_and_timeout_spacing_setup_are_charged (test_declaration.RunList) ... ok
+test_campaign_enforces_combined_ceiling (test_declaration.RunList) ... ok
+test_cartesian_counts_are_enforced_including_warmups (test_declaration.RunList) ... ok
+test_explicit_run_list_validates_without_cartesian_workload (test_declaration.RunList) ... ok
+test_global_ceiling_and_duration_reject_oversized_lists (test_declaration.RunList) ... ok
+test_invalid_numeric_counts_do_not_crash_validator (test_declaration.RunList) ... ok
+test_prechecks_and_state_reads_cannot_be_discarded (test_declaration.RunList) ... ok
+test_sbo_counts_two_transactions_and_requires_separate_attended_declaration (test_declaration.RunList) ... ok
+test_case4_campaign_is_bounded_explicit_and_separately_attended (test_declarations_files.CampaignFiles) ... ok
+test_joint_campaign_retains_baseline_identity_without_claiming_joint_build (test_declarations_files.CampaignFiles) ... ok
+test_both_declarations_validate (test_declarations_files.Files) ... ok
+test_build_identity_matches_the_9_13_2_manifest (test_declarations_files.Files) ... ok
+test_no_operate_and_restore_is_required (test_declarations_files.Files) ... ok
+test_source_hash_matches_the_recorded_baseline_file (test_declarations_files.Files) ... ok
+test_the_refused_points_are_declared_not_silently_dropped (test_declarations_files.Files) ... ok
+test_a_new_clrt_channel_exposes_response_latency_unless_the_response_is_scheduled (test_generated_ack.GeneratedAck) ... ok
+test_loss_after_the_switch_cannot_be_repaired_once_the_switch_has_acknowledged (test_generated_ack.GeneratedAck) ... ERROR
+test_the_generated_ack_is_accepted_and_is_a_separate_packet (test_generated_ack.GeneratedAck) ... ok
+test_dropping_the_deadline_test_is_caught (test_harness_has_teeth.Teeth) ... ok
+test_unmutated_source_passes (test_harness_has_teeth.Teeth) ... ok
+test_wrong_response_gap_is_caught (test_harness_has_teeth.Teeth) ... ok
+test_probe_refuses_when_a_stale_rule_exists (test_master_rto_analysis.Analysis) ... ok
+test_reproduces_the_recorded_2026_09_16_repeat_threshold (test_master_rto_analysis.Analysis) ... ok
+test_tcp_info_offsets_parse_a_synthetic_struct (test_master_rto_analysis.Analysis) ... ok
+test_duplicate_ack_released_once (test_model_scenarios.Association) ... ok
+test_duplicate_response_dropped (test_model_scenarios.Association) ... ok
+test_other_epoch_is_stale_after_reconnect (test_model_scenarios.Association) ... ok
+test_unmatched_ack_forwarded_unchanged (test_model_scenarios.Association) ... ok
+test_wrong_app_sequence_is_stale_then_good_response_proceeds (test_model_scenarios.Association) ... ok
+test_wrong_tcp_ack_number_is_stale (test_model_scenarios.Association) ... ok
+test_back_to_back_without_restart (test_model_scenarios.Bypass) ... ok
+test_busy_request_bypassed_and_first_transaction_unharmed (test_model_scenarios.Bypass) ... ok
+test_fin_flushes_held_packets_and_frees_state (test_model_scenarios.Bypass) ... ok
+test_unsupported_request_leaves_state_idle (test_model_scenarios.Bypass) ... ok
+test_modular_compare_matches_integer_compare_across_wrap (test_model_scenarios.Clock) ... ok
+test_timestamp_conversion_wraps_at_32_bit_nanoseconds (test_model_scenarios.Clock) ... ok
+test_beyond_watchdog_is_late_native_and_counted_separately (test_model_scenarios.Fallback) ... ok
+test_never_arrives (test_model_scenarios.Fallback) ... ok
+test_response_seen_but_ack_never_arrives (test_model_scenarios.Fallback) ... ok
+test_state_reusable_after_fallback (test_model_scenarios.Fallback) ... ok
+test_deadline_passing_without_response_does_not_release_ack (test_model_scenarios.Release) ... ok
+test_early_response_waits_for_deadline (test_model_scenarios.Release) ... ok
+test_late_within_watchdog_drains_only_when_response_seen (test_model_scenarios.Release) ... ok
+test_native_ack_anchor (test_model_scenarios.Release) ... ok
+test_quantization (test_model_scenarios.Release) ... ok
+test_response_before_ack_and_ack_after_deadline (test_model_scenarios.Release) ... ok
+test_response_exactly_at_deadline (test_model_scenarios.Release) ... ok
+test_response_just_after_deadline (test_model_scenarios.Release) ... ok
+test_response_never_precedes_ack (test_model_scenarios.Release) ... ok
+test_tie_at_watchdog_instant_goes_to_normal (test_model_scenarios.Release) ... ok
+test_ack_is_never_held (test_model_scenarios.ResponseFocused) ... ok
+test_ack_never_arrives_response_released_by_watchdog (test_model_scenarios.ResponseFocused) ... ok
+test_gap_is_constant_for_responses_inside_the_window (test_model_scenarios.ResponseFocused) ... ok
+test_response_after_the_deadline_is_not_delayed (test_model_scenarios.ResponseFocused) ... ok
+test_response_before_the_ack_relative_deadline_waits_for_it (test_model_scenarios.ResponseFocused) ... ok
+test_response_first_then_ack (test_model_scenarios.ResponseFocused) ... ok
+test_response_never_arrives_leaves_ack_out_and_state_free (test_model_scenarios.ResponseFocused) ... ok
+test_gap_is_constant_whatever_the_response_latency (test_model_vs_p4.AckFocusedAgree) ... ok
+test_request_to_ack_now_carries_the_response_latency (test_model_vs_p4.AckFocusedAgree)
+What the observer still sees: with D_A = 0 the ACK moves to the response, so request-to-ACK ... ok
+test_ack_after_deadline_and_response_pending (test_model_vs_p4.Agree) ... ok
+test_clock_wrap_exactly_at_arming (test_model_vs_p4.Agree) ... ok
+test_clock_wrap_inside_transaction (test_model_vs_p4.Agree) ... ok
+test_deadline_alone_never_releases_ack (test_model_vs_p4.Agree) ... ok
+test_early_response (test_model_vs_p4.Agree) ... ok
+test_late_response_within_watchdog (test_model_vs_p4.Agree) ... ok
+test_response_before_ack (test_model_vs_p4.Agree) ... ok
+test_response_just_after_deadline (test_model_vs_p4.Agree) ... ok
+test_next_transaction_succeeds_after_fallback (test_model_vs_p4.FallbackAgree) ... ok
+test_response_after_watchdog_is_native (test_model_vs_p4.FallbackAgree) ... ok
+test_response_never_arrives (test_model_vs_p4.FallbackAgree) ... ok
+test_ack_after_watchdog_leaves_at_arrival (test_model_vs_p4.FaultsAndLimits) ... ok
+test_losing_both_tokens_leaves_the_owner_armed_KNOWN_LIMITATION (test_model_vs_p4.FaultsAndLimits)
+With expiry_enabled=0, no timeout pass runs without a token, so nothing retires the owner and every later READ is ... ok
+test_losing_one_token_releases_that_hold_early_and_the_rest_recovers (test_model_vs_p4.FaultsAndLimits) ... ok
+test_stale_generation_survives_a_timeout (test_model_vs_p4.FaultsAndLimits) ... ok
+test_back_to_back (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_gap_is_constant_inside_the_window (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_after_the_window_is_not_delayed (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_before_the_ack (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_response_inside_the_window_waits_for_the_ack_relative_deadline (test_model_vs_p4.ResponseFocusedAgree) ... ok
+test_the_profile_value_d_a_zero_behaves_the_same (test_model_vs_p4.ResponseFocusedAgree)
+control profiles write d_ticks = 0 for this case; the request deadline must be irrelevant. ... ok
+test_back_to_back_without_restart (test_model_vs_p4.Sequences) ... ok
+test_busy_request_is_bypassed (test_model_vs_p4.Sequences) ... ok
+test_nonmatching_response_forwarded_unchanged (test_model_vs_p4.Sequences) ... ok
+test_carved_segments_are_independent_of_object_content (test_rrc_split.Carve) ... ok
+test_cut_is_not_configurable (test_rrc_split.Carve) ... ok
+test_one_flipped_bit_in_a_checksum_is_detected (test_rrc_split.Carve) ... ok
+test_payload_is_49_bytes (test_rrc_split.Carve) ... ok
+test_plain_header_total_length_89 (test_rrc_split.Carve) ... ok
+test_sequence_wrap (test_rrc_split.Carve) ... ok
+test_timestamp_option_total_length_101 (test_rrc_split.Carve) ... ok
+test_unsupported_profiles_stay_unsplit (test_rrc_split.Carve) ... ok
+test_bad_network_checksums_never_carved (test_rrc_split.Case4Carve) ... ok
+test_explicit_57_profile_reassembles_and_keeps_sequence_flags (test_rrc_split.Case4Carve) ... ok
+test_truncated_and_invalid_headers_never_carved (test_rrc_split.Case4Carve) ... ok
+test_all_captured_checksums_are_valid (test_rrc_split.HistoricalCaptures) ... ok
+test_every_capture_reproduces_the_recorded_segmentation (test_rrc_split.HistoricalCaptures) ... ok
+test_pairs_are_contiguous_and_reassemble_to_one_valid_49_byte_frame (test_rrc_split.HistoricalCaptures) ... ok
+test_sequence_order_and_capture_arrival_order_are_reported_separately (test_rrc_split.HistoricalCaptures) ... ok
+test_the_software_carve_reproduces_the_captured_segments_byte_for_byte (test_rrc_split.HistoricalCaptures) ... ok
+test_unsplit_58_byte_responses_are_not_carved (test_rrc_split.HistoricalCaptures) ... ok
+test_an_unsupported_payload_is_released_on_time_but_not_split (test_rrc_split.Joint) ... ok
+test_both_segments_leave_at_the_timing_release_instant (test_rrc_split.Joint) ... ok
+test_shaping_off_forwards_the_original_unicast_unchanged (test_rrc_split.Joint) ... ok
+test_timing_is_independent_of_whether_the_response_is_split (test_rrc_split.Joint) ... ok
+
+======================================================================
+ERROR: test_loss_after_the_switch_cannot_be_repaired_once_the_switch_has_acknowledged (test_generated_ack.GeneratedAck)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_generated_ack.py", line 47, in test_loss_after_the_switch_cannot_be_repaired_once_the_switch_has_acknowledged
+    gen = lab("step5", gap_us=2000, latency_ms=2.0, count=1, dropreq=1, budget_ms=3000, **GEN)
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_bmv2_artifact.py", line 35, in lab
+    raise RuntimeError("lab failed:\n" + r.stderr[-1500:])
+RuntimeError: lab failed:
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/bmv2/lab/run_lab.py", line 355, in <module>
+    raise SystemExit(main())
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/bmv2/lab/run_lab.py", line 348, in main
+    print(json.dumps(STEPS[step](lab, work, **kw), default=str))
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/bmv2/lab/run_lab.py", line 297, in step5
+    "endpoint_responses":[json.loads(line) for line in (work / "endpoint_responses.jsonl").read_text().splitlines()],
+  File "/usr/lib/python3.8/pathlib.py", line 1236, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.8/pathlib.py", line 1222, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/usr/lib/python3.8/pathlib.py", line 1078, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/bmv2lab_8k_m1fmq/endpoint_responses.jsonl'
+
+
+======================================================================
+FAIL: test_constants_file_is_bound_to_the_source (test_candidate_bringup.Bringup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/tests/test_candidate_bringup.py", line 63, in test_constants_file_is_bound_to_the_source
+    self.assertEqual(c["_source_sha256"], src)
+AssertionError: 'df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a' != '3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09'
+- df5991016285b146e6dc8a7efb236e16b319fe500274386214e6aacb0529011a
++ 3f759d06e6c610814def05ce9c83d3688b1bf8397f04000ddf546181674d2f09
+
+
+----------------------------------------------------------------------
+Ran 503 tests in 319.060s
+
+FAILED (failures=1, errors=1)
+{
+  "plan": {
+    "case": "combined",
+    "expect": {
+      "tbl_bor_params": {
+        "a_ticks": 9999872,
+        "action_name": "Ingress.set_bor_params",
+        "anchor_req": 1,
+        "r_ticks": 10999808
+      },
+      "tbl_params": {
+        "action_name": "Ingress.set_params",
+        "budget": 18000,
+        "d_ticks": 9999872,
+        "da_dr": 10999808,
+        "mode": 4,
+        "read_len": 0
+      },
+      "tbl_read_release_params": {
+        "action_name": "Ingress.set_read_release",
+        "enabled": 1,
+        "gap_ticks": 999936
+      }
+    },
+    "quantised_ns": {
+      "d_a": 9999872,
+      "d_a_residual": 128,
+      "gap": 999936,
+      "gap_residual": 64
+    },
+    "writes": [
+      [
+        "tbl_read_release_params",
+        {
+          "action_name": "Ingress.set_read_release",
+          "enabled": 0,
+          "gap_ticks": 999936
+        }
+      ],
+      [
+        "tbl_params",
+        {
+          "action_name": "Ingress.set_params",
+          "budget": 18000,
+          "d_ticks": 9999872,
+          "da_dr": 10999808,
+          "mode": 4,
+          "read_len": 0
+        }
+      ],
+      [
+        "tbl_bor_params",
+        {
+          "a_ticks": 9999872,
+          "action_name": "Ingress.set_bor_params",
+          "anchor_req": 1,
+          "r_ticks": 10999808
+        }
+      ],
+      [
+        "tbl_read_release_params",
+        {
+          "action_name": "Ingress.set_read_release",
+          "enabled": 1,
+          "gap_ticks": 999936
+        }
+      ]
+    ]
+  },
+  "problems": []
+}
+{
+  "problems": [
+    "combined needs D_A > 0 (D_A = 0 is the ack_focused case)"
+  ]
+}
+{"refused": "a master-rto-probe rule already exists"}
+BMv2 22 tests separately source-bound in results/case4_bmv2_20261006/verification.json:21pass1fail0skip.

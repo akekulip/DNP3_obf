@@ -1,0 +1,58 @@
+{
+  "historical_off": {
+    "main_count": 30,
+    "main_client_port": 38257,
+    "precheck_count": 1,
+    "observation_point": "master-facing capture",
+    "historical_build": "defense4_timing-df5991016285",
+    "clrt_ms": {
+      "n": 30,
+      "mean": 3.5911913333333336,
+      "median": 2.2319235,
+      "q1": 1.1670885,
+      "q3": 4.22531775,
+      "iqr": 3.05822925,
+      "variance_sample": 15.927467075941951,
+      "sd_sample": 3.990923085696084,
+      "min": 1.103853,
+      "max": 22.386819,
+      "p05": 1.11254405,
+      "p95": 6.789331849999999,
+      "p99": 17.929315420000012,
+      "p999": 21.941068642,
+      "attempted": 30,
+      "completion_rate": 1.0
+    },
+    "limit": "OFF path on df599; master-facing times are not switch/admission bounds"
+  },
+  "case4_software_sbo": {
+    "attempted": 2,
+    "eligible": 2,
+    "bypassed": 0,
+    "eligible_fraction": 1.0,
+    "outcomes": {
+      "OK": 2
+    },
+    "payload_distributions_bytes": {
+      "native_request_bytes": {
+        "35": 2
+      },
+      "wire_request_bytes": {
+        "55": 2
+      },
+      "response_bytes": {
+        "57": 2
+      },
+      "prefix_bytes": {
+        "28": 2
+      },
+      "suffix_bytes": {
+        "29": 2
+      }
+    },
+    "endpoint": "Python codec emulator",
+    "source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "limit": "one SELECT/OPERATE pair; selected supported profile, not traffic-wide eligibility or independent repetitions; no physical OPERATE; full D_R unmeasured"
+  },
+  "classifier": "No device labels; no device-identity classifier score inferred from transaction classes"
+}

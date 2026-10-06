@@ -65,6 +65,18 @@ class Stats(unittest.TestCase):
             with self.assertRaises(ValueError):
                 stats.formby_signature([1.0], H, B)
 
+    def test_formby_accounts_for_every_input_without_changing_printed_bins(self):
+        sig = stats.formby_signature([-1., 0., 5., 15., 16., float('nan'),
+                                     float('inf'), -float('inf')], H=15., B=4)
+        self.assertEqual(sig['signature'], [1, 1, 0, 1])
+        self.assertEqual(sig['input_count'], 8)
+        self.assertEqual(sig['negative_uncounted'], 1)
+        self.assertEqual(sig['nonfinite_uncounted'], 3)
+        self.assertEqual(sig['exactly_H_uncounted'], 1)
+        self.assertEqual(sig['overflow_count'], 1)
+        self.assertEqual(sum(sig['signature']) + sig['negative_uncounted']
+                         + sig['nonfinite_uncounted'] + sig['exactly_H_uncounted'], 8)
+
 
 if __name__ == "__main__":
     unittest.main()

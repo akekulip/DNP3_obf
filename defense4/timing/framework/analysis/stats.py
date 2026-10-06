@@ -76,12 +76,20 @@ def formby_signature(values, H, B=200):
         raise ValueError("need B >= 3 and H > 0")
     width = H / (B - 1)
     s = [0] * B
-    on_edge = 0
+    on_edge = negative = nonfinite = total = 0
     for m in values:
-        if m > H:
+        total += 1
+        if not math.isfinite(m):
+            nonfinite += 1
+        elif m < 0:
+            negative += 1
+        elif m > H:
             s[B - 1] += 1
         elif m == H:
             on_edge += 1
         elif m >= 0:
             s[min(int(m / width), B - 2)] += 1
-    return {"signature": s, "bin_width": width, "H": H, "B": B, "exactly_H_uncounted": on_edge}
+    return {"signature": s, "bin_width": width, "H": H, "B": B,
+            "exactly_H_uncounted": on_edge, "negative_uncounted": negative,
+            "nonfinite_uncounted": nonfinite, "input_count": total,
+            "overflow_count": s[-1]}

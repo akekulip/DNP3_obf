@@ -1,0 +1,24 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite,amsmath,graphicx,booktabs,url}
+\pagestyle{plain}
+\title{Operation-aware timing and size policies for DNP3\\Working Case 4 candidate}
+\author{}
+\begin{document}
+\maketitle
+\begin{abstract}
+We develop a programmable-switch framework that uses operation knowledge to
+schedule acknowledgments and responses and to change supported control-message
+sizes. Case 4 combines response-ready scheduling with valid command-object
+padding and response segmentation. Software endpoints accept the bounded padding
+profile, and an isolated software switch executes the composition. The current
+Tofino recovery component compiles; transport translation and the complete joint
+hardware implementation remain resource and admission gates. This working draft
+keeps those evidence levels separate from the frozen timing campaign.
+\end{abstract}
+\input{introduction}
+\input{design}
+\input{implementation}
+\input{evaluation}
+\bibliographystyle{IEEEtran}
+\bibliography{References,case4_refs}
+\end{document}

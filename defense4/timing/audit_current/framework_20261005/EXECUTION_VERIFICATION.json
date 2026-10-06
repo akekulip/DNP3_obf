@@ -1,0 +1,296 @@
+{
+  "execution_base": "235e7f01f1c87115455480ebf7c8d94f569c483b",
+  "branch": "main",
+  "author_and_committer": "akekulip <akekulip@gmail.com>",
+  "code_commits": [
+    "130aac45baef277fa40cbd2164ee79972ec22be5",
+    "0131fbe903256f75511855d456c958d301c6a3a3"
+  ],
+  "original_aggregate": {
+    "tests": 503,
+    "passed": 501,
+    "failed": 1,
+    "errors": 1,
+    "skipped": 0,
+    "seconds": 319.06,
+    "log": "OFFLINE_REGRESSION_20261006.log",
+    "sha256": "89d8e164527bd162d24ab4d2bc5f87ce9bd4348f70ce5fe57a71177aaed431ff",
+    "resolved_by_targeted_checks": [
+      "historical/current constants:8 passes",
+      "zero-response metadata regression:1 pass; exact retained evidence"
+    ]
+  },
+  "current_bmv2": {
+    "source_sha256": "0fba522529433cc5bd9770985032762eb9f90fb2cd58b46b101d95ef9445ab8a",
+    "prior_source_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+    "compiler": "p4c-bm2-ss Version1.2.4.2 SHA624c6be80 RELEASE",
+    "compiled_sha256": "de3463c7f2a11ef2d4ac418f22981de17913419f530063dc5e6e203d61fe0360",
+    "tests": 23,
+    "passed": 22,
+    "case4_total": 14,
+    "case4_passed": 14,
+    "legacy_total": 9,
+    "legacy_passed": 8,
+    "skipped": 0,
+    "elapsed_seconds": 247.077,
+    "exit_code": 1,
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "test_case4_bmv2",
+      "test_bmv2_artifact",
+      "-v"
+    ],
+    "red": {
+      "tests": 1,
+      "failed_subtests": 2,
+      "source_sha256": "8b787bc71d43857abf7d584dd7d84c26e2cade5036633f281cc8df7b672a6b05",
+      "logs": [
+        "red.stdout.log",
+        "red.stderr.log"
+      ],
+      "packet_captures": [
+        "red_run_0",
+        "red_run_1"
+      ]
+    },
+    "tail_loss_packet_evidence": [
+      {
+        "capture": "final_captures/tail_06",
+        "base_seq": 1000,
+        "ack_offset_and_window": [
+          [
+            34,
+            0
+          ],
+          [
+            34,
+            1
+          ],
+          [
+            34,
+            0
+          ],
+          [
+            34,
+            1
+          ],
+          [
+            35,
+            0
+          ],
+          [
+            69,
+            0
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            69,
+            0
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            70,
+            0
+          ]
+        ],
+        "replay": [
+          {
+            "wire_start_offset": 0,
+            "native_retransmission_offset": 34,
+            "wire_replay_offset": 0,
+            "wire_replay_length": 55,
+            "new_suffix_after_duplicate_trimming": 20,
+            "cached_suffix_from_withheld_native_position": 21,
+            "reassembled_frame_length": 55,
+            "dnp3_crc_ok": true
+          },
+          {
+            "wire_start_offset": 55,
+            "native_retransmission_offset": 69,
+            "wire_replay_offset": 55,
+            "wire_replay_length": 55,
+            "new_suffix_after_duplicate_trimming": 20,
+            "cached_suffix_from_withheld_native_position": 21,
+            "reassembled_frame_length": 55,
+            "dnp3_crc_ok": true
+          }
+        ],
+        "packet_checksums_ok": true,
+        "compiled_sha256": "de3463c7f2a11ef2d4ac418f22981de17913419f530063dc5e6e203d61fe0360"
+      },
+      {
+        "capture": "final_captures/tail_07",
+        "base_seq": 4294967280,
+        "ack_offset_and_window": [
+          [
+            34,
+            0
+          ],
+          [
+            34,
+            1
+          ],
+          [
+            34,
+            0
+          ],
+          [
+            34,
+            1
+          ],
+          [
+            35,
+            0
+          ],
+          [
+            69,
+            0
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            69,
+            0
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            70,
+            0
+          ]
+        ],
+        "replay": [
+          {
+            "wire_start_offset": 0,
+            "native_retransmission_offset": 34,
+            "wire_replay_offset": 0,
+            "wire_replay_length": 55,
+            "new_suffix_after_duplicate_trimming": 20,
+            "cached_suffix_from_withheld_native_position": 21,
+            "reassembled_frame_length": 55,
+            "dnp3_crc_ok": true
+          },
+          {
+            "wire_start_offset": 55,
+            "native_retransmission_offset": 69,
+            "wire_replay_offset": 55,
+            "wire_replay_length": 55,
+            "new_suffix_after_duplicate_trimming": 20,
+            "cached_suffix_from_withheld_native_position": 21,
+            "reassembled_frame_length": 55,
+            "dnp3_crc_ok": true
+          }
+        ],
+        "packet_checksums_ok": true,
+        "compiled_sha256": "de3463c7f2a11ef2d4ac418f22981de17913419f530063dc5e6e203d61fe0360"
+      }
+    ],
+    "proof_boundary": "Actual P4 transforms received ACKs and manually injected last-native-byte retransmissions; receive duplicate-trimming/reassembly is checked explicitly. Autonomous kernel sender tail-loss recovery is not established.",
+    "current_sbo_capture": "final_captures/sbo_12",
+    "failure": {
+      "test": "test_response_focused_forwards_the_ack_and_schedules_the_response",
+      "ack_forwarding_delays_ns": [
+        1242183,
+        1018232,
+        900170
+      ],
+      "strict_upper_bound_ns": 1000000,
+      "observed_failed_delay_ns": 1242183,
+      "excess_ns": 242183,
+      "capture": "final_captures/legacy_response_focused_failure"
+    },
+    "load_note": "Single final23-case suite after source/fixtures/oracle finalized; parent held heavy compilers during timing window; no tolerance changed.",
+    "prior_canonical_evidence_unchanged": "../case4_bmv2_20261006; all138 original EVIDENCE hashes verified before final suite; original22 outcome remains21/22",
+    "limits": [
+      "one SELECT/OPERATE pair and two cached images",
+      "initial segmented requests unsupported",
+      "conflicting/out-of-cache overlaps unestablished",
+      "general ledger recovery unestablished",
+      "old-epoch same-tuple FIN/RST rejection unestablished",
+      "no physical hardware or target P4 transport fit proof"
+    ],
+    "evidence_directory": "defense4/timing/framework/results/case4_bmv2_transport_repair_20261006",
+    "path_base": "Paths within current_bmv2 are relative to evidence_directory; source/current source identities are literal hashes"
+  },
+  "targeted_checks": {
+    "response_ready": 83,
+    "python_transport": 12,
+    "p4_size_oracle": 9,
+    "statistics": 9,
+    "bringup_constants": 8,
+    "production_stack": {
+      "assertions": 46,
+      "cases": 4,
+      "source_manifest": "framework/size/endpoint_gate/evidence/manifest.json"
+    }
+  },
+  "compiler": {
+    "identity": "p4c9.13.1 e558d01",
+    "recovery": [
+      10,
+      0
+    ],
+    "joint_component": [
+      10,
+      10
+    ],
+    "recovery_manifest": "response_ready/evidence/case4_recovery_build_04/manifest.json",
+    "joint_manifest": "framework/p4/evidence/build_26/manifest.json",
+    "scope": "Offline recovery and narrow component coexistence; no complete joint ledger or deployment proof"
+  },
+  "protected_files": 2210,
+  "campaign_v2_reproduction": "unchanged strict gate passed after27 content/hash-verified path relocations; no acquisition",
+  "live_actions": [],
+  "pushed": false,
+  "validation_limits": [
+    "one current legacy BMv2 native-ACK timing failure remains; earlier gap failure retained",
+    "raw compiler logs/snapshots retain whitespace verbatim; source/docs whitespace checks exclude generated evidence",
+    "retained target binary/assembly outputs local and ignored; clean checkout requires licensedSDK rebuild",
+    "raw BMv2 retransmission fixtures do not establish autonomous kernel tail-loss repair"
+  ],
+  "remaining_dependencies": [
+    "complete target transport and phase/checksum integration",
+    "source-current deployedSDK9.13.2 build",
+    "applicable timer/feedback/heartbeat/commit/drain admission",
+    "actual live authorization and attended physicalOPERATE",
+    "connection epoch/FIN/RST/BOR target proof",
+    "exact newer author paragraph and manuscript promotion"
+  ],
+  "path_base": "original_aggregate.log is relative to this audit directory; compiler and targeted_checks source manifests are relative to defense4/timing; current_bmv2 declares its own evidence directory from the repository root",
+  "artifact_checks": {
+    "paper": {
+      "command": "python3 -B build.py",
+      "directory": "defense4/timing/framework/paper",
+      "pages": 4,
+      "local_pdf_sha256": "82c2f5c4770c3aab6dbd128c888dcef150a7704f8f02363e33908b2cf0c4687b",
+      "all_pages_rendered_and_inspected": true,
+      "fonts_embedded": true,
+      "type3_fonts": false,
+      "protected_gate_passed": true,
+      "scope": "Separate working candidate; PDF regenerated locally, build directory ignored"
+    },
+    "mechanism": {
+      "provenance": "defense4/timing/framework/figures/figure_provenance.json",
+      "files_sha256_verified": 5,
+      "xml_passed": true,
+      "strict_routing_passed": false,
+      "routing_warnings": 14,
+      "minimum_label_pt": 8.175223880597015
+    },
+    "analysis": "Both new provenance manifests verified against generators, statistics source, inputs and outputs; statistics9/9 passed",
+    "edited_python_syntax": "6 analysis/paper scripts parsed successfully",
+    "remote_main_at_final_check": "235e7f01f1c87115455480ebf7c8d94f569c483b"
+  }
+}
