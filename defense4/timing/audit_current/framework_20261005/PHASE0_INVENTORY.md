@@ -1,5 +1,7 @@
 # Phase 0 inventory — framework track, 2026-10-06
 
+*Status of the whole track is in `STATUS.md`. This file records the start-of-track inventory; the source hash below was superseded (`df599101…` now) after hardware found two over-capacity tables.*
+
 Assignment: `Codex_Implementation_and_Experiment_Prompt_2026-10-05.txt` (given by Philip).
 Scope change recorded: that file supersedes the 2026-09-29 "READ response-ready only; no BMv2, size work or
 experiments" restriction for this new working track. The frozen evidence, live-operation guards, the {1,3}

@@ -1,14 +1,27 @@
-# Next-session handover — framework track (written 2026-10-06)
+# Next-session handover — framework track (written 2026-10-06, updated after the master-timer measurement and the push)
 
-Branch `codex/framework-implementation-20261005` in `/home/philip/Projects/DNP3`; **not pushed**. Base `origin/main` = `f8be278eb`.
-Your uncommitted `CLAUDE.md` edit is untouched. Untracked items from before this track are untouched.
+**Read `STATUS.md` first.**
 
-## State of the lab (read-only recon this session)
+Branch `codex/framework-implementation-20261005` in `/home/philip/Projects/DNP3`; **pushed to origin** (no force, no other branch; see the push section below). Base `origin/main` = `f8be278eb`.
+All commits are by `akekulip <akekulip@gmail.com>`, author and committer, with no co-author trailers; keep it that way. Your uncommitted `CLAUDE.md` edit is untouched, as are untracked items from before this track.
 
-`bf_switchd` pid 10674 on the switch host (decps@10.10.54.81) has run about 24 h, cold-started with
-`~/Philip_repo/logs/bringup_20261005/frozen_abs.conf`. The candidate is **not** loaded. No traffic was sent to the relay. A new directory
-`~/framework_build_20261006/` on that host holds the SDE 9.13.2 build of the current source; nothing else there was written. Do not infer the
-loaded program from this note; read it again.
+## State of the lab
+
+The switch host (decps@10.10.54.81) runs one `bf_switchd`, last started 2026-10-06 ~17:05 UTC by `launch.sh` with `~/Philip_repo/logs/bringup_20261005/frozen_abs.conf` (program
+`defense4_rrc_bor_unified12`), ports replayed from the snapshot; configuration verified identical to the pre-test snapshot. The candidate is **not** loaded. Hardware sessions this day: see `STATUS.md`.
+Host files created (nothing pre-existing was edited): `~/framework_build_20261006/` (scripts, snapshots, first build), `~/framework_build_20261006c/` (the 9.13.2 build of source `df599101…`). Vision: `~/dnp3_timing7_20260925/cand_off_30_20261006/` and `master_rto_probe.py`; `/tmp/master_rto_cand_20261006.*`.
+Do not infer the loaded program from this note; read it again (`framework/control/live_snapshot.py`).
+
+## Hardware procedure, scripted
+
+```
+bash ~/framework_build_20261006/swap_daemon.sh launch_candidate.sh LOG        # stop the ONE daemon and start the candidate; aborts on any surprise
+DEFENSE4_HW_AUTHORIZED=1 python3 candidate_bringup.py --case off --backup B.json --record R.json    # strict readback; PASS required
+# ... session ...
+bash swap_daemon.sh /home/decps/Philip_repo/logs/bringup_20261005/launch.sh LOG   # restore
+python3 restore_ports.py defense4_rrc_bor_unified12 live_snapshot_20261006.json.gz --apply --wait 35
+python3 live_snapshot.py defense4_rrc_bor_unified12 after.json; python3 compare_snapshots.py before.json after.json
+```
 
 Live state was read again this session: `framework/results/live_state_20261006/` (see PHASE8_HARDWARE_RUNBOOK.md). The daemon is unchanged.
 
