@@ -1,0 +1,78 @@
+{
+  "build": {
+    "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+    "program_source_sha256": "6387c588b5019ee473153bb89e572cd1bbf326daa00d3b4a514c831e6798778e",
+    "sde": "9.13.2",
+    "sha256": "f696545a8676d05c01e92537a179090e19ff043be54e3e81912af8adc6282111",
+    "stages_egress": 0,
+    "stages_ingress": 7
+  },
+  "declared_on": "2026-10-06",
+  "endpoints": {
+    "master": "Vision (192.168.10.1 isolated), Python codec harness, not pydnp3",
+    "outstation": "SEL-751A 192.168.10.7:20000 via the relay leg dp64",
+    "switch": "Tofino-1, pre-test program rrc_bor_build_v2 must be restored after the run"
+  },
+  "failure_outcomes": {
+    "bypassed": "unsupported or busy request forwarded unchanged",
+    "fallback": "watchdog release, reported with its reason counter",
+    "late": "response after the hold horizon, kept in the population",
+    "malformed": "framing or CRC failure",
+    "missing": "no response within the application budget",
+    "rejected": "admission refused the point; not collected"
+  },
+  "id": "rr-read-main-20261006",
+  "observation_points": [
+    "master-facing capture on Vision",
+    "relay-facing capture only if a supported tap exists (otherwise stated and conclusions restricted)",
+    "switch counters before and after",
+    "control-plane readback after every write"
+  ],
+  "policy": {
+    "anchor": "request",
+    "arms": [
+      "OFF",
+      "RESPONSE_READY",
+      "LEGACY_D4"
+    ],
+    "da_ms": [
+      5,
+      10,
+      15,
+      20
+    ],
+    "gap_ms": 1
+  },
+  "source": {
+    "path": "defense4/timing/response_ready/src/defense4_response_ready.p4",
+    "sha256": "6387c588b5019ee473153bb89e572cd1bbf326daa00d3b4a514c831e6798778e"
+  },
+  "termination": {
+    "abort_on": [
+      "unexplained loss",
+      "stale completion",
+      "a stuck next transaction",
+      "readback mismatch",
+      "restoration not verified"
+    ],
+    "max_total_attempts": 18360,
+    "restore_required": true,
+    "warmup_raw_retained": true
+  },
+  "tolerances": {
+    "fraction_within_50us": 0.999,
+    "median_abs_gap_error_us": 10,
+    "rule": "applied separately to verified early and late arrivals; insufficient coverage is reported, not hidden"
+  },
+  "workload": {
+    "attempted_per_block": 1000,
+    "blocks": 3,
+    "interval_ms": 400,
+    "ops": [
+      "READ"
+    ],
+    "order": "counterbalanced",
+    "seed": 20261006,
+    "warmup_exchanges": 20
+  }
+}

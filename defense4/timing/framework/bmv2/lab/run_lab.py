@@ -85,16 +85,16 @@ def exp_priority(lab, work, rate_cmd="set_queue_rate 200 2"):
     return {"order": [(e, n) for e, n, _ in seen], "span_ms": (seen[-1][2] - seen[0][2]) / 1e6 if seen else None}
 
 
-def setup_policy(lab, mode, da_us, gap_us, budget, loop_pps, shape=0):
+def setup_policy(lab, mode, da_us, gap_us, budget, loop_pps, shape=0, dropreq=0):
     import re
     cmds = ["table_add dmac fwd 02:00:00:00:00:02 => 1", "table_add dmac fwd 02:00:00:00:00:01 => 0",
             "register_write p_mode 0 %d" % mode, "register_write p_da_us 0 %d" % da_us, "register_write p_gap_us 0 %d" % gap_us,
-            "register_write p_budget 0 %d" % budget, "register_write p_shape 0 %d" % shape, "register_write e_budget 0 %d" % budget,
+            "register_write p_budget 0 %d" % budget, "register_write p_shape 0 %d" % shape, "register_write p_mode_e 0 %d" % mode, "register_write p_dropreq 0 %d" % dropreq, "register_write e_budget 0 %d" % budget,
             "set_queue_rate %d 2" % loop_pps, "mc_mgrp_create 1", "mc_mgrp_create 2"]
     lab.cli("\n".join(cmds) + "\n")
     handles = []
-    for rid in (1, 2):
-        out = lab.cli("mc_node_create %d 2" % rid)               # blocker clones: rid 1 = ACK slot, rid 2 = response slot
+    for rid, port in ((1, 2), (2, 2), (3, 0)):
+        out = lab.cli("mc_node_create %d %d" % (rid, port))   # clones: rid 1 = ACK token, rid 2 = response token, rid 3 = generated ACK to the master
         handles.append(int(re.search(r"handle (\d+)", out).group(1)))
     lab.cli("\n".join("mc_node_associate 1 %d" % h for h in handles) + "\nmirroring_add_mc 100 1\n")
     split = []
@@ -135,6 +135,23 @@ def events_from_captures(cap_m, cap_o):
     return txns
 
 
+def master_view(cap_m):
+    """What a passive observer at the master port sees per request: every packet toward the master after the request,
+    in order, with its time, flags, sequence/ack numbers and payload length. Retransmitted requests are listed too."""
+    sys.path.insert(0, str(BMV2.parent / "size"))
+    import rrc
+    O, M = "020000000002", "020000000001"
+    rows = []
+    for ts, raw in rrc.read_records(cap_m):
+        p = rrc.parse(raw)
+        if not p:
+            continue
+        who = "M" if raw[6:12].hex() == M else "O" if raw[6:12].hex() == O else "?"
+        rows.append({"t": ts, "from": who, "flags": p.flags, "seq": p.seq, "ack": p.ack, "len": len(p.payload),
+                     "csum_ok": bool(rrc.ip_ok(p) and rrc.tcp_ok(p))})
+    return rows
+
+
 def split_report(cap_m, cap_o):
     """What the master side saw of each response, against the original the outstation sent."""
     sys.path.insert(0, str(BMV2.parent / "size"))
@@ -160,13 +177,14 @@ def split_report(cap_m, cap_o):
     return out
 
 
-def step5(lab, work, mode=4, da_us=10_000, gap_us=1_000, budget=300, loop_pps=5000, latency_ms=2.0, count=3, shape=0, force_points=0):
+def step5(lab, work, mode=4, da_us=10_000, gap_us=1_000, budget=300, loop_pps=5000, latency_ms=2.0, count=3, shape=0, force_points=0,
+          dropreq=0, combined=False, gap_ms=300, budget_ms=2000):
     j = compile_p4("bmv2_rr", work)
     lab.up(loop=True).start_switch(j)
-    setup_policy(lab, mode, da_us, gap_us, budget, loop_pps, shape)
+    setup_policy(lab, mode, da_us, gap_us, budget, loop_pps, shape, dropreq)
     cap_m, cap_o = lab.capture("s0", "master_side.pcap"), lab.capture("s1", "outstation_side.pcap")
-    lab.start_outstation(latency_ms=latency_ms, force_points=force_points)
-    rows = lab.run_master(count=count, gap_ms=300, budget_ms=2000)
+    lab.start_outstation(latency_ms=latency_ms, force_points=force_points, combined=combined)
+    rows = lab.run_master(count=count, gap_ms=gap_ms, budget_ms=budget_ms)
     time.sleep(0.5)
     lab.down_captures()
     import re
@@ -174,7 +192,8 @@ def step5(lab, work, mode=4, da_us=10_000, gap_us=1_000, budget=300, loop_pps=50
     for i in range(6):
         m = re.search(r"r_ev\[\d+\]=\s*(\d+)", lab.cli("register_read r_ev %d" % i))
         ev[i] = int(m.group(1)) if m else None
-    return {"outcomes": [r["outcome"] for r in rows], "txns": events_from_captures(cap_m, cap_o), "switch_ev_us": ev, "split": split_report(cap_m, cap_o),
+    return {"outcomes": [r["outcome"] for r in rows], "txns": events_from_captures(cap_m, cap_o), "switch_ev_us": ev, "elapsed_ms": [r.get("elapsed_ms") for r in rows],
+            "master_view": master_view(cap_m), "split": split_report(cap_m, cap_o),
             "params": dict(mode=mode, da_us=da_us, gap_us=gap_us, budget=budget, loop_pps=loop_pps, latency_ms=latency_ms)}
 
 

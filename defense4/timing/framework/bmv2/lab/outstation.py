@@ -54,7 +54,7 @@ def response(user, force_points=0):
     return frame(body)
 
 
-def serve(host, port, latency_ms, ready, force_points=0):
+def serve(host, port, latency_ms, ready, force_points=0, combined=False):
     srv = socket.socket()
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind((host, port))
@@ -68,7 +68,8 @@ def serve(host, port, latency_ms, ready, force_points=0):
         if not d:
             return
         try:
-            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_QUICKACK, 1)      # a separate, immediate ACK, as the SEL sends
+            # SEL-style by default: a separate, immediate ACK. --combined leaves delayed ACK on, so the ACK rides the response.
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_QUICKACK, 0 if combined else 1)
         except OSError:
             pass
         buf += d
@@ -85,6 +86,7 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=20000)
     ap.add_argument("--latency-ms", type=float, default=1.0)
+    ap.add_argument("--combined", action="store_true", help="delayed ACK: the acknowledgment rides the response (AB1400/ION7550 style)")
     ap.add_argument("--force-points", type=int, default=0, help="answer with this many status points instead of the requested range")
     a = ap.parse_args()
-    serve(a.host, a.port, a.latency_ms, lambda: print("READY", flush=True), a.force_points)
+    serve(a.host, a.port, a.latency_ms, lambda: print("READY", flush=True), a.force_points, a.combined)

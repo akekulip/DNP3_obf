@@ -71,7 +71,7 @@ control VC(inout headers_t h, inout meta_t m) { apply { } }
 
 control Ing(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
     /* policy parameters, written by the control plane */
-    register<bit<48>>(1) p_da_us;  register<bit<48>>(1) p_gap_us;  register<bit<32>>(1) p_budget;  register<bit<8>>(1) p_mode;  register<bit<8>>(1) p_shape;
+    register<bit<48>>(1) p_da_us;  register<bit<48>>(1) p_gap_us;  register<bit<32>>(1) p_budget;  register<bit<8>>(1) p_mode;  register<bit<8>>(1) p_shape;  register<bit<8>>(1) p_dropreq;  register<bit<8>>(1) r_dropped;
     /* transaction state */
     register<bit<8>>(1)  r_armed;   register<bit<32>>(1) r_expect_ack;  register<bit<8>>(1) r_app;
     register<bit<48>>(1) r_t0;      register<bit<48>>(1) r_deadline;     register<bit<8>>(1) r_resp_seen;
@@ -83,7 +83,7 @@ control Ing(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
     counter(16, CounterType.packets) outcome;
 
     bit<8> armed; bit<8> mode; bit<48> now; bit<32> expect; bit<8> app; bit<8> live_a; bit<8> live_r;
-    bit<8> shape; bit<8> seen; bit<8> ack_held; bit<8> tr_armed; bit<48> tr; bit<48> dl; bit<32> budget;
+    bit<8> shape; bit<8> dropreq; bit<8> dropped; bit<8> seen; bit<8> ack_held; bit<8> tr_armed; bit<48> tr; bit<48> dl; bit<32> budget;
 
     action fwd(bit<9> port) { sm.egress_spec = port; }
     action drop() { mark_to_drop(sm); }
@@ -148,6 +148,8 @@ control Ing(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
                 r_resp_seen.write(0, 0); r_ack_held.write(0, 0); r_ack_seen.write(0, 0); r_tresp_armed.write(0, 0);
                 r_live_ack.write(0, (mode == 4) ? (bit<8>)1 : (bit<8>)0); r_live_resp.write(0, 1);
                 r_ev.write(0, now);
+                if (mode == 3) { r_ack_seen.write(0, 1); arm_response_deadline(); r_ev.write(3, now); }   /* generated ACK: its instant is now */
+
                 clone(CloneType.I2E, MIRROR_SESSION);           /* two blockers: rid 1 = ACK slot, rid 2 = response slot */
                 outcome.count(0);
             } else { outcome.count(9); }                         /* busy: bypass */
@@ -175,6 +177,11 @@ control Ing(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
         } else if (sm.ingress_port == PORT_LOOP_RX || sm.ingress_port == 4) {
             mark_to_drop(sm);
         }                                                        /* everything else keeps the dmac forwarding applied above */
+        /* fault injection, every mode: the first READ request is lost on the switch -> outstation link, after any generated ACK */
+        p_dropreq.read(dropreq, 0); r_dropped.read(dropped, 0);
+        if (dropreq == 1 && dropped == 0 && sm.ingress_port == PORT_MASTER && h.app.isValid() && h.app.func == 0x01 && !h.shim.isValid() && !h.blk.isValid()) {
+            r_dropped.write(0, 1); mark_to_drop(sm); outcome.count(11);
+        }
         p_shape.read(shape, 0);
         if (shape == 1 && m.held == 0 && !h.blk.isValid() && !h.shim.isValid() && sm.ingress_port == PORT_OUT && h.app.isValid() && h.app.func == 0x81 && (h.pl2.isValid() && h.rest_a.isValid() && h.link.len == 38 && (h.tcp.flags & 0x16) == 0x10 && (h.ip.frag & 0x3FFF) == 0) && sm.egress_spec == PORT_MASTER) { split_to_master(); outcome.count(5); }
     }
@@ -183,6 +190,7 @@ control Ing(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
 control Egr(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
     register<bit<32>>(1) e_budget;      /* mirrors p_budget for the blocker header; written by the control plane */
     counter(4, CounterType.packets) carve_ctr;
+    register<bit<8>>(1) p_mode_e;      /* mirrors p_mode for the egress pipeline; written by the control plane */
     apply {
         if (sm.instance_type == 5 && h.pl2.isValid() && (sm.egress_rid == 1 || sm.egress_rid == 2)) {
             /* RID interpreter: rid 1 keeps payload[0:28], rid 2 keeps payload[28:49]; the rid is the whole instruction */
@@ -196,7 +204,24 @@ control Egr(inout headers_t h, inout meta_t m, inout standard_metadata_t sm) {
                 h.tcp.seq = h.tcp.seq + 28; h.ip.len = h.ip.len - 28; m.ptcp_len = tcp_hdr + 21; carve_ctr.count(2);
             }
         }
-        if (sm.instance_type == 1) {                              /* an ingress clone: turn it into a blocker */
+        bit<8> emode; p_mode_e.read(emode, 0);
+        if (sm.instance_type == 1 && sm.egress_rid == 3 && emode != 3) { mark_to_drop(sm); }
+        else if (sm.instance_type == 1 && sm.egress_rid == 3) {
+            /* generated ACK for the request just seen: the switch speaks for the outstation. Window and options are the
+             * switch's own invention (documented limitation); sequence numbers come from the request itself. */
+            bit<48> tmp_mac = h.eth.src; h.eth.src = h.eth.dst; h.eth.dst = tmp_mac;
+            bit<32> tmp_ip = h.ip.src; h.ip.src = h.ip.dst; h.ip.dst = tmp_ip;
+            bit<16> tmp_p = h.tcp.sport; h.tcp.sport = h.tcp.dport; h.tcp.dport = tmp_p;
+            bit<16> plen = h.ip.len - (((bit<16>)h.ip.ihl) << 2) - (((bit<16>)h.tcp.doff) << 2);
+            bit<32> old_seq = h.tcp.seq;
+            h.tcp.seq = h.tcp.ack; h.tcp.ack = old_seq + (bit<32>)plen; h.tcp.flags = 0x10; h.tcp.win = 16384;
+            h.link.setInvalid(); h.app.setInvalid(); h.iin.setInvalid(); h.obj.setInvalid(); h.rest_a.setInvalid(); h.pl2.setInvalid();
+            if (h.tcp_ts.isValid()) {
+                h.tcp_ts.opt = h.tcp_ts.opt[95:64] ++ h.tcp_ts.opt[31:0] ++ h.tcp_ts.opt[63:32];   /* TSval <-> TSecr */
+                h.ip.len = 52; m.ptcp_len = 32; truncate((bit<32>)66);
+            } else { h.ip.len = 40; m.ptcp_len = 20; truncate((bit<32>)54); }
+            m.carved = 1; m.rid = 3; carve_ctr.count(3);
+        } else if (sm.instance_type == 1) {                      /* an ingress clone: turn it into a blocker */
             h.ip.setInvalid(); h.tcp.setInvalid(); h.tcp_ts.setInvalid(); h.link.setInvalid(); h.app.setInvalid();
             h.iin.setInvalid(); h.obj.setInvalid(); h.shim.setInvalid();
             h.eth.etype = ETYPE_BLK;
@@ -219,6 +244,12 @@ control CC(inout headers_t h, inout meta_t m) {
             h.tcp.csum, HashAlgorithm.csum16);
         update_checksum(m.carved == 1 && m.rid == 2 && !h.tcp_ts.isValid(),
             { h.ip.src, h.ip.dst, 8w0, h.ip.proto, m.ptcp_len, h.tcp.sport, h.tcp.dport, h.tcp.seq, h.tcp.ack, h.tcp.doff, h.tcp.res, h.tcp.flags, h.tcp.win, h.tcp.urg, h.pl2.b },
+            h.tcp.csum, HashAlgorithm.csum16);
+        update_checksum(m.carved == 1 && m.rid == 3 && !h.tcp_ts.isValid(),
+            { h.ip.src, h.ip.dst, 8w0, h.ip.proto, m.ptcp_len, h.tcp.sport, h.tcp.dport, h.tcp.seq, h.tcp.ack, h.tcp.doff, h.tcp.res, h.tcp.flags, h.tcp.win, h.tcp.urg },
+            h.tcp.csum, HashAlgorithm.csum16);
+        update_checksum(m.carved == 1 && m.rid == 3 && h.tcp_ts.isValid(),
+            { h.ip.src, h.ip.dst, 8w0, h.ip.proto, m.ptcp_len, h.tcp.sport, h.tcp.dport, h.tcp.seq, h.tcp.ack, h.tcp.doff, h.tcp.res, h.tcp.flags, h.tcp.win, h.tcp.urg, h.tcp_ts.opt },
             h.tcp.csum, HashAlgorithm.csum16);
         update_checksum(m.carved == 1 && m.rid == 2 && h.tcp_ts.isValid(),
             { h.ip.src, h.ip.dst, 8w0, h.ip.proto, m.ptcp_len, h.tcp.sport, h.tcp.dport, h.tcp.seq, h.tcp.ack, h.tcp.doff, h.tcp.res, h.tcp.flags, h.tcp.win, h.tcp.urg, h.tcp_ts.opt, h.pl2.b },
