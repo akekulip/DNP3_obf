@@ -1,0 +1,91 @@
+{
+  "milestone": "primitive_compiled_and_source_verified",
+  "full_target": false,
+  "model_verified": false,
+  "build_verification": {
+    "m_prepare_03": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "e_prepare_03": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    }
+  },
+  "source_sha256": {
+    "integration/core/ordinary/m.p4": "2475f93b8a6053a738048680cecfd412773fa222f8ce10abd911deb6055ec9f3",
+    "integration/core/ordinary/e.p4": "55c2bae97c2cd52d3da2e0e3bf71e2316e38be36e90897a8eb3c3c2a1d206589",
+    "integration/core/ordinary/n.p4": "dfac97f86b8717dded361454a801887815ddd2e60e7ed561546b00208414cbbe",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/source_wire.py": "3258a5afc21e10130d522e12e0e57faf284770dfd867dd77167f82a00f2772ea",
+    "integration/core/ordinary/tests/test_m_prepare.py": "b6cf2358572caeffb1655def8a36e43a498bb365064bd81319ecd19dbad5c4a4",
+    "integration/core/ordinary/tests/test_e_prepare.py": "37dca420b4c9466916dd6355cfcbc51c1b878fa28196731c4ca18baf03e58c41"
+  },
+  "source_unchanged_during_tests": true,
+  "tests": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_m_prepare.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "log": "test_m_prepare.py.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_e_prepare.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "log": "test_e_prepare.py.log"
+    }
+  ],
+  "egress_publication_order": {
+    "all14_store_stages": [
+      6,
+      6,
+      5,
+      5,
+      5,
+      5,
+      4,
+      4,
+      4,
+      4,
+      3,
+      3,
+      3,
+      3
+    ],
+    "owner_stage": 7,
+    "tag_stage": 7,
+    "ready_stage": 8,
+    "verified": true
+  },
+  "limitations": [
+    "E standalone ingress is a diagnostic drop stub",
+    "No N release commit, M geometry activation, endpoint emission or composed target-model execution yet"
+  ]
+}

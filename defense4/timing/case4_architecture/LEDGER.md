@@ -111,6 +111,40 @@ eight occupied stages. Preserve that measured dependency for any necessary
 integration repair; no new standalone packing sweep or stage saving is claimed.
 Source-current verification: `ordinary/evidence/m_prepare_verification_01`.
 
+Ruling: condense the M→E/ready interface from40 to24 private bytes —
+`e_prepare_01` fails the egress parser's160-byte maximum:40 prefix+109 actual
+frame+27 SDK metadata is176. Retain full current WorkRef/expected-owner/event16
+and separate cached producer generation32/owner32. The immutable captured decoy
+is already stored by N and materialized in the image; full wire_start comes from
+actual tcp.seq. An explicit format discriminator separates the new interface.
+The resulting133-byte private frame consumes exactly160 parser bytes. This saves
+16 bytes per affected transfer, with no narrowed identity/sequence or removed
+guard. If later replay cannot derive a required coordinate from the actual
+packet, that leg needs its own explicit full coordinate; old40B M02 and failed
+E01 remain historical evidence. This is a measured parser repair, not a stage
+reduction or full-core completion claim.
+
+E/M preparation checkpoint accepted: `e_prepare_03` SHA `55c2bae9…06589`
+fits1 diagnostic ingress/9 egress, critical6,17 stateful banks; `m_prepare_03`
+SHA `2475f93b…ec9f3` fits12/0, critical8. Root and bounded reviewer verify
+source/compiler/artifacts and all six M/E methods. Final allocation places
+all14 stores at3–6, both full tag words at7 and typed0514 ready at8. Actual
+distinct SALU completion outputs gate both publication tables; every missing
+store witness refuses publication. This leaves3 egress stages, not spare M
+ingress. E standalone ingress is a diagnostic drop stub and is not the N join.
+N ready/commit, M geometry, E release/drain and model remain open. Exact result:
+`ordinary/evidence/me_prepare_verification_01/verification.json`.
+
+Ruling: record active Work generation in a full32 bank immediately after an
+actually successful Work claim — raw Work phase reads cannot authorize a late
+owner CAS, because a delayed return could borrow a newer Work7 with the same
+epoch/owner cookie. Only nonzero-generation claim results from physical free4/9
+may write this bank, before owner access; raw close, failed claims and supplied
+phase flags cannot write it. Typed ready/commit must compare the full carried
+generation as well as current epoch/phase/owner. Its cost is one32-bit cell and
+a dependency that requires fresh source/compiler evidence. Any terminal still
+must free only after qualified actual completion and without later bank access.
+
 ## Checkpoint requested2026-10-06
 
 Philip requested stopping experiments and saving plans/handover for weekly token

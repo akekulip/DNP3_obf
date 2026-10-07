@@ -1,0 +1,39 @@
+test_actual_deparser_recomputes_wire_checksums (test_m_prepare.MPrepare) ... FAIL
+test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) ... test_invalid_private_admission_never_mutates_m_banks (test_m_prepare.MPrepare) ... ok
+
+======================================================================
+FAIL: test_actual_deparser_recomputes_wire_checksums (test_m_prepare.MPrepare)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 68, in test_actual_deparser_recomputes_wire_checksums
+    self.assertEqual(folded(ip),65535)
+AssertionError: 6803 != 65535
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 50, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[16:20],raw[4:8])
+AssertionError: b'\xc9\x00\x01\x01' != b'\x00\x00\x00\x04'
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 50, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[16:20],raw[4:8])
+AssertionError: b'\xc9\x00\x01\x01' != b'\x00\x00\x00\x04'
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 50, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[16:20],raw[4:8])
+AssertionError: b'\xc9\x00\x01\x01' != b'\x00\x00\x00\x04'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.311s
+
+FAILED (failures=4)

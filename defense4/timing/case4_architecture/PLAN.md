@@ -63,12 +63,16 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   race. Ready/commit, M/E materialization, terminal conservation and subsequent
   ACK mapping still need integration; the checklist item remains open.
   M's separate PREPARE slice now constructs the exact55-byte payload from that
-  actual N handoff and emits privately. `m_prepare_02`, source `23239836…ce16d`,
-  compiles12/0, critical8; three source packet tests verify independent payload
-  bytes and actual source deparser checksums. Its40-byte prefix separates the
-  cached producer's full owner/generation from the current release reference.
-  E readiness, N release commitment, M geometry activation and target-model
-  endpoint emission remain unfinished; this is not complete SELECT acceptance.
+  actual N handoff and emits privately. Current `m_prepare_03`, source
+  `2475f93b…ec9f3`, compiles12/0, critical8; three source packet tests verify
+  independent payload bytes and actual source deparser checksums. Its format2
+  prefix is24 bytes, preserving separate current/cached full identities.
+  E PREPARE `e_prepare_03`, source `55c2bae9…06589`, compiles9 egress stages
+  (1 ingress diagnostic drop stub), critical6. Three source tests verify all14
+  image words, full identity, duplicate refusal and missing-store refusal.
+  Actual final placement is stores3–6, owner/tag7, private ready8. N acceptance/
+  release commitment, M geometry activation and target-model endpoint emission
+  remain unfinished; this is not complete SELECT acceptance.
 - [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
   OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
   packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap

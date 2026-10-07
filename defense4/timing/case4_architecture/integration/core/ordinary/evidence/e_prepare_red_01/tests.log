@@ -1,0 +1,30 @@
+test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) ... test_malformed_full_identity_or_network_never_changes_any_bank (test_e_prepare.EPrepare) ... ok
+
+======================================================================
+FAIL: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 40, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 40, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 40, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertFalse(dropped)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.247s
+
+FAILED (failures=3)

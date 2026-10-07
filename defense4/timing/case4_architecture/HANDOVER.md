@@ -71,7 +71,7 @@ There is no stage gain or new target-model result. M/E preparation, ready/commit
 geometry activation, actual55-byte emission and subsequent ACK mapping remain
 active work under the linked [PLAN.md](PLAN.md); full-core completion is open.
 
-M PREPARE is now a separate source-current prerequisite: `ordinary/m.p4`
+The retained M PREPARE checkpoint02 is a separate prerequisite: `ordinary/m.p4`
 SHA `23239836…ce16d`, exact `m_prepare_02`,12 ingress/0 egress, critical8.
 [Its verification](integration/core/ordinary/evidence/m_prepare_verification_01/verification.json)
 checks source/compiler/artifacts and three actual-source packet tests. Starting
@@ -82,6 +82,18 @@ The separate cached producer owner/generation prevents confusing it with a later
 current release reference. No E-ready, geometry activation, endpoint emission or
 new target-model result is established yet. Continue the same protected SELECT
 item in [PLAN.md](PLAN.md#execution-checklist--2026-10-07); it remains unchecked.
+
+Current M PREPARE is `m_prepare_03`, SHA `2475f93b…ec9f3`,12/0, critical8.
+Current E PREPARE is `e_prepare_03`, SHA `55c2bae9…06589`,1 diagnostic ingress/
+9 egress, critical6. [Combined verification](integration/core/ordinary/evidence/me_prepare_verification_01/verification.json)
+checks exact source/compiler/artifacts, six source tests and actual final
+publication placement: all14 image writes at3–6, full owner/tag at7, typed ready
+at8. Each real store completion is required. M→E/ready uses a format2 24-byte
+prefix, preserving current and cached full identities; the captured decoy is
+already materialized and wire_start is full tcp.seq. This133-byte private frame
+fits exactly160 parser bytes including SDK metadata; failed176-byte E01 is retained.
+E readiness is private only. N ready/commit, M geometry activation, endpoint
+emission and target-model validation remain active under the linked plan.
 
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.

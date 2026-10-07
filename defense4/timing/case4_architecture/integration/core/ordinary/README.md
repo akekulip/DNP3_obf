@@ -37,16 +37,22 @@ python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_work.
 python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_n_handoff.py -q
 ```
 
-M PREPARE `m_prepare_02` matches source `23239836…ce16d` and compiles12/0,
+M PREPARE `m_prepare_03` matches source `2475f93b…ec9f3` and compiles12/0,
 critical8. Its three source tests consume the actual N handoff, construct the
 independent codec's exact55 bytes and execute the actual source checksum/deparser
-statements. It emits privately to N68 through E, with a40-byte prefix containing
+statements. It emits privately to N68 through E, with a24-byte format2 prefix containing
 separate current and cached producer identities. Duplicate/invalid preparation
-does not mutate M banks. [Verification](evidence/m_prepare_verification_01/verification.json)
-is source/compiler evidence; target-model wire and endpoint emission remain open.
+does not mutate M banks. E PREPARE `e_prepare_03`, source `55c2bae9…06589`,
+compiles1 diagnostic ingress/9 egress, critical6. Actual all14 stores occupy
+stages3–6, full owner/tag publication7 and private ready8, consuming every real
+store completion. The133-byte private frame uses exactly160 egress-parser bytes
+including SDK metadata. [Verification](evidence/me_prepare_verification_01/verification.json)
+includes all six M/E source methods and compiler ordering. N release commit,
+geometry activation, target-model wire and endpoint emission remain open.
 
 ```sh
 python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_m_prepare.py -v
+python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_e_prepare.py -v
 ```
 
 New E/join tests may still expose unfinished implementation. External55-byte output,
