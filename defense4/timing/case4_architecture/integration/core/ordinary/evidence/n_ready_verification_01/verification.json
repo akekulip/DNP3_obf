@@ -1,0 +1,122 @@
+{
+  "milestone": "primitive_compiled_and_source_verified",
+  "full_target": false,
+  "model_verified": false,
+  "build": "n_ready_03",
+  "build_verification": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "source_sha256": {
+    "integration/core/ordinary/n.p4": "1be0eb090f2a92e2658be122c25dabcf8ee5f20aa9e76226edc7f59f2eb33b8b",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/m.p4": "2475f93b8a6053a738048680cecfd412773fa222f8ce10abd911deb6055ec9f3",
+    "integration/core/ordinary/e.p4": "55c2bae97c2cd52d3da2e0e3bf71e2316e38be36e90897a8eb3c3c2a1d206589",
+    "integration/core/ordinary/source_wire.py": "3258a5afc21e10130d522e12e0e57faf284770dfd867dd77167f82a00f2772ea",
+    "integration/core/ordinary/tests/test_work.py": "de4c848945d2f9afc4f4ab423b93da8847d73e3a4d7540370658e4b4adb91805",
+    "integration/core/ordinary/tests/test_n_handoff.py": "e3c6faa221ac42e8de209ed3145b8dcb3a13efbf751ff24b7e745bcc74ca5c73",
+    "integration/core/ordinary/tests/test_m_prepare.py": "b6cf2358572caeffb1655def8a36e43a498bb365064bd81319ecd19dbad5c4a4",
+    "integration/core/ordinary/tests/test_e_prepare.py": "37dca420b4c9466916dd6355cfcbc51c1b878fa28196731c4ca18baf03e58c41",
+    "integration/core/ordinary/tests/test_n_ready.py": "4af1fd1094d0b63940870fe7a620f2449136f0cc465beb1559a150eac1436433"
+  },
+  "source_unchanged_during_tests": true,
+  "tests": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_work.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_work.py.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_n_handoff.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_n_handoff.py.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_m_prepare.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_m_prepare.py.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_e_prepare.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_e_prepare.py.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_n_ready.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_n_ready.py.log"
+    }
+  ],
+  "static_entries": {
+    "command": [
+      "python3",
+      "-B",
+      "integration/core/scan_static_entries.py",
+      "integration/core/ordinary/evidence/n_ready_03/out"
+    ],
+    "exit_code": 0,
+    "log": "static_entries.log"
+  },
+  "limitations": [
+    "New M activation tests intentionally remain RED and are outside this checkpoint",
+    "No M activation, E endpoint emission/terminal, downstream abort, inverseACK or model qualified"
+  ]
+}

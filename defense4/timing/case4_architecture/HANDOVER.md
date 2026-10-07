@@ -59,7 +59,7 @@ Its production/rendering path remains unfinished. Exact current checkpoint:
 Complete retirement/loss,
 full Case4,9.13.2 qualification, physical port authority and hardware remain open.
 
-The separate [ordinary candidate](integration/core/ordinary/README.md) now contains
+The separate [ordinary candidate](integration/core/ordinary/README.md) retains
 the protected N prerequisite: source `dfac97f8…4cbbe`, helper `273c405b…f0649`,
 exact build `n_local_abort_02`,12 ingress/0 egress, critical11, SDE9.13.1.
 [Its verification](integration/core/ordinary/evidence/n_local_abort_verification_01/verification.json)
@@ -94,6 +94,20 @@ already materialized and wire_start is full tcp.seq. This133-byte private frame
 fits exactly160 parser bytes including SDK metadata; failed176-byte E01 is retained.
 E readiness is private only. N ready/commit, M geometry activation, endpoint
 emission and target-model validation remain active under the linked plan.
+
+Current N ready/commit checkpoint: `n_ready_03`, SHA `1be0eb09…33b8b`,
+helper `273c405b…f0649`,12/0, critical11. [Verification](integration/core/ordinary/evidence/n_ready_verification_01/verification.json)
+checks exact source/compiler/artifacts,25 completed-slice source methods and
+static table capacity. E0514 first checks full active Work generation/epoch/
+owner without changing Work; genuine0614 then uniquely advances5→7 and
+commits full owner9→17 before emitting0714 M196. Cached producer owner9 remains
+separate. FIN before CAS prevents activation and retains the pin. Both-reference
+wrong-generation witnesses exercise the authoritative generation guard.
+N02 compiled but had28 owner-command entries in capacity27; N03 fixes capacity28
+and passes the load-capacity scan. N01's parser-match-register failure is retained.
+The new M activation tests are intentionally RED during implementation; no full
+suite or full-core green claim follows from this scoped checkpoint. M activation,
+E emission/completion, post-M abort, mapping and model validation remain next.
 
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.

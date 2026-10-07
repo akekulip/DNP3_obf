@@ -1,0 +1,39 @@
+test_actual_ready_then_atomic_owner_commit_preserves_both_refs (test_n_ready.NativeReady) ... test_foreign_epoch_or_generation_ready_cannot_publish_or_change_banks (test_n_ready.NativeReady) ... ok
+test_real_close_before_owner_cas_prevents_activation_retains_pin (test_n_ready.NativeReady) ... FAIL
+
+======================================================================
+FAIL: test_actual_ready_then_atomic_owner_commit_preserves_both_refs (test_n_ready.NativeReady) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_ready.py", line 28, in test_actual_ready_then_atomic_owner_commit_preserves_both_refs
+    qualified,reason=self.one(pipe,ready);self.assertIsNotNone(qualified,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=5)
+
+======================================================================
+FAIL: test_actual_ready_then_atomic_owner_commit_preserves_both_refs (test_n_ready.NativeReady) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_ready.py", line 28, in test_actual_ready_then_atomic_owner_commit_preserves_both_refs
+    qualified,reason=self.one(pipe,ready);self.assertIsNotNone(qualified,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=5)
+
+======================================================================
+FAIL: test_actual_ready_then_atomic_owner_commit_preserves_both_refs (test_n_ready.NativeReady) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_ready.py", line 28, in test_actual_ready_then_atomic_owner_commit_preserves_both_refs
+    qualified,reason=self.one(pipe,ready);self.assertIsNotNone(qualified,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=5)
+
+======================================================================
+FAIL: test_real_close_before_owner_cas_prevents_activation_retains_pin (test_n_ready.NativeReady)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_ready.py", line 52, in test_real_close_before_owner_cas_prevents_activation_retains_pin
+    pipe,ready=self.pending();qualified,reason=self.one(pipe,ready);self.assertIsNotNone(qualified,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=5)
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.520s
+
+FAILED (failures=4)

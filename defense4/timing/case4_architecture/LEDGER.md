@@ -145,6 +145,23 @@ generation as well as current epoch/phase/owner. Its cost is one32-bit cell and
 a dependency that requires fresh source/compiler evidence. Any terminal still
 must free only after qualified actual completion and without later bank access.
 
+N ready/commit checkpoint accepted after bounded capacity repair: `n_ready_03`
+SHA `1be0eb09…33b8b`, unchanged helper `273c405b…f0649`,12/0, critical11.
+Root verifies source/compiler/artifacts and25 completed-pattern methods. N01
+fails parser match-register liveness; splitting the exact typed ready parser
+fixes that issue. N02 compiles but has28 owner-command const entries in size27;
+root scanner and reviewer both reject load capacity. N03 uses exact size28 and
+passes the scan. Bounded re-review approves the sole size repair. First0514
+qualifies full active generation/epoch/owner without Work mutation; genuine0614
+then wins Work5→7 plus late full owner CAS9→17 and emits0714 to M. Cached owner9
+is preserved separately. Both-ref stale/high-bit generation tests exercise the
+authoritative bank; FIN before CAS prevents activation and retains the pin.
+The new M activation test remains RED outside this scoped checkpoint.
+Actual source accounting up to M activation handoff:6N visits,1M ingress,
+1E egress,7 private transfers/867 bytes for an89-byte external SELECT. No full
+release/terminal or target-model/hardware bandwidth claim follows. Exact result:
+`ordinary/evidence/n_ready_verification_01/verification.json`.
+
 ## Checkpoint requested2026-10-06
 
 Philip requested stopping experiments and saving plans/handover for weekly token

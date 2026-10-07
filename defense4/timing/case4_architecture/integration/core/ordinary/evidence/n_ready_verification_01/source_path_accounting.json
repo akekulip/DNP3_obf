@@ -1,0 +1,61 @@
+{
+  "evidence_class": "actual-source-path accounting, not compiled target/model/hardware bandwidth",
+  "external_native_frame_bytes": 89,
+  "N_ingress_visits": 6,
+  "M_ingress_visits": 1,
+  "E_egress_visits": 1,
+  "private_transfers": [
+    {
+      "path": "N SELECT pass1",
+      "port": 68,
+      "bytes": 117
+    },
+    {
+      "path": "N SELECT pass2",
+      "port": 68,
+      "bytes": 117
+    },
+    {
+      "path": "N SELECT pass3",
+      "port": 68,
+      "bytes": 117
+    },
+    {
+      "path": "N SELECT pass4",
+      "port": 196,
+      "bytes": 117
+    },
+    {
+      "path": "M PREPARE through E READY to N",
+      "port": 68,
+      "bytes": 133
+    },
+    {
+      "path": "N READY qualification",
+      "port": 68,
+      "bytes": 133
+    },
+    {
+      "path": "N release commit",
+      "port": 196,
+      "bytes": 133
+    }
+  ],
+  "private_transfer_count": 7,
+  "private_bytes_sum": 867,
+  "final_n_state": {
+    "owner": 1114113,
+    "client": 135,
+    "server": 901,
+    "epoch": 1,
+    "counter": 4,
+    "work": {
+      "generation": 4,
+      "phase": 7
+    }
+  },
+  "limitations": [
+    "Stops at M activation handoff; downstream emission/terminal path not counted",
+    "Excludes handshake, link framing/padding, TM/cross-pipe fabric overhead and queue service"
+  ]
+}
