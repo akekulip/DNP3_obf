@@ -11,7 +11,7 @@ read_timing.p4 one pass at a time. They are not target, queue or recirculation e
 import re
 import unittest
 
-from read_fragment import TEXT, fragment_text, source
+from read_fragment import PORTS, TEXT, fragment_text, source
 
 CELLS = ('admission_anchor', 'observations', 'releases', 'committed_response_deadline', 'ready_response')
 T1, T2 = 0x01000100, 0x05000200
@@ -21,7 +21,7 @@ def fresh(active=1):
     registers = {(name, 0): {'cookie': 0, 'word': 0} for name in CELLS}
     registers[('timing_binding', 0)] = {'epoch': 1, 'cookie': active}
     s = source({'m.eligible_mask': 0, 'm.seen_mask': 0, 'm.anchor_operation': 0, 'm.seen_operation': 0,
-                'm.timing_authorized': 0, 'm.service_phase': 0, 'm.ingress_port': 71, 'm.service_role': 0,
+                'm.timing_authorized': 0, 'm.service_phase': 0, 'm.ingress_port': PORTS['HELD_RETURN'], 'm.service_role': 0,
                 'm.response_eligible': 0}, registers=registers)
     return s
 
@@ -46,13 +46,13 @@ def observe(s, cookie, mask):
 
 
 def service_release(s, cookie, mask):
-    s.env.update({'m.timing_cookie': cookie, 'm.eligible_mask': mask, 'm.ingress_port': 10,
+    s.env.update({'m.timing_cookie': cookie, 'm.eligible_mask': mask, 'm.ingress_port': PORTS['HB_RETURN'],
                   'm.service_phase': 1, 'm.timing_authorized': 1})
     s.table('release_event')
 
 
 def service_ready(s, cookie, eligible=1):
-    s.env.update({'m.timing_cookie': cookie, 'm.response_eligible': eligible, 'm.ready_set': eligible, 'm.ingress_port': 10,
+    s.env.update({'m.timing_cookie': cookie, 'm.response_eligible': eligible, 'm.ready_set': eligible, 'm.ingress_port': PORTS['HB_RETURN'],
                   'm.service_phase': 1, 'm.timing_authorized': 1})
     s.table('ready_event')
 
@@ -66,7 +66,7 @@ def commit(s, cookie, anchor):
 def read_all(s):
     """What the active association sees on a snapshot pass: qualified reads only."""
     s.env['m.timing_cookie'] = s.registers[('timing_binding', 0)]['cookie']
-    s.env.update({'m.anchor_operation': 0, 'm.seen_operation': 0, 'm.ingress_port': 71,
+    s.env.update({'m.anchor_operation': 0, 'm.seen_operation': 0, 'm.ingress_port': PORTS['HELD_RETURN'],
                   'm.service_phase': 0, 'm.timing_authorized': 0, 'm.service_role': 1,
                   'm.role': 0, 'm.kind': 0, 'm.release_reason': 0, 'm.credit_op': 0, 'm.result': 0})
     s.table('anchor_event'); s.table('observation_event'); s.table('release_event')

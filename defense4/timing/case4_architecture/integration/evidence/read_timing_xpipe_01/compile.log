@@ -1,0 +1,30 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/read_timing.p4(358): [--Wwarn=unused] warning: Table release_snapshot is not used; removing
+    table release_snapshot { actions = { current_releases; } const default_action = current_releases(); size = 1; }
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/read_timing.p4(360): [--Wwarn=unused] warning: Table ack_commit is not used; removing
+    table ack_commit {
+          ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/read_timing.p4(590): [--Wwarn=unused] warning: Table snapshot is not used; removing
+    table snapshot { actions = { producer_snapshot; } const default_action = producer_snapshot(); size = 1; }
+          ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/read_timing.p4(69): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/read_timing.p4(69)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/read_timing_xpipe_01/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+0 errors, 11 warnings generated.
+

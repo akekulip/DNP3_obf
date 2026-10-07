@@ -184,6 +184,8 @@ class ExtSource(PacketSource):
         self.consts = {}
         for match in re.finditer(r'const\s+PortId_t\s+(\w+)\s*=\s*(\d+)w(0[xX][0-9a-fA-F]+|\d+)\s*;', self.text):
             self.consts[match[1]] = (int(match[3], 0), int(match[2]))
+        for match in re.finditer(r'const\s+bit<(\d+)>\s+(\w+)\s*=\s*(0[xX][0-9a-fA-F]+|\d+)\s*;', self.text):
+            self.consts[match[2]] = (int(match[3], 0), int(match[1]))
         self.structs = {n: [(f, int(w)) for w, f in re.findall(r'bit<(\d+)>\s+(\w+);', b)]
                         for n, b in re.findall(r'struct\s+(\w+)\s*\{([^}]*)\}', self.text)}
         self.header_order = re.findall(r'\w+\s+(\w+);', block(self.text, 'struct headers_t'))

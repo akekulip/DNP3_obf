@@ -14,6 +14,7 @@ TNA = r'''
 #include <core.p4>
 #include <tna.p4>
 header eth_t { bit<48> dst; bit<48> src; bit<16> type; }
+const bit<2> PIPE_TWO = 2;
 struct pair_t { bit<32> a; bit<32> b; }
 struct header_t { pktgen_timer_header_t timer; eth_t eth; }
 struct metadata_t { bit<32> now; bit<32> big; bit<32> got; bit<32> sum; }
@@ -87,6 +88,12 @@ class Initializers(unittest.TestCase):
         src = tna_source()
         self.assertEqual(src.cells[('adder', 'cell')][0], {'a': 1, 'b': 0x10000})
         self.assertEqual(src.cells[('second', 'reg')][0], 7)
+
+
+class Constants(unittest.TestCase):
+    def test_sized_bit_constants_resolve(self):
+        src = tna_source()
+        self.assertEqual(src.expr('PIPE_TWO'), 2)
 
 
 class Dialect(unittest.TestCase):

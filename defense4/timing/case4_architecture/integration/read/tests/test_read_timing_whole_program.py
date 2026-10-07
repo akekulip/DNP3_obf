@@ -174,7 +174,7 @@ class HeartbeatLoss(unittest.TestCase):
             sim = w.Sim(PROBE, PROBE_DIR, loop_ns=L, loopbacks=(71, 73))
             if lose:
                 self.lose_first_service_pass(sim, T + 1_000_000, 73)
-            ticks(sim, T, T + horizon)
+            ticks(sim, T, T + horizon, port=68, frame=w.pktgen_frame(pipe=0))
             sim.at(T + 117_000, 69, ack_raw)
             sim.at(T + 313_000, 70, rsp_typed)
             sim.run(T + horizon)

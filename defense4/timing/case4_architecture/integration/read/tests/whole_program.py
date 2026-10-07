@@ -38,8 +38,10 @@ def event_frame(kind, original, epoch=1, t0q=0):
     return struct.pack('!IIIBBH', epoch, 0, t0q, kind, 0, 0) + original
 
 
-def pktgen_frame():
-    return bytes(6) + bytes.fromhex('001122334455aabbccddeeff0800') + bytes(18)
+def pktgen_frame(pipe=2):
+    """Generator packet: 6-byte timer header (first byte 000 pp aaa: pipe pp, app 0) + Ethernet. The model
+    delivers these with ingress_port 0 (model_28 RESULT (d)); the frozen probe (pipe 0, port 68) uses pipe=0."""
+    return bytes([pipe << 3]) + bytes(5) + bytes.fromhex('001122334455aabbccddeeff0800') + bytes(18)
 
 
 class Sim:

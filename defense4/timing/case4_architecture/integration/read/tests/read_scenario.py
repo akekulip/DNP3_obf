@@ -39,11 +39,13 @@ def new_sim(d_ms=5, **kw):
     return w.Sim(TEXT, READ, loop_ns=L, params=params(d_ms), **kw)
 
 
-def ticks(sim, start, stop):
+def ticks(sim, start, stop, port=0, frame=None):
+    """Generator ticks every PERIOD; port 0 + pipe-2 timer header is how the model delivers them."""
+    frame = frame or w.pktgen_frame()
     k = 0
     while T + k * PERIOD < stop:
         if T + k * PERIOD >= start:
-            sim.at(T + k * PERIOD, w.PORTS['HB_PKTGEN'], w.pktgen_frame())
+            sim.at(T + k * PERIOD, port, frame)
         k += 1
 
 

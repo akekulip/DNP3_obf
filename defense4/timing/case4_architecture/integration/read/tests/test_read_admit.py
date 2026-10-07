@@ -29,7 +29,8 @@ class Admit(unittest.TestCase):
         sim.run(T + 10 * L)
         self.assertEqual(sim.drops, [])
         passes = [(t - T, p) for t, p, _ in sim.log]
-        self.assertEqual(passes, [(0, 69), (L, 71), (2 * L, 71), (3 * L, 71)])
+        held, t_in = w.PORTS['HELD_RETURN'], w.PORTS['T_IN']
+        self.assertEqual(passes, [(0, t_in), (L, held), (2 * L, held), (3 * L, held)])
         self.assertEqual([(t - T, p, raw) for t, p, raw in sim.emitted], [(3 * L, RELAY, REQ_FRAME)])
         self.assertEqual(pin_phase(sim), 4)
         self.assertEqual(sim.cell('timing_binding'), {'epoch': 7, 'cookie': 1})
