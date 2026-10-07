@@ -676,3 +676,42 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   stage win is real but does not change the overall fit), `evidence/stage_fit_m20_01` (critical path
   15, exit 2, refuted). Scratch generator copies `transport_experiment_m19.py`,
   `transport_experiment_m20.py`; the real `transport.py` is untouched by this entry.
+- 2026-10-07 (this session) Ported the m19 `output_new*`/`crc_render` decoupling (previous entry's
+  "measured win, zero risk" cleanup) into the real `transport.py`, not a scratch copy. Added four
+  `replace()` calls at the end of `generate_roles()`: `output_newhead`/`output_newbody`/
+  `output_newtail` now hash `hdr.tail.*`/`hdr.captured.*` (the original parsed copies) plus the
+  literal `8w44` for the one changed field (`hdr.dl.len: 75->44`), instead of re-reading
+  `construct_t`'s just-written `hdr.appended.*`/`hdr.last.*`/`hdr.dl.len`; the three results land in
+  new fields `m.new_hcrc`/`m.new_bcrc`/`m.new_tcrc` (no longer `m.hcrc`/`m.bcrc`/`m.tcrc`, which stay
+  the INCOMING-crc variables `input_head_t`/`input_body_t`/`input_tail_t` already use); `crc_render`
+  reads the three new fields. No table key, action set, admission predicate, the reservation
+  register claim in `reserve_t`, or any other table/field is touched -- the hashes are computed over
+  exactly the same bytes as before, only which already-available copy is read and which PHV field
+  the result lands in changes. `generate_roles()` runs clean (no `replace()` seam-count error),
+  confirming the matched text was still present unchanged in `transport.py`'s own `m` at that point.
+  New generation via the normal generator path (`python3 transport.py transport_candidate_next21`,
+  not m19's scratch `main()`): `transport_candidate_next21/m3.p4` sha
+  `e58866ca65904055bbb1f5aef67736917bb00baee3384404f26f0b7284692b9f`, generator (`transport.py`) sha
+  `5d03ad15dba10d8929c7e97714f6681fbb75a1b7f18df7aaf0204ec28c590c69`.
+  Compile (local 9.13.1, `build.py`, `evidence/stage_fit_m21_01`, exit 2, FAILS to fit -- expected,
+  the four-register structural wall from the prior entry is untouched by this change):
+  `grep -n 'construct_t.*IXBAR_READ.*output_new\|output_new.*IXBAR_READ.*construct_t'
+  out/pipe/logs/table_dependency_graph.log` returns 0 matches in `stage_fit_m21_01`, versus 24
+  matches (3 edges x 8 retries) in the pre-fix `stage_fit_m18_01` log and 0 matches in the m19
+  scratch reference (`stage_fit_m19_01`) -- the dependency edge is confirmed gone in the real
+  generator's output, matching m19. Critical path through the table dependency graph:
+  `table_summary.log` reports **10** in every retry, identical to m19's measured 10 and not worse
+  than the m18-era baseline this cleanup builds on.
+  Regression (ran once, this session): `integration/core/ordinary/tests` 71/71, root `tests` 33/33,
+  `integration/connection/binding/tests` 84/84 (590,976 differential cases, 0 mismatches),
+  `integration/controller/tests` 17/17, `integration/core/harness/tests` 42/42,
+  `integration/core/m/tests` 33/33, `integration/read/tests` 103/103 -- all pass, identical counts
+  to the m18 entry's own regression run; nothing regressed and no observable packet behavior
+  changed.
+  This closes the "port the output_new*/crc_render decoupling" step named at the end of the prior
+  entry. It is an independently-justified cleanup only -- it does NOT make M fit and does not touch
+  the four-register structural wall (`reservation`/`producer_context`/`ledger_position`/
+  `ledger_tag`) that entry already named as the real remaining blocker; choosing among its three
+  listed structural options ((a) recirculation second pass, (b) move the registers to egress, (c) a
+  new M layout) is still open and not attempted here.
+  No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.

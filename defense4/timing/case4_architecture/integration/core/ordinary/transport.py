@@ -500,6 +500,43 @@ def generate_roles():
               '    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){')
     m=replace(m,old_deep,new_deep)
 
+    # stage_fit_m19 (this task): output_newhead_t/output_newbody_t/
+    # output_newtail_t re-read construct_t's just-written headers
+    # (hdr.appended.*, hdr.last.*, hdr.dl.len) purely to recompute a hash over
+    # values that are, in every case but one, already available UNCHANGED from
+    # parsing (hdr.tail.*, hdr.captured.*). The one changed field, hdr.dl.len
+    # (75->44), is always the same compile-time value at this point, so it is
+    # read as the literal 8w44 instead. Hashing from the original parsed copy
+    # removes the construct_t_0 -- IXBAR_READ --> output_new*_t_0 dependency
+    # edge entirely (confirmed in
+    # evidence/stage_fit_m19_01/out/pipe/logs/table_dependency_graph.log). The
+    # new-hash outputs are given their own fields (m.new_hcrc/new_bcrc/new_tcrc)
+    # instead of reusing m.hcrc/m.bcrc/m.tcrc (still used by input_head_t/
+    # input_body_t/input_tail_t for the INCOMING crc), which also removes the
+    # matching anti-dependency against the badh/badb/badt checks. This is a
+    # value-preserving refactor -- the three hashes are computed over exactly
+    # the same bytes as before, only which already-available copy of each byte
+    # is read, and which PHV field the result lands in, changes. It does not
+    # touch construct_t's own header-field writes, any admission predicate, the
+    # reservation register claim in reserve_t, or the final emitted frame.
+    m=replace(m,'struct meta_t{','struct meta_t{bit<16> new_hcrc;bit<16> new_bcrc;bit<16> new_tcrc;')
+    m=replace(
+        m,
+        'action output_newhead(){m.hcrc=hash_newhead.get({hdr.dl.magic,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}',
+        'action output_newhead(){m.new_hcrc=hash_newhead.get({hdr.dl.magic,8w44,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}')
+    m=replace(
+        m,
+        'action output_newbody(){m.bcrc=hash_newbody.get({hdr.appended.off,hdr.appended.status,hdr.appended.group,hdr.appended.variation,hdr.appended.qualifier,hdr.appended.count,hdr.appended.index,hdr.appended.code,hdr.appended.repeat,hdr.appended.on_first});}',
+        'action output_newbody(){m.new_bcrc=hash_newbody.get({hdr.tail.off,hdr.tail.status,8w12,8w1,8w0x28,16w0x0100,hdr.captured.index,hdr.captured.code,hdr.captured.repeat,hdr.captured.on[31:16]});}')
+    m=replace(
+        m,
+        'action output_newtail(){m.tcrc=hash_newtail.get({hdr.last.on_last,hdr.last.off,hdr.last.status});}',
+        'action output_newtail(){m.new_tcrc=hash_newtail.get({hdr.captured.on[15:0],hdr.captured.off,8w0});}')
+    m=replace(
+        m,
+        'action crc_render(){hdr.dl.crc=m.hcrc[7:0]++m.hcrc[15:8];hdr.appended.crc=m.bcrc[7:0]++m.bcrc[15:8];hdr.last.crc=m.tcrc[7:0]++m.tcrc[15:8];}',
+        'action crc_render(){hdr.dl.crc=m.new_hcrc[7:0]++m.new_hcrc[15:8];hdr.appended.crc=m.new_bcrc[7:0]++m.new_bcrc[15:8];hdr.last.crc=m.new_tcrc[7:0]++m.new_tcrc[15:8];}')
+
     roles['n3.p4']=n;roles['m3.p4']=m
     return roles
 
