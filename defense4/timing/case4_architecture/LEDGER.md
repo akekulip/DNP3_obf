@@ -126,3 +126,13 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
     client position bank is stored under a foreign epoch (the owner is not).
   * Model finding: native_04 declared `sequence_diff` size 8 with 9 const entries and would not load.
     Every table now has size >= const entries (`test_native_static_entries.py`).
+- 2026-10-07 PI summary (autonomous session, agents A1 model, A2/B2 generator, B3 timing, C research, D3 design):
+  * Local Tofino-1 model runs in `unshare -Urn` with a pagemap LD_PRELOAD shim (`evidence/model_02`, `core/launch_model.sh`,
+    `core/model_driver.py`). Functional only; the model clock is not wall time; PFNs are fake. Component packet vectors pass
+    on validator_05, forward_03, reverse_12, egress_selected_wire_04 (`model_17`). Found: retained handshake builds and native_03
+    do not load (table size below const entries), carving emits a stray third frame.
+  * Whole-program source harness `integration/core/harness/` agrees with the model on 68/71 native steps (`model_24`); the 3 are model/test artifacts.
+  * native binding restructured (guard table etc.), differential vs frozen oracle 590,976 cases / 0 mismatches; READ kinds 9–11, tev handoff,
+    H1 (epoch 0), H2 (guard miss) fixed; `native_11` compiles at 12/12 stages; open: flow-miss leaves WorkRecord pinned (fix in progress), M2 busy-record transparent pass (design gap).
+  * READ timing role `read_timing.p4` 12/12 stages, checked against `join_reference.py`; ADMIT and held paths run on the model functionally (`read_timing_model_0*`).
+  * Not done: N->T cross-pipe join on one multi-pipe program, steps 3–5, 9.13.2 build, any hardware. No push; nothing is hardware-measured.
