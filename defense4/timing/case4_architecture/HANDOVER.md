@@ -100,6 +100,25 @@ still fails table placement with no more placeable tables. Inspect that dependen
 before another change; unused M egress arithmetic is a possible bounded alternative,
 not an implemented or accepted layout.
 
+2026-10-07 continuation: both diagnosed stage-fit fixes (role-dispatch flattening, then
+register co-location hoist of the read-only `inspect_reservation`/`context_check` halves) are
+now implemented in the real generator (`transport_candidate_next17/m3.p4`, sha
+`6788aa92…93a6`), not a scratch copy, and still do not fit. Fresh regression across every suite
+this session has used (`ordinary` 71/71, root `tests` 33/33, `connection/binding` 84/84,
+`controller` 17/17, `core/harness` 42/42, `core/m` 33/33, `read` 103/103) stays green. Local
+9.13.1 compile (`evidence/stage_fit_m17_01`) improves the dependency-graph critical path 9 -> 8
+but still FAILS table placement; the compiler's own placement log now names the exact
+remaining constraint ("dependency between inspect_reservation_t_0 and activation_reservation_t_0
+requiring more than one stage") -- `Ingress.reservation`'s single-stage pinning is not resolved
+by hoisting only the role==1 read, because `activation_reservation_t` (role==2's
+`retire_reservation`) and `reserve_t` (role==0, deep in the native path) still touch the same
+register far later. A parallel, now-explicit conflict exists on `Ingress.ledger_position`
+(`mapping_position_t` vs `activate_position_t`) and a further one on `Ingress.ledger_tag`
+(`activate_geometry_t` vs `activate_ledger_t`). `ledger_position`'s write side has no read-only
+half to extract, unlike `reservation`'s. See `LEDGER.md`'s 2026-10-07 "Both diagnosed fixes
+implemented" entry for the full compiler quotes and unplaced-table list. No mapper fit, model,
+SDK update, hardware action or push.
+
 Source-counted ACK mapping uses N5+M2 ingress visits and408 private Ethernet bytes;
 response57 uses the same7 visits and750 bytes. Endpoint54/111 bytes are separate.
 These counts remain unmeasured until the exact installed-SDK model runs.

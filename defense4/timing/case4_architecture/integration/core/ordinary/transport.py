@@ -375,6 +375,43 @@ def generate_roles():
     m=replace(m,'m.snapshot_boundary_diff:exact;m.snapshot_position_diff:exact;', 'm.map_boundary_grant:exact;m.map_position_grant:exact;')
     m=replace(m,'(1w1,32w0,32w0,32w0,32w0,32w0,32w0,16w0):deny();','(1w1,32w0,32w0,32w0,32w1,32w1,32w0,16w0):deny();')
     m=replace(m,'(1w1,32w0,32w0,32w0,32w0,32w0,_,16w0):map_ack_high();','(1w1,32w0,32w0,32w0,32w1,32w1,_,16w0):map_ack_high();')
+
+    # stage_fit_m16_02 fix 1 (validated: critical path 13 -> 9): the role==4-only
+    # geometry chain was a separate top-level `if` preceding the real role
+    # dispatch, forcing the compiler to serialize it with the role==3/role==1||2
+    # branches (sum of depths) instead of overlapping them as dispatch siblings
+    # (max of depths). Move it inside the main dispatch's existing
+    # else-if(role==8w4) branch, directly ahead of check_mapping_snapshot_t/
+    # map_return_t (which already consume its outputs). No table/action/key is
+    # added, removed or reordered within any one role's own path.
+    geometry_chain='prepare_packet_edges_t.apply();prepare_edges_t.apply();prepare_right_offset_t.apply();inverse_left.apply();inverse_right.apply();finish_window_t.apply();check_geometry_t.apply();'
+    m=replace(m,' if(m.role==8w4){'+geometry_chain+'}\n','')
+    m=replace(m,'}else if(m.role==8w4){\n  check_mapping_snapshot_t.apply();',
+                 '}else if(m.role==8w4){\n  '+geometry_chain+'\n  check_mapping_snapshot_t.apply();')
+
+    # stage_fit_m16_01 fix 2 (register co-location): Ingress.reservation's backing
+    # SALU is pinned to one physical stage, and every table that applies a
+    # RegisterAction on it must share that stage. mapping_reservation_t (role
+    # 3/4) already reads it right after role dispatch; activation_reservation_t's
+    # inspect_reservation (role==1) is a READ-ONLY check and qualify_context_t's
+    # context_check is also READ-ONLY, so both are hoisted to run unconditionally
+    # alongside mapping_reservation_t's own read. Only the MUTATING steps
+    # (retire_reservation for role==2, claim_once, activate_geometry/position/
+    # ledger, dirty_return) stay at their later gated stage; the hoisted reads
+    # are only CONSUMED later, under the exact same gating as before, so the
+    # paired-coordinate reread invariant and the role-1-only mutation gate are
+    # unchanged -- only when the read happens moves.
+    old_activation_reservation=' table activation_reservation_t{key={m.role:exact;}actions={inspect_reservation;retire_reservation;NoAction;}size=2;const default_action=NoAction();const entries={8w1:inspect_reservation();8w2:retire_reservation();}}'
+    new_activation_reservation=(' table inspect_reservation_t{key={m.role:exact;}actions={inspect_reservation;NoAction;}size=1;const default_action=NoAction();const entries={8w1:inspect_reservation();}}\n'
+                                 ' table activation_reservation_t{key={m.role:exact;}actions={retire_reservation;NoAction;}size=1;const default_action=NoAction();const entries={8w2:retire_reservation();}}')
+    m=replace(m,old_activation_reservation,new_activation_reservation)
+    m=replace(m,'  mapping_boundary_t.apply();mapping_position_t.apply();\n }\n',
+                 '  mapping_boundary_t.apply();mapping_position_t.apply();\n }\n'
+                 ' if(m.role==8w1){inspect_reservation_t.apply();}\n'
+                 ' if(m.role==8w1||m.role==8w2){qualify_context_t.apply();}\n')
+    m=replace(m,'    activation_reservation_t.apply();\n    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){\n     qualify_context_t.apply();\n     if(m.context_grant==32w0){',
+                 '    activation_reservation_t.apply();\n    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){\n     if(m.context_grant==32w0){')
+
     roles['n3.p4']=n;roles['m3.p4']=m
     return roles
 

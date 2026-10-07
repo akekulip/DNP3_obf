@@ -501,3 +501,59 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   verified in this entry's own commit by rereading the compiler's own log lines, not the agent's
   prose). Next action: implement the hoist in the real M source (not a scratch copy) with a
   differential/invariant test that the admission result is identical whether checked early or late.
+
+- 2026-10-07 (this session) Both diagnosed fixes implemented in the real generator
+  (`transport.py`, not a scratch copy) and verified; the mapper still does not fit.
+  Fix 1 (role-dispatch flattening) moves the role==4-only geometry chain
+  (`prepare_packet_edges_t`..`check_geometry_t`) from its own top-level `if(m.role==8w4){...}`
+  into the main dispatch's existing `else if(m.role==8w4){...}` branch, exactly as validated in
+  `stage_fit_m16_02`. Fix 2 (register co-location) splits `activation_reservation_t`'s
+  `inspect_reservation` (role==1, READ-ONLY) out of its own table into a new
+  `inspect_reservation_t`, applied unconditionally for role==1 immediately after
+  `mapping_reservation_t`'s own read (same source location, role==3/4 block); `qualify_context_t`'s
+  `context_check` (also READ-ONLY) is hoisted to the same point for role==1||2. Only the MUTATING
+  steps -- `retire_reservation` (role==2, left in the now-narrower `activation_reservation_t`),
+  `claim_once`, `activate_geometry`/`activate_position`/`activate_ledger`, `dirty_return` -- stay at
+  their original later, gated stage; the hoisted reads are consumed later under the identical
+  gating as before. New generation `transport_candidate_next17/m3.p4` (sha
+  `6788aa92f59e3eee2f59894ac1b1ac20e7138f6ce78ec4aec300941f0b0a93a6`).
+  Regression: fresh `ordinary` 71/71 (including every forgery/reread negative canary in
+  `test_transport_reverse.py`, the role==1/2 activation chain in `test_m_activate.py`, and no
+  role-3/4 mutation on any case), root `tests` 33/33, `connection/binding` 84/84 (590,976
+  differential cases, 0 mismatches), `controller` 17/17, `core/harness` 42/42, `core/m` 33/33,
+  `read` 103/103 -- all pass, nothing else regressed.
+  Compile (local 9.13.1, `build.py`, `evidence/stage_fit_m17_01`, exit 2, FAILS to fit):
+  critical path through the table dependency graph improved **9 -> 8** (both fixes together
+  lower it further than fix 1 alone), but table placement still cannot complete. The top-level
+  compiler error is the same generic one as before fix 2
+  (`evidence/stage_fit_m17_01/compile.log` line 30): "Table placement cannot make any more
+  progress. Though some tables have not yet been placed, dependency analysis has found that no
+  more tables are placeable." The compiler's own internal placement log now names the exact
+  remaining constraint explicitly, repeated at every placement attempt
+  (`evidence/stage_fit_m17_01/out/pipe/logs/table_placement_7.log` lines 402, 432, 478, 508, 541,
+  595, 637, 697): "dependency between inspect_reservation_t_0 and activation_reservation_t_0
+  requiring more than one stage" -- i.e. hoisting only the role==1 read does not resolve
+  `Ingress.reservation`'s single-stage pinning, because `activation_reservation_t` (now only
+  `retire_reservation`, role==2) and `reserve_t` (role==0, deep inside the native/DNP3 path behind
+  `profile`/`input_head_t`/`input_body_t`/`input_tail_t`/4 CRC+index conditions) still touch the
+  same register at their original, far deeper stage. The same log also names the parallel
+  `Ingress.ledger_position` conflict (line 417/493: "dependency between connection_0 and
+  activate_position_t_0 advances stage") and a further, previously undiagnosed one on
+  `Ingress.ledger_tag` (line 747/762: "dependency between activate_geometry_t_0 and
+  activate_ledger_t_0 requiring more than one stage"). `ledger_position` has no read-only half to
+  hoist: `activate_position_t`'s `write_position` is an unconditional write with no branch on the
+  prior value, so unlike `reservation` there is nothing partial to split off it; the mapping-side
+  read (`mapping_position_t`) is already at the hoisted stage and the write stays deep, which is
+  the same unresolved gap as before this session for that register. Final unplaced-table list at
+  the point placement gave up (`table_placement_7.log`, "table placement ending with unplaced
+  tables"): `mapping_reservation_t`, `mapping_tag_t`, `inspect_reservation_t`, `qualify_context_t`,
+  the whole role==3/4 geometry/snapshot chain, `activation_identity_t`, `activation_reservation_t`,
+  `terminal_result_t`, `claim_once_t`, `activate_geometry_t`, `activate_position_t`,
+  `activate_ledger_t`, `dirty_return_t`. No table, key, or check was weakened to force a fit.
+  Not attempted this session: moving `reserve_t`/`retire_reservation`/`construct_t`
+  (`Ingress.producer_context` has the same two-touch-point shape as `reservation`: `context_write`
+  in `construct()`, role 0, vs the now-hoisted `context_check`) earlier, which the task's own scope
+  explicitly excluded (mutating steps stay deferred) and which would need restructuring the
+  role==0 admission chain (`profile`/CRC checks) before a verdict is possible -- a materially larger
+  change than the two diagnosed fixes, not implemented or claimed here.
+  No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
