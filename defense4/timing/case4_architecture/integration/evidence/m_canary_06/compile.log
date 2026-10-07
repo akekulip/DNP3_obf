@@ -1,0 +1,9 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_06/source/m_skeleton.p4(114): [--Werror=type-error] error: Field m is not a member of structure struct meta_t
+ action edges(){m.right=hdr.tcp.ack+m.full_window;m.left=hdr.tcp.ack;m.m.tcp_len=16w20;}
+                                                                       ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_06/source/m_skeleton.p4(20)
+struct meta_t{bit<8> network_allowed;bit<32> repair_sum_pad;bit<16> repair_sum;bit<32> first;bit<32> second;bit<8> valid;bit<8> direction;PortId_t output_port;
+       ^^^^^^
+
+1 error, 0 warnings generated.
+

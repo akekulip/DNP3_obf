@@ -1,0 +1,119 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_05/source/m_skeleton.p4(24): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_05/source/m_skeleton.p4(24)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_05/source/m_skeleton.p4(400): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_05/source/m_skeleton.p4(400)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Cannot find a slicing to satisfy @pa_container_size pragma(s): ingress::m.geometry, ingress::m.second, ingress::m.first, ingress::m.so1, ingress::hdr.tcp.seq, ingress::m.so2, ingress::m.right, ingress::hdr.tcp.ack, ingress::m.full_window, ingress::hdr.tcp.control_window, ingress::m.ao1, ingress::m.ao2, ingress::m.ro1, ingress::m.ro2, ingress::m.seq_result, ingress::m.left, ingress::m.native_right, ingress::m.window_after
+SUPERCLUSTER Uid: 293
+    slice lists:	
+        [ ingress::m.geometry<32> meta solitary no_split [0:7]
+          ingress::m.geometry<32> meta solitary no_split [8:31] ]
+        [ ingress::m.second<32> meta solitary no_split [0:7]
+          ingress::m.second<32> meta solitary no_split [8:31] ]
+        [ ingress::m.first<32> meta solitary no_split [0:7]
+          ingress::m.first<32> meta solitary no_split [8:31] ]
+        [ ingress::m.so1<32> meta solitary no_split [0:7]
+          ingress::m.so1<32> meta solitary no_split [8:31] ]
+        [ ingress::hdr.tcp.seq<32> ^0 ^bit[0..63] deparsed solitary no_split exact_containers [0:7]
+          ingress::hdr.tcp.seq<32> ^0 ^bit[0..55] deparsed solitary no_split exact_containers [8:31] ]
+        [ ingress::m.so2<32> meta solitary no_split [0:7]
+          ingress::m.so2<32> meta solitary no_split [8:31] ]
+        [ ingress::m.right<32> meta solitary no_split [0:7]
+          ingress::m.right<32> meta solitary no_split [8:31] ]
+        [ ingress::hdr.tcp.ack<32> ^0 ^bit[0..95] deparsed solitary no_split exact_containers [0:7]
+          ingress::hdr.tcp.ack<32> ^0 ^bit[0..87] deparsed solitary no_split exact_containers [8:31] ]
+        [ ingress::m.full_window<32> meta solitary no_split [0:7]
+          ingress::m.full_window<32> meta solitary no_split [8:31] ]
+        [ ingress::hdr.tcp.control_window<32> ^0 ^bit[0..127] deparsed solitary no_split exact_containers [0:7]
+          ingress::hdr.tcp.control_window<32> ^0 ^bit[0..119] deparsed solitary no_split exact_containers [8:31] ]
+        [ ingress::m.ao1<32> meta solitary no_split [0:7]
+          ingress::m.ao1<32> meta solitary no_split [8:31] ]
+        [ ingress::m.ao2<32> meta solitary no_split [0:7]
+          ingress::m.ao2<32> meta solitary no_split [8:31] ]
+        [ ingress::m.ro1<32> meta solitary no_split [0:7]
+          ingress::m.ro1<32> meta solitary no_split [8:31] ]
+        [ ingress::m.ro2<32> meta solitary no_split [0:7]
+          ingress::m.ro2<32> meta solitary no_split [8:31] ]
+        [ ingress::m.seq_result<32> meta solitary no_split [0:7]
+          ingress::m.seq_result<32> meta solitary no_split [8:31] ]
+        [ ingress::m.left<32> meta solitary no_split [0:7]
+          ingress::m.left<32> meta solitary no_split [8:31] ]
+        [ ingress::m.native_right<32> meta solitary no_split [0:7]
+          ingress::m.native_right<32> meta solitary no_split [8:31] ]
+        [ ingress::m.window_after<32> meta solitary no_split [0:7]
+          ingress::m.window_after<32> meta solitary no_split [8:31] ]
+        [ ingress::hdr.tail.crc<16> ^0 ^bit[0..279] deparsed exact_containers [0:7]
+          ingress::hdr.tail.crc<16> ^0 ^bit[0..271] deparsed exact_containers [8:15]
+          ingress::hdr.tail.status<8> ^0 ^bit[0..263] deparsed exact_containers [0:7]
+          ingress::hdr.tail.off<32> ^0 ^bit[0..255] deparsed exact_containers [0:31] ]
+        [ ingress::hdr.replay.data<8> ^0 ^bit[0..7] deparsed exact_containers [0:7] ]
+    rotational clusters:	
+        [[ingress::m.geometry<32> meta solitary no_split [0:7], ingress::m.second<32> meta solitary no_split [0:7], ingress::m.first<32> meta solitary no_split [0:7], ingress::m.so1<32> meta solitary no_split [0:7], ingress::hdr.tcp.seq<32> ^0 ^bit[0..63] deparsed solitary no_split exact_containers [0:7], ingress::m.so2<32> meta solitary no_split [0:7], ingress::m.right<32> meta solitary no_split [0:7], ingress::hdr.tcp.ack<32> ^0 ^bit[0..95] deparsed solitary no_split exact_containers [0:7], ingress::m.full_window<32> meta solitary no_split [0:7], ingress::hdr.tcp.control_window<32> ^0 ^bit[0..127] deparsed solitary no_split exact_containers [0:7], ingress::m.ao1<32> meta solitary no_split [0:7], ingress::m.ao2<32> meta solitary no_split [0:7], ingress::m.ro1<32> meta solitary no_split [0:7], ingress::m.ro2<32> meta solitary no_split [0:7], ingress::m.seq_result<32> meta solitary no_split [0:7], ingress::m.left<32> meta solitary no_split [0:7], ingress::m.native_right<32> meta solitary no_split [0:7], ingress::m.window_after<32> meta solitary no_split [0:7]], [ingress::hdr.tail.crc<16> ^0 ^bit[0..279] deparsed exact_containers [0:7]], [ingress::hdr.replay.data<8> ^0 ^bit[0..7] deparsed exact_containers [0:7]]]
+        [[ingress::m.geometry<32> meta solitary no_split [8:31], ingress::m.second<32> meta solitary no_split [8:31], ingress::m.first<32> meta solitary no_split [8:31], ingress::m.so1<32> meta solitary no_split [8:31], ingress::hdr.tcp.seq<32> ^0 ^bit[0..55] deparsed solitary no_split exact_containers [8:31], ingress::m.so2<32> meta solitary no_split [8:31], ingress::m.right<32> meta solitary no_split [8:31], ingress::hdr.tcp.ack<32> ^0 ^bit[0..87] deparsed solitary no_split exact_containers [8:31], ingress::m.full_window<32> meta solitary no_split [8:31], ingress::hdr.tcp.control_window<32> ^0 ^bit[0..119] deparsed solitary no_split exact_containers [8:31], ingress::m.ao1<32> meta solitary no_split [8:31], ingress::m.ao2<32> meta solitary no_split [8:31], ingress::m.ro1<32> meta solitary no_split [8:31], ingress::m.ro2<32> meta solitary no_split [8:31], ingress::m.seq_result<32> meta solitary no_split [8:31], ingress::m.left<32> meta solitary no_split [8:31], ingress::m.native_right<32> meta solitary no_split [8:31], ingress::m.window_after<32> meta solitary no_split [8:31]]]
+        [[ingress::hdr.tail.crc<16> ^0 ^bit[0..271] deparsed exact_containers [8:15]]]
+        [[ingress::hdr.tail.status<8> ^0 ^bit[0..263] deparsed exact_containers [0:7]]]
+        [[ingress::hdr.tail.off<32> ^0 ^bit[0..255] deparsed exact_containers [0:31]]]
+
+error: PHV allocation was not successful
+41 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::m.geometry<32b>[7:0]
+    ingress::m.second<32b>[7:0]
+    ingress::m.first<32b>[7:0]
+    ingress::m.so1<32b>[7:0]
+    ingress::hdr.tcp.seq<32b>[7:0]
+    ingress::m.so2<32b>[7:0]
+    ingress::m.right<32b>[7:0]
+    ingress::hdr.tcp.ack<32b>[7:0]
+    ingress::m.full_window<32b>[7:0]
+    ingress::hdr.tcp.control_window<32b>[7:0]
+    ingress::m.ao1<32b>[7:0]
+    ingress::m.ao2<32b>[7:0]
+    ingress::m.ro1<32b>[7:0]
+    ingress::m.ro2<32b>[7:0]
+    ingress::m.seq_result<32b>[7:0]
+    ingress::m.left<32b>[7:0]
+    ingress::m.native_right<32b>[7:0]
+    ingress::m.window_after<32b>[7:0]
+    ingress::hdr.tail.crc<16b>[7:0]
+    ingress::hdr.replay.data<8b>
+    ingress::m.geometry<32b>[31:8]
+    ingress::m.second<32b>[31:8]
+    ingress::m.first<32b>[31:8]
+    ingress::m.so1<32b>[31:8]
+    ingress::hdr.tcp.seq<32b>[31:8]
+    ingress::m.so2<32b>[31:8]
+    ingress::m.right<32b>[31:8]
+    ingress::hdr.tcp.ack<32b>[31:8]
+    ingress::m.full_window<32b>[31:8]
+    ingress::hdr.tcp.control_window<32b>[31:8]
+    ingress::m.ao1<32b>[31:8]
+    ingress::m.ao2<32b>[31:8]
+    ingress::m.ro1<32b>[31:8]
+    ingress::m.ro2<32b>[31:8]
+    ingress::m.seq_result<32b>[31:8]
+    ingress::m.left<32b>[31:8]
+    ingress::m.native_right<32b>[31:8]
+    ingress::m.window_after<32b>[31:8]
+    ingress::hdr.tail.crc<16b>[15:8]
+    ingress::hdr.tail.status<8b>
+    ingress::hdr.tail.off<32b>
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 6 warnings generated.
+

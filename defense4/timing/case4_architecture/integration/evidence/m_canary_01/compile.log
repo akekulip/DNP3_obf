@@ -1,0 +1,12 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_01/source/m_skeleton.p4(64): [--Werror=type-error] error: AssignmentStatement
+ action prep(){m.seq_m35=hdr.tcp.seq-32w35;m.native_last=32w0++8w0;m.replay_byte=32w0;}
+                                                        ^
+  ---- Actual error:
+  Cannot cast implicitly type 'bit<40>' to type 'bit<32>'
+  ---- Originating from:
+  /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_canary_01/source/m_skeleton.p4(64): Source expression '40w0' produces a result of type 'bit<40>' which cannot be assigned to a left-value with type 'bit<32>'
+   action prep(){m.seq_m35=hdr.tcp.seq-32w35;m.native_last=32w0++8w0;m.replay_byte=32w0;}
+                                                           ^^^^^^^^^
+
+1 error, 0 warnings generated.
+
