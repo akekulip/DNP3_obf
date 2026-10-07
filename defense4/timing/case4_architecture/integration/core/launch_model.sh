@@ -10,6 +10,7 @@
 #       the test side is its peer veth(2N+1). Port 64 and 68 are the pipe-local ports of interest.
 #   -d  driver run inside the namespace with env PROG OUT DEV_PORTS MODEL_GRPC (default: just hold for HOLD s)
 # env: WAIT=seconds to let switchd come up (15), HOLD=seconds to stay up with no driver (0),
+#      MODEL_SDE=path to an existing SDK (legacy local default /home/philip/bf-sde-9.13.1),
 #      MODEL_NO_PORTMAP=1 to use the model's default port list (0-16,64) instead of ports.json,
 #      MODEL_INT_PORT_LOOP=pipe bitmap for tofino-model --int-port-loop (e.g. 0xf), MODEL_EXTRA=extra model args
 # Workarounds (evidence/model_02/RESULT.md): agent0 stripped from a COPY of the conf; LD_PRELOAD pagemap shim.
@@ -38,7 +39,7 @@ export DEV_PORTS="$PORTS" OUT HERE MODEL_GRPC=127.0.0.1:50052
 export POST_DRIVER="${DRIVER:+$(readlink -f "$DRIVER")}" DRIVER_ARGS="$*"
 cat > "$OUT/.inner.sh" <<'INNER'
 #!/bin/bash
-SDE=/home/philip/bf-sde-9.13.1
+SDE="${MODEL_SDE:-/home/philip/bf-sde-9.13.1}"
 export SDE SDE_INSTALL=$SDE/install PATH=$SDE/install/bin:$PATH LD_LIBRARY_PATH=$SDE/install/lib:/usr/local/lib
 sysctl -qw net.ipv6.conf.all.disable_ipv6=1 net.ipv6.conf.default.disable_ipv6=1 2>/dev/null || true
 ip link set lo up

@@ -11,7 +11,7 @@ inspection confirms `p4c9.13.2 (SHA:1baf055)` at
 activation or software changes. Older local9.13.1 results remain development
 evidence, not installed-version qualification.
 
-## Accepted first SELECT milestone
+## Accepted first SELECT milestone — local SDK9.13.1
 
 External SYN/SYNACK/ACK then SELECT35 produce one exact109-byte Ethernet frame
 with55-byte padded payload in the isolated local model. Genuine completion leaves
@@ -43,6 +43,23 @@ plus an internal24-byte completion header. This is functional model accounting;
 TM/fabric and physical wire service are not measured. Successful runs omit the
 model's `--int-port-loop` flag; front ports remain cold-added with loopback NONE.
 Failed front-loop attempts and the SYN-only controlled comparison are preserved.
+
+## Installed-SDK transport checkpoint
+
+The switch's existing9.13.2 compiler now builds the exact accepted E cache source
+in `installed_e_01`:1 ingress/10 egress, critical7, all source/snapshot/compiler/
+artifact checks pass, and the static-entry capacity scan passes. This is a build
+claim only. The accepted N12/M10 split table above belongs to9.13.1; those stage
+counts have not yet been requalified for the installed-version transport extension.
+
+Transport source tests pass66/66, including14 focused ACK/window/response/FIN
+methods, and the bounded reviewer approves the frozen `transport_candidate_next`
+source only. Installed NF01 needs15 ingress stages. The subsequent dependency
+fusions preserve guards, but NF02 stops at an action declaration-order error;
+M02 stops at an unsupported two-member RegisterAction output. Both failed builds
+retain exact sources and logs. Repair these compiler blockers, then compile and
+run the exact installed-SDK multipipe model before accepting transport behavior.
+No installed-version transport fit or model completion is claimed.
 
 ## Remaining core work, in execution order
 

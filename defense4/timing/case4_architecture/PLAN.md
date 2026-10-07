@@ -88,7 +88,15 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   existing geometry banks and separate typed return, rather than add N banks.
   [Lead resource checks](integration/core/ordinary/evidence/lead_split_verification_01/verification.json)
   record exact final per-stage SALU/table/crossbar/RAM/TCAM and PHV allocations.
-- [ ] **Ordinary SBO transport (active).** First normalize reverse ACK and both
+- [ ] **Ordinary SBO transport (active).** Source suite66/66 and14 focused
+  ACK/window/response/FIN methods pass; the bounded review approves source only.
+  On existing switch9.13.2, `installed_e_01` qualifies E1/10 (critical7), but the
+  transport NF01 fails15 ingress stages. Dependency fusions are source-tested;
+  NF02 currently fails declaration order and M02 unsupported paired SALU output,
+  before placement. Preserve those failure artifacts, repair legal data access,
+  then compile and run the exact multipipe target model. Earlier split N12/M10
+  stage counts/model passes remain tied to9.13.1.
+  First normalize reverse ACK and both
   receive-window edges through actual published M geometry BEFORE N association.
   Require the full current epoch; preserve pins on lost cancellation returns.
   Remove legacy double subtraction and accept the completed SELECT owner state.

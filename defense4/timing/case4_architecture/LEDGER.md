@@ -1,5 +1,15 @@
 # Execution ledger
 
+## Existing-SDK checkpoint2026-10-07
+
+Use installed switch9.13.2 without updates. `ordinary/evidence/installed_e_01`
+binds the accepted E source to an exact1/10-stage build, critical7; all artifact
+checks and static capacities pass. Transport source suite66/66 and focused14/14
+pass, with independent source-only review. NF01 fails15 stages, NF02 declaration
+order, M02 incompatible full32 paired SALU output; failures remain retained.
+N12/M10/first SELECT model claims remain9.13.1 evidence. Full core and the exact
+installed-version multipipe model remain open in [PLAN.md](PLAN.md).
+
 ## Execution resumed2026-10-07 — base834372cbb
 
 The current [PLAN.md execution checklist](PLAN.md#execution-checklist--2026-10-07)
