@@ -1,0 +1,13 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name handshake
+Binding with p4_name handshake successful!!
+Received handshake on GetForwarding on client 1, device 0
+PASS duplicate_syn/0:syn                expected=forward    observed=forward
+FAIL duplicate_syn/1:syn_again          expected=none       observed=none
+PASS duplicate_synack/0:syn             expected=forward    observed=forward
+PASS duplicate_synack/1:synack          expected=forward    observed=forward
+FAIL duplicate_synack/2:synack_again    expected=none       observed=none
+SUMMARY {'total': 5, 'passed': 3, 'failed': ['duplicate_syn/1:syn_again', 'duplicate_synack/2:synack_again']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

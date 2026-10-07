@@ -117,4 +117,5 @@ def main():
     print('forwarding mismatches:', [r['name'] for r in fw])
     sys.exit(0 if ok and not fw else 1)
 
-main()
+if __name__ == '__main__':
+    main()

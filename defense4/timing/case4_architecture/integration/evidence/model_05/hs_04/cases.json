@@ -1,0 +1,2770 @@
+{
+ "cases": [
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "happy/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "happy/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "happy/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_fin_client/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_fin_client/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "happy_then_fin_client/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "leaked_frames": [],
+   "name": "happy_then_fin_client/3:fin",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_fin_server/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_fin_server/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "happy_then_fin_server/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001389000003e950111000b10d0000",
+   "leaked_frames": [],
+   "name": "happy_then_fin_server/3:fin_s",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001389000003e950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_rst/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "happy_then_rst/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "happy_then_rst/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000",
+   "leaked_frames": [],
+   "name": "happy_then_rst/3:rst",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "close_after_syn/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000",
+   "leaked_frames": [],
+   "name": "close_after_syn/1:rst",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "close_after_synack/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "close_after_synack/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "leaked_frames": [],
+   "name": "close_after_synack/2:fin_client",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c80a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_bad_ip_csum/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c80a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000aceb0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_bad_tcp_csum/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000aceb0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000000666c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_ttl0/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000000666c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b266000002040038",
+   "leaked_frames": [],
+   "name": "syn_mss56/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b2660000020400380000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b265000002040039",
+   "leaked_frames": [],
+   "name": "syn_mss57/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b2650000020400390000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b29e00000204ffff",
+   "leaked_frames": [],
+   "name": "syn_mss65535/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b29e00000204ffff0000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00012000400646c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_df_off_mf/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00012000400646c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000ace90001020405b4",
+   "leaked_frames": [],
+   "name": "syn_urgent/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000ace90001020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    1,
+    0
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000560021000ace50000020405b4",
+   "leaked_frames": [
+    "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000560021000ace50000020405b40000"
+   ],
+   "name": "syn_ack_nonzero/0:syn",
+   "observed": "LEAK_PRIVATE_PREFIX",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000560021000ace50000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 9,
+   "state_diffs": {
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e80000000050021000c4a60000",
+   "leaked_frames": [],
+   "name": "syn_no_mss/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e80000000050021000c4a60000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002d00014000400626c80a0000010a00000275314e20000003e8000000006002100034e90000020405b478",
+   "leaked_frames": [],
+   "name": "syn_with_payload/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002d00014000400626c80a0000010a00000275314e20000003e8000000006002100034e90000020405b47800"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275324e20000003e80000000060021000ace90000020405b4",
+   "leaked_frames": [],
+   "name": "syn_wrong_sport/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275324e20000003e80000000060021000ace90000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_on_unlisted_port/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 2,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_from_server_side/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060031000ace90000020405b4",
+   "leaked_frames": [],
+   "name": "syn_syn_fin_flags/0:synfin",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060031000ace90000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    1,
+    0
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [
+    "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+   ],
+   "name": "synack_first/0:synack",
+   "observed": "LEAK_PRIVATE_PREFIX",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 1,
+   "state_diffs": {
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "counter_burn": [
+    1,
+    0
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [
+    "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+   ],
+   "name": "ack_first/0:ack",
+   "observed": "LEAK_PRIVATE_PREFIX",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 9,
+   "state_diffs": {
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_syn/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    2,
+    1
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_syn/1:syn_again",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_after_established/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "syn_after_established/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "syn_after_established/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    4,
+    3
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000232800000000600210008daa0000020405b4",
+   "leaked_frames": [],
+   "name": "syn_after_established/3:syn_again",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_synack/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_synack/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    3,
+    2
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_synack/2:synack_again",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_ack/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "duplicate_ack/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "duplicate_ack/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    4,
+    3
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "duplicate_ack/3:ack_again",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "synack_wrong_ack/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    2,
+    1
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003ea6012100099500000020405b4",
+   "leaked_frames": [],
+   "name": "synack_wrong_ack/1:synack_bad_ack",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "ack_wrong_seq/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "ack_wrong_seq/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    3,
+    2
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003ea0000138950101000b10d0000",
+   "leaked_frames": [],
+   "name": "ack_wrong_seq/2:ack_bad_seq",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "ack_wrong_ack/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "ack_wrong_ack/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    3,
+    2
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138a50101000b10d0000",
+   "leaked_frames": [],
+   "name": "ack_wrong_ack/2:ack_bad_ack",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "ack_bad_tcp_csum/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "ack_bad_tcp_csum/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10f0000",
+   "leaked_frames": [],
+   "name": "ack_bad_tcp_csum/2:ack_bad",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10f0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "synack_bad_ip_csum/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c80a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "synack_bad_ip_csum/1:synack_bad",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c80a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "ack_on_server_side/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "ack_on_server_side/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "ack_on_server_side/2:ack_from_wrong_dir",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "ack_with_payload_unsupported/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "ack_with_payload_unsupported/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002b00014000400626ca0a0000010a00000275314e20000003e90000138950101000eca80000616263",
+   "leaked_frames": [],
+   "name": "ack_with_payload_unsupported/2:ack_payload",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002b00014000400626ca0a0000010a00000275314e20000003e90000138950101000eca80000616263000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "rst_wrong_seq/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "rst_wrong_seq/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "rst_wrong_seq/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003090000000050041000c5830000",
+   "leaked_frames": [],
+   "name": "rst_wrong_seq/3:rst_bad_seq",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003090000000050041000c5830000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "leaked_frames": [],
+   "name": "reconnect_after_close/0:syn",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "leaked_frames": [],
+   "name": "reconnect_after_close/1:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "leaked_frames": [],
+   "name": "reconnect_after_close/2:ack",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": null,
+   "expected": "MATCH",
+   "forwarding": "forwarded-original",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "leaked_frames": [],
+   "name": "reconnect_after_close/3:fin",
+   "observed": "MATCH",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "counter_burn": [
+    4,
+    3
+   ],
+   "expected": "MATCH",
+   "forwarding": "dropped",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000001b580000000060021000957a0000020405b4",
+   "leaked_frames": [],
+   "name": "reconnect_after_close/4:syn_new",
+   "observed": "MATCH_COUNTER_BURN",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  }
+ ],
+ "meta": {
+  "port_errors": {},
+  "ports": [
+   1,
+   9,
+   2
+  ]
+ },
+ "program": "handshake",
+ "summary": {
+  "failed": [
+   "syn_ack_nonzero/0:syn",
+   "synack_first/0:synack",
+   "ack_first/0:ack"
+  ],
+  "passed": 75,
+  "total": 78
+ }
+}

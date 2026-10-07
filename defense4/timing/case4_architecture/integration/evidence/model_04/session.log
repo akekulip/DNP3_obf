@@ -1,0 +1,28 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name handshake
+Traceback (most recent call last):
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 476, in bind_pipeline_config
+    self.stub.SetForwardingPipelineConfig(req)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/grpc/_channel.py", line 1161, in __call__
+    return _end_unary_response_blocking(state, call, False, None)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/grpc/_channel.py", line 1004, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.NOT_FOUND
+	details = "Failed to find BfRtInfo for program handshake Object not found"
+	debug_error_string = "UNKNOWN:Error received from peer  {created_time:"2026-10-06T22:37:51.665128402-04:00", grpc_status:5, grpc_message:"Failed to find BfRtInfo for program handshake Object not found"}"
+>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/cases/handshake_probe.py", line 6, in <module>
+    m = Model(ports=[1, 9, 68, 64])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 39, in __init__
+    self.iface.bind_pipeline_config(self.prog)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 478, in bind_pipeline_config
+    raise BfruntimeForwardingRpcException(e)
+bfrt_grpc.client.BfruntimeForwardingRpcException: Error: StatusCode.NOT_FOUND : UNKNOWN:Error received from peer  {created_time:"2026-10-06T22:37:51.665128402-04:00", grpc_status:5, grpc_message:"Failed to find BfRtInfo for program handshake Object not found"}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

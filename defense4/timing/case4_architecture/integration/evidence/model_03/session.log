@@ -1,0 +1,43 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name validator
+Binding with p4_name validator successful!!
+Received validator on GetForwarding on client 1, device 0
+PASS request_valid                      expected=req        observed=req
+PASS response_valid                     expected=resp       observed=resp
+PASS request_valid_df_flag              expected=req        observed=req
+PASS request_psh_ack_off(flags=ACK)     expected=req        observed=req
+PASS bad_ip_checksum_req                expected=none       observed=none
+PASS bad_ip_checksum_resp               expected=none       observed=none
+PASS bad_tcp_checksum_req               expected=none       observed=none
+PASS bad_tcp_checksum_resp              expected=none       observed=none
+PASS ttl_zero_req                       expected=none       observed=none
+PASS ip_mf_fragment_req                 expected=none       observed=none
+PASS tcp_syn_flag_req                   expected=none       observed=none
+PASS tcp_urgent_req                     expected=none       observed=none
+PASS bad_dnp3_crc_header_req            expected=none       observed=none
+PASS bad_dnp3_crc_request_block_req     expected=none       observed=none
+PASS bad_dnp3_crc_header_resp           expected=none       observed=none
+PASS bad_dnp3_crc_first_block_resp      expected=none       observed=none
+PASS bad_dnp3_crc_second_block_resp     expected=none       observed=none
+PASS bad_dnp3_crc_tail_resp             expected=none       observed=none
+PASS bad_dnp3_data_byte_req(crc stale)  expected=none       observed=none
+PASS wrong_sport_req                    expected=none       observed=none
+PASS wrong_dst_ip_req                   expected=none       observed=none
+PASS wrong_link_dst_req                 expected=none       observed=none
+PASS wrong_link_src_req                 expected=none       observed=none
+PASS wrong_link_dst_resp                expected=none       observed=none
+PASS wrong_ingress_port_req(port2)      expected=none       observed=none
+PASS reverse_tuple_on_client_port       expected=resp       observed=resp
+PASS wrong_ctrl_req                     expected=none       observed=none
+PASS wrong_function_req                 expected=none       observed=none
+PASS wrong_range_last_req               expected=none       observed=none
+PASS wrong_group_req                    expected=none       observed=none
+PASS transport_no_fir_fin_req           expected=none       observed=none
+PASS app_no_fir_fin_resp                expected=none       observed=none
+PASS wrong_resp_function                expected=none       observed=none
+PASS repeat_request_valid               expected=req        observed=req
+SUMMARY {'total': 34, 'passed': 34, 'failed': []}
+forwarding mismatches: []
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

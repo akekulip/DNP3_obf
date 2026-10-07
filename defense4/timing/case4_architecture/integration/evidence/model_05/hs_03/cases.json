@@ -1,0 +1,183 @@
+{
+ "cases": [
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_syn/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_syn/1:syn_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_synack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "duplicate_synack/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "duplicate_synack/2:synack_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {
+    "counter": [
+     3,
+     2
+    ]
+   }
+  }
+ ],
+ "meta": {
+  "port_errors": {},
+  "ports": [
+   1,
+   9,
+   2
+  ]
+ },
+ "program": "handshake",
+ "summary": {
+  "failed": [
+   "duplicate_syn/1:syn_again",
+   "duplicate_synack/2:synack_again"
+  ],
+  "passed": 3,
+  "total": 5
+ }
+}

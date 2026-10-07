@@ -1,0 +1,17 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name egress_selected_wire
+Binding with p4_name egress_selected_wire successful!!
+Received egress_selected_wire on GetForwarding on client 1, device 0
+FAIL split_base1000                     expected=split-28+29 observed=3-frames
+FAIL split_base4294967280               expected=split-28+29 observed=3-frames
+PASS refused_crc_head                   expected=not-split  observed=not-split
+PASS refused_crc_first                  expected=not-split  observed=not-split
+PASS refused_crc_second                 expected=not-split  observed=not-split
+PASS refused_crc_tail                   expected=not-split  observed=not-split
+PASS refused_bad_ip_csum                expected=not-split  observed=not-split
+PASS refused_bad_tcp_csum               expected=not-split  observed=not-split
+PASS refused_unselected_status          expected=not-split  observed=not-split
+SUMMARY {'total': 9, 'passed': 7, 'failed': ['split_base1000', 'split_base4294967280']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

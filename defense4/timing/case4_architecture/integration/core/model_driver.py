@@ -25,6 +25,15 @@ import bfrt_grpc.client as gc  # noqa: E402
 PACKET_OUTGOING = 4
 
 
+def same_frame(got, sent, original=None):
+    """True when `got` is `sent` followed only by zero bytes that can be Ethernet minimum-length padding
+    of the injected frame (`original`, default `sent`): the model pads short frames to 62-64 bytes and a
+    program that lengthens a short frame leaves that padding behind as a trailer (observed: 54 -> 62,
+    55-byte replay input -> 5 trailing zeros after the longer image)."""
+    allowed = max(0, 64 - len(original if original is not None else sent))
+    return got[:len(sent)] == sent and not any(got[len(sent):]) and len(got) - len(sent) <= allowed
+
+
 def veth_for(port):
     """Test-side interface of a device port (the model owns veth(2N))."""
     return 'veth%d' % (2 * port + 1)
@@ -195,6 +204,6 @@ class Report:
         self.record['summary'] = dict(total=len(c), passed=sum(1 for r in c if r['ok']),
                                       failed=[r['name'] for r in c if not r['ok']])
         with open(path, 'w') as f:
-            json.dump(self.record, f, indent=1, sort_keys=True)
+            json.dump(self.record, f, indent=1, sort_keys=True, default=lambda o: o.hex() if isinstance(o, (bytes, bytearray)) else str(o))
         print('SUMMARY', self.record['summary'])
         return not self.record['summary']['failed']

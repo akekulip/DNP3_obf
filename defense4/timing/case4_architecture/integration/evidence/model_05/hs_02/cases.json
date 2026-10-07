@@ -1,0 +1,61 @@
+{
+ "cases": [
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "synack_first/0:synack",
+   "observed": "changed",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 1,
+   "state_diffs": {
+    "counter": [
+     1,
+     0
+    ],
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  }
+ ],
+ "meta": {
+  "port_errors": {},
+  "ports": [
+   1,
+   9,
+   2
+  ]
+ },
+ "program": "handshake",
+ "summary": {
+  "failed": [
+   "synack_first/0:synack"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

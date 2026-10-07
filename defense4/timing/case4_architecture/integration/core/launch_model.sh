@@ -10,6 +10,7 @@
 #       the test side is its peer veth(2N+1). Port 64 and 68 are the pipe-local ports of interest.
 #   -d  driver run inside the namespace with env PROG OUT DEV_PORTS MODEL_GRPC (default: just hold for HOLD s)
 # env: WAIT=seconds to let switchd come up (15), HOLD=seconds to stay up with no driver (0),
+#      MODEL_NO_PORTMAP=1 to use the model's default port list (0-16,64) instead of ports.json,
 #      MODEL_INT_PORT_LOOP=pipe bitmap for tofino-model --int-port-loop (e.g. 0xf), MODEL_EXTRA=extra model args
 # Workarounds (evidence/model_02/RESULT.md): agent0 stripped from a COPY of the conf; LD_PRELOAD pagemap shim.
 set -euo pipefail
@@ -27,9 +28,13 @@ c=json.load(open(sys.argv[1]))
 for d in c['p4_devices']: d.pop('agent0',None)
 json.dump(c,open(sys.argv[2],'w'),indent=2)
 PY
+python3 - "$OUT/ports.json" $PORTS <<'PY'
+import json,sys
+json.dump({"PortToVeth":[{"device_port":int(p),"veth1":2*int(p),"veth2":2*int(p)+1} for p in sys.argv[2:]]},open(sys.argv[1],'w'),indent=1)
+PY
 export PROG=$(python3 -c "import json;print(json.load(open('$OUT/noagent.conf'))['p4_devices'][0]['p4_programs'][0]['program-name'])")
 export DEV_PORTS="$PORTS" OUT HERE MODEL_GRPC=127.0.0.1:50052
-export POST_DRIVER="$DRIVER" DRIVER_ARGS="$*"
+export POST_DRIVER="${DRIVER:+$(readlink -f "$DRIVER")}" DRIVER_ARGS="$*"
 cat > "$OUT/.inner.sh" <<'INNER'
 #!/bin/bash
 SDE=/home/philip/bf-sde-9.13.1
@@ -41,7 +46,7 @@ for n in $DEV_PORTS; do
   ip link set veth$((2*n)) up; ip link set veth$((2*n+1)) up
 done
 cd "$OUT"
-tofino-model --no-cli -d 1 -k 1 -f None --p4-target-config "$OUT/noagent.conf" --install-dir $SDE_INSTALL \
+tofino-model --no-cli -d 1 -k 1 -f "${MODEL_NO_PORTMAP:+None}${MODEL_NO_PORTMAP:-$OUT/ports.json}" --p4-target-config "$OUT/noagent.conf" --install-dir $SDE_INSTALL \
   --chip-type 2 --log-dir . --pkt-log-len 256 ${MODEL_INT_PORT_LOOP:+--int-port-loop $MODEL_INT_PORT_LOOP} ${MODEL_EXTRA:-} > model.out 2>&1 &
 sleep 3
 LD_PRELOAD="$HERE/model_shim/pagemap_shim.so" bf_switchd --install-dir $SDE_INSTALL --conf-file "$OUT/noagent.conf" \

@@ -1,0 +1,2573 @@
+{
+ "cases": [
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "happy/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "happy/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "happy/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "happy_then_fin_client/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "happy_then_fin_client/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "happy_then_fin_client/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "name": "happy_then_fin_client/3:fin",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "happy_then_fin_server/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "happy_then_fin_server/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "happy_then_fin_server/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001389000003e950111000b10d0000",
+   "name": "happy_then_fin_server/3:fin_s",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001389000003e950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "happy_then_rst/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "happy_then_rst/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "happy_then_rst/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000",
+   "name": "happy_then_rst/3:rst",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "close_after_syn/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000",
+   "name": "close_after_syn/1:rst",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000000050041000c4a30000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "close_after_synack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "close_after_synack/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "name": "close_after_synack/2:fin_client",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c80a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "syn_bad_ip_csum/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c80a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000aceb0000020405b4",
+   "name": "syn_bad_tcp_csum/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000aceb0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000000666c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "syn_ttl0/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000000666c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b266000002040038",
+   "name": "syn_mss56/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b2660000020400380000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b265000002040039",
+   "name": "syn_mss57/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b2650000020400390000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b29e00000204ffff",
+   "name": "syn_mss65535/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000b29e00000204ffff0000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00012000400646c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "syn_df_off_mf/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00012000400646c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000ace90001020405b4",
+   "name": "syn_urgent/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000ace90001020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000560021000ace50000020405b4",
+   "name": "syn_ack_nonzero/0:syn",
+   "observed": "changed",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000560021000ace50000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     1,
+     0
+    ],
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e80000000050021000c4a60000",
+   "name": "syn_no_mss/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e80000000050021000c4a60000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002d00014000400626c80a0000010a00000275314e20000003e8000000006002100034e90000020405b478",
+   "name": "syn_with_payload/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002d00014000400626c80a0000010a00000275314e20000003e8000000006002100034e90000020405b47800"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275324e20000003e80000000060021000ace90000020405b4",
+   "name": "syn_wrong_sport/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275324e20000003e80000000060021000ace90000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "syn_on_unlisted_port/0:syn",
+   "observed": "none",
+   "ok": true,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 2,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003e80000000060021000acea0000020405b4",
+   "name": "syn_from_server_side/0:syn",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060031000ace90000020405b4",
+   "name": "syn_syn_fin_flags/0:synfin",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060031000ace90000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 0,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "synack_first/0:synack",
+   "observed": "changed",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 1,
+   "state_diffs": {
+    "counter": [
+     1,
+     0
+    ],
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "ack_first/0:ack",
+   "observed": "changed",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 0,
+    "counter": 0,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "00000000000000010000000001ff0000001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 0,
+    "counter": 1,
+    "epoch": 0,
+    "owner": 0,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 1
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     1,
+     0
+    ],
+    "work_phase": [
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_syn/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_syn/1:syn_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "syn_after_established/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "syn_after_established/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "syn_after_established/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000232800000000600210008daa0000020405b4",
+   "name": "syn_after_established/3:syn_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     4,
+     3
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_synack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "duplicate_synack/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "duplicate_synack/2:synack_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {
+    "counter": [
+     3,
+     2
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "duplicate_ack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "duplicate_ack/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "duplicate_ack/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "duplicate_ack/3:ack_again",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     4,
+     3
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "synack_wrong_ack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003ea6012100099500000020405b4",
+   "name": "synack_wrong_ack/1:synack_bad_ack",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {
+    "counter": [
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "ack_wrong_seq/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "ack_wrong_seq/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003ea0000138950101000b10d0000",
+   "name": "ack_wrong_seq/2:ack_bad_seq",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     3,
+     2
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "ack_wrong_ack/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "ack_wrong_ack/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138a50101000b10d0000",
+   "name": "ack_wrong_ack/2:ack_bad_ack",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     3,
+     2
+    ]
+   }
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "ack_bad_tcp_csum/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "ack_bad_tcp_csum/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10f0000",
+   "name": "ack_bad_tcp_csum/2:ack_bad",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10f0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "synack_bad_ip_csum/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c80a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "synack_bad_ip_csum/1:synack_bad",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c80a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "ack_on_server_side/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "ack_on_server_side/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003e90000138950101000b10e0000",
+   "name": "ack_on_server_side/2:ack_from_wrong_dir",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "ack_with_payload_unsupported/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "ack_with_payload_unsupported/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002b00014000400626ca0a0000010a00000275314e20000003e90000138950101000eca80000616263",
+   "name": "ack_with_payload_unsupported/2:ack_payload",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002b00014000400626ca0a0000010a00000275314e20000003e90000138950101000eca80000616263000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "rst_wrong_seq/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "rst_wrong_seq/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "rst_wrong_seq/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003090000000050041000c5830000",
+   "name": "rst_wrong_seq/3:rst_bad_seq",
+   "observed": "forward",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003090000000050041000c5830000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b4",
+   "name": "reconnect_after_close/0:syn",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000003e80000000060021000acea0000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 1,
+    "epoch": 1,
+    "owner": 131073,
+    "server": 0,
+    "work_gen": 1,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b4",
+   "name": "reconnect_after_close/1:synack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001388000003e96012100099510000020405b40000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 2,
+    "epoch": 1,
+    "owner": 262145,
+    "server": 5001,
+    "work_gen": 2,
+    "work_phase": 4
+   },
+   "port": 1,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000",
+   "name": "reconnect_after_close/2:ack",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950101000b10e0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 327681,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "forward",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000",
+   "name": "reconnect_after_close/3:fin",
+   "observed": "forward",
+   "ok": true,
+   "oracle_outcome": "forward",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {
+    "1": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e90000138950111000b10d0000000000000000"
+    ]
+   },
+   "p4_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 3,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {}
+  },
+  {
+   "expected": "none",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000001b580000000060021000957a0000020405b4",
+   "name": "reconnect_after_close/4:syn_new",
+   "observed": "none",
+   "ok": false,
+   "oracle_outcome": "refused-at-start",
+   "oracle_state": {
+    "client": 1001,
+    "counter": 3,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_phase": 4
+   },
+   "out": {},
+   "p4_state": {
+    "client": 1001,
+    "counter": 4,
+    "epoch": 1,
+    "owner": 458753,
+    "server": 5001,
+    "work_gen": 4,
+    "work_phase": 4
+   },
+   "port": 9,
+   "state_diffs": {
+    "counter": [
+     4,
+     3
+    ]
+   }
+  }
+ ],
+ "meta": {
+  "port_errors": {},
+  "ports": [
+   1,
+   9,
+   2
+  ]
+ },
+ "program": "handshake",
+ "summary": {
+  "failed": [
+   "syn_bad_ip_csum/0:syn",
+   "syn_bad_tcp_csum/0:syn",
+   "syn_ttl0/0:syn",
+   "syn_mss56/0:syn",
+   "syn_df_off_mf/0:syn",
+   "syn_urgent/0:syn",
+   "syn_ack_nonzero/0:syn",
+   "syn_no_mss/0:syn",
+   "syn_with_payload/0:syn",
+   "syn_wrong_sport/0:syn",
+   "syn_from_server_side/0:syn",
+   "syn_syn_fin_flags/0:synfin",
+   "synack_first/0:synack",
+   "ack_first/0:ack",
+   "duplicate_syn/1:syn_again",
+   "syn_after_established/3:syn_again",
+   "duplicate_synack/2:synack_again",
+   "duplicate_ack/3:ack_again",
+   "synack_wrong_ack/1:synack_bad_ack",
+   "ack_wrong_seq/2:ack_bad_seq",
+   "ack_wrong_ack/2:ack_bad_ack",
+   "ack_bad_tcp_csum/2:ack_bad",
+   "synack_bad_ip_csum/1:synack_bad",
+   "ack_on_server_side/2:ack_from_wrong_dir",
+   "ack_with_payload_unsupported/2:ack_payload",
+   "rst_wrong_seq/3:rst_bad_seq",
+   "reconnect_after_close/4:syn_new"
+  ],
+  "passed": 51,
+  "total": 78
+ }
+}
