@@ -9,6 +9,13 @@ role-specific validation, and egress image banks for materialization/replay.
 Holding loops bypass egress. Actual terminal receipts protect original/work
 lifetimes; timestamps establish internal eligibility, not physical departure.
 
+Continue from [PLAN.md](PLAN.md) and [HANDOVER.md](HANDOVER.md). Current N/T
+prerequisite repairs at base834372cbb have40 N/T and50 T functional model cases;
+M/E remain absent from that composed source. N/T/M each use12 ingress stages.
+The reusable renderer uses7 egress stages, a separate budget. M admission and
+dependency repairs are active; actual padding/carving/mapping/replay integration
+remains unfinished. Source-harness tests and component fits do not close that gate.
+
 | Source-bound milestone | Local SDE9.13.1 fit | Remaining interface |
 |---|---:|---|
 | `integration/egress_wire.p4`, `egress_wire_06` | 10 ingress / 7 egress | Connection publication, payload mapping and cache lifetime |
@@ -50,7 +57,7 @@ Three families have genuine retained experiments:
 |---|---|---|
 | Same pipe | Shared ingress cache required13–15 stages or failed CRC PHV placement; egress placement fits the wire composition10/7 | Prefer egress image placement; complete lifecycle join still required |
 | Bounded additional passes | Protected handshake12/0 and SELECT association12/0 fit; direct holder/timing bridge exceeded12 stages | Continue qualified handoffs and bounded service/assembly alternatives |
-| Separate functional pipes | Actual two-Pipeline Switch placed renderer; shared-cache authority required15 stages and native-binding authority17–18 | No winner; private topology, authority return and credits remain unverified |
+| Separate functional pipes | Historical authority compositions failed; later local cross-pipe probe and current N0/T2 prerequisite composition run | N0/M1/T2 with E0 is the selected integration placement; full publication/credit join remains unfinished |
 
 `integration/PIPE_SPLIT.md`, component reports and immutable evidence record
 precise failures. These results do not prove every possible full architecture
@@ -75,8 +82,10 @@ qualify a fresh checkout without rebuilding. Source-bound checks are in
 `integration/evidence/verified_milestones_02.json`. Earlier milestone files refer
 to their immutable historical source snapshots and must not qualify changed code.
 
-The isolated target model failed at startup because CAP_NET_RAW was unavailable;
-no packets executed. Deployment also requires current SDE9.13.2 and a complete
+An early isolated target-model startup failed for lack of CAP_NET_RAW. The later
+private namespace launcher runs functional packet tests; see the current N/T
+evidence index and handover for exact identities and diagnostic fixture limits.
+It does not establish physical timing. Deployment also requires current SDE9.13.2 and a complete
 reviewed inventory. Hardware loading, traffic, service measurements and physical
 OPERATE have not occurred. The fixed44-block/16,168-attempt campaign remains
 unchanged, with no additional calibration, retries or use of spare allowance.

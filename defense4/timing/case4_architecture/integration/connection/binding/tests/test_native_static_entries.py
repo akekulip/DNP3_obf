@@ -2,7 +2,7 @@
 it ("Not enough space adding static entry N"). native_04 shipped sequence_diff size=8 with 9 entries.
 
 Two gates: the generated source (every table, const entries <= size) and, when a compile of exactly
-this source exists under integration/evidence, the compiled context.json (the logic of
+this source exists under binding/evidence or integration/evidence, the compiled context.json (the logic of
 integration/core/scan_static_entries.py).
 """
 import hashlib
@@ -63,9 +63,16 @@ class StaticEntries(unittest.TestCase):
     def test_compiled_context_of_this_exact_source_has_no_static_overflow(self):
         digest = hashlib.sha256(SOURCE.read_bytes()).hexdigest()
         checked = 0
-        for manifest in sorted((ARCH / 'integration/evidence').glob('native_*/manifest.json')):
+        manifests = sorted((HERE / 'evidence').glob('*/manifest.json'))
+        manifests += sorted((ARCH / 'integration/evidence').glob('native_*/manifest.json'))
+        for manifest in manifests:
             report = json.loads(manifest.read_text())
             if report.get('source_sha256') != digest or report.get('exit_code') != 0:
+                continue
+            # A matching main source must not qualify a build with stale includes.
+            if any(not (HERE / name).is_file() or
+                   hashlib.sha256((HERE / name).read_bytes()).hexdigest() != expected
+                   for name, expected in report.get('source_files', {}).items()):
                 continue
             context = manifest.parent / 'out/pipe/context.json'
             if not context.is_file():

@@ -8,7 +8,13 @@ Task1 fix-round current N `721fd4b7…` fits12/0,critical11
 (`task1_fix_n_01`); T `52b43d5a…` fits12/0,critical12 (`task1_fix_t_04`).
 The exact-source N0/T2 composition `task1_fix_nt_01` passes40 N/T model cases
 in `task1_fix_nt_model_01` and50 T model cases in `task1_fix_t_model_02`.
-Full suites: N84 with one existing coalesced finalACK+SELECT skip; T103 pass.
+Full suites: N84 with one compiler-evidence discovery skip; T103 pass. The skipped
+test searched the old evidence directory and missed the current N manifest. The
+coalesced finalACK+SELECT source regression passes; complete integrated target
+acceptance of that path is still open.
+The current evidence-discovery fix now finds the exact N manifest and checks
+included-source hashes; all5 static-entry tests pass with no skip. The historical
+N84 aggregate above has not been rerun for this test-only change.
 Logs/identity checks are in `integration/evidence/task1_fix_verification_01`.
 Earlier N05/T06/model34/35 had the two reviewed races and are historical evidence.
 
@@ -22,6 +28,21 @@ Current T stage4 grows from old0/9/59 SALUs/tables/xbar to1/9/63, an explicit
 resource concern. Model clocks prove functional commit order, not physical timing
 or normal deadline priority. No controller rearm authority exists.
 
+Current execution base is `834372cbb`, main. Follow the
+[execution checklist in PLAN.md](PLAN.md#execution-checklist--2026-10-07): M admission
+and measured dependency reductions first, then protected SELECT materialization,
+ordinary SBO transport, timing join, loss/lifecycle and final qualification.
+One continuing implementer owns the code slice; one bounded reviewer checks its
+correctness and resource evidence. Lead alone integrates/commits in Philip's name.
+
+Audit findings to close: N's ordinary SELECT/OPERATE/response terminals currently
+strip and forward natively rather than reaching M; Work is freed before downstream
+publication. M can mutate geometry/ledger before tuple/network admission. E's
+reusable cache lacks full slot identity and the retained carve run has a third
+unwanted frame. T→M197 is reserved but releases currently go to endpoint ports.
+These gaps mean there is no verified current N/M/T/E core. E's separate7-stage
+egress fit is reusable capacity, not a completed join or a stage minimum.
+
 M receiving ports196/197 remain source-bound to `task1_m_ports_01`,12/0;
 its production/rendering path remains unfinished. Complete retirement/loss,
 full Case4,9.13.2 qualification, physical port authority and hardware remain open.
@@ -30,21 +51,22 @@ The following continuation details retain pre-review historical identities;
 the current Task1 facts above and the linked PLAN supersede their N/T claims.
 
 **Resume from the [core functionality and testing plan](PLAN.md).** This checkpoint replaces the
-2026-10-06 one in full: steps 1 and 2 are done at the level stated below, step 3 is in progress.
+2026-10-06 one in full: historical step1/2 prerequisite results below do not close
+the current connection/timing acceptance gates; step3 remains unfinished.
 The complete target is still absent (no 9.13.2 build, no hardware run); everything here is
 source-fragment, whole-program-harness or local-Tofino-model evidence, never hardware-measured.
 
-Base: `388f78a33`, branch `main`, unpushed. Work directly on `main`; preserve frozen sources,
+Historical base: `388f78a33`; current base is stated above, branch `main`, unpushed. Work directly on `main`; preserve frozen sources,
 evidence, the paper and unrelated local changes. Lead alone commits, `akekulip <akekulip@gmail.com>`
 as author AND committer, no contributor trailers. This checkpoint does not authorize a push or any
 hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
 
 ## What changed since 2026-10-06
 
-- **A whole-program packet harness now exists**: `integration/core/harness/` runs the parser,
+- **A restricted N source packet harness exists**: `integration/core/harness/` runs the parser,
   ingress control and deparser of a generated TNA source, with recirculation through the private
   return port, up to 8 passes. It is source-level (a restricted interpreter), not the target; its
-  README says so. Tests: `integration/core/harness/tests` (`python3 -m unittest discover -s
+  README says so. It does not implement the composed M/T/egress/TM path. Tests: `integration/core/harness/tests` (`python3 -m unittest discover -s
   integration/core/harness/tests -p 'test_*.py'`, 42 tests).
 - **The local Tofino-1 model runs** inside `unshare -Urn` with an LD_PRELOAD pagemap shim (DMA
   physical addresses are otherwise unavailable to an unprivileged process). Setup, the shim, and a

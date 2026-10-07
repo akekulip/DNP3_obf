@@ -2,12 +2,13 @@
 
 PI decisions applied here: (2) with the WorkRecord busy, data packets (SELECT, OPERATE, response, READ
 request and response) are DROPPED and COUNTED; pure ACKs are still tracked/forwarded (counted); (3)
-whole-segment loss recovery is step 4, so a resent whole segment is an explicit COUNTED drop; (4) the
-only liveness mechanism is a controller WorkRecord reset, with counters exposed in `native_counters`.
+whole-segment loss recovery remains open, so a resent whole segment is an explicit COUNTED drop.
+The free-record preset below is a diagnostic fixture, not a verified controller rearm procedure.
+Lost producers retain quarantine until actual termination or a separately verified drain.
 
 NOT done in N (needs M, step 3 later tickets): translation of the replayed frame; the supported-tuple
 catch-all for IP lengths the parser does not classify (no checksum can be validated on unparsed bytes,
-so it needs the M mapping-only path); the epoch-keyed client bank store (a dependency edge, 13 stages).
+so it needs the M mapping-only path). Foreign-epoch bank writes are repaired by Task1.
 """
 import re
 import struct
@@ -81,10 +82,10 @@ class Busy(unittest.TestCase):
             self.assertFalse(pipe.inject(port, frame).dropped)
         self.assertEqual(set(counters(pipe).all()), {0})
 
-    def test_controller_reset_of_the_work_record_restores_service(self):
+    def test_diagnostic_free_record_fixture_restores_source_service(self):
         pipe = ReadPipeline().start(0x40001, 101, 901, work=(7, 2))
         self.assertTrue(pipe.inject(rs.IN_CLIENT, ex.select_packet()).dropped)
-        pipe.preset(work=(0, 4))                    # the controller register reset: free phase
+        pipe.preset(work=(0, 4))                    # fixture only; no producer-drain proof
         self.assertFalse(pipe.inject(rs.IN_CLIENT, ex.select_packet()).dropped)
         self.assertEqual(pipe.state()['owner'], 0x90001)
         self.assertEqual(counters(pipe)[COUNTER['busy_drop']], 1, 'counters survive the reset')

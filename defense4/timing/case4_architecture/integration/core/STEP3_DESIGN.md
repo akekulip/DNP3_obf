@@ -1,5 +1,15 @@
 # Step 3 design: the ordinary unfragmented control path (placement, interfaces, pinning, tickets, gates)
 
+**Historical design — current execution authority is [PLAN.md](../../PLAN.md),
+linked from [HANDOVER.md](../../HANDOVER.md).** The later Task1 source already
+implements OPERATE-response association and replay kind12 and repairs foreign-epoch
+bank stores. Current evidence and remaining gaps are in the handover. The old
+phase3 inspection/one-confirm proposal below is superseded by atomic downstream
+pending/commit phases, a real image-ready return, geometry plus ledger publication
+before departure, and genuine final terminal. Carry actual expected owner and
+captured decoy fields; current replay Work and cached producer identities differ.
+Do not execute superseded tickets or treat this note's inferred fits as evidence.
+
 Status: design note, no code, nothing compiled or run for this note. Author role: D3 (design, read-only except this file).
 Base: main with the working tree described in the session `gitStatus`. Binding assignment:
 `defense4/Codex_Case4_Hardware_Architecture_Prompt.md`. Plan reference: `PLAN.md:37-54` (step 3 scope),

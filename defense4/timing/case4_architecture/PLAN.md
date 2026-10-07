@@ -1,7 +1,7 @@
 # Case 4 architecture execution
 
 Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
-Task1 execution base: `221131324`, main; earlier base assignments below are historical.
+Current execution base: `834372cbb`, main; earlier assignments below are historical.
 This directory contains new engineering candidates; it is not deployment evidence.
 
 ## Current plan: core functionality and its tests
@@ -18,8 +18,71 @@ TCP translation. Actual packet forwarding is the priority. Standalone fits and
 passing source-fragment tests are reusable components, not that deliverable.
 
 Use one implementation owner and one bounded reviewer. Reuse the sources listed
-in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
+in [HANDOVER.md](HANDOVER.md). Resume at the execution checklist below; compile after a meaningful
 integration change. Do not rerun unaffected legacy suites or failed layouts.
+
+### Execution checklist — 2026-10-07
+
+Functional forwarding takes priority over a stage-number target. Stage reductions
+must preserve actual owner/epoch/Work checks, full32 arithmetic, both insertion
+boundaries and both receive-window edges. Twelve occupied ingress stages in one
+pipe do not consume another pipe's ingress or that pipe's egress budget.
+
+- [x] Audit current N/T/M/E sources, manifests and claim boundaries. N and T have
+  source-current prerequisite model evidence; M/E are absent from the N/T
+  composition. M is a resource canary. No complete core path is verified.
+- [x] Correct stale plan/handover/README completion claims and the N static-entry
+  evidence finder. Its5 targeted tests now pass without the historical discovery
+  skip; retain historical aggregate counts with their original identities.
+- [ ] **M admission and stage dependencies (active).** Regress foreign tuple/IP
+  mutation, noncontiguous OPERATE publication, zero wire-start rejection and the
+  OPERATE ledger's unshifted position. Admit before mutable bank access; reject
+  unknown kinds/phases. Separate produce/replay/map scratch and bank access;
+  precompute independent window edges. Compile a fresh source-bound candidate.
+- [ ] **Protected SELECT N→M→E.** Extend N Work with an atomic transition from
+  phase3 to DOWNSTREAM_PENDING; only the winning handoff emits. Carry the full
+  WorkRef, actual expected owner and captured immutable decoy fields. M admits
+  each full identity once and constructs native35→55. E completes all image
+  words before publishing its identity tag and returning a genuine ready packet
+  privately to N. N rechecks current owner/epoch/cancellation and commits release;
+  M activates the relevant geometry and replay ledger before E emits. Actual downstream completion alone frees
+  Work after the final dirty write. Lost completion keeps the pin. Deduplicate
+  prepare, ready, commit and emit separately. Before commit cancellation aborts;
+  after commit work drains without reuse. Incomplete publication cannot forward
+  supported traffic with untranslated TCP values.
+- [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
+  OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
+  packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap
+  and sender-driven cached-tail repair. Preserve current replay Work identity
+  separately from the cached-image producer identity. Every supported packet
+  remains mapped after insertion, including policy-off and retransmissions.
+- [ ] **Full timing join.** Route T releases through M197; keep READ unpadded.
+  Integrate SELECT-response readiness and actual committed forwarding separately,
+  and qualify delayed OPERATE against the current association and its deadline.
+  Preserve finite fallback, independent heartbeat and genuine original credits.
+- [ ] **Loss/lifecycle and fragments.** Complete supported fragmented OPERATE,
+  overlap/resegmentation, reset/FIN/reconnect, exhaustion and no-reuse protection.
+  Keep translation and replay until verified connection retirement. Controller
+  reset/counter clearing is not a terminal or rearm proof.
+- [ ] **Final offline qualification and hardware preparation.** Obtain a complete
+  exact9.13.2 build, whole-target differential model packets, real schema and
+  mutation/rollback inventory. Live loading, physical port/TM/PRE/mirror/pktgen
+  changes and traffic retain their existing separate authorization gates.
+
+Use the existing restricted source harness and independent byte/transport/schedule
+oracles. Extend it where necessary; the compiled multipipe target model is the
+whole-target gate. The first byte milestone is SELECT35→55; it remains partial
+until actual READ→SELECT→OPERATE, both boundaries and tail repair pass from external
+frames without configured ownership/publication proof. Save current source/include
+hashes, compiler/artifact identities, commands, packets/events and comparisons in
+fresh evidence directories. Report ingress/egress stage span, dependency critical
+path, SALU/PHV/table/crossbar costs and actual private bytes/passes per role.
+
+Optimize M's dependency chain first, seeking spare ingress capacity while adding
+functionality. Make only necessary N/T changes. If composition fails, isolate the
+reported dependency and try one justified structural repair; preserve failures
+and avoid unrelated layout sweeps. Private readiness returns intentionally add
+bounded passes: measure their bandwidth and resource cost instead of assuming fit.
 
 1. **Connection prerequisite races repaired; full connection acceptance still open.**
    Current N is `integration/connection/binding/evidence/task1_fix_n_01`
@@ -39,7 +102,7 @@ integration change. Do not rerun unaffected legacy suites or failed layouts.
    publication. `task1_fix_t_model_02` passes50 model cases, including paused
    request boundaries, actual reset/policy controls, duplicate/foreign controls,
    old-cookie saturation and heartbeat/original debit. Full source suites pass
-   N84(one existing skip) and T103; unaffected M19/controller17 remain prior results.
+   N84(one compiler-evidence discovery skip) and T103; unaffected M19/controller17 remain prior results.
    The pre-review T selector pair12/12→11/11 is historical. Mandatory race guards
    make current T12/12; stage4 now has1 SALU/9 logical tables/63 ternary-crossbar
    bytes versus old0/9/59, an explicit resource concern requiring bounded review.
@@ -93,8 +156,9 @@ under18,360, with no acquisition or extra retries.
 | 4. Loss and lifecycle | Fragment boundaries/reordering/duplicates/conflicting overlap; resegmentation; stale cached descriptor; reset/FIN/reconnect; policy-off after insertion; capacity/generation exhaustion; delayed old original/producer returns | Exact repair and translation survive timing retirement/off until connection retirement; no stale publication, slot overwrite, premature reuse, early OPERATE or silent corruption. Unsupported outcomes are explicit. |
 | 5. Qualification | Whole-target differential packets/events; source-current9.13.2 production build; real schema/inventory/rollback checks; authorized packet/timing campaign | Complete source fits, whole-target behavior passes, and the exact reviewed hardware package is qualified. Hardware measurement/physical inertness remain separate evidence gates. |
 
-Implement one `integration/core/` candidate and its end-to-end packet test harness
-as the integration work proceeds; neither exists yet. The harness should consume
+Complete one `integration/core/` multipipe candidate and its end-to-end packet test harness
+as integration proceeds. A restricted N ingress source harness already exists;
+the full N/M/T/E candidate and whole-target harness remain absent. The harness should consume
 real frame bytes, drive the full parser/control/deparser, and compare packets plus
 owner/terminal events against the existing independent codecs/transport oracle.
 Include retained failure witnesses as negative regressions. Avoid another Python
@@ -123,7 +187,7 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 python3 -m unittest discover -s integration/controller/tests -p 'test_*.py' -v
 ```
 
-The future core harness must add packet-level execution; these existing commands
+The composed core harness must add all roles and target execution; these existing commands
 alone do not establish it. [HANDOVER.md](HANDOVER.md) records exact current sources,
 evidence and unresolved defects so the next session can resume directly.
 
@@ -140,7 +204,7 @@ policy cap 40 ms. Internal commitment and physical departure are different event
 Cross-pass producer identity is an eight-byte WorkRef: connection epoch32 and work
 generation32. Resubmit carries at most those eight bytes. True recirculation may
 carry a16-byte envelope containing the actual expectedCell32/event16/reserved16,
-and assembly snapshots add their actual bytes separately. These transfer sizes
+and immutable decoy/renderer/assembly extensions add their actual bytes separately. These transfer sizes
 must be counted; they are not an expansion of the Tofino resubmit limit.
 The identity references a protected work record, never an asserted validity flag.
 Reset quarantines outstanding originals AND producers. Publication requires the

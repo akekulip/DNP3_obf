@@ -1,5 +1,30 @@
 # Execution ledger
 
+## Execution resumed2026-10-07 — base834372cbb
+
+The current [PLAN.md execution checklist](PLAN.md#execution-checklist--2026-10-07)
+and [HANDOVER.md](HANDOVER.md) supersede historical completion wording below.
+One continuing implementer owns M code/template/tests; one bounded reviewer
+checks each completed slice. Lead owns documentation and integration/commits.
+
+Corrected the historical N skip: it was compiler-evidence discovery, not
+coalesced SELECT. The finder now includes binding/evidence and verifies include
+hashes. `python3 -B -m unittest discover -s integration/connection/binding/tests
+-p test_native_static_entries.py -v`:5 pass, no skip. Historical N84/T103 and model
+40/50 retain their original source identities; no full-core/model timing claim.
+
+Ruling: use an actual private image-ready return and N release commitment before
+M geometry activation/E departure — geometry must be effective before transformed
+traffic leaves, and Work remains pinned through final writes/terminal. This adds
+bounded private passes, whose fit/bandwidth must be measured. Current/cached replay
+identities stay separate; duplicate prepare/ready/commit/emit are independently
+qualified. Failure to deliver completion conservatively retains the pin.
+
+M admission, zero-position, OPERATE ledger and dependency repairs are active.
+Ordinary SELECT/SBO composition, timing join, fragments/lifecycle and9.13.2 final
+qualification remain pending. No live switch or traffic action is authorized by
+this continuation. Philip-only authorship, no attribution trailers, no push.
+
 ## Checkpoint requested2026-10-06
 
 Philip requested stopping experiments and saving plans/handover for weekly token
@@ -211,9 +236,11 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   differences and H2 no-leak-only branches; it is not590,976 full equivalences.
   Frozen oracle/core files are untouched. The binding wrapper explicitly adapts
   the inconsistent epoch0 established-owner fixture to the approved bounded
-  refusal. Coalesced finalACK+SELECT remains a declared skipped/open target case.
+  refusal. Complete target coalesced finalACK+SELECT acceptance remains open.
+  Correction2026-10-07: the skipped source-suite test concerns compiler-evidence
+  discovery, not coalesced SELECT; its source regression passes.
   Full M, loss/retirement integration,9.13.2 qualification and hardware remain open.
-  Final suites: N82 tests (one existing coalesced ACK+SELECT skip), T98 passed,
+  Final suites: N82 tests (one compiler-evidence discovery skip), T98 passed,
   M19 passed, controller17 passed; logs/identity checks are retained in
   `integration/evidence/task1_verification_01`. The model holding case establishes
   ordered functional commits, not normal-path deadline priority or a measured gap.
@@ -230,6 +257,6 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   not the current guarded chain's resource claim. New current composition/model
   identities pass40 N/T and50 T cases, with paused-boundary model fixtures
   explicitly distinguished from genuine whole-source packet races. Full N84
-  tests(one existing coalesced skip) and T103 pass. All old/failing evidence is
+  tests(one compiler-evidence discovery skip) and T103 pass. All old/failing evidence is
   retained, no counter rollback/rearm authority or physical activity is added.
   Full M/loss/retirement/9.13.2/hardware gates remain; bounded re-review is next.

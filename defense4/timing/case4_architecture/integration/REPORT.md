@@ -22,7 +22,9 @@ N/T cases (`task1_fix_nt_model_01`) and50 T cases (`task1_fix_t_model_02`).
 New model races use explicitly seeded paused private-return boundaries; source
 schedulers independently derive genuine in-flight races. The model has actual
 reset/FIN packet controls and no front-port-loop bitmap. Full source suites pass
-N84(one existing coalesced skip) and T103. M19/controller17 are unchanged prior
+N84(one compiler-evidence discovery skip) and T103. That skip misses the current
+N evidence directory; the coalesced finalACK+SELECT source test passes, while
+complete target acceptance remains open. M19/controller17 are unchanged prior
 results. Final logs are in `evidence/task1_fix_verification_01`. Old34/35 model
 results lacked these races and are retained separately, never transferred.
 
