@@ -54,6 +54,46 @@ Ordinary SELECT/SBO composition, timing join, fragments/lifecycle and9.13.2 fina
 qualification remain pending. No live switch or traffic action is authorized by
 this continuation. Philip-only authorship, no attribution trailers, no push.
 
+Ruling: use fixed-step downstream Work phases in the new ordinary candidate —
+`work_compile_01` rejects five SALU comparisons where only two are supported.
+The replacement retains full32 generation and expected-phase comparisons,
+using3→pending5→ready-received7→terminal-free9, with free4/9 recognition in
+the caller's existing selectors.
+Normal handshake3→free4 remains supported. Abort needs an actual terminal after
+the last downstream access; a phase change alone supplies no completion proof.
+This is a representation repair, not a core completion or stage-saving claim.
+Its cost is a second physical free encoding and explicitly updated dispatch keys.
+Work7 records readiness receipt and keeps the pin; it does not authorize release.
+Commit instead requires a subsequent full expected-owner atomic transition after
+current epoch/cancellation qualification. Only its winner may activate M/E.
+An explicit persistent owner release phase distinguishes committed work from a
+ready return between its Work transition and owner check. Close before that CAS
+prevents release; close after it drains. No hardware/controller authority is added.
+
+Ruling: qualify a pre-M local abort with N3's actual epoch observation — the
+baseline places Work before epoch, so a terminal epoch reread before the same
+Work bank would create a placement cycle. Only the winning N3 return with
+epoch_diff0 and refused owner may emit the local abort. Its abort-only
+expected_cell32 stores that observed epoch; the next genuine return checks both
+full32 envelope epoch and stamp before the generation/phase5 terminal CAS.
+Epoch stores require an actual phase1 Work grant; pending5/7 blocks that grant,
+and raw close does not write epoch. Thus epoch remains frozen through this pin.
+This exception is limited to N's completed accesses before any M handoff; it
+does not retire a producer that reached M/E. Lost or mismatched returns retain
+the pin. No configured proof flag, shadow authority or controller reset is used.
+
+N checkpoint accepted: `ordinary/evidence/n_local_abort_02`, source
+`dfac97f8…4cbbe` / helper `273c405b…f0649`,9.13.1 compilerPASS12/0, critical11.
+Root verifies all source/include/snapshot/compiler/artifact hashes and15 focused
+tests; bounded reviewer independently accepts the PRE-M abort invariant and
+terminal's lack of later bank access. Actual frame-derived N handoff carries28
+private bytes; no configured owner/publication fixture supplies this milestone.
+Diagnostic raw-close bank presets remain explicitly labelled separately.
+Earlier failures and the successful pre-abort `n_pending_06` are retained.
+M/E bytes, ready/commit, geometry, subsequent mapping and full target remain open.
+The live baseline harness fixture now expects unbound epoch0 refusal:42 source
+tests and3 equivalence tests pass without the former wrapper substitution.
+
 ## Checkpoint requested2026-10-06
 
 Philip requested stopping experiments and saving plans/handover for weekly token

@@ -1,0 +1,40 @@
+test_duplicate_handoff_ready_and_foreign_completion_do_not_advance (test_work.WorkLifetime) ... FAIL
+test_handoff_pins_until_genuine_ready_and_completion (test_work.WorkLifetime) ... FAIL
+test_normal_handshake_terminal_remains_phase_three_to_free (test_work.WorkLifetime) ... ok
+
+======================================================================
+FAIL: test_duplicate_handoff_ready_and_foreign_completion_do_not_advance (test_work.WorkLifetime)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_work.py", line 52, in test_duplicate_handoff_ready_and_foreign_completion_do_not_advance
+    self.pending()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_work.py", line 39, in pending
+    self.assertEqual(self.state(), {'generation': 9, 'phase': 5})
+AssertionError: {'generation': 9, 'phase': 3} != {'generation': 9, 'phase': 5}
+- {'generation': 9, 'phase': 3}
+?                            ^
+
++ {'generation': 9, 'phase': 5}
+?                            ^
+
+
+======================================================================
+FAIL: test_handoff_pins_until_genuine_ready_and_completion (test_work.WorkLifetime)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_work.py", line 42, in test_handoff_pins_until_genuine_ready_and_completion
+    self.pending()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_work.py", line 39, in pending
+    self.assertEqual(self.state(), {'generation': 9, 'phase': 5})
+AssertionError: {'generation': 9, 'phase': 3} != {'generation': 9, 'phase': 5}
+- {'generation': 9, 'phase': 3}
+?                            ^
+
++ {'generation': 9, 'phase': 5}
+?                            ^
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.006s
+
+FAILED (failures=2)

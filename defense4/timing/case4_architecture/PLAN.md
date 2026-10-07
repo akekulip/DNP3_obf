@@ -57,6 +57,11 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   prepare, ready, commit and emit separately. Before commit cancellation aborts;
   after commit work drains without reuse. Incomplete publication cannot forward
   supported traffic with untranslated TCP values.
+  N prerequisite now exists in `integration/core/ordinary`:15 source tests and
+  exact `n_local_abort_02` compiler evidence pass at12/0, critical11. It hands
+  actual SELECT to M with full identity/captured decoy and closes the pre-M abort
+  race. Ready/commit, M/E materialization, terminal conservation and subsequent
+  ACK mapping still need integration; the checklist item remains open.
 - [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
   OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
   packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap

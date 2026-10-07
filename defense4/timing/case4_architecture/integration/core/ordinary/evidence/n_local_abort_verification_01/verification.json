@@ -1,0 +1,73 @@
+{
+  "scope": "N handoff and PRE-M local abort prerequisite only",
+  "status": "source_tests_pass_prerequisite_compiled_no_model",
+  "build": "../n_local_abort_02",
+  "source_files_sha256": {
+    "n.p4": "dfac97f86b8717dded361454a801887815ddd2e60e7ed561546b00208414cbbe",
+    "work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "tests/test_work.py": "de4c848945d2f9afc4f4ab423b93da8847d73e3a4d7540370658e4b4adb91805",
+    "tests/test_n_handoff.py": "e3c6faa221ac42e8de209ed3145b8dcb3a13efbf751ff24b7e745bcc74ca5c73"
+  },
+  "commands": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_work.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_work.py.log"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/core/ordinary/tests",
+        "-p",
+        "test_n_handoff.py",
+        "-q"
+      ],
+      "exit_code": 0,
+      "log": "test_n_handoff.py.log"
+    }
+  ],
+  "source_tests": {
+    "work": 5,
+    "n": 10,
+    "total": 15,
+    "failures": 0
+  },
+  "build_gate": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compile_exit": 0,
+  "stages": {
+    "egress": 0,
+    "ingress": 12
+  },
+  "critical_path": 11,
+  "model_execution": false,
+  "review": "Independent bounded reviewer approves scoped PRE-M abort; qualified actual return changes only Work, no later bank access.",
+  "limitations": [
+    "M/E materialization and publication not joined",
+    "Pending5 and ready-received7 are pins, not release authorization",
+    "No stage savings versus N baseline12",
+    "No hardware or complete-target qualification"
+  ]
+}

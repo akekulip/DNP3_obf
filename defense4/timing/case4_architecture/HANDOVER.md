@@ -59,6 +59,18 @@ Its production/rendering path remains unfinished. Exact current checkpoint:
 Complete retirement/loss,
 full Case4,9.13.2 qualification, physical port authority and hardware remain open.
 
+The separate [ordinary candidate](integration/core/ordinary/README.md) now contains
+the protected N prerequisite: source `dfac97f8…4cbbe`, helper `273c405b…f0649`,
+exact build `n_local_abort_02`,12 ingress/0 egress, critical11, SDE9.13.1.
+[Its verification](integration/core/ordinary/evidence/n_local_abort_verification_01/verification.json)
+checks current source/include/compiler/artifacts and15 focused source tests.
+Actual handshake→SELECT hands one28-byte-prefixed packet to M196 while Work5 is
+pinned. A genuine pre-M cancellation return alone can free that pin; lost or
+foreign returns retain it. Independent review accepts this scoped prerequisite.
+There is no stage gain or new target-model result. M/E preparation, ready/commit,
+geometry activation, actual55-byte emission and subsequent ACK mapping remain
+active work under the linked [PLAN.md](PLAN.md); full-core completion is open.
+
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.
 

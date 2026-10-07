@@ -1,0 +1,21 @@
+test_actual_close_after_handoff_quarantines_owner_and_keeps_pending_pin (test_n_handoff.NativeHandoff) ... ok
+test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) ... ok
+test_captured_format_cannot_relabel_handshake_or_unknown_event (test_n_handoff.NativeHandoff) ... ok
+test_decoy_snapshot_survives_configuration_change_during_n_returns (test_n_handoff.NativeHandoff) ... ok
+test_select_return_cannot_strip_captured_extension_and_mark_legacy_format (test_n_handoff.NativeHandoff) ... FAIL
+test_duplicate_handoff_ready_and_foreign_completion_do_not_advance (test_work.WorkLifetime) ... ok
+test_handoff_pins_until_genuine_ready_and_completion (test_work.WorkLifetime) ... ok
+test_normal_handshake_terminal_remains_phase_three_to_free (test_work.WorkLifetime) ... ok
+
+======================================================================
+FAIL: test_select_return_cannot_strip_captured_extension_and_mark_legacy_format (test_n_handoff.NativeHandoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 109, in test_select_return_cannot_strip_captured_extension_and_mark_legacy_format
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.336s
+
+FAILED (failures=1)

@@ -1,0 +1,28 @@
+test_actual_close_after_handoff_quarantines_owner_and_keeps_pending_pin (test_n_handoff.NativeHandoff) ... ok
+test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) ... ok
+test_captured_format_cannot_relabel_handshake_or_unknown_event (test_n_handoff.NativeHandoff) ... ok
+test_decoy_snapshot_survives_configuration_change_during_n_returns (test_n_handoff.NativeHandoff) ... ok
+test_fin_before_terminal_drains_local_pin_without_any_m_recipient (test_n_handoff.NativeHandoff) ... ok
+test_foreign_epoch_local_abort_same_generation_cannot_free_pin (test_n_handoff.NativeHandoff) ... FAIL
+test_lost_local_abort_return_keeps_pin (test_n_handoff.NativeHandoff) ... ok
+test_raw_close_reads_each_live_work_phase_without_terminal_mutation (test_n_handoff.NativeHandoff) ... ok
+test_select_return_cannot_strip_captured_extension_and_mark_legacy_format (test_n_handoff.NativeHandoff) ... ok
+test_duplicate_handoff_ready_and_foreign_completion_do_not_advance (test_work.WorkLifetime) ... ok
+test_handoff_pins_through_ready_progress_until_genuine_completion (test_work.WorkLifetime) ... ok
+test_local_abort_of_pre_m_handoff_requires_full_generation_and_phase (test_work.WorkLifetime) ... ok
+test_normal_handshake_terminal_remains_phase_three_to_free (test_work.WorkLifetime) ... ok
+test_reads_and_unsupported_dispatch_cannot_retire_work (test_work.WorkLifetime) ... ok
+
+======================================================================
+FAIL: test_foreign_epoch_local_abort_same_generation_cannot_free_pin (test_n_handoff.NativeHandoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 171, in test_foreign_epoch_local_abort_same_generation_cannot_free_pin
+    self.assertEqual({key:repr(value) for key,value in pipe.src.cells.items()},before)
+AssertionError: {('',[802 chars]'): '[0]', ('work', 'work'): "[{'generation': 4, 'phase': 9}]"} != {('',[802 chars]'): '[0]', ('work', 'work'): "[{'generation': 4, 'phase': 5}]"}
+Diff is 1274 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.775s
+
+FAILED (failures=1)

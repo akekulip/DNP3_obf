@@ -1,0 +1,41 @@
+test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) ... test_decoy_snapshot_survives_configuration_change_during_n_returns (test_n_handoff.NativeHandoff) ... FAIL
+test_duplicate_handoff_ready_and_foreign_completion_do_not_advance (test_work.WorkLifetime) ... ok
+test_handoff_pins_until_genuine_ready_and_completion (test_work.WorkLifetime) ... ok
+test_normal_handshake_terminal_remains_phase_three_to_free (test_work.WorkLifetime) ... ok
+
+======================================================================
+FAIL: test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) (initial=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 38, in test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy
+    self.assertEqual(port, 196)
+AssertionError: 2 != 196
+
+======================================================================
+FAIL: test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) (initial=4294967295)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 38, in test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy
+    self.assertEqual(port, 196)
+AssertionError: 2 != 196
+
+======================================================================
+FAIL: test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy (test_n_handoff.NativeHandoff) (initial=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 38, in test_actual_handshake_select_hands_to_m_with_pin_and_no_endpoint_copy
+    self.assertEqual(port, 196)
+AssertionError: 2 != 196
+
+======================================================================
+FAIL: test_decoy_snapshot_survives_configuration_change_during_n_returns (test_n_handoff.NativeHandoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_handoff.py", line 68, in test_decoy_snapshot_survives_configuration_change_during_n_returns
+    self.assertEqual(out.emitted[0][0],196)
+AssertionError: 2 != 196
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.189s
+
+FAILED (failures=4)
