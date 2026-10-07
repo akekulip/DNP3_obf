@@ -1,0 +1,33 @@
+{
+  "bfa_sha256": "4dd2d1f5ced7ff12843a9f184281df5f38d5b357dfbe9dd355f045d69f049efa",
+  "evidence_manifest": "evidence/held_timing_expected_02/manifest.json",
+  "helper_sha256": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+  "source_sha256": "1af31bc97a4b331441ac0195f287483788b98c10af04441e224b5abeead2877e",
+  "stateful_instructions": {
+    "heartbeat_work_advance": [
+      "- equ lo, lo, -phv_lo",
+      "      - equ hi, hi, -phv_hi",
+      "      - add (cmplo & cmphi), hi, hi, 1",
+      "      - output (cmplo & cmphi), mem_hi"
+    ],
+    "heartbeat_work_inspect": [
+      "- equ lo, lo, -phv_lo",
+      "      - equ hi, hi, -phv_hi",
+      "      - output (cmplo & cmphi), mem_hi"
+    ],
+    "work_advance": [
+      "- equ lo, lo, -phv_lo",
+      "      - equ hi, hi, -phv_hi",
+      "      - add (cmplo & cmphi), hi, hi, 1",
+      "      - output (cmplo & cmphi), mem_hi"
+    ],
+    "work_inspect": [
+      "- equ lo, lo, -phv_lo",
+      "      - equ hi, hi, -phv_hi",
+      "      - output (cmplo & cmphi), mem_hi"
+    ]
+  },
+  "static_full_generation_and_phase_equality_verified": true,
+  "static_inspection_has_no_write_verified": true,
+  "target_runtime_verified": false
+}

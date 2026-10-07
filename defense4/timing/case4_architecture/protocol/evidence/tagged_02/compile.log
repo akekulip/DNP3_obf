@@ -1,0 +1,155 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(199): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(15): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(15)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(204): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(204)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Werror=unsupported] error: Two or more assignments of rv inside the register action write_0 are not mutually exclusive and thus cannot be implemented in Tofino Stateful ALU.
+	These potentially sequential assignments have been detected here:
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(28)
+ rv=32w1;
+   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(29)
+ if(v.generation<m.work_generation){v.generation=m.work_generation;v.data=m.image_word0;rv=32w0;}
+                                                                                          ^
+Please, rewrite your code to make sure the value is assigned no more than once in all cases.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(27): [--Werror=overlimit] error: : RegisterAction write_0.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_0) write_0={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(27)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_0) write_0={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(27)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_0) write_0={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(37): [--Werror=overlimit] error: : RegisterAction write_1.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_1) write_1={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(37)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_1) write_1={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(37)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_1) write_1={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(47): [--Werror=overlimit] error: : RegisterAction write_2.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_2) write_2={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(47)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_2) write_2={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(47)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_2) write_2={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(57): [--Werror=overlimit] error: : RegisterAction write_3.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_3) write_3={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(57)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_3) write_3={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(57)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_3) write_3={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(67): [--Werror=overlimit] error: : RegisterAction write_4.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_4) write_4={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(67)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_4) write_4={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(67)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_4) write_4={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(77): [--Werror=overlimit] error: : RegisterAction write_5.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_5) write_5={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(77)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_5) write_5={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(77)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_5) write_5={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(87): [--Werror=overlimit] error: : RegisterAction write_6.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_6) write_6={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(87)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_6) write_6={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(87)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_6) write_6={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(97): [--Werror=overlimit] error: : RegisterAction write_7.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_7) write_7={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(97)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_7) write_7={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(97)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_7) write_7={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(107): [--Werror=overlimit] error: : RegisterAction write_8.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_8) write_8={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(107)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_8) write_8={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(107)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_8) write_8={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(117): [--Werror=overlimit] error: : RegisterAction write_9.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_9) write_9={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(117)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_9) write_9={void apply(inout cache_word_t v,out bit<32> rv){
+                                                     ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(117)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_9) write_9={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                   ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(127): [--Werror=overlimit] error: : RegisterAction write_10.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_10) write_10={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(127)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_10) write_10={void apply(inout cache_word_t v,out bit<32> rv){
+                                                      ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(127)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_10) write_10={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(137): [--Werror=overlimit] error: : RegisterAction write_11.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_11) write_11={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(137)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_11) write_11={void apply(inout cache_word_t v,out bit<32> rv){
+                                                      ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(137)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_11) write_11={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(147): [--Werror=overlimit] error: : RegisterAction write_12.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_12) write_12={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(147)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_12) write_12={void apply(inout cache_word_t v,out bit<32> rv){
+                                                      ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(147)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_12) write_12={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(157): [--Werror=overlimit] error: : RegisterAction write_13.apply needs 3 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons.
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_13) write_13={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(157)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_13) write_13={void apply(inout cache_word_t v,out bit<32> rv){
+                                                      ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/tagged_02/source/tagged_cache_writer.p4(157)
+RegisterAction<cache_word_t,bit<1>,bit<32>>(image_13) write_13={void apply(inout cache_word_t v,out bit<32> rv){
+                                                                     ^^^^^
+
+15 errors, 5 warnings generated.
+

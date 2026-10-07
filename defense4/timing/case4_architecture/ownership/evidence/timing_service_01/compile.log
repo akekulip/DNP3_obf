@@ -1,0 +1,23 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/source/timing_service_probe.p4(24): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/source/timing_service_probe.p4(24)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+0 errors, 4 warnings generated.
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/out/pipe/timing_service_probe.bfa:1684: error: tofino supports up to 12 stages, using 14
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_01/out/pipe/timing_service_probe.bfa:0: error: Due to errors, no binary will be generated
+Unable to produce all summary logs
+  Error producing mau.resources.log: 12
+failed command assembler
+failed command summary_logging

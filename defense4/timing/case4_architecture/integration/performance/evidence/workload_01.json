@@ -1,0 +1,6665 @@
+{
+  "additional_packets": {
+    "evidence_kind": "unavailable",
+    "external_wire_bytes": null,
+    "internal_wire_bytes": null,
+    "processing_passes": null,
+    "reason": "additional native repair and fragment frequency is unavailable"
+  },
+  "authority": {
+    "handoff": "pipe-local authority; later passes return with protected WorkRef",
+    "pipe": 0,
+    "state_shared_across_pipes": false,
+    "workref_bytes": null
+  },
+  "capability_blockers": [
+    "one_pipe_state_authority",
+    "owner_qualified_publication",
+    "original_conservation"
+  ],
+  "compiler_resources": [
+    {
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "compiler_binary_verified": true,
+      "context_resources_verified": true,
+      "evidence": "defense4/timing/case4_architecture/ownership/evidence/owner_cas_05",
+      "full_target_verified": false,
+      "manifest_sha256": "abd24c5dac0c0dc914440000da45054b77ac80af1c483577be9a1f337955919f",
+      "milestone": "primitive_compiled",
+      "phv": {
+        "alignment_and_live_ranges_verified": false,
+        "available": true,
+        "container_classes": {
+          "egress:normal:16": 1,
+          "egress:normal:8": 1,
+          "egress:tagalong:16": 10,
+          "egress:tagalong:32": 5,
+          "egress:tagalong:8": 4,
+          "ingress:normal:16": 2,
+          "ingress:normal:32": 4,
+          "ingress:normal:8": 6,
+          "ingress:tagalong:16": 3,
+          "ingress:tagalong:32": 4,
+          "ingress:tagalong:8": 1
+        },
+        "field_slices": 52,
+        "full_container_bits": 768,
+        "placements": [
+          {
+            "container": 128,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "ig_intr_md.ingress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 128,
+            "container_bits": [
+              0,
+              9
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "$tmp2",
+            "field_bits": [
+              0,
+              9
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 328,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ethernet.dst",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ethernet.dst",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 327,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ethernet.src",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ethernet.src",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 326,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ethernet.ether_type",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 263,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.command.epoch",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 262,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.command.cookie",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 0,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.command.expected",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.command.desired",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 68,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.command.operation",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              2
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 292,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.command.reserved",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 1,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "md.owner.observed",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 1,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.report.observed",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "md.owner.difference",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 67,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "md.owner.accepted",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 67,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.report.accepted",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.report.reserved",
+            "field_bits": [
+              16,
+              23
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.report.reserved",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.report.reserved",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 129,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.ucast_egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.bypass_egress",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              0,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_dprsr.mirror_type",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 144,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "eg_intr_md.egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 288,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 332,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 257,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 256,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 289,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 333,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 259,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 258,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 290,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 334,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 323,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              48,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 322,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 321,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 320,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 291,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 335,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 264,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 325,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 324,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 69,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ethernet.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 69,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.command.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 69,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.report.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "hdr.min_parse_depth_padding_0.$stkvalid",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          }
+        ],
+        "reported_lifetime_events": 110,
+        "scope": "allocated report containers, not aggregate-capacity or full-composition proof"
+      },
+      "primitive_resources_verified": true,
+      "resource_reports_verified": true,
+      "resource_scope": "current primitive",
+      "resources": {
+        "critical_path": 3,
+        "report_sha256": {
+          "pipe/logs/mau.resources.log": "0ab7b0d2439af15d27ac38c1ae84889266d92652a888cfffc9226f7734ff4fa8",
+          "pipe/logs/phv.json": "73bdc50533e71a1948cab2fbf073f72a09f320cfc270deb5f81a81d60a9da92f",
+          "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+          "pipe/logs/phv_allocation_history_0.log": "a22b89a61a0dfb781d2ea5bf374697804e6f652c95d272343c1b4db788cc0a38",
+          "pipe/logs/phv_allocation_summary_0.log": "66a012a4d3b5781695dff6baffa128f0ad2fd3782f9ef344332235aa6e9ad8ec",
+          "pipe/logs/table_dependency_graph.log": "f2fd3ea473f3b0a228dfff0ce090ace993b8aa9f619b0f271468cfbdd1c1356f",
+          "pipe/logs/table_dependency_summary.log": "3d32a6bd4f9dde275c4c3e702ba0926edd44bcd58b7fa06d927fc59cbfd73243",
+          "pipe/logs/table_summary.log": "80b34899896c12c498fcc29fc149ef73b716798075d2cd451440e472bcff2427"
+        },
+        "stages": {
+          "egress": 0,
+          "ingress": 3
+        },
+        "stateful_tables": [
+          {
+            "direction": "ingress",
+            "name": "Ingress.owner.lifecycle",
+            "size": 1
+          }
+        ],
+        "tables_by_type": {
+          "match": 5,
+          "stateful": 1
+        }
+      },
+      "snapshot_resources_verified": true,
+      "source_sha256": "077ccb16a4cdfa78fc5bdc7a77b89d8288403645b86ae88a9b2ff7122e1dc47b",
+      "verification": {
+        "compiled_artifacts_verified": true,
+        "full_target": false,
+        "snapshots_match": true,
+        "source_matches": true
+      }
+    },
+    {
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "compiler_binary_verified": true,
+      "context_resources_verified": true,
+      "evidence": "defense4/timing/case4_architecture/protocol/evidence/padding_02",
+      "full_target_verified": false,
+      "manifest_sha256": "48122689adc16629291ae95e050d20addee48173ea14ef5c3da6b8598c21661c",
+      "milestone": "primitive_compiled",
+      "phv": {
+        "alignment_and_live_ranges_verified": false,
+        "available": true,
+        "container_classes": {
+          "egress:normal:16": 1,
+          "egress:normal:8": 1,
+          "egress:tagalong:16": 10,
+          "egress:tagalong:32": 5,
+          "egress:tagalong:8": 4,
+          "ingress:normal:16": 18,
+          "ingress:normal:32": 11,
+          "ingress:normal:8": 19,
+          "ingress:tagalong:16": 10,
+          "ingress:tagalong:32": 4,
+          "ingress:tagalong:8": 4
+        },
+        "field_slices": 142,
+        "full_container_bits": 1488,
+        "placements": [
+          {
+            "container": 139,
+            "container_bits": [
+              8,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "ig_intr_md.ingress_port",
+            "field_bits": [
+              8,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 139,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.hcrc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 79,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "ig_intr_md.ingress_port",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 79,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "m.tcp_length",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 338,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.eth.dst",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 263,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.eth.dst",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 295,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.src",
+            "field_bits": [
+              40,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 294,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.src",
+            "field_bits": [
+              32,
+              39
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 262,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.eth.src",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 293,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.type",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 292,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.type",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 331,
+            "container_bits": [
+              12,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.version",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 331,
+            "container_bits": [
+              8,
+              11
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.ihl",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 331,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.tos",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 141,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.len",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 326,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.id",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              29,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.flags",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              16,
+              28
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.frag",
+            "field_bits": [
+              0,
+              12
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.ttl",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.proto",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 339,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 8,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.src",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 7,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.dst",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "m.parsed",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "m.enabled",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "m.profile",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "m.tcp_length",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              9,
+              9
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.changed",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              10
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.ip_error",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              1,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.decoy_on",
+            "field_bits": [
+              16,
+              23
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              10,
+              10
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.badh",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              11,
+              11
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.badb",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              12,
+              12
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.badt",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 129,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.tcp_sum",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 129,
+            "container_bits": [
+              0,
+              9
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "$tmp2",
+            "field_bits": [
+              0,
+              9
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 136,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "m.decoy_index",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 136,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.appended.index",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 134,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "m.decoy_code",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 134,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "m.decoy_repeat",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 134,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.appended.code",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 134,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.appended.repeat",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.decoy_on",
+            "field_bits": [
+              24,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              0,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_dprsr.mirror_type",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              10,
+              10
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 168,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.decoy_on",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 9,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "m.decoy_off",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 9,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.last.off",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 132,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.hcrc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 132,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.bcrc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.bcrc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 76,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.tcrc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 104,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.tcrc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 6,
+            "container_bits": [
+              16,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.sport",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 6,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.dport",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 330,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.seq",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 329,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.seq",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 328,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.ack",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 327,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.ack",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              28,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.offset",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              24,
+              27
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.reserved",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.flags",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.window",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 341,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 340,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.urgent",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 143,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.dl.magic",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.dl.len",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.dl.ctrl",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.dl.dst",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 138,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.dl.src",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 140,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.dl.crc",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 142,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.tp",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 142,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.app",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.func",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.group",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.variation",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.qualifier",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 137,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.count",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 135,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.index",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 5,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.code",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 5,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.repeat",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 5,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.native.on",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 74,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.native.on",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 131,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.on",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 131,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.native.crc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 70,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.native.crc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 0,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tail.off",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 67,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tail.status",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 96,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tail.crc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 75,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tail.crc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 128,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.ucast_egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.bypass_egress",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              0,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_dprsr.drop_ctl",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              4,
+              4
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum.$deparse_original_csum",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              5,
+              5
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum.$deparse_updated_csum_0",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              6,
+              6
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum.$deparse_original_csum",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              10,
+              10
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              7,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum.$deparse_updated_csum_0",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              10,
+              10
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 1,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.appended.off",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 68,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.appended.status",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 69,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.appended.group",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 4,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.appended.variation",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 4,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.appended.qualifier",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 4,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.appended.count",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 73,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.appended.on_first",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 133,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.appended.on_first",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 133,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.appended.crc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 72,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.appended.crc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 160,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.last.on_last",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.last.status",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 97,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.last.crc",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 77,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.last.crc",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 144,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "eg_intr_md.egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 288,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 332,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 257,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 256,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 289,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 333,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 259,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 258,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 290,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 334,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 323,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              48,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 322,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 321,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 320,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 291,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 335,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 264,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 325,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 324,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              9,
+              9
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              10,
+              10
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.dl.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              4,
+              4
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.native.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              5,
+              5
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tail.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              6,
+              6
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.appended.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 78,
+            "container_bits": [
+              7,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.last.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "hdr.min_parse_depth_padding_0.$stkvalid",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          }
+        ],
+        "reported_lifetime_events": 302,
+        "scope": "allocated report containers, not aggregate-capacity or full-composition proof"
+      },
+      "primitive_resources_verified": true,
+      "resource_reports_verified": true,
+      "resource_scope": "current primitive",
+      "resources": {
+        "critical_path": 6,
+        "report_sha256": {
+          "pipe/logs/mau.resources.log": "69b61f5dbb526bf8b960a5bf2352e0ec1d8bbfef6b899de940eda5281feedc28",
+          "pipe/logs/phv.json": "c02156e05e9c87b7f6e50d616573e800dac3cf43f376fba72d9b435684665585",
+          "pipe/logs/phv_allocation_0.log": "16206340222a6c2e4699b4741fa1efc237aedf5612f3f3bcefa358b8373bea28",
+          "pipe/logs/phv_allocation_3.log": "16206340222a6c2e4699b4741fa1efc237aedf5612f3f3bcefa358b8373bea28",
+          "pipe/logs/phv_allocation_history_0.log": "2ec446e73e3ccf8831e66d7dcd031d9cf1d3b39d24ed9b536edb2bd4480737d8",
+          "pipe/logs/phv_allocation_history_3.log": "c0c6d254df348a0118b6b044087bfc88e2a4647007ed0609c766c81897823c5c",
+          "pipe/logs/phv_allocation_summary_0.log": "50132e6d06a0890fa898a70f89bf6c8124516062206e1eecd4d527059b042cdb",
+          "pipe/logs/phv_allocation_summary_3.log": "50132e6d06a0890fa898a70f89bf6c8124516062206e1eecd4d527059b042cdb",
+          "pipe/logs/table_dependency_graph.log": "0bb96c8191582b6bdc755faa7abf79513d5bb64ee1e60aa01bafa1e7409173b7",
+          "pipe/logs/table_dependency_summary.log": "d1641f077af13a59432c7162e04f323ba95d69f548894352fbce339213345609",
+          "pipe/logs/table_summary.log": "2234db294914d00805d6e8de9c63c1ac24d00c5cfd9a1ff2befd9198aa55b1d4"
+        },
+        "stages": {
+          "egress": 0,
+          "ingress": 11
+        },
+        "stateful_tables": [],
+        "tables_by_type": {
+          "action": 2,
+          "condition": 11,
+          "match": 17
+        }
+      },
+      "snapshot_resources_verified": true,
+      "source_sha256": "5331f317b7a730964496c9d9845a859ffb0203c95aa9de385c50e5882d736914",
+      "verification": {
+        "compiled_artifacts_verified": true,
+        "full_target": false,
+        "snapshots_match": true,
+        "source_matches": true
+      }
+    },
+    {
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "compiler_binary_verified": true,
+      "context_resources_verified": true,
+      "evidence": "defense4/timing/case4_architecture/protocol/evidence/exact_03",
+      "full_target_verified": false,
+      "manifest_sha256": "6fd71f1c1687d79779001cda2184fcbed546f83ad5e3149384ca03793155cd7f",
+      "milestone": "primitive_compiled",
+      "phv": {
+        "alignment_and_live_ranges_verified": false,
+        "available": true,
+        "container_classes": {
+          "egress:normal:16": 1,
+          "egress:normal:8": 1,
+          "egress:tagalong:16": 10,
+          "egress:tagalong:32": 5,
+          "egress:tagalong:8": 4,
+          "ingress:normal:16": 4,
+          "ingress:normal:32": 19,
+          "ingress:normal:8": 9,
+          "ingress:tagalong:16": 8,
+          "ingress:tagalong:32": 4,
+          "ingress:tagalong:8": 4
+        },
+        "field_slices": 111,
+        "full_container_bits": 1408,
+        "placements": [
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "ig_intr_md.ingress_port",
+            "field_bits": [
+              8,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 64,
+            "container_bits": [
+              0,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_dprsr.mirror_type",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 72,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "ig_intr_md.ingress_port",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 72,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "m.tcp_length",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 293,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.dst",
+            "field_bits": [
+              40,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 292,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.dst",
+            "field_bits": [
+              32,
+              39
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 263,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.eth.dst",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 331,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.eth.src",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 262,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.eth.src",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 330,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.eth.type",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 329,
+            "container_bits": [
+              12,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.version",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 329,
+            "container_bits": [
+              8,
+              11
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.ihl",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 329,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.tos",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 131,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.len",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 326,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.ip.id",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              29,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.flags",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              16,
+              28
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.frag",
+            "field_bits": [
+              0,
+              12
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              8,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.ttl",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 260,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.proto",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 295,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 294,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 32,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.src",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 15,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.ip.dst",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              6,
+              6
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.render",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              5,
+              5
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum.$deparse_original_csum",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.eth.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.native.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 71,
+            "container_bits": [
+              4,
+              4
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.image.$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              7,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.image_slot",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.bypass_egress",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              0,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_dprsr.drop_ctl",
+            "field_bits": [
+              0,
+              2
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              4,
+              4
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum.$deparse_original_csum",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              5,
+              5
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.ip.checksum.$deparse_updated_csum_0",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 65,
+            "container_bits": [
+              6,
+              6
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum.$deparse_updated_csum_0",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              6,
+              6
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 0,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "m.loaded_last",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "m.tcp_length",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.ip_error",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 130,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.parsed",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 36,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": false,
+            "field": "m.wire_start",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 67,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "m.expected_byte",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 129,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": false,
+            "field": "m.tcp_sum",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 129,
+            "container_bits": [
+              0,
+              9
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "$tmp2",
+            "field_bits": [
+              0,
+              9
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              16,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.sport",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 2,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.dport",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              1
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 33,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.seq",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              1,
+              2
+            ],
+            "parser_access": true
+          },
+          {
+            "container": 328,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.ack",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 327,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.ack",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              28,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.offset",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              24,
+              27
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.reserved",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              16,
+              23
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.flags",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 261,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.tcp.window",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 339,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.checksum",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 338,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.tcp.urgent",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 66,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.native.data",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 128,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "ig_intr_md_for_tm.ucast_egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              0,
+              0
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 68,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.image.w0",
+            "field_bits": [
+              24,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 70,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.image.w0",
+            "field_bits": [
+              16,
+              23
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 69,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.image.w0",
+            "field_bits": [
+              8,
+              15
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 14,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w0",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 14,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w1",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 13,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w1",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 13,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w2",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 12,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w2",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 12,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w3",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 11,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w3",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              5,
+              5
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 11,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w4",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w4",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 10,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w5",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 9,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w5",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 9,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w6",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 8,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w6",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              4,
+              4
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 8,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w7",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 7,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w7",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 7,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w8",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 6,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w8",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 6,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w9",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 5,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w9",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 5,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w10",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 4,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w10",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 4,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w11",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w11",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 3,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w12",
+            "field_bits": [
+              8,
+              31
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 1,
+            "container_bits": [
+              24,
+              31
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w12",
+            "field_bits": [
+              0,
+              7
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              2,
+              2
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 1,
+            "container_bits": [
+              0,
+              23
+            ],
+            "container_type": "normal",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.image.w13",
+            "field_bits": [
+              0,
+              23
+            ],
+            "gress": "ingress",
+            "mau_stage_span": [
+              3,
+              3
+            ],
+            "parser_access": false
+          },
+          {
+            "container": 144,
+            "container_bits": [
+              0,
+              8
+            ],
+            "container_type": "normal",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "eg_intr_md.egress_port",
+            "field_bits": [
+              0,
+              8
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 288,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 332,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 257,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 256,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 289,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 333,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 259,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 258,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].packet_payload",
+            "field_bits": [
+              0,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 290,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 334,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 323,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              48,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 322,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              32,
+              47
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 321,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 320,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 291,
+            "container_bits": [
+              0,
+              7
+            ],
+            "container_type": "tagalong",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              80,
+              87
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 335,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              64,
+              79
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 264,
+            "container_bits": [
+              0,
+              31
+            ],
+            "container_type": "tagalong",
+            "container_width": 32,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              32,
+              63
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 325,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              16,
+              31
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 324,
+            "container_bits": [
+              0,
+              15
+            ],
+            "container_type": "tagalong",
+            "container_width": 16,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].packet_payload",
+            "field_bits": [
+              0,
+              15
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": false,
+            "field": "hdr.min_parse_depth_padding_0.$stkvalid",
+            "field_bits": [
+              0,
+              3
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": true
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              3,
+              3
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[0].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              2,
+              2
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[1].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              1,
+              1
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[2].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          },
+          {
+            "container": 80,
+            "container_bits": [
+              0,
+              0
+            ],
+            "container_type": "normal",
+            "container_width": 8,
+            "deparser_access": true,
+            "field": "hdr.min_parse_depth_padding_0[3].$valid",
+            "field_bits": [
+              0,
+              0
+            ],
+            "gress": "egress",
+            "mau_stage_span": null,
+            "parser_access": false
+          }
+        ],
+        "reported_lifetime_events": 226,
+        "scope": "allocated report containers, not aggregate-capacity or full-composition proof"
+      },
+      "primitive_resources_verified": true,
+      "resource_reports_verified": true,
+      "resource_scope": "current primitive",
+      "resources": {
+        "critical_path": 3,
+        "report_sha256": {
+          "pipe/logs/mau.resources.log": "7c302d61f8f82fafefb64b75cc738d90e0f3609636033769577b165b4ede57a3",
+          "pipe/logs/phv.json": "496f5f73055fe44f13cc199d0dcccc2fc3948c6ffba9956c5f51c75ab2ee3a15",
+          "pipe/logs/phv_allocation_0.log": "70a181dbe5547cc83c5a848fb2d9bcf05ae2706e2cde43d2710be09393cbec39",
+          "pipe/logs/phv_allocation_3.log": "70a181dbe5547cc83c5a848fb2d9bcf05ae2706e2cde43d2710be09393cbec39",
+          "pipe/logs/phv_allocation_history_0.log": "467d0fa53ab5384804dc6e39d507b055c104e6b6e474f18285c3c16884e18fcb",
+          "pipe/logs/phv_allocation_history_3.log": "b654889b0e0ba02edc4e69d7ddd62f3003038f6b7335486bc3485b94f75c3074",
+          "pipe/logs/phv_allocation_summary_0.log": "0f1229f5f8bd0bdceea61c946267da3a95c651ec8c30d3b19a40759affb838fa",
+          "pipe/logs/phv_allocation_summary_3.log": "0f1229f5f8bd0bdceea61c946267da3a95c651ec8c30d3b19a40759affb838fa",
+          "pipe/logs/table_dependency_graph.log": "64a7c9241b79998bb7e17ade24e1383ce2f8f29be70c10638d7625677be75087",
+          "pipe/logs/table_dependency_summary.log": "4d09dde3e1288841ddab91d3905d5b599ec2c5f1215faadaf938718ff82ebde4",
+          "pipe/logs/table_summary.log": "e39cbcf42ce5f551c898f09b29e2a006ea3dc11f3edbb246aa2201319e7667d6"
+        },
+        "stages": {
+          "egress": 0,
+          "ingress": 7
+        },
+        "stateful_tables": [
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_13",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_12",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_10",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_8",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_11",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_9",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_7",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_5",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_6",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_4",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_2",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_0",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_3",
+            "size": 2
+          },
+          {
+            "direction": "ingress",
+            "name": "Ingress.image_1",
+            "size": 2
+          }
+        ],
+        "tables_by_type": {
+          "action": 1,
+          "condition": 16,
+          "match": 22,
+          "stateful": 14
+        }
+      },
+      "snapshot_resources_verified": true,
+      "source_sha256": "b7de4426f1fe35c0de5c3182f26669c24beaf563bed7e6087aa318bde139f0c2",
+      "verification": {
+        "compiled_artifacts_verified": true,
+        "full_target": false,
+        "snapshots_match": true,
+        "source_matches": true
+      }
+    }
+  ],
+  "complete_fit_verified": false,
+  "family": "same_pipe",
+  "heartbeat": {
+    "achieved_period_us": null,
+    "evidence_kind": "configured_request",
+    "reason": "requested100 us is independent of holding; achieved service is unavailable",
+    "requested_bits_per_second": null,
+    "requested_packets_per_second": 10000,
+    "serialized_frame_bytes": null
+  },
+  "holding": {
+    "evidence_kind": "unavailable",
+    "internal_wire_bytes": null,
+    "packets_per_exchange": null,
+    "reason": "blocker multiplicity, serialized size, achieved loop period and actual hold are unavailable"
+  },
+  "layout_name": "same-pipe complete-path costs unavailable",
+  "limitations": [
+    "normal wire total assumes one pure ACK and the declared fixed payloads",
+    "native repair/fragment counts are unavailable, not zero",
+    "SBO phases can burst without400 ms spacing within a pair; instantaneous rate is unavailable",
+    "pass counts are supplied architecture scenarios, not compiler or target-model evidence",
+    "holding, heartbeat, transform, replay and assembly compete for ports and pipeline service"
+  ],
+  "normal_external_wire_bytes": 10741176,
+  "normal_internal_wire_bytes": null,
+  "normal_processing_passes": null,
+  "path_passes": {
+    "control_request": null,
+    "control_response": null,
+    "fragment_piece": null,
+    "read_request": null,
+    "read_response": null,
+    "replay_request": null,
+    "tcp_ack": null
+  },
+  "policy_off": "Translation and native-sender replay continue until verified connection retirement",
+  "units": "L1 bytes include FCS, minimum Ethernet padding,8-byte preamble/SFD and12-byte IFG",
+  "workload": {
+    "attempts": 16168,
+    "blocks": 44,
+    "by_arm": {
+      "CASE4": {
+        "OPERATE": 30,
+        "READ": 6434,
+        "SELECT": 1620
+      },
+      "OFF": {
+        "OPERATE": 30,
+        "READ": 6434,
+        "SELECT": 1620
+      }
+    },
+    "ceiling": 18360,
+    "counts": {
+      "OPERATE": 60,
+      "READ": 12868,
+      "SELECT": 3240
+    },
+    "heartbeat_request_us": 100,
+    "holding_policy_cap_ms": 40,
+    "max_duration_ms": 14571200,
+    "retry_policy": "none; native TCP packet repair is not a new application trial",
+    "rows": [
+      {
+        "arm": "OFF",
+        "blocks": 3,
+        "da_ms": 5,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da5-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 3,
+        "da_ms": 5,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da5-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "OFF",
+        "blocks": 3,
+        "da_ms": 10,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da10-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 3,
+        "da_ms": 10,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da10-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "OFF",
+        "blocks": 3,
+        "da_ms": 15,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da15-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 3,
+        "da_ms": 15,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da15-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "OFF",
+        "blocks": 3,
+        "da_ms": 20,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da20-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 3,
+        "da_ms": 20,
+        "declaration_id": "case4-main-20261006",
+        "id": "read-da20-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "OFF",
+        "blocks": 3,
+        "da_ms": 10,
+        "declaration_id": "case4-main-20261006",
+        "id": "select-da10-off",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 3,
+        "da_ms": 10,
+        "declaration_id": "case4-main-20261006",
+        "id": "select-da10-case4",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "main",
+        "precheck_per_block": 0,
+        "primary_per_block": 500,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 20
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-smoke-20261006",
+        "id": "read-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-smoke-20261006",
+        "id": "read-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-smoke-20261006",
+        "id": "select-off",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-smoke-20261006",
+        "id": "select-case4",
+        "interval_ms": 400,
+        "op": "SELECT",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-case4_attended_sbo-20261006",
+        "id": "sbo-off",
+        "interval_ms": 400,
+        "op": "SBO",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-case4_attended_sbo-20261006",
+        "id": "sbo-case4",
+        "interval_ms": 400,
+        "op": "SBO",
+        "phase": "smoke",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 5,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da5-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 5,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da5-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da10-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 10,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da10-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 15,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da15-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 15,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da15-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "OFF",
+        "blocks": 1,
+        "da_ms": 20,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da20-off",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      },
+      {
+        "arm": "CASE4",
+        "blocks": 1,
+        "da_ms": 20,
+        "declaration_id": "case4-case4_instrumentation-20261006",
+        "id": "instrument-da20-case4",
+        "interval_ms": 400,
+        "op": "READ",
+        "phase": "instrumentation",
+        "precheck_per_block": 0,
+        "primary_per_block": 30,
+        "setup_budget_ms": 1000,
+        "state_reads_per_block": 2,
+        "transaction_timeout_ms": 500,
+        "warmup_per_block": 0
+      }
+    ],
+    "sources_sha256": {
+      "/home/philip/Projects/DNP3/defense4/timing/framework/declarations/case4_attended_sbo.json": "2318acd2050766f0c16911464bb207247d3d97ca6915d80bbaa3c815453c2a18",
+      "/home/philip/Projects/DNP3/defense4/timing/framework/declarations/case4_campaign.json": "598109fc8eacf9f35ef2abc431df0f12c18e903d3b6386d093a09ca68b91b61b",
+      "/home/philip/Projects/DNP3/defense4/timing/framework/declarations/case4_instrumentation.json": "d6cf3709b2719b26b3f44ed56b50071476e6d4124b0e25ea183b03bb41ac4d12",
+      "/home/philip/Projects/DNP3/defense4/timing/framework/declarations/main.json": "9224f0cb1f77e8bf9df1f89089ca4aa3682c01a4b15f5f2136a6e705a8ae8f72",
+      "/home/philip/Projects/DNP3/defense4/timing/framework/declarations/smoke.json": "565bb094cff02ea484bae88b57b6c2bff8db240ace4642ca3f149c018a58457c"
+    },
+    "spacing_ms": 6443200,
+    "trial_units": 16108,
+    "unused_attempts_not_allocated": 2192
+  },
+  "worst_campaign_wire_bytes": null
+}

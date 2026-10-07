@@ -1,0 +1,120 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(127): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(253): [--Wwarn=unused] warning: Table left1 is not used; removing
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(290): [--Wwarn=unused] warning: Table left2 is not used; removing
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(327): [--Wwarn=unused] warning: Table right1 is not used; removing
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(364): [--Wwarn=unused] warning: Table right2 is not used; removing
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(400): [--Wwarn=unused] warning: Table difference_t is not used; removing
+ table difference_t{actions={difference;}size=1;const default_action=difference();}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(402): [--Wwarn=unused] warning: Table growth_t is not used; removing
+ table growth_t{actions={growth;}size=1;const default_action=growth();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(403): [--Wwarn=unused] warning: Table window_guard is not used; removing
+ table window_guard{key={m.growth:ternary;}actions={deny;NoAction;}size=32;const default_action=NoAction();const entries={
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(437): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(439): [--Wwarn=unused] warning: Table complete_t is not used; removing
+ table complete_t{actions={complete;}size=1;const default_action=complete();}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(501): [--Wwarn=unused] warning: Table seq1 is not used; removing
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(533): [--Wwarn=unused] warning: Table seq2 is not used; removing
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(881): [--Wwarn=unused] warning: Table last_slice_t is not used; removing
+table last_slice_t{actions={last_slice;}size=1;const default_action=last_slice();}
+      ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(883): [--Wwarn=unused] warning: Table complete_t is not used; removing
+table complete_t{actions={complete;}size=1;const default_action=complete();}
+      ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(15): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'padding_IgParser' terminates
+parser padding_IgParser(packet_in pkt,out padding_headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(15)
+parser padding_IgParser(packet_in pkt,out padding_headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(146): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'forward_IgParser' terminates
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(146)
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(459): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'reverse_IgParser' terminates
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(459)
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(771): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_IgParser' terminates
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(771)
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(807): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_EgParser' terminates
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(807)
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(824): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'replay_IgParser' terminates
+parser replay_IgParser(packet_in pkt,out replay_headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(824)
+parser replay_IgParser(packet_in pkt,out replay_headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(980): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(980)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(1027): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/shared_cache_bytes_01/source/shared_cache_bytes.p4(1027)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: PHV allocation was not successful
+8 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::m.carving.crc1<16b>[7:0]
+    ingress::hdr.carving.second.crc_lo<8b>
+    ingress::m.carving.crc1<16b>[15:8]
+    ingress::hdr.carving.second.crc_hi<8b>
+    ingress::m.carving.crct<16b>[7:0]
+    ingress::hdr.carving.tail.crc_lo<8b>
+    ingress::m.carving.crct<16b>[15:8]
+    ingress::hdr.carving.tail.crc_hi<8b>
+
+
+
+1 error, 34 warnings generated.
+
+Skipping assembler, assembly file is empty

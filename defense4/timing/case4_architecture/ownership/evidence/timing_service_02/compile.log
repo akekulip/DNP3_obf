@@ -1,0 +1,53 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(24): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(24)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(89): [--Wwarn=expected] warning: Register Ingress.operate_pending: Expected stateful action 'op_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) operate_pending;
+                                    ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(90)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(operate_pending) op_read = {
+                                                             ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(114): [--Wwarn=expected] warning: Register Ingress.ack_phase: Expected stateful action 'ack_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) ack_phase;
+                                    ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(115)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(ack_phase) ack_read = {
+                                                       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(135): [--Wwarn=expected] warning: Register Ingress.response_pending: Expected stateful action 'reply_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) response_pending;
+                                    ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(136)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(response_pending) reply_read = {
+                                                              ^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(89): [--Wwarn=expected] warning: Register Ingress.operate_pending: Expected stateful action 'op_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) operate_pending;
+                                    ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(90)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(operate_pending) op_read = {
+                                                             ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(114): [--Wwarn=expected] warning: Register Ingress.ack_phase: Expected stateful action 'ack_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) ack_phase;
+                                    ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(115)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(ack_phase) ack_read = {
+                                                       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(135): [--Wwarn=expected] warning: Register Ingress.response_pending: Expected stateful action 'reply_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) response_pending;
+                                    ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_service_02/source/timing_service_probe.p4(136)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(response_pending) reply_read = {
+                                                              ^^^^^^^^^^
+
+0 errors, 10 warnings generated.
+

@@ -1,0 +1,35 @@
+test_canonical_cookie_and_literal_twenty_byte_envelope (test_held_originals.ActualHolderFixtureTests) ... ok
+test_close_before_admission_conserves_original_after_real_terminal (test_held_originals.ActualHolderFixtureTests) ... ok
+test_literal_valid_ack_bytes_and_complete_holder_prefixes (test_held_originals.ActualHolderFixtureTests) ... ok
+test_lost_original_and_lost_producer_are_independent_barriers (test_held_originals.ActualHolderFixtureTests) ... ok
+test_original_is_preserved_through_actual_three_work_returns (test_held_originals.ActualHolderFixtureTests) ... ok
+test_three_originals_debit_after_holding_flag_is_disabled (test_held_originals.ActualHolderFixtureTests) ... ok
+test_duplicate_kind_never_reuses_within_cookie (test_held_originals.HeldCreditTests) ... ok
+test_full_epoch_and_cookie_reject_stale_terminal (test_held_originals.HeldCreditTests) ... ok
+test_literal_credit_words_and_terminal_after_policy_off (test_held_originals.HeldCreditTests) ... ok
+test_lost_original_and_producer_both_block_reuse (test_held_originals.HeldCreditTests) ... ok
+test_operate_aborts_and_policy_on_holds (test_held_originals.HeldCreditTests) ... ok
+test_duplicate_foreign_original_and_work_do_not_change_credits (test_reference.OwnershipReferenceTest) ... ok
+test_full_gap_is_reanchored_to_actual_commit_near_expiry (test_reference.OwnershipReferenceTest) ... ok
+test_lost_original_keeps_quarantine_without_blockers (test_reference.OwnershipReferenceTest) ... ok
+test_modular_deadline_full_32_bit_wrap (test_reference.OwnershipReferenceTest) ... ok
+test_old_scan_on_same_connection_cannot_cancel_new_association (test_reference.OwnershipReferenceTest) ... ok
+test_operate_deadline_does_not_depend_on_blockers (test_reference.OwnershipReferenceTest) ... ok
+test_policy_off_debits_ack_response_and_aborts_unsent_operate (test_reference.OwnershipReferenceTest) ... ok
+test_reset_blocks_rearm_until_producer_terminal (test_reference.OwnershipReferenceTest) ... ok
+test_same_owner_producer_slot_cannot_reuse_after_terminal (test_reference.OwnershipReferenceTest) ... ok
+test_stale_readiness_snapshot_cannot_retire_committed_ack (test_reference.OwnershipReferenceTest) ... ok
+test_timing_cookie_exhaustion_refuses_wrap (test_reference.OwnershipReferenceTest) ... ok
+test_verified_connection_retirement_preserves_old_ref_rejection (test_reference.OwnershipReferenceTest) ... ok
+test_work_generation_exhaustion_refuses_wrap (test_reference.OwnershipReferenceTest) ... ok
+test_busy_claim_burns_counter_without_reusing_protected_record (test_work_reference.WorkReferenceTest) ... ok
+test_close_pins_until_real_return_without_publication_pass (test_work_reference.WorkReferenceTest) ... ok
+test_exact_recirculation_envelope_preserves_inner_bytes (test_work_reference.WorkReferenceTest) ... ok
+test_generation_check_and_phase_change_are_one_atomic_decision (test_work_reference.WorkReferenceTest) ... ok
+test_last_full_32_bit_generation_is_usable_then_no_wrap (test_work_reference.WorkReferenceTest) ... ok
+test_real_fourth_return_is_the_only_normal_terminal (test_work_reference.WorkReferenceTest) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.040s
+
+OK

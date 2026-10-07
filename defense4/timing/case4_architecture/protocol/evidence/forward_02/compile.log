@@ -1,0 +1,44 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(120): [--Wwarn=unused] warning: Table left1 is not used; removing
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(157): [--Wwarn=unused] warning: Table left2 is not used; removing
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(194): [--Wwarn=unused] warning: Table right1 is not used; removing
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(231): [--Wwarn=unused] warning: Table right2 is not used; removing
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(267): [--Wwarn=unused] warning: Table difference_t is not used; removing
+ table difference_t{actions={difference;}size=1;const default_action=difference();}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(269): [--Wwarn=unused] warning: Table growth_t is not used; removing
+ table growth_t{actions={growth;}size=1;const default_action=growth();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(270): [--Wwarn=unused] warning: Table window_guard is not used; removing
+ table window_guard{key={m.growth:ternary;}actions={deny;NoAction;}size=32;const default_action=NoAction();const entries={
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(304): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(306): [--Wwarn=unused] warning: Table complete_t is not used; removing
+ table complete_t{actions={complete;}size=1;const default_action=complete();}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(13): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(13)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(312): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/forward_02/source/mapping_forward.p4(312)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+
+0 errors, 13 warnings generated.
+

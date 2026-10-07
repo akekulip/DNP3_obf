@@ -1,0 +1,60 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "ee0a1a9a3140fc6379465c225db01325635b5803e44d0f0776b9b32639c0a215",
+    "carving.conf": "55d596e31306645fa87d48413e0cafed9e4c687a91359e67f53eee5cf07e681d",
+    "manifest.json": "8a21cfa0f78343a6648e6643f8afdd1929ac9019459d44e5db10e8ec961f43b0",
+    "pipe/carving.bfa": "a83a32071d9f0bb40fdf99754d78f25b8101d784a02c23c82763b558ab76d733",
+    "pipe/context.json": "ebb6665eb9bc62e1294cc32265470525afa377b616e18001129055e01714eb30",
+    "pipe/tofino.bin": "f09c1b09cd5c3597e4d08796a77ac273a7be43ac797ce82ee9a803158328435d"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/carving_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/carving_01/source/carving.p4"
+  ],
+  "compile_log_sha256": "06cd018a8d22a35e0b43fbf7c7c36e82fe8b3d863b8b4eb1e4ecb36ba137e967",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 6.237,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 4,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "d8bc67e05b5a6809a6feddbefb308acc177d238845a05f9443550a831898114e",
+      "pipe/logs/phv.json": "fe1faa442dd25946285f0725df13e5c566e8e7ee01f125b0b607d38192e878d8",
+      "pipe/logs/phv_allocation_0.log": "42baab8d93c0962ba5d156bf8ed125aef6b7b0c8945be87412f13dbebd2f99f2",
+      "pipe/logs/phv_allocation_3.log": "42baab8d93c0962ba5d156bf8ed125aef6b7b0c8945be87412f13dbebd2f99f2",
+      "pipe/logs/phv_allocation_history_0.log": "2dc1a9a43248199b0c1b13fe2118bd4fa765cd22ea3303f541eb1ac9e36e3274",
+      "pipe/logs/phv_allocation_history_3.log": "d728336badfee540054272060d8df89d6ac6316f64ab8dda070a4e1cf2b8cfe5",
+      "pipe/logs/phv_allocation_summary_0.log": "d443afa4cf17a324003a11720336380b35b65375eec7e19600d3a559cce62d4c",
+      "pipe/logs/phv_allocation_summary_3.log": "d443afa4cf17a324003a11720336380b35b65375eec7e19600d3a559cce62d4c",
+      "pipe/logs/table_dependency_graph.log": "56cc5b36082550746dab374585faa500fb77d89b9c35887b519fa76ac3795a50",
+      "pipe/logs/table_dependency_summary.log": "b30ddad506e298ecd371fff8535ea4a76807e50dfb4e1122fe0331b2e0180e59",
+      "pipe/logs/table_summary.log": "df5ea5e161f5fa82eceebf718c24df74d11fc2333648755d5e38dc98bd3e14b8"
+    },
+    "stages": {
+      "egress": 3,
+      "ingress": 7
+    },
+    "stateful_tables": [],
+    "tables_by_type": {
+      "condition": 15,
+      "match": 20
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/carving.p4",
+  "source_files": {
+    "carving.p4": "7081761f343389b98f602bcaf66248d29b2ed28937cd2d3dc3e6151307b48a13"
+  },
+  "source_sha256": "7081761f343389b98f602bcaf66248d29b2ed28937cd2d3dc3e6151307b48a13",
+  "timeout_seconds": 300
+}

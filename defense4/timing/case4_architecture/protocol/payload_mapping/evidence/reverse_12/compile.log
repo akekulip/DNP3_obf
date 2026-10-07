@@ -1,0 +1,28 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(55): [--Wwarn=unused] warning: Table seq1 is not used; removing
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(87): [--Wwarn=unused] warning: Table seq2 is not used; removing
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(304): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(12): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(12)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(318): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/payload_mapping/evidence/reverse_12/source/reverse.p4(318)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+0 errors, 9 warnings generated.
+

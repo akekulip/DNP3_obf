@@ -1,0 +1,33 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(20): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(20)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(158): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(158)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(101): [--Werror=unsupported] error: or: action spanning multiple stages. Operations on operand 2 ($tmp16[0..31]) in action close_pending require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+ action close_pending(){m.expected=hdr.envelope.expected_cell;m.desired=(hdr.envelope.expected_cell&32w0xffff)|32w0x60000;m.owner_op=8w1;}
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(101)
+ action close_pending(){m.expected=hdr.envelope.expected_cell;m.desired=(hdr.envelope.expected_cell&32w0xffff)|32w0x60000;m.owner_op=8w1;}
+        ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(102): [--Werror=unsupported] error: or: action spanning multiple stages. Operations on operand 2 ($tmp17[0..31]) in action close_free require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+ action close_free(){m.expected=hdr.envelope.expected_cell;m.desired=(hdr.envelope.expected_cell&32w0xffff)|32w0x70000;m.owner_op=8w1;}
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_05/source/handshake.p4(102)
+ action close_free(){m.expected=hdr.envelope.expected_cell;m.desired=(hdr.envelope.expected_cell&32w0xffff)|32w0x70000;m.owner_op=8w1;}
+        ^^^^^^^^^^
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 6 warnings generated.
+

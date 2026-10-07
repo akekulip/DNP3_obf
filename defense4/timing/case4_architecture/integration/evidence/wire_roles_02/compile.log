@@ -1,0 +1,114 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(141): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(267): [--Wwarn=unused] warning: Table left1 is not used; removing
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(304): [--Wwarn=unused] warning: Table left2 is not used; removing
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(341): [--Wwarn=unused] warning: Table right1 is not used; removing
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(378): [--Wwarn=unused] warning: Table right2 is not used; removing
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(414): [--Wwarn=unused] warning: Table difference_t is not used; removing
+ table difference_t{actions={difference;}size=1;const default_action=difference();}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(416): [--Wwarn=unused] warning: Table growth_t is not used; removing
+ table growth_t{actions={growth;}size=1;const default_action=growth();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(417): [--Wwarn=unused] warning: Table window_guard is not used; removing
+ table window_guard{key={m.growth:ternary;}actions={deny;NoAction;}size=32;const default_action=NoAction();const entries={
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(451): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(453): [--Wwarn=unused] warning: Table complete_t is not used; removing
+ table complete_t{actions={complete;}size=1;const default_action=complete();}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(515): [--Wwarn=unused] warning: Table seq1 is not used; removing
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(547): [--Wwarn=unused] warning: Table seq2 is not used; removing
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(15): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'padding_IgParser' terminates
+parser padding_IgParser(packet_in pkt,out padding_headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(15)
+parser padding_IgParser(packet_in pkt,out padding_headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(160): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'forward_IgParser' terminates
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(160)
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(473): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'reverse_IgParser' terminates
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(473)
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(785): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_IgParser' terminates
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(785)
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(821): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_EgParser' terminates
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(821)
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(838): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'replay_IgParser' terminates
+parser replay_IgParser(packet_in pkt,out replay_headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(838)
+parser replay_IgParser(packet_in pkt,out replay_headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(921): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(921)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(967): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(967)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(145): [--Werror=legacy] error: Destination m.padding.changed must be intrinsic metadata 
+control padding_IgDeparser(packet_out pkt,inout padding_headers_t hdr,in padding_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Checksum() ic;Checksum() tc;apply{if(m.changed==1w1){hdr.ip.checksum=ic.update({hdr.ip.version,hdr.ip.ihl,hdr.ip.tos,hdr.ip.len,hdr.ip.id,hdr.ip.flags,hdr.ip.frag,hdr.ip.ttl,hdr.ip.proto,hdr.ip.src,hdr.ip.dst});hdr.tcp.checksum=tc.update({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,m.tcp_length,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.urgent,hdr.dl.magic,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src,hdr.dl.crc,hdr.native.tp,hdr.native.app,hdr.native.func,hdr.native.group,hdr.native.variation,hdr.native.qualifier,hdr.native.count,hdr.native.index,hdr.native.code,hdr.native.repeat,hdr.native.on,hdr.native.crc,hdr.appended.off,hdr.appended.status,hdr.appended.group,hdr.appended.variation,hdr.appended.qualifier,hdr.appended.count,hdr.appended.index,hdr.appended.code,hdr.appended.repeat,hdr.appended.on_first,hdr.appended.crc,hdr.last.on_last,hdr.last.off,hdr.last.status,hdr.last.crc});}pkt.emit(hdr.eth);pkt.emit(hdr.ip);pkt.emit(hdr.tcp);pkt.emit(hdr.dl);pkt.emit(hdr.native);pkt.emit(hdr.tail);pkt.emit(hdr.appended);pkt.emit(hdr.last);}}
+                                                                                                                                                                                ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(961): [--Werror=legacy] error: Destination m.role must be intrinsic metadata 
+if(m.role==8w1){padding.apply(pkt,hdr.padding,m.padding,md);}
+   ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(458): [--Werror=legacy] error: Destination m.forward.changed must be intrinsic metadata 
+control forward_IgDeparser(packet_out pkt,inout forward_headers_t hdr,in forward_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Checksum() tcpcheck;apply{if(m.changed==1w1){hdr.tcp.checksum=tcpcheck.update({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,m.tcp_len,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.urgent});}pkt.emit(hdr.eth);pkt.emit(hdr.ip);pkt.emit(hdr.tcp);}}
+                                                                                                                                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(962): [--Werror=legacy] error: Destination m.role must be intrinsic metadata 
+else if(m.role==8w2){forward.apply(pkt,hdr.forward,m.forward,md);}
+        ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(771): [--Werror=legacy] error: Destination m.reverse.changed must be intrinsic metadata 
+control reverse_IgDeparser(packet_out pkt,inout reverse_headers_t hdr,in reverse_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Checksum() tcpcheck;apply{if(m.changed==1w1){hdr.tcp.checksum=tcpcheck.update({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,m.tcp_len,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.urgent});}pkt.emit(hdr.eth);pkt.emit(hdr.ip);pkt.emit(hdr.tcp);}}
+                                                                                                                                                                        ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(963): [--Werror=legacy] error: Destination m.role must be intrinsic metadata 
+else if(m.role==8w3){reverse.apply(pkt,hdr.reverse,m.reverse,md);}
+        ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(964): [--Werror=legacy] error: Destination m.role must be intrinsic metadata 
+else if(m.role==8w4){carving.apply(pkt,hdr.carving,m.carving,md);}
+        ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(914): [--Werror=legacy] error: Destination m.replay.render must be intrinsic metadata 
+control replay_IgDeparser(packet_out pkt,inout replay_headers_t hdr,in replay_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Checksum() ic;Checksum() tc;apply{if(m.render==1w1){hdr.ip.checksum=ic.update({hdr.ip.version,hdr.ip.ihl,hdr.ip.tos,hdr.ip.len,hdr.ip.id,hdr.ip.flags,hdr.ip.frag,hdr.ip.ttl,hdr.ip.proto,hdr.ip.src,hdr.ip.dst});hdr.tcp.checksum=tc.update({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,m.tcp_length,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.urgent,hdr.image.w0,hdr.image.w1,hdr.image.w2,hdr.image.w3,hdr.image.w4,hdr.image.w5,hdr.image.w6,hdr.image.w7,hdr.image.w8,hdr.image.w9,hdr.image.w10,hdr.image.w11,hdr.image.w12,hdr.image.w13});}pkt.emit(hdr.eth);pkt.emit(hdr.ip);pkt.emit(hdr.tcp);pkt.emit(hdr.native);pkt.emit(hdr.image);}}
+                                                                                                                                                                             ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_02/source/wire_roles.p4(965): [--Werror=legacy] error: Destination m.role must be intrinsic metadata 
+else if(m.role==8w5){replay.apply(pkt,hdr.replay,m.replay,md);}
+        ^^^^^^
+
+9 errors, 20 warnings generated.
+

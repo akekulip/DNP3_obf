@@ -1,0 +1,26 @@
+{
+  "status": "offline specification, not configured or measured",
+  "compiler_family": "TNA Tofino-1, local9.13.1 only",
+  "requested_app_id": 0,
+  "requested_ingress_source_port": 68,
+  "requested_timer_nanoseconds": 100000,
+  "batch_count": 1,
+  "packet_count_per_batch": 1,
+  "sdk_timer_prefix_bytes": 6,
+  "timer_prefix_type": "pktgen_timer_header_t",
+  "command_ether_type": 35028,
+  "diagnostic_association": {"epoch32": 1, "cookie32": 1},
+  "service_event": 0,
+  "clock_interface": "low32 global_tstamp nanoseconds AND0xffffff00",
+  "quantized_operate_deadline_offsets_ns": [4999936, 9999872, 14999808, 20000000],
+  "quantized_readiness_offset_ns": 29999872,
+  "quantized_response_gap_ns": 999936,
+  "policy_cap_ns": 40000000,
+  "gates": [
+    "Actual native association and full owner event integration",
+    "Port-role exclusivity and legitimate model/physical configuration",
+    "Independent pktgen service under declared workload",
+    "Observed queue service and packet departure timing",
+    "Exact9.13.2 artifact and full architecture fit"
+  ]
+}

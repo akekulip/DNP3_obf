@@ -1,0 +1,15 @@
+test_actual_denial_gate_prevents_shared_bank_mutation (test_branch_cache.BranchCache) ... ok
+test_actual_replay_denial_gate_prevents_shared_reads (test_branch_cache.BranchCache) ... ok
+test_atomic_cas_reads_and_stale_conflict (test_buckets.Buckets) ... ok
+test_reference_zero_wrap_reorder_duplicates_conflicts_deadline (test_buckets.Buckets) ... ok
+test_frozen_denial_still_writes_and_admission_guard_prevents_it (test_denied_writer.DeniedWriter) ... ok
+test_actual_offset_tables_all_reordered_overlaps_and_duplicates (test_merge.Merge) ... ok
+test_existing_byte_conflict_is_fault_before_cas (test_merge.Merge) ... ok
+test_actual_reordered_fragments_origin_zero_wrap_and_full_crc (test_producer.Producer) ... ok
+test_bad_complete_crc_sticky_and_expired_do_not_publish (test_producer.Producer) ... ok
+test_foreign_private_cookie_cannot_poison_and_hops_are_bounded (test_producer.Producer) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 9.215s
+
+OK

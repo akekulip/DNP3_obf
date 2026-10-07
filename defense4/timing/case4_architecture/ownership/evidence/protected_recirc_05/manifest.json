@@ -1,0 +1,92 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "1bc3c85b7cbcc7d0c573ae8b883b0fd9a468470d4be82e5e70f8fc14b4c5ea38",
+    "manifest.json": "d43c2b46ca475826d46ac2a9969ec514a98af2fcf81112919154e81ec9493b53",
+    "pipe/context.json": "1c1d6a00881b1d195ea6b6e28264597e34ce2b730b495f0105630494ac750fd2",
+    "pipe/protected_recirc_probe.bfa": "6774eca03dec138e58a0f68ddcb30c247ddfe4a839a16aa067f7a31e785c1bc8",
+    "pipe/tofino.bin": "07c8717e02f42e6cad6831e456600805e7ef0b5d5508117b49a6e7fb56aec388",
+    "protected_recirc_probe.conf": "8e50583aef457ffd862e2048ffb6ca727d2ec7cf7ffdcbb41ffcd55972785cd0"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_recirc_05/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_recirc_05/source/protected_recirc_probe.p4"
+  ],
+  "compile_log_sha256": "b06e57d5bcb553628fe2045f132cd60233e21a466f2471747efe15428a977666",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 5.973,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 12,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "cfab03622bff783d2dccf85f1a0d3aa219f1ae7a1c5741333311cb1b4fc84c6a",
+      "pipe/logs/phv.json": "dc16c7f4ec5c4729753c031f54ae378ff5be8d425c1b4ac738863429c678ec79",
+      "pipe/logs/phv_allocation_0.log": "74d2039ab27cd7679a64767c5724af184c030893497114acd581288bfb22f949",
+      "pipe/logs/phv_allocation_history_0.log": "8dbc5cef89184ee621a06e72343a505347d034d958f4ed0096e24c9afa998574",
+      "pipe/logs/phv_allocation_summary_0.log": "975052d84e026cb9da387c196f5e7d9af45659ee50ce6c508bc2b21bfc0fabb2",
+      "pipe/logs/table_dependency_graph.log": "db47523927a1b2ae806fa8ba582405eb05b336fbac7339b6a0134ae62a3ca58f",
+      "pipe/logs/table_dependency_summary.log": "cd5d0cf1c289c6f809a6711614f436850219c4034e92c6ffccdc55b20076a3e3",
+      "pipe/logs/table_summary.log": "f6ad975279fff604dd3ac577156033f00760c9423d52f1de7141da63e01b8aa0"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 12
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.connection_epoch",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.work_counter",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.work.work",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.owner.lifecycle",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.publication",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.payload",
+        "size": 1
+      }
+    ],
+    "tables_by_type": {
+      "condition": 27,
+      "match": 39,
+      "stateful": 6
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/p4/protected_recirc_probe.p4",
+  "source_files": {
+    "owner_protected_cell.p4": "d3735c2dce45fbb7ac5fc93a41779a8d3e798c2d7bdf1581996c901c9c276653",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "protected_recirc_probe.p4": "9b03dc2e16b7cba16bf764e8b209471945e1bbad0eb3347000f02230fd557538",
+    "work_record.p4": "11f7cbbf00184790383347a4b3f5c26318cf7b9f7a1f43310fcef94ed2f20961"
+  },
+  "source_sha256": "9b03dc2e16b7cba16bf764e8b209471945e1bbad0eb3347000f02230fd557538",
+  "timeout_seconds": 300
+}

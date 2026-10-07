@@ -1,0 +1,25 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(10): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(10)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(165): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(165)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Werror=unsupported] error: Two or more assignments of rv inside the register action cas_0 are not mutually exclusive and thus cannot be implemented in Tofino Stateful ALU.
+	These potentially sequential assignments have been detected here:
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(23)
+ rv=32w1;if(v.generation==m.generation&&v.encoded==hdr.expected.w0){v.encoded=hdr.candidate.w0;rv=32w0;}
+   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/buckets_01/source/buckets.p4(23)
+ rv=32w1;if(v.generation==m.generation&&v.encoded==hdr.expected.w0){v.encoded=hdr.candidate.w0;rv=32w0;}
+                                                                                                 ^
+Please, rewrite your code to make sure the value is assigned no more than once in all cases.
+
+1 error, 3 warnings generated.
+

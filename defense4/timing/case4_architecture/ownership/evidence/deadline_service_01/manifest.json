@@ -1,0 +1,78 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "bb548de0f6da5e7f1786dcf00d41b0b75af8f3bf1a550aa30a722f78287ecefd",
+    "deadline_service_probe.conf": "9835c5d5edcf67d90be220f28d7bc95b84caff5f3212ba6653b744576ceba93c",
+    "manifest.json": "82042dc9eaa2191b7d316255dfcb1b0d99c1aca1502130bd988991cf0682e024",
+    "pipe/context.json": "7a7813d04ef6ba62b07d5144265365cdb5f09a9220fc2ae2e757189325660b2f",
+    "pipe/deadline_service_probe.bfa": "7bf04461a99105a394b1c688f22d125f20b0ac1ecc7763c0aab17da408358ba3",
+    "pipe/tofino.bin": "b8569d0299ed5837e5b14cf599f135c7d0f398b28fbeaece196edcf26810e3bc"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/deadline_service_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/deadline_service_01/source/deadline_service_probe.p4"
+  ],
+  "compile_log_sha256": "940fe159883caab9542e2baa619a3b3e7b93456e8a28df2a50a1f4df603d4a0a",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 3.571,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 5,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "34a681d213050030ee13b37a7b14a400b59761d58d63a30d92d0cbe3ad08e39d",
+      "pipe/logs/phv.json": "3429b5e776e1cc26e682d504828a0f90c34307fe0d19a693e35e9e82c37432f6",
+      "pipe/logs/phv_allocation_0.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+      "pipe/logs/phv_allocation_3.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+      "pipe/logs/phv_allocation_history_0.log": "e49493d25ab9036befd26c3d0e32453953afc49062095f91b107d6a3a0321aa2",
+      "pipe/logs/phv_allocation_history_3.log": "f387b64c1c28cf1678e823d93a888928a6127afdff8b72ee44aa9abebb5567aa",
+      "pipe/logs/phv_allocation_summary_0.log": "069218c15615fe4263a4c1b925a5125316e1cae8d34aa1af6085702dca54305c",
+      "pipe/logs/phv_allocation_summary_3.log": "069218c15615fe4263a4c1b925a5125316e1cae8d34aa1af6085702dca54305c",
+      "pipe/logs/table_dependency_graph.log": "311167d32ac50f8495207ce2c158291f37741ac310caa04e2aa45536aa673e97",
+      "pipe/logs/table_dependency_summary.log": "f01f357bfbc1bf0da96c3ec7fae72acfb9869303ab77c3b67e5f11a30d1184e4",
+      "pipe/logs/table_summary.log": "4231bb0c7b850f8e85ba769e36c77cf0877a5618c444e3fe22ab3e5523f21367"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 8
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.readiness_deadline",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.operate_deadline",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.response_deadline",
+        "size": 1
+      }
+    ],
+    "tables_by_type": {
+      "condition": 6,
+      "match": 19,
+      "stateful": 3
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/p4/deadline_service_probe.p4",
+  "source_files": {
+    "deadline_service_probe.p4": "101d2012e4f9e43446ce9ac682a5ad05840168e85a1c592015f30010e4e37db3",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e"
+  },
+  "source_sha256": "101d2012e4f9e43446ce9ac682a5ad05840168e85a1c592015f30010e4e37db3",
+  "timeout_seconds": 300
+}

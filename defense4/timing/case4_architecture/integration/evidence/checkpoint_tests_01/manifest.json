@@ -1,0 +1,44 @@
+{
+  "full_target": false,
+  "scope": "Fresh root helper/build/model-outcome/READ/cache and grouped assembly source-fragment tests only",
+  "suites": [
+    {
+      "suite": "tests",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.842,
+      "log": "tests.log",
+      "log_sha256": "aae74bc11b815c1d17415f2049ecb67dfa2c3e578d3d099f647df30c7daf8594"
+    },
+    {
+      "suite": "integration/assembly_passes/tests",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integration/assembly_passes/tests",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 15.037,
+      "log": "integration_assembly_passes_tests.log",
+      "log_sha256": "d6edff25e72262fe0582d1634779ab66441826fb75ffc156f4fb1a1a1fbfb4e1"
+    }
+  ]
+}

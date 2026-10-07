@@ -2,6 +2,22 @@
 
 These are distinct levels: implemented, offline-tested, compiled, loaded, configured and hardware-measured. Current complete target acceptance is **not achieved**. Historical successful snapshots do not qualify changed source.
 
+New architecture checkpoint: [handover](../../case4_architecture/HANDOVER.md),
+[focused plan](../../case4_architecture/PLAN.md). Experiments stopped at Philip's
+request. The original rows below retain earlier baseline evidence.
+
+| New capability | Achieved | Still required |
+|---|---|---|
+| Shared cache/carving/READ compositions | Local9.13.1 compiled10/7; verification02 | Lifetime pin/no-reuse, payload mapping and live owner join |
+| Full READ validation | Local compiled6/0; packet/profile/link/CRC checks | Actual timing/connection admission and terminal integration |
+| Payload mapping | Forward10/0, reverse11/0; exact-byte references | Actual WorkRecord gate and upstream validator |
+| Expected-phase holder / native credits | Local compiled12/0 and4/0 | Native admission, lifecycle, service and physical measurements |
+| Native binding | Implemented; historical authorities fail17–18stages | Unfixed retry/ACK drops; current source uncompiled; receipts/reuse/timing |
+| Assembly alternatives | Executable grouped/worker/byte/staged candidates | Current producer460PHV slices, four-bank workers48; lifetime authority |
+| Controller checkpoint | Rollback relabeling repaired;17 targeted tests | Complete qualified source/schema/inventory; registry empty |
+
+No new model packets, loaded/configured state or hardware measurements are claimed.
+
 | Capability | Current implementation / evidence | Level attained | Remaining acceptance |
 |---|---|---|---|
 | Timing contract/model | Request-anchored response-ready schedule; explicit quarantine/original termination and matching reset, including deferred-return model. | Implemented, offline-tested with ideal service assumptions. | Full parser/queue/bank interleaving and physical departure/drain; policy-off terminal debit/cleanup remains unproved. |

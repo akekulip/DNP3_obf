@@ -1,0 +1,32 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(53): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(57): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(100): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(20): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(20)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(164): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(164)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/handshake_08/source/handshake.p4(139): error: gateway condition too complex
+     m.kind=m.packet_kind;if((m.kind==8w1&&m.direction!=8w1)||(m.kind==8w2&&m.direction!=8w2)||(m.kind==8w3&&m.direction!=8w1)){m.shape_valid=8w0;}
+                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1 error, 9 warnings generated.
+
+Skipping assembler, assembly file is empty

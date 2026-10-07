@@ -2,6 +2,14 @@
 
 No current full Case 4 target, deployment, hardware timing/size acquisition or physical OPERATE is claimed. A source-fragment assertion, local compile, successful endpoint callback and wire capture establish different facts.
 
+The [new checkpoint](../../case4_architecture/HANDOVER.md) separately records local
+component/composition compiles for exact9.13.1 sources. They do not establish the
+missing transparent forwarding, lifetime pin, assembly or timing joins. Independent
+18-check review executes source fragments, not whole-target packets. The target
+model did not start. Historical compile statements below apply to earlier sources,
+not all new candidates. Experiments stopped at Philip's request; full scope stays
+required and unfinished.
+
 | Claim | Evidence | Permitted statement | Not established |
 |---|---|---|---|
 | Original conservation/recovery | Current core22 snapshot; response_ready tests; real-byte/control/SALU/table fixtures and post-review wrapper mutations. | Tested predicates/mask operands are executed from source fragments; old cookies cannot remove tested current originals; modeled quarantine waits for completion; OP scalar/table commitment is deadline-qualified; actual queued OPERATE-envelope service is unproved. | Complete parser/BOR control, bank interleaving, lost-original physical termination, queue drain or actual next-flow target service. Turning read_release off can forward native repairs without clearing original credit; conservative quarantine does not prove stop liveness. |

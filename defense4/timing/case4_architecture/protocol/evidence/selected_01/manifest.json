@@ -1,0 +1,61 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "67cbfbedb6ddb7c28b0075a0c24a0382127ede83bb5ef84e8870f0bfa2ab4cd9",
+    "manifest.json": "a4e393cbe12c7e5680f85cc4561c7b7189daeb68a786370381d32a276c291848",
+    "pipe/context.json": "929a7f0c8c6b87d04497c645541395e368cc6c401676d677c18450f8d2944345",
+    "pipe/selected_padding.bfa": "7dad8b71d972526396d8cad8ecd9afb5ca84fc80475b6e1758ec4966b3df56dc",
+    "pipe/tofino.bin": "c9c052e97b8537f2f6dfa794b28d0a75ed9b1cfc7c16a751adf351ddad3ef98b",
+    "selected_padding.conf": "edc2516a70c3b9875ea928532a33524e9cf3630153a057bd31bc29b3b5f74c00"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_01/source/selected_padding.p4"
+  ],
+  "compile_log_sha256": "458c2a2b313fc635fa12dc943cc343d49ec78e4f6fcc0ef94dea3d4c2459c68a",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 5.794,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 6,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "5b4be5d34165764234c90aee2b8ceb8c228733c6df7db2f56fb145687643a20b",
+      "pipe/logs/phv.json": "f1e9bf4f287cafd9e729541fd6e885c93dcc4bf1e9b9d5cc540bb9595576853f",
+      "pipe/logs/phv_allocation_0.log": "335f9741e551d6330f26e7d75534e073dc4ddcdf8d485031f57da45c18963b70",
+      "pipe/logs/phv_allocation_3.log": "335f9741e551d6330f26e7d75534e073dc4ddcdf8d485031f57da45c18963b70",
+      "pipe/logs/phv_allocation_history_0.log": "358799e14ae90b72528456a08e97113693b8a4b9d48a4c783039378431fb0c83",
+      "pipe/logs/phv_allocation_history_3.log": "61ce8c2af43336f55daa7b7b6bd7fb0403076af1eab1ccb80893fefb8e67902f",
+      "pipe/logs/phv_allocation_summary_0.log": "2439030b18024ea7e5539cd0b93591f1feef12ac2317e301e6cb3adb36bf42ca",
+      "pipe/logs/phv_allocation_summary_3.log": "2439030b18024ea7e5539cd0b93591f1feef12ac2317e301e6cb3adb36bf42ca",
+      "pipe/logs/table_dependency_graph.log": "204a2c52f330539ca4f1e4fed957bf3dad66f87e5d51bd7658e93f802bbf4f94",
+      "pipe/logs/table_dependency_summary.log": "ef37930d313a0fd3d645b0090b982937a7860178317046c9657deb211912232d",
+      "pipe/logs/table_summary.log": "8012f08a77428e91b87ea7158c3ce755a807a27c884ec15a5cb030a490fc664e"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 12
+    },
+    "stateful_tables": [],
+    "tables_by_type": {
+      "action": 2,
+      "condition": 11,
+      "match": 18
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/selected_padding.p4",
+  "source_files": {
+    "selected_padding.p4": "6e2ddc75a58f42c181ebf568208cb9eb0d312d0246dbd88128655aebccdbe7d6"
+  },
+  "source_sha256": "6e2ddc75a58f42c181ebf568208cb9eb0d312d0246dbd88128655aebccdbe7d6",
+  "timeout_seconds": 300
+}

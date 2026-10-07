@@ -1,0 +1,59 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(190): [--Wwarn=unused] warning: Table source_diff is not used; removing
+    table source_diff { actions = { source_difference; } const default_action = source_difference(); size = 1; }
+          ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(191): [--Wwarn=unused] warning: Table source_authority is not used; removing
+    table source_authority {
+          ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(27): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(27)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(95): [--Wwarn=expected] warning: Register Ingress.operate_pending: Expected stateful action 'op_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) operate_pending;
+                                    ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(96)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(operate_pending) op_read = {
+                                                             ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(120): [--Wwarn=expected] warning: Register Ingress.ack_phase: Expected stateful action 'ack_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) ack_phase;
+                                    ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(121)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(ack_phase) ack_read = {
+                                                       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(141): [--Wwarn=expected] warning: Register Ingress.response_pending: Expected stateful action 'reply_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) response_pending;
+                                    ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(142)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(response_pending) reply_read = {
+                                                              ^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(95): [--Wwarn=expected] warning: Register Ingress.operate_pending: Expected stateful action 'op_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) operate_pending;
+                                    ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(96)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(operate_pending) op_read = {
+                                                             ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(120): [--Wwarn=expected] warning: Register Ingress.ack_phase: Expected stateful action 'ack_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) ack_phase;
+                                    ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(121)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(ack_phase) ack_read = {
+                                                       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(141): [--Wwarn=expected] warning: Register Ingress.response_pending: Expected stateful action 'reply_read' to have instructions assigned. Please verify the action is valid.
+    Register<bit<32>, bit<1>>(1, 0) response_pending;
+                                    ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/timing_bound_01/source/timing_bound_probe.p4(142)
+    RegisterAction<bit<32>, bit<1>, bit<8>>(response_pending) reply_read = {
+                                                              ^^^^^^^^^^
+
+0 errors, 12 warnings generated.
+

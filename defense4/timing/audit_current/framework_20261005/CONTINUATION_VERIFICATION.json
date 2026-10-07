@@ -476,5 +476,49 @@
     "push": false,
     "frozen_manuscript_mutation": false
   },
-  "limitations": "Offline components and one isolated kernel-repair pair do not establish complete target, general TCP, future timing bounds, physical inertness or full statistical acceptance."
+  "limitations": "Offline components and one isolated kernel-repair pair do not establish complete target, general TCP, future timing bounds, physical inertness or full statistical acceptance.",
+  "architecture_checkpoint_20261006": {
+    "execution_base": "a96a8e32758d498c58a3772ee774596658aad2d9",
+    "reason": "User requested stopping experiments and updating plans/handover for weekly token limits",
+    "all_plan_requirements_complete": false,
+    "full_target_qualified": false,
+    "experiments_stopped": true,
+    "current_native_binding_sha256": "8b2164a48bf4a8b0026f901fe4387952a0596ef0210730ba5a61a0093bd8b7be",
+    "current_native_binding_compiled": false,
+    "known_unfixed_defect": "Supported native handshake retries and established pure ACKs are dropped through event01ff",
+    "next_step": "Repair transparent connection forwarding, then integrate one actual READ timing path; follow focused PLAN.md",
+    "fresh_root_tests": {
+      "root": 27,
+      "assembly": 7,
+      "evidence": "defense4/timing/case4_architecture/integration/evidence/checkpoint_tests_01/manifest.json"
+    },
+    "independent_protocol_review": {
+      "tests": 18,
+      "sealed_inventory_hashes_verified": 33
+    },
+    "implementation_owner_reports": {
+      "binding_tests": 15,
+      "controller_tests": 17,
+      "rollback_registry_bypass_fixed": true
+    },
+    "target_model_packet_execution": false,
+    "hardware_actions": false,
+    "full_source_current_sde_9_13_2_build": false,
+    "references_sha256": {
+      "defense4/timing/case4_architecture/PLAN.md": "1c18887d4f91b3b9505dc94b7a80d1b3d9d5112322f99886ac81bf058be81fda",
+      "defense4/timing/case4_architecture/HANDOVER.md": "eb69d6d4c4ea62c9044f09120a3c7cacabce0f62ddbc52f757163a03820f6b9a",
+      "defense4/timing/case4_architecture/integration/evidence/verified_milestones_02.json": "d88c0e717b30ff5f7f5ab2be91e730715dd7acc6ae8d90dbfb3de11dfcbebe92",
+      "defense4/timing/case4_architecture/integration/evidence/checkpoint_tests_01/manifest.json": "59eef1e9116d25825bb4f0bd6f2951679dce9e516c85125253004b35f138f90b",
+      "defense4/timing/case4_architecture/protocol/review/evidence/verification_01/manifest.json": "2ce9139ea7d0b5a79fedbd4a78fd382e08512e96371b064228733c2a724f780a",
+      "defense4/timing/case4_architecture/ownership/review/REPORT.md": "a54ad5c648ae8e701e765f38de2120bb8c25f6850c1942206d52aac6f993d1a1",
+      "defense4/timing/case4_architecture/integration/REPORT.md": "2d0c42d2a7112e4e3bfe8fa22cb8ff7905dc9cdadd2d874a7f411f68f48ba8f3"
+    },
+    "preservation": {
+      "protected_files_checked": 2210,
+      "hash_mismatches": 0,
+      "unrelated_user_files_staged": false
+    },
+    "syntax_checked_current_python_files": 84,
+    "whitespace_check": "Trailing whitespace retained in frozen generator inputs and sealed snapshots; documentation clean. No evidence bytes rewritten for formatting."
+  }
 }

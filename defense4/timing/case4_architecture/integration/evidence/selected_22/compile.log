@@ -1,0 +1,34 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_22/source/selected.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_22/source/selected.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_22/source/selected.p4(200): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_22/source/selected.p4(200)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[15:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.second.w1[15:0]" with "hdr.second.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[7:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[31:24]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[15:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.return_packet: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+
+0 errors, 21 warnings generated.
+

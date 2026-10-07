@@ -1,0 +1,104 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_04/source/selected.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_04/source/selected.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_04/source/selected.p4(221): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_04/source/selected.p4(221)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::m.bcrc, ingress::hdr.first.crc, ingress::hdr.native.crc, ingress::m.bcrc, ingress::hdr.first.crc, ingress::hdr.native.crc, ingress::m.compare_real_on, ingress::hdr.first.w3, ingress::hdr.native.on, ingress::m.compare_real_code_repeat, ingress::hdr.first.w3, ingress::hdr.native.repeat, ingress::m.compare_real_code_repeat, ingress::hdr.first.w3, ingress::hdr.native.code, ingress::m.compare_real_index, ingress::hdr.first.w2, ingress::m.decoy_index, ingress::hdr.native.index, ingress::m.compare_frozen_decoy_index, ingress::hdr.second.w3, ingress::hdr.first.w2, ingress::hdr.first.w1, ingress::hdr.first.w0, ingress::m.compare_application, ingress::hdr.native.app, ingress::hdr.first.w0, ingress::m.compare_application, ingress::hdr.first.w0, ingress::hdr.first.w0, ingress::m.crc1, ingress::hdr.second.crc, ingress::m.crc1, ingress::hdr.second.crc, ingress::m.compare_frozen_decoy_code_repeat, ingress::hdr.second.w3, ingress::m.decoy_repeat, ingress::m.compare_frozen_decoy_code_repeat, ingress::hdr.second.w3, ingress::m.decoy_code, ingress::hdr.second.w2, ingress::hdr.second.w1, ingress::m.compare_real_off, ingress::hdr.second.w1, ingress::hdr.tail.off, ingress::m.compare_real_off, ingress::hdr.second.w0, ingress::hdr.tail.off, ingress::m.compare_real_on, ingress::hdr.second.w0, ingress::hdr.native.on, ingress::hdr.native.count, ingress::hdr.native.qualifier, ingress::hdr.native.variation, ingress::hdr.native.group, ingress::hdr.native.func, ingress::hdr.native.app, ingress::hdr.native.tp, ingress::m.tcrc, ingress::hdr.response_tail.crc, ingress::hdr.tail.crc, ingress::m.tcrc, ingress::hdr.response_tail.crc, ingress::hdr.tail.crc, ingress::hdr.response_tail.w2, ingress::m.compare_frozen_decoy_off, ingress::hdr.response_tail.w1, ingress::m.decoy_off, ingress::m.compare_frozen_decoy_on, ingress::hdr.response_tail.w0, ingress::m.decoy_on, ingress::hdr.tail.status, ingress::m.compare_application
+
+error: PHV allocation was not successful
+73 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::m.bcrc<16b>[15:8]
+    ingress::hdr.first.crc<16b>[7:0]
+    ingress::hdr.native.crc<16b>[7:0]
+    ingress::m.bcrc<16b>[7:0]
+    ingress::hdr.first.crc<16b>[15:8]
+    ingress::hdr.native.crc<16b>[15:8]
+    ingress::m.compare_real_on<32b>[31:16]
+    ingress::hdr.first.w3<32b>[15:0]
+    ingress::hdr.native.on<32b>[31:16]
+    ingress::m.compare_real_code_repeat<32b>[7:0]
+    ingress::hdr.first.w3<32b>[23:16]
+    ingress::hdr.native.repeat<8b>
+    ingress::m.compare_real_code_repeat<32b>[15:8]
+    ingress::hdr.first.w3<32b>[31:24]
+    ingress::hdr.native.code<8b>
+    ingress::m.compare_real_index<32b>[15:0]
+    ingress::hdr.first.w2<32b>[15:0]
+    ingress::m.decoy_index<16b>
+    ingress::hdr.native.index<16b>
+    ingress::m.compare_frozen_decoy_index<32b>[15:0]
+    ingress::hdr.second.w3<32b>[31:16]
+    ingress::hdr.first.w2<32b>[31:16]
+    ingress::hdr.first.w1<32b>
+    ingress::hdr.first.w0<32b>[15:0]
+    ingress::m.compare_application<32b>[3:0]
+    ingress::hdr.native.app<8b>[3:0]
+    ingress::hdr.first.w0<32b>[19:16]
+    ingress::m.compare_application<32b>[7:4]
+    ingress::hdr.first.w0<32b>[23:20]
+    ingress::hdr.first.w0<32b>[31:24]
+    ingress::m.crc1<16b>[15:8]
+    ingress::hdr.second.crc<16b>[7:0]
+    ingress::m.crc1<16b>[7:0]
+    ingress::hdr.second.crc<16b>[15:8]
+    ingress::m.compare_frozen_decoy_code_repeat<32b>[7:0]
+    ingress::hdr.second.w3<32b>[7:0]
+    ingress::m.decoy_repeat<8b>
+    ingress::m.compare_frozen_decoy_code_repeat<32b>[15:8]
+    ingress::hdr.second.w3<32b>[15:8]
+    ingress::m.decoy_code<8b>
+    ingress::hdr.second.w2<32b>
+    ingress::hdr.second.w1<32b>[15:0]
+    ingress::m.compare_real_off<32b>[15:0]
+    ingress::hdr.second.w1<32b>[31:16]
+    ingress::hdr.tail.off<32b>[15:0]
+    ingress::m.compare_real_off<32b>[31:16]
+    ingress::hdr.second.w0<32b>[15:0]
+    ingress::hdr.tail.off<32b>[31:16]
+    ingress::m.compare_real_on<32b>[15:0]
+    ingress::hdr.second.w0<32b>[31:16]
+    ingress::hdr.native.on<32b>[15:0]
+    ingress::hdr.native.count<16b>
+    ingress::hdr.native.qualifier<8b>
+    ingress::hdr.native.variation<8b>
+    ingress::hdr.native.group<8b>
+    ingress::hdr.native.func<8b>
+    ingress::hdr.native.app<8b>[7:4]
+    ingress::hdr.native.tp<8b>
+    ingress::m.tcrc<16b>[15:8]
+    ingress::hdr.response_tail.crc<16b>[7:0]
+    ingress::hdr.tail.crc<16b>[7:0]
+    ingress::m.tcrc<16b>[7:0]
+    ingress::hdr.response_tail.crc<16b>[15:8]
+    ingress::hdr.tail.crc<16b>[15:8]
+    ingress::hdr.response_tail.w2<8b>
+    ingress::m.compare_frozen_decoy_off<32b>
+    ingress::hdr.response_tail.w1<32b>
+    ingress::m.decoy_off<32b>
+    ingress::m.compare_frozen_decoy_on<32b>
+    ingress::hdr.response_tail.w0<32b>
+    ingress::m.decoy_on<32b>
+    ingress::hdr.tail.status<8b>
+    ingress::m.compare_application<32b>[31:8]
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 8 warnings generated.
+

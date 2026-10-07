@@ -1,0 +1,29 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_carving_01/source/selected_carving.p4(12): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_carving_01/source/selected_carving.p4(12)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_carving_01/source/selected_carving.p4(50): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/selected_carving_01/source/selected_carving.p4(50)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[23:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.second.w1[7:0]" with "hdr.second.w1".
+[--Wwarn=substitution] warning: Ingress.selected_objects: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.selected_objects: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.selected_objects: Table key name not supported. Replacing "hdr.first.w2[15:0]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.selected_objects: Table key name not supported. Replacing "hdr.second.w1[31:16]" with "hdr.second.w1".
+
+0 errors, 16 warnings generated.
+

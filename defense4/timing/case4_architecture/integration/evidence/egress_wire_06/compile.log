@@ -1,0 +1,116 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(63): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(326): [--Wwarn=unused] warning: Table left1 is not used; removing
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(363): [--Wwarn=unused] warning: Table left2 is not used; removing
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(400): [--Wwarn=unused] warning: Table right1 is not used; removing
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(437): [--Wwarn=unused] warning: Table right2 is not used; removing
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(473): [--Wwarn=unused] warning: Table difference_t is not used; removing
+ table difference_t{actions={difference;}size=1;const default_action=difference();}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(475): [--Wwarn=unused] warning: Table growth_t is not used; removing
+ table growth_t{actions={growth;}size=1;const default_action=growth();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(476): [--Wwarn=unused] warning: Table window_guard is not used; removing
+ table window_guard{key={m.growth:ternary;}actions={deny;NoAction;}size=32;const default_action=NoAction();const entries={
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(510): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(512): [--Wwarn=unused] warning: Table complete_t is not used; removing
+ table complete_t{actions={complete;}size=1;const default_action=complete();}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(574): [--Wwarn=unused] warning: Table seq1 is not used; removing
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(606): [--Wwarn=unused] warning: Table seq2 is not used; removing
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(18): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'cache_IgParser' terminates
+parser cache_IgParser(packet_in pkt,out cache_headers_t hdr,out cache_meta_t m){Checksum() ic;Checksum() tc;
+                                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(18)
+parser cache_IgParser(packet_in pkt,out cache_headers_t hdr,out cache_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(76): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'cache_EgParser' terminates
+parser cache_EgParser(packet_in pkt,out cache_headers_t hdr,out cache_meta_t m){
+                                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(76)
+parser cache_EgParser(packet_in pkt,out cache_headers_t hdr,out cache_meta_t m){
+       ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(219): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'forward_IgParser' terminates
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(219)
+parser forward_IgParser(packet_in pkt,out forward_headers_t hdr,out forward_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(532): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'reverse_IgParser' terminates
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(532)
+parser reverse_IgParser(packet_in pkt,out reverse_headers_t hdr,out reverse_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(844): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_IgParser' terminates
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(844)
+parser carving_IgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(880): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_EgParser' terminates
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+                                                                                   ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(880)
+parser carving_EgParser(packet_in pkt,out carving_headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.dl);transition first;}state first{pkt.extract(hdr.first);transition second;}state second{pkt.extract(hdr.second);transition tail;}state tail{pkt.extract(hdr.tail);transition accept;}}
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(903): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'read_IgParser' terminates
+parser read_IgParser(packet_in pkt,out read_headers_t hdr,out read_meta_t m){
+                                                                          ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(903)
+parser read_IgParser(packet_in pkt,out read_headers_t hdr,out read_meta_t m){
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(980): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(980)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(1028): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(1028)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/egress_wire_06/source/egress_wire.p4(860): warning: ingress::m.carving.badt is read in table Ingress.carving.connection, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+ table connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;}actions={split;NoAction;}size=1;default_action=NoAction();}
+       ^^^^^^^^^^
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.first.w1[23:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.carving.profile: Table key name not supported. Replacing "hdr.second.w1[7:0]" with "hdr.second.w1".
+
+0 errors, 42 warnings generated.
+

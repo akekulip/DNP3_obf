@@ -1,0 +1,57 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(12): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(12)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(15): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(15)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(22): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_0) read_0={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(36): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_1) read_1={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(50): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_2) read_2={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(64): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_3) read_3={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(78): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_4) read_4={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(92): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_5) read_5={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(106): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_6) read_6={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(120): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_7) read_7={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(134): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_8) read_8={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(148): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_9) read_9={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(162): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_10) read_10={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                  ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(176): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_11) read_11={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                  ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(190): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_12) read_12={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                  ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_01/source/tagged_probe.p4(204): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+RegisterAction<cache_word_t,bit<1>,bit<64>>(image_13) read_13={void apply(inout cache_word_t v,out bit<64> rv){rv=v.generation++v.data;}};
+                                                                                                                  ^^^^^^^^^^^^^^^^^^^^
+
+14 errors, 2 warnings generated.
+

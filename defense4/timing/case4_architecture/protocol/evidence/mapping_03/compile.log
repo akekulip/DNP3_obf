@@ -1,0 +1,183 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(13): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(13)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(75): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(75)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: In action Ingress.edges, write ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: ingress::hdr.tcp.window;, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+error: This program violates action constraints imposed by Tofino.
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(68):
+ action complete(){hdr.tcp.ack=m.left;hdr.tcp.window=(bit<16>)(m.native_right-m.left);m.changed=1w1;tm.ucast_egress_port=m.output_port;}
+        ^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.flags
+	ingress::hdr.tcp.reserved
+	ingress::hdr.tcp.offset
+	ingress::hdr.tcp.ack[6:0]
+	ingress::hdr.tcp.ack[15:7]
+	ingress::hdr.tcp.ack[30:16]
+	ingress::hdr.tcp.ack[31:31]
+
+  Action Ingress.complete must be rewritten, because it requires too many sources.
+	Source 1 is the container itself, imposed by the following fields that are unwritten in action Ingress.complete:
+	  ingress::hdr.tcp.flags
+	  ingress::hdr.tcp.reserved
+	  ingress::hdr.tcp.offset
+	Source 2 contains the following fields:
+	  ingress::m.left[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.left[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.left[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  ingress::m.left[31:31] @ bits 31-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Ingress.complete to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(68):
+ action complete(){hdr.tcp.ack=m.left;hdr.tcp.window=(bit<16>)(m.native_right-m.left);m.changed=1w1;tm.ucast_egress_port=m.output_port;}
+        ^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.window[6:0]
+	ingress::hdr.tcp.window[15:7]
+
+  Action Ingress.complete must be rewritten, because it requires too many sources.
+	Source 1 contains the following fields:
+	  ingress::m.native_right[6:0] @ bits 0-6
+	Source 2 contains the following fields:
+	  ingress::m.left[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.native_right[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.left[15:7] @ bits 7-15
+  However, Tofino supports only two PHV sources.
+  Rewrite action Ingress.complete to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(31):
+action seq1_shift(){hdr.tcp.seq=m.original_seq+32w20;}
+       ^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.seq[6:0]
+	ingress::hdr.tcp.seq[15:7]
+	ingress::hdr.tcp.seq[30:16]
+	ingress::hdr.tcp.seq[31:31]
+
+  Action Ingress.seq1_shift must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::hdr.tcp.seq[6:0], written by constant 0x14
+	  ingress::hdr.tcp.seq[15:7], written by constant 0x14
+	  ingress::hdr.tcp.seq[30:16], written by constant 0x14
+	  ingress::hdr.tcp.seq[31:31], written by constant 0x14
+	Source 2 contains the following fields:
+	  ingress::m.original_seq[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.original_seq[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.original_seq[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  ingress::m.original_seq[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.seq1_shift to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(31):
+action seq1_shift(){hdr.tcp.seq=m.original_seq+32w20;}
+       ^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.seq[6:0]
+	ingress::hdr.tcp.seq[15:7]
+	ingress::hdr.tcp.seq[30:16]
+	ingress::hdr.tcp.seq[31:31]
+
+  Action Ingress.seq1_shift must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::hdr.tcp.seq[6:0], written by constant 0x14
+	  ingress::hdr.tcp.seq[15:7], written by constant 0x14
+	  ingress::hdr.tcp.seq[30:16], written by constant 0x14
+	  ingress::hdr.tcp.seq[31:31], written by constant 0x14
+	Source 2 contains the following fields:
+	  ingress::m.original_seq[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.original_seq[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.original_seq[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  ingress::m.original_seq[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.seq1_shift to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(35):
+action seq2_shift(){hdr.tcp.seq=m.original_seq+32w40;}
+       ^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.seq[6:0]
+	ingress::hdr.tcp.seq[15:7]
+	ingress::hdr.tcp.seq[30:16]
+	ingress::hdr.tcp.seq[31:31]
+
+  Action Ingress.seq2_shift must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::hdr.tcp.seq[6:0], written by constant 0x28
+	  ingress::hdr.tcp.seq[15:7], written by constant 0x28
+	  ingress::hdr.tcp.seq[30:16], written by constant 0x28
+	  ingress::hdr.tcp.seq[31:31], written by constant 0x28
+	Source 2 contains the following fields:
+	  ingress::m.original_seq[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.original_seq[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.original_seq[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  ingress::m.original_seq[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.seq2_shift to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_03/source/mapping.p4(35):
+action seq2_shift(){hdr.tcp.seq=m.original_seq+32w40;}
+       ^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.seq[6:0]
+	ingress::hdr.tcp.seq[15:7]
+	ingress::hdr.tcp.seq[30:16]
+	ingress::hdr.tcp.seq[31:31]
+
+  Action Ingress.seq2_shift must be rewritten, because it requires too many sources.
+	Source 1 is action data/constant, which write(s) the following field slices:
+	  ingress::hdr.tcp.seq[6:0], written by constant 0x28
+	  ingress::hdr.tcp.seq[15:7], written by constant 0x28
+	  ingress::hdr.tcp.seq[30:16], written by constant 0x28
+	  ingress::hdr.tcp.seq[31:31], written by constant 0x28
+	Source 2 contains the following fields:
+	  ingress::m.original_seq[6:0] @ bits 0-6
+	Source 3 contains the following fields:
+	  ingress::m.original_seq[15:7] @ bits 7-15
+	Source 4 contains the following fields:
+	  ingress::m.original_seq[30:16] @ bits 16-30
+	Source 5 contains the following fields:
+	  ingress::m.original_seq[31:31] @ bits 31-31
+  However, Tofino supports only one PHV source, when action data/constant is present.
+  Rewrite action Ingress.seq2_shift to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::hdr.tcp.flags, ingress::hdr.tcp.reserved, ingress::hdr.tcp.offset, ingress::m.so1, ingress::m.original_seq, ingress::m.first, ingress::m.so2, ingress::m.second, ingress::m.ao1, ingress::m.original_ack, ingress::m.ao2, ingress::m.right, ingress::hdr.tcp.ack, ingress::hdr.tcp.window, ingress::m.ro1, ingress::m.ro2, ingress::hdr.tcp.seq, ingress::m.left, ingress::m.native_right, ingress::m.growth, ingress::m.original_window, ingress::m.so1, ingress::m.original_seq, ingress::m.first, ingress::m.so2, ingress::m.second, ingress::m.ao1, ingress::m.original_ack, ingress::m.ao2, ingress::m.right, ingress::hdr.tcp.ack, ingress::hdr.tcp.window, ingress::m.ro1, ingress::m.ro2, ingress::hdr.tcp.seq, ingress::m.left, ingress::m.native_right, ingress::m.growth, ingress::m.original_window, ingress::m.so1, ingress::m.original_seq, ingress::m.first, ingress::m.so2, ingress::m.second, ingress::m.ao1, ingress::m.original_ack, ingress::m.ao2, ingress::m.right, ingress::hdr.tcp.ack, ingress::m.ro1, ingress::m.ro2, ingress::hdr.tcp.seq, ingress::m.left, ingress::m.native_right, ingress::m.growth, ingress::m.so1, ingress::m.original_seq, ingress::m.first, ingress::m.so2, ingress::m.second, ingress::m.ao1, ingress::m.original_ack, ingress::m.ao2, ingress::m.right, ingress::hdr.tcp.ack, ingress::m.ro1, ingress::m.ro2, ingress::hdr.tcp.seq, ingress::m.left, ingress::m.native_right, ingress::m.growth
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 6 warnings generated.
+

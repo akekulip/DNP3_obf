@@ -1,5 +1,19 @@
 # Framework / Case 4 handover — 2026-10-06
 
+## Current restart point
+
+Use [new architecture handover](../../case4_architecture/HANDOVER.md) and
+[focused plan](../../case4_architecture/PLAN.md). Philip requested stopping further
+experiments for weekly token limits. Work is saved onmain from basea96a8e32758d…;
+full target is unfinished. First fix supported handshake retries/pureACK
+forwarding, then integrate a real READ timing path, then ordinary control
+padding/carving/mapping/cache under the same authority. Assembly and remaining
+loss/lifecycle cases stay mandatory after that main path works. Do not restart
+comparison/packing experiments or accept configured proof seams as completion.
+Full binding/assembly fit, model permissions, complete9.13.2 artifacts and
+hardware qualification remain unresolved. The older stopping point below is
+baseline history, not an instruction to repeat it.
+
 Read [STATUS.md](STATUS.md), [STATUS_MATRIX.md](STATUS_MATRIX.md) and [CLAIMS_RECONCILIATION.md](CLAIMS_RECONCILIATION.md). Work directly on `main`; no branch, push or history rewrite. Author and committer must both be `akekulip <akekulip@gmail.com>` without contributor trailers. Preserve pre-existing local changes and all 2,210 files in `PROTECTED_EXECUTION_BASE.json`. Continuation base is 5a816ab26…; final revision is `git rev-parse HEAD`.
 
 ## Exact current stopping point

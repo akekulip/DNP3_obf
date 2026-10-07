@@ -1,0 +1,122 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "294647db95ad2dedd68b0226ea712a352c88455af39af68154d36ca3110e24a1",
+    "manifest.json": "ebd1cad2d602bf3e20205e856f00ff692b3ecb8940eefb086cbecb7ee646ae04",
+    "pipe/context.json": "561e821130d28853b917329d9cfe09fb8a32383660632196298d0a2a1bc8bff2",
+    "pipe/scalar_buckets.bfa": "3afd2549529de5f46b7a9701fe0ddcf981d415b4ac99153964aa0ccfbedd3d07",
+    "pipe/tofino.bin": "5e7ea16de25d6313e80a04be7d63dcb5b5c05e49f1c4db2b81af8935db45ced4",
+    "scalar_buckets.conf": "b36964c9be8224f13d63932d6b48b7ef7666b2d07b07cee73a1994ddfa9a1d39"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/scalar_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/scalar_01/source/scalar_buckets.p4"
+  ],
+  "compile_log_sha256": "436c867634e53e4f41e12bc0297dfb424847e3a82459eadc659536480860adf0",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 7.591,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 2,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "bb06da664c89f66c8832443570a0a1334ddf2d1f186faa01dfa6125236f1e70d",
+      "pipe/logs/phv.json": "f2778188bbb393ad3792c5ca6063576743d3d4c5f55ddbf994bf32c3b9df1f85",
+      "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+      "pipe/logs/phv_allocation_3.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+      "pipe/logs/phv_allocation_history_0.log": "22ff153f555b7f4c7b25ed4ae170ed459da6b7e88d2648025e727f4b1808f8b4",
+      "pipe/logs/phv_allocation_history_3.log": "1ed3988389dca97308624f407c9c4f30acff1f2b69ff4ada9661a3256db6c962",
+      "pipe/logs/phv_allocation_summary_0.log": "a89759f1e7d18b1ac9c6ae00fe72146fa771136d7816b6f0cbdb6d1345aa2496",
+      "pipe/logs/phv_allocation_summary_3.log": "a89759f1e7d18b1ac9c6ae00fe72146fa771136d7816b6f0cbdb6d1345aa2496",
+      "pipe/logs/table_dependency_graph.log": "1bbec89ffd27924794c1e5e7b667cd014a99501f6c7d7b31156701ad50265bc3",
+      "pipe/logs/table_dependency_summary.log": "2a87b63ce1920a1f7a703f5a9adaa877da9d21f8aa63fd043b0aedbc965574a4",
+      "pipe/logs/table_summary.log": "7a4ff40c9b9382f13399b7539eb1a3b7841d160601db97ed939f6a23955acbe1"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 5
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_11",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_10",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_9",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_8",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_7",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_6",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_5",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_4",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_3",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_1",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.bucket_0",
+        "size": 1
+      }
+    ],
+    "tables_by_type": {
+      "condition": 3,
+      "match": 29,
+      "stateful": 12
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/scalar_buckets.p4",
+  "source_files": {
+    "scalar_buckets.p4": "bac997d88fc61f4321d32cc73a7ca908361d7d783b136c34b5ecb44407bf84d7"
+  },
+  "source_sha256": "bac997d88fc61f4321d32cc73a7ca908361d7d783b136c34b5ecb44407bf84d7",
+  "timeout_seconds": 300
+}

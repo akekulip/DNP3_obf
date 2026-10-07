@@ -1,0 +1,65 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "b4ef556feef66962692682b7552be9f63c22a1dc832accf8c9adadf207e45dc9",
+    "manifest.json": "d6e0bfabd504198552b1dd183b34926614753fb42759588f09912996d81a761d",
+    "original_credit_native_probe.conf": "ea341e6683a9869126bcce42af717bd424f36479deefb213cb15f6b29f9405bd",
+    "pipe/context.json": "d09c766bd745d62002282f556e701d8279c268148c78ca28c9bff169cd2e6d57",
+    "pipe/original_credit_native_probe.bfa": "0c268e379d17d21ab074405a92b071479c1ae6aa784e837e92fad747dd0ddd71",
+    "pipe/tofino.bin": "181c5e131527914562a38e5cdb3cb77e45b5dbf9151fd663ba4b914134b4c8e9"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/original_credit_native_03/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/original_credit_native_03/source/original_credit_native_probe.p4"
+  ],
+  "compile_log_sha256": "72b274a06b61defdc18c84be2854fa3c338e74dc969764f39a4323aaba16b268",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 2.864,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 2,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "612d002094306c9fde30fa13a3b27ed9ed0360d6c9dd22554ba21d05cfdf3493",
+      "pipe/logs/phv.json": "432c166f35235fe8fad29af7edb8c912ed23adbded98e4a3b55bfbcaebbadd9d",
+      "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+      "pipe/logs/phv_allocation_history_0.log": "56db6055360e56e74a648a0155f690d91ef14a307ce5ba1f15f7bedfd5c85103",
+      "pipe/logs/phv_allocation_summary_0.log": "1eeed837ea24d44300e65baba90e2788fef2f5a23747501dad636f2dc107691b",
+      "pipe/logs/table_dependency_graph.log": "88428898cd9d0157a6dfd9f9fbe3be2a877f8d820df1ed2fc31517f1b8a165a0",
+      "pipe/logs/table_dependency_summary.log": "e93ad56cba8101d756a0aeb8f9c0c6216fbba23909fd0869a622feb4bd080bfc",
+      "pipe/logs/table_summary.log": "c79616a56439f906ecfa9d59dc5d719f24f94522caa0a5557ae1a54ab1edd773"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 2
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.credits.cell",
+        "size": 3
+      }
+    ],
+    "tables_by_type": {
+      "match": 4,
+      "stateful": 1
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/p4/original_credit_native_probe.p4",
+  "source_files": {
+    "original_credit_native.p4": "3b872cc432b2d2ea052d38eb0f4980187d930dda9e9ffebf770cbecb6bcdf130",
+    "original_credit_native_probe.p4": "90bbb7f4fe82aef3e28b6da3a32391b9676569d1d93d0913e023135ce50c7b2a",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e"
+  },
+  "source_sha256": "90bbb7f4fe82aef3e28b6da3a32391b9676569d1d93d0913e023135ce50c7b2a",
+  "timeout_seconds": 300
+}

@@ -1,0 +1,1858 @@
+{
+  "association_binding_01": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 2,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 320
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        304,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288,
+        288
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 304
+    },
+    "manifest_sha256": "8c25b2ef8f0e417814d0f73c64f52a27f53c2ac65336c31c169bb264f3677498",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 2,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "31cd42848ffcaf894c0d0af4922a028f733e4f7fedde14f0c550e3b3f2e38fab",
+        "pipe/logs/phv.json": "89cdb611e3386d43d6595eab4075e0eb197dcd9e19bbf2ec16990309fa3a3404",
+        "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+        "pipe/logs/phv_allocation_history_0.log": "6dc5e3a97bdebe28a840410933e521764a30b3acb670cbf0a1c4925c94c0427b",
+        "pipe/logs/phv_allocation_summary_0.log": "0afb6f3025762b76bd07c42cf2908bae4e07e0423d74e3573863a086e77f95eb",
+        "pipe/logs/table_dependency_graph.log": "0868bd63cfdb4a391e32a8b84d8f64624a0665051c8f598f36330e27b88f08ab",
+        "pipe/logs/table_dependency_summary.log": "c08049cd22e5758389a44cdc59e37860ac74ac65347272d8f128407480c65633",
+        "pipe/logs/table_summary.log": "ab72e2524daae0e6414732b5ec1dc29b2180a734d85aacbf997c6274ab0996f2"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 3
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.binding.key",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 1,
+        "match": 6,
+        "stateful": 1
+      }
+    },
+    "source_sha256": "7f56f15c21e441c899dd928a07ae3176978728f202e3b68e2ef0709ad27d8604",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "deadline_service_01": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 8,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 8,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 5,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 560
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        296,
+        296,
+        344,
+        376,
+        376,
+        472,
+        376,
+        376,
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 472
+    },
+    "manifest_sha256": "30c14a6767ba97b40d1f6c2583b5d0ae8818ce407e0777b5c531dec502da1359",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 5,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "34a681d213050030ee13b37a7b14a400b59761d58d63a30d92d0cbe3ad08e39d",
+        "pipe/logs/phv.json": "3429b5e776e1cc26e682d504828a0f90c34307fe0d19a693e35e9e82c37432f6",
+        "pipe/logs/phv_allocation_0.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+        "pipe/logs/phv_allocation_3.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+        "pipe/logs/phv_allocation_history_0.log": "e49493d25ab9036befd26c3d0e32453953afc49062095f91b107d6a3a0321aa2",
+        "pipe/logs/phv_allocation_history_3.log": "f387b64c1c28cf1678e823d93a888928a6127afdff8b72ee44aa9abebb5567aa",
+        "pipe/logs/phv_allocation_summary_0.log": "069218c15615fe4263a4c1b925a5125316e1cae8d34aa1af6085702dca54305c",
+        "pipe/logs/phv_allocation_summary_3.log": "069218c15615fe4263a4c1b925a5125316e1cae8d34aa1af6085702dca54305c",
+        "pipe/logs/table_dependency_graph.log": "311167d32ac50f8495207ce2c158291f37741ac310caa04e2aa45536aa673e97",
+        "pipe/logs/table_dependency_summary.log": "f01f357bfbc1bf0da96c3ec7fae72acfb9869303ab77c3b67e5f11a30d1184e4",
+        "pipe/logs/table_summary.log": "4231bb0c7b850f8e85ba769e36c77cf0877a5618c444e3fe22ab3e5523f21367"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 8
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.readiness_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.operate_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.response_deadline",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 6,
+        "match": 19,
+        "stateful": 3
+      }
+    },
+    "source_sha256": "101d2012e4f9e43446ce9ac682a5ad05840168e85a1c592015f30010e4e37db3",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "held_original_04": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 7,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 6,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 11,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 9,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 8,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 928
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        808,
+        792,
+        864,
+        800,
+        752,
+        752,
+        768,
+        624,
+        624,
+        624,
+        624,
+        624
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 864
+    },
+    "manifest_sha256": "4c1795f02777d4cb6bcc0dfc14529d67742070dc5f9e6c547f9bd7bf25c31dd3",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 7,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "06b50e68ba140197be6c2563b9fb7fecf398888ac5075a7d9cdcba9660e3610d",
+        "pipe/logs/phv.json": "4cb02ac6fb13f3c50a3a1e2dd02bd2cc83d539e0d8ffc2543c3838c7f9deeceb",
+        "pipe/logs/phv_allocation_0.log": "0dd1c690cb31ec6de0eeaab77a375b61da144fdbe834d181a37eeaecdd52000a",
+        "pipe/logs/phv_allocation_history_0.log": "091e5286291ad4e5456d2b4215d308e184deb7b0f90818ce96eafb42fa72da37",
+        "pipe/logs/phv_allocation_summary_0.log": "f1ceee95856e68ebee470527484ff69e914cf571a2607e53154ba807f6a4992d",
+        "pipe/logs/table_dependency_graph.log": "56a44dcf79f2b94b22333c5b088df50e2e268e44df13fe98ccc00fa5861db54f",
+        "pipe/logs/table_dependency_summary.log": "0bfcf877b4efa563564c4d2c4ce7d0465bf913eea9f9139c9742fec0921deb80",
+        "pipe/logs/table_summary.log": "81f5585bd22efa91afdcea1fe3c4829edf4315a36b5b700fff1ce50b324b47e4"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 8
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.connection_epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.holding_policy",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.source_counter",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.credits.cell",
+          "size": 3
+        }
+      ],
+      "tables_by_type": {
+        "condition": 26,
+        "match": 33,
+        "stateful": 5
+      }
+    },
+    "source_sha256": "61fd5a19d192acb19cda9c8153bde5c0ac6f3784b86e6d6069b39f242b2eb215",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "held_timing_expected_02": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 15,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 7,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 32,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 8,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 1696
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        1328,
+        1272,
+        1408,
+        1416,
+        1288,
+        1192,
+        1096,
+        1176,
+        1160,
+        1168,
+        1216,
+        1056
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 1416
+    },
+    "manifest_sha256": "c6cc117e87c1bbcaf60967e80c4e4955e561dda83338174a1dd8815d63cb1cc5",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 11,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "dbd9cd01d7071a4e9651bfb7d90f258e3070e2aa8d1fbb9896d52f11fbc2e49a",
+        "pipe/logs/phv.json": "54a28d0509786019f7413f20231af85d7ee1843a8ff897f7bdc24aa51e1be43f",
+        "pipe/logs/phv_allocation_0.log": "0ca51514d1c685b03c61811107ce86b29a474cbeb2941e4a6c54b2b7db1d2bf6",
+        "pipe/logs/phv_allocation_3.log": "0ca51514d1c685b03c61811107ce86b29a474cbeb2941e4a6c54b2b7db1d2bf6",
+        "pipe/logs/phv_allocation_history_0.log": "82d94eb7afafe998bd136d966fa31d576c61711c58a47c8bbc7067b99e465e0e",
+        "pipe/logs/phv_allocation_history_3.log": "cdca4ffb517b9a92aea1139f2f49752328e90fac0bec9e67169dcba233b01ded",
+        "pipe/logs/phv_allocation_summary_0.log": "74280b0ee896bcae3154954582c14462c7708937fd831a78ea4dc2f26fae4443",
+        "pipe/logs/phv_allocation_summary_3.log": "5054abdfa520e1c3e5f752ffc75c3caf95fe17b555bd1850e4470e542ec49047",
+        "pipe/logs/table_dependency_graph.log": "6af93881a4aece1ed63f6990f5cd4862fc4c9957b4f119ffb615a04c2251a8ed",
+        "pipe/logs/table_dependency_summary.log": "f0fc63955b9d293d224ba4e42f87719227786930e7faf3c8513faa10635e55ed",
+        "pipe/logs/table_summary.log": "151800b8d26eebb3b6e01ebcb943686e3e409f760b45bf5c9f65e99f3788689e"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 12
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.connection_epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.holding_policy",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.source_counter",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.heartbeat_work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.timing_binding",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.ready_response",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.releases",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.observations",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.admission_anchor",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.credits.cell",
+          "size": 3
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.committed_response_deadline",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "action": 1,
+        "condition": 41,
+        "match": 62,
+        "stateful": 12
+      }
+    },
+    "source_sha256": "1af31bc97a4b331441ac0195f287483788b98c10af04441e224b5abeead2877e",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "held_timing_snapshot_02": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 15,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 7,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 30,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 8,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 1632
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        1264,
+        1208,
+        1344,
+        1352,
+        1288,
+        1192,
+        1096,
+        1176,
+        1160,
+        1168,
+        1216,
+        1056
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 1352
+    },
+    "manifest_sha256": "4082a1026705ed210c43e92b47956379b4275b069a3c363d379a2cccea8fe216",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 11,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "434a01ecbb02573cd77991685c7ea56c119991cccd2a8cb68cf00c492188d896",
+        "pipe/logs/phv.json": "cfd13d64b22626c67f7299789faeee606a75d83121687db6aaad3b06cbc85a3d",
+        "pipe/logs/phv_allocation_0.log": "3be5e60147ba6571f8d6b7ae817cf699c2eb03951bef887ae886883e84aae759",
+        "pipe/logs/phv_allocation_3.log": "3be5e60147ba6571f8d6b7ae817cf699c2eb03951bef887ae886883e84aae759",
+        "pipe/logs/phv_allocation_history_0.log": "1ec72b61573092f3ead05ae156a88514f74d132d978eb6eaf8cd9ecba8d32114",
+        "pipe/logs/phv_allocation_history_3.log": "6eb45c03e30a24752b7b80a570248bda67d07d09dcebf35abf018812c5feac28",
+        "pipe/logs/phv_allocation_summary_0.log": "0d961de9d29fcbef70681a14c00880ea743075584f631c64102a660888222add",
+        "pipe/logs/phv_allocation_summary_3.log": "448fe99dbbb38f28f5b3fc25b1f1e90b448a85ab88e51076a50bc677e34659e9",
+        "pipe/logs/table_dependency_graph.log": "48cf1ba6a434fa71ba8e02ad8a4765ab0bb84a6c8f829a1b10bb9c52fc698917",
+        "pipe/logs/table_dependency_summary.log": "553c4db0130e48efc7dafad33d88bca31caae10a6a2e708c1c726b064c9d509c",
+        "pipe/logs/table_summary.log": "d76dd3098787386cce4447e8ff17d959bd2b382225b601305d835dbd16a8a33d"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 12
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.connection_epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.holding_policy",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.source_counter",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.heartbeat_work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.timing_binding",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.ready_response",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.releases",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.observations",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.admission_anchor",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.credits.cell",
+          "size": 3
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.committed_response_deadline",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "action": 1,
+        "condition": 41,
+        "match": 62,
+        "stateful": 12
+      }
+    },
+    "source_sha256": "34f8483b59dc6e51e0633018d51c52c5c76179122f7ae9b162bf89a33b61e5e9",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "original_credit_native_04": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 2,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 336
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        272,
+        296,
+        288,
+        320,
+        312,
+        312,
+        312,
+        312,
+        312,
+        312,
+        312,
+        312
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 320
+    },
+    "manifest_sha256": "dc800181c1ef212d95f9d6c9b8a7b5180dd6d7670b54e6356cb4b4a1dd4a292a",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 4,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "dd0933f17f081ba325ddf7b73f68b02fa62e7c560ef0371c245f92e85a15ed03",
+        "pipe/logs/phv.json": "c469fe5cdff1d2ca6b1b2ef5babeb13d596143c62c3bce1151e61f85e62da985",
+        "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+        "pipe/logs/phv_allocation_history_0.log": "4b7ce18735f4a224fb5cd5557e7432d8ae6841f85e22e4d09c50a56f8904b0be",
+        "pipe/logs/phv_allocation_summary_0.log": "f6a9dae6f439a849252914d7fc74be21d90cc67c154b0032d43f0e8c7165b301",
+        "pipe/logs/table_dependency_graph.log": "e0c2e4cd18af7445fcfa6c7a0e1f22a69e7ad0a11fa3879475f84c6ddb43ce78",
+        "pipe/logs/table_dependency_summary.log": "33d58015a2c0a995465c44d798dc2a0a088e198b642f54193ea3744baacd8444",
+        "pipe/logs/table_summary.log": "560cf1672c9e22ea5bfd1e5fbc5beb3bf0bfbe9358f101212238c4a7fe1a5242"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 4
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.credits.cell",
+          "size": 3
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.originals.debt",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "match": 7,
+        "stateful": 2
+      }
+    },
+    "source_sha256": "b53e1a0506c1beaefb689837bc517560c0e543c13d393a61989d595a22b8f1fc",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "owner_cas_05": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 6,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 2,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 1,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 392
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        336,
+        352,
+        360,
+        328,
+        328,
+        328,
+        328,
+        328,
+        328,
+        328,
+        328,
+        328
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 360
+    },
+    "manifest_sha256": "abd24c5dac0c0dc914440000da45054b77ac80af1c483577be9a1f337955919f",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 3,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "0ab7b0d2439af15d27ac38c1ae84889266d92652a888cfffc9226f7734ff4fa8",
+        "pipe/logs/phv.json": "73bdc50533e71a1948cab2fbf073f72a09f320cfc270deb5f81a81d60a9da92f",
+        "pipe/logs/phv_allocation_0.log": "9c602aa8ade3070147f431f15e10738011ba809c4a149743b1bb1d548d5bc106",
+        "pipe/logs/phv_allocation_history_0.log": "a22b89a61a0dfb781d2ea5bf374697804e6f652c95d272343c1b4db788cc0a38",
+        "pipe/logs/phv_allocation_summary_0.log": "66a012a4d3b5781695dff6baffa128f0ad2fd3782f9ef344332235aa6e9ad8ec",
+        "pipe/logs/table_dependency_graph.log": "f2fd3ea473f3b0a228dfff0ce090ace993b8aa9f619b0f271468cfbdd1c1356f",
+        "pipe/logs/table_dependency_summary.log": "3d32a6bd4f9dde275c4c3e702ba0926edd44bcd58b7fa06d927fc59cbfd73243",
+        "pipe/logs/table_summary.log": "80b34899896c12c498fcc29fc149ef73b716798075d2cd451440e472bcff2427"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 3
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.owner.lifecycle",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "match": 5,
+        "stateful": 1
+      }
+    },
+    "source_sha256": "077ccb16a4cdfa78fc5bdc7a77b89d8288403645b86ae88a9b2ff7122e1dc47b",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "protected_pair_04": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 10,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 1,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 568
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        424,
+        456,
+        472,
+        472,
+        472,
+        472,
+        528,
+        504,
+        504,
+        504,
+        504,
+        504
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 528
+    },
+    "manifest_sha256": "aed1c28967ef5d96d33752aa6fbe8ee2e12be799842f9828814273dec359d322",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 8,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "ab3be1c191d3dc4213a52e899e39f3bc4dc69cc1ba50964de2ae48d96b9d5088",
+        "pipe/logs/phv.json": "e599c12bcd2991b85015dd223437ccb882f6632e26486aaa6c846c7849cbca0a",
+        "pipe/logs/phv_allocation_0.log": "fb8f71a9e3377f3cc903a75169307ee6edf55a16bfbe27b92b9e8d86816303de",
+        "pipe/logs/phv_allocation_history_0.log": "c8b31d2e29ad75148babb1cf2c53591f64fe6cde2981ffa8200e85d24ecb3afd",
+        "pipe/logs/phv_allocation_summary_0.log": "da01f82df8f709a9328be42bf329f0a8004633d2bba71b69c6b1e9f672232e9c",
+        "pipe/logs/table_dependency_graph.log": "ed0ae55d1aa1b14e9e30606720e72768937982524f966209b8e7f6b96452abcc",
+        "pipe/logs/table_dependency_summary.log": "9d4041207d2cd36e983d9aec9039ef55e38b21cd014e94c88b395b4886d38191",
+        "pipe/logs/table_summary.log": "8d3f0fcb4ee3995a9cc08f6f4330a2098df4c504e599e8b9955898386a54d46d"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 8
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.connection_epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work_counter",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.payload",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.publication",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 15,
+        "match": 18,
+        "stateful": 5
+      }
+    },
+    "source_sha256": "137431d598215d28ac2c49770de24df48d7e73d9548e83cb3274b0685517fc59",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "protected_recirc_06": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 7,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 2,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 17,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 1,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 2,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 768
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        608,
+        640,
+        648,
+        656,
+        656,
+        656,
+        640,
+        648,
+        664,
+        696,
+        720,
+        664
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 720
+    },
+    "manifest_sha256": "9bc7d9421bbd8ff0a6b82773644e0da2b16688a0ee22bfb05d8723dc4bdc1e0d",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 12,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "50de06b57b81dfb876aa1fc632701022a156b4ee4e1a4a713ebdb285ad4edb75",
+        "pipe/logs/phv.json": "68fb8813c6a5aeb9a4c2f042759b5e1dcec27269398fd0ab7d6c75ab6a689752",
+        "pipe/logs/phv_allocation_0.log": "74d2039ab27cd7679a64767c5724af184c030893497114acd581288bfb22f949",
+        "pipe/logs/phv_allocation_history_0.log": "8dbc5cef89184ee621a06e72343a505347d034d958f4ed0096e24c9afa998574",
+        "pipe/logs/phv_allocation_summary_0.log": "975052d84e026cb9da387c196f5e7d9af45659ee50ce6c508bc2b21bfc0fabb2",
+        "pipe/logs/table_dependency_graph.log": "b756c0910050b4d28fb87b029ca4a70599b9a89e41099ada05a6c95dbcff3dfd",
+        "pipe/logs/table_dependency_summary.log": "cd5d0cf1c289c6f809a6711614f436850219c4034e92c6ffccdc55b20076a3e3",
+        "pipe/logs/table_summary.log": "f6ad975279fff604dd3ac577156033f00760c9423d52f1de7141da63e01b8aa0"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 12
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.connection_epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work_counter",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.work.work",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.owner.lifecycle",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.publication",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.payload",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 27,
+        "match": 39,
+        "stateful": 6
+      }
+    },
+    "source_sha256": "9b03dc2e16b7cba16bf764e8b209471945e1bbad0eb3347000f02230fd557538",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "timing_bound_01": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 10,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 10,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 5,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 3,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 640
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        344,
+        440,
+        464,
+        536,
+        544,
+        456,
+        464,
+        480,
+        448,
+        440,
+        440,
+        440
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 544
+    },
+    "manifest_sha256": "5a6bb0903f54fe395438437a99bc983b00bfaaffd722eae87171437db2abc718",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 9,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "93edee2bcbbb52009f91977e3aded6e8c5835200cf7002a742c10af1faed8c90",
+        "pipe/logs/phv.json": "41a2a3e98817f59be499407b3a843673afedb0632fadc4afda716b76e7f2d637",
+        "pipe/logs/phv_allocation_0.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+        "pipe/logs/phv_allocation_history_0.log": "88206f764179ee798711ab2439d04712bfcf6373f60c765c9d3aae9f3a520cf4",
+        "pipe/logs/phv_allocation_summary_0.log": "01199ee28c950c701910d66b9f8c66d037ccecd284f28f454349040d11bb2150",
+        "pipe/logs/table_dependency_graph.log": "6c0f8e311c1e5a73e280af5377e9f147cc2fbeb3cf6cd863a6cd75ebe6bd1f1a",
+        "pipe/logs/table_dependency_summary.log": "c4f50f14107b999c0cf2183f60b52c8ef0f33c0fbd202028f8188ffcdfc41498",
+        "pipe/logs/table_summary.log": "b4dbf3196cb149a7abc71d6de4949df7c69160b50555c81322fabd9c0af8438e"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 9
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.current_association",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.readiness_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.operate_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.blockers",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.operate_pending",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.ack_phase",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.response_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.response_pending",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 7,
+        "match": 23,
+        "stateful": 8
+      }
+    },
+    "source_sha256": "c8d5caaf6d697981a37739b8d7f622c2c8dc01a44a7e7e8d21ea0e847181c3d7",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  },
+  "timing_service_02": {
+    "allocated_phv_containers": [
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 1,
+        "gress": "egress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 8
+      },
+      {
+        "count": 10,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 5,
+        "gress": "egress",
+        "type": "tagalong",
+        "width_bits": 32
+      },
+      {
+        "count": 9,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 8
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 16
+      },
+      {
+        "count": 9,
+        "gress": "ingress",
+        "type": "normal",
+        "width_bits": 32
+      },
+      {
+        "count": 5,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 16
+      },
+      {
+        "count": 4,
+        "gress": "ingress",
+        "type": "tagalong",
+        "width_bits": 32
+      }
+    ],
+    "allocated_phv_footprint_bits": {
+      "egress": 376,
+      "ingress": 632
+    },
+    "conservative_endpoint_span_bits_by_stage": {
+      "egress": [
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368,
+        368
+      ],
+      "ingress": [
+        368,
+        496,
+        472,
+        472,
+        464,
+        536,
+        544,
+        456,
+        488,
+        504,
+        472,
+        440
+      ]
+    },
+    "conservative_endpoint_span_max_bits": {
+      "egress": 368,
+      "ingress": 544
+    },
+    "manifest_sha256": "d007365c3dbf3fd3a61bde7837b1098d5806fb42e90e6760d2346b5e805176ff",
+    "pressure_note": "Endpoint-span container footprint is a conservative derived allocation proxy, not compiler-reported simultaneous live-field pressure or full-target headroom.",
+    "resources": {
+      "critical_path": 11,
+      "report_sha256": {
+        "pipe/logs/mau.resources.log": "1e3669ecc10081043b098cb8537e8fcb48efca302f6f9fbf3a33cb0d004145a3",
+        "pipe/logs/phv.json": "e45558fe6de85fba593d1f395b0e16d2c38a18a08af4700c67a20bebb507d1bf",
+        "pipe/logs/phv_allocation_0.log": "b47415359cfd8e47637d3330637f84b66bd19fe9855a5fb3c4ba458967ccb5ec",
+        "pipe/logs/phv_allocation_history_0.log": "b8fcaf7a6b8165a3c235e7b1f96302c6610279fd7b01df17372b1d02b8aaa6df",
+        "pipe/logs/phv_allocation_summary_0.log": "ade3911f794bb252934c90faabe78cb04f9b4d41dbb89aafa3228a642f9e311c",
+        "pipe/logs/table_dependency_graph.log": "0242dc5e922bdffe3bbdcd30deae4d7ae79a5167a1977394a007f125373bde09",
+        "pipe/logs/table_dependency_summary.log": "0016a40ae0fe4c48eced89381f7e3c8a494a435a716a147a337a8ad66bb6e6e8",
+        "pipe/logs/table_summary.log": "db75c8073115eb737c3b3b11c0b71d44dea1fefbe28db861f1e79aae762147e7"
+      },
+      "stages": {
+        "egress": 0,
+        "ingress": 11
+      },
+      "stateful_tables": [
+        {
+          "direction": "ingress",
+          "name": "Ingress.epoch",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.readiness_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.operate_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.blockers",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.operate_pending",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.ack_phase",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.response_deadline",
+          "size": 1
+        },
+        {
+          "direction": "ingress",
+          "name": "Ingress.response_pending",
+          "size": 1
+        }
+      ],
+      "tables_by_type": {
+        "condition": 8,
+        "match": 25,
+        "stateful": 8
+      }
+    },
+    "source_sha256": "9fd51aab3826d5d55f4bd23d5313cf8d097e1ef848c983ffb3b4fdf0cdb4ad88",
+    "verification": {
+      "compiled_artifacts_verified": true,
+      "compiler_matches": true,
+      "full_target": false,
+      "snapshots_match": true,
+      "source_matches": true
+    }
+  }
+}

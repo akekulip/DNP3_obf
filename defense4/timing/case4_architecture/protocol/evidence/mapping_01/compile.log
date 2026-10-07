@@ -1,0 +1,54 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(13): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(13)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(75): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(75)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition eth;}state eth{pkt.extract(hdr.eth);transition ip;}state ip{pkt.extract(hdr.ip);transition tcp;}state tcp{pkt.extract(hdr.tcp);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(37): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+(8w1,8w3&&&8w2,25w0,7w35..7w127):seq2_shift();}}
+     ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(38): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table seq2_large{key={m.direction:exact;m.valid:ternary;m.so2[31:31]:exact;m.so2[30:7]:ternary;}actions={seq2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w1,8w3&&&8w2,1w0,24w0):NoAction();(8w1,8w3&&&8w2,1w0,24w0&&&24w0):seq2_shift();}}
+                                                                                                                                                                                         ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(38): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table seq2_large{key={m.direction:exact;m.valid:ternary;m.so2[31:31]:exact;m.so2[30:7]:ternary;}actions={seq2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w1,8w3&&&8w2,1w0,24w0):NoAction();(8w1,8w3&&&8w2,1w0,24w0&&&24w0):seq2_shift();}}
+                                                                                                                                                                                                                             ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(48): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+(8w2,8w3&&&8w2,25w0,7w55..7w74):left2_clamp();
+     ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(49): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+(8w2,8w3&&&8w2,25w0,7w75..7w127):left2_shift();}}
+     ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(50): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table left2_large{key={m.direction:exact;m.valid:ternary;m.ao2[31:31]:exact;m.ao2[30:7]:ternary;}actions={left2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w2,8w3&&&8w2,1w0,24w0):NoAction();(8w2,8w3&&&8w2,1w0,24w0&&&24w0):left2_shift();}}
+                                                                                                                                                                                           ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(50): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table left2_large{key={m.direction:exact;m.valid:ternary;m.ao2[31:31]:exact;m.ao2[30:7]:ternary;}actions={left2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w2,8w3&&&8w2,1w0,24w0):NoAction();(8w2,8w3&&&8w2,1w0,24w0&&&24w0):left2_shift();}}
+                                                                                                                                                                                                                               ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(60): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+(8w2,8w3&&&8w2,25w0,7w55..7w74):right2_clamp();
+     ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(61): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+(8w2,8w3&&&8w2,25w0,7w75..7w127):right2_shift();}}
+     ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(62): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table right2_large{key={m.direction:exact;m.valid:ternary;m.ro2[31:31]:exact;m.ro2[30:7]:ternary;}actions={right2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w2,8w3&&&8w2,1w0,24w0):NoAction();(8w2,8w3&&&8w2,1w0,24w0&&&24w0):right2_shift();}}
+                                                                                                                                                                                             ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(62): [--Wwarn=mismatch] warning: P4Runtime requires that Ternary matches have masked-off bits set to 0, updating value 8w3 to conform to the P4Runtime specification
+table right2_large{key={m.direction:exact;m.valid:ternary;m.ro2[31:31]:exact;m.ro2[30:7]:ternary;}actions={right2_shift;NoAction;}size=2;const default_action=NoAction();const entries={(8w2,8w3&&&8w2,1w0,24w0):NoAction();(8w2,8w3&&&8w2,1w0,24w0&&&24w0):right2_shift();}}
+                                                                                                                                                                                                                                 ^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/mapping_01/source/mapping.p4(74): [--Werror=legacy] error: Non-zero constant entry in checksum calculation not implemented yet: 16w20
+control IgDeparser(packet_out pkt,inout headers_t hdr,in meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Checksum() tcpcheck;apply{if(m.changed==8w1){hdr.tcp.checksum=tcpcheck.update({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,16w20,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.urgent});}pkt.emit(hdr.eth);pkt.emit(hdr.ip);pkt.emit(hdr.tcp);}}
+                                                                                                                                                                                                                                         ^^^^^
+Compilation failed!
+
+
+1 error, 14 warnings generated.
+

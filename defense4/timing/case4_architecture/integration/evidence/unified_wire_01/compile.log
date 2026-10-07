@@ -1,0 +1,230 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(154): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(280): [--Wwarn=unused] warning: Table left1 is not used; removing
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(317): [--Wwarn=unused] warning: Table left2 is not used; removing
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(354): [--Wwarn=unused] warning: Table right1 is not used; removing
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(391): [--Wwarn=unused] warning: Table right2 is not used; removing
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+      ^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(427): [--Wwarn=unused] warning: Table difference_t is not used; removing
+ table difference_t{actions={difference;}size=1;const default_action=difference();}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(429): [--Wwarn=unused] warning: Table growth_t is not used; removing
+ table growth_t{actions={growth;}size=1;const default_action=growth();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(430): [--Wwarn=unused] warning: Table window_guard is not used; removing
+ table window_guard{key={m.growth:ternary;}actions={deny;NoAction;}size=32;const default_action=NoAction();const entries={
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(464): [--Wwarn=unused] warning: Table window_narrow_t is not used; removing
+ table window_narrow_t{actions={window_narrow;}size=1;const default_action=window_narrow();}
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(466): [--Wwarn=unused] warning: Table complete_t is not used; removing
+ table complete_t{actions={complete;}size=1;const default_action=complete();}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(528): [--Wwarn=unused] warning: Table seq1 is not used; removing
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(560): [--Wwarn=unused] warning: Table seq2 is not used; removing
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+      ^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(908): [--Wwarn=unused] warning: Table last_slice_t is not used; removing
+table last_slice_t{actions={last_slice;}size=1;const default_action=last_slice();}
+      ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(910): [--Wwarn=unused] warning: Table complete_t is not used; removing
+table complete_t{actions={complete;}size=1;const default_action=complete();}
+      ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(42): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'padding_IgParser' terminates
+parser padding_IgParser(packet_in pkt,out headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+                                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(42)
+parser padding_IgParser(packet_in pkt,out headers_t hdr,out padding_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(173): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'forward_IgParser' terminates
+parser forward_IgParser(packet_in pkt,out headers_t hdr,out forward_meta_t m){
+                                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(173)
+parser forward_IgParser(packet_in pkt,out headers_t hdr,out forward_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(486): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'reverse_IgParser' terminates
+parser reverse_IgParser(packet_in pkt,out headers_t hdr,out reverse_meta_t m){
+                                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(486)
+parser reverse_IgParser(packet_in pkt,out headers_t hdr,out reverse_meta_t m){
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(798): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_IgParser' terminates
+parser carving_IgParser(packet_in pkt,out headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+                                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(798)
+parser carving_IgParser(packet_in pkt,out headers_t hdr,out carving_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(834): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'carving_EgParser' terminates
+parser carving_EgParser(packet_in pkt,out headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.carving_dl);transition first;}state first{pkt.extract(hdr.carving_first);transition second;}state second{pkt.extract(hdr.carving_second);transition tail;}state tail{pkt.extract(hdr.carving_tail);transition accept;}}
+                                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(834)
+parser carving_EgParser(packet_in pkt,out headers_t hdr,out carving_meta_t m){state start{m.changed=1w0;transition eth;}state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}state ip{pkt.extract(hdr.ip);transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w97):tcp;default:accept;}}state tcp{pkt.extract(hdr.tcp);transition dl;}state dl{pkt.extract(hdr.carving_dl);transition first;}state first{pkt.extract(hdr.carving_first);transition second;}state second{pkt.extract(hdr.carving_second);transition tail;}state tail{pkt.extract(hdr.carving_tail);transition accept;}}
+       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(851): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'replay_IgParser' terminates
+parser replay_IgParser(packet_in pkt,out headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+                                                                         ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(851)
+parser replay_IgParser(packet_in pkt,out headers_t hdr,out replay_meta_t m){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(1007): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(1007)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(1054): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/unified_wire_01/source/unified_wire.p4(1054)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: overriding @pragma pa_container_size ingress::hdr.tcp.seq
+warning: overriding @pragma pa_container_size ingress::hdr.tcp.ack
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 365:egress::hdr.padding_dl.magic<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 366:egress::hdr.padding_dl.len<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 367:egress::hdr.padding_dl.ctrl<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 368:egress::hdr.padding_dl.dst<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 369:egress::hdr.padding_dl.src<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 370:egress::hdr.padding_dl.crc<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 371:egress::hdr.padding_native.tp<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 372:egress::hdr.padding_native.app<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 373:egress::hdr.padding_native.func<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 374:egress::hdr.padding_native.group<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 375:egress::hdr.padding_native.variation<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 376:egress::hdr.padding_native.qualifier<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 377:egress::hdr.padding_native.count<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 378:egress::hdr.padding_native.index<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 379:egress::hdr.padding_native.code<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 380:egress::hdr.padding_native.repeat<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 381:egress::hdr.padding_native.on<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 382:egress::hdr.padding_native.crc<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 383:egress::hdr.padding_tail.off<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 384:egress::hdr.padding_tail.status<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 385:egress::hdr.padding_tail.crc<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 386:egress::hdr.padding_appended.off<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 387:egress::hdr.padding_appended.status<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 388:egress::hdr.padding_appended.group<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 389:egress::hdr.padding_appended.variation<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 390:egress::hdr.padding_appended.qualifier<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 391:egress::hdr.padding_appended.count<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 392:egress::hdr.padding_appended.index<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 393:egress::hdr.padding_appended.code<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 394:egress::hdr.padding_appended.repeat<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 395:egress::hdr.padding_appended.on_first<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 396:egress::hdr.padding_appended.crc<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 397:egress::hdr.padding_last.on_last<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 398:egress::hdr.padding_last.off<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 399:egress::hdr.padding_last.status<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 400:egress::hdr.padding_last.crc<16> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 401:egress::hdr.replay_native.data<8> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 402:egress::hdr.replay_image.w0<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 403:egress::hdr.replay_image.w1<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 404:egress::hdr.replay_image.w2<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 405:egress::hdr.replay_image.w3<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 406:egress::hdr.replay_image.w4<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 407:egress::hdr.replay_image.w5<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 408:egress::hdr.replay_image.w6<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 409:egress::hdr.replay_image.w7<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 410:egress::hdr.replay_image.w8<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 411:egress::hdr.replay_image.w9<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 412:egress::hdr.replay_image.w10<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 413:egress::hdr.replay_image.w11<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 414:egress::hdr.replay_image.w12<32> ^0 ^x deparsed exact_containers
+warning: Field is marked as deparsed, but the deparser doesn't emit it: 415:egress::hdr.replay_image.w13<24> ^0 ^x deparsed exact_containers
+warning: overriding @pragma pa_container_size ingress::hdr.tcp.seq
+warning: overriding @pragma pa_container_size ingress::hdr.tcp.ack
+error: PHV allocation was not successful
+63 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::hdr.padding_last.crc<16b>[7:0]
+    ingress::m.padding.tcrc<16b>[15:8]
+    ingress::hdr.padding_tail.crc<16b>[7:0]
+    ingress::m.padding.image_word13<32b>[15:8]
+    ingress::m.cache.w13<32b>[15:8]
+    ingress::hdr.replay_image.w13<24b>[7:0]
+    ingress::hdr.padding_last.crc<16b>[15:8]
+    ingress::m.padding.tcrc<16b>[7:0]
+    ingress::hdr.padding_tail.crc<16b>[15:8]
+    ingress::m.padding.image_word13<32b>[23:16]
+    ingress::m.cache.w13<32b>[23:16]
+    ingress::hdr.replay_image.w13<24b>[15:8]
+    ingress::m.cache.w13<32b>[7:0]
+    ingress::m.padding.image_word13<32b>[7:0]
+    ingress::m.padding.image_word2<32b>[7:0]
+    ingress::hdr.padding_native.app<8b>
+    ingress::m.cache.w2<32b>[7:0]
+    ingress::hdr.replay_image.w2<32b>[7:0]
+    ingress::m.padding.image_word2<32b>[15:8]
+    ingress::hdr.padding_native.tp<8b>
+    ingress::m.cache.w2<32b>[15:8]
+    ingress::hdr.replay_image.w2<32b>[15:8]
+    ingress::m.padding.image_word0<32b>[31:16]
+    ingress::hdr.padding_dl.magic<16b>
+    ingress::m.cache.w0<32b>[31:16]
+    ingress::hdr.replay_image.w0<32b>[31:16]
+    ingress::hdr.padding_last.on_last<16b>
+    ingress::m.padding.decoy_on<32b>[15:0]
+    ingress::m.padding.image_word11<32b>[15:0]
+    ingress::m.cache.w11<32b>[15:0]
+    ingress::hdr.replay_image.w11<32b>[15:0]
+    ingress::m.carving.crc1<16b>[7:0]
+    ingress::hdr.carving_second.crc<16b>[15:8]
+    ingress::m.carving.crc1<16b>[15:8]
+    ingress::hdr.carving_second.crc<16b>[7:0]
+    ingress::m.carving.crct<16b>[7:0]
+    ingress::hdr.carving_tail.crc<16b>[15:8]
+    ingress::m.carving.crct<16b>[15:8]
+    ingress::hdr.carving_tail.crc<16b>[7:0]
+    ingress::hdr.eth.$valid<1b>
+    ingress::hdr.ip.$valid<1b>
+    ingress::hdr.tcp.$valid<1b>
+    ingress::hdr.padding_dl.$valid<1b>
+    ingress::hdr.padding_native.$valid<1b>
+    ingress::hdr.padding_tail.$valid<1b>
+    ingress::hdr.carving_dl.$valid<1b>
+    ingress::hdr.carving_first.$valid<1b>
+    ingress::hdr.carving_second.$valid<1b>
+    ingress::hdr.carving_tail.$valid<1b>
+    ingress::hdr.replay_native.$valid<1b>
+    ingress::hdr.padding_appended.$valid<1b>
+    ingress::hdr.padding_last.$valid<1b>
+    ingress::hdr.replay_image.$valid<1b>
+    ingress::m.reverse.valid<8b>
+    ingress::m.reverse.direction<8b>
+    ingress::m.forward.valid<8b>
+    ingress::m.forward.direction<8b>
+    ingress::m.reverse.changed<1b>
+    ingress::m.carving.badt<1b>
+    ingress::m.cache.operation<8b>
+    ingress::m.forward.parsed<8b>
+    ingress::m.reverse.parsed<8b>
+    ingress::m.replay.parsed<1b>
+
+
+
+1 error, 89 warnings generated.
+
+Skipping assembler, assembly file is empty

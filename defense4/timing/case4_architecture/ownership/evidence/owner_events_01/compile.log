@@ -1,0 +1,21 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/owner_events_01/source/owner_events_probe.p4(8): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/owner_events_01/source/owner_events_probe.p4(8)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/owner_events_01/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/owner_events_01/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/owner_events_01/source/event_cell.p4(19): [--Werror=target-error] error: Ingress.owner.lifecycle: too many RegisterActions attached to the Register
+The target architecture limits the number of RegisterActions attached to a single Register to 4.
+Reorganize your code to meet this restriction.
+The following RegisterActions are attached to the Register: Ingress.owner.read_ra, Ingress.owner.arm_ra, Ingress.owner.request_acquire_ra, Ingress.owner.response_acquire_ra, Ingress.owner.request_terminal_ra, Ingress.owner.response_terminal_ra, Ingress.owner.reset_ra, Ingress.owner.finish_ra, Ingress.owner.ack_hold_ra, Ingress.owner.response_hold_ra, Ingress.owner.operate_hold_ra, Ingress.owner.ack_terminal_ra, Ingress.owner.response_original_terminal_ra, Ingress.owner.operate_terminal_ra, Ingress.owner.ack_commit_ra
+    Register<bit<32>, bit<1>>(1, 0) lifecycle;
+                                    ^^^^^^^^^
+
+1 error, 2 warnings generated.
+

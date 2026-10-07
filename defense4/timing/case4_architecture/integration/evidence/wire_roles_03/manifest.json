@@ -1,0 +1,203 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "16b4cfdf901af6bb203b249feadc84653ce88ecd2f114962d4ca41d2a2e0204f",
+    "manifest.json": "a000f197aada51288b277a71b6f1e3c279f3d849a7befdac39024424bb4604ea",
+    "pipe/context.json": "11eafef5feacc0e4609cf9cfec5f1d6358ab50e02c8f522c5812fb4df9ca40c1",
+    "pipe/tofino.bin": "a94ffbdb8f7bc3f121ebfae6888e59b58bb4e3f888e29f810a5c7eee462c2ef2",
+    "pipe/wire_roles.bfa": "c7cdcaaa0c4814923acb23c15319acec49bf934ccf561361c45af234abb053a3",
+    "wire_roles.conf": "7c4109760fe37318a587ec5c8af507881e822d8d575d1a2ac7c475f401966b94"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_03/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/wire_roles_03/source/wire_roles.p4"
+  ],
+  "compile_log_sha256": "32526240ca38b41f6d9daa6aeb22dce74251b8f6d562563375ad11c7921a5770",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 33.096,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 10,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "0c225d339c12dc083e99c8404ceb55986f3fc4908b1234d41650921dd32cefd4",
+      "pipe/logs/phv.json": "2f4ba5a040055e1913252801e6cf3125b6ae35a738caf1022d98e6cac020ebf1",
+      "pipe/logs/phv_allocation_0.log": "275970f63d154bdb6cfae49ead775732cb6f5d2889a10438b1d8ec3bf15993f0",
+      "pipe/logs/phv_allocation_3.log": "9f4e4267011095c1229cb5b7b7fa80b4849a9e739c90b242ca05af754a5b4029",
+      "pipe/logs/phv_allocation_history_0.log": "16e8a2cff059db470dc5a7df615995f97a0c728a837d913a2b883b9ce8bcbfc0",
+      "pipe/logs/phv_allocation_history_3.log": "bd65e95f79a94fd2f4e13c83cbeb3c1b5bed18fccf95ce3cbaa2f29da9cfd6c0",
+      "pipe/logs/phv_allocation_summary_0.log": "2e8274569426d2924d9615baf83699cbe1a60a673af4c6dac5a56ace5c5806d7",
+      "pipe/logs/phv_allocation_summary_3.log": "e6e83279e976b91e18831bfeb93154ba598a1a990af1a92f2d2e057ef5df7904",
+      "pipe/logs/table_dependency_graph.log": "23f81ec2f0dff6ad23109e364052b9acbb5910ba1f95a06e6fdbebb37f289c1b",
+      "pipe/logs/table_dependency_summary.log": "ac4e5aad9cb68074e185146e91056067abd12f176014812477977c14ddb40a68",
+      "pipe/logs/table_summary.log": "a58b91f51294b4a11b68ffeb8625a5c0284d8b45de0352315801065188b339e4"
+    },
+    "stages": {
+      "egress": 3,
+      "ingress": 10
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_13",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_12",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_11",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_10",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_9",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_8",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_7",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_6",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_6",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_5",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_4",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_3",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_12",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_10",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_9",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_8",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_7",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_1",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_0",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_5",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_13",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_11",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.padding.image_2",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_4",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_3",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_2",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_1",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.replay.image_0",
+        "size": 2
+      }
+    ],
+    "tables_by_type": {
+      "action": 6,
+      "condition": 67,
+      "match": 111,
+      "stateful": 28
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/wire_roles.p4",
+  "source_files": {
+    "wire_roles.p4": "cd6a92129a9c0602c9c1f8bbc8f7e4b395fcff62e7759f24a0b3431e791ff3b8"
+  },
+  "source_sha256": "cd6a92129a9c0602c9c1f8bbc8f7e4b395fcff62e7759f24a0b3431e791ff3b8",
+  "timeout_seconds": 300
+}

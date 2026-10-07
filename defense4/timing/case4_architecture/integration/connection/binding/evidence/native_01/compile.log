@@ -1,0 +1,38 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(80): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(84): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(117): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(159): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(30): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(30)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(315): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(315)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(149): [--Werror=unsupported] error: add: action spanning multiple stages. Operations on operand 2 ($tmp40[0..31]) in action diff_response require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+ action diff_response(){m.client_diff=hdr.tcp.ack-m.client-32w20;m.server_diff=hdr.tcp.seq-m.server;}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/evidence/native_01/source/native_binding.p4(149)
+ action diff_response(){m.client_diff=hdr.tcp.ack-m.client-32w20;m.server_diff=hdr.tcp.seq-m.server;}
+        ^^^^^^^^^^^^^
+
+1 error, 10 warnings generated.
+
+Skipping assembler, assembly file is empty

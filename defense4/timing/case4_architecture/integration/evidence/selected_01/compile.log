@@ -1,0 +1,19 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_01/source/selected.p4(94): [--Werror=duplicate] error: native_end: Duplicates declaration native_end
+Register<bit<32>,bit<1>>(1,0) native_end;
+                              ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_01/source/selected.p4(68)
+action native_end(){m.native_end=hdr.tcp.seq+32w35;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_01/source/selected.p4(97): [--Werror=duplicate] error: native_end_t: Duplicates declaration native_end_t
+table native_end_t{key={m.stage:exact;m.work_op:exact;m.work_phase:exact;m.context_generation:exact;}actions={store_native_end;NoAction;}size=1;const entries={(8w0,8w1,32w4,32w0):store_native_end();}const default_action=NoAction();}
+      ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_01/source/selected.p4(69)
+table native_end_t{actions={native_end;}size=1;const default_action=native_end();}
+      ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_01/source/selected.p4(144):syntax error, unexpected ELSE, expecting }
+ }else
+  ^^^^
+[--Werror=overlimit] error: 3 errors encountered, aborting compilation
+
+4 errors, 0 warnings generated.
+

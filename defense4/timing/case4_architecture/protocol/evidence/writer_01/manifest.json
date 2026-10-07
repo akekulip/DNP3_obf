@@ -1,0 +1,133 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "3d51fa4ba35612d1cfd6b5afeb267e898aef5fe778bfa9f4334dc0df60e6c0f2",
+    "manifest.json": "f7c633ca2cdcd29624f91f69ae381cd8835cb29a473c0d67b49abc01654567dc",
+    "padding_cache_writer.conf": "d20b32b5af3c62c3a8493d8e52040b2dd9b8ac3faf9c3660886dce1092e745c5",
+    "pipe/context.json": "00e538b8978a3755a103356e6b184ea24a79aafb8b0c890293b0856ac8fc225d",
+    "pipe/padding_cache_writer.bfa": "1ea1af626f6bddaaca22ee687727971c2e7e91244ee2f74a4a004e8a9d7bf9b0",
+    "pipe/tofino.bin": "50a777249766a94f8c3fa5f6455b19deed5003807ec51c87a9f4e91219d48a8a"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/writer_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/writer_01/source/padding_cache_writer.p4"
+  ],
+  "compile_log_sha256": "d0b984684fbacac0698b7d26df2aad84cbac7dd01b21409a5b6b998900f64aac",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 8.793,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 8,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "af06392ff1187fc429614e9a40580109f9e6ec58bd18240a12df0be4b4469bc3",
+      "pipe/logs/phv.json": "325af4178dfe985696a5badb6925d87b824e38e1a12c6253bd01abf23997a32b",
+      "pipe/logs/phv_allocation_0.log": "36665c0dc84129cb09fef96abf33e25da283e23e74e464a32946896136c6d285",
+      "pipe/logs/phv_allocation_3.log": "36665c0dc84129cb09fef96abf33e25da283e23e74e464a32946896136c6d285",
+      "pipe/logs/phv_allocation_history_0.log": "0d5d8d76f9c678f409d72a5b8f6f3b442d47217b2f4235881728bf75709f5dcf",
+      "pipe/logs/phv_allocation_history_3.log": "a6ac7603434272632aace31f1f5137f399ed03deffcdeb8b52186c84487c0df2",
+      "pipe/logs/phv_allocation_summary_0.log": "1f7f216399869fa8a68009dd479024347bc51c5d49c1704327c35c75cc742874",
+      "pipe/logs/phv_allocation_summary_3.log": "1f7f216399869fa8a68009dd479024347bc51c5d49c1704327c35c75cc742874",
+      "pipe/logs/table_dependency_graph.log": "34fc40540f7ecf5ab6048158cc6960b28d88cf4d136fc8fa8b1e314ff1e54274",
+      "pipe/logs/table_dependency_summary.log": "85f0c5e8b6cdcd7a286a328136638a94062e8103f9dcc816e02eacdbc5f309d9",
+      "pipe/logs/table_summary.log": "3720f2c622b08ff6292c675fcbbf4ddd31ef15b48c8ac72c106166988d40da36"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 12
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_12",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_10",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_9",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_7",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_8",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_6",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_5",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_4",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_13",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_11",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_3",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_2",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_1",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_0",
+        "size": 2
+      }
+    ],
+    "tables_by_type": {
+      "action": 2,
+      "condition": 26,
+      "match": 46,
+      "stateful": 14
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/padding_cache_writer.p4",
+  "source_files": {
+    "padding_cache_writer.p4": "c65b1016e695ccf5b2383748246b013f6d601fefb137897b0d0378bd37cbda88"
+  },
+  "source_sha256": "c65b1016e695ccf5b2383748246b013f6d601fefb137897b0d0378bd37cbda88",
+  "timeout_seconds": 300
+}

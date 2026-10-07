@@ -1,0 +1,22 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(12): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(12)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(15): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(15)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);pkt.extract(hdr.descriptor);pkt.extract(hdr.eth);pkt.extract(hdr.ip);pkt.extract(hdr.tcp);transition select(hdr.descriptor.operation){8w2:image;8w1:byte;default:reject;}}state image{pkt.extract(hdr.image);transition accept;}state byte{pkt.extract(hdr.native);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(22): [--Werror=unsupported] error: Incompatible outputs in RegisterAction: mem_lo and mem_hi
+
+RegisterAction<cache_word_t,bit<1>,cache_word_t>(image_0) read_0={void apply(inout cache_word_t v,out cache_word_t rv){rv=v;}};
+                                                                                                                          ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/egress/evidence/tagged_probe_02/source/tagged_probe.p4(22)
+RegisterAction<cache_word_t,bit<1>,cache_word_t>(image_0) read_0={void apply(inout cache_word_t v,out cache_word_t rv){rv=v;}};
+                                                                                                                          ^
+
+1 error, 2 warnings generated.
+

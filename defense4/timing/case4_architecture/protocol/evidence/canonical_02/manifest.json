@@ -1,0 +1,123 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "35e111b9163e12bf5564825a885cfc69684244bb83935bc805f5712c5a1cc771",
+    "canonical_replay.conf": "654dcbe009392bac9d165251f092b5b6fccced94ebe94c6e2722566f2ce1cbc9",
+    "manifest.json": "67e60c8ba097ceb66b3212e38c16d3fff205ead275fbfb4a8df6422b66b95956",
+    "pipe/canonical_replay.bfa": "ddda40e405a2a1116b8285edc3687228766170abb1af24300aa99c4b8cd25a8e",
+    "pipe/context.json": "53cf78f05ef6994d0c52c3b5075cf7c9d9337fe587a5472e1b4d07e4f43fd34a",
+    "pipe/tofino.bin": "67a6f59a920786c358bc2ce331c9a1bfebe96d4c02c6b0a1c185f22347d3a460"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_02/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_02/source/canonical_replay.p4"
+  ],
+  "compile_log_sha256": "10a859de5a35b0393c9c0fa609ecc356fb27f72bc1b7f2ab00d14af972c97862",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 5.624,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 5,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "9f6780dd934bf5881a48b768eff6bf94042b84c5d81fc6b743c511be8562f31b",
+      "pipe/logs/phv.json": "3c516e3ed73293f9d988387964b00823292f207ec97a8017d237a24fe02eac87",
+      "pipe/logs/phv_allocation_0.log": "9c0ac6ecc8729fd7783f37ccdb0183494d92f04adc966d33dd42d3c84ee25eb1",
+      "pipe/logs/phv_allocation_3.log": "9c0ac6ecc8729fd7783f37ccdb0183494d92f04adc966d33dd42d3c84ee25eb1",
+      "pipe/logs/phv_allocation_history_0.log": "142b41877c313dcaa6c48f672b734e33ee6a515ac5e921783369933143305ce4",
+      "pipe/logs/phv_allocation_history_3.log": "55631a3e01e7918b507cb466e3ff356c29574aa8c445e58e362f18577b953fe6",
+      "pipe/logs/phv_allocation_summary_0.log": "1f6c49f0037ad33c2ad50d1c5fe5fd433217b63e9b74382bcad168e800384ceb",
+      "pipe/logs/phv_allocation_summary_3.log": "1f6c49f0037ad33c2ad50d1c5fe5fd433217b63e9b74382bcad168e800384ceb",
+      "pipe/logs/table_dependency_graph.log": "e7978152d264ccdf3d4e23383e9d7ce59cb267b84d7483d32373a1c93ba08724",
+      "pipe/logs/table_dependency_summary.log": "d00adbf45df78ba997b57398d5115e040b83e3153f5be30017c994dbad23d3af",
+      "pipe/logs/table_summary.log": "41a8ea1ceb73ec86fc0057a7258a9b2eca8534ce16dd70a381dd41fd59cd4d07"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 8
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_11",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_10",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_9",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_8",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_7",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_6",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_5",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_4",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_3",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_2",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_1",
+        "size": 2
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.image_0",
+        "size": 2
+      }
+    ],
+    "tables_by_type": {
+      "action": 1,
+      "condition": 18,
+      "match": 25,
+      "stateful": 12
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/canonical_replay.p4",
+  "source_files": {
+    "canonical_replay.p4": "8632256bf94b4d5f1f68b62f80cb06d13ff055806f0d180dc7a8cf505fcc6d6d"
+  },
+  "source_sha256": "8632256bf94b4d5f1f68b62f80cb06d13ff055806f0d180dc7a8cf505fcc6d6d",
+  "timeout_seconds": 300
+}

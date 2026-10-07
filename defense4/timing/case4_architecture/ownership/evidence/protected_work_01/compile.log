@@ -1,0 +1,30 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/protected_work_probe.p4(263): [--Wwarn=shadow] warning: 'invalidate' shadows 'invalidate'
+    action invalidate() { md.publication = 0; }
+           ^^^^^^^^^^
+/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_base.p4(539)
+extern void invalidate<T>(in T field);
+            ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/protected_work_probe.p4(141): [--Wwarn=unused] warning: publication_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(record_publication) publication_read = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/protected_work_probe.p4(43): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/protected_work_probe.p4(43)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/ownership/evidence/protected_work_01/source/owner_protected_cell.p4(64): [--Werror=target-error] error: table Ingress.owner.status is applied in multiple places, and the next-table information cannot correctly propagate through this multiple application
+    table status {
+          ^^^^^^
+
+1 error, 6 warnings generated.
+
+Skipping assembler, assembly file is empty

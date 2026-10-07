@@ -1,0 +1,28 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(11): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(11)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(89): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(89)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(81): [--Werror=target-error] error: 
+In table table Ingress.crc_t, the number of bits required to go through the immediate pathway 64 (e.g. data coming from Hash, RNG, Meter Color) is greater than the available bits 32, and can not be allocated
+table crc_t{actions={crc_materialize;}size=1;const default_action=crc_materialize();}
+      ^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/canonical_01/source/canonical_replay.p4(80): [--Werror=target-error] error: The table Ingress.crc_t with no key cannot have the action crc_materialize.  This action requires hash, which can only be done through the hit pathway.  However, because the table requires overhead, the driver may need to change at runtime, and the driver can only currently program the miss pathway.  The solution may be to remove all match overhead.
+action crc_materialize(){hdr.image.hc=hash_head.get({hdr.image.h0,hdr.image.h1});hdr.image.c0=hash_block0.get({hdr.image.b0_0,hdr.image.b0_1,hdr.image.b0_2,hdr.image.b0_3});hdr.image.c1=hash_block1.get({hdr.image.b1_0,hdr.image.b1_1,hdr.image.b1_2,hdr.image.b1_3});hdr.image.tc=hash_tail.get({hdr.image.t0,hdr.image.t1});}
+       ^^^^^^^^^^^^^^^
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 6 warnings generated.
+

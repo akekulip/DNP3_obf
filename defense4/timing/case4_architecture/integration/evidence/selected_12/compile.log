@@ -1,0 +1,31 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(243): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(243)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(92): Could not place table Ingress.real_links_t: The table real_links_t_0 could not fit within the input crossbar by itself
+table real_links_t{key={m.response:exact;m.stage:exact;m.work_op:exact;m.work_phase:exact;m.context_generation:ternary;}actions={store_real_links;compare_real_links;compare_rsp_real_links;}size=2;const entries={(8w0,8w0,8w1,32w4,32w0):store_real_links();(8w1,8w0,8w0,32w4,_):compare_rsp_real_links();}const default_action=compare_real_links();}
+      ^^^^^^^^^^^^
+
+error: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/selected_12/source/selected.p4(99): Could not place table Ingress.real_tcp_src_t: The table real_tcp_src_t_0 could not fit within the input crossbar by itself: Ingress.real_tcp_src requires more than 2 PHV inputs
+table real_tcp_src_t{key={m.response:exact;m.stage:exact;m.work_op:exact;m.work_phase:exact;m.context_generation:ternary;}actions={store_real_tcp_src;compare_real_tcp_src;compare_rsp_real_tcp_src;}size=2;const entries={(8w0,8w0,8w1,32w4,32w0):store_real_tcp_src();(8w1,8w0,8w0,32w4,_):compare_rsp_real_tcp_src();}const default_action=compare_real_tcp_src();}
+      ^^^^^^^^^^^^^^
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 8 warnings generated.
+

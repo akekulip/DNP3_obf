@@ -1,0 +1,31 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(12): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(12)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(1626): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(1626)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(205): [--Werror=unsupported] error: or: action spanning multiple stages. Operations on operand 2 ($tmp27[0..31]) in action merge_0 require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+action merge_0(){hdr.candidate.w0=hdr.candidate.w0|m.incoming0|m.newmask0;}table merge_0_t{actions={merge_0;}size=1;const default_action=merge_0();}
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(205)
+action merge_0(){hdr.candidate.w0=hdr.candidate.w0|m.incoming0|m.newmask0;}table merge_0_t{actions={merge_0;}size=1;const default_action=merge_0();}
+       ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(292): [--Werror=unsupported] error: or: action spanning multiple stages. Operations on operand 2 ($tmp28[0..31]) in action merge_1 require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+action merge_1(){hdr.candidate.w1=hdr.candidate.w1|m.incoming1|m.newmask1;}table merge_1_t{actions={merge_1;}size=1;const default_action=merge_1();}
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/assembly/evidence/merge_scalar_01/source/merge_scalar.p4(292)
+action merge_1(){hdr.candidate.w1=hdr.candidate.w1|m.incoming1|m.newmask1;}table merge_1_t{actions={merge_1;}size=1;const default_action=merge_1();}
+       ^^^^^^^
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 4 warnings generated.
+

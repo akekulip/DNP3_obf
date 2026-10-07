@@ -1,5 +1,19 @@
 # Framework / Case 4 status — 2026-10-06
 
+## Current architecture checkpoint
+
+Philip requested stopping experiments and saving a main-packet-path-first plan
+for weekly token limits. Use [revised plan](../../case4_architecture/PLAN.md) and
+[current handover](../../case4_architecture/HANDOVER.md). New work starts from
+base `a96a8e32758d498c58a3772ee774596658aad2d9` onmain. Full target remains unfinished.
+Shared egress compositions compile10/7, READ6/0, payload mapping10/0 and11/0,
+expected-phase holder12/0 and native receipt4/0 under local9.13.1. Binding and
+assembly still fail resource limits; native retry/ACK forwarding remains defective.
+Controller rollback registry bypass is repaired. Exact current SHAs/artifacts are
+in [verification02](../../case4_architecture/integration/evidence/verified_milestones_02.json).
+No model packet execution, complete9.13.2 build or new hardware evidence. The
+continuation results below are retained earlier baseline evidence.
+
 The approved continuation implements and tests the independent offline work. **Full Case 4 target integration is unfinished and unqualified.** Current recovery, instrumentation and composite sources fail local Tofino PHV placement. No current hardware deployment, measurement, physical OPERATE, restoration or push occurred.
 
 Use [STATUS_MATRIX.md](STATUS_MATRIX.md) for cumulative evidence, [CLAIMS_RECONCILIATION.md](CLAIMS_RECONCILIATION.md) for claim limits and [HANDOVER.md](HANDOVER.md) for the remaining dependency order. Continuation base is `5a816ab26d60da5fa041b19db6d0fbe9d2f21417`; protected execution base remains `235e7f01f1c87115455480ebf7c8d94f569c483b`. Work remains on `main`. Commits use `akekulip <akekulip@gmail.com>` as author and committer without contributor trailers; final revision is `git rev-parse HEAD`. Pre-existing user changes are preserved.
