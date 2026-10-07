@@ -100,20 +100,25 @@ class GuardMiss(unittest.TestCase):
         self.assertEqual(pipe.state()['owner'], before['owner'])
         self.assertEqual(pipe.state()['work']['phase'], 4)
 
-    def test_removed_flow_entry_mid_flight_is_denied_and_never_forwards_the_envelope(self):
+    def test_removed_flow_entry_before_any_return_pass_is_aborted_and_work_released(self):
+        # The `connection` lookup misses on a return pass (direction 0). The pass is released as an
+        # abort: the work pin goes back through the normal passes, then the terminal denies. No envelope
+        # leaves on a front-panel port and nothing is left pinned.
         for frame, port, owner, client, server in ((select_packet(), 1, 0x40001, 101, 901),
-                                                   (rs.request_packet(), 1, 0x50001, 1000, 2000)):
-            pipe = ReadPipeline().start(owner, client, server)
-            pipe.mutate[2] = lambda p: rs.drop_runtime(p, 'connection')
-            before = pipe.state()
-            out = pipe.inject(port, frame)
-            assert_invariants(self, pipe, out, frame)
-            self.assertTrue(out.dropped)
-            self.assertEqual(out.emitted, [])
-            self.assertEqual(pipe.state()['owner'], before['owner'])
-            # Quarantine path (documented): with no flow there is no guard, so the pin stays at the
-            # phase the last honest pass left it. Only the controller register reset frees it.
-            self.assertNotEqual(pipe.state()['work']['phase'], 4)
+                                                   (rs.request_packet(), 1, 0x50001, 1000, 2000),
+                                                   (rs.ack_packet(), 2, 0xe0001, 1020, 2000),
+                                                   (rs.response_packet(), 2, 0xe0001, 1020, 2000)):
+            for removed_before in (2, 3, 4):
+                with self.subTest(len(frame), removed_before=removed_before):
+                    pipe = ReadPipeline().start(owner, client, server)
+                    pipe.mutate[removed_before] = lambda p: rs.drop_runtime(p, 'connection')
+                    before = pipe.state()
+                    out = pipe.inject(port, frame)
+                    assert_invariants(self, pipe, out, frame)
+                    self.assertTrue(out.dropped)
+                    self.assertEqual(out.emitted, [])
+                    self.assertEqual(pipe.state()['work']['phase'], 4, 'WorkRecord released')
+                    self.assertLessEqual(out.passes, 4)
 
     def test_relabelled_private_event_is_aborted_not_forwarded_with_envelope(self):
         import struct
@@ -128,19 +133,25 @@ class GuardMiss(unittest.TestCase):
 
 
 class BusyWorkRecord(unittest.TestCase):
-    """M2: pinned current behaviour. A busy WorkRecord means the claimed packet is not bound to a
-    private pass at all; it leaves transparently, in one pass, with no owner or bank change."""
+    """M2, superseded by the PI decision of step 3 (S3-2): with the WorkRecord busy, data packets (SELECT,
+    OPERATE, response, READ request and response) are dropped and counted instead of passing natively;
+    pure ACKs are still forwarded transparently in one pass. No owner or bank change either way. The
+    counted outcome is asserted in test_step3_catchall.py; this pins the invariants."""
 
-    def test_busy_record_forwards_select_operate_read_and_ack_transparently(self):
-        cases = ((1, select_packet(), 0x40001, 101, 901), (1, rs.request_packet(), 0x50001, 1000, 2000),
-                 (2, rs.ack_packet(), 0xe0001, 1020, 2000), (2, rs.response_packet(), 0xe0001, 1020, 2000))
-        for port, frame, owner, client, server in cases:
+    def test_busy_record_drops_data_and_forwards_pure_acks_with_no_state_change(self):
+        cases = ((1, select_packet(), 0x40001, 101, 901, True), (1, rs.request_packet(), 0x50001, 1000, 2000, True),
+                 (2, rs.ack_packet(), 0xe0001, 1020, 2000, False), (2, rs.response_packet(), 0xe0001, 1020, 2000, True))
+        for port, frame, owner, client, server, data in cases:
             pipe = ReadPipeline().start(owner, client, server, work=(7, 2))
             before = pipe.state()
             out = pipe.inject(port, frame)
-            self.assertFalse(out.dropped, out.drop_reason)
             self.assertEqual(out.passes, 1)
-            self.assertEqual(out.emitted, [(2 if port == 1 else 1, frame)])
+            if data:
+                self.assertTrue(out.dropped)
+                self.assertEqual(out.emitted, [])
+            else:
+                self.assertFalse(out.dropped, out.drop_reason)
+                self.assertEqual(out.emitted, [(2 if port == 1 else 1, frame)])
             after = pipe.state()
             for key in ('owner', 'client', 'server', 'epoch', 'work'):
                 self.assertEqual(after[key], before[key], key)

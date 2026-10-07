@@ -25,6 +25,16 @@ INTENTIONAL DIFFERENCES (everything else must be identical)
       (packet kind 3, direction 2) is now a READ_ACK candidate, kind 10. Those grid points are executed
       but excluded from the comparison (hist key READ-INTENTIONAL); they are covered by
       test_native_read.py. The READ application register must stay 0 for every other case.
+  D9  Step 3 response to OPERATE: the OPERATE (kind 7, stage 1) re-stores the application, real_off and
+      native_end banks and stored positions include the acknowledged insertion (select +20, operate +40).
+      Bank cells are therefore compared as unchanged/written, and those three are not compared at stage 1
+      kind 7. The sequence guard also has a second value (client difference 20 gives sequence_valid 2) and a
+      new private kind 16 (response to OPERATE) with owner 12 to 16 to 5; both are unreachable in the grid.
+  D10 PI decision (step 3): with the WorkRecord busy (or the generation counter exhausted) a data packet
+      (packet kind 5, 6, 7) is dropped and counted instead of forwarded natively; the only differing
+      observable is md.drop_ctl 0 -> 1. Counters (count_first, count_busy, count_term) are exposed state
+      that exists only in the new source. Whole-segment resend, one-byte replay (kind 12, IP length 41)
+      and the sequence_valid codes 3 and 4 are new and covered by test_step3_catchall.py.
   D5  m.expected_work_phase is assigned once at the top of apply instead of directly before
       work.apply; m.stage is never written after parsing, so the value is identical.
 """
@@ -84,7 +94,10 @@ class Differential(unittest.TestCase):
         server_ack = table == 'sequence_diff' and action == 'diff_reverse' and numbers == {3, 2, 16}
         # H1 power-on epoch entry: the oracle grid fixes epoch 17; test_native_invariants.EpochZero covers it.
         epoch_zero = table == 'snapshot_t' and action == 'snapshot_epoch_zero'
-        return 'read' in action or bool(numbers & {9, 10, 11}) or server_ack or epoch_zero
+        step3 = ('response_op' in action or action in ('seq_ok_second', 'seq_resent', 'seq_replay', 'first_replay') or 16 in numbers
+                 or 12 in numbers or action.startswith('count_') or table == 'busy_t'
+                 or (action.startswith('store_') and 7 in numbers))      # D9 entries, covered by test_step3_exchange
+        return 'read' in action or bool(numbers & {9, 10, 11}) or server_ack or epoch_zero or step3
 
     def test_every_const_entry_of_every_data_path_table_was_exercised_on_both_sides(self):
         engine = d.Engine()

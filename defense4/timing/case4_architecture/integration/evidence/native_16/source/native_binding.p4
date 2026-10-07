@@ -339,7 +339,7 @@ action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_ter
 table read_terminal_t{key={m.kind:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=5;const entries={8w9:emit_tev(16w0x0900);8w10:emit_tev(16w0x0a00);8w11:emit_tev(16w0x0b00);8w12:emit_replay();8w255:terminal_abort();}const default_action=terminal_strip();}
 action busy_drop(){md.drop_ctl=3w1;count_busy_bump.execute(4w0);}
 action busy_pass(){count_busy_bump.execute(4w1);}
-table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=6;const entries={8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}
+table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=5;const entries={8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();}const default_action=busy_pass();}
 action go_new(bit<8> k){m.go=8w1;m.kind=k;m.generation=allocate.execute(1w0);m.work_op=8w1;}
 action go_keep(bit<8> k){m.go=8w1;m.kind=k;}
 action go_ret_work(){m.go=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;}

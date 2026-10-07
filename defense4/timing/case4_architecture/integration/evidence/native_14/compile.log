@@ -1,0 +1,15 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_14/source/native_binding.p4(222): [--Werror=not-found] error: count_first_bump: declaration not found
+ action count_refused(){count_first_bump.execute(4w0);}
+                        ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_14/source/native_binding.p4(223): [--Werror=not-found] error: count_first_bump: declaration not found
+ action count_resent(){count_first_bump.execute(4w1);}
+                       ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_14/source/native_binding.p4(224): [--Werror=not-found] error: count_first_bump: declaration not found
+ action count_replay_refused(){count_first_bump.execute(4w2);}
+                               ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_14/source/native_binding.p4(332): [--Werror=not-found] error: count_term_bump: declaration not found
+action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_term_bump.execute(4w0);}
+                                                                       ^^^^^^^^^^^^^^^
+
+4 errors, 0 warnings generated.
+

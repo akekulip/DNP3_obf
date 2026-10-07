@@ -72,3 +72,12 @@ hardware evidence.** It shows what the P4 text says, under the semantics assumed
    (parser accepts at the envelope, `m.parsed` stays 0, nothing denies).
 3. Stage-0 frames rejected by the network, connection or data guards are not dropped; they pass
    through byte-identical via `ports.route`.
+
+## Known model artifacts (not program defects)
+
+Found by comparing this harness with the Tofino model (`evidence/model_24` to `model_27`). Do not chase them:
+
+- Frames shorter than 60 bytes are padded to 60 by the model/port, so a short frame (for example a
+  bare ACK or a truncated test frame) arrives with trailing zero bytes that this harness does not add.
+- A truncation that cuts within the last 4 bytes of a frame is invisible on the model: the Ethernet FCS
+  occupies those bytes, so the cut removes only FCS and the packet still parses as complete.

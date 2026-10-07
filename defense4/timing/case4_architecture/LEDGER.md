@@ -136,3 +136,27 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
     H1 (epoch 0), H2 (guard miss) fixed; `native_11` compiles at 12/12 stages; open: flow-miss leaves WorkRecord pinned (fix in progress), M2 busy-record transparent pass (design gap).
   * READ timing role `read_timing.p4` 12/12 stages, checked against `join_reference.py`; ADMIT and held paths run on the model functionally (`read_timing_model_0*`).
   * Not done: N->T cross-pipe join on one multi-pipe program, steps 3–5, 9.13.2 build, any hardware. No push; nothing is hardware-measured.
+- 2026-10-07 flow-miss release and step 3 tickets S3-1, S3-2 (N only; M, E and the held pin are later tickets).
+  Source-level plus Tofino compiler evidence: `integration/evidence/native_17`, 12 ingress stages, critical
+  path 11, PHV 51.7 percent, power 16.4, `verify_evidence` all True, static-entry scan clean (earlier
+  `native_12` carries the flow-miss fix alone, `native_13` S3-1, `native_14` to `native_16` the failed or
+  intermediate S3-2 compiles; native_14 and native_15 failed to compile and are kept).
+  * Flow miss: a return pass whose `connection` lookup misses (direction 0) is released as an abort (guard
+    rows for stages 1 to 3), so the work pin goes back through the normal passes and the terminal denies. It
+    no longer stays pinned.
+  * S3-1 (response to OPERATE): private kind 16, owner 12 to 16 to 5, `sequence_valid` 2 for a response
+    acknowledged at native + 40 (client difference 20 after the OPERATE moved the client bank), banks
+    re-stored by the OPERATE (application, real_off, native_end) with positions that include the
+    acknowledged insertion (select +20, operate +40), so no offset is hard-coded in a response compare.
+    Harness topology now configures both orientations of `data_connection` and the production decoy
+    parameters read from the codec response bytes; the response is bound in 4 passes (it was 1, unbound).
+  * S3-2 (PI decisions): a data packet (SELECT, OPERATE, response, READ request or response, replay) that
+    finds the WorkRecord busy is DROPPED and counted; pure ACKs are forwarded and counted. A busy drop burns
+    one generation (the mint precedes the busy test). Counters are exposed in `count_first`, `count_busy`,
+    `count_term` (saturating, not cleared by a WorkRecord reset); a controller WorkRecord reset is the only
+    liveness mechanism. A resent whole segment (client position minus 35) is a counted drop (step 4 owns the
+    recovery). Kind 12 (one-byte tail replay, IP length 41) is bound at owner phase 9 or 12 at position
+    client-1, nonmutating, and handed to `STEP3_M_PORT` (provisional, no M yet) behind the private envelope.
+  * NOT done: the supported-tuple catch-all for IP lengths the parser does not classify (no checksum can be
+    validated on unparsed bytes; needs the M mapping-only path); the epoch-keyed client bank store (a new
+    dependency edge, would need a 13th stage); padded-OPERATE J-hold is outside step 3 (PI decision 1).

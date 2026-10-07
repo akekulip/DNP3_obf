@@ -64,8 +64,35 @@ def native_select(app=0, fc=3):
         bytes((0xc0, 0xc0 | app, fc)) + bytes.fromhex('0c0128010001000101640000006400000000'))
 
 
+DECOY = case4_padding.Decoy(201, bytes.fromhex('0101000000000000000000'))   # production inert index 201
+
+
+def native_response(app=0, fc=3, status=0):
+    """The 57-byte native response to a SELECT (fc 3) or OPERATE (fc 4) with the given application sequence.
+
+    Built from the independent codec: the request is expanded with the production decoy exactly as the
+    padding role would, then answered with function 0x81 and the expanded object block."""
+    head, user = case4_padding.decode_frame(case4_padding.expand_control(native_select(app, fc), DECOY)[0])
+    objects = bytearray(user[3:])
+    objects[17] = status
+    return case4_padding.build_frame(bytes.fromhex('05642e4401000a00'), user[:2] + bytes((0x81, 0, 0)) + bytes(objects))
+
+
+def decoy_config():
+    """(index, code, repeat, on, off) the controller installs, read from the response bytes the same way the
+    P4 compares them (second block word 3, response tail words 0 and 1)."""
+    frame = native_response()
+    second = frame[28:46]
+    tail = frame[46:57]
+    w3 = int.from_bytes(second[12:16], 'big')
+    return (w3 >> 16, (w3 >> 8) & 255, w3 & 255, int.from_bytes(tail[0:4], 'big'), int.from_bytes(tail[4:8], 'big'))
+
+
 def topology():
     flows = [(CLIENT, SERVER, CLIENT_PORT, SERVER_PORT, 'forward', IN_SERVER),
              (SERVER, CLIENT, SERVER_PORT, CLIENT_PORT, 'reverse', IN_CLIENT)]
-    data = [(CLIENT, SERVER, CLIENT_PORT, SERVER_PORT, 0x0001, 0x03, 0x01, 100, 200)]
+    # Both orientations are configured: the response guard needs `enabled`, and `enabled` comes only from
+    # data_connection (S3-1 finding: with only the forward tuple a response is forwarded unbound in one pass).
+    data = [(CLIENT, SERVER, CLIENT_PORT, SERVER_PORT, *decoy_config()),
+            (SERVER, CLIENT, SERVER_PORT, CLIENT_PORT, *decoy_config())]
     return Config(ports={IN_CLIENT: IN_SERVER, IN_SERVER: IN_CLIENT, 68: 68}, flows=flows, data_connections=data)

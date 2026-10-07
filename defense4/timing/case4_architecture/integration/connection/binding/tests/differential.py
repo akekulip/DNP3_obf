@@ -34,6 +34,7 @@ OUT_PORT = 7
 BANKS = ('pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports', 'pair_real_object_real_on',
          'pair_real_off_native_start', 'pair_native_end_server_start',
          'pair_frozen_decoy_object_frozen_decoy_on')
+OPERATE_RESTORED = ('application', 'pair_real_off_native_start', 'pair_native_end_server_start')
 PAIR_FIELDS = (('compare_real_links', 'compare_real_tcp_src'), ('compare_real_tcp_dst', 'compare_real_tcp_ports'),
                ('compare_real_object', 'compare_real_on'), ('compare_real_off', 'compare_native_start'),
                ('compare_native_end', 'compare_server_start'),
@@ -90,12 +91,15 @@ class Engine:
         for name, value in case['cells'].items():
             src.cells[name][0] = copy.deepcopy(value)
 
-    def prepare(self, case):
-        """Fill the binding banks so a stage-0 compare matches (or misses in one component)."""
+    def prepare(self, case, src):
+        """Case copy whose binding banks match (or miss in one component) the compare inputs of THIS source.
+
+        Each source stores its own bank encoding (the restructure stores positions that include the
+        acknowledged insertion), so the banks are derived from the source under test, not shared."""
+        case = copy.deepcopy(case)
         variant = case.get('bank')
         if variant is None:
-            return
-        src = self.old
+            return case
         self.load(src, case)
         pk = case['env']['m.packet_kind']
         src.action('calculate_native_end')
@@ -118,6 +122,7 @@ class Engine:
                 value['first'] = (value['first'] + 1) & 0xffffffff
             else:
                 cells[('', target)] = (value + 3) & 0xffffffff
+        return case
 
     @staticmethod
     def observe(src):
@@ -137,11 +142,24 @@ class Engine:
         return self.observe(src)
 
     def compare(self, case):
-        self.prepare(case)
         self.old.hits, self.new.hits = set(), set()
-        a, b = self.run(self.old, case), self.run(self.new, case)
+        ca, cb = self.prepare(case, self.old), self.prepare(case, self.new)
+        a, b = self.run(self.old, ca), self.run(self.new, cb)
+        # The two sources encode stored positions differently (the new one includes the acknowledged
+        # insertion), so a bank cell is compared as unchanged versus written, not by value. The VALUE
+        # semantics (store then compare matches) is checked by the whole-program exchange tests.
+        for side, prepared in ((a, ca), (b, cb)):
+            for name in BANKS + ('application', 'frozen_decoy_off'):
+                key = ('', name)
+                before = prepared['cells'].get(key, 0 if name in ('application', 'frozen_decoy_off') else {'first': 0, 'second': 0})
+                if case['label']['stage'] == 1 and case['label']['kind'] == 7 and name in OPERATE_RESTORED:
+                    side['cells'][key] = 'D9'      # intentional: the OPERATE re-stores these three banks
+                    continue
+                side['cells'][key] = 'unchanged' if side['cells'][key] == [before] or side['cells'][key] == before else 'written'
         self.old_ran_body = any(t == 'epoch_t' for t, _ in self.old.hits)
         # The READ application register exists only in the new source. Non-READ traffic must leave it at 0.
+        for counter in ('count_first', 'count_busy', 'count_term'):    # exposed counters exist only in the new source
+            b['cells'].pop(('', counter), None)
         read_app = b['cells'].pop(('', 'read_app'), [0])
         if read_app != [0] and not is_read_candidate(case):
             b['cells'][('', 'read_app')] = read_app
@@ -155,6 +173,12 @@ class Engine:
             for key in sorted(set(a[part]) | set(b[part]), key=str):
                 if a[part].get(key) != b[part].get(key):
                     diff.append((part, key, a[part].get(key), b[part].get(key)))
+        # D10 (PI decision, step 3): a data packet that finds the WorkRecord busy is now dropped (counted)
+        # instead of forwarded natively. Nothing else may differ.
+        label = case['label']
+        if (label['stage'] == 0 and label['pk'] in (5, 6, 7) and (label['work'][0] != 4 or label['counter'] == 0xffffffff)
+                and diff == [('fields', 'md.drop_ctl', 0, 1)]):
+            return None, a
         return diff, a
 
     def drive_epoch(self, case):

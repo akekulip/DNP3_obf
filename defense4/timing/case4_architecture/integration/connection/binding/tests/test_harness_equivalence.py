@@ -120,7 +120,7 @@ class PacketSweep(unittest.TestCase):
         raw_text, fixed_text = ORACLE.read_text(), fixed_oracle_text()
         flags_all = (2, 18, 16, 17, 20, 4)
         pipes = (old_pipe(raw_text), old_pipe(fixed_text), new_pipe())
-        compared = differing = epoch_zero = read_candidates = 0
+        compared = differing = epoch_zero = read_candidates = busy_data = 0
         outcomes = set()
         for _ in range(self.SAMPLES):
             kind = rnd.choice(('control', 'control', 'select', 'operate'))
@@ -164,14 +164,21 @@ class PacketSweep(unittest.TestCase):
                     self.assertEqual(new.registers[key], fixed.registers[key], key)
                 read_candidates += 1
                 continue
+            if 'work' in presets and presets['work'][1] != 4 and kind in ('select', 'operate') and not fixed.dropped:
+                # D10 (PI decision): a data packet that finds the WorkRecord busy is dropped, not forwarded.
+                self.assertTrue(new.dropped)
+                self.assertEqual(new.emitted, [])
+                self.assertEqual(new.registers, fixed.registers)
+                busy_data += 1
+                continue
             self.assertTrue(same(fixed, new), (kind, presets, raw[:40].hex(), fixed.registers, new.registers))
             if not same(old, new):
                 differing += 1
                 self.assertTrue(old.dropped and old.passes == 2)
                 self.assertIn('table network -> NoAction (default)', '\n'.join(old.trace[1]))
         print('sweep: %d frames, invariants held: %d, identical to fixed oracle (rest): %d, epoch-0 (H1, invariants only): %d, '
-              'READ_ACK candidates (D6, same bytes and state): %d, '
-              'differ from raw oracle only by the kind-8 deny: %d' % (compared, compared, compared - epoch_zero - read_candidates, epoch_zero, read_candidates, differing))
+              'READ_ACK candidates (D6, same bytes and state): %d, busy data dropped (D10): %d, '
+              'differ from raw oracle only by the kind-8 deny: %d' % (compared, compared, compared - epoch_zero - read_candidates - busy_data, epoch_zero, read_candidates, busy_data, differing))
         self.assertGreater(len(outcomes), 3)
 
 

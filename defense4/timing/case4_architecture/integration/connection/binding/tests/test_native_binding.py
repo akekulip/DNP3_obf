@@ -33,9 +33,12 @@ class NativeBinding(unittest.TestCase):
         self.assertEqual(source.env['hdr.event.event'],0x105)
 
     def test_coalesced_final_ack_select_and_established_select_are_allowed(self):
+        # Rewritten onto ExtSource: a first_event miss now runs a counting register action (int<32>
+        # saturation), which the regex fragment evaluator cannot execute. Same three cases, same events.
         for owner,expected in ((0x40001,0x105),(0x50001,0x105),(0x60001,0x1ff)):
-            source=self.source({'m.observed':owner,'m.kind':5,'m.sequence_valid':1,
-                'm.matched':0,'hdr.event.event':0x1ff})
+            source=ExtSource((HERE/'native_binding.p4').read_text(),HERE)
+            source.env.update({'m.observed':owner,'m.kind':5,'m.sequence_valid':1,'m.matched':0,'hdr.event.event':0x1ff})
+            source.valid['event']=True
             source.table('first_event')
             self.assertEqual(source.env['hdr.event.event'],expected)
 
