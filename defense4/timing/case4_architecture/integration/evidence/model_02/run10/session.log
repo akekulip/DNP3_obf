@@ -1,0 +1,16 @@
+--- listeners
+Netid   State    Recv-Q   Send-Q     Local Address:Port      Peer Address:Port  Process                                 
+tcp     LISTEN   0        1                0.0.0.0:8001           0.0.0.0:*      users:(("tofino-model",pid=35,fd=0))   
+tcp     LISTEN   0        1                0.0.0.0:7777           0.0.0.0:*      users:(("bf_switchd",pid=39,fd=3))     
+tcp     LISTEN   0        1024             0.0.0.0:9090           0.0.0.0:*      users:(("bf_switchd",pid=39,fd=11))    
+tcp     LISTEN   0        5                0.0.0.0:9999           0.0.0.0:*      users:(("bf_switchd",pid=39,fd=17))    
+tcp     LISTEN   0        4096                   *:50052                *:*      users:(("bf_switchd",pid=39,fd=22))    
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name egress_wire
+Binding with p4_name egress_wire successful!!
+Received egress_wire on GetForwarding on client 1, device 0
+port-state {'$DEV_PORT': {'value': 1}}
+TX 60 bytes on veth19: 02000000000202000000000108004500002800004000400600000a0000010a00000204d24e2000000001000000015018200000000000000000000000
+RX 60 bytes on veth3: 02000000000202000000000108004500002800004000400600000a0000010a00000204d24e2000000001000000015018200000000000000000000000
+RESULT FORWARDED identical
