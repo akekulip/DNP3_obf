@@ -1,9 +1,20 @@
 # Case4 continuation checkpoint —2026-10-06
 
+**Resume from the [core functionality and testing plan](PLAN.md).** It defines
+the implementation order, required tests and acceptance criteria for each step.
+
 Philip requested plans/handover instead of further experiments because weekly
 tokens may run out. Development experiments are stopped. **The complete target
 is absent and the assignment is unfinished.** Resume using the revised sequence
-in `PLAN.md`; main packet forwarding comes before more architecture exploration.
+in [PLAN.md](PLAN.md); main packet forwarding comes before more architecture exploration.
+
+Next: fix the four supported handshake retry/pure-ACK forwarding failures, using
+the retained complete-byte counterexamples. Then complete one actual READ timing
+path, followed by ordinary SELECT/OPERATE sizing and transport integration. Do
+not restart standalone resource experiments. The planned `integration/core/`
+candidate and full-packet harness are not implemented yet; existing tests execute
+source fragments and do not prove that core path. Remaining loss/assembly/lifecycle
+and qualification gates are specified in the linked plan, not dropped from scope.
 
 Base is `a96a8e32758d498c58a3772ee774596658aad2d9`, branchmain. Work directly onmain,
 preserve frozen sources/evidence/paper and unrelated local changes. Lead alone

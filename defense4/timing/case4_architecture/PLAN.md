@@ -4,37 +4,46 @@ Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
 Base: `a96a8e32758d498c58a3772ee774596658aad2d9`, main.
 This directory contains new engineering candidates; it is not deployment evidence.
 
-## Revised continuation: main packet path first
+## Current plan: core functionality and its tests
 
 Philip requested a checkpoint on2026-10-06 to conserve weekly tokens. Stop broad
 architecture searches and further packing/annotation experiments. Preserve all
 results below; they are historical task assignments, not instructions to resume
 parallel exploration. The full required Case4 scope remains unchanged.
 
-Use one implementation owner and one bounded reviewer. Resume at the first
-unfinished step; compile only after a meaningful integration change. Do not rerun
-unaffected legacy suites or existing failed layouts.
+The first deliverable is one candidate that forwards real packets through the
+entire supported path: establish a connection, process READ with the required
+timing, then perform matching SELECT/OPERATE with padding, carving and correct
+TCP translation. Actual packet forwarding is the priority. Standalone fits and
+passing source-fragment tests are reusable components, not that deliverable.
+
+Use one implementation owner and one bounded reviewer. Reuse the sources listed
+in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
+integration change. Do not rerun unaffected legacy suites or failed layouts.
 
 1. **Restore a correct transparent connection path.** Fix native binding's SYN,
    SYNACK/final-ACK retries and established pure ACKs: the retained source currently
    turns them into event01ff and drops them. Keep malformed/foreign traffic from
    mutating an owner, while preserving ordinary supported forwarding. Use the
    complete-byte witnesses in `ownership/review/counterexamples.py` as the red
-   regressions. Retain full expected-phase/generation qualification.
+   regressions. Retain full expected-phase/generation qualification. This is the
+   immediate next coding task; no new architecture search comes before it.
 2. **Complete one real READ timing path.** Join the actual READ validator to the
    live connection identity and compiled expected-phase holder. Capture actual
    request arrival, preserve wire ACK observation before inverse mapping, and
    forward the actual released ACK/response. Prove independent heartbeat/fallback,
    full gap after actual ACK commitment, off-drain and actual terminal credits.
-   This is a functional milestone, not completion of the control-sizing scope.
+   This is the first complete timing milestone, not completion of control sizing.
 3. **Complete the ordinary unfragmented control path.** Bind validated native
    SELECT/OPERATE and successful matching response to that same live authority;
    integrate35→55 production,57→[28,29], payload mapping and shared replay banks.
    Require actual owner/work pin before cache access and no reuse until terminals.
    The configured proof/object/geometry seams must disappear from that path.
 4. **Close the remaining required loss/lifecycle cases.** Add supported fragment
-   assembly, exact overlap/resegmentation/tail repair, two insertion boundaries,
-   both window edges, wrap, reset/reconnect and exhausted capacity. The existing
+   assembly and full overlap/resegmentation/capacity coverage. Finish reset,
+   reconnect, exhaustion and reuse protection across every asynchronous return.
+   Keep translation and replay alive until verified connection retirement even
+   after timing retires or policy disables new insertion. The existing
    assembler layouts do not fit. Make one separately justified structural change
    only after the ordinary path has executable source-current integration evidence.
 5. **Qualify the complete program.** Run differential whole-target packets when
@@ -43,10 +52,54 @@ unaffected legacy suites or existing failed layouts.
    hardware package and request any missing live authorization. Campaign remains
    44blocks/16,168attempts, no implicit calibration or retries.
 
-Each milestone needs actual forwarding, targeted byte/event regressions and a
-source-bound compiler outcome. An incomplete probe's default drop or a controller
-assertion cannot be accepted as the main functionality. `HANDOVER.md` records
-current sources, evidence and unresolved defects; do not restart from scratch.
+Two insertion boundaries, both window edges and full32 sequence arithmetic belong
+in step3, not a later optional optimization. A single supported connection and
+unfragmented requests can establish an intermediate path; bounded capacity and
+fragment/lifecycle coverage remain mandatory for final completion.
+
+## Tests and acceptance for each step
+
+| Step | Required tests | Acceptance |
+|---|---|---|
+| 1. Connection transparency | SYN, SYNACK and final-ACK retries; coalesced final ACK+SELECT; established pure ACKs in both directions; foreign tuple/epoch; malformed frame; stale/duplicate work return | Valid supported traffic is forwarded with correct bytes; unrelated traffic cannot change the active owner; no fake terminal or leaked work credit. All four retained retry/ACK witnesses become repaired regressions. |
+| 2. READ timing | Early, late and absent response; D_A5/10/15/20ms; delayed actual ACK commitment; one/both blockers lost; independent heartbeat; duplicate originals; policy-off while held; clock wrap | Actual ACK/response originals forwarded once, response retains the full999,936ns committed gap, fallback is finite, and actual qualified terminals permit cleanup. Eligibility is separately reported from physical departure. |
+| 3. Control path | Native35→55 exact SELECT and OPERATE bytes; real and inert CROB objects/statuses match; response57→ordered[28,29] reassembles exactly; wrong application/TCP/tuple association; both insertions; ACK clamps/both window edges/wrap; lost inserted tail | One supported successful SELECT→OPERATE exchange completes through the actual validator, live owner, image producer, mapper and renderer. CRC/checksums match an independent codec; replay repairs the lost tail using sender retransmission, without a manufactured ACK. |
+| 4. Loss and lifecycle | Fragment boundaries/reordering/duplicates/conflicting overlap; resegmentation; stale cached descriptor; reset/FIN/reconnect; policy-off after insertion; capacity/generation exhaustion; delayed old original/producer returns | Exact repair and translation survive timing retirement/off until connection retirement; no stale publication, slot overwrite, premature reuse, early OPERATE or silent corruption. Unsupported outcomes are explicit. |
+| 5. Qualification | Whole-target differential packets/events; source-current9.13.2 production build; real schema/inventory/rollback checks; authorized packet/timing campaign | Complete source fits, whole-target behavior passes, and the exact reviewed hardware package is qualified. Hardware measurement/physical inertness remain separate evidence gates. |
+
+Implement one `integration/core/` candidate and its end-to-end packet test harness
+as the integration work proceeds; neither exists yet. The harness should consume
+real frame bytes, drive the full parser/control/deparser, and compare packets plus
+owner/terminal events against the existing independent codecs/transport oracle.
+Include retained failure witnesses as negative regressions. Avoid another Python
+implementation of the proposed P4 as the only expected-output reference.
+
+Run targeted tests for the changed behavior first, then compile that integrated
+source into a fresh evidence directory. Use legitimate target-model packet
+execution when available. The present CAP_NET_RAW startup failure is an explicit
+test gap: source interpreters and compiled resources cannot substitute for full
+pipeline execution. Do not mark a step target-verified while that gap persists.
+Run real pinned OpenDNP3/TCP loss tests against the completed path when the harness
+supports it; historical software socket success does not qualify new target code.
+
+For each step save only the necessary evidence: source/compiler identity, command,
+actual packet/event outputs, expected comparison, failures/skips and stage/resource
+result. If compilation fails, isolate that integration dependency and test one
+justified structural repair; do not start unrelated variants. Preserve failed
+runs. Instrumentation, efficiency tuning and publication work follow functional
+correctness, rather than expanding the first deliverable.
+
+Existing focused commands, from this directory:
+
+```sh
+python3 -m unittest discover -s integration/connection/binding/tests -p 'test_*.py' -v
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+python3 -m unittest discover -s integration/controller/tests -p 'test_*.py' -v
+```
+
+The future core harness must add packet-level execution; these existing commands
+alone do not establish it. [HANDOVER.md](HANDOVER.md) records exact current sources,
+evidence and unresolved defects so the next session can resume directly.
 
 ## Shared contracts
 
@@ -76,7 +129,10 @@ sequence arithmetic and supported fragment assembly remain required. READ remain
 supported without control padding. No CPU packet processing or proof seam is a final
 implementation. No frozen source, existing evidence or paper file is edited.
 
-## Tasks
+## Earlier parallel tasks — reference only
+
+These describe the completed investigation lanes. Do not restart them; use the
+current core-functionality sequence and testing criteria above.
 
 ### Task 1: Ownership and timing primitives
 
