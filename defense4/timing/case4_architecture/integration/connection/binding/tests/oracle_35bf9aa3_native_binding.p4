@@ -26,7 +26,7 @@ header work_generation_h{bit<32> generation;}
 header expected_cell_h{bit<32> expected_cell;}
 header event_h{bit<16> event;bit<16> reserved;}
 struct headers_t{envelope_h envelope;work_generation_h work_generation;expected_cell_h expected_cell;event_h event;eth_h eth;ip_h ip;tcp_h tcp;mss_h mss;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;}
-struct meta_t{bit<8> cache_mode;bit<8> association_allowed;bit<8> response;bit<8> matched;bit<8> operate_qualified;bit<32> prefix_difference;bit<32> accepted_diff;bit<16> crc1;bit<8> bad1;bit<32> compare_real_links;bit<32> diff_real_links;bit<32> compare_real_tcp_src;bit<32> compare_real_tcp_dst;bit<32> diff_real_tcp_dst;bit<32> compare_real_tcp_ports;bit<32> compare_real_object;bit<32> diff_real_object;bit<32> compare_real_on;bit<32> compare_real_off;bit<32> diff_real_off;bit<32> compare_native_start;bit<32> compare_native_end;bit<32> diff_native_end;bit<32> compare_server_start;bit<32> compare_application;bit<32> diff_application;bit<32> compare_frozen_decoy_object;bit<32> diff_frozen_decoy_object;bit<32> compare_frozen_decoy_on;bit<32> compare_frozen_decoy_off;bit<32> diff_frozen_decoy_off;bit<32> context_generation;bit<32> native_end;bit<8> enabled;bit<8> profile;bit<8> changed;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<8> badh;bit<8> badb;bit<8> badt;bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<8> parsed;bit<8> port_valid;bit<8> direction;bit<8> network_valid;bit<8> shape_valid;bit<8> packet_kind;bit<8> stage;bit<8> kind;bit<8> work_op;bit<8> owner_op;bit<8> sequence_valid;bit<8> epoch_valid;bit<8> emit_loop;PortId_t output_port;bool ip_error;bit<16> tcp_sum;bit<32> counter;bit<32> generation;bit<32> work_phase;bit<32> epoch;bit<32> client;bit<32> server;bit<32> new_seq;bit<32> client_diff;bit<32> server_diff;bit<32> epoch_diff;bit<32> expected;bit<32> desired;bit<32> observed;bit<32> owner_diff;}
+struct meta_t{bit<8> cache_mode;bit<8> association_allowed;bit<8> response;bit<8> matched;bit<8> operate_qualified;bit<32> prefix_difference;bit<32> accepted_diff;bit<16> crc1;bit<8> bad1;bit<32> compare_real_links;bit<32> diff_real_links;bit<32> compare_real_tcp_src;bit<32> compare_real_tcp_dst;bit<32> diff_real_tcp_dst;bit<32> compare_real_tcp_ports;bit<32> compare_real_object;bit<32> diff_real_object;bit<32> compare_real_on;bit<32> compare_real_off;bit<32> diff_real_off;bit<32> compare_native_start;bit<32> compare_native_end;bit<32> diff_native_end;bit<32> compare_server_start;bit<32> compare_application;bit<32> diff_application;bit<32> compare_frozen_decoy_object;bit<32> diff_frozen_decoy_object;bit<32> compare_frozen_decoy_on;bit<32> compare_frozen_decoy_off;bit<32> diff_frozen_decoy_off;bit<32> context_generation;bit<32> native_end;bit<8> enabled;bit<8> profile;bit<8> changed;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<8> badh;bit<8> badb;bit<8> badt;bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> parsed;bit<8> port_valid;bit<8> direction;bit<8> network_valid;bit<8> shape_valid;bit<8> packet_kind;bit<8> stage;bit<8> kind;bit<8> work_op;bit<8> owner_op;bit<8> sequence_valid;bit<8> epoch_valid;bit<8> emit_loop;PortId_t output_port;bool ip_error;bit<16> tcp_sum;bit<32> counter;bit<32> generation;bit<32> work_phase;bit<32> epoch;bit<32> client;bit<32> server;bit<32> new_seq;bit<32> client_diff;bit<32> server_diff;bit<32> epoch_diff;bit<32> expected;bit<32> desired;bit<32> observed;bit<32> owner_diff;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
  Checksum() ic;Checksum() tc;
  state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.parsed=8w0;m.enabled=8w0;m.profile=8w0;m.response=8w0;m.matched=8w0;m.data_valid=8w0;m.cache_mode=8w0;m.badh=8w0;m.badb=8w0;m.bad1=8w0;m.badt=8w0;m.stage=8w0;m.kind=8w0;m.port_valid=8w0;m.direction=8w0;m.network_valid=8w0;m.shape_valid=8w0;m.sequence_valid=8w0;m.epoch_valid=8w0;m.emit_loop=8w0;transition select(ig.ingress_port){RETURN_PORT:envelope;default:eth;}}
@@ -66,7 +66,7 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  RegisterAction<bit<32>,bit<1>,bit<32>>(counter) allocate={void apply(inout bit<32> v,out bit<32> r){r=32w0;if((int<32>)v!=-1){v=v+32w1;r=v;}}};
  Register<bit<32>,bit<1>>(1,0) owner;
  RegisterAction<bit<32>,bit<1>,bit<32>>(owner) read_owner={void apply(inout bit<32> v,out bit<32> r){r=v;}};
- RegisterAction<bit<32>,bit<1>,bit<32>>(owner) compare_owner={void apply(inout bit<32> v,out bit<32> r){r=v-m.expected;if(v==m.expected){v=m.desired;}}};
+ RegisterAction<bit<32>,bit<1>,bit<32>>(owner) compare_owner={void apply(inout bit<32> v,out bit<32> r){r=v;if(v==m.expected){v=m.desired;}}};
  action deny(){md.drop_ctl=3w1;}
  action route(PortId_t port){m.port_valid=8w1;tm.ucast_egress_port=port;tm.bypass_egress=1w1;}
  table ports{key={ig.ingress_port:exact;}actions={route;deny;}size=4;default_action=deny();}
@@ -74,7 +74,7 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action reverse_flow(PortId_t port){m.direction=8w2;m.output_port=port;tm.ucast_egress_port=port;}
  table connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;}actions={forward_flow;reverse_flow;NoAction;}size=2;default_action=NoAction();}
  action network_accept(){m.network_valid=8w1;}
- table network{key={m.parsed:exact;m.kind:exact;hdr.tcp.flags:ternary;m.ip_error:exact;m.tcp_sum:exact;hdr.ip.ttl:range;hdr.tcp.reserved:exact;hdr.tcp.urgent:exact;}actions={network_accept;NoAction;}size=20;const default_action=NoAction();const entries={(8w1,8w0,_,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w1,8w2,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w2,8w18,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w3,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w17,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w20,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w4,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w255,_,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w5,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w5,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w6,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w6,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w7,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w7,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w8,8w2,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w8,8w18,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w8,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();}}
+ table network{key={m.parsed:exact;m.kind:exact;hdr.tcp.flags:ternary;m.ip_error:exact;m.tcp_sum:exact;hdr.ip.ttl:range;hdr.tcp.reserved:exact;hdr.tcp.urgent:exact;}actions={network_accept;NoAction;}size=16;const default_action=NoAction();const entries={(8w1,8w0,_,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w1,8w2,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w2,8w18,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w3,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w17,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w20,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w4,8w4,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w255,_,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w5,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w5,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w6,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w6,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w7,8w16,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();(8w1,8w7,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();}}
  action syn_shape(){m.shape_valid=8w1;m.kind=8w1;}
  action synack_shape(){m.shape_valid=8w1;m.kind=8w2;}
  table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
@@ -83,6 +83,8 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action close_shape(){m.shape_valid=8w1;m.kind=8w4;}
  table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
  actions={ack_shape;close_shape;NoAction;}size=7;const default_action=NoAction();const entries={(8w1,8w16):ack_shape();(8w1,8w17):close_shape();(8w2,8w17):close_shape();(8w1,8w20):close_shape();(8w2,8w20):close_shape();(8w1,8w4):close_shape();(8w2,8w4):close_shape();}}
+ action unsupported_direction(){m.shape_valid=8w0;}
+ table direction_guard{key={m.kind:exact;m.direction:exact;}actions={unsupported_direction;NoAction;}size=8;const default_action=unsupported_direction();const entries={(8w1,8w1):NoAction();(8w2,8w2):NoAction();(8w3,8w1):NoAction();(8w4,8w1):NoAction();(8w4,8w2):NoAction();(8w5,8w1):NoAction();(8w6,8w2):NoAction();(8w7,8w1):NoAction();}}
  action configure(bit<16> index,bit<8> code,bit<8> repeat,bit<32> on,bit<32> off){m.enabled=8w1;m.decoy_index=index;m.decoy_code=code;m.decoy_repeat=repeat;m.decoy_on=on;m.decoy_off=off;}
  table data_connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;}actions={configure;NoAction;}size=2;default_action=NoAction();}
  action eligible(){m.profile=8w1;}
@@ -109,17 +111,17 @@ table response_crc1_t{actions={response_crc1;}size=1;const default_action=respon
 Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_response_tail;
 action response_crct(){m.tcrc=hash_response_tail.get({hdr.response_tail.w0,hdr.response_tail.w1,hdr.response_tail.w2});}
 table response_crct_t{actions={response_crct;}size=1;const default_action=response_crct();}
+ action mint(){m.generation=allocate.execute(1w0);m.work_op=8w1;}
+ table mint_t{actions={mint;}size=1;const default_action=mint();}
  action available(){m.work_op=8w1;}
  table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
  Register<bit<32>,bit<1>>(1,0) epoch;
  RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) read_epoch={void apply(inout bit<32> v,out bit<32> r){r=v;}};
- RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) read_epoch_diff={void apply(inout bit<32> v,out bit<32> r){r=v-hdr.envelope.epoch;}};
- RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) write_epoch={void apply(inout bit<32> v,out bit<32> r){v=hdr.envelope.epoch;r=32w0;}};
+ RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) write_epoch={void apply(inout bit<32> v,out bit<32> r){v=hdr.envelope.epoch;r=v;}};
  action load_epoch(){m.epoch=read_epoch.execute(1w0);}
- action diff_epoch(){m.epoch_diff=read_epoch_diff.execute(1w0);}
- action store_epoch(){m.epoch_diff=write_epoch.execute(1w0);}
- table epoch_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.work_op:ternary;}actions={load_epoch;diff_epoch;store_epoch;}size=3;
- const entries={(8w1,8w1,32w1,8w2):store_epoch();(8w0,_,_,_):load_epoch();}const default_action=diff_epoch();}
+ action store_epoch(){m.epoch=write_epoch.execute(1w0);}
+ table epoch_t{key={m.stage:exact;m.kind:exact;m.work_phase:exact;m.work_op:exact;}actions={load_epoch;store_epoch;}size=1;
+ const entries={(8w1,8w1,32w1,8w2):store_epoch();}const default_action=load_epoch();}
  Register<bit<32>,bit<1>>(1,0) client;
  RegisterAction<bit<32>,bit<1>,bit<32>>(client) read_client={void apply(inout bit<32> v,out bit<32> r){r=v;}};
  RegisterAction<bit<32>,bit<1>,bit<32>>(client) write_client={void apply(inout bit<32> v,out bit<32> r){r=v;v=m.new_seq;}};
@@ -153,6 +155,8 @@ table response_crct_t{actions={response_crct;}size=1;const default_action=respon
  const entries={(8w1,8w2):diff_syn();(8w2,8w18):diff_synack();(8w1,8w16):diff_forward();(8w1,8w17):diff_forward();(8w2,8w17):diff_reverse();(8w1,8w20):diff_forward();(8w2,8w20):diff_reverse();(8w1,8w4):diff_reset_forward();(8w2,8w4):diff_reset_reverse();}}
  action seq_ok(){m.sequence_valid=8w1;}
  table sequence_guard{key={m.client_diff:exact;m.server_diff:exact;}actions={seq_ok;NoAction;}size=1;const entries={(32w0,32w0):seq_ok();}const default_action=NoAction();}
+ action epoch_difference(){m.epoch_diff=hdr.envelope.epoch-m.epoch;}
+ table epoch_diff_t{actions={epoch_difference;}size=1;const default_action=epoch_difference();}
  action epoch_ok(){m.epoch_valid=8w1;}
  table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
  action claim_syn(){m.expected=hdr.expected_cell.expected_cell;m.desired=hdr.expected_cell.expected_cell+32w0x10001;m.owner_op=8w1;}
@@ -173,8 +177,10 @@ action publish_operate(){m.expected=hdr.expected_cell.expected_cell;m.desired=16
  actions={claim_syn;claim_synack;claim_ack;publish_syn;publish_synack;publish_ack;close_pending;close_free;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;NoAction;}size=16;const default_action=NoAction();
  const entries={(8w1,8w1,32w1,32w0):claim_syn();(8w1,8w2,32w1,32w0):claim_synack();(8w1,8w3,32w1,32w0):claim_ack();(8w2,8w1,32w2,32w0):publish_syn();(8w2,8w2,32w2,32w0):publish_synack();(8w2,8w3,32w2,32w0):publish_ack();(8w1,8w4,32w4,32w0):close_free();(8w1,8w4,32w1,32w0):close_pending();(8w1,8w4,32w2,32w0):close_pending();(8w1,8w4,32w3,32w0):close_pending();(8w1,8w5,32w1,32w0):claim_select();(8w2,8w5,32w2,32w0):publish_select();(8w1,8w6,32w1,32w0):claim_response();(8w2,8w6,32w2,32w0):publish_response();(8w1,8w7,32w1,32w0):claim_operate();(8w2,8w7,32w2,32w0):publish_operate();}}
  action owner_read(){m.observed=read_owner.execute(1w0);}
- action owner_cas(){m.owner_diff=compare_owner.execute(1w0);}
+ action owner_cas(){m.observed=compare_owner.execute(1w0);}
  table owner_t{key={m.owner_op:exact;}actions={owner_read;owner_cas;}size=1;const entries={8w1:owner_cas();}const default_action=owner_read();}
+ action difference_owner(){m.owner_diff=m.observed-m.expected;}
+ table owner_diff_t{actions={difference_owner;}size=1;const default_action=difference_owner();}
  action snapshot(){hdr.envelope.setValid();hdr.work_generation.setValid();hdr.expected_cell.setValid();hdr.event.setValid();hdr.expected_cell.expected_cell=m.observed;hdr.work_generation.generation=m.generation;hdr.envelope.epoch=m.epoch;hdr.event.event=16w0x01ff;hdr.event.reserved=16w0;m.emit_loop=8w1;tm.ucast_egress_port=RETURN_PORT;tm.bypass_egress=1w1;}
  table snapshot_t{actions={snapshot;}size=1;const default_action=snapshot();}
  action first_syn(){hdr.envelope.epoch=m.generation;hdr.event.event=16w0x0101;}
@@ -184,11 +190,13 @@ action publish_operate(){m.expected=hdr.expected_cell.expected_cell;m.desired=16
 action first_select(){hdr.event.event=16w0x0105;}
 action first_response(){hdr.event.event=16w0x0106;}
 action first_operate(){hdr.event.event=16w0x0107;}
+ table first_event{key={m.kind:exact;m.sequence_valid:exact;m.matched:exact;m.observed:ternary;}
+ actions={first_syn;first_synack;first_ack;first_close;first_select;first_response;first_operate;NoAction;}size=18;const default_action=NoAction();
+ const entries={(8w1,8w1,8w0,32w0):first_syn();(8w2,8w1,8w0,32w0x20000&&&32w0xffff0000):first_synack();(8w3,8w1,8w0,32w0x40000&&&32w0xffff0000):first_ack();(8w4,8w1,8w0,32w0x20000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x30000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x40000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x50000&&&32w0xffff0000):first_close();(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();(8w4,8w1,8w0,32w0x80000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x90000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xa0000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xb0000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xc0000&&&32w0xffff0000):first_close();}}
  action forward_original(){hdr.event.event=16w0x0108;}
- action close_forward(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();m.emit_loop=8w0;tm.ucast_egress_port=m.output_port;}
- table first_event{key={m.kind:ternary;m.sequence_valid:ternary;m.matched:ternary;m.observed:ternary;}
- actions={first_syn;first_synack;first_ack;first_close;first_select;first_response;first_operate;forward_original;close_forward;NoAction;}size=40;const default_action=NoAction();
- const entries={(8w1,8w1,8w0,32w0):first_syn();(8w2,8w1,8w0,32w0x20000&&&32w0xffff0000):first_synack();(8w3,8w1,8w0,32w0x40000&&&32w0xffff0000):first_ack();(8w4,8w1,8w0,32w0x20000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x30000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x40000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x50000&&&32w0xffff0000):first_close();(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();(8w4,8w1,8w0,32w0x80000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0x90000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xa0000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xb0000&&&32w0xffff0000):first_close();(8w4,8w1,8w0,32w0xc0000&&&32w0xffff0000):first_close();(8w1,8w1,8w0,32w0x20000&&&32w0xffff0000):forward_original();(8w1,8w1,8w0,32w0x30000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x30000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x40000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x50000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x50000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x80000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x90000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xa0000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xb0000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xc0000&&&32w0xffff0000):forward_original();(8w4,_,_,_):close_forward();}}
+ table forward_event{key={m.kind:exact;m.sequence_valid:exact;m.matched:exact;m.observed:ternary;}
+ actions={forward_original;NoAction;}size=12;const default_action=NoAction();
+ const entries={(8w1,8w1,8w0,32w0x20000&&&32w0xffff0000):forward_original();(8w1,8w1,8w0,32w0x30000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x30000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x40000&&&32w0xffff0000):forward_original();(8w2,8w1,8w0,32w0x50000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x50000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x80000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0x90000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xa0000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xb0000&&&32w0xffff0000):forward_original();(8w3,8w1,8w0,32w0xc0000&&&32w0xffff0000):forward_original();}}
  action next_stage(){hdr.event.event=hdr.event.event+16w0x100;m.emit_loop=8w1;tm.ucast_egress_port=RETURN_PORT;tm.bypass_egress=1w1;}
  table next_stage_t{actions={next_stage;}size=1;const default_action=next_stage();}
  action carry_current(){hdr.expected_cell.expected_cell=m.desired;}
@@ -201,50 +209,50 @@ RegisterAction<bit<32>,bit<1>,bit<32>>(application) read_op_application={void ap
 action compare_rsp_application(){m.diff_application=read_rsp_application.execute(1w0);}
 action compare_application(){m.diff_application=read_op_application.execute(1w0);}
 action store_application(){write_application.execute(1w0);}
-table application_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_application;compare_application;compare_rsp_application;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_application();(8w0,8w7,32w4,_):compare_application();(8w0,8w6,32w4,_):compare_rsp_application();}const default_action=NoAction();}
+table application_t{key={m.cache_mode:exact;}actions={store_application;compare_application;compare_rsp_application;NoAction;}size=3;const entries={8w1:store_application();8w2:compare_application();8w3:compare_rsp_application();}const default_action=NoAction();}
 Register<bit<32>,bit<1>>(1,0) frozen_decoy_off;
 RegisterAction<bit<32>,bit<1>,bit<32>>(frozen_decoy_off) write_frozen_decoy_off={void apply(inout bit<32> v,out bit<32> r){v=m.compare_frozen_decoy_off;r=v;}};
 RegisterAction<bit<32>,bit<1>,bit<32>>(frozen_decoy_off) read_op_frozen_decoy_off={void apply(inout bit<32> v,out bit<32> r){r=v-m.compare_frozen_decoy_off;}};RegisterAction<bit<32>,bit<1>,bit<32>>(frozen_decoy_off) read_rsp_frozen_decoy_off={void apply(inout bit<32> v,out bit<32> r){r=v-m.compare_frozen_decoy_off;}};
 action compare_rsp_frozen_decoy_off(){m.diff_frozen_decoy_off=read_rsp_frozen_decoy_off.execute(1w0);}
 action compare_frozen_decoy_off(){m.diff_frozen_decoy_off=read_op_frozen_decoy_off.execute(1w0);}
 action store_frozen_decoy_off(){write_frozen_decoy_off.execute(1w0);}
-table frozen_decoy_off_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_frozen_decoy_off;compare_frozen_decoy_off;compare_rsp_frozen_decoy_off;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_frozen_decoy_off();(8w0,8w7,32w4,_):compare_frozen_decoy_off();(8w0,8w6,32w4,_):compare_rsp_frozen_decoy_off();}const default_action=NoAction();}
+table frozen_decoy_off_t{key={m.cache_mode:exact;}actions={store_frozen_decoy_off;compare_frozen_decoy_off;compare_rsp_frozen_decoy_off;NoAction;}size=3;const entries={8w1:store_frozen_decoy_off();8w2:compare_frozen_decoy_off();8w3:compare_rsp_frozen_decoy_off();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_real_links_real_tcp_src;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_links_real_tcp_src) write_real_links={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_real_links;v.second=m.compare_real_tcp_src;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_links_real_tcp_src) read_real_links={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_real_links||v.second!=m.compare_real_tcp_src){r=32w1;}else{r=32w0;}}};
 action store_real_links(){write_real_links.execute(1w0);}
 action compare_real_links(){m.diff_real_links=read_real_links.execute(1w0);}
-table real_links_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_links;compare_real_links;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_real_links();(8w0,8w7,32w4,_):compare_real_links();(8w0,8w6,32w4,_):compare_real_links();}const default_action=NoAction();}
+table real_links_t{key={m.cache_mode:exact;}actions={store_real_links;compare_real_links;NoAction;}size=3;const entries={8w1:store_real_links();8w2:compare_real_links();8w3:compare_real_links();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_real_tcp_dst_real_tcp_ports;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_tcp_dst_real_tcp_ports) write_real_tcp_dst={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_real_tcp_dst;v.second=m.compare_real_tcp_ports;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_tcp_dst_real_tcp_ports) read_real_tcp_dst={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_real_tcp_dst||v.second!=m.compare_real_tcp_ports){r=32w1;}else{r=32w0;}}};
 action store_real_tcp_dst(){write_real_tcp_dst.execute(1w0);}
 action compare_real_tcp_dst(){m.diff_real_tcp_dst=read_real_tcp_dst.execute(1w0);}
-table real_tcp_dst_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_tcp_dst;compare_real_tcp_dst;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_real_tcp_dst();(8w0,8w7,32w4,_):compare_real_tcp_dst();(8w0,8w6,32w4,_):compare_real_tcp_dst();}const default_action=NoAction();}
+table real_tcp_dst_t{key={m.cache_mode:exact;}actions={store_real_tcp_dst;compare_real_tcp_dst;NoAction;}size=3;const entries={8w1:store_real_tcp_dst();8w2:compare_real_tcp_dst();8w3:compare_real_tcp_dst();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_real_object_real_on;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_object_real_on) write_real_object={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_real_object;v.second=m.compare_real_on;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_object_real_on) read_real_object={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_real_object||v.second!=m.compare_real_on){r=32w1;}else{r=32w0;}}};
 action store_real_object(){write_real_object.execute(1w0);}
 action compare_real_object(){m.diff_real_object=read_real_object.execute(1w0);}
-table real_object_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_object;compare_real_object;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_real_object();(8w0,8w7,32w4,_):compare_real_object();(8w0,8w6,32w4,_):compare_real_object();}const default_action=NoAction();}
+table real_object_t{key={m.cache_mode:exact;}actions={store_real_object;compare_real_object;NoAction;}size=3;const entries={8w1:store_real_object();8w2:compare_real_object();8w3:compare_real_object();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_real_off_native_start;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_off_native_start) write_real_off={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_real_off;v.second=m.compare_native_start;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_real_off_native_start) read_real_off={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_real_off||v.second!=m.compare_native_start){r=32w1;}else{r=32w0;}}};
 action store_real_off(){write_real_off.execute(1w0);}
 action compare_real_off(){m.diff_real_off=read_real_off.execute(1w0);}
-table real_off_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_off;compare_real_off;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_real_off();(8w0,8w7,32w4,_):compare_real_off();(8w0,8w6,32w4,_):compare_real_off();}const default_action=NoAction();}
+table real_off_t{key={m.cache_mode:exact;}actions={store_real_off;compare_real_off;NoAction;}size=3;const entries={8w1:store_real_off();8w2:compare_real_off();8w3:compare_real_off();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_native_end_server_start;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_native_end_server_start) write_native_end={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_native_end;v.second=m.compare_server_start;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_native_end_server_start) read_native_end={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_native_end||v.second!=m.compare_server_start){r=32w1;}else{r=32w0;}}};
 action store_native_end(){write_native_end.execute(1w0);}
 action compare_native_end(){m.diff_native_end=read_native_end.execute(1w0);}
-table native_end_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_native_end;compare_native_end;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_native_end();(8w0,8w7,32w4,_):compare_native_end();(8w0,8w6,32w4,_):compare_native_end();}const default_action=NoAction();}
+table native_end_t{key={m.cache_mode:exact;}actions={store_native_end;compare_native_end;NoAction;}size=3;const entries={8w1:store_native_end();8w2:compare_native_end();8w3:compare_native_end();}const default_action=NoAction();}
 Register<object_pair_t,bit<1>>(1,{0,0}) pair_frozen_decoy_object_frozen_decoy_on;
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_frozen_decoy_object_frozen_decoy_on) write_frozen_decoy_object={void apply(inout object_pair_t v,out bit<32> r){v.first=m.compare_frozen_decoy_object;v.second=m.compare_frozen_decoy_on;r=32w0;}};
 RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_frozen_decoy_object_frozen_decoy_on) read_frozen_decoy_object={void apply(inout object_pair_t v,out bit<32> r){if(v.first!=m.compare_frozen_decoy_object||v.second!=m.compare_frozen_decoy_on){r=32w1;}else{r=32w0;}}};
 action store_frozen_decoy_object(){write_frozen_decoy_object.execute(1w0);}
 action compare_frozen_decoy_object(){m.diff_frozen_decoy_object=read_frozen_decoy_object.execute(1w0);}
-table frozen_decoy_object_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_frozen_decoy_object;compare_frozen_decoy_object;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):store_frozen_decoy_object();(8w0,8w7,32w4,_):compare_frozen_decoy_object();(8w0,8w6,32w4,_):compare_frozen_decoy_object();}const default_action=NoAction();}
+table frozen_decoy_object_t{key={m.cache_mode:exact;}actions={store_frozen_decoy_object;compare_frozen_decoy_object;NoAction;}size=3;const entries={8w1:store_frozen_decoy_object();8w2:compare_frozen_decoy_object();8w3:compare_frozen_decoy_object();}const default_action=NoAction();}
 action compare_response_inputs(){m.compare_real_links=(bit<32>)(hdr.dl.src++hdr.dl.dst);m.compare_real_tcp_src=(bit<32>)(hdr.ip.dst);m.compare_real_tcp_dst=(bit<32>)(hdr.ip.src);m.compare_real_tcp_ports=(bit<32>)(hdr.tcp.dport++hdr.tcp.sport);m.compare_real_object=(bit<32>)(hdr.first.w2[15:0]++hdr.first.w3[31:16]);m.compare_real_on=(bit<32>)(hdr.first.w3[15:0]++hdr.second.w0[31:16]);m.compare_real_off=(bit<32>)(hdr.second.w0[15:0]++hdr.second.w1[31:16]);m.compare_native_start=(bit<32>)(hdr.tcp.ack-32w55);m.compare_native_end=(bit<32>)(hdr.tcp.ack-32w20);m.compare_server_start=(bit<32>)(hdr.tcp.seq);m.compare_application=(bit<32>)(hdr.first.w0[23:16]);m.compare_frozen_decoy_object=(bit<32>)(hdr.second.w3);m.compare_frozen_decoy_on=(bit<32>)(hdr.response_tail.w0);m.compare_frozen_decoy_off=(bit<32>)(hdr.response_tail.w1);}
 table compare_response_inputs_t{actions={compare_response_inputs;}size=1;const default_action=compare_response_inputs();}
 action compare_operate_inputs(){m.compare_real_links=(bit<32>)(hdr.dl.dst++hdr.dl.src);m.compare_real_tcp_src=(bit<32>)(hdr.ip.src);m.compare_real_tcp_dst=(bit<32>)(hdr.ip.dst);m.compare_real_tcp_ports=(bit<32>)(hdr.tcp.sport++hdr.tcp.dport);m.compare_real_object=(bit<32>)(hdr.first.w2[31:16]++hdr.first.w2[15:8]++hdr.first.w2[7:0]);m.compare_real_on=(bit<32>)(hdr.first.w3);m.compare_real_off=(bit<32>)(hdr.tail.off);m.compare_native_start=(bit<32>)(hdr.tcp.seq-32w35);m.compare_native_end=(bit<32>)(hdr.tcp.seq);m.compare_server_start=(bit<32>)(hdr.tcp.ack-32w57);m.compare_application=(bit<32>)(hdr.first.w0[23:16]);m.compare_frozen_decoy_object=(bit<32>)(m.decoy_index++m.decoy_code++m.decoy_repeat);m.compare_frozen_decoy_on=(bit<32>)(m.decoy_on);m.compare_frozen_decoy_off=(bit<32>)(m.decoy_off);}
@@ -253,16 +261,18 @@ action compare_select_inputs(){m.compare_real_links=(bit<32>)(hdr.dl.dst++hdr.dl
 table compare_select_inputs_t{actions={compare_select_inputs;}size=1;const default_action=compare_select_inputs();}
 action matched(){m.matched=8w1;}
 table object_match{key={m.response:exact;m.diff_real_links:exact;m.diff_real_tcp_dst:exact;m.diff_real_object:exact;m.diff_real_off:exact;m.diff_native_end:exact;m.diff_application:exact;m.diff_frozen_decoy_object:exact;m.diff_frozen_decoy_off:exact;}actions={matched;NoAction;}size=3;const default_action=NoAction();const entries={(8w1,32w0,32w0,32w0,32w0,32w0,32w0,32w0,32w0):matched();(8w0,32w0,32w0,32w0,32w0,32w0,32w4294967295,32w0,32w0):matched();(8w0,32w0,32w0,32w0,32w0,32w0,32w15,32w0,32w0):matched();}}
+action binding_store(){m.cache_mode=8w1;}
+action binding_op(){m.cache_mode=8w2;}
+action binding_response(){m.cache_mode=8w3;}
+table binding_access{key={m.stage:exact;m.kind:exact;m.work_phase:exact;m.epoch_diff:exact;}actions={binding_store;binding_op;binding_response;NoAction;}size=3;const entries={(8w1,8w5,32w1,32w0):binding_store();(8w0,8w6,32w4,32w0):binding_response();(8w0,8w7,32w4,32w0):binding_op();}const default_action=NoAction();}
 action calculate_native_end(){m.native_end=hdr.tcp.seq+32w35;}
 table calculate_native_end_t{actions={calculate_native_end;}size=1;const default_action=calculate_native_end();}
-action go_new(bit<8> k){m.go=8w1;m.kind=k;m.generation=allocate.execute(1w0);m.work_op=8w1;}
-action go_keep(bit<8> k){m.go=8w1;m.kind=k;}
-action go_ret_work(){m.go=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;}
-action go_ret_nowork(){m.go=8w1;m.generation=hdr.work_generation.generation;}
-table guard{key={m.stage:ternary;m.packet_kind:ternary;m.kind:ternary;m.direction:ternary;m.shape_valid:ternary;m.enabled:ternary;m.profile:ternary;m.badh:ternary;m.badb:ternary;m.bad1:ternary;m.badt:ternary;}
-actions={go_new;go_keep;go_ret_work;go_ret_nowork;NoAction;}size=40;const default_action=NoAction();const entries={(8w0,8w1,8w0,8w1,8w1,_,_,_,_,_,_):go_new(8w1);(8w0,8w2,8w0,8w2,8w1,_,_,_,_,_,_):go_new(8w2);(8w0,8w3,8w0,8w1,8w1,_,_,_,_,_,_):go_new(8w3);(8w0,8w4,8w0,8w1,8w1,_,_,_,_,_,_):go_keep(8w4);(8w0,8w4,8w0,8w2,8w1,_,_,_,_,_,_):go_keep(8w4);(8w0,8w5,8w0,8w1,8w1,8w1,8w1,8w0,8w0,8w0,8w0):go_new(8w5);(8w0,8w6,8w0,8w2,8w1,8w1,8w1,8w0,8w0,8w0,8w0):go_new(8w6);(8w0,8w7,8w0,8w1,8w1,8w1,8w1,8w0,8w0,8w0,8w0):go_new(8w7);(_,8w1,8w1,_,_,_,_,_,_,_,_):go_ret_work();(_,8w2,8w2,_,_,_,_,_,_,_,_):go_ret_work();(_,8w3,8w3,_,_,_,_,_,_,_,_):go_ret_work();(_,8w4,8w4,_,_,_,_,_,_,_,_):go_ret_nowork();(_,8w5,8w5,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w6,8w6,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w7,8w7,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w1,8w8,_,_,_,_,_,_,_,_):go_ret_work();(_,8w2,8w8,_,_,_,_,_,_,_,_):go_ret_work();(_,8w3,8w8,_,_,_,_,_,_,_,_):go_ret_work();(_,8w5,8w255,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w6,8w255,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w7,8w255,_,_,8w1,8w1,8w0,8w0,8w0,8w0):go_ret_work();(_,8w5,8w255,_,_,_,_,_,_,_,_):NoAction();(_,8w6,8w255,_,_,_,_,_,_,_,_):NoAction();(_,8w7,8w255,_,_,_,_,_,_,_,_):NoAction();(_,_,8w255,_,_,_,_,_,_,_,_):go_ret_work();}}
+action data_ok(){m.data_valid=8w1;}
+table data_guard{key={m.enabled:exact;m.profile:exact;m.badh:exact;m.badb:exact;m.bad1:exact;m.badt:exact;}actions={data_ok;NoAction;}size=1;const entries={(8w1,8w1,8w0,8w0,8w0,8w0):data_ok();}const default_action=NoAction();}
+action invalid_kind(){m.data_valid=8w0;}
+table return_kind_guard{key={m.kind:exact;m.packet_kind:ternary;}actions={invalid_kind;NoAction;}size=12;const entries={(8w1,8w1):NoAction();(8w2,8w2):NoAction();(8w3,8w3):NoAction();(8w4,8w4):NoAction();(8w5,8w5):NoAction();(8w6,8w6):NoAction();(8w7,8w7):NoAction();(8w8,8w1):NoAction();(8w8,8w2):NoAction();(8w8,8w3):NoAction();(8w255,_):NoAction();}const default_action=invalid_kind();}
  apply{
-  m.work_op=8w0;m.owner_op=8w0;m.generation=32w0;m.expected=32w0;m.desired=32w0;m.go=8w0;m.owner_diff=32w1;m.expected_work_phase=(bit<32>)m.stage;
+  m.work_op=8w0;m.owner_op=8w0;m.generation=32w0;m.expected=32w0;m.desired=32w0;
   ports.apply();network.apply();
   if(m.port_valid==8w1&&m.network_valid==8w1&&(m.stage==8w0||hdr.event.reserved==16w0)){
    connection.apply();
@@ -273,31 +283,36 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;NoAction;}size=40;const defaul
     if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}
     if(m.response==8w1){if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}if(hdr.response_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}
     else{if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}
-   }
-   if(m.direction!=8w0){guard.apply();}
-   if(m.go==8w1){
+    data_guard.apply();
+   }else{m.data_valid=8w1;}
+   if(m.stage!=8w0){return_kind_guard.apply();}if(m.direction!=8w0&&m.data_valid==8w1){
+    if(m.stage==8w0){
+     m.kind=m.packet_kind;direction_guard.apply();
+     if(m.shape_valid==8w1&&m.kind!=8w4){mint_t.apply();}
+    }else if(hdr.event.reserved==16w0){m.generation=hdr.work_generation.generation;if(m.kind!=8w4){m.work_op=8w2;}}
+    m.expected_work_phase=(bit<32>)m.stage;work.apply(m.work_op,m.generation,m.expected_work_phase,m.work_phase);
+    next_seq_t.apply();epoch_t.apply();client_t.apply();server_t.apply();
+    if(m.stage==8w0){if(m.packet_kind>=8w5){ack_native_t.apply();data_sequence_diff.apply();}else{sequence_diff.apply();}sequence_guard.apply();}
+    else{epoch_diff_t.apply();owner_command.apply();}
     if(m.packet_kind>=8w5){
      calculate_native_end_t.apply();if(m.response==8w1){compare_response_inputs_t.apply();}else{if(m.packet_kind==8w5){compare_select_inputs_t.apply();}else{compare_operate_inputs_t.apply();}}
+     if(m.stage==8w0){m.epoch_diff=32w0;}
+     binding_access.apply();real_links_t.apply();real_tcp_dst_t.apply();real_object_t.apply();real_off_t.apply();native_end_t.apply();application_t.apply();frozen_decoy_object_t.apply();frozen_decoy_off_t.apply();
+     if(m.stage==8w0&&(m.packet_kind==8w6||m.packet_kind==8w7)){object_match.apply();}
     }
-    if(m.packet_kind>=8w5){ack_native_t.apply();}
-    work.apply(m.work_op,m.generation,m.expected_work_phase,m.work_phase);
-    next_seq_t.apply();epoch_t.apply();client_t.apply();server_t.apply();
-    if(m.packet_kind>=8w5){data_sequence_diff.apply();}else{sequence_diff.apply();}sequence_guard.apply();
-    owner_command.apply();owner_t.apply();
-    if(m.packet_kind>=8w5){
-     real_links_t.apply();real_tcp_dst_t.apply();real_object_t.apply();real_off_t.apply();native_end_t.apply();application_t.apply();frozen_decoy_object_t.apply();frozen_decoy_off_t.apply();
-    }
+    owner_t.apply();
     if(m.stage==8w0){
-     if(m.packet_kind==8w6||m.packet_kind==8w7){object_match.apply();}
      if((m.work_op==8w1&&m.work_phase==32w4)||(m.kind==8w4&&m.shape_valid==8w1)){
-      snapshot_t.apply();first_event.apply();
+      snapshot_t.apply();first_event.apply();if(hdr.event.event==16w0x01ff&&m.kind!=8w4){forward_event.apply();}
+      if(m.kind==8w4&&hdr.event.event==16w0x01ff){m.emit_loop=8w0;hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();tm.ucast_egress_port=m.output_port;}
      }
     }else if(m.kind==8w4){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();if(m.owner_op!=8w1){deny();}}
     else if(m.work_phase==32w1||m.work_phase==32w2){
-     if(m.kind!=8w8){if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
+     if(m.kind!=8w8){owner_diff_t.apply();if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
      next_stage_t.apply();
     }else if(m.work_phase==32w3){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();if(m.kind==8w255){deny();}}
     else{deny();}
+
    }
   }else if(m.stage!=8w0){deny();}
  }

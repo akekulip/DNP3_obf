@@ -64,7 +64,7 @@ class NativeSelect(unittest.TestCase):
         out = pipeline(0x40001, 101, 901).inject(vectors.IN_CLIENT, self.raw)
         pass1 = '\n'.join(out.trace[0])
         for text in ('table data_connection -> configure (runtime)', 'table profile -> eligible',
-                     'table data_guard -> data_ok', 'table first_event -> first_select'):
+                     'table guard -> go_new', 'table first_event -> first_select'):
             self.assertIn(text, pass1)
 
 

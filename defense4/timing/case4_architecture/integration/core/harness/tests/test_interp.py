@@ -151,7 +151,8 @@ class Constructs(unittest.TestCase):
         from source_eval import Source as Frozen
         text = vectors.source_text()
         text = re.sub(r'#include "work_record.p4"', '', text)
-        text = re.sub(r'\br\b', 'rv', text).replace('RETURN_PORT', '9w68').replace(',_):', ',8w0&&&8w0):')
+        text = re.sub(r'\br\b', 'rv', text).replace('RETURN_PORT', '9w68')
+        text = re.sub(r'(?<=[(,])_(?=[,)])', '8w0&&&8w0', text)
         text = re.sub(r'(8w\d+):(\w+\(\);)', r'(\1):\2', text)
         for kind, owner in ((2, 0x30001), (3, 0x50001), (4, 0x70001), (5, 0x50001), (6, 0x90001)):
             values = {'m.kind': kind, 'm.sequence_valid': 1, 'm.matched': 1 if kind == 6 else 0, 'm.observed': owner,

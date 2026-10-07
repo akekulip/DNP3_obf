@@ -43,7 +43,7 @@ class Passthrough(unittest.TestCase):
         select[26] ^= 1
         raw = vectors.packet(24, 101, 901, payload=bytes(select))
         out = self.check(1, raw, 0x40001, 101, 901)
-        self.assertIn('table data_guard -> NoAction (default)', '\n'.join(out.trace[0]))
+        self.assertIn('table guard -> NoAction (default)', '\n'.join(out.trace[0]))
 
     def test_wrong_tuple_passes_untouched_at_stage_0(self):
         raw = vectors.packet(16, 136, 958, tuple4=(vectors.CLIENT, vectors.SERVER, 30002, 20000))
