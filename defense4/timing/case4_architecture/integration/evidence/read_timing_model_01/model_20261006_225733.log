@@ -1,0 +1,785 @@
+:10-06 22:57:37.871383:    Setting logging fn
+:10-06 22:57:37.871417:    Registering handler for tx
+:10-06 22:57:37.906248:     Updating model log flags: clearing 0xffffffff ffffffff, setting 0x00000000 0000000f
+:10-06 22:57:37.910638:    :-:-:<0,0,0>:Updating p4 log flags: clearing 0xffffffff ffffffff, setting 0x00000000 0000007f
+:10-06 22:57:37.911464:    :-:-:<0,0,0>:Updating tofino log flags: clearing 0xffffffff ffffffff, setting 0x00000000 0000007f
+:10-06 22:57:37.912215:    :-:-:<0,0,0>:Updating packet log flags: clearing 0xffffffff ffffffff, setting 0x00000000 0000007f
+:10-06 22:57:38.049109:    :-:-:<0,0,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.049164:    :-:-:<0,0,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.049955:    :-:-:<0,1,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.049994:    :-:-:<0,1,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.050761:    :-:-:<0,2,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.050799:    :-:-:<0,2,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.051555:    :-:-:<0,3,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:38.051592:    :-:-:<0,3,->:LearningFilter::clear : Excessive clearing of filter 1 !!! Nothing to clear
+:10-06 22:57:47.853727:    :-:-:<0,-,0>:Begin packet processing
+:10-06 22:57:47.853816:    :0x1:-:<0,0,0>:========== Ingress Pkt from port 69 (64 bytes)  ==========
+:10-06 22:57:47.853833:    :0x1:-:<0,0,0>:Packet :
+:10-06 22:57:47.853850:        :0x1:-:<0,0,0>:00 11 22 33 44 55 aa bb cc dd ee ff 08 00 45 00 
+:10-06 22:57:47.853866:        :0x1:-:<0,0,0>:00 28 00 01 40 00 40 06 26 cd 0a 00 00 01 0a 00 
+:10-06 22:57:47.853881:        :0x1:-:<0,0,0>:00 02 75 31 4e 20 00 00 03 e8 00 00 07 d0 50 10 
+:10-06 22:57:47.853896:        :0x1:-:<0,0,0>:10 00 bc c8 00 00 00 00 00 00 00 00 00 00 00 00 
+:10-06 22:57:47.853916:    :0x1:-:<0,0,->:========== Packet to input parser: from port 69 (80 bytes)  ==========
+:10-06 22:57:47.853929:    :0x1:-:<0,0,->:Packet :
+:10-06 22:57:47.853944:        :0x1:-:<0,0,->:00 45 00 02 e7 b7 8a 60 00 00 00 00 00 00 00 00 
+:10-06 22:57:47.853959:        :0x1:-:<0,0,->:00 11 22 33 44 55 aa bb cc dd ee ff 08 00 45 00 
+:10-06 22:57:47.853974:        :0x1:-:<0,0,->:00 28 00 01 40 00 40 06 26 cd 0a 00 00 01 0a 00 
+:10-06 22:57:47.853989:        :0x1:-:<0,0,->:00 02 75 31 4e 20 00 00 03 e8 00 00 07 d0 50 10 
+:10-06 22:57:47.854003:        :0x1:-:<0,0,->:10 00 bc c8 00 00 00 00 00 00 00 00 00 00 00 00 
+:10-06 22:57:47.854079:    :0x1:-:<0,0,->:Ingress Parser state '$init_match'
+:10-06 22:57:47.854124:    :0x1:-:<0,0,->:Ingress Parser state '$entry_point.start'
+:10-06 22:57:47.854174:        :0x1:-:<0,0,->:Ingress Parser state '$entry_point.start': extracted     0x0045, updating PHV word 134 to value     0x0045 I [ig_intr_md.ingress_port[8:0]]
+:10-06 22:57:47.854203:        :0x1:-:<0,0,->:Ingress Parser state '$entry_point.start': extracted     0x0002, updating PHV word 335 to value     0x0002 I [ig_intr_md_from_prsr.global_tstamp[47:32]]
+:10-06 22:57:47.854229:        :0x1:-:<0,0,->:Ingress Parser state '$entry_point.start': extracted 0xe7b78a60, updating PHV word   0 to value 0xe7b78a60 I [ig_intr_md_from_prsr.global_tstamp[31:0]]
+:10-06 22:57:47.854250:    :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet'
+:10-06 22:57:47.854290:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted       0x02, updating PHV word  68 to value       0x02 I [POV]
+:10-06 22:57:47.854317:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted       0x22, updating PHV word 294 to value       0x22 I [hdr.eth.dst[31:24]]
+:10-06 22:57:47.854342:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted       0x33, updating PHV word 293 to value       0x33 I [hdr.eth.dst[23:16]]
+:10-06 22:57:47.854368:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted     0x0011, updating PHV word 334 to value     0x0011 I [hdr.eth.dst[47:32]]
+:10-06 22:57:47.854407:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted     0x4455, updating PHV word 331 to value     0x4455 I [hdr.eth.dst[15:0]]
+:10-06 22:57:47.854440:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted     0xaabb, updating PHV word 333 to value     0xaabb I [hdr.eth.src[47:32]]
+:10-06 22:57:47.854465:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet': extracted     0xccdd, updating PHV word 330 to value     0xccdd I [hdr.eth.src[31:16]]
+:10-06 22:57:47.854486:    :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet.$split_0'
+:10-06 22:57:47.854516:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet.$split_0': extracted     0xeeff, updating PHV word 329 to value     0xeeff I [hdr.eth.src[15:0]]
+:10-06 22:57:47.854541:        :0x1:-:<0,0,->:Ingress Parser state 'native_ethernet.$split_0': extracted     0x0800, updating PHV word 332 to value     0x0800 I [hdr.eth.type[15:0]]
+:10-06 22:57:47.854562:    :0x1:-:<0,0,->:Ingress Parser state 'ipv4'
+:10-06 22:57:47.854593:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted       0x08, updating PHV word  68 to value       0x0a I [POV]
+:10-06 22:57:47.854618:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted       0x40, updating PHV word  67 to value       0x40 I [hdr.ip.ttl[7:0]]
+:10-06 22:57:47.854643:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted       0x06, updating PHV word 292 to value       0x06 I [hdr.ip.proto[7:0]]
+:10-06 22:57:47.854673:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted     0x26cd, updating PHV word 326 to value     0x26cd I [hdr.ip.checksum[15:0]]
+:10-06 22:57:47.854704:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted 0x45000028, updating PHV word 260 to value 0x45000028 I [hdr.ip.ihl[3:0], hdr.ip.len[15:0], hdr.ip.tos[7:0], hdr.ip.version[3:0], hdr.timer.batch_id[15:0], hdr.timer.packet_id[15:0]]
+:10-06 22:57:47.854730:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted 0x00014000, updating PHV word 262 to value 0x00014000 I [hdr.ip.flags[2:0], hdr.ip.frag[12:0], hdr.ip.id[15:0]]
+:10-06 22:57:47.854754:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted 0x0a000001, updating PHV word 265 to value 0x0a000001 I [hdr.ip.src[31:0]]
+:10-06 22:57:47.854780:        :0x1:-:<0,0,->:Ingress Parser state 'ipv4': extracted 0x0a000002, updating PHV word 264 to value 0x0a000002 I [hdr.ip.dst[31:0]]
+:10-06 22:57:47.854810:    :0x1:-:<0,0,->:Ingress Parser state 'fragment'
+:10-06 22:57:47.854840:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted       0x10, updating PHV word  68 to value       0x1a I [POV]
+:10-06 22:57:47.854872:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted     0x7531, updating PHV word 328 to value     0x7531 I [hdr.tcp.sport[15:0]]
+:10-06 22:57:47.854903:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted     0x4e20, updating PHV word 327 to value     0x4e20 I [hdr.tcp.dport[15:0]]
+:10-06 22:57:47.854930:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted 0x000003e8, updating PHV word 267 to value 0x000003e8 I [hdr.tcp.seq[31:0]]
+:10-06 22:57:47.854967:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted 0x000007d0, updating PHV word 266 to value 0x000007d0 I [hdr.tcp.ack[31:0]]
+:10-06 22:57:47.854995:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted 0x50101000, updating PHV word 261 to value 0x50101000 I [hdr.tcp.flags[7:0], hdr.tcp.offset[3:0], hdr.tcp.reserved[3:0], hdr.tcp.window[15:0]]
+:10-06 22:57:47.855020:        :0x1:-:<0,0,->:Ingress Parser state 'fragment': extracted 0xbcc80000, updating PHV word 263 to value 0xbcc80000 I [hdr.tcp.checksum[15:0], hdr.tcp.urgent[15:0]]
+:10-06 22:57:47.855041:    :0x1:-:<0,0,->:Ingress Parser state 'tcp'
+:10-06 22:57:47.855071:        :0x1:-:<0,0,->:Ingress Parser state 'tcp': extracted       0x01, updating PHV word  74 to value       0x01 I [md.parsed[7:0]]
+:10-06 22:57:47.855106:        :0x1:-:<0,0,->:Ingress Parser state 'tcp': extracted     0x0100, updating PHV word 130 to value     0x0100 I [md.ip_error[0:0], md.kind[7:0]]
+:10-06 22:57:47.855130:        :0x1:-:<0,0,->:Ingress Headers:
+:10-06 22:57:47.855237:        :0x1:-:<0,0,->:Header hdr.eth.$valid is valid
+:10-06 22:57:47.855258:        :0x1:-:<0,0,->:Header hdr.ip.$valid is valid
+:10-06 22:57:47.855271:        :0x1:-:<0,0,->:Header hdr.tcp.$valid is valid
+:10-06 22:57:47.855302:    :0x1:-:<0,0,->:------------ Stage 0 ------------
+:10-06 22:57:47.855723:    :0x1:-:<0,0,0>:Ingress : Table tbl_read_timing554 is miss
+:10-06 22:57:47.855745:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.855760:        :0x1:-:<0,0,0>:Executed StatefulALU 1 with instruction 0
+:10-06 22:57:47.855776:        :0x1:-:<0,0,0>:Execute Default Action: read_timing554
+:10-06 22:57:47.855803:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.855817:        :0x1:-:<0,0,0>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.855830:        :0x1:-:<0,0,0>:	----- BlackBox: current_epoch_0 -----
+:10-06 22:57:47.855843:        :0x1:-:<0,0,0>:	----- register: Ingress.connection_epoch -----
+:10-06 22:57:47.855872:        :0x1:-:<0,0,0>:	--- SALU Condition ---
+:10-06 22:57:47.855886:        :0x1:-:<0,0,0>:	  Not supplied by program.
+:10-06 22:57:47.855898:        :0x1:-:<0,0,0>:	    SALU ConditionLo: FALSE
+:10-06 22:57:47.855911:        :0x1:-:<0,0,0>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.855924:        :0x1:-:<0,0,0>:	--- SALU Update ---
+:10-06 22:57:47.855937:        :0x1:-:<0,0,0>:	  None
+:10-06 22:57:47.855950:        :0x1:-:<0,0,0>:	--- SALU Output ---
+:10-06 22:57:47.855962:        :0x1:-:<0,0,0>:	    Output predicate not supplied by program
+:10-06 22:57:47.855975:        :0x1:-:<0,0,0>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.855988:        :0x1:-:<0,0,0>:	    Output Destination Field: md.epoch = 0x1
+:10-06 22:57:47.856001:        :0x1:-:<0,0,0>:	---  SALU Register ---
+:10-06 22:57:47.856018:        :0x1:-:<0,0,0>:	   Register Index: 0x40000
+:10-06 22:57:47.856036:        :0x1:-:<0,0,0>:	     Before stateful alu execution: 0x00000001
+:10-06 22:57:47.856050:        :0x1:-:<0,0,0>:	     After stateful alu execution: 0x00000001
+:10-06 22:57:47.856064:        :0x1:-:<0,0,0>:Next Table = tbl_read_timing554_0
+:10-06 22:57:47.856079:    :0x1:-:<0,0,0>:Ingress : Table tbl_read_timing554_0 is miss
+:10-06 22:57:47.856094:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.856113:        :0x1:-:<0,0,0>:Executed StatefulALU 2 with instruction 0
+:10-06 22:57:47.856128:        :0x1:-:<0,0,0>:Execute Default Action: read_timing554_0
+:10-06 22:57:47.856268:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.856286:        :0x1:-:<0,0,0>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.856302:        :0x1:-:<0,0,0>:	----- BlackBox: policy_0 -----
+:10-06 22:57:47.856314:        :0x1:-:<0,0,0>:	----- register: Ingress.holding_policy -----
+:10-06 22:57:47.856327:        :0x1:-:<0,0,0>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.856340:        :0x1:-:<0,0,0>:	Operation:
+:10-06 22:57:47.856353:        :0x1:-:<0,0,0>:	set
+:10-06 22:57:47.856366:        :0x1:-:<0,0,0>:	Destination:
+:10-06 22:57:47.856379:        :0x1:-:<0,0,0>:	ig_intr_md_for_tm.bypass_egress[0:0] = 0x1
+:10-06 22:57:47.856392:        :0x1:-:<0,0,0>:	mask=0x1
+:10-06 22:57:47.856404:        :0x1:-:<0,0,0>:	Source 1:
+:10-06 22:57:47.856417:        :0x1:-:<0,0,0>:	Val=0x1
+:10-06 22:57:47.856445:        :0x1:-:<0,0,0>:	--- SALU Condition ---
+:10-06 22:57:47.856458:        :0x1:-:<0,0,0>:	  Not supplied by program.
+:10-06 22:57:47.856471:        :0x1:-:<0,0,0>:	    SALU ConditionLo: FALSE
+:10-06 22:57:47.856484:        :0x1:-:<0,0,0>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.856497:        :0x1:-:<0,0,0>:	--- SALU Update ---
+:10-06 22:57:47.856510:        :0x1:-:<0,0,0>:	  None
+:10-06 22:57:47.856522:        :0x1:-:<0,0,0>:	--- SALU Output ---
+:10-06 22:57:47.856535:        :0x1:-:<0,0,0>:	    Output predicate not supplied by program
+:10-06 22:57:47.856556:        :0x1:-:<0,0,0>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.856569:        :0x1:-:<0,0,0>:	    Output Destination Field: md.policy = 0x0
+:10-06 22:57:47.856582:        :0x1:-:<0,0,0>:	---  SALU Register ---
+:10-06 22:57:47.856594:        :0x1:-:<0,0,0>:	   Register Index: 0x40000
+:10-06 22:57:47.856607:        :0x1:-:<0,0,0>:	     Before stateful alu execution: 0x00000000
+:10-06 22:57:47.856624:        :0x1:-:<0,0,0>:	     After stateful alu execution: 0x00000000
+:10-06 22:57:47.856638:        :0x1:-:<0,0,0>:Next Table = Ingress.clock
+:10-06 22:57:47.856653:    :0x1:-:<0,0,0>:Ingress : Table Ingress.clock is miss
+:10-06 22:57:47.856666:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.856681:        :0x1:-:<0,0,0>:Execute Default Action: Ingress.clock_sample
+:10-06 22:57:47.856731:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.856745:        :0x1:-:<0,0,0>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.856758:        :0x1:-:<0,0,0>:	Operation:
+:10-06 22:57:47.856770:        :0x1:-:<0,0,0>:	and
+:10-06 22:57:47.856783:        :0x1:-:<0,0,0>:	Destination:
+:10-06 22:57:47.856796:        :0x1:-:<0,0,0>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.856809:        :0x1:-:<0,0,0>:	mask=0xFFFFFFFF
+:10-06 22:57:47.856822:        :0x1:-:<0,0,0>:	Source 1:
+:10-06 22:57:47.856835:        :0x1:-:<0,0,0>:	ig_intr_md_from_prsr.global_tstamp[31:0] = 0xE7B78A60
+:10-06 22:57:47.856848:        :0x1:-:<0,0,0>:	ig_intr_md_from_prsr.global_tstamp[47:32] = 0x0
+:10-06 22:57:47.856860:        :0x1:-:<0,0,0>:	Source 2:
+:10-06 22:57:47.856873:        :0x1:-:<0,0,0>:	Val=0x20
+:10-06 22:57:47.856886:        :0x1:-:<0,0,0>:Next Table = Ingress.anchor_timestamp
+:10-06 22:57:47.856900:    :0x1:-:<0,0,0>:Ingress : Table Ingress.anchor_timestamp is miss
+:10-06 22:57:47.856913:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.856928:        :0x1:-:<0,0,0>:Execute Default Action: Ingress.prepare_anchor
+:10-06 22:57:47.856957:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.856971:        :0x1:-:<0,0,0>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.856983:        :0x1:-:<0,0,0>:	Operation:
+:10-06 22:57:47.856996:        :0x1:-:<0,0,0>:	and
+:10-06 22:57:47.857009:        :0x1:-:<0,0,0>:	Destination:
+:10-06 22:57:47.857022:        :0x1:-:<0,0,0>:	md.t0[31:0] = 0x0
+:10-06 22:57:47.857035:        :0x1:-:<0,0,0>:	mask=0xFFFFFFFF
+:10-06 22:57:47.857048:        :0x1:-:<0,0,0>:	Source 1:
+:10-06 22:57:47.857060:        :0x1:-:<0,0,0>:	hdr.service.anchor[31:0] = 0x0
+:10-06 22:57:47.857073:        :0x1:-:<0,0,0>:	Source 2:
+:10-06 22:57:47.857086:        :0x1:-:<0,0,0>:	Val=0x20
+:10-06 22:57:47.857099:        :0x1:-:<0,0,0>:Next Table = Ingress.response_snapshot
+:10-06 22:57:47.857113:    :0x1:-:<0,0,0>:Ingress : Table Ingress.response_snapshot is miss
+:10-06 22:57:47.857126:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.857140:        :0x1:-:<0,0,0>:Execute Default Action: Ingress.snapshot_response
+:10-06 22:57:47.857168:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.857182:        :0x1:-:<0,0,0>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.857195:        :0x1:-:<0,0,0>:	Operation:
+:10-06 22:57:47.857208:        :0x1:-:<0,0,0>:	and
+:10-06 22:57:47.857221:        :0x1:-:<0,0,0>:	Destination:
+:10-06 22:57:47.857235:        :0x1:-:<0,0,0>:	md.response_snapshot[31:0] = 0x0
+:10-06 22:57:47.857254:        :0x1:-:<0,0,0>:	mask=0xFFFFFFFF
+:10-06 22:57:47.857268:        :0x1:-:<0,0,0>:	Source 1:
+:10-06 22:57:47.857281:        :0x1:-:<0,0,0>:	hdr.service.response_deadline[31:0] = 0x0
+:10-06 22:57:47.857293:        :0x1:-:<0,0,0>:	Source 2:
+:10-06 22:57:47.857306:        :0x1:-:<0,0,0>:	Val=0x20
+:10-06 22:57:47.857323:        :0x1:-:<0,0,0>:Next Table = tbl_read_timing558
+:10-06 22:57:47.857345:    :0x1:-:<0,0,0>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 68)) not matched.
+:10-06 22:57:47.857359:    :0x1:-:<0,0,0>:Ingress : Gateway attached to tbl_read_timing558
+:10-06 22:57:47.857373:    :0x1:-:<0,0,0>:Ingress : Associated table tbl_read_timing558 is executed
+:10-06 22:57:47.857386:    :0x1:-:<0,0,0>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.857412:        :0x1:-:<0,0,0>:Next Table = tbl_read_timing559
+:10-06 22:57:47.857433:    :0x1:-:<0,0,0>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 10)) not matched.
+:10-06 22:57:47.857446:    :0x1:-:<0,0,0>:Ingress : Gateway attached to tbl_read_timing559
+:10-06 22:57:47.857466:    :0x1:-:<0,0,0>:Ingress : Associated table tbl_read_timing559 is executed
+:10-06 22:57:47.857510:    :0x1:-:<0,0,0>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.857525:        :0x1:-:<0,0,0>:Next Table = Ingress.cookie_word
+:10-06 22:57:47.857544:    :0x1:-:<0,0,0>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 71)) not matched.
+:10-06 22:57:47.857558:    :0x1:-:<0,0,0>:Ingress : Gateway attached to Ingress.cookie_word
+:10-06 22:57:47.857571:    :0x1:-:<0,0,0>:Ingress : Associated table Ingress.cookie_word is executed
+:10-06 22:57:47.857584:    :0x1:-:<0,0,0>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.857598:        :0x1:-:<0,0,0>:Next Table = Ingress.typed_guard
+:10-06 22:57:47.857616:    :0x1:-:<0,0,0>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 69)) matched.
+:10-06 22:57:47.857629:    :0x1:-:<0,0,0>:Ingress : Gateway attached to Ingress.typed_guard
+:10-06 22:57:47.857642:    :0x1:-:<0,0,0>:Ingress : Associated table Ingress.typed_guard is executed
+:10-06 22:57:47.857655:    :0x1:-:<0,0,0>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.857669:        :0x1:-:<0,0,0>:Next Table = Ingress.ack_guard
+:10-06 22:57:47.857692:    :0x1:-:<0,0,0>:Ingress : Table Ingress.ack_guard is hit
+:10-06 22:57:47.857706:        :0x1:-:<0,0,0>:Key:
+:10-06 22:57:47.857730:        :0x1:-:<0,0,0>:	hdr.ip.ttl[7:0] = 0x40
+:10-06 22:57:47.857743:        :0x1:-:<0,0,0>:	md.ip_error[0:0] = 0x0
+:10-06 22:57:47.857756:        :0x1:-:<0,0,0>:	md.parsed[7:0] = 0x1
+:10-06 22:57:47.857769:        :0x1:-:<0,0,0>:	md.tcp_sum[15:0] = 0xFFEB
+:10-06 22:57:47.857785:        :0x1:-:<0,0,0>:Execute Action: Ingress.source_accept
+:10-06 22:57:47.857816:        :0x1:-:<0,0,0>:Action Results:
+:10-06 22:57:47.857829:        :0x1:-:<0,0,0>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.857842:        :0x1:-:<0,0,0>:	Operation:
+:10-06 22:57:47.857855:        :0x1:-:<0,0,0>:	set
+:10-06 22:57:47.857868:        :0x1:-:<0,0,0>:	Destination:
+:10-06 22:57:47.857881:        :0x1:-:<0,0,0>:	md.source_valid[7:0] = 0x1
+:10-06 22:57:47.857893:        :0x1:-:<0,0,0>:	mask=0xFF
+:10-06 22:57:47.857906:        :0x1:-:<0,0,0>:	Source 1:
+:10-06 22:57:47.857919:        :0x1:-:<0,0,0>:	Val=0x8
+:10-06 22:57:47.857932:        :0x1:-:<0,0,0>:Next Table = tbl_read_timing568
+:10-06 22:57:47.857947:    :0x1:-:<0,0,0>:Ingress : Table tbl_read_timing564 is not active(inhibited/skipped)
+:10-06 22:57:47.857963:    :0x1:-:<0,0,->:------------ Stage 1 ------------
+:10-06 22:57:47.858051:    <0,0,1> WARN MAU_PRED<1> get_next_table(ingress,-1) Power-saved LT 0 using table counter - table lookup will appear to always miss
+:10-06 22:57:47.858215:    :0x1:-:<0,0,1>:Ingress : Gateway table condition ((md.source_valid == 1 && md.policy != 0)) matched.
+:10-06 22:57:47.858233:    :0x1:-:<0,0,1>:Ingress : Gateway attached to tbl_read_timing568
+:10-06 22:57:47.858247:    :0x1:-:<0,0,1>:Ingress : Associated table tbl_read_timing568 is executed
+:10-06 22:57:47.858259:    :0x1:-:<0,0,1>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.858273:        :0x1:-:<0,0,1>:Next Table = Ingress.original_slot
+:10-06 22:57:47.858288:    :0x1:-:<0,0,1>:Ingress : Table Ingress.cookie_delta is not active(inhibited/skipped)
+:10-06 22:57:47.858304:    :0x1:-:<0,0,->:------------ Stage 2 ------------
+:10-06 22:57:47.858385:    <0,0,2> WARN MAU_PRED<2> get_next_table(ingress,-1) Power-saved LT 0 using table counter - table lookup will appear to always miss
+:10-06 22:57:47.858605:    :0x1:-:<0,0,2>:Ingress : Table Ingress.original_slot is miss
+:10-06 22:57:47.858628:        :0x1:-:<0,0,2>:Key:
+:10-06 22:57:47.858763:        :0x1:-:<0,0,2>:	md.kind[7:0] = 0x1
+:10-06 22:57:47.858781:        :0x1:-:<0,0,2>:Execute Default Action: Ingress.index_ack
+:10-06 22:57:47.858951:        :0x1:-:<0,0,2>:Action Results:
+:10-06 22:57:47.858967:        :0x1:-:<0,0,2>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.858981:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.858993:        :0x1:-:<0,0,2>:	set
+:10-06 22:57:47.859006:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859026:        :0x1:-:<0,0,2>:	md.service_role[7:0] = 0x0
+:10-06 22:57:47.859039:        :0x1:-:<0,0,2>:	mask=0xFF
+:10-06 22:57:47.859051:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.859064:        :0x1:-:<0,0,2>:	Val=0x8
+:10-06 22:57:47.859077:        :0x1:-:<0,0,2>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.859090:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.859102:        :0x1:-:<0,0,2>:	set
+:10-06 22:57:47.859115:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859128:        :0x1:-:<0,0,2>:	md.work_phase[31:0] = 0x0
+:10-06 22:57:47.859141:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.859153:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.859166:        :0x1:-:<0,0,2>:	Val=0x20
+:10-06 22:57:47.859180:        :0x1:-:<0,0,2>:Next Table = Ingress.mint
+:10-06 22:57:47.859194:    :0x1:-:<0,0,2>:Ingress : Table Ingress.mint is miss
+:10-06 22:57:47.859208:        :0x1:-:<0,0,2>:Key:
+:10-06 22:57:47.859223:        :0x1:-:<0,0,2>:	md.allocator_role[7:0] = 0x0
+:10-06 22:57:47.859238:        :0x1:-:<0,0,2>:Execute Default Action: NoAction
+:10-06 22:57:47.859262:        :0x1:-:<0,0,2>:Action Results:
+:10-06 22:57:47.859278:        :0x1:-:<0,0,2>:Next Table = Ingress.response_age
+:10-06 22:57:47.859298:    :0x1:-:<0,0,2>:Ingress : Table Ingress.response_age is miss
+:10-06 22:57:47.859312:        :0x1:-:<0,0,2>:Key:
+:10-06 22:57:47.859327:        :0x1:-:<0,0,2>:Execute Default Action: Ingress.reply_delta
+:10-06 22:57:47.859359:        :0x1:-:<0,0,2>:Action Results:
+:10-06 22:57:47.859373:        :0x1:-:<0,0,2>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.859385:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.859398:        :0x1:-:<0,0,2>:	sub
+:10-06 22:57:47.859411:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859424:        :0x1:-:<0,0,2>:	md.response_delta[31:0] = 0xE7B78A00
+:10-06 22:57:47.859437:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.859449:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.859462:        :0x1:-:<0,0,2>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.859475:        :0x1:-:<0,0,2>:	Source 2:
+:10-06 22:57:47.859488:        :0x1:-:<0,0,2>:	md.response_snapshot[31:0] = 0x0
+:10-06 22:57:47.859501:        :0x1:-:<0,0,2>:Next Table = Ingress.deadline_offsets
+:10-06 22:57:47.859526:    :0x1:-:<0,0,2>:Ingress : Table Ingress.deadline_offsets is miss
+:10-06 22:57:47.859539:        :0x1:-:<0,0,2>:Key:
+:10-06 22:57:47.859554:        :0x1:-:<0,0,2>:Execute Default Action: Ingress.prepare_deadlines
+:10-06 22:57:47.859609:        :0x1:-:<0,0,2>:Action Results:
+:10-06 22:57:47.859624:        :0x1:-:<0,0,2>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.859637:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.859650:        :0x1:-:<0,0,2>:	add
+:10-06 22:57:47.859663:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859676:        :0x1:-:<0,0,2>:	md.normal_deadline[31:0] = 0x4C4B00
+:10-06 22:57:47.859694:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.859710:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.859723:        :0x1:-:<0,0,2>:	md.t0[31:0] = 0x0
+:10-06 22:57:47.859736:        :0x1:-:<0,0,2>:	Source 2:
+:10-06 22:57:47.859748:        :0x1:-:<0,0,2>:	normal_offset=action_param
+:10-06 22:57:47.859761:        :0x1:-:<0,0,2>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.859780:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.859794:        :0x1:-:<0,0,2>:	add
+:10-06 22:57:47.859806:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859819:        :0x1:-:<0,0,2>:	md.readiness_deadline[31:0] = 0x1C9C300
+:10-06 22:57:47.859832:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.859847:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.859863:        :0x1:-:<0,0,2>:	md.t0[31:0] = 0x0
+:10-06 22:57:47.859876:        :0x1:-:<0,0,2>:	Source 2:
+:10-06 22:57:47.859897:        :0x1:-:<0,0,2>:	readiness_offset=action_param
+:10-06 22:57:47.859910:        :0x1:-:<0,0,2>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.859922:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.859935:        :0x1:-:<0,0,2>:	add
+:10-06 22:57:47.859948:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.859967:        :0x1:-:<0,0,2>:	md.cap_deadline[31:0] = 0x2625A00
+:10-06 22:57:47.859980:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.859993:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.860006:        :0x1:-:<0,0,2>:	md.t0[31:0] = 0x0
+:10-06 22:57:47.860018:        :0x1:-:<0,0,2>:	Source 2:
+:10-06 22:57:47.860031:        :0x1:-:<0,0,2>:	cap_offset=action_param
+:10-06 22:57:47.860044:        :0x1:-:<0,0,2>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.860057:        :0x1:-:<0,0,2>:	Operation:
+:10-06 22:57:47.860069:        :0x1:-:<0,0,2>:	add
+:10-06 22:57:47.860082:        :0x1:-:<0,0,2>:	Destination:
+:10-06 22:57:47.860095:        :0x1:-:<0,0,2>:	md.response_anchor[31:0] = 0xE7C6CC00
+:10-06 22:57:47.860108:        :0x1:-:<0,0,2>:	mask=0xFFFFFFFF
+:10-06 22:57:47.860121:        :0x1:-:<0,0,2>:	Source 1:
+:10-06 22:57:47.860133:        :0x1:-:<0,0,2>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.860146:        :0x1:-:<0,0,2>:	Source 2:
+:10-06 22:57:47.860159:        :0x1:-:<0,0,2>:	gap_offset=action_param
+:10-06 22:57:47.860173:        :0x1:-:<0,0,2>:Next Table = Ingress.work.dispatch
+:10-06 22:57:47.860190:    :0x1:-:<0,0,->:------------ Stage 3 ------------
+:10-06 22:57:47.860632:    :0x1:-:<0,0,3>:Ingress : Table Ingress.work.dispatch is miss
+:10-06 22:57:47.860654:        :0x1:-:<0,0,3>:Key:
+:10-06 22:57:47.860675:        :0x1:-:<0,0,3>:	md.generation[31:0] = 0x0
+:10-06 22:57:47.860689:        :0x1:-:<0,0,3>:	md.work_expected[31:0] = 0x0
+:10-06 22:57:47.860701:        :0x1:-:<0,0,3>:	md.work_op[7:0] = 0x0
+:10-06 22:57:47.860715:        :0x1:-:<0,0,3>:Executed StatefulALU 3 with instruction 2
+:10-06 22:57:47.860730:        :0x1:-:<0,0,3>:Execute Default Action: Ingress.work.read_work
+:10-06 22:57:47.860895:        :0x1:-:<0,0,3>:Action Results:
+:10-06 22:57:47.860917:        :0x1:-:<0,0,3>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.860937:        :0x1:-:<0,0,3>:	----- BlackBox: work_read -----
+:10-06 22:57:47.860950:        :0x1:-:<0,0,3>:	----- register: Ingress.work.work -----
+:10-06 22:57:47.860963:        :0x1:-:<0,0,3>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.860976:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.860989:        :0x1:-:<0,0,3>:	set
+:10-06 22:57:47.861006:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861022:        :0x1:-:<0,0,3>:	md.role[7:0] = 0x0
+:10-06 22:57:47.861035:        :0x1:-:<0,0,3>:	mask=0xFF
+:10-06 22:57:47.861048:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861060:        :0x1:-:<0,0,3>:	Val=0x8
+:10-06 22:57:47.861073:        :0x1:-:<0,0,3>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.861092:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.861105:        :0x1:-:<0,0,3>:	set
+:10-06 22:57:47.861118:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861130:        :0x1:-:<0,0,3>:	md.timing_event[7:0] = 0x0
+:10-06 22:57:47.861143:        :0x1:-:<0,0,3>:	mask=0xFF
+:10-06 22:57:47.861156:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861169:        :0x1:-:<0,0,3>:	Val=0x8
+:10-06 22:57:47.861181:        :0x1:-:<0,0,3>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.861194:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.861207:        :0x1:-:<0,0,3>:	set
+:10-06 22:57:47.861220:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861232:        :0x1:-:<0,0,3>:	md.seen_mask[31:0] = 0x0
+:10-06 22:57:47.861245:        :0x1:-:<0,0,3>:	mask=0xFFFFFFFF
+:10-06 22:57:47.861258:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861271:        :0x1:-:<0,0,3>:	Val=0x20
+:10-06 22:57:47.861312:        :0x1:-:<0,0,3>:	--- SALU Condition ---
+:10-06 22:57:47.861326:        :0x1:-:<0,0,3>:	  Not supplied by program.
+:10-06 22:57:47.861339:        :0x1:-:<0,0,3>:	    SALU ConditionLo: FALSE
+:10-06 22:57:47.861363:        :0x1:-:<0,0,3>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.861376:        :0x1:-:<0,0,3>:	--- SALU Update ---
+:10-06 22:57:47.861389:        :0x1:-:<0,0,3>:	  None
+:10-06 22:57:47.861402:        :0x1:-:<0,0,3>:	--- SALU Output ---
+:10-06 22:57:47.861414:        :0x1:-:<0,0,3>:	    Output predicate not supplied by program
+:10-06 22:57:47.861433:        :0x1:-:<0,0,3>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.861446:        :0x1:-:<0,0,3>:	    Output Destination Field: md.work_phase = 0x4
+:10-06 22:57:47.861459:        :0x1:-:<0,0,3>:	---  SALU Register ---
+:10-06 22:57:47.861482:        :0x1:-:<0,0,3>:	   Register Index: 0x20000
+:10-06 22:57:47.861499:        :0x1:-:<0,0,3>:	     Before stateful alu execution: 0x0000000400000000
+:10-06 22:57:47.861512:        :0x1:-:<0,0,3>:	     After stateful alu execution: 0x0000000400000000
+:10-06 22:57:47.861527:        :0x1:-:<0,0,3>:Next Table = Ingress.deadline_deltas
+:10-06 22:57:47.861542:    :0x1:-:<0,0,3>:Ingress : Table Ingress.deadline_deltas is miss
+:10-06 22:57:47.861555:        :0x1:-:<0,0,3>:Key:
+:10-06 22:57:47.861570:        :0x1:-:<0,0,3>:Execute Default Action: Ingress.prepare_deltas
+:10-06 22:57:47.861618:        :0x1:-:<0,0,3>:Action Results:
+:10-06 22:57:47.861632:        :0x1:-:<0,0,3>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.861645:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.861658:        :0x1:-:<0,0,3>:	sub
+:10-06 22:57:47.861670:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861683:        :0x1:-:<0,0,3>:	md.normal_delta[31:0] = 0xE76B3F00
+:10-06 22:57:47.861696:        :0x1:-:<0,0,3>:	mask=0xFFFFFFFF
+:10-06 22:57:47.861709:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861721:        :0x1:-:<0,0,3>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.861734:        :0x1:-:<0,0,3>:	Source 2:
+:10-06 22:57:47.861747:        :0x1:-:<0,0,3>:	md.normal_deadline[31:0] = 0x4C4B00
+:10-06 22:57:47.861760:        :0x1:-:<0,0,3>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.861772:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.861785:        :0x1:-:<0,0,3>:	sub
+:10-06 22:57:47.861798:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861811:        :0x1:-:<0,0,3>:	md.readiness_delta[31:0] = 0xE5EDC700
+:10-06 22:57:47.861823:        :0x1:-:<0,0,3>:	mask=0xFFFFFFFF
+:10-06 22:57:47.861836:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861849:        :0x1:-:<0,0,3>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.861861:        :0x1:-:<0,0,3>:	Source 2:
+:10-06 22:57:47.861874:        :0x1:-:<0,0,3>:	md.readiness_deadline[31:0] = 0x1C9C300
+:10-06 22:57:47.861887:        :0x1:-:<0,0,3>:	----- DirectAluPrimitive -----
+:10-06 22:57:47.861900:        :0x1:-:<0,0,3>:	Operation:
+:10-06 22:57:47.861912:        :0x1:-:<0,0,3>:	sub
+:10-06 22:57:47.861925:        :0x1:-:<0,0,3>:	Destination:
+:10-06 22:57:47.861938:        :0x1:-:<0,0,3>:	md.cap_delta[31:0] = 0xE5553000
+:10-06 22:57:47.861950:        :0x1:-:<0,0,3>:	mask=0xFFFFFFFF
+:10-06 22:57:47.861963:        :0x1:-:<0,0,3>:	Source 1:
+:10-06 22:57:47.861976:        :0x1:-:<0,0,3>:	md.now[31:0] = 0xE7B78A00
+:10-06 22:57:47.861989:        :0x1:-:<0,0,3>:	Source 2:
+:10-06 22:57:47.862001:        :0x1:-:<0,0,3>:	md.cap_deadline[31:0] = 0x2625A00
+:10-06 22:57:47.862015:        :0x1:-:<0,0,3>:Next Table = tbl_read_timing571
+:10-06 22:57:47.862037:    :0x1:-:<0,0,3>:Ingress : Gateway table condition ((md.service_operation == 1)) not matched.
+:10-06 22:57:47.862051:    :0x1:-:<0,0,3>:Ingress : Gateway attached to tbl_read_timing571
+:10-06 22:57:47.862064:    :0x1:-:<0,0,3>:Ingress : Associated table tbl_read_timing571 is executed
+:10-06 22:57:47.862077:    :0x1:-:<0,0,3>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.862091:        :0x1:-:<0,0,3>:Next Table = cond-44
+:10-06 22:57:47.862120:    :0x1:-:<0,0,3>:Ingress : Gateway table condition ((md.service_operation == 2)) not matched.
+:10-06 22:57:47.862134:    :0x1:-:<0,0,3>:Ingress : Gateway attached to cond-44
+:10-06 22:57:47.862154:    :0x1:-:<0,0,3>:Ingress : Associated table cond-44 is executed
+:10-06 22:57:47.862168:    :0x1:-:<0,0,3>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.862189:        :0x1:-:<0,0,3>:Next Table = tbl_read_timing577
+:10-06 22:57:47.862203:    :0x1:-:<0,0,3>:Ingress : Table tbl_read_timing573 is not active(inhibited/skipped)
+:10-06 22:57:47.862217:    :0x1:-:<0,0,3>:Ingress : Table tbl_read_timing574 is not active(inhibited/skipped)
+:10-06 22:57:47.862246:    :0x1:-:<0,0,->:------------ Stage 4 ------------
+:10-06 22:57:47.862726:    :0x1:-:<0,0,4>:Ingress : Gateway table condition ((md.work_op == 1 && md.work_phase == 4)) not matched.
+:10-06 22:57:47.862748:    :0x1:-:<0,0,4>:Ingress : Gateway attached to tbl_read_timing577
+:10-06 22:57:47.862762:    :0x1:-:<0,0,4>:Ingress : Associated table tbl_read_timing577 is executed
+:10-06 22:57:47.862775:    :0x1:-:<0,0,4>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.862789:        :0x1:-:<0,0,4>:Next Table = cond-48
+:10-06 22:57:47.862806:    :0x1:-:<0,0,4>:Ingress : Gateway table condition ((md.work_op == 2)) not matched.
+:10-06 22:57:47.862819:    :0x1:-:<0,0,4>:Ingress : Gateway attached to cond-48
+:10-06 22:57:47.862832:    :0x1:-:<0,0,4>:Ingress : Associated table cond-48 is executed
+:10-06 22:57:47.862845:    :0x1:-:<0,0,4>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.862858:        :0x1:-:<0,0,4>:Next Table = Ingress.held_dispatch
+:10-06 22:57:47.862872:    :0x1:-:<0,0,4>:Ingress : Table tbl_read_timing579 is not active(inhibited/skipped)
+:10-06 22:57:47.862885:    :0x1:-:<0,0,4>:Ingress : Table tbl_read_timing580 is not active(inhibited/skipped)
+:10-06 22:57:47.862899:    :0x1:-:<0,0,4>:Ingress : Table tbl_read_timing581 is not active(inhibited/skipped)
+:10-06 22:57:47.862920:    :0x1:-:<0,0,4>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 71)) not matched.
+:10-06 22:57:47.862933:    :0x1:-:<0,0,4>:Ingress : Table Ingress.held_dispatch is inhibited by a gateway condition
+:10-06 22:57:47.862946:    :0x1:-:<0,0,4>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.862960:        :0x1:-:<0,0,4>:Next Table = Ingress.response_eligibility
+:10-06 22:57:47.862974:    :0x1:-:<0,0,4>:Ingress : Table Ingress.admission is not active(inhibited/skipped)
+:10-06 22:57:47.862988:    :0x1:-:<0,0,4>:Ingress : Table Ingress.response_eligibility is miss
+:10-06 22:57:47.863001:        :0x1:-:<0,0,4>:Key:
+:10-06 22:57:47.863027:        :0x1:-:<0,0,4>:	hdr.service.anchor[31:0] = 0x0
+:10-06 22:57:47.863040:        :0x1:-:<0,0,4>:	hdr.service.response_deadline[31:0] = 0x0
+:10-06 22:57:47.863053:        :0x1:-:<0,0,4>:	md.cap_delta[31:0] = 0xE5553000
+:10-06 22:57:47.863066:        :0x1:-:<0,0,4>:	md.readiness_delta[31:0] = 0xE5EDC700
+:10-06 22:57:47.863079:        :0x1:-:<0,0,4>:	md.response_delta[31:0] = 0xE7B78A00
+:10-06 22:57:47.863095:        :0x1:-:<0,0,4>:Execute Default Action: NoAction
+:10-06 22:57:47.863118:        :0x1:-:<0,0,4>:Action Results:
+:10-06 22:57:47.863132:        :0x1:-:<0,0,4>:Next Table = Ingress.heartbeat_eligibility
+:10-06 22:57:47.863162:    :0x1:-:<0,0,4>:Ingress : Table Ingress.heartbeat_eligibility is miss
+:10-06 22:57:47.863175:        :0x1:-:<0,0,4>:Key:
+:10-06 22:57:47.863197:        :0x1:-:<0,0,4>:	hdr.service.anchor[31:0] = 0x0
+:10-06 22:57:47.863210:        :0x1:-:<0,0,4>:	hdr.service.seen[31:0] = 0x0
+:10-06 22:57:47.863223:        :0x1:-:<0,0,4>:	md.cap_delta[31:0] = 0xE5553000
+:10-06 22:57:47.863236:        :0x1:-:<0,0,4>:	md.normal_delta[31:0] = 0xE76B3F00
+:10-06 22:57:47.863248:        :0x1:-:<0,0,4>:	md.readiness_delta[31:0] = 0xE5EDC700
+:10-06 22:57:47.863263:        :0x1:-:<0,0,4>:Execute Default Action: NoAction
+:10-06 22:57:47.863285:        :0x1:-:<0,0,4>:Action Results:
+:10-06 22:57:47.863299:        :0x1:-:<0,0,4>:Next Table = Ingress.successful_admission
+:10-06 22:57:47.863314:    :0x1:-:<0,0,->:------------ Stage 5 ------------
+:10-06 22:57:47.863574:    :0x1:-:<0,0,5>:Ingress : Table Ingress.successful_admission is miss
+:10-06 22:57:47.863595:        :0x1:-:<0,0,5>:Key:
+:10-06 22:57:47.863745:        :0x1:-:<0,0,5>:	hdr.envelope.stage[7:0] = 0x0
+:10-06 22:57:47.863760:        :0x1:-:<0,0,5>:	md.kind[7:0] = 0x1
+:10-06 22:57:47.863782:        :0x1:-:<0,0,5>:	md.role[7:0] = 0x0
+:10-06 22:57:47.863798:        :0x1:-:<0,0,5>:Execute Default Action: NoAction
+:10-06 22:57:47.863963:        :0x1:-:<0,0,5>:Action Results:
+:10-06 22:57:47.863979:        :0x1:-:<0,0,5>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.863999:        :0x1:-:<0,0,5>:	Operation:
+:10-06 22:57:47.864012:        :0x1:-:<0,0,5>:	set
+:10-06 22:57:47.864025:        :0x1:-:<0,0,5>:	Destination:
+:10-06 22:57:47.864038:        :0x1:-:<0,0,5>:	md.timing_authorized[7:0] = 0x0
+:10-06 22:57:47.864051:        :0x1:-:<0,0,5>:	mask=0xFF
+:10-06 22:57:47.864064:        :0x1:-:<0,0,5>:	Source 1:
+:10-06 22:57:47.864076:        :0x1:-:<0,0,5>:	Val=0x8
+:10-06 22:57:47.864090:        :0x1:-:<0,0,5>:Next Table = Ingress.terminal
+:10-06 22:57:47.864130:    :0x1:-:<0,0,5>:Ingress : Gateway table condition ((md.role == 5)) not matched.
+:10-06 22:57:47.864144:    :0x1:-:<0,0,5>:Ingress : Table Ingress.terminal is inhibited by a gateway condition
+:10-06 22:57:47.864157:    :0x1:-:<0,0,5>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.864171:        :0x1:-:<0,0,5>:Next Table = Ingress.timing_authority
+:10-06 22:57:47.864188:    :0x1:-:<0,0,->:------------ Stage 6 ------------
+:10-06 22:57:47.864405:    :0x1:-:<0,0,6>:Ingress : Table Ingress.timing_authority is miss
+:10-06 22:57:47.864423:        :0x1:-:<0,0,6>:Key:
+:10-06 22:57:47.864445:        :0x1:-:<0,0,6>:	ig_intr_md.ingress_port[8:0] = 0x45
+:10-06 22:57:47.864458:        :0x1:-:<0,0,6>:	md.service_phase[31:0] = 0x0
+:10-06 22:57:47.864471:        :0x1:-:<0,0,6>:	md.timing_event[7:0] = 0x0
+:10-06 22:57:47.864485:        :0x1:-:<0,0,6>:Execute Default Action: NoAction
+:10-06 22:57:47.864509:        :0x1:-:<0,0,6>:Action Results:
+:10-06 22:57:47.864522:        :0x1:-:<0,0,6>:Next Table = Ingress.ready_event
+:10-06 22:57:47.864538:    :0x1:-:<0,0,->:------------ Stage 7 ------------
+:10-06 22:57:47.864883:    :0x1:-:<0,0,7>:Ingress : Table Ingress.ready_event is miss
+:10-06 22:57:47.864905:        :0x1:-:<0,0,7>:Key:
+:10-06 22:57:47.865050:        :0x1:-:<0,0,7>:	ig_intr_md.ingress_port[8:0] = 0x45
+:10-06 22:57:47.865066:        :0x1:-:<0,0,7>:	md.service_phase[31:0] = 0x0
+:10-06 22:57:47.865079:        :0x1:-:<0,0,7>:	md.timing_authorized[7:0] = 0x0
+:10-06 22:57:47.865092:        :0x1:-:<0,0,7>:Executed StatefulALU 2 with instruction 0
+:10-06 22:57:47.865107:        :0x1:-:<0,0,7>:Execute Default Action: Ingress.load_ready_response
+:10-06 22:57:47.865130:        :0x1:-:<0,0,7>:Action Results:
+:10-06 22:57:47.865143:        :0x1:-:<0,0,7>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.865156:        :0x1:-:<0,0,7>:	----- BlackBox: ready_read_0 -----
+:10-06 22:57:47.865169:        :0x1:-:<0,0,7>:	----- register: Ingress.ready_response -----
+:10-06 22:57:47.865202:        :0x1:-:<0,0,7>:	--- SALU Condition ---
+:10-06 22:57:47.865216:        :0x1:-:<0,0,7>:	  Not supplied by program.
+:10-06 22:57:47.865229:        :0x1:-:<0,0,7>:	    SALU ConditionLo: TRUE
+:10-06 22:57:47.865242:        :0x1:-:<0,0,7>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.865254:        :0x1:-:<0,0,7>:	--- SALU Update ---
+:10-06 22:57:47.865267:        :0x1:-:<0,0,7>:	  None
+:10-06 22:57:47.865280:        :0x1:-:<0,0,7>:	--- SALU Output ---
+:10-06 22:57:47.865293:        :0x1:-:<0,0,7>:	    Output predicate not supplied by program
+:10-06 22:57:47.865306:        :0x1:-:<0,0,7>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.865319:        :0x1:-:<0,0,7>:	    Output Destination Field: md.response_ready = 0x0
+:10-06 22:57:47.865332:        :0x1:-:<0,0,7>:	---  SALU Register ---
+:10-06 22:57:47.865345:        :0x1:-:<0,0,7>:	   Register Index: 0x20000
+:10-06 22:57:47.865358:        :0x1:-:<0,0,7>:	     Before stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.865370:        :0x1:-:<0,0,7>:	     After stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.865384:        :0x1:-:<0,0,7>:Next Table = Ingress.release_event
+:10-06 22:57:47.865399:    :0x1:-:<0,0,7>:Ingress : Table Ingress.release_event is miss
+:10-06 22:57:47.865420:        :0x1:-:<0,0,7>:Key:
+:10-06 22:57:47.865440:        :0x1:-:<0,0,7>:	ig_intr_md.ingress_port[8:0] = 0x45
+:10-06 22:57:47.865453:        :0x1:-:<0,0,7>:	md.service_phase[31:0] = 0x0
+:10-06 22:57:47.865466:        :0x1:-:<0,0,7>:	md.timing_authorized[7:0] = 0x0
+:10-06 22:57:47.865509:        :0x1:-:<0,0,7>:Executed StatefulALU 3 with instruction 0
+:10-06 22:57:47.865535:        :0x1:-:<0,0,7>:Execute Default Action: Ingress.load_releases
+:10-06 22:57:47.865566:        :0x1:-:<0,0,7>:Action Results:
+:10-06 22:57:47.865580:        :0x1:-:<0,0,7>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.865592:        :0x1:-:<0,0,7>:	----- BlackBox: release_read_0 -----
+:10-06 22:57:47.865605:        :0x1:-:<0,0,7>:	----- register: Ingress.releases -----
+:10-06 22:57:47.865631:        :0x1:-:<0,0,7>:	--- SALU Condition ---
+:10-06 22:57:47.865644:        :0x1:-:<0,0,7>:	  Not supplied by program.
+:10-06 22:57:47.865657:        :0x1:-:<0,0,7>:	    SALU ConditionLo: TRUE
+:10-06 22:57:47.865670:        :0x1:-:<0,0,7>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.865683:        :0x1:-:<0,0,7>:	--- SALU Update ---
+:10-06 22:57:47.865695:        :0x1:-:<0,0,7>:	  None
+:10-06 22:57:47.865708:        :0x1:-:<0,0,7>:	--- SALU Output ---
+:10-06 22:57:47.865721:        :0x1:-:<0,0,7>:	    Output predicate not supplied by program
+:10-06 22:57:47.865734:        :0x1:-:<0,0,7>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.865746:        :0x1:-:<0,0,7>:	    Output Destination Field: md.current_release = 0x0
+:10-06 22:57:47.865759:        :0x1:-:<0,0,7>:	---  SALU Register ---
+:10-06 22:57:47.865772:        :0x1:-:<0,0,7>:	   Register Index: 0x20000
+:10-06 22:57:47.865785:        :0x1:-:<0,0,7>:	     Before stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.865797:        :0x1:-:<0,0,7>:	     After stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.865811:        :0x1:-:<0,0,7>:Next Table = Ingress.timing_admission
+:10-06 22:57:47.865860:    :0x1:-:<0,0,7>:Ingress : Gateway table condition () not matched.
+:10-06 22:57:47.865875:    :0x1:-:<0,0,7>:Ingress : Gateway attached to Ingress.timing_admission
+:10-06 22:57:47.865888:    :0x1:-:<0,0,7>:Ingress : Table Ingress.timing_admission is inhibited by a gateway condition
+:10-06 22:57:47.865905:        :0x1:-:<0,0,7>:Execute Default Action: NoAction
+:10-06 22:57:47.866090:        :0x1:-:<0,0,7>:Action Results:
+:10-06 22:57:47.866109:        :0x1:-:<0,0,7>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.866122:        :0x1:-:<0,0,7>:	Operation:
+:10-06 22:57:47.866134:        :0x1:-:<0,0,7>:	set
+:10-06 22:57:47.866147:        :0x1:-:<0,0,7>:	Destination:
+:10-06 22:57:47.866160:        :0x1:-:<0,0,7>:	md.anchor_operation[7:0] = 0x0
+:10-06 22:57:47.866173:        :0x1:-:<0,0,7>:	mask=0xFF
+:10-06 22:57:47.866186:        :0x1:-:<0,0,7>:	Source 1:
+:10-06 22:57:47.866198:        :0x1:-:<0,0,7>:	Val=0x8
+:10-06 22:57:47.866211:        :0x1:-:<0,0,7>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.866224:        :0x1:-:<0,0,7>:	Operation:
+:10-06 22:57:47.866237:        :0x1:-:<0,0,7>:	set
+:10-06 22:57:47.866249:        :0x1:-:<0,0,7>:	Destination:
+:10-06 22:57:47.866262:        :0x1:-:<0,0,7>:	md.seen_operation[7:0] = 0x0
+:10-06 22:57:47.866275:        :0x1:-:<0,0,7>:	mask=0xFF
+:10-06 22:57:47.866288:        :0x1:-:<0,0,7>:	Source 1:
+:10-06 22:57:47.866300:        :0x1:-:<0,0,7>:	Val=0x8
+:10-06 22:57:47.866314:        :0x1:-:<0,0,7>:Next Table = Ingress.original_eligibility
+:10-06 22:57:47.866330:    :0x1:-:<0,0,->:------------ Stage 8 ------------
+:10-06 22:57:47.866542:    :0x1:-:<0,0,8>:Ingress : Gateway table condition ((md.role == 7)) not matched.
+:10-06 22:57:47.866552:    :0x1:-:<0,0,8>:Ingress : Table Ingress.original_eligibility is inhibited by a gateway condition
+:10-06 22:57:47.866559:    :0x1:-:<0,0,8>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.866565:        :0x1:-:<0,0,8>:Next Table = Ingress.observation_event
+:10-06 22:57:47.866576:    :0x1:-:<0,0,8>:Ingress : Gateway table condition () not matched.
+:10-06 22:57:47.866582:    :0x1:-:<0,0,8>:Ingress : Gateway attached to Ingress.observation_event
+:10-06 22:57:47.866592:    :0x1:-:<0,0,8>:Ingress : Table Ingress.observation_event is inhibited by a gateway condition
+:10-06 22:57:47.866599:        :0x1:-:<0,0,8>:Executed StatefulALU 3 with instruction 0
+:10-06 22:57:47.866606:        :0x1:-:<0,0,8>:Execute Default Action: Ingress.load_observations
+:10-06 22:57:47.866619:        :0x1:-:<0,0,8>:Action Results:
+:10-06 22:57:47.866626:        :0x1:-:<0,0,8>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.866632:        :0x1:-:<0,0,8>:	----- BlackBox: observation_read_0 -----
+:10-06 22:57:47.866638:        :0x1:-:<0,0,8>:	----- register: Ingress.observations -----
+:10-06 22:57:47.866651:        :0x1:-:<0,0,8>:	--- SALU Condition ---
+:10-06 22:57:47.866657:        :0x1:-:<0,0,8>:	  Not supplied by program.
+:10-06 22:57:47.866663:        :0x1:-:<0,0,8>:	    SALU ConditionLo: TRUE
+:10-06 22:57:47.866669:        :0x1:-:<0,0,8>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.866675:        :0x1:-:<0,0,8>:	--- SALU Update ---
+:10-06 22:57:47.866682:        :0x1:-:<0,0,8>:	  None
+:10-06 22:57:47.866688:        :0x1:-:<0,0,8>:	--- SALU Output ---
+:10-06 22:57:47.866694:        :0x1:-:<0,0,8>:	    Output predicate not supplied by program
+:10-06 22:57:47.866700:        :0x1:-:<0,0,8>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.866706:        :0x1:-:<0,0,8>:	    Output Destination Field: md.seen = 0x0
+:10-06 22:57:47.866712:        :0x1:-:<0,0,8>:	---  SALU Register ---
+:10-06 22:57:47.866718:        :0x1:-:<0,0,8>:	   Register Index: 0x20000
+:10-06 22:57:47.866724:        :0x1:-:<0,0,8>:	     Before stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.866730:        :0x1:-:<0,0,8>:	     After stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.866737:        :0x1:-:<0,0,8>:Next Table = Ingress.anchor_event
+:10-06 22:57:47.866756:    :0x1:-:<0,0,8>:Ingress : Gateway table condition () not matched.
+:10-06 22:57:47.866763:    :0x1:-:<0,0,8>:Ingress : Gateway attached to Ingress.anchor_event
+:10-06 22:57:47.866769:    :0x1:-:<0,0,8>:Ingress : Table Ingress.anchor_event is inhibited by a gateway condition
+:10-06 22:57:47.866775:        :0x1:-:<0,0,8>:Executed StatefulALU 2 with instruction 0
+:10-06 22:57:47.866782:        :0x1:-:<0,0,8>:Execute Default Action: Ingress.load_anchor
+:10-06 22:57:47.866792:        :0x1:-:<0,0,8>:Action Results:
+:10-06 22:57:47.866798:        :0x1:-:<0,0,8>:	----- ExecuteStatefulAluPrimitive -----
+:10-06 22:57:47.866804:        :0x1:-:<0,0,8>:	----- BlackBox: anchor_read_0 -----
+:10-06 22:57:47.866810:        :0x1:-:<0,0,8>:	----- register: Ingress.admission_anchor -----
+:10-06 22:57:47.866822:        :0x1:-:<0,0,8>:	--- SALU Condition ---
+:10-06 22:57:47.866828:        :0x1:-:<0,0,8>:	  Not supplied by program.
+:10-06 22:57:47.866834:        :0x1:-:<0,0,8>:	    SALU ConditionLo: TRUE
+:10-06 22:57:47.866840:        :0x1:-:<0,0,8>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.866846:        :0x1:-:<0,0,8>:	--- SALU Update ---
+:10-06 22:57:47.866852:        :0x1:-:<0,0,8>:	  None
+:10-06 22:57:47.866858:        :0x1:-:<0,0,8>:	--- SALU Output ---
+:10-06 22:57:47.866865:        :0x1:-:<0,0,8>:	    Output predicate not supplied by program
+:10-06 22:57:47.866871:        :0x1:-:<0,0,8>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.866877:        :0x1:-:<0,0,8>:	    Output Destination Field: md.anchor = 0x0
+:10-06 22:57:47.866883:        :0x1:-:<0,0,8>:	---  SALU Register ---
+:10-06 22:57:47.866889:        :0x1:-:<0,0,8>:	   Register Index: 0x20000
+:10-06 22:57:47.866895:        :0x1:-:<0,0,8>:	     Before stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.866901:        :0x1:-:<0,0,8>:	     After stateful alu execution: 0x0000000000000000
+:10-06 22:57:47.866907:        :0x1:-:<0,0,8>:Next Table = Ingress.credits.event
+:10-06 22:57:47.866915:    :0x1:-:<0,0,->:------------ Stage 9 ------------
+:10-06 22:57:47.867073:    :0x1:-:<0,0,9>:Ingress : Table Ingress.credits.event is hit
+:10-06 22:57:47.867084:        :0x1:-:<0,0,9>:Key:
+:10-06 22:57:47.867160:        :0x1:-:<0,0,9>:	md.credit_op[7:0] = 0x0
+:10-06 22:57:47.867172:        :0x1:-:<0,0,9>:Executed StatefulALU 3 with instruction 0
+:10-06 22:57:47.867181:        :0x1:-:<0,0,9>:Execute Action: Ingress.credits.read_credit
+:10-06 22:57:47.867193:        :0x1:-:<0,0,9>:Action Results:
+:10-06 22:57:47.867202:        :0x1:-:<0,0,9>:	----- ExecuteStatefulAluFromHashPrimitive -----
+:10-06 22:57:47.867212:        :0x1:-:<0,0,9>:	----- BlackBox: credits_read -----
+:10-06 22:57:47.867218:        :0x1:-:<0,0,9>:	----- register: Ingress.credits.cell -----
+:10-06 22:57:47.867236:        :0x1:-:<0,0,9>:	--- SALU Condition ---
+:10-06 22:57:47.867243:        :0x1:-:<0,0,9>:	  Not supplied by program.
+:10-06 22:57:47.867249:        :0x1:-:<0,0,9>:	    SALU ConditionLo: FALSE
+:10-06 22:57:47.867255:        :0x1:-:<0,0,9>:	    SALU ConditionHi: FALSE
+:10-06 22:57:47.867261:        :0x1:-:<0,0,9>:	--- SALU Update ---
+:10-06 22:57:47.867267:        :0x1:-:<0,0,9>:	  None
+:10-06 22:57:47.867273:        :0x1:-:<0,0,9>:	--- SALU Output ---
+:10-06 22:57:47.867279:        :0x1:-:<0,0,9>:	    Output predicate not supplied by program
+:10-06 22:57:47.867285:        :0x1:-:<0,0,9>:	    Output PredicateResult: TRUE
+:10-06 22:57:47.867291:        :0x1:-:<0,0,9>:	    Output Destination Field: md.result = 0x10000
+:10-06 22:57:47.867297:        :0x1:-:<0,0,9>:	---  SALU Register ---
+:10-06 22:57:47.867303:        :0x1:-:<0,0,9>:	   Register Index: 0x20000
+:10-06 22:57:47.867309:        :0x1:-:<0,0,9>:	     Before stateful alu execution: 0x0001000000000001
+:10-06 22:57:47.867315:        :0x1:-:<0,0,9>:	     After stateful alu execution: 0x0001000000000001
+:10-06 22:57:47.867322:        :0x1:-:<0,0,9>:Next Table = Ingress.response_clock
+:10-06 22:57:47.867331:    :0x1:-:<0,0,->:------------ Stage 10 ------------
+:10-06 22:57:47.867822:    :0x1:-:<0,0,10>:Ingress : Table Ingress.response_clock is miss
+:10-06 22:57:47.867832:        :0x1:-:<0,0,10>:Key:
+:10-06 22:57:47.867912:        :0x1:-:<0,0,10>:	md.credit_op[7:0] = 0x0
+:10-06 22:57:47.867920:        :0x1:-:<0,0,10>:	md.kind[7:0] = 0x1
+:10-06 22:57:47.867926:        :0x1:-:<0,0,10>:	md.release_reason[7:0] = 0x0
+:10-06 22:57:47.867932:        :0x1:-:<0,0,10>:	md.result[31:0] = 0x10000
+:10-06 22:57:47.867938:        :0x1:-:<0,0,10>:	md.role[7:0] = 0x0
+:10-06 22:57:47.867944:        :0x1:-:<0,0,10>:	md.service_role[7:0] = 0x0
+:10-06 22:57:47.867952:        :0x1:-:<0,0,10>:Execute Default Action: NoAction
+:10-06 22:57:47.868031:        :0x1:-:<0,0,10>:Action Results:
+:10-06 22:57:47.868039:        :0x1:-:<0,0,10>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.868045:        :0x1:-:<0,0,10>:	Operation:
+:10-06 22:57:47.868051:        :0x1:-:<0,0,10>:	set
+:10-06 22:57:47.868057:        :0x1:-:<0,0,10>:	Destination:
+:10-06 22:57:47.868063:        :0x1:-:<0,0,10>:	ig_intr_md_for_dprsr.mirror_type[2:0] = 0x0
+:10-06 22:57:47.868069:        :0x1:-:<0,0,10>:	mask=0x7
+:10-06 22:57:47.868076:        :0x1:-:<0,0,10>:	Source 1:
+:10-06 22:57:47.868082:        :0x1:-:<0,0,10>:	Val=0x3
+:10-06 22:57:47.868088:        :0x1:-:<0,0,10>:Next Table = Ingress.heartbeat_snapshot_bytes
+:10-06 22:57:47.868100:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.service_role == 1)) not matched.
+:10-06 22:57:47.868107:    :0x1:-:<0,0,10>:Ingress : Gateway attached to Ingress.heartbeat_snapshot_bytes
+:10-06 22:57:47.868113:    :0x1:-:<0,0,10>:Ingress : Associated table Ingress.heartbeat_snapshot_bytes is executed
+:10-06 22:57:47.868120:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868126:        :0x1:-:<0,0,10>:Next Table = Ingress.heartbeat_return_bytes
+:10-06 22:57:47.868137:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.service_role == 2)) not matched.
+:10-06 22:57:47.868144:    :0x1:-:<0,0,10>:Ingress : Gateway attached to Ingress.heartbeat_return_bytes
+:10-06 22:57:47.868150:    :0x1:-:<0,0,10>:Ingress : Associated table Ingress.heartbeat_return_bytes is executed
+:10-06 22:57:47.868156:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868163:        :0x1:-:<0,0,10>:Next Table = tbl_read_timing596
+:10-06 22:57:47.868178:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.service_role == 3)) not matched.
+:10-06 22:57:47.868185:    :0x1:-:<0,0,10>:Ingress : Gateway attached to tbl_read_timing596
+:10-06 22:57:47.868191:    :0x1:-:<0,0,10>:Ingress : Associated table tbl_read_timing596 is executed
+:10-06 22:57:47.868200:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868207:        :0x1:-:<0,0,10>:Next Table = tbl_read_timing601
+:10-06 22:57:47.868218:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 68 || ig_intr_md.ingress_port == 10)) not matched.
+:10-06 22:57:47.868225:    :0x1:-:<0,0,10>:Ingress : Gateway attached to tbl_read_timing601
+:10-06 22:57:47.868231:    :0x1:-:<0,0,10>:Ingress : Associated table tbl_read_timing601 is executed
+:10-06 22:57:47.868237:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868244:        :0x1:-:<0,0,10>:Next Table = Ingress.snapshot
+:10-06 22:57:47.868260:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 1)) not matched.
+:10-06 22:57:47.868268:    :0x1:-:<0,0,10>:Ingress : Gateway attached to Ingress.snapshot
+:10-06 22:57:47.868274:    :0x1:-:<0,0,10>:Ingress : Associated table Ingress.snapshot is executed
+:10-06 22:57:47.868280:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868287:        :0x1:-:<0,0,10>:Next Table = cond-60
+:10-06 22:57:47.868295:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 2)) not matched.
+:10-06 22:57:47.868302:    :0x1:-:<0,0,10>:Ingress : Gateway attached to cond-60
+:10-06 22:57:47.868308:    :0x1:-:<0,0,10>:Ingress : Associated table cond-60 is executed
+:10-06 22:57:47.868314:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868320:        :0x1:-:<0,0,10>:Next Table = cond-62
+:10-06 22:57:47.868328:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 3)) not matched.
+:10-06 22:57:47.868337:    :0x1:-:<0,0,10>:Ingress : Gateway attached to cond-62
+:10-06 22:57:47.868344:    :0x1:-:<0,0,10>:Ingress : Associated table cond-62 is executed
+:10-06 22:57:47.868350:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868356:        :0x1:-:<0,0,10>:Next Table = cond-64
+:10-06 22:57:47.868363:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 4)) not matched.
+:10-06 22:57:47.868370:    :0x1:-:<0,0,10>:Ingress : Gateway attached to cond-64
+:10-06 22:57:47.868376:    :0x1:-:<0,0,10>:Ingress : Associated table cond-64 is executed
+:10-06 22:57:47.868382:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868388:        :0x1:-:<0,0,10>:Next Table = cond-66
+:10-06 22:57:47.868395:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 5)) not matched.
+:10-06 22:57:47.868402:    :0x1:-:<0,0,10>:Ingress : Gateway attached to cond-66
+:10-06 22:57:47.868411:    :0x1:-:<0,0,10>:Ingress : Associated table cond-66 is executed
+:10-06 22:57:47.868417:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868423:        :0x1:-:<0,0,10>:Next Table = Ingress.refresh
+:10-06 22:57:47.868436:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 6)) not matched.
+:10-06 22:57:47.868442:    :0x1:-:<0,0,10>:Ingress : Gateway attached to Ingress.refresh
+:10-06 22:57:47.868448:    :0x1:-:<0,0,10>:Ingress : Associated table Ingress.refresh is executed
+:10-06 22:57:47.868455:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868461:        :0x1:-:<0,0,10>:Next Table = cond-71
+:10-06 22:57:47.868469:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((md.role == 7)) not matched.
+:10-06 22:57:47.868475:    :0x1:-:<0,0,10>:Ingress : Gateway attached to cond-71
+:10-06 22:57:47.868481:    :0x1:-:<0,0,10>:Ingress : Associated table cond-71 is executed
+:10-06 22:57:47.868487:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868493:        :0x1:-:<0,0,10>:Next Table = tbl_read_timing628
+:10-06 22:57:47.868518:    :0x1:-:<0,0,10>:Ingress : Gateway table condition ((ig_intr_md.ingress_port == 71)) not matched.
+:10-06 22:57:47.868528:    :0x1:-:<0,0,10>:Ingress : Gateway attached to tbl_read_timing628
+:10-06 22:57:47.868535:    :0x1:-:<0,0,10>:Ingress : Associated table tbl_read_timing628 is executed
+:10-06 22:57:47.868541:    :0x1:-:<0,0,10>:Ingress : Gateway did provide payload.
+:10-06 22:57:47.868550:        :0x1:-:<0,0,10>:Next Table = Ingress.off_outcome
+:10-06 22:57:47.868557:    :0x1:-:<0,0,10>:Ingress : Table tbl_read_timing621 is not active(inhibited/skipped)
+:10-06 22:57:47.868564:    :0x1:-:<0,0,10>:Ingress : Table tbl_read_timing622 is not active(inhibited/skipped)
+:10-06 22:57:47.868571:    :0x1:-:<0,0,->:------------ Stage 11 ------------
+:10-06 22:57:47.868623:    <0,0,11> WARN MAU_PRED<11> get_next_table(ingress,-1) Power-saved LT 0 using table counter - table lookup will appear to always miss
+:10-06 22:57:47.868648:    <0,0,11> WARN MAU_PRED<11> get_next_table(ingress,0) Power-saved LT 1 using table counter - table lookup will appear to always miss
+:10-06 22:57:47.868801:    :0x1:-:<0,0,11>:Ingress : Gateway table condition () not matched.
+:10-06 22:57:47.868810:    :0x1:-:<0,0,11>:Ingress : Gateway attached to Ingress.off_outcome
+:10-06 22:57:47.868816:    :0x1:-:<0,0,11>:Ingress : Table Ingress.off_outcome is inhibited by a gateway condition
+:10-06 22:57:47.868824:        :0x1:-:<0,0,11>:Execute Default Action: Ingress.forward_original
+:10-06 22:57:47.868905:        :0x1:-:<0,0,11>:Action Results:
+:10-06 22:57:47.868913:        :0x1:-:<0,0,11>:	----- RemoveHeaderPrimitive -----
+:10-06 22:57:47.868919:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.868925:        :0x1:-:<0,0,11>:	hdr.envelope.$valid=header
+:10-06 22:57:47.868932:        :0x1:-:<0,0,11>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.868938:        :0x1:-:<0,0,11>:	Operation:
+:10-06 22:57:47.868944:        :0x1:-:<0,0,11>:	set
+:10-06 22:57:47.868950:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.868956:        :0x1:-:<0,0,11>:	ig_intr_md_for_tm.ucast_egress_port[8:0] = 0x9
+:10-06 22:57:47.868962:        :0x1:-:<0,0,11>:	mask=0x1FF
+:10-06 22:57:47.868968:        :0x1:-:<0,0,11>:	Source 1:
+:10-06 22:57:47.868974:        :0x1:-:<0,0,11>:	Val=0x9
+:10-06 22:57:47.868981:        :0x1:-:<0,0,11>:	----- RemoveHeaderPrimitive -----
+:10-06 22:57:47.868987:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.868993:        :0x1:-:<0,0,11>:	hdr.envelope.$valid=header
+:10-06 22:57:47.868999:        :0x1:-:<0,0,11>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.869005:        :0x1:-:<0,0,11>:	Operation:
+:10-06 22:57:47.869011:        :0x1:-:<0,0,11>:	set
+:10-06 22:57:47.869017:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.869023:        :0x1:-:<0,0,11>:	ig_intr_md_for_tm.ucast_egress_port[8:0] = 0x9
+:10-06 22:57:47.869029:        :0x1:-:<0,0,11>:	mask=0x1FF
+:10-06 22:57:47.869035:        :0x1:-:<0,0,11>:	Source 1:
+:10-06 22:57:47.869041:        :0x1:-:<0,0,11>:	Val=0x9
+:10-06 22:57:47.869048:        :0x1:-:<0,0,11>:	----- RemoveHeaderPrimitive -----
+:10-06 22:57:47.869054:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.869060:        :0x1:-:<0,0,11>:	hdr.envelope.$valid=header
+:10-06 22:57:47.869066:        :0x1:-:<0,0,11>:	----- ModifyFieldPrimitive -----
+:10-06 22:57:47.869072:        :0x1:-:<0,0,11>:	Operation:
+:10-06 22:57:47.869078:        :0x1:-:<0,0,11>:	set
+:10-06 22:57:47.869084:        :0x1:-:<0,0,11>:	Destination:
+:10-06 22:57:47.869090:        :0x1:-:<0,0,11>:	ig_intr_md_for_tm.ucast_egress_port[8:0] = 0x9
+:10-06 22:57:47.869096:        :0x1:-:<0,0,11>:	mask=0x1FF
+:10-06 22:57:47.869102:        :0x1:-:<0,0,11>:	Source 1:
+:10-06 22:57:47.869108:        :0x1:-:<0,0,11>:	Val=0x9
+:10-06 22:57:47.869115:        :0x1:-:<0,0,11>:Next Table = --END_OF_PIPELINE--
+:10-06 22:57:47.869122:    :0x1:-:<0,0,11>:Ingress : Table tbl_read_timing609 is not active(inhibited/skipped)
+:10-06 22:57:47.869128:    :0x1:-:<0,0,11>:Ingress : Table tbl_read_timing610 is not active(inhibited/skipped)
+:10-06 22:57:47.869135:    :0x1:-:<0,0,11>:Ingress : Table tbl_read_timing605 is not active(inhibited/skipped)
+:10-06 22:57:47.869145:    :0x1:-:<0,0,11>:Ingress : Table tbl_read_timing606 is not active(inhibited/skipped)
+:10-06 22:57:47.869152:    :0x1:-:<0,0,11>:Ingress : Table Ingress.loop is not active(inhibited/skipped)
+:10-06 22:57:47.869164:    :0x1:-:<0,0,->:------------ Stage 0 EOP processing ------------
+:10-06 22:57:47.869247:    :0x1:-:<0,0,->:------------ Stage 1 EOP processing ------------
+:10-06 22:57:47.869274:    :0x1:-:<0,0,->:------------ Stage 2 EOP processing ------------
+:10-06 22:57:47.869307:    :0x1:-:<0,0,->:------------ Stage 3 EOP processing ------------
+:10-06 22:57:47.869341:    :0x1:-:<0,0,->:------------ Stage 4 EOP processing ------------
+:10-06 22:57:47.869384:    :0x1:-:<0,0,->:------------ Stage 5 EOP processing ------------
+:10-06 22:57:47.869404:    :0x1:-:<0,0,->:------------ Stage 6 EOP processing ------------
+:10-06 22:57:47.869421:    :0x1:-:<0,0,->:------------ Stage 7 EOP processing ------------
+:10-06 22:57:47.869444:    :0x1:-:<0,0,->:------------ Stage 8 EOP processing ------------
+:10-06 22:57:47.869481:    :0x1:-:<0,0,->:------------ Stage 9 EOP processing ------------
+:10-06 22:57:47.869501:    :0x1:-:<0,0,->:------------ Stage 10 EOP processing ------------
+:10-06 22:57:47.869570:    :0x1:-:<0,0,->:------------ Stage 11 EOP processing ------------
+:10-06 22:57:47.869610:        :0x1:-:<0,0,->:Ingress Deparser Headers:
+:10-06 22:57:47.869619:        :0x1:-:<0,0,->:Header hdr.eth.$valid is valid
+:10-06 22:57:47.869628:        :0x1:-:<0,0,->:Header hdr.ip.$valid is valid
+:10-06 22:57:47.869635:        :0x1:-:<0,0,->:Header hdr.tcp.$valid is valid
+:10-06 22:57:47.869814:    :0x1:-:<0,0,->:---- Mirroring session 768 : ingress  ----
+:10-06 22:57:47.869822:        :0x1:-:<0,0,->:Mirroring session 768 is not enabled
+:10-06 22:57:47.869848:    :-:-:<0,0,0>:========== Egress Pkt from TM to port 9 (tm 64, real 64 bytes) ==========
+:10-06 22:57:47.869855:    :-:-:<0,0,0>:Packet :
+:10-06 22:57:47.869863:        :-:-:<0,0,0>:00 11 22 33 44 55 aa bb cc dd ee ff 08 00 45 00 
+:10-06 22:57:47.869870:        :-:-:<0,0,0>:00 28 00 01 40 00 40 06 26 cd 0a 00 00 01 0a 00 
+:10-06 22:57:47.869877:        :-:-:<0,0,0>:00 02 75 31 4e 20 00 00 03 e8 00 00 07 d0 50 10 
+:10-06 22:57:47.869884:        :-:-:<0,0,0>:10 00 bc c8 00 00 00 00 00 00 00 00 00 00 00 00 
+:10-06 22:57:47.869890:    :-:-:<0,0,0>:========== Tx Pkt to port 9 (Bypass Egress) (64 bytes) ==========
+:10-06 22:57:47.869896:    :-:-:<0,0,0>:Packet :
+:10-06 22:57:47.869903:        :-:-:<0,0,0>:00 11 22 33 44 55 aa bb cc dd ee ff 08 00 45 00 
+:10-06 22:57:47.869910:        :-:-:<0,0,0>:00 28 00 01 40 00 40 06 26 cd 0a 00 00 01 0a 00 
+:10-06 22:57:47.869917:        :-:-:<0,0,0>:00 02 75 31 4e 20 00 00 03 e8 00 00 07 d0 50 10 
+:10-06 22:57:47.869924:        :-:-:<0,0,0>:10 00 bc c8 00 00 00 00 00 00 00 00 00 00 00 00 
+:10-06 22:57:47.869958:    :-:-:<0,-,0>:Waiting for packets to process
