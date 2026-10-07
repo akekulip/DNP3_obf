@@ -467,3 +467,37 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   prevents duplicate final emission. Full transport/timing is not claimed: ACK/
   window inverse and SELECT57 response are next, followed by OPERATE/carve/replay,
   post-M cancellation/loss and final qualification under PLAN.md.
+- 2026-10-07 (this session) M stage-fit research, mirroring the N method (`stage_fit_analysis_01`):
+  `installed_m_13`'s "table placement cannot make any more progress" traces to a real, confirmed
+  defect: the role==4 geometry chain and the shared role==3||4 mapping chain are each a SEPARATE
+  top-level `if` preceding the real role dispatch in `transport_candidate_next15/m3.p4`'s apply
+  block, so the compiler serializes them (sum of both chains' depth = 13) instead of overlapping
+  them as dispatch siblings (critical path would be a max, not a sum). Confirmed by the identical
+  "Critical path length ... : 13" across all five placement retries, unaffected by M12's PHV fix
+  (an independent, earlier compiler pass).
+  Fix attempt 1 (`transport_candidate_next16/m3.p4`, full merge into one dispatch, `stage_fit_m16_01`):
+  flattening works (would address the depth) but `mapping_reservation_t` ends up applied from two
+  branches at once — compile error, not a structural dead end.
+  Fix attempt 2 (same file, narrower merge — only the role==4 chain moved inside the existing
+  dispatch): `stage_fit_m16_02`, REAL compile, critical path confirmed **13 -> 9** (well under 12).
+  Still fails to compile: a NEW, previously undiagnosed constraint — a Register's backing SALU is
+  pinned to one physical stage, and EVERY table that touches it via RegisterAction must share that
+  stage. `Ingress.reservation` is read early (role 3/4, `mapping_reservation_t`) and read-or-written
+  late (role 1/2, `activation_reservation_t`/`reserve_t`, gated behind several sequential admission
+  checks); same for `Ingress.ledger_position` (`mapping_position_t` vs `activate_position_t`). The
+  two touch points are too far apart in the chain to share a stage. Exact error quoted in
+  `evidence/stage_fit_m16_01/compile.log` lines 30/32 (an earlier, more aggressive merge surfaced it
+  explicitly; the narrower m16_02 merge hits the same wall as the generic "no more tables placeable").
+  Correct next fix (not yet attempted, deliberately deferred for review since it changes the staging
+  of real admission logic, not just data layout): hoist the READ-ONLY halves of
+  `activation_reservation_t`'s `inspect_reservation` and `qualify_context_t`'s `context_check` to run
+  unconditionally right after role dispatch, in the same stage window as `mapping_reservation_t`'s own
+  read — deferring only the MUTATING steps (claim_once, activate_geometry/position/ledger,
+  dirty_return) to their later gated stage. This does not weaken the paired-coordinate reread
+  invariant; it only moves when the read happens. Two lower-priority options remain (fold the
+  enabled&&profile gate into activation_identity_t's key; HANDOVER's own flagged egress-arithmetic
+  fallback for the stateless inverse-window math). Evidence: `transport_candidate_next16/m3.p4`,
+  `evidence/stage_fit_m16_01` (exit 3), `evidence/stage_fit_m16_02` (exit 2, critical path 9,
+  verified in this entry's own commit by rereading the compiler's own log lines, not the agent's
+  prose). Next action: implement the hoist in the real M source (not a scratch copy) with a
+  differential/invariant test that the admission result is identical whether checked early or late.
