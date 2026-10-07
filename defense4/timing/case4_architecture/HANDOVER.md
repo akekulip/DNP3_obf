@@ -112,9 +112,12 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
   validator, forward/reverse mapping, the selected-wire composition, cross-pipe forwarding
   (4-pipe probe, `model_28`), the e2e mirror, and the packet generator.
 - **Native connection binding (`integration/connection/binding/`)** was restructured (a merged
-  guard table, banks keyed directly, folded event rows) to fit stage limits, checked against the
-  pre-restructure source on **590,976 differential cases, 0 mismatches** (the frozen oracle is
-  `tests/oracle_35bf9aa3_native_binding.p4`). It now carries: the step-1 retry/ACK forwarding fix,
+  guard table, banks keyed directly, folded event rows) to fit stage limits. The
+  historical590,976-case grid reports zero failures, but includes guard-miss
+  branches that check only private-header refusal; it is not590,976 full state/
+  packet equivalences. READ is outside that grid and has separate invariant and
+  direct tests. The frozen oracle is `tests/oracle_35bf9aa3_native_binding.p4`.
+  The baseline also carries the step-1 retry/ACK forwarding fix,
   READ kinds 9 (request), 10 (ACK), 11 (response) with a `tev` handoff, the step-3 OPERATE-response
   exchange with per-exchange ACK offset, busy-WorkRecord drop-and-count, whole-segment-resend
   counting, and fixes for three real bugs the model/review found: an epoch-0 endless-recirculation
