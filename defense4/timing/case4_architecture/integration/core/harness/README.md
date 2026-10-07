@@ -23,7 +23,7 @@ hardware evidence.** It shows what the P4 text says, under the semantics assumed
   `.preset(owner, client, server, epoch, work)`, `.state()`, `.inject(port, frame)`.
 - `vectors.py`: frame builders (the retained step-1 `frame()` and an independent TCP/IPv4/DNP3
   builder) and the test topology.
-- `tests/`: 34 tests (`python3 -m unittest discover -s integration/core/harness/tests -p 'test_*.py'`
+- `tests/`: 42 tests (`python3 -m unittest discover -s integration/core/harness/tests -p 'test_*.py'`
   from `case4_architecture`).
 
 ## What is executed
@@ -62,15 +62,20 @@ hardware evidence.** It shows what the P4 text says, under the semantics assumed
 
 ## Findings from the first run (2026-10-06)
 
-1. The four retained step-1 witnesses are still denied on the repository source. Pass 1
-   forwards correctly and recirculates event `0x0108`; pass 2 misses `network` (no row for
-   kind 8) and `else if(m.stage!=8w0){deny();}` fires. Adding the single row
+These are historical witnesses. The current N source repairs the forwarding and
+epoch-zero loops; its42 tests now pass. The epoch-zero established-owner fixture
+expects bounded refusal with Work returned and owner/sequence banks unchanged.
+The binding equivalence suite uses this test directly, without a replacement test.
+
+1. The four retained step-1 witnesses were denied on the first-run source. Pass 1
+   forwarded correctly and recirculated event `0x0108`; pass 2 missed `network` (no row for
+   kind 8) and `else if(m.stage!=8w0){deny();}` fired. Adding the single row
    `(8w1,8w8,_,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();` in an in-memory copy makes
    all four forward byte-identical in 4 passes with the owner unchanged (hypothetical, not the
-   repo). `tests/test_witnesses.py` pins both facts and keeps the acceptance test as
-   `expectedFailure`, which flips to a failure (unexpected success) once the source is repaired.
-2. With the `epoch` register at 0 a forwarded original recirculates until the pass limit
-   (parser accepts at the envelope, `m.parsed` stays 0, nothing denies).
+   first-run repo). `tests/test_witnesses.py` retains the witnesses; its current
+   regression requires successful forwarding.
+2. With the `epoch` register at 0 a forwarded original recirculated until the pass limit
+   (the parser accepted at the envelope, `m.parsed` stayed0, nothing denied).
 3. Stage-0 frames rejected by the network, connection or data guards are not dropped; they pass
    through byte-identical via `ports.route`.
 

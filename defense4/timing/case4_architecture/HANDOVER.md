@@ -47,8 +47,9 @@ At execution base834372cbb, M ports196/197 matched `task1_m_ports_01`,12/0.
 The working admission/replay repair changes M; its33 source tests and2 boundary
 tests pass. `m_replay_coordinate_02` matches SHA `d1e518f1…ae88`, but fails at15 ingress stages
 (critical11), with no binary/model. Earlier corrected layouts needed21 and19.
-The unchanged shared N harness has41/42 passes and one historical epoch0-forwarding
-fixture failure; that is separate from M's tests. No current fit or stage saving
+The shared N harness now has42/42 passes after correcting the stale epoch0-forwarding
+fixture to bounded refusal. Its3 binding-equivalence tests also pass without the
+former replacement-test wrapper; frozen oracles are unchanged. No current M fit or stage saving
 over the old12-stage canary is claimed. The bounded reviewer accepts the source
 admission/contiguity/claim fixes and full replay-coordinate plus byte equality.
 Zero has a separate success result; the full wire start remains available. Next is protected

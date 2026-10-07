@@ -112,19 +112,21 @@ class Truncated(unittest.TestCase):
 
 class Recirculation(unittest.TestCase):
     def test_epoch_zero_register_no_longer_produces_an_endless_loop(self):
-        # Was: "epoch-zero envelope never terminates" (the snapshot copied the power-on epoch 0 into the
-        # envelope, the parser accepted early, and the packet looped on port 68 for ever). The epoch
-        # register now reads as a nonzero sentinel while it is 0, so the packet
-        # is bounded: here a valid established ACK is forwarded unchanged and WorkRecord is released.
+        # The old power-on epoch0 envelope looped on port68 without terminating.
+        # Epoch0 is unbound authority even when the owner fixture claims established.
+        # The nonzero parse token bounds the return; actual epoch qualification refuses it.
         pipe = pipeline(0x90001, 136, 958)
         pipe.preset(epoch=0)
+        before = pipe.state()
         raw = vectors.packet(16, 136, 958)
         out = pipe.inject(1, raw)
         self.assertNotIn('recirculation limit', out.drop_reason or '')
         self.assertLessEqual(out.passes, 4)
-        # An established ACK is a valid transparent forward (kind 8 takes no epoch): forwarded unchanged.
-        self.assertEqual(out.emitted, [(vectors.IN_SERVER, raw)])
+        self.assertTrue(out.dropped)
+        self.assertEqual(out.emitted, [])
         self.assertEqual(pipe.state()['work']['phase'], 4)
+        for key in ('owner', 'client', 'server', 'epoch'):
+            self.assertEqual(pipe.state()[key], before[key], key)
 
 
 if __name__ == '__main__':

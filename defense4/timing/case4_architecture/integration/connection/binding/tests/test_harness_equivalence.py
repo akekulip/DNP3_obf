@@ -79,22 +79,6 @@ class HarnessEquivalence(unittest.TestCase):
         try:
             suite = unittest.defaultTestLoader.discover(str(HARNESS / 'tests'), pattern='test_*.py',
                                                         top_level_dir=str(HARNESS / 'tests'))
-            def adapt(test):
-                if isinstance(test, unittest.TestSuite):
-                    for child in test: adapt(child)
-                elif test._testMethodName == 'test_epoch_zero_register_no_longer_produces_an_endless_loop':
-                    # Task1 lead ruling: epoch0 is unbound. Leave the historical source/test intact,
-                    # adapt just this wrapper's inconsistent-owner fixture to bounded refusal.
-                    def unbound():
-                        import vectors
-                        pipe=driver.Pipeline(vectors.source_text(),vectors.topology(),include_dir=HERE)
-                        pipe.preset(owner=0x90001,client=136,server=958,epoch=0)
-                        out=pipe.inject(1,vectors.packet(16,136,958))
-                        self.assertTrue(out.dropped);self.assertEqual(out.emitted,[])
-                        self.assertLessEqual(out.passes,4)
-                        self.assertEqual(pipe.state()['work']['phase'],4)
-                    setattr(test,test._testMethodName,unbound)
-            adapt(suite)
             result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
         finally:
             shadow.restore()
