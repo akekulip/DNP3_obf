@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Immutable local TNA compile evidence. Never connects to a target device.
+"""Immutable TNA compile evidence. Never loads/configures a target device.
+
+Installed-switch compiler evidence uses a read-only SSH compiler identity check.
 
 Only owned source, logs and derived JSON are versioned. SDK artifacts stay under
 ignored out/; qualification must recheck their actual bytes on the current host.
@@ -16,6 +18,25 @@ import subprocess
 import time
 
 DEFAULT_COMPILER = Path('/home/philip/bf-sde-9.13.1/install/bin/bf-p4c')
+SWITCH_BUILD_HOST = 'decps@10.10.54.81'
+SWITCH_COMPILER = '/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c'
+
+
+def compiler_identity_matches(report):
+    if 'compiler_host' not in report:
+        compiler = Path(report['compiler_path'])
+        return compiler.is_file() and sha(compiler) == report.get('compiler_sha256')
+    if (report['compiler_host'] != SWITCH_BUILD_HOST or
+            report['compiler_path'] != SWITCH_COMPILER):
+        return False
+    try:
+        result = subprocess.run(
+            ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', SWITCH_BUILD_HOST,
+             'sha256sum ' + SWITCH_COMPILER], capture_output=True, text=True,
+            timeout=12, check=True)
+        return result.stdout.split()[0] == report.get('compiler_sha256')
+    except (OSError, subprocess.SubprocessError, IndexError):
+        return False
 
 
 def sha(path):
@@ -228,8 +249,7 @@ def verify_evidence(output):
         for name, expected in report['artifact_sha256'].items())
     log_matches = (output / 'compile.log').is_file() and (
         sha(output / 'compile.log') == report.get('compile_log_sha256'))
-    compiler = Path(report['compiler_path'])
-    compiler_matches = compiler.is_file() and sha(compiler) == report.get('compiler_sha256')
+    compiler_matches = compiler_identity_matches(report)
     resources_match = False
     if artifact_matches:
         try:

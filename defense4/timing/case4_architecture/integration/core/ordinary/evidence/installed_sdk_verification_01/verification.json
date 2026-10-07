@@ -1,0 +1,28 @@
+{
+  "user_constraint": "Use existing switch SDK; no updates",
+  "host": "decps@10.10.54.81",
+  "compiler_path": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "chip_activation": false,
+  "sdk_updates": false,
+  "build_evidence_tests": {
+    "command": "python3 -B -m unittest discover -s tests -p test_build.py -q",
+    "passed": 15
+  },
+  "builds": {
+    "installed_nf_01": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": false,
+      "full_target": false
+    },
+    "installed_m_01": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": false,
+      "full_target": false
+    }
+  }
+}

@@ -4,6 +4,13 @@ Continue directly from [PLAN.md](PLAN.md#execution-checklist--2026-10-07).
 Core transport is the active step: ACK/window normalization, SELECT response,
 then OPERATE padding/carving and replay. Full Case4 remains incomplete.
 
+SDK constraint: use the switch's existing version; no updates. Read-only
+inspection confirms `p4c9.13.2 (SHA:1baf055)` at
+`/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c` on `decps@10.10.54.81`.
+`installed_sdk_build.py` compiles in private temporary directories without chip
+activation or software changes. Older local9.13.1 results remain development
+evidence, not installed-version qualification.
+
 ## Accepted first SELECT milestone
 
 External SYN/SYNACK/ACK then SELECT35 produce one exact109-byte Ethernet frame

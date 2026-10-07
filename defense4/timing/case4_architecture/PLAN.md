@@ -24,6 +24,14 @@ integration change. Do not rerun unaffected legacy suites or failed layouts.
 
 ### Execution checklist — 2026-10-07
 
+Philip's latest SDK instruction: use what the switch already has; no updates.
+Read-only inspection confirms installed `p4c9.13.2 (SHA:1baf055)` at
+`/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c` on `decps@10.10.54.81`.
+Use `installed_sdk_build.py` for compile-only work in exclusive temporary
+folders. It does not install/update software, load a program or change chip state.
+Local9.13.1 evidence stays tied to its original compiler. Final qualification
+must use the existing switch version, not an upgrade.
+
 Functional forwarding takes priority over a stage-number target. Stage reductions
 must preserve actual owner/epoch/Work checks, full32 arithmetic, both insertion
 boundaries and both receive-window edges. Twelve occupied ingress stages in one
@@ -35,7 +43,7 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
 - [x] Correct stale plan/handover/README completion claims and the N static-entry
   evidence finder. Its5 targeted tests now pass without the historical discovery
   skip; retain historical aggregate counts with their original identities.
-- [ ] **M admission and stage dependencies (active).** Regress foreign tuple/IP
+- [ ] **M admission and stage dependencies (staged SELECT fits; full mapping open).** Regress foreign tuple/IP
   mutation, noncontiguous OPERATE publication, zero wire-start rejection and the
   OPERATE ledger's unshifted position. Admit before mutable bank access; reject
   unknown kinds/phases. Separate produce/replay/map scratch and bank access;
@@ -100,8 +108,8 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   overlap/resegmentation, reset/FIN/reconnect, exhaustion and no-reuse protection.
   Keep translation and replay until verified connection retirement. Controller
   reset/counter clearing is not a terminal or rearm proof.
-- [ ] **Final offline qualification and hardware preparation.** Obtain a complete
-  exact9.13.2 build, whole-target differential model packets, real schema and
+- [ ] **Final offline qualification and hardware preparation.** Use the existing switch9.13.2 compiler for a complete
+  source-current build, whole-target differential model packets, real schema and
   mutation/rollback inventory. Live loading, physical port/TM/PRE/mirror/pktgen
   changes and traffic retain their existing separate authorization gates.
 

@@ -5,11 +5,39 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class BuildEvidence(unittest.TestCase):
+    def test_installed_switch_compiler_identity_requires_exact_hash(self):
+        report = {'compiler_host': 'decps@10.10.54.81',
+                  'compiler_path': '/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c',
+                  'compiler_sha256': 'a' * 64}
+        result = subprocess.CompletedProcess([], 0, 'a' * 64 + '  bf-p4c\n', '')
+        with patch.object(self.module.subprocess, 'run', return_value=result):
+            self.assertTrue(self.module.compiler_identity_matches(report))
+            report['compiler_sha256'] = 'b' * 64
+            self.assertFalse(self.module.compiler_identity_matches(report))
+
+    def test_remote_identity_rejects_other_hosts_and_paths_without_connecting(self):
+        report = {'compiler_host': 'another-host', 'compiler_path': '/tmp/compiler',
+                  'compiler_sha256': 'a' * 64}
+        with patch.object(self.module.subprocess, 'run') as run:
+            self.assertFalse(self.module.compiler_identity_matches(report))
+            report['compiler_host'] = 'decps@10.10.54.81'
+            self.assertFalse(self.module.compiler_identity_matches(report))
+            run.assert_not_called()
+
+    def test_unreachable_installed_compiler_fails_identity(self):
+        report = {'compiler_host': 'decps@10.10.54.81',
+                  'compiler_path': '/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c',
+                  'compiler_sha256': 'a' * 64}
+        with patch.object(self.module.subprocess, 'run', side_effect=OSError('unreachable')):
+            self.assertFalse(self.module.compiler_identity_matches(report))
+
     def setUp(self):
         spec = importlib.util.spec_from_file_location('architecture_build', ROOT / 'build.py')
         self.module = importlib.util.module_from_spec(spec)
