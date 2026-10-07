@@ -33,11 +33,20 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
   counting, and fixes for three real bugs the model/review found: an epoch-0 endless-recirculation
   wedge, a guard-miss private-envelope leak, and a flow-miss WorkRecord pin. **Current: `native_18`,
   source sha `642dfe54…`, 12 of 12 ingress stages, no spare stage.**
+  **Correction (found by the 2026-10-07 acceptance audit): the 68/71-step model agreement
+  (`model_24`–`model_27`) ran against `native_11` (sha `c2352572…`), one commit before the
+  flow-miss fix and two before the port renumbering. `native_18` itself carries only a bare
+  `primitive_compiled` manifest — it has NOT been loaded on the model or diffed against the
+  harness. Do not read "model-verified" as applying to the committed `native_18` source until
+  that rerun exists.**
 - **A separate READ timing role** `integration/read/read_timing.p4` (copy-evolved from the
   `held_timing_expected_probe.p4`; the probe itself is untouched) implements D_A-parametrized
   ADMIT/hold/release/fallback/policy-off/reset, checked against an independent schedule oracle
   `integration/read/join_reference.py`. **Current: `read_timing_05`, 12 of 12 ingress stages.**
-  It runs on the local model functionally (admit and held paths).
+  **Correction (same audit): the one passing held-path model run (`read_timing_model_05`) was
+  launched against `read_timing_04` (sha `01b93f01…`), not `read_timing_05` (sha `d2b35563…`,
+  the port-renumbered current source, different hash). `read_timing_05` has not been run on the
+  model either.**
 - **A step-3 design note** `integration/core/STEP3_DESIGN.md` places roles across Tofino-1's four
   pipes: N (connection) pipe 0 ingress, M (padding/mapping/carve, not yet built) pipe 1, T (timing)
   pipe 2, pipe 3 reserved for step 4. The model's cross-pipe probe confirms the placement is

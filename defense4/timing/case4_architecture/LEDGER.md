@@ -160,3 +160,29 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   * NOT done: the supported-tuple catch-all for IP lengths the parser does not classify (no checksum can be
     validated on unparsed bytes; needs the M mapping-only path); the epoch-keyed client bank store (a new
     dependency edge, would need a 13th stage); padded-OPERATE J-hold is outside step 3 (PI decision 1).
+- 2026-10-07 PI correction (two adversarial review passes, agents a8f65e3/a740951): the
+  "model-verified" language in HANDOVER.md for `native_18`/`read_timing_05` was WRONG — the only
+  model runs (`model_24`-`27`, `read_timing_model_05`) targeted the prior sources `native_11` and
+  `read_timing_04` respectively; neither current source has been loaded on the model yet. HANDOVER.md
+  corrected in place. Also: the "590,976 differential cases, 0 mismatches" language in prior commit
+  messages overstates coverage — about 322,940 of those cases hit the documented H2-guard-miss skip,
+  where only "no envelope leak" is checked, not full register equivalence; roughly 267k cases are a
+  true oracle comparison. READ (kinds 9-11) is entirely outside the differential grid by design and
+  rests only on its own direct tests, which the review found two real gaps in (below). Commit
+  messages already pushed to history are not rewritten; this note is the correction of record.
+  Confirmed HIGH findings (review a8f65e3, verdict: block): (H1) a FIN/RST during an outstanding
+  READ (owner phase 14) falls through to the generic close row and is forwarded in 1 pass with the
+  owner UNCHANGED instead of closing; T never receives the kind-4 reset tev for a READ in flight.
+  (H2) the cookie counter is never cleared on exhaustion; a controller "re-arm" (named as the
+  remedy in STEP2_DESIGN.md) desyncs the admission anchor from a fresh counter and silently wedges
+  T — neither ACK nor response is ever released and the 40ms cap never fires. Confirmed MEDIUM:
+  (M2) a foreign-epoch kind-11 (READ response) BINDS and is forwarded instead of being dropped
+  unchanged — the only READ test covers kind 9, not 11. (M4) the server bank (`server_t`) also
+  accepts a foreign-epoch store for kinds 2/6/11/16, same class as the already-documented client-bank
+  limit. (M1) mid-flight flow-entry removal before passes 3-4 is untested on the owner/bank registers
+  (only "WorkRecord freed" is checked). (M5) the M canary is ALREADY at 12/12 stages before
+  construct/descriptor/carve/CRC are added — S3-3's own rule says decide before any further M work;
+  this sharpens the "stopped pending Philip's decision" framing in HANDOVER: it may not be a stage
+  budget that fits even if the classifier stop is resolved. (M3) N/T/M port agreement across files
+  is asserted by hand, not tested; M's canary still listens on port 68, not the cross-pipe ports N
+  and T now use. Not yet fixed as of this entry; next action is a TDD pass on H1/H2/M1/M2/M4.
