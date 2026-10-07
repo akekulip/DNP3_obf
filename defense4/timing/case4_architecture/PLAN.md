@@ -74,6 +74,12 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   independent checksums. Observed SELECT uses19 ingress visits,6 service egress
   visits and18 private TX records totaling2346 Ethernet bytes, plus the internal
   24-byte completion header. These are model counts, not physical wire occupancy.
+  Final shared NF resources are tight: normal32 PHV62/64, SALUs4/4 at7–9
+  and table IDs16/16 at1 and10. M peaks at2/4 SALUs and5/16 table IDs;
+  E image SALUs occupy4/4 at4–6. The read-only transport leg should use M's
+  existing geometry banks and separate typed return, rather than add N banks.
+  [Lead resource checks](integration/core/ordinary/evidence/lead_split_verification_01/verification.json)
+  record exact final per-stage SALU/table/crossbar/RAM/TCAM and PHV allocations.
 - [ ] **Ordinary SBO transport (active).** First normalize reverse ACK and both
   receive-window edges through actual published M geometry BEFORE N association.
   Require the full current epoch; preserve pins on lost cancellation returns.

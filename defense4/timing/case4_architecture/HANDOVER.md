@@ -23,7 +23,9 @@ CRCs independently pass for all three retained endpoint frames.
 All three programs loaded together using
 [the source-bound split configuration](integration/core/ordinary/evidence/model_config_split_01/bindings.json).
 Pipe2 is reserved for the T join. N still uses all12 ingress stages; M now has two
-spare stages. Failed coupled N/E14-stage compositions are retained, not fit claims.
+spare stages. NF's normal32 PHV is62/64, SALUs4/4 at7–9 and table IDs16/16
+at1 and10. M peaks at2/4 SALUs and5/16 table IDs. E image SALUs occupy4/4
+at4–6; retain the full image instead of narrowing identity checks for capacity. Failed coupled N/E14-stage compositions are retained, not fit claims.
 The split retains all14 image banks, full owner/epoch/generation checks, actual
 publication/completion returns and a full32 current-generation emission receipt.
 Component sources and rendering are in [ordinary/README.md](integration/core/ordinary/README.md).
