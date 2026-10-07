@@ -637,3 +637,42 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   constraint) or restructuring role==0's admission chain (out of scope, already deferred above).
   Not attempted further this session.
   No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
+- 2026-10-07 (this session) M stage-fit research, round 4 (role==0 chain): the three local table
+  merges (13->9->8->10) do not converge on a fix; verdict is now that **M's full mapper needs a
+  structural change, not further single-table restructuring**. Found a FOURTH latent register-
+  sharing wall the placer hasn't reached yet (`Ingress.reservation`'s early reader vs `reserve_t`,
+  `Ingress.producer_context`'s early reader vs `construct_t`'s `context_write`) on top of the two
+  named in the prior two entries (`ledger_position`, `ledger_tag`) -- four registers total, each
+  with one cheap early-ingress reader and one validation-gated late writer whose minimum stage
+  windows cannot be made to overlap without either delaying the early read (tried, regressed to 14
+  stages with a new conflict) or advancing the late mutation ahead of its own validation (correctly
+  refused: that would weaken the check it gates).
+  One genuine small win found and measured (not yet ported to the real generator):
+  `output_newhead_t`/`output_newbody_t`/`output_newtail_t` re-read `construct_t`'s just-written
+  fields to recompute outgoing hashes over values already available unchanged from parsing
+  (`hdr.tail.*`, `hdr.captured.*`, plus one compile-time constant); rewriting those three actions to
+  read the original parsed fields removes a real `IXBAR_READ` dependency edge with no check
+  weakened (confirmed in `evidence/stage_fit_m19_01/out/pipe/logs/table_dependency_graph.log`).
+  One refuted approach, do not retry: splitting role==0 out of the if/else-if chain into a trailing
+  sibling `if` (the same class of fix that worked for role==4 in m16) makes it WORSE here --
+  critical path regressed 10->15 with two new register conflicts (`evidence/stage_fit_m20_01`,
+  confirmed "Critical path length ... : 15" in the compiler's own log). Splitting a branch OUT of an
+  if-elseif chain schedules it after the join of all preceding branches; merging a branch INTO an
+  existing dispatch (m16's direction) is the only direction that helps.
+  HANDOVER's own flagged egress fallback (move stateless header-construction/CRC-render to egress,
+  M has 0 egress stages used today) is mechanically straightforward but evaluated and found NOT
+  sufficient alone: it frees ingress stages but does not touch any of the four register-mutation
+  sites, so it cannot close the actual walls by itself.
+  Next action for whoever picks this up: port the output_new*/crc_render decoupling as a small,
+  independently-justified cleanup (measured win, zero risk), then treat the four-register finding as
+  settled and choose one structural option: (a) a second M ingress pass via recirculation (M already
+  has spare egress and the local model's recirculation and cross-pipe forwarding are both verified
+  working, STEP3_DESIGN.md/model_28), (b) move the registers themselves (not just the stateless
+  remainder) to egress so both the early read and late write sit in the same stage-budget pool, or
+  (c) a genuinely new M layout designed around the four-register constraint from the start rather
+  than retrofitted onto `transport_candidate_next15`'s structure. This is a real architectural
+  decision, not a bug to keep patching locally.
+  Evidence: `evidence/stage_fit_m19_01` (critical path still 10, exit 2, the measured 1-table-group
+  stage win is real but does not change the overall fit), `evidence/stage_fit_m20_01` (critical path
+  15, exit 2, refuted). Scratch generator copies `transport_experiment_m19.py`,
+  `transport_experiment_m20.py`; the real `transport.py` is untouched by this entry.
