@@ -1,0 +1,124 @@
+{
+ "cases": [
+  {
+   "expected": "harness",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acb10000020405dc",
+   "frames_equal": true,
+   "harness": {
+    "drop_reason": "pass 4: drop_ctl set by deny() (m.parsed=1, stage=3)",
+    "dropped": true,
+    "emitted": [],
+    "passes": 4
+   },
+   "harness_registers": {
+    "('', 'application')": 0,
+    "('', 'client')": 0,
+    "('', 'counter')": 1,
+    "('', 'epoch')": 17,
+    "('', 'frozen_decoy_off')": 0,
+    "('', 'owner')": 0,
+    "('', 'pair_frozen_decoy_object_frozen_decoy_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_native_end_server_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_links_real_tcp_src')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_object_real_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_off_native_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_tcp_dst_real_tcp_ports')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'read_app')": 0,
+    "('', 'server')": 0,
+    "('work', 'work')": {
+     "generation": 1,
+     "phase": 4
+    }
+   },
+   "in_port": 2,
+   "model": {
+    "emitted": [],
+    "passes": 4
+   },
+   "model_registers": {
+    "('', 'application')": 0,
+    "('', 'client')": 0,
+    "('', 'counter')": 1,
+    "('', 'epoch')": 17,
+    "('', 'frozen_decoy_off')": 0,
+    "('', 'owner')": 0,
+    "('', 'pair_frozen_decoy_object_frozen_decoy_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_native_end_server_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_links_real_tcp_src')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_object_real_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_off_native_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_tcp_dst_real_tcp_ports')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'read_app')": 0,
+    "('', 'server')": 0,
+    "('work', 'work')": {
+     "generation": 1,
+     "phase": 4
+    }
+   },
+   "model_t0q": [],
+   "model_work_free": true,
+   "model_work_record": {
+    "generation": 1,
+    "phase": 4
+   },
+   "name": "order_synack_first_epoch17/0:synack",
+   "observed": "MATCH",
+   "ok": true,
+   "passes_equal": true,
+   "register_diffs": {},
+   "stray_model_frames": [],
+   "t0q_low_byte_zero": true
+  }
+ ],
+ "meta": {
+  "harness_source_sha": "c235257214a5873c9005cf4dd73ebb0596aab0706dc0546fd8556a2130e3c019",
+  "ports": [
+   1,
+   2,
+   9,
+   66
+  ]
+ },
+ "program": "native_binding",
+ "summary": {
+  "failed": [],
+  "passed": 1,
+  "total": 1
+ }
+}

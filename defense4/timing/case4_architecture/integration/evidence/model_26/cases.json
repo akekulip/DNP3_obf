@@ -1,0 +1,1667 @@
+{
+ "cases": [
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay0.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay0.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay0.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay0.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay0.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000018526500009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay0.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay0.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay0.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay0.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay0.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay0.5ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay0.5ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay0.5ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay0.5ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001c09c740009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay0.5ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay0.5ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay0.5ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay0.5ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay0.5ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay0.5ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001f5f6110009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay1.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay1.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay1.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay1.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000015de6150009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay1.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001a5598e0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay1.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay1.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay1.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay1.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001d948460009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay1.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000010c77c20009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay2.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay2.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay2.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay2.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay2.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay2.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay2.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay2.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay2.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay2.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay3.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay3.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay3.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay3.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001807b2c0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay3.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001b3d0ce0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay3.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay3.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay3.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay3.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001e6daa40009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay3.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay4.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay4.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay4.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay4.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000018ffbf40009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay4.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay4.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay4.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay4.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay4.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay4.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000019239280009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay6.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay6.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay6.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay6.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay6.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay8.0ms",
+   "observed": "dropped,work-PINNED(2)",
+   "ok": false,
+   "out": [],
+   "work_phase": 2
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay8.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay8.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay8.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001f3041c0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay8.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay8.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay8.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay8.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay8.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay8.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay12.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay12.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay12.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay12.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay12.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001d905760009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay12.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay12.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay12.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay12.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001d978660009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay12.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000010c0f4c0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay16.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay16.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay16.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay16.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001d98bf90009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay16.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000010c35f10009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay16.0ms",
+   "observed": "dropped,work-PINNED(3)",
+   "ok": false,
+   "out": [],
+   "work_phase": 3
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay16.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay16.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay16.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000011e645f0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay16.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "000000110000000152195f0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay24.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay24.0ms",
+   "observed": "dropped,work-free",
+   "ok": true,
+   "out": [],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay24.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay24.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000015645fd0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay24.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000018af2f10009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay24.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay24.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay24.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay24.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000015a00290009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay24.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "00000011000000018ec0300009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay40.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "000000110000000176175d0009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay40.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001ad00860009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "in_port": 1,
+   "name": "select_del_data_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000",
+   "in_port": 1,
+   "name": "ack_del_connection/delay40.0ms",
+   "observed": "forwarded,work-free",
+   "ok": true,
+   "out": [
+    [
+     2,
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000088000003be50101000c43a0000000000000000"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_read_connection/delay40.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "000000110000000193e5420009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  },
+  {
+   "delete_error": null,
+   "expected": "no-leak,work-free",
+   "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd",
+   "in_port": 1,
+   "name": "read_req_del_connection/delay40.0ms",
+   "observed": "handoff,work-free",
+   "ok": true,
+   "out": [
+    [
+     66,
+     "0000001100000001c9e9890009000000001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000003e8000007d050181000f44a000005640dc400000100f387c0c3010a02000016fccd"
+    ]
+   ],
+   "work_phase": 4
+  }
+ ],
+ "meta": {
+  "ports": [
+   1,
+   2,
+   9,
+   66
+  ]
+ },
+ "program": "native_binding",
+ "summary": {
+  "failed": [
+   "select_del_connection/delay0.0ms",
+   "ack_del_connection/delay0.0ms",
+   "select_del_connection/delay0.0ms",
+   "ack_del_connection/delay0.0ms",
+   "read_req_del_connection/delay0.0ms",
+   "select_del_connection/delay0.5ms",
+   "read_req_del_connection/delay0.5ms",
+   "select_del_connection/delay0.5ms",
+   "ack_del_connection/delay0.5ms",
+   "select_del_connection/delay1.0ms",
+   "ack_del_connection/delay1.0ms",
+   "select_del_connection/delay1.0ms",
+   "select_del_connection/delay2.0ms",
+   "read_req_del_connection/delay2.0ms",
+   "select_del_connection/delay2.0ms",
+   "read_req_del_connection/delay2.0ms",
+   "select_del_connection/delay3.0ms",
+   "read_req_del_connection/delay3.0ms",
+   "select_del_connection/delay4.0ms",
+   "read_req_del_connection/delay4.0ms",
+   "select_del_connection/delay4.0ms",
+   "select_del_connection/delay6.0ms",
+   "ack_del_connection/delay6.0ms",
+   "read_req_del_connection/delay6.0ms",
+   "select_del_connection/delay6.0ms",
+   "ack_del_connection/delay6.0ms",
+   "read_req_del_connection/delay6.0ms",
+   "select_del_connection/delay8.0ms",
+   "read_req_del_connection/delay8.0ms",
+   "select_del_connection/delay8.0ms",
+   "read_req_del_connection/delay8.0ms",
+   "select_del_connection/delay12.0ms",
+   "select_del_connection/delay16.0ms"
+  ],
+  "passed": 87,
+  "total": 120
+ }
+}
