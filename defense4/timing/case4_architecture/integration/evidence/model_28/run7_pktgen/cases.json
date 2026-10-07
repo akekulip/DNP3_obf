@@ -1,0 +1,26 @@
+{
+ "cases": [
+  {
+   "expected": "packets",
+   "name": "pktgen_trigger_timer_one_shot",
+   "observed": "cfg=ok pgen_arr_total=0 after up to 15 s; app readback={'trigger_counter': 4, 'batch_counter': 4, 'pkt_counter': 12, 'app_enable': True}",
+   "ok": false
+  },
+  {
+   "expected": "packets",
+   "name": "pktgen_trigger_timer_periodic",
+   "observed": "cfg=ok pgen_arr_total=0 after up to 15 s; app readback={'trigger_counter': 3416, 'batch_counter': 3416, 'pkt_counter': 10238, 'app_enable': True}",
+   "ok": false
+  }
+ ],
+ "meta": {},
+ "program": "xpipe_probe",
+ "summary": {
+  "failed": [
+   "pktgen_trigger_timer_one_shot",
+   "pktgen_trigger_timer_periodic"
+  ],
+  "passed": 0,
+  "total": 2
+ }
+}

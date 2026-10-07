@@ -1,0 +1,98 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name xpipe_probe
+Binding with p4_name xpipe_probe successful!!
+Received xpipe_probe on GetForwarding on client 1, device 0
+PASS ports/enable_sweep                 expected=recorded   observed=recorded
+  $PORT dev 9 (pipe 0 local 9): ok
+  $PORT dev 64 (pipe 0 local 64): ok
+  $PORT dev 129 (pipe 1 local 1): ok
+  $PORT dev 257 (pipe 2 local 1): ok
+  $PORT dev 385 (pipe 3 local 1): ok
+  $PORT dev 65 (pipe 0 local 65): ok
+  $PORT dev 66 (pipe 0 local 66): ok
+  $PORT dev 67 (pipe 0 local 67): ok
+  $PORT dev 68 (pipe 0 local 68): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 69 (pipe 0 local 69): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 70 (pipe 0 local 70): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 71 (pipe 0 local 71): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 192 (pipe 1 local 64): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 193 (pipe 1 local 65): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 194 (pipe 1 local 66): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 195 (pipe 1 local 67): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 196 (pipe 1 local 68): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 197 (pipe 1 local 69): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 198 (pipe 1 local 70): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 199 (pipe 1 local 71): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 320 (pipe 2 local 64): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 321 (pipe 2 local 65): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 322 (pipe 2 local 66): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 323 (pipe 2 local 67): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 324 (pipe 2 local 68): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 325 (pipe 2 local 69): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 326 (pipe 2 local 70): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 327 (pipe 2 local 71): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 448 (pipe 3 local 64): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 449 (pipe 3 local 65): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 450 (pipe 3 local 66): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 451 (pipe 3 local 67): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 452 (pipe 3 local 68): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 453 (pipe 3 local 69): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 454 (pipe 3 local 70): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+  $PORT dev 455 (pipe 3 local 71): REFUSED: Error(s): 	* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' 
+PASS a_pipe0_to_pipe1_ingress_then_pipe0_egress64 expected=expected   observed=as-expected
+PASS a_prefix_preserved_at_pipe1_ingress expected={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896} observed={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896}
+PASS b_pipe1_to_pipe0_egress_port64     expected=expected   observed=as-expected
+PASS b_pipe1_to_pipe0_egress_port9      expected=expected   observed=as-expected
+PASS c_mirror_session_cfg               expected=ok         observed=ok
+PASS c_e2e_mirror_returns_to_port68_recirc expected=expected   observed=as-expected
+PASS c_mirror_copy_prefix_at_pipe0_ingress68 expected={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896} observed={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896}
+PASS f_pipe0_to_pipe2_port325_then_egress64 expected=expected   observed=as-expected
+PASS f_pipe0_to_pipe2_port325_then_egress9 expected=expected   observed=as-expected
+PASS f_prefix_preserved_at_pipe2_ingress expected={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896} observed={'epoch': 286331153, 'gen': 572662306, 'expected': 327681, 'event': 17104896}
+PASS g_three_hops_pipe0_pipe2_pipe1_then_pipe0_egress64 expected=expected   observed=as-expected
+PASS d_pktgen_tables_present            expected=tables     observed=tables
+PASS d_pktgen_pipe0_port68              expected=timer packets reach ingress (3 expected) observed=pgen_arr +3, arr_ig[port0] +3
+PASS d_pktgen_pipe1_port196             expected=timer packets reach ingress (3 expected) observed=pgen_arr +3, arr_ig[port0] +3
+PASS d_pktgen_pipe2_port324             expected=timer packets reach ingress (3 expected) observed=pgen_arr +3, arr_ig[port0] +3
+PASS d_pktgen_pipe3_port452             expected=timer packets reach ingress (3 expected) observed=pgen_arr +3, arr_ig[port0] +3
+PASS d_pktgen_frames_at_port64          expected=frames     observed=3 frames, first=0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839000000000000000000000000
+  dev 64 (pipe 0 local 64): bypass=LEAVES {64: 1} | egress=LEAVES {64: 1}
+  dev 65 (pipe 0 local 65): bypass=LEAVES {65: 1} | egress=LEAVES {65: 1}
+  dev 66 (pipe 0 local 66): bypass=LEAVES {66: 1} | egress=LEAVES {66: 1}
+  dev 67 (pipe 0 local 67): bypass=LEAVES {67: 1} | egress=LEAVES {67: 1}
+  dev 68 (pipe 0 local 68): bypass=RECIRCULATES to ingress 68 | egress=RECIRCULATES to ingress 68
+  dev 69 (pipe 0 local 69): bypass=RECIRCULATES to ingress 69 | egress=RECIRCULATES to ingress 69
+  dev 70 (pipe 0 local 70): bypass=RECIRCULATES to ingress 70 | egress=RECIRCULATES to ingress 70
+  dev 71 (pipe 0 local 71): bypass=RECIRCULATES to ingress 71 | egress=RECIRCULATES to ingress 71
+  dev 192 (pipe 1 local 64): bypass=RECIRCULATES to ingress 192 | egress=RECIRCULATES to ingress 192
+  dev 193 (pipe 1 local 65): bypass=RECIRCULATES to ingress 193 | egress=RECIRCULATES to ingress 193
+  dev 194 (pipe 1 local 66): bypass=RECIRCULATES to ingress 194 | egress=RECIRCULATES to ingress 194
+  dev 195 (pipe 1 local 67): bypass=RECIRCULATES to ingress 195 | egress=RECIRCULATES to ingress 195
+  dev 196 (pipe 1 local 68): bypass=RECIRCULATES to ingress 196 | egress=RECIRCULATES to ingress 196
+  dev 197 (pipe 1 local 69): bypass=RECIRCULATES to ingress 197 | egress=RECIRCULATES to ingress 197
+  dev 198 (pipe 1 local 70): bypass=RECIRCULATES to ingress 198 | egress=RECIRCULATES to ingress 198
+  dev 199 (pipe 1 local 71): bypass=RECIRCULATES to ingress 199 | egress=RECIRCULATES to ingress 199
+  dev 320 (pipe 2 local 64): bypass=DROPPED/consumed | egress=DROPPED/consumed
+  dev 321 (pipe 2 local 65): bypass=LEAVES {321: 1} | egress=LEAVES {321: 1}
+  dev 322 (pipe 2 local 66): bypass=LEAVES {322: 1} | egress=LEAVES {322: 1}
+  dev 323 (pipe 2 local 67): bypass=LEAVES {323: 1} | egress=LEAVES {323: 1}
+  dev 324 (pipe 2 local 68): bypass=RECIRCULATES to ingress 324 | egress=RECIRCULATES to ingress 324
+  dev 325 (pipe 2 local 69): bypass=RECIRCULATES to ingress 325 | egress=RECIRCULATES to ingress 325
+  dev 326 (pipe 2 local 70): bypass=RECIRCULATES to ingress 326 | egress=RECIRCULATES to ingress 326
+  dev 327 (pipe 2 local 71): bypass=RECIRCULATES to ingress 327 | egress=RECIRCULATES to ingress 327
+  dev 448 (pipe 3 local 64): bypass=RECIRCULATES to ingress 448 | egress=RECIRCULATES to ingress 448
+  dev 449 (pipe 3 local 65): bypass=RECIRCULATES to ingress 449 | egress=RECIRCULATES to ingress 449
+  dev 450 (pipe 3 local 66): bypass=RECIRCULATES to ingress 450 | egress=RECIRCULATES to ingress 450
+  dev 451 (pipe 3 local 67): bypass=RECIRCULATES to ingress 451 | egress=RECIRCULATES to ingress 451
+  dev 452 (pipe 3 local 68): bypass=RECIRCULATES to ingress 452 | egress=RECIRCULATES to ingress 452
+  dev 453 (pipe 3 local 69): bypass=RECIRCULATES to ingress 453 | egress=RECIRCULATES to ingress 453
+  dev 454 (pipe 3 local 70): bypass=RECIRCULATES to ingress 454 | egress=RECIRCULATES to ingress 454
+  dev 455 (pipe 3 local 71): bypass=RECIRCULATES to ingress 455 | egress=RECIRCULATES to ingress 455
+  dev 129 (pipe 1 local 1): bypass=LEAVES {129: 1} | egress=LEAVES {129: 1}
+  dev 257 (pipe 2 local 1): bypass=LEAVES {257: 1} | egress=LEAVES {257: 1}
+  dev 385 (pipe 3 local 1): bypass=LEAVES {385: 1} | egress=LEAVES {385: 1}
+PASS e_port_sweep                       expected=recorded   observed=recorded
+SUMMARY {'total': 19, 'passed': 19, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

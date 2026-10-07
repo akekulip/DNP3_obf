@@ -71,7 +71,8 @@ class Model:
 
     # ---- tables ------------------------------------------------------------------------------
     def table(self, name, raw=False):
-        full = name if raw or name.startswith('pipe.') else 'pipe.' + name
+        import re
+        full = name if raw or name.startswith('pipe.') or re.match(r'p\d+\.', name) else 'pipe.' + name
         if full not in self._tables:
             self._tables[full] = self.info.table_get(full)
         return self._tables[full]
@@ -87,12 +88,12 @@ class Model:
             tuples.append(gc.KeyTuple('$MATCH_PRIORITY', priority))
         return t.make_key(tuples)
 
-    def add(self, table, keys, action=None, data=None, priority=None):
-        """Install one entry. keys: {field: int | (value, mask)}; action is the full action name."""
+    def add(self, table, keys, action=None, data=None, priority=None, pipe=None):
+        """Install one entry. keys: {field: int | (value, mask)}; action is the full action name; pipe: target one pipe."""
         t = self.table(table)
         d = t.make_data([gc.DataTuple(k, v) for k, v in (data or {}).items()], action) \
             if action else t.make_data([])
-        t.entry_add(self.target, [self._key(t, keys, priority)], [d])
+        t.entry_add(self.target if pipe is None else gc.Target(device_id=0, pipe_id=pipe), [self._key(t, keys, priority)], [d])
 
     def set_default(self, table, action, data=None):
         t = self.table(table)
@@ -109,15 +110,16 @@ class Model:
         t.entry_add(tgt, [t.make_key([gc.KeyTuple('$REGISTER_INDEX', index)])],
                     [t.make_data([gc.DataTuple(k, v) for k, v in values.items()])])
 
-    def register_read(self, name, index, field=None):
+    def register_read(self, name, index, field=None, pipe=None):
         """Return {field: [value per pipe]} (or one list when field is given). Syncs from the model first."""
         t = self.table(name)
+        tgt = self.target if pipe is None else gc.Target(device_id=0, pipe_id=pipe)
         try:
-            t.operations_execute(self.target, 'Sync')
+            t.operations_execute(tgt, 'Sync')
         except Exception:
             pass
         out = {}
-        for data, _key in t.entry_get(self.target, [t.make_key([gc.KeyTuple('$REGISTER_INDEX', index)])],
+        for data, _key in t.entry_get(tgt, [t.make_key([gc.KeyTuple('$REGISTER_INDEX', index)])],
                                       {'from_hw': True}):
             out.update(data.to_dict())
         return out[field] if field else out

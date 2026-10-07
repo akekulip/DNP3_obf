@@ -1,0 +1,10 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name xpipe_probe
+Binding with p4_name xpipe_probe successful!!
+Received xpipe_probe on GetForwarding on client 1, device 0
+FAIL pktgen_trigger_timer_one_shot      expected=packets    observed=cfg=ok pgen_arr_total=0 after up to 15 s; app readback={'trigger_counter': 4, 'batch_counter': 4, 'pkt_counter': 12, 'app_enable': True}
+FAIL pktgen_trigger_timer_periodic      expected=packets    observed=cfg=ok pgen_arr_total=0 after up to 15 s; app readback={'trigger_counter': 3416, 'batch_counter': 3416, 'pkt_counter': 10238, 'app_enable': True}
+SUMMARY {'total': 2, 'passed': 0, 'failed': ['pktgen_trigger_timer_one_shot', 'pktgen_trigger_timer_periodic']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

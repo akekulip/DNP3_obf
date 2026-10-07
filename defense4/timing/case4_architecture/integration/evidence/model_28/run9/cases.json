@@ -1,0 +1,833 @@
+{
+ "cases": [
+  {
+   "enable_result": {
+    "129": "ok",
+    "192": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "193": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "194": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "195": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "196": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "197": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "198": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "199": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "257": "ok",
+    "320": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "321": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "322": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "323": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "324": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "325": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "326": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "327": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "385": "ok",
+    "448": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "449": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "450": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "451": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "452": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "453": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "454": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "455": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "64": "ok",
+    "65": "ok",
+    "66": "ok",
+    "67": "ok",
+    "68": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "69": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "70": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "71": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "9": "ok"
+   },
+   "expected": "recorded",
+   "name": "ports/enable_sweep",
+   "observed": "recorded",
+   "ok": true
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[64]": 1,
+    "p0.Ingress.arr_ig[9]": 1,
+    "p1.Egress.arr_eg[68]": 0,
+    "p1.Ingress.arr_ig[68]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "a_pipe0_to_pipe1_ingress_then_pipe0_egress64",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "64": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "name": "a_prefix_preserved_at_pipe1_ingress",
+   "observed": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "ok": true
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[64]": 1,
+    "p1.Ingress.arr_ig[68]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "b_pipe1_to_pipe0_egress_port64",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "64": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[9]": 1,
+    "p1.Ingress.arr_ig[68]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "b_pipe1_to_pipe0_egress_port9",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "9": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": "ok",
+   "name": "c_mirror_session_cfg",
+   "observed": "ok",
+   "ok": true
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[64]": 1,
+    "p0.Egress.arr_mir[68]": 1,
+    "p0.Ingress.arr_ig[68]": 1,
+    "p1.Ingress.arr_ig[68]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "c_e2e_mirror_returns_to_port68_recirc",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "64": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "name": "c_mirror_copy_prefix_at_pipe0_ingress68",
+   "observed": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "ok": true
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[64]": 1,
+    "p2.Ingress.arr_ig[69]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "f_pipe0_to_pipe2_port325_then_egress64",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "64": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "delta": {
+    "p0.Egress.arr_eg[9]": 1,
+    "p2.Ingress.arr_ig[69]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "f_pipe0_to_pipe2_port325_then_egress9",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "9": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "name": "f_prefix_preserved_at_pipe2_ingress",
+   "observed": {
+    "epoch": 286331153,
+    "event": 17104896,
+    "expected": 327681,
+    "gen": 572662306
+   },
+   "ok": true
+  },
+  {
+   "delta": {
+    "p1.Ingress.arr_ig[68]": 1,
+    "p2.Ingress.arr_ig[69]": 1
+   },
+   "expected": "expected",
+   "extra": null,
+   "frame": "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839",
+   "name": "g_three_hops_pipe0_pipe2_pipe1_then_pipe0_egress64",
+   "observed": "as-expected",
+   "ok": true,
+   "out": {
+    "64": [
+     "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d303132333435363738390000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": "tables",
+   "name": "d_pktgen_tables_present",
+   "observed": "tables",
+   "ok": true,
+   "per_pipe": {
+    "0": {
+     "buffer": "ok",
+     "port_cfg": "ok"
+    },
+    "1": {
+     "buffer": "ok",
+     "port_cfg": "ok"
+    },
+    "2": {
+     "buffer": "ok",
+     "port_cfg": "ok"
+    },
+    "3": {
+     "buffer": "ok",
+     "port_cfg": "ok"
+    }
+   }
+  },
+  {
+   "app_cfg": "ok",
+   "expected": "timer packets reach ingress (3 expected)",
+   "name": "d_pktgen_pipe0_port68",
+   "observed": "pgen_arr +3, arr_ig[port0] +3",
+   "ok": true
+  },
+  {
+   "app_cfg": "ok",
+   "expected": "timer packets reach ingress (3 expected)",
+   "name": "d_pktgen_pipe1_port196",
+   "observed": "pgen_arr +3, arr_ig[port0] +3",
+   "ok": true
+  },
+  {
+   "app_cfg": "ok",
+   "expected": "timer packets reach ingress (3 expected)",
+   "name": "d_pktgen_pipe2_port324",
+   "observed": "pgen_arr +3, arr_ig[port0] +3",
+   "ok": true
+  },
+  {
+   "app_cfg": "ok",
+   "expected": "timer packets reach ingress (3 expected)",
+   "name": "d_pktgen_pipe3_port452",
+   "observed": "pgen_arr +3, arr_ig[port0] +3",
+   "ok": true
+  },
+  {
+   "expected": "frames",
+   "frames": [
+    "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839000000000000000000000000",
+    "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839000000000000000000000000",
+    "0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839000000000000000000000000"
+   ],
+   "name": "d_pktgen_frames_at_port64",
+   "observed": "3 frames, first=0a00000000020a000000000188b51111111122222222000500010105000078706970652d70726f62652d30313233343536373839000000000000000000000000",
+   "ok": true
+  },
+  {
+   "expected": "recorded",
+   "name": "e_port_sweep",
+   "observed": "recorded",
+   "ok": true,
+   "sweep": {
+    "129": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "129": 1
+      },
+      "verdict": "LEAVES {129: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "129": 1
+      },
+      "verdict": "LEAVES {129: 1}"
+     }
+    },
+    "192": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 192"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 192"
+     }
+    },
+    "193": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 193"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 193"
+     }
+    },
+    "194": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 194"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 194"
+     }
+    },
+    "195": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 195"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 195"
+     }
+    },
+    "196": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 196"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 196"
+     }
+    },
+    "197": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 197"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 197"
+     }
+    },
+    "198": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 198"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 198"
+     }
+    },
+    "199": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 199"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 199"
+     }
+    },
+    "257": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "257": 1
+      },
+      "verdict": "LEAVES {257: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "257": 1
+      },
+      "verdict": "LEAVES {257: 1}"
+     }
+    },
+    "320": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "DROPPED/consumed"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "DROPPED/consumed"
+     }
+    },
+    "321": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "321": 1
+      },
+      "verdict": "LEAVES {321: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "321": 1
+      },
+      "verdict": "LEAVES {321: 1}"
+     }
+    },
+    "322": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "322": 1
+      },
+      "verdict": "LEAVES {322: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "322": 1
+      },
+      "verdict": "LEAVES {322: 1}"
+     }
+    },
+    "323": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "323": 1
+      },
+      "verdict": "LEAVES {323: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "323": 1
+      },
+      "verdict": "LEAVES {323: 1}"
+     }
+    },
+    "324": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 324"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 324"
+     }
+    },
+    "325": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 325"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 325"
+     }
+    },
+    "326": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 326"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 326"
+     }
+    },
+    "327": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 327"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 327"
+     }
+    },
+    "385": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "385": 1
+      },
+      "verdict": "LEAVES {385: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "385": 1
+      },
+      "verdict": "LEAVES {385: 1}"
+     }
+    },
+    "448": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 448"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 448"
+     }
+    },
+    "449": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 449"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 449"
+     }
+    },
+    "450": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 450"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 450"
+     }
+    },
+    "451": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 451"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 451"
+     }
+    },
+    "452": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 452"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 452"
+     }
+    },
+    "453": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 453"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 453"
+     }
+    },
+    "454": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 454"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 454"
+     }
+    },
+    "455": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 455"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 455"
+     }
+    },
+    "64": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "64": 1
+      },
+      "verdict": "LEAVES {64: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "64": 1
+      },
+      "verdict": "LEAVES {64: 1}"
+     }
+    },
+    "65": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "65": 1
+      },
+      "verdict": "LEAVES {65: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "65": 1
+      },
+      "verdict": "LEAVES {65: 1}"
+     }
+    },
+    "66": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "66": 1
+      },
+      "verdict": "LEAVES {66: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "66": 1
+      },
+      "verdict": "LEAVES {66: 1}"
+     }
+    },
+    "67": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 0,
+      "leaves_on_veth": {
+       "67": 1
+      },
+      "verdict": "LEAVES {67: 1}"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 0,
+      "egress_traversals": 1,
+      "leaves_on_veth": {
+       "67": 1
+      },
+      "verdict": "LEAVES {67: 1}"
+     }
+    },
+    "68": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 68"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 68"
+     }
+    },
+    "69": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 69"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 69"
+     }
+    },
+    "70": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 70"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 70"
+     }
+    },
+    "71": {
+     "go_bypass": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 0,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 71"
+     },
+     "go_egress": {
+      "arrives_at_ingress_of_that_port": 1,
+      "egress_traversals": 1,
+      "leaves_on_veth": {},
+      "verdict": "RECIRCULATES to ingress 71"
+     }
+    }
+   }
+  }
+ ],
+ "meta": {},
+ "program": "xpipe_probe",
+ "summary": {
+  "failed": [],
+  "passed": 19,
+  "total": 19
+ }
+}

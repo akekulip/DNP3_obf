@@ -18,6 +18,7 @@ HERE=$(dirname "$(readlink -f "$0")")
 PORTS="0 1 2 3 9 64 68"; DRIVER=""
 while getopts "p:o:P:d:" o; do case $o in p) OUTC=$OPTARG;; o) OUT=$OPTARG;; P) PORTS=$OPTARG;; d) DRIVER=$OPTARG;; *) exit 2;; esac; done
 shift $((OPTIND-1))
+PORTS=$(echo $PORTS | tr ' ' '\n' | awk '!s[$0]++' | tr '\n' ' ')
 [ -n "${OUTC:-}" ] && [ -n "${OUT:-}" ] || { sed -n 2,14p "$0"; exit 2; }
 OUTC=$(readlink -f "$OUTC"); mkdir "$OUT"; OUT=$(readlink -f "$OUT")
 CONFSRC=$(ls "$OUTC"/*.conf | head -1)
