@@ -1,0 +1,33 @@
+{
+  "scope": "M prepare and committed SELECT activation only; source harness, no endpoint/model qualification",
+  "tests_command": [
+    "/usr/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "test_m_activate",
+    "test_m_prepare",
+    "test_n_ready",
+    "-v"
+  ],
+  "tests_exit_code": 0,
+  "tests_methods": 10,
+  "tested_source_sha256": {
+    "integration/core/ordinary/m.p4": "cf1eaaa4b6623005b76a90a3e0e5f076e79cfd2fb0096c0380acef6624746575",
+    "integration/core/ordinary/n.p4": "85d48d1db97819d4c79c9018e555b1a3402ef372d4048014be3bbf20a64a374d",
+    "integration/core/ordinary/e.p4": "cc83e138903d2ab5afb5ddf03fc1bd4c5fccdbded366e3dbc182f01fae05ee97",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/source_wire.py": "e4ada2ed2fc5e6c12745343ff1d2ddb4ed09d514ec773c68570471a36d7c76d1"
+  },
+  "sources_stable_during_tests": true,
+  "m_build": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "review": "M05 approved plus M06 route-only bounded review; E emit/N completion excluded",
+  "hardware": false,
+  "full_target": false
+}

@@ -4,6 +4,19 @@ Current continuation: [PLAN.md](PLAN.md). Task1 source-bound evidence is
 [integration/evidence/TASK1_VERIFICATION.json](integration/evidence/TASK1_VERIFICATION.json).
 The historical results below retain their original identities.
 
+Latest accepted M source: `ordinary/m.p4`, SHA `cf1eaaa4…46575`,
+[`m_activate_06`](integration/core/ordinary/evidence/m_activate_06/manifest.json),
+10 ingress/0 egress, critical9, six stateful banks and two spare ingress stages.
+[Verification](integration/core/ordinary/evidence/m_activate_verification_01/verification.json)
+records ten passing source methods with their exact tested dependencies, all
+compiler/artifact checks and a clean table-capacity scan. Full identity and
+once-only activation precede geometry and ledger publication. Its actual
+stamped return releases M while N remains pinned. Independent review accepts
+M05 plus the M06 route-only change to existing port68. This supersedes the
+12-stage M PREPARE checkpoint below; it does not qualify the old15-stage canary.
+E endpoint output, N completion, post-M cancellation and the whole-target model
+remain active under [PLAN.md](PLAN.md#execution-checklist--2026-10-07).
+
 Task1 fix-round current N `721fd4b7…` fits12/0,critical11
 (`task1_fix_n_01`); T `52b43d5a…` fits12/0,critical12 (`task1_fix_t_04`).
 The exact-source N0/T2 composition `task1_fix_nt_01` passes40 N/T model cases
@@ -49,8 +62,9 @@ tests pass. `m_replay_coordinate_02` matches SHA `d1e518f1…ae88`, but fails at
 (critical11), with no binary/model. Earlier corrected layouts needed21 and19.
 The shared N harness now has42/42 passes after correcting the stale epoch0-forwarding
 fixture to bounded refusal. Its3 binding-equivalence tests also pass without the
-former replacement-test wrapper; frozen oracles are unchanged. No current M fit or stage saving
-over the old12-stage canary is claimed. The bounded reviewer accepts the source
+former replacement-test wrapper; frozen oracles are unchanged. This old single-pass
+repair has no fit; the separately staged ordinary candidate above now fits10 stages.
+The bounded reviewer accepts the source
 admission/contiguity/claim fixes and full replay-coordinate plus byte equality.
 Zero has a separate success result; the full wire start remains available. Next is protected
 staged M preflight/activation under actual N Work, as specified in the plan.
@@ -83,7 +97,7 @@ current release reference. No E-ready, geometry activation, endpoint emission or
 new target-model result is established yet. Continue the same protected SELECT
 item in [PLAN.md](PLAN.md#execution-checklist--2026-10-07); it remains unchecked.
 
-Current M PREPARE is `m_prepare_03`, SHA `2475f93b…ec9f3`,12/0, critical8.
+Retained M PREPARE is `m_prepare_03`, SHA `2475f93b…ec9f3`,12/0, critical8.
 Current E PREPARE is `e_prepare_03`, SHA `55c2bae9…06589`,1 diagnostic ingress/
 9 egress, critical6. [Combined verification](integration/core/ordinary/evidence/me_prepare_verification_01/verification.json)
 checks exact source/compiler/artifacts, six source tests and actual final
@@ -105,9 +119,9 @@ separate. FIN before CAS prevents activation and retains the pin. Both-reference
 wrong-generation witnesses exercise the authoritative generation guard.
 N02 compiled but had28 owner-command entries in capacity27; N03 fixes capacity28
 and passes the load-capacity scan. N01's parser-match-register failure is retained.
-The new M activation tests are intentionally RED during implementation; no full
-suite or full-core green claim follows from this scoped checkpoint. M activation,
-E emission/completion, post-M abort, mapping and model validation remain next.
+At this N03 checkpoint, M activation tests were RED. They now pass for the M06
+slice above; no full-suite or full-core claim follows. E emission/completion,
+post-M abort, mapping and model validation remain next.
 
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.

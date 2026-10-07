@@ -97,7 +97,7 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  table activate_ledger_t{key={m.geometry_done:exact;m.position_done:exact;}actions={activate_ledger;NoAction;}size=1;const default_action=NoAction();const entries={(1w1,1w1):activate_ledger();}}
  action dirty_return(){hdr.completion.setValid();hdr.completion.epoch=hdr.reference.epoch;hdr.reference.format=16w3;hdr.reference.event=16w0x0814;tm.ucast_egress_port=9w198;tm.bypass_egress=1w1;}
  table dirty_return_t{key={m.ledger_done:exact;}actions={dirty_return;deny;}size=1;const default_action=deny();const entries={1w1:dirty_return();}}
- action to_endpoint_egress(){hdr.completion.setInvalid();hdr.reference.format=16w2;hdr.reference.event=16w0x0914;tm.ucast_egress_port=9w68;tm.bypass_egress=1w0;}
+ action to_endpoint_egress(){hdr.completion.setInvalid();hdr.reference.format=16w2;hdr.reference.event=16w0x0914;tm.ucast_egress_port=9w2;tm.bypass_egress=1w0;}
  table terminal_result_t{key={m.reservation_grant:exact;}actions={to_endpoint_egress;deny;}size=1;const default_action=deny();const entries={32w1:to_endpoint_egress();}}
  action reference_differences(){m.ref_gen_diff=hdr.reference.generation-hdr.cache.generation;m.ref_owner_diff=hdr.reference.expected_owner-hdr.cache.expected_owner;}
  table reference_differences_t{actions={reference_differences;}size=1;const default_action=reference_differences();}

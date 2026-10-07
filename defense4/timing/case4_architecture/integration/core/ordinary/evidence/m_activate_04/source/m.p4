@@ -22,17 +22,12 @@ header completion_epoch_h{bit<32> epoch;}
 struct headers_t{reference_h reference;captured_decoy_h captured;cache_reference_h cache;completion_epoch_h completion;eth_h eth;ip_h ip;tcp_h tcp;dl_h dl;native_h native;tail_h tail;appended_h appended;final_h last;image_h image;}
 struct meta_t{bit<8> role;bit<32> stamp_diff;bit<32> context_owner;bit<32> context_grant;bit<32> ref_gen_diff;bit<32> ref_owner_diff;bit<32> activation_grant;bit<1> geometry_done;bit<1> position_done;bit<1> ledger_done;bit<32> reservation_grant;bit<1> parsed;bit<1> enabled;bit<1> profile;bit<1> changed;bool ip_error;bit<16> tcp_sum;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<1> badh;bit<1> badb;bit<1> badt;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;
- state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.role=8w0;m.geometry_done=1w0;m.position_done=1w0;m.ledger_done=1w0;m.parsed=1w0;m.enabled=1w0;m.profile=1w0;m.changed=1w0;m.badh=1w0;m.badb=1w0;m.badt=1w0;transition select(ig.ingress_port){9w196:reference;9w198:terminal_reference;default:accept;}}
- state terminal_reference{pkt.extract(hdr.reference);transition select(hdr.reference.epoch){32w0:accept;default:terminal_generation;}}
- state terminal_generation{transition select(hdr.reference.generation){32w0:accept;default:terminal_owner;}}
- state terminal_owner{transition select(hdr.reference.expected_owner[31:16]){16w17:terminal_cookie;default:accept;}}
- state terminal_cookie{transition select(hdr.reference.expected_owner[15:0]){16w0:accept;default:terminal_event;}}
- state terminal_event{transition select(hdr.reference.event,hdr.reference.format){(16w0x0814,16w3):terminal_cache;default:accept;}}
+ state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.role=8w0;m.geometry_done=1w0;m.position_done=1w0;m.ledger_done=1w0;m.parsed=1w0;m.enabled=1w0;m.profile=1w0;m.changed=1w0;m.badh=1w0;m.badb=1w0;m.badt=1w0;transition select(ig.ingress_port){9w196:reference;9w198:reference;default:accept;}}
  state reference{pkt.extract(hdr.reference);transition select(hdr.reference.epoch){32w0:accept;default:reference_generation;}}
  state reference_generation{transition select(hdr.reference.generation){32w0:accept;default:reference_owner;}}
  state reference_owner{transition select(hdr.reference.expected_owner[31:16]){16w9:reference_cookie;16w17:activation_cookie;default:accept;}}
  state activation_cookie{transition select(hdr.reference.expected_owner[15:0]){16w0:accept;default:activation_event;}}
- state activation_event{transition select(hdr.reference.event,hdr.reference.format){(16w0x0714,16w2):activation_cache;default:accept;}}
+ state activation_event{transition select(ig.ingress_port,hdr.reference.event,hdr.reference.format){(9w196,16w0x0714,16w2):activation_cache;(9w198,16w0x0814,16w3):terminal_cache;default:accept;}}
  state activation_cache{m.role=8w1;pkt.extract(hdr.cache);transition activation_eth;}
  state terminal_cache{m.role=8w2;pkt.extract(hdr.cache);pkt.extract(hdr.completion);transition activation_eth;}
  state activation_eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:activation_ip;default:accept;}}
@@ -97,7 +92,7 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  table activate_ledger_t{key={m.geometry_done:exact;m.position_done:exact;}actions={activate_ledger;NoAction;}size=1;const default_action=NoAction();const entries={(1w1,1w1):activate_ledger();}}
  action dirty_return(){hdr.completion.setValid();hdr.completion.epoch=hdr.reference.epoch;hdr.reference.format=16w3;hdr.reference.event=16w0x0814;tm.ucast_egress_port=9w198;tm.bypass_egress=1w1;}
  table dirty_return_t{key={m.ledger_done:exact;}actions={dirty_return;deny;}size=1;const default_action=deny();const entries={1w1:dirty_return();}}
- action to_endpoint_egress(){hdr.completion.setInvalid();hdr.reference.format=16w2;hdr.reference.event=16w0x0914;tm.ucast_egress_port=9w68;tm.bypass_egress=1w0;}
+ action to_endpoint_egress(){hdr.completion.setInvalid();hdr.reference.format=16w2;hdr.reference.event=16w0x0914;tm.ucast_egress_port=9w2;tm.bypass_egress=1w0;}
  table terminal_result_t{key={m.reservation_grant:exact;}actions={to_endpoint_egress;deny;}size=1;const default_action=deny();const entries={32w1:to_endpoint_egress();}}
  action reference_differences(){m.ref_gen_diff=hdr.reference.generation-hdr.cache.generation;m.ref_owner_diff=hdr.reference.expected_owner-hdr.cache.expected_owner;}
  table reference_differences_t{actions={reference_differences;}size=1;const default_action=reference_differences();}

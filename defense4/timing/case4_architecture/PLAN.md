@@ -46,6 +46,15 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   producer preflight from geometry/ledger activation in the protected composition
   below. Any added private pass must use an actual retained N Work identity and
   a protected expected-phase M reservation; a supplied stage flag is insufficient.
+  The first staged SELECT slice now fits: `ordinary/m.p4`, `m_activate_06`,
+  source `cf1eaaa4…46575`,10 ingress/0 egress, critical9, six stateful banks.
+  Full producer identity and reservation checks precede a once-only activation
+  receipt; actual geometry/position completion precedes ledger publication.
+  A genuine stamped return alone frees M, with N still pinned and no later M
+  bank access. Three activation methods and seven prerequisite methods pass;
+  this is source/build evidence, with two spare M ingress stages. The old
+  single-pass canary remains a failed15-stage layout. OPERATE, full mapping and
+  composed-model validation remain open.
 - [ ] **Protected SELECT N→M→E.** Extend N Work with an atomic transition from
   phase3 to DOWNSTREAM_PENDING; only the winning handoff emits. Carry the full
   WorkRef, actual expected owner and captured immutable decoy fields. M admits
@@ -63,10 +72,10 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   generation/epoch/owner without Work mutation; genuine0614 then wins Work5→7
   and the late full owner CAS9→17 before handing0714 to M. Cached owner9 stays
   separate. The completed N/M/E preparation suites have25 source methods;
-  M activation, E endpoint emission/terminal, post-M abort and subsequent ACK
+  E endpoint emission/terminal, post-M abort and subsequent ACK
   mapping still need integration; the checklist item remains open.
   M's separate PREPARE slice now constructs the exact55-byte payload from that
-  actual N handoff and emits privately. Current `m_prepare_03`, source
+  actual N handoff and emits privately. Retained `m_prepare_03`, source
   `2475f93b…ec9f3`, compiles12/0, critical8; three source packet tests verify
   independent payload bytes and actual source deparser checksums. Its format2
   prefix is24 bytes, preserving separate current/cached full identities.
@@ -74,8 +83,8 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   (1 ingress diagnostic drop stub), critical6. Three source tests verify all14
   image words, full identity, duplicate refusal and missing-store refusal.
   Actual final placement is stores3–6, owner/tag7, private ready8.
-  M geometry activation and target-model endpoint emission
-  remain unfinished; this is not complete SELECT acceptance.
+  M activation now has the separate10-stage checkpoint above. Target-model
+  endpoint emission remains unfinished; this is not complete SELECT acceptance.
 - [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
   OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
   packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap

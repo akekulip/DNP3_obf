@@ -397,3 +397,30 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   tests(one compiler-evidence discovery skip) and T103 pass. All old/failing evidence is
   retained, no counter rollback/rearm authority or physical activity is added.
   Full M/loss/retirement/9.13.2/hardware gates remain; bounded re-review is next.
+
+- 2026-10-07 Ordinary M activation accepted at `m_activate_06`, SHA
+  `cf1eaaa4…46575`,10 ingress/0 egress, critical9, six banks; static-entry scan
+  and exact source/snapshot/compiler/artifact checks pass. Ten scoped source
+  methods pass, with exact dependency snapshots retained in
+  `integration/core/ordinary/evidence/m_activate_verification_01`. The bounded
+  reviewer approves M05 and M06's sole route change to existing68. This creates
+  two spare M ingress stages while adding SELECT geometry/ledger activation.
+  It is separate from the old15-stage single-pass canary, which still fails.
+  Full reservation generation/phase and immutable producer epoch/owner qualify
+  a once-only activation receipt. Actual geometry/position completion gates
+  ledger publication. The genuine28-byte dirty return carries the full actual
+  epoch stamp; terminal full epoch/stamp and generation/phase checks precede
+  M free, and no M bank access follows. N remains Work7-pinned. Lost or foreign
+  returns preserve the pin. This actual-source stamp ruling does not authorize
+  an asserted packet validity flag or an arbitrary downstream abort.
+
+- 2026-10-07 E completion interface ruling: retain existing private port68.
+  TNA's installed `tofino1_base.p4` Mirror contract prepends exactly the supplied
+  `Mirror.emit<T>` header to the deparsed output. Use a full24-byte typed
+  current/cached reference with distinct completion event0e14/format2. With the
+  actual109-byte endpoint image and27 SDK metadata bytes, this uses160 parser
+  bytes; no new69 port or optional one-byte mirror prefix is necessary.
+  Completion must follow all14 actual cache loads and any final E bank access;
+  N frees only after genuine full-identity completion. Endpoint/completion
+  sources and the composed model remain work in progress, not accepted by the
+  M-only review or the interface ruling. No hardware or push occurred.

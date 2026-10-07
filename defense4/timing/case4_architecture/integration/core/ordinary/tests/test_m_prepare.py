@@ -31,6 +31,7 @@ class MPrepare(unittest.TestCase):
     def receiver(self):
         m=WireSource((HERE.parent/'m.p4').read_text())
         m.install('forwarding',(196,),'route',(68,))
+        m.install('forwarding',(198,),'route',(2,))
         m.install('connection',(vectors.CLIENT,vectors.SERVER,vectors.CLIENT_PORT,vectors.SERVER_PORT),'allow_connection',())
         return m
 

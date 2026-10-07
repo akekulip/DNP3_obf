@@ -1,0 +1,30 @@
+test_foreign_full_identity_or_unknown_private_phase_cannot_publish_geometry (test_m_activate.MActivation) ... ok
+test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m (test_m_activate.MActivation) ... 
+======================================================================
+FAIL: test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m (test_m_activate.MActivation) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_activate.py", line 19, in test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m
+    dropped,out=mp.MPrepare().execute(m,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m (test_m_activate.MActivation) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_activate.py", line 19, in test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m
+    dropped,out=mp.MPrepare().execute(m,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m (test_m_activate.MActivation) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_activate.py", line 19, in test_geometry_and_ledger_publish_after_actual_n_commit_then_genuine_return_frees_m
+    dropped,out=mp.MPrepare().execute(m,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.865s
+
+FAILED (failures=3)
