@@ -82,6 +82,7 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
     state heartbeat_return {
         pkt.extract(hdr.service);
         md.timing_epoch = hdr.service.epoch; md.timing_cookie = hdr.service.cookie;
+        md.service_phase = (bit<32>)hdr.service.stage;
         transition select(hdr.service.reserved, hdr.service.stage) {
             (0, 1) : opaque_ethernet;
             (0, 2) : opaque_ethernet;
@@ -730,12 +731,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         ig_tm_md.bypass_egress = 1;
         // A snapshot pass carries no cookie; it reads under the binding's cookie (timing_event 3).
         if (ig_intr_md.ingress_port == HB_PKTGEN) { md.allocator_role = 2; md.timing_event = 3; }
-        else if (ig_intr_md.ingress_port == HB_RETURN) {
-            // The stage is widened in the control: the compiled parser (model run 04) produced 0x101 for a
-            // parser-time (bit<32>) cast of this field.
-            md.generation = hdr.service.generation; md.service_operation = 2;
-            md.service_phase = (bit<32>)hdr.service.stage;
-        }
+        else if (ig_intr_md.ingress_port == HB_RETURN) { md.generation = hdr.service.generation; md.service_operation = 2; }
         else if (ig_intr_md.ingress_port == HELD_RETURN) {
             returning.apply(); cookie_word.apply(); cookie_delta.apply(); cookie_guard.apply();
             if (hdr.envelope.stage == 1 || hdr.envelope.stage == 2 ||

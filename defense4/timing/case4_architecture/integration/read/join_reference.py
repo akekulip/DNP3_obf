@@ -85,7 +85,7 @@ def _schedule(t0, d_ms, t_ack, t_rsp, snap):
         else:
             e_rsp, rsp_reason = max(snap(e_ack + GAP_NS), t_rsp), 'gap'
         if e_rsp > cap:
-            e_rsp, rsp_reason = cap, 'cap'
+            e_rsp, rsp_reason = snap(cap), 'cap'
     return Result(e_ack, e_rsp, ack_reason, rsp_reason)
 
 

@@ -19,7 +19,7 @@ T1, T2 = 0x01000100, 0x05000200
 
 def fresh(active=1):
     registers = {(name, 0): {'cookie': 0, 'word': 0} for name in CELLS}
-    registers[('association_cookie', 0)] = active
+    registers[('timing_binding', 0)] = {'epoch': 1, 'cookie': active}
     s = source({'m.eligible_mask': 0, 'm.seen_mask': 0, 'm.anchor_operation': 0, 'm.seen_operation': 0,
                 'm.timing_authorized': 0, 'm.service_phase': 0, 'm.ingress_port': 71, 'm.service_role': 0,
                 'm.response_eligible': 0}, registers=registers)
@@ -28,13 +28,13 @@ def fresh(active=1):
 
 def set_active(s, cookie):
     """Pktgen snapshot pass: no packet cookie, so the active association cookie is read."""
-    s.registers[('association_cookie', 0)] = cookie
-    s.run('m.timing_cookie=current_cookie.execute(0);')
+    s.registers[('timing_binding', 0)] = {'epoch': 1, 'cookie': cookie}
+    s.run('m.timing_cookie=timing_current.execute(0);')
     assert s.env['m.timing_cookie'] == cookie
 
 
 def arm(s, cookie, now):
-    s.env.update({'m.timing_cookie': cookie, 'm.now': now, 'm.anchor_operation': 1})
+    s.env.update({'m.timing_cookie': cookie, 'm.anchor_time': now, 'm.anchor_operation': 1})
     s.table('anchor_event')
     return s.env['m.anchor']
 
@@ -65,7 +65,7 @@ def commit(s, cookie, anchor):
 
 def read_all(s):
     """What the active association sees on a snapshot pass: qualified reads only."""
-    s.env['m.timing_cookie'] = s.registers[('association_cookie', 0)]
+    s.env['m.timing_cookie'] = s.registers[('timing_binding', 0)]['cookie']
     s.env.update({'m.anchor_operation': 0, 'm.seen_operation': 0, 'm.ingress_port': 71,
                   'm.service_phase': 0, 'm.timing_authorized': 0, 'm.service_role': 1,
                   'm.role': 0, 'm.kind': 0, 'm.release_reason': 0, 'm.credit_op': 0, 'm.result': 0})
@@ -175,13 +175,15 @@ class HeartbeatLoss(unittest.TestCase):
         service_release(s, 1, 3)     # tick 2 return pass
         self.assertEqual(read_all(s)['release'], 3)
 
-    def test_heartbeat_return_parser_derives_phase_from_the_stage_field(self):
-        state = self.code[self.code.index('state heartbeat_return'):]
-        state = state[:state.index('state heartbeat_timer')]
-        self.assertIn('md.service_phase = (bit<32>)hdr.service.stage', state)
-        self.assertRegex(state, r'\(0, 1\)')
-        self.assertRegex(state, r'\(0, 3\)')
-
+    def test_heartbeat_return_phase_is_widened_in_the_control_not_the_parser(self):
+        """Model run 04: the compiled parser gave 0x101 for a parser-time (bit<32>) cast of the stage."""
+        parser = self.code[self.code.index('state heartbeat_return'):]
+        parser = parser[:parser.index('state heartbeat_timer')]
+        self.assertNotIn('service_phase', parser)
+        self.assertRegex(parser, r'\(0, 1\)')
+        self.assertRegex(parser, r'\(0, 3\)')
+        control = self.code[self.code.index('ingress_port == HB_RETURN) {'):]
+        self.assertIn('md.service_phase = (bit<32>)hdr.service.stage', control[:400])
 
 if __name__ == '__main__':
     unittest.main()

@@ -82,6 +82,7 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
     state heartbeat_return {
         pkt.extract(hdr.service);
         md.timing_epoch = hdr.service.epoch; md.timing_cookie = hdr.service.cookie;
+        md.service_phase = (bit<32>)hdr.service.stage;
         transition select(hdr.service.reserved, hdr.service.stage) {
             (0, 1) : opaque_ethernet;
             (0, 2) : opaque_ethernet;
@@ -366,17 +367,16 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     table response_age { actions = { reply_delta; } const default_action = reply_delta(); size = 1; }
     action reply_eligible() { md.response_eligible = 1; md.ready_set = 32w1; }
     table response_eligibility {
-        key = { hdr.service.anchor : ternary; hdr.service.response_deadline : ternary; hdr.service.seen : ternary;
+        key = { hdr.service.anchor : ternary; hdr.service.response_deadline : ternary;
                 md.response_delta : ternary; md.readiness_delta : ternary; md.cap_delta : ternary; }
         actions = { reply_eligible; NoAction; }
         const entries = {
             // armed response deadline has elapsed
-            (1 &&& 1, 1 &&& 1, _, 0 &&& 0x80000000, _, _) : reply_eligible();
-            // FALLBACK_NO_ACK: response observed, no ACK committed (deadline unarmed), readiness elapsed
-            // (a response not yet seen must not pre-set the sticky ready bit: it would skip the gap)
-            (1 &&& 1, 0 &&& 1, 2 &&& 2, _, 0 &&& 0x80000000, _) : reply_eligible();
+            (1 &&& 1, 1 &&& 1, 0 &&& 0x80000000, _, _) : reply_eligible();
+            // FALLBACK_NO_ACK: no ACK committed (deadline unarmed), readiness has elapsed
+            (1 &&& 1, 0 &&& 1, _, 0 &&& 0x80000000, _) : reply_eligible();
             // hard cap
-            (1 &&& 1, _, _, _, _, 0 &&& 0x80000000) : reply_eligible();
+            (1 &&& 1, _, _, _, 0 &&& 0x80000000) : reply_eligible();
         }
         const default_action = NoAction(); size = 3;
     }
@@ -730,12 +730,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         ig_tm_md.bypass_egress = 1;
         // A snapshot pass carries no cookie; it reads under the binding's cookie (timing_event 3).
         if (ig_intr_md.ingress_port == HB_PKTGEN) { md.allocator_role = 2; md.timing_event = 3; }
-        else if (ig_intr_md.ingress_port == HB_RETURN) {
-            // The stage is widened in the control: the compiled parser (model run 04) produced 0x101 for a
-            // parser-time (bit<32>) cast of this field.
-            md.generation = hdr.service.generation; md.service_operation = 2;
-            md.service_phase = (bit<32>)hdr.service.stage;
-        }
+        else if (ig_intr_md.ingress_port == HB_RETURN) { md.generation = hdr.service.generation; md.service_operation = 2; }
         else if (ig_intr_md.ingress_port == HELD_RETURN) {
             returning.apply(); cookie_word.apply(); cookie_delta.apply(); cookie_guard.apply();
             if (hdr.envelope.stage == 1 || hdr.envelope.stage == 2 ||

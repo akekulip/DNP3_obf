@@ -90,8 +90,8 @@ class Params(unittest.TestCase):
         self.assertEqual(s.env['m.eligible_mask'], 0)
 
 
-def run_response(now, t0, deadline, runtime=None):
-    s = source({'m.now': now & MASK, 'hdr.service.anchor': (t0 & MASK) | 1,
+def run_response(now, t0, deadline, runtime=None, seen=2):
+    s = source({'m.now': now & MASK, 'hdr.service.anchor': (t0 & MASK) | 1, 'hdr.service.seen': seen,
                 'hdr.service.response_deadline': deadline, 'm.response_eligible': 0},
                runtime or offsets(5))
     for table in ('anchor_timestamp', 'deadline_offsets', 'deadline_deltas', 'response_snapshot',
@@ -112,6 +112,12 @@ class ResponseRelease(unittest.TestCase):
         ready = self.T0 + jr.READINESS_NS
         self.assertEqual(run_response(ready - 256, self.T0, 0), 0)
         self.assertEqual(run_response(ready, self.T0, 0), 1)
+
+    def test_fallback_needs_the_response_to_have_been_seen(self):
+        ready = self.T0 + jr.READINESS_NS
+        self.assertEqual(run_response(ready, self.T0, 0, seen=0), 0)
+        self.assertEqual(run_response(ready, self.T0, 0, seen=1), 0)   # only the ACK was seen
+        self.assertEqual(run_response(ready, self.T0, 0, seen=3), 1)
 
     def test_armed_deadline_in_the_future_is_not_overridden_by_readiness(self):
         ready = self.T0 + jr.READINESS_NS
@@ -135,7 +141,7 @@ class ResponseRelease(unittest.TestCase):
 
 class Includes(unittest.TestCase):
     def test_local_include_copies_are_byte_identical_to_the_ownership_originals(self):
-        for name in ('expected_work_record.p4', 'original_credit.p4', 'probe_shell.p4'):
+        for name in ('expected_work_record.p4', 'probe_shell.p4'):
             self.assertEqual((READ / name).read_bytes(), (ARCH / 'ownership/p4' / name).read_bytes(), name)
 
     def test_probe_is_untouched(self):
