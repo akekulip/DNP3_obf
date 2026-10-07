@@ -60,7 +60,7 @@ def generate():
     # The private envelope carries original operation, never a supplied CRC bit.
     marker=text.index(' state envelope_event{');end=text.index('\n',marker)
     line=text[marker:end]
-    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (5,6,7))+'default:accept;')
+    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (5,6,7,8))+'default:accept;')
     text=text[:marker]+line+text[end:]
     network_start=text.index(' table network{');network_end=text.index('\n action syn_shape',network_start)
     network=text[network_start:network_end]
@@ -101,7 +101,7 @@ table data_guard{key={m.enabled:exact;m.profile:exact;m.badh:exact;m.badb:exact;
 '''
     mark=text.index(' apply{\n  m.work_op=');text=text[:mark]+bank_text+text[mark:]
     mark=text.index(' apply{\n  m.work_op=')
-    typed='action invalid_kind(){m.data_valid=8w0;}\ntable return_kind_guard{key={m.kind:exact;m.packet_kind:ternary;}actions={invalid_kind;NoAction;}size=8;const entries={'+''.join('(8w'+str(k)+',8w'+str(k)+'):NoAction();' for k in range(1,8))+'(8w255,_):NoAction();}const default_action=invalid_kind();}\n'
+    typed='action invalid_kind(){m.data_valid=8w0;}\ntable return_kind_guard{key={m.kind:exact;m.packet_kind:ternary;}actions={invalid_kind;NoAction;}size=12;const entries={'+''.join('(8w'+str(k)+',8w'+str(k)+'):NoAction();' for k in range(1,8))+''.join('(8w8,8w'+str(k)+'):NoAction();' for k in (1,2,3))+'(8w255,_):NoAction();}const default_action=invalid_kind();}\n'
     text=text[:mark]+typed+text[mark:]
     # A failed/default profile never reaches WorkRecord or a saved bank.
     mark=text.index('   if(m.direction!=8w0){')
@@ -144,6 +144,20 @@ table data_guard{key={m.enabled:exact;m.profile:exact;m.badh:exact;m.badb:exact;
 action first_response(){hdr.event.event=16w0x0106;}
 action first_operate(){hdr.event.event=16w0x0107;}
 '''+first+text[end:]
+    # Valid retries and established ACKs: the claimed work travels the normal four
+    # passes with no owner command, then the original leaves unchanged. Qualified by
+    # exact owner phase and sequence; everything else keeps the abort/deny path.
+    phases={1:(2,3),2:(3,4,5),3:(5,8,9,10,11,12)}
+    rows=''.join('(8w%d,8w1,8w0,32w%s&&&32w0xffff0000):forward_original();'%(kind,hex(phase<<16)) for kind in (1,2,3) for phase in phases[kind])
+    text=text.replace('\n action next_stage','''
+ action forward_original(){hdr.event.event=16w0x0108;}
+ table forward_event{key={m.kind:exact;m.sequence_valid:exact;m.matched:exact;m.observed:ternary;}
+ actions={forward_original;NoAction;}size=12;const default_action=NoAction();
+ const entries={'''+rows+'''}}
+ action next_stage''',1)
+    text=text.replace('snapshot_t.apply();first_event.apply();','snapshot_t.apply();first_event.apply();if(hdr.event.event==16w0x01ff&&m.kind!=8w4){forward_event.apply();}')
+    text=text.replace('owner_diff_t.apply();if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}',
+        'if(m.kind!=8w8){owner_diff_t.apply();if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}')
     marker=text.index(' table owner_command{');end=text.index(' action owner_read()',marker)
     command=text[marker:end].replace('close_free;NoAction;', 'close_free;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;NoAction;').replace('size=10;', 'size=16;')
     at=command.rindex('}}')

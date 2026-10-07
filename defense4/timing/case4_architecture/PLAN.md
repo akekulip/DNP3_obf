@@ -21,7 +21,7 @@ Use one implementation owner and one bounded reviewer. Reuse the sources listed
 in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
 integration change. Do not rerun unaffected legacy suites or failed layouts.
 
-1. **Restore a correct transparent connection path.** Fix native binding's SYN,
+1. **Restore a correct transparent connection path.** *(Source-fragment repair done 2026-10-06, see LEDGER.md; compile native_03 fails 19/12 stages; no packet harness yet.)* Fix native binding's SYN,
    SYNACK/final-ACK retries and established pure ACKs: the retained source currently
    turns them into event01ff and drops them. Keep malformed/foreign traffic from
    mutating an owner, while preserving ordinary supported forwarding. Use the

@@ -65,3 +65,27 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
 - Configuration/workload implementation: 30 targeted tests passed; accepted44
   blocks/16,168 attempts preserved. Reviewable package still refuses activation
   because a complete source-bound qualified target/inventory is unavailable.
+- 2026-10-06 step 1 (transparent connection path), source-fragment level only.
+  Red first: a new `TransparentForwarding` suite (binding tests 15 -> 22) failed on
+  native snapshot `8b2164a4…` for the stated reason (valid SYN/SYNACK/final-ACK
+  retries and established ACKs ended with `drop_ctl=1`, event `0x01ff` at every
+  stage). Repair in `generate.py`: a new `forward_event` table, applied only when
+  first-contact matching left `0x01ff`, relabels qualified retry/established ACKs
+  (exact owner phase + valid sequence) as private kind 8. Kind 8 takes no owner
+  command, no carry and no CAS, advances the claimed work through the normal four
+  passes, and leaves as the original. Unqualified or out-of-sequence frames still
+  abort and drop without touching the owner. `work_record.p4` and the pinned
+  ExpectedWorkRecord strings are unchanged. New snapshot `35bf9aa3…`; binding 22,
+  root 27 and controller 17 tests pass.
+  Correction to an earlier reading: reverse-direction pure ACKs are not minted
+  (`direction_guard` has no (3,2) entry), so they bypass tracking and are forwarded
+  untouched; a test now pins that. Not claimed: out-of-sequence duplicate ACKs are
+  still dropped.
+  Compile `integration/evidence/native_03` (9.13.1): source accepted (0 errors),
+  FAILS fit, 19 stages against 12 (native_02 was 18). This is the known
+  authority-placement blocker; no architecture search was started.
+  Real-packet seed attempt (one, time-boxed): `protocol/egress/source_packets.py`
+  stops at the first parser select (`ig.ingress_port` unsupported), and the control
+  also needs `work.apply(args)`, range keys and multi-pass recirculation. The
+  `integration/core/` packet harness is therefore still absent; step 1 is NOT
+  target- or packet-verified.

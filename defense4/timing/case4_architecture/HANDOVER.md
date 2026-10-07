@@ -44,12 +44,14 @@ Earlier successful snapshots cannot qualify later source changes.
 
 ## Exact blockers and defects
 
-- **First fix: native retry/ACK forwarding.** Current native binding snapshot
-  `8b2164a48bf4a8b0026f901fe4387952a0596ef0210730ba5a61a0093bd8b7be`
-  drops valid SYN/SYNACK/final-ACK retries and established client ACKs through
-  event01ff. Complete-byte counterexamples are retained in `ownership/review/`.
-  This is unfixed; the current native source is uncompiled. ExpectedWorkRecord generation+emitted-phase/terminal checks
-  were repaired; preserve them rather than reverting to gen-only qualification.
+- **Native retry/ACK forwarding: functionally repaired at source-fragment level
+  (2026-10-06), not packet- or target-verified.** Snapshot `35bf9aa3721b903c…`
+  (was `8b2164a4…`) forwards qualified SYN/SYNACK/final-ACK retries and established
+  client ACKs as unchanged originals through the private kind-8 path with no owner
+  mutation. It does not fit: `integration/evidence/native_03` needs 19 ingress
+  stages against 12. Out-of-sequence duplicate ACKs are still dropped. The next
+  coding task is step 2 of PLAN.md plus the missing packet harness.
+  ExpectedWorkRecord generation+phase checks are preserved.
 - Actual connection-binding composition still fails: native02 needs18stages;
   the actual two-pipeline alternatives need17–18 at the authority. Split03 source
   is `5e5074e9…`, with exact identity in its manifest. These are historical failed
