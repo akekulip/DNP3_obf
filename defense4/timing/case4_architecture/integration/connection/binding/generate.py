@@ -49,8 +49,10 @@ def generate():
     text=text.replace('header eth_h{',extras+'header eth_h{')
     text=once(text,'event_h event;eth_h eth;','event_h event;t0_h t0;eth_h eth;')
     text=text.replace('mss_h mss;}', 'mss_h mss;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;read_req_h rd_req;read_tail_h rd_tail;replay_h rb;}')
-    # Provisional N-to-T handoff egress (STEP2_DESIGN.md 1.1, gate G-PORTS): not a verified port.
-    text=once(text,'const PortId_t RETURN_PORT=9w68;','const PortId_t RETURN_PORT=9w68;\nconst PortId_t READ_HANDOFF_PORT=9w66;\nconst PortId_t STEP3_M_PORT=9w65;')
+    # N-to-T and N-to-M handoff egress, device ports (pipe*128+local) from the model
+    # cross-pipe probe (evidence/model_28/PORTS_PROPOSAL.md, gate G-PORTS still required
+    # on the switch): T_IN is pipe 2 local 69 = 325; M's N-facing port is pipe 1 local 68 = 196.
+    text=once(text,'const PortId_t RETURN_PORT=9w68;','const PortId_t RETURN_PORT=9w68;\nconst PortId_t READ_HANDOFF_PORT=9w325;\nconst PortId_t STEP3_M_PORT=9w196;')
     existing={name for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(text,'struct meta_t'))}
     added=''.join(kind+' '+name+';' for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(selected,'struct meta_t')) if name not in existing)
     text=text.replace('struct meta_t{','struct meta_t{'+added+'bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;')

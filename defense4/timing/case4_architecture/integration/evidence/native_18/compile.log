@@ -1,0 +1,51 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(106): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(110): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(139): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(188): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(36): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(36)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(400): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_18/source/native_binding.p4(400)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[15:8]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[7:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[31:24]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[23:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[15:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: Ingress.response_profile: Table key name not supported. Replacing "hdr.second.w1[15:0]" with "hdr.second.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[7:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[31:24]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[15:0]" with "hdr.first.w1".
+
+0 errors, 30 warnings generated.
+
