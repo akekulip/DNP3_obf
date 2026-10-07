@@ -37,6 +37,18 @@ python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_work.
 python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_n_handoff.py -q
 ```
 
-New M/E tests may still expose unfinished implementation. Native35→55 output,
+M PREPARE `m_prepare_02` matches source `23239836…ce16d` and compiles12/0,
+critical8. Its three source tests consume the actual N handoff, construct the
+independent codec's exact55 bytes and execute the actual source checksum/deparser
+statements. It emits privately to N68 through E, with a40-byte prefix containing
+separate current and cached producer identities. Duplicate/invalid preparation
+does not mutate M banks. [Verification](evidence/m_prepare_verification_01/verification.json)
+is source/compiler evidence; target-model wire and endpoint emission remain open.
+
+```sh
+python3 -B -m unittest discover -s integration/core/ordinary/tests -p test_m_prepare.py -v
+```
+
+New E/join tests may still expose unfinished implementation. External55-byte output,
 subsequent ACK mapping, full SBO, timing, fragments/lifecycle and final9.13.2
 qualification are open. This checkpoint has no target-model or hardware result.

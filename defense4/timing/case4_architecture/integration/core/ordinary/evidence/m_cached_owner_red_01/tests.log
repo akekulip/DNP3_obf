@@ -1,0 +1,30 @@
+test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) ... test_invalid_private_admission_never_mutates_m_banks (test_m_prepare.MPrepare) ... ok
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 49, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[36:40],raw[8:12])
+AssertionError: b'\x00\x11"3' != b'\x00\t\x00\x01'
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 49, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[36:40],raw[8:12])
+AssertionError: b'\x00\x11"3' != b'\x00\t\x00\x01'
+
+======================================================================
+FAIL: test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 49, in test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap
+    self.assertEqual(out[36:40],raw[8:12])
+AssertionError: b'\x00\x11"3' != b'\x00\t\x00\x01'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.249s
+
+FAILED (failures=3)

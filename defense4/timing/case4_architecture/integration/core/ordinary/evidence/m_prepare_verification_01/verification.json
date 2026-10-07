@@ -1,0 +1,47 @@
+{
+  "milestone": "primitive_compiled_and_source_verified",
+  "full_target": false,
+  "model_verified": false,
+  "build": "m_prepare_02",
+  "source_sha256": {
+    "integration/core/ordinary/m.p4": "23239836522f797230bc201c37c88964f7df300ccdb6202cd341d8a4664ce16d",
+    "integration/core/ordinary/source_wire.py": "3258a5afc21e10130d522e12e0e57faf284770dfd867dd77167f82a00f2772ea",
+    "integration/core/ordinary/n.p4": "dfac97f86b8717dded361454a801887815ddd2e60e7ed561546b00208414cbbe",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/tests/test_m_prepare.py": "9b8217c581958452e8ec623aef323ca3a3e9f494bf1b4361753241c2ee483c87"
+  },
+  "build_verification": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "resources": {
+    "stages": {
+      "egress": 0,
+      "ingress": 12
+    },
+    "critical_path": 8
+  },
+  "tests": {
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "integration/core/ordinary/tests",
+      "-p",
+      "test_m_prepare.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "log": "tests.log"
+  },
+  "limitations": [
+    "Only M PREPARE emits privately; no E image-ready/commit/geometry/endpoint emission verified",
+    "Source interpreter checksum/deparser result is not compiled target-model evidence"
+  ]
+}

@@ -71,6 +71,18 @@ There is no stage gain or new target-model result. M/E preparation, ready/commit
 geometry activation, actual55-byte emission and subsequent ACK mapping remain
 active work under the linked [PLAN.md](PLAN.md); full-core completion is open.
 
+M PREPARE is now a separate source-current prerequisite: `ordinary/m.p4`
+SHA `23239836…ce16d`, exact `m_prepare_02`,12 ingress/0 egress, critical8.
+[Its verification](integration/core/ordinary/evidence/m_prepare_verification_01/verification.json)
+checks source/compiler/artifacts and three actual-source packet tests. Starting
+from a packet-created N association, it builds the independent codec's exact55
+bytes, recomputes IP/TCP checksums through the source deparser, and emits one
+private40-byte-prefixed PREPARE. Duplicate/invalid admission leaves banks unchanged.
+The separate cached producer owner/generation prevents confusing it with a later
+current release reference. No E-ready, geometry activation, endpoint emission or
+new target-model result is established yet. Continue the same protected SELECT
+item in [PLAN.md](PLAN.md#execution-checklist--2026-10-07); it remains unchecked.
+
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.
 

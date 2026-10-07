@@ -1,0 +1,16 @@
+test_actual_deparser_recomputes_wire_checksums (test_m_prepare.MPrepare) ... FAIL
+test_actual_n_handoff_constructs_exact55_from_captured_decoy_zero_and_wrap (test_m_prepare.MPrepare) ... ok
+test_invalid_private_admission_never_mutates_m_banks (test_m_prepare.MPrepare) ... ok
+
+======================================================================
+FAIL: test_actual_deparser_recomputes_wire_checksums (test_m_prepare.MPrepare)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_m_prepare.py", line 64, in test_actual_deparser_recomputes_wire_checksums
+    self.assertEqual(folded(ip),65535)
+AssertionError: 20 != 65535
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.294s
+
+FAILED (failures=1)

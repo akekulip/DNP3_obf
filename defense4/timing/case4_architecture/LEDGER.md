@@ -94,6 +94,23 @@ M/E bytes, ready/commit, geometry, subsequent mapping and full target remain ope
 The live baseline harness fixture now expects unbound epoch0 refusal:42 source
 tests and3 equivalence tests pass without the former wrapper substitution.
 
+M PREPARE checkpoint accepted: source `23239836…ce16d`, `m_prepare_02`,
+SDE9.13.1 compilerPASS12/0, critical8. Root verifies current source/snapshot/
+compiler/artifacts and three actual-source packet methods; bounded reviewer
+also compares complete inner frames against independent codec-built vectors at
+sequence0,100 and32-bit wrap. The40-byte private prefix carries distinct cached
+producer expectedOwner/generation; one prepared frame is149 bytes excluding
+link framing. Admission/CRC checks precede the persistent reservation; duplicate
+and invalid preparation leave banks unchanged. This is scoped PREPARE only,
+without E-ready, N commit, geometry activation or endpoint/model qualification.
+The wire-source RED exposed missing execution of existing P4 deparser checksum
+updates in the old evaluator; its repair extends the evaluator, not the P4
+checksum algorithm. CRC comparison stages4/5/6 precede reservation7,
+construction8, output hashes9 and checksum render10/11: critical8 does not mean
+eight occupied stages. Preserve that measured dependency for any necessary
+integration repair; no new standalone packing sweep or stage saving is claimed.
+Source-current verification: `ordinary/evidence/m_prepare_verification_01`.
+
 ## Checkpoint requested2026-10-06
 
 Philip requested stopping experiments and saving plans/handover for weekly token

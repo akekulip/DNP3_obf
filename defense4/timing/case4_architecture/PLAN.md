@@ -62,6 +62,13 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   actual SELECT to M with full identity/captured decoy and closes the pre-M abort
   race. Ready/commit, M/E materialization, terminal conservation and subsequent
   ACK mapping still need integration; the checklist item remains open.
+  M's separate PREPARE slice now constructs the exact55-byte payload from that
+  actual N handoff and emits privately. `m_prepare_02`, source `23239836…ce16d`,
+  compiles12/0, critical8; three source packet tests verify independent payload
+  bytes and actual source deparser checksums. Its40-byte prefix separates the
+  cached producer's full owner/generation from the current release reference.
+  E readiness, N release commitment, M geometry activation and target-model
+  endpoint emission remain unfinished; this is not complete SELECT acceptance.
 - [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
   OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
   packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap
@@ -127,10 +134,11 @@ bounded passes: measure their bandwidth and resource cost instead of assuming fi
    busy-record drop-and-count. Role M's mapping/geometry/ledger core compiles at 12/12 stages in
    pipe 1 (historical M source), checked against the transport oracle. The corrected
    current `integration/core/m/m_skeleton.p4` has33 source tests but fails15 stages;
-   use protected staged integration above. **Not yet
-   built: the 35→55 produce construct, the descriptor/carve decision, and exact-byte replay in
-   M** — unfinished; Task1 changes only its receiving ports196/197. Its canary
-   old12-stage canary is not current fit evidence.)* Bind validated native
+   use protected staged integration above. A separate staged M PREPARE candidate
+   now builds35→55 privately; the protected E-ready/commit/geometry join,
+   descriptor/carve decision and exact-byte replay remain unfinished. Task1 changed
+   only the old canary's receiving ports196/197. Its old12-stage fit does not
+   qualify current source.)* Bind validated native
    SELECT/OPERATE and successful matching response to that same live authority;
    integrate35→55 production,57→[28,29], payload mapping and shared replay banks.
    Require actual owner/work pin before cache access and no reuse until terminals.
