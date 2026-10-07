@@ -1,0 +1,27 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_02/source/m_skeleton.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_02/source/m_skeleton.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_02/source/m_skeleton.p4(434): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_02/source/m_skeleton.p4(434)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_02/source/m_skeleton.p4(82): error: : The following tables are applied in an inconsistent order on different branches: Ingress.prep_native_t, Ingress.geo_first_t, Ingress.prep_t, cond-21, Ingress.led_operate_t, cond-22
+ table prep_native_t{actions={prep_native;}size=1;const default_action=prep_native();}
+       ^^^^^^^^^^^^^
+
+1 error, 10 warnings generated.
+
+Skipping assembler, assembly file is empty

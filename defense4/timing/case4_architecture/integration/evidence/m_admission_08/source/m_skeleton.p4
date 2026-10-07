@@ -22,7 +22,7 @@ struct headers_t{work_h work;eth_h eth;ip_h ip;tcp_h tcp;dl_h dl;native_h native
 struct meta_t{bit<8> network_allowed;bit<32> repair_sum_pad;bit<16> repair_sum;bit<32> first;bit<32> second;bit<8> valid;bit<8> direction;PortId_t output_port;
  bit<32> right;bit<32> left;bit<32> native_right;bit<32> so1;bit<32> so2;bit<32> ao1;bit<32> ao2;bit<32> ro1;bit<32> ro2;
  bit<32> full_window;bit<32> window_after;bit<16> tcp_len;bool ip_error;bit<8> parsed;bit<1> changed;
- bit<32> native_last;bit<8> kind;bit<16> phase;bit<8> contig;bit<8> led_ok;bit<8> admitted;bit<32> producer_previous;bit<32> producer_first;bit<32> ledger_generation;bit<32> replay_match;bit<32> replay_wire_start;bit<32> geometry_difference;bit<8> selected_qualified;bit<32> producer_difference;}
+ bit<32> native_last;bit<8> kind;bit<16> phase;bit<8> contig;bit<8> led_ok;bit<8> admitted;bit<32> producer_previous;bit<32> producer_first;bit<32> ledger_generation;bit<32> byte_match;bit<32> geometry_difference;bit<8> selected_qualified;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
  state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.parsed=8w0;m.changed=1w0;m.direction=8w0;m.valid=8w0;m.network_allowed=8w0;m.kind=8w0;m.phase=16w0;m.contig=8w0;m.led_ok=8w0;m.admitted=8w0;m.selected_qualified=8w0;m.ro1=32w0;transition select(ig.ingress_port){N_TO_M:work;T_TO_M:work;default:reject;}}
  state work{pkt.extract(hdr.work);m.kind=hdr.work.event[7:0];m.phase=hdr.work.expected_cell[31:16];transition select(hdr.work.reserved){16w0:eth;default:reject;}}
@@ -54,10 +54,6 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
 @pa_container_size("ingress", "m.window_after", 32)
 @pa_container_size("ingress", "m.so1", 32)
 @pa_container_size("ingress", "hdr.tcp.control_window", 32)
-@pa_container_size("ingress", "m.producer_first", 32)
-@pa_container_size("ingress", "m.producer_previous", 32)
-@pa_container_size("ingress", "m.producer_difference", 32)
-@pa_container_size("ingress", "m.replay_wire_start", 32)
 control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata_t ig,in ingress_intrinsic_metadata_from_parser_t p,inout ingress_intrinsic_metadata_for_deparser_t md,inout ingress_intrinsic_metadata_for_tm_t tm){
  action deny(){md.drop_ctl=3w1;}
  action route(PortId_t port){m.output_port=port;tm.ucast_egress_port=port;tm.bypass_egress=1w0;}
@@ -85,9 +81,6 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action prep_native(){m.native_last=(bit<32>)hdr.tail.crc[7:0];}
  table prep_native_t{actions={prep_native;}size=1;const default_action=prep_native();}
  action prep_replay(){m.native_last=(bit<32>)hdr.replay.data;}
- action replay_select_start(){m.replay_wire_start=hdr.tcp.seq-32w34;}
- action replay_operate_start(){m.replay_wire_start=hdr.tcp.seq-32w14;}
- table replay_start_t{key={m.phase:exact;}actions={replay_select_start;replay_operate_start;NoAction;}size=2;const default_action=NoAction();const entries={16w9:replay_select_start();16w12:replay_operate_start();}}
  table prep_replay_t{actions={prep_replay;}size=1;const default_action=prep_replay();}
  /* ---- geometry registers. One table per register. Epoch-tagged: tag cell {epoch,bits}. ---- */
  Register<bit<32>,bit<1>>(1,0) geo_first;
@@ -125,7 +118,7 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action selected_operate_check(){m.selected_qualified=select_operate_check.execute(1w0);}
  action led_select_write(){m.led_ok=select_id_write.execute(1w0);}
  action led_select_check(){m.ledger_generation=select_id_check.execute(1w0);}
- table led_select_t{key={m.kind:exact;m.phase:ternary;}actions={led_select_write;selected_operate_check;NoAction;}size=2;const default_action=NoAction();const entries={(8w5,16w9):led_select_write();(8w7,16w12):selected_operate_check();}}
+ table led_select_t{key={m.kind:exact;m.phase:ternary;}actions={led_select_write;selected_operate_check;NoAction;}size=3;const default_action=NoAction();const entries={(8w5,16w9):led_select_write();(8w7,16w12):selected_operate_check();(8w12,16w9):led_select_check();}}
  Register<pair_t,bit<1>>(1,{0,0}) led_operate_id;
  RegisterAction<pair_t,bit<1>,bit<8>>(led_operate_id) operate_id_write={void apply(inout pair_t v,out bit<8> r){r=8w0;if(v.hi<hdr.work.generation){v.lo=hdr.work.epoch;v.hi=hdr.work.generation;r=8w1;}}};
  RegisterAction<pair_t,bit<1>,bit<32>>(led_operate_id) operate_id_check={void apply(inout pair_t v,out bit<32> r){r=32w0;if(v.lo==hdr.work.epoch){r=v.hi;}}};
@@ -133,18 +126,14 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action led_operate_check(){m.ledger_generation=operate_id_check.execute(1w0);}
  table replay_select_id_t{key={m.phase:exact;}actions={led_select_check;NoAction;}size=1;const default_action=NoAction();const entries={16w9:led_select_check();}}
  table replay_operate_id_t{key={m.phase:exact;}actions={led_operate_check;NoAction;}size=1;const default_action=NoAction();const entries={16w12:led_operate_check();}}
- action producer_compare(){m.producer_difference=m.producer_first-m.producer_previous;}
- table producer_compare_t{actions={producer_compare;}size=1;const default_action=producer_compare();}
- table led_operate_t{key={m.kind:exact;m.phase:exact;m.selected_qualified:exact;m.producer_difference:exact;}actions={led_operate_write;NoAction;}size=1;const default_action=NoAction();const entries={(8w7,16w12,8w1,32w0):led_operate_write();}}
+ table led_operate_t{key={m.kind:exact;m.phase:exact;}actions={led_operate_write;led_operate_check;NoAction;}size=2;const default_action=NoAction();const entries={(8w7,16w12):led_operate_write();(8w12,16w12):led_operate_check();}}
  Register<pair_t,bit<1>>(2,{0,0}) led_pos;
- RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_write={void apply(inout pair_t v,out bit<32> r){v.lo=m.replay_wire_start;v.hi=m.native_last;r=32w0;}};
- RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_check={void apply(inout pair_t v,out bit<32> r){r=32w0;if(v.lo==m.replay_wire_start&&v.hi==m.native_last){r=32w1;}}};
- action producer_wire_start(){m.replay_wire_start=hdr.tcp.seq;}
- table producer_wire_start_t{actions={producer_wire_start;}size=1;const default_action=producer_wire_start();}
+ RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_write={void apply(inout pair_t v,out bit<32> r){v.lo=hdr.tcp.seq;v.hi=m.native_last;r=32w0;}};
+ RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_check={void apply(inout pair_t v,out bit<32> r){r=32w0;if(v.hi==m.native_last){r=32w1;}}};
  action led_pos_write_0(){pos_write.execute(1w0);}
  action led_pos_write_1(){pos_write.execute(1w1);}
- action led_pos_check_0(){m.replay_match=pos_check.execute(1w0);}
- action led_pos_check_1(){m.replay_match=pos_check.execute(1w1);}
+ action led_pos_check_0(){m.byte_match=pos_check.execute(1w0);}
+ action led_pos_check_1(){m.byte_match=pos_check.execute(1w1);}
  table replay_pos_t{key={m.phase:exact;}actions={led_pos_check_0;led_pos_check_1;NoAction;}size=2;const default_action=NoAction();const entries={16w9:led_pos_check_0();16w12:led_pos_check_1();}}
  table led_pos_t{key={m.kind:exact;m.phase:exact;m.led_ok:exact;}actions={led_pos_write_0;led_pos_write_1;NoAction;}size=2;const default_action=NoAction();const entries={(8w5,16w9,8w1):led_pos_write_0();(8w7,16w12,8w1):led_pos_write_1();}}
  /* constant +20 for the OPERATE produce packet itself (valid bit 0 proven by N and re-read here) */
@@ -163,12 +152,257 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  table left_offsets_t{actions={left_offsets;}size=1;const default_action=left_offsets();}
  action right_offsets(){m.ro1=m.right-m.first;m.ro2=m.right-m.second;m.native_right=m.right;}
  table right_offsets_t{actions={right_offsets;}size=1;const default_action=right_offsets();}
-@SEQ_TABLES@@EDGE_TABLES@action difference(){m.window_after=m.native_right-m.left;}
+action seq1_shift(){hdr.tcp.seq=hdr.tcp.seq+32w20;}
+table seq1{key={m.direction:exact;m.valid:ternary;m.so1:ternary;}actions={seq1_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+(8w1,8w1&&&8w1,32w0x23&&&32w0xffffffff):seq1_shift();
+(8w1,8w1&&&8w1,32w0x24&&&32w0xfffffffc):seq1_shift();
+(8w1,8w1&&&8w1,32w0x28&&&32w0xfffffff8):seq1_shift();
+(8w1,8w1&&&8w1,32w0x30&&&32w0xfffffff0):seq1_shift();
+(8w1,8w1&&&8w1,32w0x40&&&32w0xffffffc0):seq1_shift();
+(8w1,8w1&&&8w1,32w0x80&&&32w0xffffff80):seq1_shift();
+(8w1,8w1&&&8w1,32w0x100&&&32w0xffffff00):seq1_shift();
+(8w1,8w1&&&8w1,32w0x200&&&32w0xfffffe00):seq1_shift();
+(8w1,8w1&&&8w1,32w0x400&&&32w0xfffffc00):seq1_shift();
+(8w1,8w1&&&8w1,32w0x800&&&32w0xfffff800):seq1_shift();
+(8w1,8w1&&&8w1,32w0x1000&&&32w0xfffff000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x2000&&&32w0xffffe000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x4000&&&32w0xffffc000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x8000&&&32w0xffff8000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x10000&&&32w0xffff0000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x20000&&&32w0xfffe0000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x40000&&&32w0xfffc0000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x80000&&&32w0xfff80000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x100000&&&32w0xfff00000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x200000&&&32w0xffe00000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x400000&&&32w0xffc00000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x800000&&&32w0xff800000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x1000000&&&32w0xff000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x2000000&&&32w0xfe000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x4000000&&&32w0xfc000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x8000000&&&32w0xf8000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x10000000&&&32w0xf0000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x20000000&&&32w0xe0000000):seq1_shift();
+(8w1,8w1&&&8w1,32w0x40000000&&&32w0xc0000000):seq1_shift();
+}}
+action seq2_shift(){hdr.tcp.seq=hdr.tcp.seq+32w20;}
+table seq2{key={m.direction:exact;m.valid:ternary;m.so2:ternary;}actions={seq2_shift;NoAction;}size=128;const default_action=NoAction();const entries={
+(8w1,8w2&&&8w2,32w0x23&&&32w0xffffffff):seq2_shift();
+(8w1,8w2&&&8w2,32w0x24&&&32w0xfffffffc):seq2_shift();
+(8w1,8w2&&&8w2,32w0x28&&&32w0xfffffff8):seq2_shift();
+(8w1,8w2&&&8w2,32w0x30&&&32w0xfffffff0):seq2_shift();
+(8w1,8w2&&&8w2,32w0x40&&&32w0xffffffc0):seq2_shift();
+(8w1,8w2&&&8w2,32w0x80&&&32w0xffffff80):seq2_shift();
+(8w1,8w2&&&8w2,32w0x100&&&32w0xffffff00):seq2_shift();
+(8w1,8w2&&&8w2,32w0x200&&&32w0xfffffe00):seq2_shift();
+(8w1,8w2&&&8w2,32w0x400&&&32w0xfffffc00):seq2_shift();
+(8w1,8w2&&&8w2,32w0x800&&&32w0xfffff800):seq2_shift();
+(8w1,8w2&&&8w2,32w0x1000&&&32w0xfffff000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x2000&&&32w0xffffe000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x4000&&&32w0xffffc000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x8000&&&32w0xffff8000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x10000&&&32w0xffff0000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x20000&&&32w0xfffe0000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x40000&&&32w0xfffc0000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x80000&&&32w0xfff80000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x100000&&&32w0xfff00000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x200000&&&32w0xffe00000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x400000&&&32w0xffc00000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x800000&&&32w0xff800000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x1000000&&&32w0xff000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x2000000&&&32w0xfe000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x4000000&&&32w0xfc000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x8000000&&&32w0xf8000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x10000000&&&32w0xf0000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x20000000&&&32w0xe0000000):seq2_shift();
+(8w1,8w2&&&8w2,32w0x40000000&&&32w0xc0000000):seq2_shift();
+}}
+action left1_shift(){m.left=hdr.tcp.ack-32w20;}
+action left1_clamp(){m.left=m.first+32w34;}
+table left1{key={m.direction:exact;m.valid:ternary;m.ao1:ternary;}actions={left1_shift;NoAction;left1_clamp;}size=128;const default_action=NoAction();const entries={
+(8w2,8w1&&&8w1,32w0x23&&&32w0xffffffff):left1_clamp();
+(8w2,8w1&&&8w1,32w0x24&&&32w0xfffffffc):left1_clamp();
+(8w2,8w1&&&8w1,32w0x28&&&32w0xfffffff8):left1_clamp();
+(8w2,8w1&&&8w1,32w0x30&&&32w0xfffffffc):left1_clamp();
+(8w2,8w1&&&8w1,32w0x34&&&32w0xfffffffe):left1_clamp();
+(8w2,8w1&&&8w1,32w0x36&&&32w0xffffffff):left1_clamp();
+(8w2,8w1&&&8w1,32w0x37&&&32w0xffffffff):left1_shift();
+(8w2,8w1&&&8w1,32w0x38&&&32w0xfffffff8):left1_shift();
+(8w2,8w1&&&8w1,32w0x40&&&32w0xffffffc0):left1_shift();
+(8w2,8w1&&&8w1,32w0x80&&&32w0xffffff80):left1_shift();
+(8w2,8w1&&&8w1,32w0x100&&&32w0xffffff00):left1_shift();
+(8w2,8w1&&&8w1,32w0x200&&&32w0xfffffe00):left1_shift();
+(8w2,8w1&&&8w1,32w0x400&&&32w0xfffffc00):left1_shift();
+(8w2,8w1&&&8w1,32w0x800&&&32w0xfffff800):left1_shift();
+(8w2,8w1&&&8w1,32w0x1000&&&32w0xfffff000):left1_shift();
+(8w2,8w1&&&8w1,32w0x2000&&&32w0xffffe000):left1_shift();
+(8w2,8w1&&&8w1,32w0x4000&&&32w0xffffc000):left1_shift();
+(8w2,8w1&&&8w1,32w0x8000&&&32w0xffff8000):left1_shift();
+(8w2,8w1&&&8w1,32w0x10000&&&32w0xffff0000):left1_shift();
+(8w2,8w1&&&8w1,32w0x20000&&&32w0xfffe0000):left1_shift();
+(8w2,8w1&&&8w1,32w0x40000&&&32w0xfffc0000):left1_shift();
+(8w2,8w1&&&8w1,32w0x80000&&&32w0xfff80000):left1_shift();
+(8w2,8w1&&&8w1,32w0x100000&&&32w0xfff00000):left1_shift();
+(8w2,8w1&&&8w1,32w0x200000&&&32w0xffe00000):left1_shift();
+(8w2,8w1&&&8w1,32w0x400000&&&32w0xffc00000):left1_shift();
+(8w2,8w1&&&8w1,32w0x800000&&&32w0xff800000):left1_shift();
+(8w2,8w1&&&8w1,32w0x1000000&&&32w0xff000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x2000000&&&32w0xfe000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x4000000&&&32w0xfc000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x8000000&&&32w0xf8000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x10000000&&&32w0xf0000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x20000000&&&32w0xe0000000):left1_shift();
+(8w2,8w1&&&8w1,32w0x40000000&&&32w0xc0000000):left1_shift();
+}}
+action left2_shift(){m.left=hdr.tcp.ack-32w40;}
+action left2_clamp(){m.left=m.second+32w34;}
+table left2{key={m.direction:exact;m.valid:ternary;m.ao2:ternary;}actions={left2_shift;NoAction;left2_clamp;}size=128;const default_action=NoAction();const entries={
+(8w2,8w2&&&8w2,32w0x37&&&32w0xffffffff):left2_clamp();
+(8w2,8w2&&&8w2,32w0x38&&&32w0xfffffff8):left2_clamp();
+(8w2,8w2&&&8w2,32w0x40&&&32w0xfffffff8):left2_clamp();
+(8w2,8w2&&&8w2,32w0x48&&&32w0xfffffffe):left2_clamp();
+(8w2,8w2&&&8w2,32w0x4a&&&32w0xffffffff):left2_clamp();
+(8w2,8w2&&&8w2,32w0x4b&&&32w0xffffffff):left2_shift();
+(8w2,8w2&&&8w2,32w0x4c&&&32w0xfffffffc):left2_shift();
+(8w2,8w2&&&8w2,32w0x50&&&32w0xfffffff0):left2_shift();
+(8w2,8w2&&&8w2,32w0x60&&&32w0xffffffe0):left2_shift();
+(8w2,8w2&&&8w2,32w0x80&&&32w0xffffff80):left2_shift();
+(8w2,8w2&&&8w2,32w0x100&&&32w0xffffff00):left2_shift();
+(8w2,8w2&&&8w2,32w0x200&&&32w0xfffffe00):left2_shift();
+(8w2,8w2&&&8w2,32w0x400&&&32w0xfffffc00):left2_shift();
+(8w2,8w2&&&8w2,32w0x800&&&32w0xfffff800):left2_shift();
+(8w2,8w2&&&8w2,32w0x1000&&&32w0xfffff000):left2_shift();
+(8w2,8w2&&&8w2,32w0x2000&&&32w0xffffe000):left2_shift();
+(8w2,8w2&&&8w2,32w0x4000&&&32w0xffffc000):left2_shift();
+(8w2,8w2&&&8w2,32w0x8000&&&32w0xffff8000):left2_shift();
+(8w2,8w2&&&8w2,32w0x10000&&&32w0xffff0000):left2_shift();
+(8w2,8w2&&&8w2,32w0x20000&&&32w0xfffe0000):left2_shift();
+(8w2,8w2&&&8w2,32w0x40000&&&32w0xfffc0000):left2_shift();
+(8w2,8w2&&&8w2,32w0x80000&&&32w0xfff80000):left2_shift();
+(8w2,8w2&&&8w2,32w0x100000&&&32w0xfff00000):left2_shift();
+(8w2,8w2&&&8w2,32w0x200000&&&32w0xffe00000):left2_shift();
+(8w2,8w2&&&8w2,32w0x400000&&&32w0xffc00000):left2_shift();
+(8w2,8w2&&&8w2,32w0x800000&&&32w0xff800000):left2_shift();
+(8w2,8w2&&&8w2,32w0x1000000&&&32w0xff000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x2000000&&&32w0xfe000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x4000000&&&32w0xfc000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x8000000&&&32w0xf8000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x10000000&&&32w0xf0000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x20000000&&&32w0xe0000000):left2_shift();
+(8w2,8w2&&&8w2,32w0x40000000&&&32w0xc0000000):left2_shift();
+}}
+action right1_shift(){m.native_right=m.right-32w20;}
+action right1_clamp(){m.native_right=m.first+32w34;}
+table right1{key={m.direction:exact;m.valid:ternary;m.ro1:ternary;}actions={right1_shift;NoAction;right1_clamp;}size=128;const default_action=NoAction();const entries={
+(8w2,8w1&&&8w1,32w0x23&&&32w0xffffffff):right1_clamp();
+(8w2,8w1&&&8w1,32w0x24&&&32w0xfffffffc):right1_clamp();
+(8w2,8w1&&&8w1,32w0x28&&&32w0xfffffff8):right1_clamp();
+(8w2,8w1&&&8w1,32w0x30&&&32w0xfffffffc):right1_clamp();
+(8w2,8w1&&&8w1,32w0x34&&&32w0xfffffffe):right1_clamp();
+(8w2,8w1&&&8w1,32w0x36&&&32w0xffffffff):right1_clamp();
+(8w2,8w1&&&8w1,32w0x37&&&32w0xffffffff):right1_shift();
+(8w2,8w1&&&8w1,32w0x38&&&32w0xfffffff8):right1_shift();
+(8w2,8w1&&&8w1,32w0x40&&&32w0xffffffc0):right1_shift();
+(8w2,8w1&&&8w1,32w0x80&&&32w0xffffff80):right1_shift();
+(8w2,8w1&&&8w1,32w0x100&&&32w0xffffff00):right1_shift();
+(8w2,8w1&&&8w1,32w0x200&&&32w0xfffffe00):right1_shift();
+(8w2,8w1&&&8w1,32w0x400&&&32w0xfffffc00):right1_shift();
+(8w2,8w1&&&8w1,32w0x800&&&32w0xfffff800):right1_shift();
+(8w2,8w1&&&8w1,32w0x1000&&&32w0xfffff000):right1_shift();
+(8w2,8w1&&&8w1,32w0x2000&&&32w0xffffe000):right1_shift();
+(8w2,8w1&&&8w1,32w0x4000&&&32w0xffffc000):right1_shift();
+(8w2,8w1&&&8w1,32w0x8000&&&32w0xffff8000):right1_shift();
+(8w2,8w1&&&8w1,32w0x10000&&&32w0xffff0000):right1_shift();
+(8w2,8w1&&&8w1,32w0x20000&&&32w0xfffe0000):right1_shift();
+(8w2,8w1&&&8w1,32w0x40000&&&32w0xfffc0000):right1_shift();
+(8w2,8w1&&&8w1,32w0x80000&&&32w0xfff80000):right1_shift();
+(8w2,8w1&&&8w1,32w0x100000&&&32w0xfff00000):right1_shift();
+(8w2,8w1&&&8w1,32w0x200000&&&32w0xffe00000):right1_shift();
+(8w2,8w1&&&8w1,32w0x400000&&&32w0xffc00000):right1_shift();
+(8w2,8w1&&&8w1,32w0x800000&&&32w0xff800000):right1_shift();
+(8w2,8w1&&&8w1,32w0x1000000&&&32w0xff000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x2000000&&&32w0xfe000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x4000000&&&32w0xfc000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x8000000&&&32w0xf8000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x10000000&&&32w0xf0000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x20000000&&&32w0xe0000000):right1_shift();
+(8w2,8w1&&&8w1,32w0x40000000&&&32w0xc0000000):right1_shift();
+}}
+action right2_shift(){m.native_right=m.right-32w40;}
+action right2_clamp(){m.native_right=m.second+32w34;}
+table right2{key={m.direction:exact;m.valid:ternary;m.ro2:ternary;}actions={right2_shift;NoAction;right2_clamp;}size=128;const default_action=NoAction();const entries={
+(8w2,8w2&&&8w2,32w0x37&&&32w0xffffffff):right2_clamp();
+(8w2,8w2&&&8w2,32w0x38&&&32w0xfffffff8):right2_clamp();
+(8w2,8w2&&&8w2,32w0x40&&&32w0xfffffff8):right2_clamp();
+(8w2,8w2&&&8w2,32w0x48&&&32w0xfffffffe):right2_clamp();
+(8w2,8w2&&&8w2,32w0x4a&&&32w0xffffffff):right2_clamp();
+(8w2,8w2&&&8w2,32w0x4b&&&32w0xffffffff):right2_shift();
+(8w2,8w2&&&8w2,32w0x4c&&&32w0xfffffffc):right2_shift();
+(8w2,8w2&&&8w2,32w0x50&&&32w0xfffffff0):right2_shift();
+(8w2,8w2&&&8w2,32w0x60&&&32w0xffffffe0):right2_shift();
+(8w2,8w2&&&8w2,32w0x80&&&32w0xffffff80):right2_shift();
+(8w2,8w2&&&8w2,32w0x100&&&32w0xffffff00):right2_shift();
+(8w2,8w2&&&8w2,32w0x200&&&32w0xfffffe00):right2_shift();
+(8w2,8w2&&&8w2,32w0x400&&&32w0xfffffc00):right2_shift();
+(8w2,8w2&&&8w2,32w0x800&&&32w0xfffff800):right2_shift();
+(8w2,8w2&&&8w2,32w0x1000&&&32w0xfffff000):right2_shift();
+(8w2,8w2&&&8w2,32w0x2000&&&32w0xffffe000):right2_shift();
+(8w2,8w2&&&8w2,32w0x4000&&&32w0xffffc000):right2_shift();
+(8w2,8w2&&&8w2,32w0x8000&&&32w0xffff8000):right2_shift();
+(8w2,8w2&&&8w2,32w0x10000&&&32w0xffff0000):right2_shift();
+(8w2,8w2&&&8w2,32w0x20000&&&32w0xfffe0000):right2_shift();
+(8w2,8w2&&&8w2,32w0x40000&&&32w0xfffc0000):right2_shift();
+(8w2,8w2&&&8w2,32w0x80000&&&32w0xfff80000):right2_shift();
+(8w2,8w2&&&8w2,32w0x100000&&&32w0xfff00000):right2_shift();
+(8w2,8w2&&&8w2,32w0x200000&&&32w0xffe00000):right2_shift();
+(8w2,8w2&&&8w2,32w0x400000&&&32w0xffc00000):right2_shift();
+(8w2,8w2&&&8w2,32w0x800000&&&32w0xff800000):right2_shift();
+(8w2,8w2&&&8w2,32w0x1000000&&&32w0xff000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x2000000&&&32w0xfe000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x4000000&&&32w0xfc000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x8000000&&&32w0xf8000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x10000000&&&32w0xf0000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x20000000&&&32w0xe0000000):right2_shift();
+(8w2,8w2&&&8w2,32w0x40000000&&&32w0xc0000000):right2_shift();
+}}
+action difference(){m.window_after=m.native_right-m.left;}
  table difference_t{actions={difference;}size=1;const default_action=difference();}
  action growth(){m.native_right=m.window_after-m.full_window;}
  table growth_t{actions={growth;}size=1;const default_action=growth();}
  action complete_reverse(){hdr.tcp.ack=m.left;hdr.tcp.control_window[15:0]=m.window_after[15:0];m.changed=1w1;}
-@WINDOW_GUARD@action window_narrow(){m.window_after=m.window_after&32w0xffff;m.full_window=hdr.tcp.control_window&32w0xffff0000;}
+table window_guard{key={m.native_right:ternary;}actions={deny;complete_reverse;}size=32;const default_action=complete_reverse();const entries={
+(32w0x1&&&32w0xffffffff):deny();
+(32w0x2&&&32w0xfffffffe):deny();
+(32w0x4&&&32w0xfffffffc):deny();
+(32w0x8&&&32w0xfffffff8):deny();
+(32w0x10&&&32w0xfffffff0):deny();
+(32w0x20&&&32w0xffffffe0):deny();
+(32w0x40&&&32w0xffffffc0):deny();
+(32w0x80&&&32w0xffffff80):deny();
+(32w0x100&&&32w0xffffff00):deny();
+(32w0x200&&&32w0xfffffe00):deny();
+(32w0x400&&&32w0xfffffc00):deny();
+(32w0x800&&&32w0xfffff800):deny();
+(32w0x1000&&&32w0xfffff000):deny();
+(32w0x2000&&&32w0xffffe000):deny();
+(32w0x4000&&&32w0xffffc000):deny();
+(32w0x8000&&&32w0xffff8000):deny();
+(32w0x10000&&&32w0xffff0000):deny();
+(32w0x20000&&&32w0xfffe0000):deny();
+(32w0x40000&&&32w0xfffc0000):deny();
+(32w0x80000&&&32w0xfff80000):deny();
+(32w0x100000&&&32w0xfff00000):deny();
+(32w0x200000&&&32w0xffe00000):deny();
+(32w0x400000&&&32w0xffc00000):deny();
+(32w0x800000&&&32w0xff800000):deny();
+(32w0x1000000&&&32w0xff000000):deny();
+(32w0x2000000&&&32w0xfe000000):deny();
+(32w0x4000000&&&32w0xfc000000):deny();
+(32w0x8000000&&&32w0xf8000000):deny();
+(32w0x10000000&&&32w0xf0000000):deny();
+(32w0x20000000&&&32w0xe0000000):deny();
+(32w0x40000000&&&32w0xc0000000):deny();
+}}
+ action window_narrow(){m.window_after=m.window_after&32w0xffff;m.full_window=hdr.tcp.control_window&32w0xffff0000;}
  action complete_forward(){m.changed=1w1;}
  table complete_forward_t{actions={complete_forward;}size=1;const default_action=complete_forward();}
  table complete_reverse_t{actions={complete_reverse;}size=1;const default_action=complete_reverse();}
@@ -180,14 +414,14 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
     if(m.admitted==8w1){
      if(m.kind==8w5||m.kind==8w7){
       prep_native_t.apply();prep_t.apply();led_select_t.apply();geo_first_t.apply();
-      producer_compare_t.apply();led_operate_t.apply();
+      if(m.kind==8w7&&m.selected_qualified==8w1&&m.producer_first==m.producer_previous){led_operate_t.apply();}
       geo_second_t.apply();geo_tag_t.apply();
       if(m.kind==8w7&&m.led_ok==8w1){operate_shift_t.apply();}
-      producer_wire_start_t.apply();led_pos_t.apply();
+      led_pos_t.apply();
       if(m.led_ok!=8w1){deny();}
      }else if(m.kind==8w12){
-      prep_replay_t.apply();replay_start_t.apply();replay_select_id_t.apply();replay_operate_id_t.apply();replay_pos_t.apply();
-      if(m.ledger_generation==32w0||m.replay_match!=32w1){deny();}
+      prep_replay_t.apply();replay_select_id_t.apply();replay_operate_id_t.apply();replay_pos_t.apply();
+      if(m.ledger_generation==32w0||m.byte_match!=32w1){deny();}
      }else{
       prepare_window_t.apply();edges_t.apply();
       map_first_t.apply();map_second_t.apply();map_tag_t.apply();snapshot_t.apply();

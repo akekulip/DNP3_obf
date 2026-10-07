@@ -1,0 +1,63 @@
+{
+  "build_gate": {
+    "compiled_artifacts_verified": false,
+    "compiler_matches": true,
+    "full_target": false,
+    "snapshots_match": true,
+    "source_matches": true
+  },
+  "compile": {
+    "allocated_egress_stages": 0,
+    "allocated_ingress_stages": 15,
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "dependency_critical_path": 11,
+    "exit_code": 2,
+    "usable_binary": false
+  },
+  "failed_placement_report_sha256": "e935cd6e83232e27661b48b279ca97400a82cd1cbfd64940773030281acc0fda",
+  "first_attempt_failure": "Union of pos_write/read register inputs exceeded2PHV; repaired by shared full32 wire-start input.",
+  "generator_matches_source": true,
+  "limitations": [
+    "Standalone M canary, no actual N protected Work verification.",
+    "No target qualification or full N/M/E composition.",
+    "No hardware or physical timing evidence."
+  ],
+  "model_execution": {
+    "performed": false,
+    "reason": "No usable current binary."
+  },
+  "red": {
+    "failing_subcases": 34,
+    "path": "../m_replay_coordinate_red_01",
+    "qualification": "24 wrong-sequence emissions and10 missing full candidate-wire-start assertions before implementation. Exact source/test snapshots retained.",
+    "tests": 14
+  },
+  "replay_contract": {
+    "comparison": "full stored32-bit wire_start AND stored native byte",
+    "current_work_and_cached_generation_separate": true,
+    "operate_wire_start": "(native_tail_seq-14) mod2^32",
+    "result": "separate equality-success flag",
+    "select_wire_start": "(native_tail_seq-34) mod2^32",
+    "zero_valid": true
+  },
+  "retained_first_attempt": "../m_replay_coordinate_01",
+  "source_files_sha256": {
+    "generate_m_skeleton.py": "e164bba2eec365002db60ca4559cb190fd562f9f2acb2634d0f0cb4993e2afe8",
+    "m_skeleton.p4.in": "24d65760f2c24fb7dc5a4d67df37ea517a9f2b2bc19983206bf5bfc3b5130649",
+    "tests/support_m.py": "7b83d20d19f3151799fea80629f4ecbf482aba92f19f455bae4668c9aa16b36e",
+    "tests/test_m_admission.py": "c946197a3558b7ae989941de2d63faae7a9e6afde848dc4fd62db073ade6196b",
+    "tests/test_m_skeleton.py": "348ea704d9d7f88a9126d677744e1253be92a262ba2f81c1a4c0edf2872671cb"
+  },
+  "source_sha256": "d1e518f133cec1d7e6652f91fd41303a9ae833ff3f46607bbe33a6799109ae88",
+  "source_tests": {
+    "failures": 0,
+    "log": "source_tests.log",
+    "tests": 33
+  },
+  "static_context_check": {
+    "overflow": [],
+    "qualification": "Failed compile context only, no deployment qualification.",
+    "tables": 68
+  },
+  "status": "replay_coordinate_source_fix_pass_target_placement_blocked"
+}

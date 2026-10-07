@@ -11,10 +11,13 @@ lifetimes; timestamps establish internal eligibility, not physical departure.
 
 Continue from [PLAN.md](PLAN.md) and [HANDOVER.md](HANDOVER.md). Current N/T
 prerequisite repairs at base834372cbb have40 N/T and50 T functional model cases;
-M/E remain absent from that composed source. N/T/M each use12 ingress stages.
+M/E remain absent from that composed source. N/T use12 ingress stages. The old M
+canary fit12; its corrected admission/replay source passes33 source tests but
+currently fails at15 stages (critical11), with no usable binary/model.
 The reusable renderer uses7 egress stages, a separate budget. M admission and
 dependency repairs are active; actual padding/carving/mapping/replay integration
-remains unfinished. Source-harness tests and component fits do not close that gate.
+remains unfinished. Protected staged M integration is active. Source-harness
+tests and component fits do not close that gate.
 
 | Source-bound milestone | Local SDE9.13.1 fit | Remaining interface |
 |---|---:|---|

@@ -1,0 +1,289 @@
+test_bad_ip_checksum_leaves_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish (test_m_admission.Admission) ... ok
+test_old_epoch_select_lower_or_equal_global_generation_cannot_mutate (test_m_admission.Admission) ... ok
+test_operate_without_select_leaves_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_operate_work_generation_must_follow_selected_generation (test_m_admission.Admission) ... ok
+test_stale_select_cannot_overwrite_geometry_or_byte (test_m_admission.Admission) ... ok
+test_unknown_kind_cannot_mutate (test_m_admission.Admission) ... ok
+test_wrong_operate_phase_or_function_cannot_mutate (test_m_admission.Admission) ... ok
+test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) ... ok
+test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) ... test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) ... ok
+test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) ... test_select_and_operate_zero_wire_start_are_valid_replay_positions (test_m_admission.LedgerCoordinates) ... ok
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=1000, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 1000
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=1000, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 1055
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=0, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 0
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=0, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 55
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967241, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 4294967241
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967241, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 0
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967280, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 4294967280
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967280, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 39
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967295, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 4294967295
+
+======================================================================
+FAIL: test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap (test_m_admission.LedgerCoordinates) (base=4294967295, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 138, in test_actual_tail_sequence_retains_full_candidate_wire_start_across_wrap
+    self.assertEqual(pipe.src.env.get('m.replay_wire_start'), (base + wire_offset) & s.MASK)
+AssertionError: None != 54
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=9, sequence=1033)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x04\t\x00\x00\x00\x07P\x10\x00\x14J|\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=9, sequence=1035)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x04\x0b\x00\x00\x00\x07P\x10\x00\x14Jz\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=9, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=12, sequence=1068)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x04,\x00\x00\x00\x07P\x10\x00\x14JY\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=12, sequence=1070)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x04.\x00\x00\x00\x07P\x10\x00\x14JW\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=1000, phase=12, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=9, sequence=33)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00!\x00\x00\x00\x07P\x10\x00\x14Nd\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=9, sequence=35)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00#\x00\x00\x00\x07P\x10\x00\x14Nb\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=9, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=12, sequence=68)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00D\x00\x00\x00\x07P\x10\x00\x14NA\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=12, sequence=70)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00F\x00\x00\x00\x07P\x10\x00\x14N?\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=0, phase=12, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=9, sequence=4294967274)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \xff\xff\xff\xea\x00\x00\x00\x07P\x10\x00\x14N\x9a\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=9, sequence=4294967276)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \xff\xff\xff\xec\x00\x00\x00\x07P\x10\x00\x14N\x98\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=9, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=12, sequence=13)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00\r\x00\x00\x00\x07P\x10\x00\x14Nx\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=12, sequence=15)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00\x0f\x00\x00\x00\x07P\x10\x00\x14Nv\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967241, phase=12, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=9, sequence=17)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00\x11\x00\x00\x00\x07P\x10\x00\x14Nt\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=9, sequence=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x00\x13\x00\x00\x00\x07P\x10\x00\x14Nr\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=9, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\t\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=12, sequence=52)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x004\x00\x00\x00\x07P\x10\x00\x14NQ\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=12, sequence=54)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x006\x00\x00\x00\x07P\x10\x00\x14NO\x00\x00[')]
+
+======================================================================
+FAIL: test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write (test_m_admission.LedgerCoordinates) (base=4294967280, phase=12, sequence=999999)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 125, in test_same_byte_at_wrong_tail_sequence_is_refused_without_any_bank_write
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\t\x00\x0c\x00\x00\x01\x0c\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00)\x01\xa4@\x00@\x06%)\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x0fB?\x00\x00\x00\x07P\x10\x00\x14\x0c7\x00\x00[')]
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.840s
+
+FAILED (failures=34)

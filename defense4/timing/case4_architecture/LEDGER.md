@@ -21,6 +21,35 @@ identities stay separate; duplicate prepare/ready/commit/emit are independently
 qualified. Failure to deliver completion conservatively retains the pin.
 
 M admission, zero-position, OPERATE ledger and dependency repairs are active.
+RED evidence `integration/evidence/m_admission_red_01` retains17 failing subcases
+for9 targeted source tests; corrected M28 tests pass. Compiler runs01–03 reject
+SALU pair-output subtraction and repeated/inconsistent table application; run04
+reaches assembly but needs21 stages. The next bounded repair separates producer,
+replay and mapping dependencies; admission/lifetime/full32 guards remain required.
+Final variant10 removes those aliases and gates each mutable write. Root freshly
+verified31 M tests and2 boundary tests, generator/source/compiler identity, and
+the negative build gate: allocated15/0, critical11, no binary/model. The reviewer
+accepts these source repairs within the canary scope. Shared geometry SALUs still
+force mapper reads late; no stage saving over the old12-stage canary is claimed.
+RED02 has4 failures for old-epoch/OPgeneration ordering, now repaired.
+
+Ruling: stop single-pass packing and implement staged producer preflight/activation
+as part of the actual N-held-Work/E-ready composition — this separates the measured
+shared-bank dependency while retaining admission before writes. It costs bounded
+private passes; a matching expected-phase reservation is required, not an asserted
+private validity bit. A same-byte/wrong-sequence replay witness also requires the
+full stored wire coordinate with a separate success indication; that fix is active.
+Replay fix reviewed: same-byte/wrong-sequence packets now refuse, including high-bit
+differences. SELECT derives seq−34, OPERATE seq−14; both full32 wire coordinate and
+native byte must match, and zero retains an independent success result. Current
+M SHA `d1e518f1…ae88` matches `m_replay_coordinate_02`; root freshly verifies33 M
+tests and negative source/snapshot/compiler gate. Compiler remains15/0, critical11,
+no binary/model. No new one-pass placement sweep occurred. Reviewer approves the
+source fix within that explicit qualification boundary.
+
+The next active implementation is a separate ordinary core candidate: actual
+N-held Work, staged M preflight/activation and E-ready publication for an external
+handshake→SELECT35→55 milestone. Original N/T prerequisite sources remain intact.
 Ordinary SELECT/SBO composition, timing join, fragments/lifecycle and9.13.2 final
 qualification remain pending. No live switch or traffic action is authorized by
 this continuation. Philip-only authorship, no attribution trailers, no push.

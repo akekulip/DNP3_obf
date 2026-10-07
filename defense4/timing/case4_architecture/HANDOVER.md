@@ -43,12 +43,23 @@ unwanted frame. T→M197 is reserved but releases currently go to endpoint ports
 These gaps mean there is no verified current N/M/T/E core. E's separate7-stage
 egress fit is reusable capacity, not a completed join or a stage minimum.
 
-M receiving ports196/197 remain source-bound to `task1_m_ports_01`,12/0;
-its production/rendering path remains unfinished. Complete retirement/loss,
+At execution base834372cbb, M ports196/197 matched `task1_m_ports_01`,12/0.
+The working admission/replay repair changes M; its33 source tests and2 boundary
+tests pass. `m_replay_coordinate_02` matches SHA `d1e518f1…ae88`, but fails at15 ingress stages
+(critical11), with no binary/model. Earlier corrected layouts needed21 and19.
+The unchanged shared N harness has41/42 passes and one historical epoch0-forwarding
+fixture failure; that is separate from M's tests. No current fit or stage saving
+over the old12-stage canary is claimed. The bounded reviewer accepts the source
+admission/contiguity/claim fixes and full replay-coordinate plus byte equality.
+Zero has a separate success result; the full wire start remains available. Next is protected
+staged M preflight/activation under actual N Work, as specified in the plan.
+Its production/rendering path remains unfinished. Exact current checkpoint:
+[m_replay_coordinate_02/verification.json](integration/evidence/m_replay_coordinate_02/verification.json).
+Complete retirement/loss,
 full Case4,9.13.2 qualification, physical port authority and hardware remain open.
 
 The following continuation details retain pre-review historical identities;
-the current Task1 facts above and the linked PLAN supersede their N/T claims.
+the current facts above and the linked PLAN supersede their role and completion claims.
 
 **Resume from the [core functionality and testing plan](PLAN.md).** This checkpoint replaces the
 2026-10-06 one in full: historical step1/2 prerequisite results below do not close
@@ -113,7 +124,8 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
 ## Open / stopped
 
 - **Role M beyond the canary is unfinished (plan step3).** Task1 only normalizes
-  parser/apply receiving ports196/197. The canary already occupies12 stages;
+  parser/apply receiving ports196/197. The historical canary occupies12 stages;
+  current admission/replay repairs fail15 stages and require protected staged integration;
   actual35→55 production, descriptor/carve decisions and exact replay must be
   integrated and measured before any complete-target claim. Earlier planning
   interruptions remain historical evidence, not a qualification result.

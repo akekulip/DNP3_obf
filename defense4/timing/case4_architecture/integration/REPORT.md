@@ -2,6 +2,14 @@
 
 ## Task1 fix-round source-current prerequisites (2026-10-07)
 
+Current M source repair checkpoint: `core/m/m_skeleton.p4` SHA `d1e518f1…ae88`,
+33 source tests and2 receiving-boundary tests pass; full coordinate/byte replay,
+zero/wrap, admission and global-generation refusals are independently reviewed.
+`evidence/m_replay_coordinate_02` fails placement15/0, critical11: no binary/model.
+This supersedes M canary fit claims for current code; historical12-stage evidence
+remains tied to its original source. Next is actual N-held-Work/staged M/E-ready
+composition, not another one-pass layout sweep. The N/T sources below are unchanged.
+
 Current identities are in [evidence/TASK1_VERIFICATION.json](evidence/TASK1_VERIFICATION.json).
 N `connection/binding/evidence/task1_fix_n_01` SHA721fd4b7… compiles12/0,
 critical11; T `evidence/task1_fix_t_04` SHA52b43d5a… compiles12/0,critical12.

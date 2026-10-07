@@ -1,0 +1,130 @@
+{
+  "boundary_tests": {
+    "failures": 0,
+    "log": "boundary_tests.log",
+    "tests": 2
+  },
+  "build_gate": {
+    "compiled_artifacts_verified": false,
+    "compiler_matches": true,
+    "full_target": false,
+    "snapshots_match": true,
+    "source_matches": true
+  },
+  "compile": {
+    "allocated_egress_stages": 0,
+    "allocated_ingress_stages": 15,
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+    "dependency_critical_path": 11,
+    "exit_code": 2,
+    "milestone": "compile_failed",
+    "usable_binary": false
+  },
+  "compiled_context_static_entry_check": {
+    "overflow": [],
+    "performed": true,
+    "qualification": "A failed build context cannot qualify a deployable artifact.",
+    "tables": 66
+  },
+  "failed_placement_report_sha256": "3e0f9520e410166200689431d31a0e2d66806a59760a6a79d139c25ba4a6a868",
+  "generator_matches_source": true,
+  "limitations": [
+    "Standalone canary has no current N Work pin verification or complete composed authority.",
+    "DNP3 full frame and TCP validation rely on upstream producer, not newly proved in M.",
+    "No payload padding/cache rendering/carving or physical evidence.",
+    "No measured spare M stage."
+  ],
+  "model_execution": {
+    "performed": false,
+    "reason": "No successfully compiled current binary."
+  },
+  "owned_files_sha256": {
+    "integration/core/m/generate_m_skeleton.py": "e164bba2eec365002db60ca4559cb190fd562f9f2acb2634d0f0cb4993e2afe8",
+    "integration/core/m/m_skeleton.p4": "b913e9e00d26f4e895283708430e7addf4d7de8cb111270c218534fde540746c",
+    "integration/core/m/m_skeleton.p4.in": "885692ffc15a170f9df1fbffe94f7c012861ae859abd0895ec9cf1c40ec8cee5",
+    "integration/core/m/tests/support_m.py": "7b83d20d19f3151799fea80629f4ecbf482aba92f19f455bae4668c9aa16b36e",
+    "integration/core/m/tests/test_m_admission.py": "fcfb9cf43da1b655fdb7a6165f5a76c2da763b26045b114a28976eeffc86cf37",
+    "integration/core/m/tests/test_m_skeleton.py": "6a4ee2ae28165560447d24696642215df74f9042a1d9253ef8372af564ccff4b"
+  },
+  "red_snapshot_recovery": {
+    "m_admission_red_01": {
+      "candidate_sha256": "508aacfea82b8165a4007dabfd855f0cd2c6f494658d8ac8583127e550d56156",
+      "exact_test_snapshot_recovered": true,
+      "expected_sha256": "508aacfea82b8165a4007dabfd855f0cd2c6f494658d8ac8583127e550d56156"
+    },
+    "m_admission_red_02": {
+      "candidate_sha256": "fcfb9cf43da1b655fdb7a6165f5a76c2da763b26045b114a28976eeffc86cf37",
+      "exact_test_snapshot_recovered": true,
+      "expected_sha256": "fcfb9cf43da1b655fdb7a6165f5a76c2da763b26045b114a28976eeffc86cf37"
+    }
+  },
+  "retained_attempts": {
+    "m_admission_01": {
+      "compile_log_sha256": "657cd683dd68ad538e294000400238c096848c411a35e0ba01ad4b0199fee639",
+      "exit_code": 3,
+      "source_sha256": "3e2121877c7c59f0b6e3a79305515fd8170fa5bf011cddf3d215fdabba1caf92"
+    },
+    "m_admission_02": {
+      "compile_log_sha256": "fc9c76e6c3af27657d054e8098f40a54a2d81cc307f77bc59e022d0347521706",
+      "exit_code": 2,
+      "source_sha256": "c35befbf7f61fd09ea0ad10247d79806e6642c63926dab7cfb1a2c405b4f0e02"
+    },
+    "m_admission_03": {
+      "compile_log_sha256": "0254820153c41c2104f89d3794f5a93b2e06d1d2168395866c2ca4d86a6bda04",
+      "exit_code": 2,
+      "source_sha256": "678edb526bc4d7d1ceb7ba72c9a4d2aca126ff289a6f8bbde4e77ad7db8168be"
+    },
+    "m_admission_04": {
+      "compile_log_sha256": "ba2bf37c1ff13fecd4a5202facfd7b68e740ec9e1e9ddb7a001a26ed2d79c690",
+      "exit_code": 2,
+      "source_sha256": "27d929603e89392e9947a40bf254db1e31e2e282c4cd5cf2ee225c99faae9ea5"
+    },
+    "m_admission_05": {
+      "compile_log_sha256": "0baf9fff2b1e89f54bcb68282d9c0616fff201cd726fe84c088950b18d2aaeb9",
+      "exit_code": 2,
+      "source_sha256": "5496adbc4109fc5cc4734597428e0832ae1e7c9d5f3bc79663d32e6482041f7d"
+    },
+    "m_admission_06": {
+      "compile_log_sha256": "8ed65880f83c9b31eca05ff18967d07a7a0240307261e969d66afffaad8cd771",
+      "exit_code": 3,
+      "source_sha256": "df9917130db3d25b8b7f4ee5c62d397254e7d05940c3046aecbef663c5777d62"
+    },
+    "m_admission_07": {
+      "compile_log_sha256": "b45d74ffcefc0cc6b36c6af5afbc465e30f31b1681f91d4dce6aebd92f6f5f76",
+      "exit_code": 3,
+      "qualification": "Unchanged repeat of06 after a pre-edit Python evidence-path error; not a distinct layout experiment.",
+      "source_sha256": "df9917130db3d25b8b7f4ee5c62d397254e7d05940c3046aecbef663c5777d62"
+    },
+    "m_admission_08": {
+      "compile_log_sha256": "1df5d2a71f0a54079531175e1e897145beb0fa81a946a60d0ab04cd211eb8d6a",
+      "exit_code": 3,
+      "source_sha256": "58296c22c7cdb7d442b21014da49acd42a9b93eb6866444455771d7b00981c49"
+    },
+    "m_admission_09": {
+      "compile_log_sha256": "43880f1aca1d5644ccdbc27717d9608fab08a6a93ac2e2cddeaa9d2151090801",
+      "exit_code": 2,
+      "source_sha256": "9c2b90cf14f265fd9c9626be96f72b780ff00703bcc277e456835f52adea72f8"
+    },
+    "m_admission_10": {
+      "compile_log_sha256": "d5b5016ab1be8393831165ae49085f640989e79181772fe9a202b6c09ba13648",
+      "exit_code": 2,
+      "source_sha256": "b913e9e00d26f4e895283708430e7addf4d7de8cb111270c218534fde540746c"
+    }
+  },
+  "shared_harness_tests": {
+    "failure": "test_negative.Recirculation.test_epoch_zero_register_no_longer_produces_an_endless_loop",
+    "failures": 1,
+    "log": "harness_tests.log",
+    "qualification": "Unchanged N fixture expects epoch0 forwarding; current N intentionally refuses invalid epoch0. No M test fails.",
+    "tests": 42
+  },
+  "source_matches_final_compile": true,
+  "source_sha256": "b913e9e00d26f4e895283708430e7addf4d7de8cb111270c218534fde540746c",
+  "source_tests": {
+    "failures": 0,
+    "log": "source_tests.log",
+    "tests": 31
+  },
+  "status": "source_tests_pass_target_placement_blocked"
+}

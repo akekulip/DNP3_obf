@@ -22,7 +22,7 @@ struct headers_t{work_h work;eth_h eth;ip_h ip;tcp_h tcp;dl_h dl;native_h native
 struct meta_t{bit<8> network_allowed;bit<32> repair_sum_pad;bit<16> repair_sum;bit<32> first;bit<32> second;bit<8> valid;bit<8> direction;PortId_t output_port;
  bit<32> right;bit<32> left;bit<32> native_right;bit<32> so1;bit<32> so2;bit<32> ao1;bit<32> ao2;bit<32> ro1;bit<32> ro2;
  bit<32> full_window;bit<32> window_after;bit<16> tcp_len;bool ip_error;bit<8> parsed;bit<1> changed;
- bit<32> native_last;bit<8> kind;bit<16> phase;bit<8> contig;bit<8> led_ok;bit<8> admitted;bit<32> producer_previous;bit<32> producer_first;bit<32> ledger_generation;bit<32> replay_match;bit<32> replay_wire_start;bit<32> geometry_difference;bit<8> selected_qualified;bit<32> producer_difference;}
+ bit<32> native_last;bit<8> kind;bit<16> phase;bit<8> contig;bit<8> led_ok;bit<8> admitted;bit<32> producer_previous;bit<32> producer_first;bit<32> ledger_generation;bit<32> byte_match;bit<32> geometry_difference;bit<8> selected_qualified;bit<32> producer_difference;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
  state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.parsed=8w0;m.changed=1w0;m.direction=8w0;m.valid=8w0;m.network_allowed=8w0;m.kind=8w0;m.phase=16w0;m.contig=8w0;m.led_ok=8w0;m.admitted=8w0;m.selected_qualified=8w0;m.ro1=32w0;transition select(ig.ingress_port){N_TO_M:work;T_TO_M:work;default:reject;}}
  state work{pkt.extract(hdr.work);m.kind=hdr.work.event[7:0];m.phase=hdr.work.expected_cell[31:16];transition select(hdr.work.reserved){16w0:eth;default:reject;}}
@@ -57,7 +57,6 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
 @pa_container_size("ingress", "m.producer_first", 32)
 @pa_container_size("ingress", "m.producer_previous", 32)
 @pa_container_size("ingress", "m.producer_difference", 32)
-@pa_container_size("ingress", "m.replay_wire_start", 32)
 control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata_t ig,in ingress_intrinsic_metadata_from_parser_t p,inout ingress_intrinsic_metadata_for_deparser_t md,inout ingress_intrinsic_metadata_for_tm_t tm){
  action deny(){md.drop_ctl=3w1;}
  action route(PortId_t port){m.output_port=port;tm.ucast_egress_port=port;tm.bypass_egress=1w0;}
@@ -85,9 +84,6 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  action prep_native(){m.native_last=(bit<32>)hdr.tail.crc[7:0];}
  table prep_native_t{actions={prep_native;}size=1;const default_action=prep_native();}
  action prep_replay(){m.native_last=(bit<32>)hdr.replay.data;}
- action replay_select_start(){m.replay_wire_start=hdr.tcp.seq-32w34;}
- action replay_operate_start(){m.replay_wire_start=hdr.tcp.seq-32w14;}
- table replay_start_t{key={m.phase:exact;}actions={replay_select_start;replay_operate_start;NoAction;}size=2;const default_action=NoAction();const entries={16w9:replay_select_start();16w12:replay_operate_start();}}
  table prep_replay_t{actions={prep_replay;}size=1;const default_action=prep_replay();}
  /* ---- geometry registers. One table per register. Epoch-tagged: tag cell {epoch,bits}. ---- */
  Register<bit<32>,bit<1>>(1,0) geo_first;
@@ -137,14 +133,12 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  table producer_compare_t{actions={producer_compare;}size=1;const default_action=producer_compare();}
  table led_operate_t{key={m.kind:exact;m.phase:exact;m.selected_qualified:exact;m.producer_difference:exact;}actions={led_operate_write;NoAction;}size=1;const default_action=NoAction();const entries={(8w7,16w12,8w1,32w0):led_operate_write();}}
  Register<pair_t,bit<1>>(2,{0,0}) led_pos;
- RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_write={void apply(inout pair_t v,out bit<32> r){v.lo=m.replay_wire_start;v.hi=m.native_last;r=32w0;}};
- RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_check={void apply(inout pair_t v,out bit<32> r){r=32w0;if(v.lo==m.replay_wire_start&&v.hi==m.native_last){r=32w1;}}};
- action producer_wire_start(){m.replay_wire_start=hdr.tcp.seq;}
- table producer_wire_start_t{actions={producer_wire_start;}size=1;const default_action=producer_wire_start();}
+ RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_write={void apply(inout pair_t v,out bit<32> r){v.lo=hdr.tcp.seq;v.hi=m.native_last;r=32w0;}};
+ RegisterAction<pair_t,bit<1>,bit<32>>(led_pos) pos_check={void apply(inout pair_t v,out bit<32> r){r=32w0;if(v.hi==m.native_last){r=32w1;}}};
  action led_pos_write_0(){pos_write.execute(1w0);}
  action led_pos_write_1(){pos_write.execute(1w1);}
- action led_pos_check_0(){m.replay_match=pos_check.execute(1w0);}
- action led_pos_check_1(){m.replay_match=pos_check.execute(1w1);}
+ action led_pos_check_0(){m.byte_match=pos_check.execute(1w0);}
+ action led_pos_check_1(){m.byte_match=pos_check.execute(1w1);}
  table replay_pos_t{key={m.phase:exact;}actions={led_pos_check_0;led_pos_check_1;NoAction;}size=2;const default_action=NoAction();const entries={16w9:led_pos_check_0();16w12:led_pos_check_1();}}
  table led_pos_t{key={m.kind:exact;m.phase:exact;m.led_ok:exact;}actions={led_pos_write_0;led_pos_write_1;NoAction;}size=2;const default_action=NoAction();const entries={(8w5,16w9,8w1):led_pos_write_0();(8w7,16w12,8w1):led_pos_write_1();}}
  /* constant +20 for the OPERATE produce packet itself (valid bit 0 proven by N and re-read here) */
@@ -183,11 +177,11 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
       producer_compare_t.apply();led_operate_t.apply();
       geo_second_t.apply();geo_tag_t.apply();
       if(m.kind==8w7&&m.led_ok==8w1){operate_shift_t.apply();}
-      producer_wire_start_t.apply();led_pos_t.apply();
+      led_pos_t.apply();
       if(m.led_ok!=8w1){deny();}
      }else if(m.kind==8w12){
-      prep_replay_t.apply();replay_start_t.apply();replay_select_id_t.apply();replay_operate_id_t.apply();replay_pos_t.apply();
-      if(m.ledger_generation==32w0||m.replay_match!=32w1){deny();}
+      prep_replay_t.apply();replay_select_id_t.apply();replay_operate_id_t.apply();replay_pos_t.apply();
+      if(m.ledger_generation==32w0||m.byte_match!=32w1){deny();}
      }else{
       prepare_window_t.apply();edges_t.apply();
       map_first_t.apply();map_second_t.apply();map_tag_t.apply();snapshot_t.apply();

@@ -1,0 +1,31 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_05/source/m_skeleton.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_05/source/m_skeleton.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_05/source/m_skeleton.p4(442): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_05/source/m_skeleton.p4(442)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_05/source/m_skeleton.p4(125): [--Werror=target-error] error: table Ingress.replay_id_t: There are issues with the following indirect externs:
+  The action led_select_check uses Register Ingress.led_select_id but does not use Register Ingress.led_operate_id.
+  The action led_operate_check uses Register Ingress.led_operate_id but does not use Register Ingress.led_select_id.
+The Tofino architecture requires all indirect externs to be addressed with the same expression across all actions they are used in.
+You can also try to distribute individual indirect externs into separate tables.
+ table replay_id_t{key={m.phase:exact;}actions={led_select_check;led_operate_check;NoAction;}size=2;const default_action=NoAction();const entries={16w9:led_select_check();16w12:led_operate_check();}}
+       ^^^^^^^^^^^
+
+1 error, 10 warnings generated.
+
+Skipping assembler, assembly file is empty

@@ -1,0 +1,240 @@
+test_bad_ip_checksum_leaves_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) ... test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish (test_m_admission.Admission) ... test_operate_without_select_leaves_every_bank_unchanged (test_m_admission.Admission) ... FAIL
+test_stale_select_cannot_overwrite_geometry_or_byte (test_m_admission.Admission) ... FAIL
+test_unknown_kind_cannot_mutate (test_m_admission.Admission) ... ok
+test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) ... test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) ... test_select_and_operate_zero_wire_start_are_valid_replay_positions (test_m_admission.LedgerCoordinates) ... 
+======================================================================
+FAIL: test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) (reason='tuple')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 41, in test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged
+    self.refuse_without_writes(pipe, s.KIND_SELECT, raw, phase=9)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('', 'geo_first'): [1000], ('', 'geo_second'): [{'lo': 1000, [167 chars] 0}]} != {('', 'geo_first'): [0], ('', 'geo_second'): [{'lo': 0, 'hi': [155 chars] 0}]}
+Diff is 793 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) (reason='ttl')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 41, in test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged
+    self.refuse_without_writes(pipe, s.KIND_SELECT, raw, phase=9)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('', 'geo_first'): [1000], ('', 'geo_second'): [{'lo': 1000, [167 chars] 0}]} != {('', 'geo_first'): [0], ('', 'geo_second'): [{'lo': 0, 'hi': [155 chars] 0}]}
+Diff is 793 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) (reason='route')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 41, in test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged
+    self.refuse_without_writes(pipe, s.KIND_SELECT, raw, phase=9)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 26, in refuse_without_writes
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\x01\x00\t\x00\x00\x01\x05\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00K\x01\xa4@\x00@\x06%\x07\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x03\xe8\x00\x00\x00\x05P\x18\x00\x14\xac\xde\x00\x00\x05d\x1a\xc4\n\x00\x01\x00\x8a\x1c\xc0\xc0\x03\x0c\x01(\x01\x00\x01\x00\x01\x01d\x00\x00\x00X[d\x00\x00\x00\x00\x00[')]
+
+======================================================================
+FAIL: test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish (test_m_admission.Admission) (seq=1036, epoch=17, generation=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 63, in test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish
+    self.refuse_without_writes(pipe, s.KIND_OPERATE,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('',[174 chars], 'led_pos'): [{'lo': 1000, 'hi': 91}, {'lo': 1036, 'hi': 91}]} != {('',[174 chars], 'led_pos'): [{'lo': 1000, 'hi': 91}, {'lo': 1035, 'hi': 91}]}
+  {('', 'geo_first'): [1000],
+   ('', 'geo_second'): [{'hi': 1035, 'lo': 1000}],
+   ('', 'geo_tag'): [{'hi': 3, 'lo': 17}],
+   ('', 'led_id'): [{'hi': 1, 'lo': 17}, {'hi': 2, 'lo': 17}],
+-  ('', 'led_pos'): [{'hi': 91, 'lo': 1000}, {'hi': 91, 'lo': 1036}]}
+?                                                                ^
+
++  ('', 'led_pos'): [{'hi': 91, 'lo': 1000}, {'hi': 91, 'lo': 1035}]}
+?                                                                ^
+
+
+======================================================================
+FAIL: test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish (test_m_admission.Admission) (seq=1035, epoch=18, generation=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 63, in test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish
+    self.refuse_without_writes(pipe, s.KIND_OPERATE,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('',[152 chars]o': 18, 'hi': 2}], ('', 'led_pos'): [{'lo': 10[34 chars]91}]} != {('',[152 chars]o': 17, 'hi': 2}], ('', 'led_pos'): [{'lo': 10[34 chars]91}]}
+  {('', 'geo_first'): [1000],
+   ('', 'geo_second'): [{'hi': 1035, 'lo': 1000}],
+   ('', 'geo_tag'): [{'hi': 3, 'lo': 17}],
+-  ('', 'led_id'): [{'hi': 1, 'lo': 17}, {'hi': 2, 'lo': 18}],
+?                                                         ^
+
++  ('', 'led_id'): [{'hi': 1, 'lo': 17}, {'hi': 2, 'lo': 17}],
+?                                                         ^
+
+   ('', 'led_pos'): [{'hi': 91, 'lo': 1000}, {'hi': 91, 'lo': 1035}]}
+
+======================================================================
+FAIL: test_operate_without_select_leaves_every_bank_unchanged (test_m_admission.Admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 68, in test_operate_without_select_leaves_every_bank_unchanged
+    self.refuse_without_writes(s.m_pipeline(), s.KIND_OPERATE,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('',[140 chars]lo': 17, 'hi': 2}], ('', 'led_pos'): [{'lo': 0[31 chars]91}]} != {('',[140 chars]lo': 0, 'hi': 0}], ('', 'led_pos'): [{'lo': 0,[26 chars] 0}]}
+  {('', 'geo_first'): [0],
+   ('', 'geo_second'): [{'hi': 0, 'lo': 0}],
+   ('', 'geo_tag'): [{'hi': 0, 'lo': 0}],
+-  ('', 'led_id'): [{'hi': 0, 'lo': 0}, {'hi': 2, 'lo': 17}],
+?                                              ^        ^^
+
++  ('', 'led_id'): [{'hi': 0, 'lo': 0}, {'hi': 0, 'lo': 0}],
+?                                              ^        ^
+
+-  ('', 'led_pos'): [{'hi': 0, 'lo': 0}, {'hi': 91, 'lo': 1035}]}
+?                                               ^^        - --
+
++  ('', 'led_pos'): [{'hi': 0, 'lo': 0}, {'hi': 0, 'lo': 0}]}
+?                                               ^
+
+
+======================================================================
+FAIL: test_stale_select_cannot_overwrite_geometry_or_byte (test_m_admission.Admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 73, in test_stale_select_cannot_overwrite_geometry_or_byte
+    self.refuse_without_writes(pipe, s.KIND_SELECT,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('', 'geo_first'): [5000], ('', 'geo_second'): [{'lo': 5000, [175 chars]91}]} != {('', 'geo_first'): [1000], ('', 'geo_second'): [{'lo': 1000, [175 chars]91}]}
+- {('', 'geo_first'): [5000],
+?                      ^
+
++ {('', 'geo_first'): [1000],
+?                      ^
+
+-  ('', 'geo_second'): [{'hi': 1035, 'lo': 5000}],
+?                                          ^
+
++  ('', 'geo_second'): [{'hi': 1035, 'lo': 1000}],
+?                                          ^
+
+   ('', 'geo_tag'): [{'hi': 3, 'lo': 17}],
+   ('', 'led_id'): [{'hi': 1, 'lo': 17}, {'hi': 2, 'lo': 17}],
+-  ('', 'led_pos'): [{'hi': 91, 'lo': 5000}, {'hi': 91, 'lo': 1035}]}
+?                                     ^
+
++  ('', 'led_pos'): [{'hi': 91, 'lo': 1000}, {'hi': 91, 'lo': 1035}]}
+?                                     ^
+
+
+======================================================================
+FAIL: test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) (kwargs={'phase': 12}, length=89)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 57, in test_wrong_phase_direction_shape_and_zero_authority_cannot_publish
+    self.refuse_without_writes(s.m_pipeline(), s.KIND_SELECT, frame, **kwargs)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 27, in refuse_without_writes
+    self.assertEqual(banks(pipe), before)
+AssertionError: {('', 'geo_first'): [1000], ('', 'geo_second'): [{'lo': 1000, [162 chars] 0}]} != {('', 'geo_first'): [0], ('', 'geo_second'): [{'lo': 0, 'hi': [155 chars] 0}]}
+- {('', 'geo_first'): [1000],
+?                      ---
+
++ {('', 'geo_first'): [0],
+-  ('', 'geo_second'): [{'hi': 0, 'lo': 1000}],
+?                                       ---
+
++  ('', 'geo_second'): [{'hi': 0, 'lo': 0}],
+-  ('', 'geo_tag'): [{'hi': 1, 'lo': 17}],
+?                           ^        ^^
+
++  ('', 'geo_tag'): [{'hi': 0, 'lo': 0}],
+?                           ^        ^
+
+   ('', 'led_id'): [{'hi': 0, 'lo': 0}, {'hi': 0, 'lo': 0}],
+   ('', 'led_pos'): [{'hi': 0, 'lo': 0}, {'hi': 0, 'lo': 0}]}
+
+======================================================================
+FAIL: test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) (kwargs={'phase': 9}, length=89)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 57, in test_wrong_phase_direction_shape_and_zero_authority_cannot_publish
+    self.refuse_without_writes(s.m_pipeline(), s.KIND_SELECT, frame, **kwargs)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 26, in refuse_without_writes
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\x01\x00\t\x00\x00\x01\x05\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00K\x01\xa4@\x00@\x06%\x07\n\x00\x00\x02\n\x00\x00\x01N \xa4\x10\x00\x00\x03\xe8\x00\x00\x00\x05P\x18\x00\x14\xac\xde\x00\x00\x05d\x1a\xc4\n\x00\x01\x00\x8a\x1c\xc0\xc0\x03\x0c\x01(\x01\x00\x01\x00\x01\x01d\x00\x00\x00X[d\x00\x00\x00\x00\x00[')]
+
+======================================================================
+FAIL: test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) (kwargs={'phase': 9}, length=54)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 57, in test_wrong_phase_direction_shape_and_zero_authority_cannot_publish
+    self.refuse_without_writes(s.m_pipeline(), s.KIND_SELECT, frame, **kwargs)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 26, in refuse_without_writes
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x11\x00\x00\x00\x01\x00\t\x00\x00\x01\x05\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00(\x01\xa4@\x00@\x06%*\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x03\xe8\x00\x00\x00\x05P\x10\x00\x14\xa5\xa0\x00\x00')]
+
+======================================================================
+FAIL: test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) (kwargs={'phase': 9, 'epoch': 0}, length=89)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 57, in test_wrong_phase_direction_shape_and_zero_authority_cannot_publish
+    self.refuse_without_writes(s.m_pipeline(), s.KIND_SELECT, frame, **kwargs)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 26, in refuse_without_writes
+    self.assertTrue(out.dropped, out.emitted)
+AssertionError: False is not true : [(64, b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\t\x00\x00\x01\x05\x00\x00\x00\x11"3DUfw\x88\x99\xaa\xbb\x08\x00E\x00\x00K\x01\xa4@\x00@\x06%\x07\n\x00\x00\x01\n\x00\x00\x02\xa4\x10N \x00\x00\x03\xe8\x00\x00\x00\x05P\x18\x00\x14\xac\xde\x00\x00\x05d\x1a\xc4\n\x00\x01\x00\x8a\x1c\xc0\xc0\x03\x0c\x01(\x01\x00\x01\x00\x01\x01d\x00\x00\x00X[d\x00\x00\x00\x00\x00[')]
+
+======================================================================
+FAIL: test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) (base=1000)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 89, in test_operate_position_is_shifted_wire_coordinate_including_wrap
+    self.assertEqual(pipe.reg('led_pos', 1)['lo'], (base + 55) & s.MASK)
+AssertionError: 1035 != 1055
+
+======================================================================
+FAIL: test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) (base=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 89, in test_operate_position_is_shifted_wire_coordinate_including_wrap
+    self.assertEqual(pipe.reg('led_pos', 1)['lo'], (base + 55) & s.MASK)
+AssertionError: 35 != 55
+
+======================================================================
+FAIL: test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) (base=4294967241)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 89, in test_operate_position_is_shifted_wire_coordinate_including_wrap
+    self.assertEqual(pipe.reg('led_pos', 1)['lo'], (base + 55) & s.MASK)
+AssertionError: 4294967276 != 0
+
+======================================================================
+FAIL: test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) (base=4294967295)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 89, in test_operate_position_is_shifted_wire_coordinate_including_wrap
+    self.assertEqual(pipe.reg('led_pos', 1)['lo'], (base + 55) & s.MASK)
+AssertionError: 34 != 54
+
+======================================================================
+FAIL: test_select_and_operate_zero_wire_start_are_valid_replay_positions (test_m_admission.LedgerCoordinates) (base=0, phase=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 100, in test_select_and_operate_zero_wire_start_are_valid_replay_positions
+    self.assertFalse(out.dropped, out.drop_reason)
+AssertionError: True is not false : pass 1: drop_ctl set by deny() (m.parsed=1, stage=0)
+
+======================================================================
+FAIL: test_select_and_operate_zero_wire_start_are_valid_replay_positions (test_m_admission.LedgerCoordinates) (base=4294967241, phase=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/m/tests/test_m_admission.py", line 96, in test_select_and_operate_zero_wire_start_are_valid_replay_positions
+    self.assertEqual(pipe.reg('led_pos', slot)['lo'], 0)
+AssertionError: 4294967276 != 0
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.505s
+
+FAILED (failures=17)

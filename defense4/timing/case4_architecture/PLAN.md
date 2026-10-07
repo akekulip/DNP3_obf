@@ -39,6 +39,13 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   OPERATE ledger's unshifted position. Admit before mutable bank access; reject
   unknown kinds/phases. Separate produce/replay/map scratch and bank access;
   precompute independent window edges. Compile a fresh source-bound candidate.
+  Current checkpoint:33 source tests pass; `m_replay_coordinate_02` is a failed15-stage
+  candidate (critical11), not a replacement12-stage fit. Shared geometry SALUs
+  still delay mapper reads. Full replay-coordinate and byte checks are repaired;
+  zero uses a separate success result. Now split
+  producer preflight from geometry/ledger activation in the protected composition
+  below. Any added private pass must use an actual retained N Work identity and
+  a protected expected-phase M reservation; a supplied stage flag is insufficient.
 - [ ] **Protected SELECT N→M→E.** Extend N Work with an atomic transition from
   phase3 to DOWNSTREAM_PENDING; only the winning handoff emits. Carry the full
   WorkRef, actual expected owner and captured immutable decoy fields. M admits
@@ -113,10 +120,12 @@ bounded passes: measure their bandwidth and resource cost instead of assuming fi
    decided and model-verified feasible (`integration/core/STEP3_DESIGN.md`); N already binds
    SELECT/OPERATE/response to the live owner with the correct per-exchange ACK offset and
    busy-record drop-and-count. Role M's mapping/geometry/ledger core compiles at 12/12 stages in
-   pipe 1 (`integration/core/m/m_skeleton.p4`), checked against the transport oracle. **Not yet
+   pipe 1 (historical M source), checked against the transport oracle. The corrected
+   current `integration/core/m/m_skeleton.p4` has33 source tests but fails15 stages;
+   use protected staged integration above. **Not yet
    built: the 35→55 produce construct, the descriptor/carve decision, and exact-byte replay in
    M** — unfinished; Task1 changes only its receiving ports196/197. Its canary
-   remains at12 stages before the full production/rendering path is composed.)* Bind validated native
+   old12-stage canary is not current fit evidence.)* Bind validated native
    SELECT/OPERATE and successful matching response to that same live authority;
    integrate35→55 production,57→[28,29], payload mapping and shared replay banks.
    Require actual owner/work pin before cache access and no reuse until terminals.

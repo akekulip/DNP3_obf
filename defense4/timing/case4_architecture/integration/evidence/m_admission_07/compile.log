@@ -1,0 +1,82 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(443): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(443)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: In action Ingress.edges, write ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, the number of bits in the write and read aren't equal Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1000 - [  DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, every write bit does not have a corresponding 2 or 0 read bits. Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1200 - [  BIT_COLLISION DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+warning: PHV allocation creates an invalid container action within a Tofino ALU
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, the number of bits in the write and read aren't equal Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1000 - [  DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, every write bit does not have a corresponding 2 or 0 read bits. Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1200 - [  BIT_COLLISION DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+warning: PHV allocation creates an invalid container action within a Tofino ALU
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, the number of bits in the write and read aren't equal Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1000 - [  DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/m_admission_07/source/m_skeleton.p4(146): warning: table Ingress.edges_t: In the ALU operation over container W9 in action Ingress.edges, every write bit does not have a corresponding 2 or 0 read bits. Container Action : add
+  Field Actions : add ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.ack;, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: ingress::hdr.tcp.control_window[15:0];, type: PHV, speciality: NO_SPECIAL, is cond: 0; 
+  Error_code: 1200 - [  BIT_COLLISION DIFFERENT_READ_SIZE ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 0 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+ table edges_t{actions={edges;}size=1;const default_action=edges();}
+       ^^^^^^^
+warning: PHV allocation creates an invalid container action within a Tofino ALU
+error: Table placement was not able to allocate Ingress.geo_tag_t, Ingress.map_tag_t in the same stage along with Register Ingress.geo_tag
+
+
+1 error, 21 warnings generated.
+
+Unable to produce all summary logs
+  Error producing mau.resources.log: 12
+Skipping assembler, assembly file is empty
+failed command summary_logging

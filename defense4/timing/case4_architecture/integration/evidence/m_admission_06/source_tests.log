@@ -1,0 +1,34 @@
+test_bad_ip_checksum_leaves_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_foreign_tuple_ttl_and_route_denial_leave_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_noncontiguous_foreign_epoch_and_stale_operate_cannot_publish (test_m_admission.Admission) ... ok
+test_operate_without_select_leaves_every_bank_unchanged (test_m_admission.Admission) ... ok
+test_stale_select_cannot_overwrite_geometry_or_byte (test_m_admission.Admission) ... ok
+test_unknown_kind_cannot_mutate (test_m_admission.Admission) ... ok
+test_wrong_operate_phase_or_function_cannot_mutate (test_m_admission.Admission) ... ok
+test_wrong_phase_direction_shape_and_zero_authority_cannot_publish (test_m_admission.Admission) ... ok
+test_operate_position_is_shifted_wire_coordinate_including_wrap (test_m_admission.LedgerCoordinates) ... ok
+test_select_and_operate_zero_wire_start_are_valid_replay_positions (test_m_admission.LedgerCoordinates) ... ok
+test_ack_and_window_are_untouched_in_the_forward_direction (test_m_skeleton.ForwardMapping) ... ok
+test_epoch_without_geometry_is_the_identity (test_m_skeleton.ForwardMapping) ... ok
+test_pure_ack_sequence_matches_the_oracle_across_both_boundaries_and_wrap (test_m_skeleton.ForwardMapping) ... ok
+test_select_only_geometry_shifts_by_one_boundary (test_m_skeleton.ForwardMapping) ... ok
+test_wrong_direction_for_the_kind_is_refused (test_m_skeleton.ForwardMapping) ... ok
+test_bad_ip_checksum_is_refused_and_does_not_arm_geometry (test_m_skeleton.Gating) ... ok
+test_unknown_kind_and_zero_generation_are_refused_without_state_change (test_m_skeleton.Gating) ... ok
+test_operate_gets_the_constant_plus_20_the_second_image_start (test_m_skeleton.Produce) ... ok
+test_operate_not_contiguous_with_select_is_refused (test_m_skeleton.Produce) ... ok
+test_operate_without_select_in_this_epoch_is_refused (test_m_skeleton.Produce) ... ok
+test_select_keeps_sequence_and_envelope_and_arms_geometry (test_m_skeleton.Produce) ... ok
+test_stale_generation_in_the_same_epoch_is_refused_and_leaves_the_ledger (test_m_skeleton.Produce) ... ok
+test_wrong_phase_for_the_kind_is_refused (test_m_skeleton.Produce) ... ok
+test_matching_last_native_byte_is_forwarded_for_each_slot (test_m_skeleton.ReplayCompare) ... ok
+test_mismatching_byte_wrong_epoch_or_wrong_phase_is_refused (test_m_skeleton.ReplayCompare) ... ok
+test_replay_does_not_mutate_the_ledger (test_m_skeleton.ReplayCompare) ... ok
+test_ack_and_window_clamp_match_the_oracle_on_both_window_edges_and_wrap (test_m_skeleton.ReverseMapping) ... ok
+test_response_kind_6_maps_like_kind_13 (test_m_skeleton.ReverseMapping) ... ok
+test_sequence_of_the_server_segment_is_untouched (test_m_skeleton.ReverseMapping) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.732s
+
+OK
