@@ -21,20 +21,40 @@ Use one implementation owner and one bounded reviewer. Reuse the sources listed
 in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
 integration change. Do not rerun unaffected legacy suites or failed layouts.
 
-1. **Restore a correct transparent connection path.** *(Done at source level 2026-10-07: restructured binding fits 12/12 stages on the Tofino-1 compiler (`native_11`), the whole-program source harness runs the four witnesses, native READ kinds 9-11 and the review fixes H1/H2 are in; see LEDGER.md. The 2026-10-06 note that kind 8 forwards was false until b977ad426. Not target-, model- or hardware-verified here.)* Fix native binding's SYN,
+1. **Restore a correct transparent connection path.** *(Done 2026-10-07, now MODEL-verified, not
+   hardware: `native_18` (source `642dfe54…`) fits 12/12 stages and loads on the local Tofino-1
+   model; the model agrees with the whole-program source harness on 68/71 independent steps
+   including READ (3 differences are model/harness artifacts, not program bugs — see
+   `integration/evidence/model_24`-`model_27`/RESULT.md). READ kinds 9-11, the step-3
+   OPERATE-response exchange, and three real bugs found by review/model (epoch-0 endless
+   recirculation, guard-miss envelope leak, flow-miss WorkRecord pin) are fixed. See
+   LEDGER.md and HANDOVER.md for the full history.)* Fix native binding's SYN,
    SYNACK/final-ACK retries and established pure ACKs: the retained source currently
    turns them into event01ff and drops them. Keep malformed/foreign traffic from
    mutating an owner, while preserving ordinary supported forwarding. Use the
    complete-byte witnesses in `ownership/review/counterexamples.py` as the red
    regressions. Retain full expected-phase/generation qualification. This is the
    immediate next coding task; no new architecture search comes before it.
-2. **Complete one real READ timing path.** Join the actual READ validator to the
-   live connection identity and compiled expected-phase holder. Capture actual
+2. **Complete one real READ timing path.** *(Done 2026-10-07: `read_timing.p4` (role T, a
+   separate pipe, copy-evolved from the frozen probe) implements ADMIT/hold/release/fallback/
+   policy-off/reset with D_A 5/10/15/20 ms parametrized by action data, checked against the
+   independent `join_reference.py` schedule oracle; `read_timing_05` fits 12/12 stages and runs
+   functionally on the local model. The model's clock is not wall time, so no timing number here
+   is hardware evidence. N's `tev` handoff and T's listen port were cross-pipe-incompatible until
+   the model's port probe fixed them — see `model_28/PORTS_PROPOSAL.md`.)* Join the actual READ
+   validator to the live connection identity and compiled expected-phase holder. Capture actual
    request arrival, preserve wire ACK observation before inverse mapping, and
    forward the actual released ACK/response. Prove independent heartbeat/fallback,
    full gap after actual ACK commitment, off-drain and actual terminal credits.
    This is the first complete timing milestone, not completion of control sizing.
-3. **Complete the ordinary unfragmented control path.** Bind validated native
+3. **Complete the ordinary unfragmented control path.** *(In progress 2026-10-07: pipe placement
+   decided and model-verified feasible (`integration/core/STEP3_DESIGN.md`); N already binds
+   SELECT/OPERATE/response to the live owner with the correct per-exchange ACK offset and
+   busy-record drop-and-count. Role M's mapping/geometry/ledger core compiles at 12/12 stages in
+   pipe 1 (`integration/core/m/m_skeleton.p4`), checked against the transport oracle. **Not yet
+   built: the 35→55 produce construct, the descriptor/carve decision, and exact-byte replay in
+   M** — stopped by a safety-classifier interruption during planning, not by a technical
+   blocker; resuming it is Philip's call, not an autonomous one.)* Bind validated native
    SELECT/OPERATE and successful matching response to that same live authority;
    integrate35→55 production,57→[28,29], payload mapping and shared replay banks.
    Require actual owner/work pin before cache access and no reuse until terminals.

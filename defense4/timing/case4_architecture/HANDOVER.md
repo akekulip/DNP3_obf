@@ -1,107 +1,93 @@
-# Case4 continuation checkpoint —2026-10-06
+# Case4 continuation checkpoint — 2026-10-07
 
-**Resume from the [core functionality and testing plan](PLAN.md).** It defines
-the implementation order, required tests and acceptance criteria for each step.
+**Resume from the [core functionality and testing plan](PLAN.md).** This checkpoint replaces the
+2026-10-06 one in full: steps 1 and 2 are done at the level stated below, step 3 is in progress.
+The complete target is still absent (no 9.13.2 build, no hardware run); everything here is
+source-fragment, whole-program-harness or local-Tofino-model evidence, never hardware-measured.
 
-Philip requested plans/handover instead of further experiments because weekly
-tokens may run out. Development experiments are stopped. **The complete target
-is absent and the assignment is unfinished.** Resume using the revised sequence
-in [PLAN.md](PLAN.md); main packet forwarding comes before more architecture exploration.
+Base: `388f78a33`, branch `main`, unpushed. Work directly on `main`; preserve frozen sources,
+evidence, the paper and unrelated local changes. Lead alone commits, `akekulip <akekulip@gmail.com>`
+as author AND committer, no contributor trailers. This checkpoint does not authorize a push or any
+hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
 
-Next: fix the four supported handshake retry/pure-ACK forwarding failures, using
-the retained complete-byte counterexamples. Then complete one actual READ timing
-path, followed by ordinary SELECT/OPERATE sizing and transport integration. Do
-not restart standalone resource experiments. The planned `integration/core/`
-candidate and full-packet harness are not implemented yet; existing tests execute
-source fragments and do not prove that core path. Remaining loss/assembly/lifecycle
-and qualification gates are specified in the linked plan, not dropped from scope.
+## What changed since 2026-10-06
 
-Base is `a96a8e32758d498c58a3772ee774596658aad2d9`, branchmain. Work directly onmain,
-preserve frozen sources/evidence/paper and unrelated local changes. Lead alone
-commits, with `akekulip <akekulip@gmail.com>` as author AND committer and no
-contributor trailers. This checkpoint does not authorize a push or hardware action.
+- **A whole-program packet harness now exists**: `integration/core/harness/` runs the parser,
+  ingress control and deparser of a generated TNA source, with recirculation through the private
+  return port, up to 8 passes. It is source-level (a restricted interpreter), not the target; its
+  README says so. Tests: `integration/core/harness/tests` (`python3 -m unittest discover -s
+  integration/core/harness/tests -p 'test_*.py'`, 42 tests).
+- **The local Tofino-1 model runs** inside `unshare -Urn` with an LD_PRELOAD pagemap shim (DMA
+  physical addresses are otherwise unavailable to an unprivileged process). Setup, the shim, and a
+  reusable launcher/driver are in `integration/core/launch_model.sh`, `integration/core/
+  model_driver.py`, `integration/evidence/model_02/RESULT.md`. This is **functional** evidence
+  only: the model's clock is not wall time, and it is not hardware. It has independently verified:
+  validator, forward/reverse mapping, the selected-wire composition, cross-pipe forwarding
+  (4-pipe probe, `model_28`), the e2e mirror, and the packet generator.
+- **Native connection binding (`integration/connection/binding/`)** was restructured (a merged
+  guard table, banks keyed directly, folded event rows) to fit stage limits, checked against the
+  pre-restructure source on **590,976 differential cases, 0 mismatches** (the frozen oracle is
+  `tests/oracle_35bf9aa3_native_binding.p4`). It now carries: the step-1 retry/ACK forwarding fix,
+  READ kinds 9 (request), 10 (ACK), 11 (response) with a `tev` handoff, the step-3 OPERATE-response
+  exchange with per-exchange ACK offset, busy-WorkRecord drop-and-count, whole-segment-resend
+  counting, and fixes for three real bugs the model/review found: an epoch-0 endless-recirculation
+  wedge, a guard-miss private-envelope leak, and a flow-miss WorkRecord pin. **Current: `native_18`,
+  source sha `642dfe54…`, 12 of 12 ingress stages, no spare stage.**
+- **A separate READ timing role** `integration/read/read_timing.p4` (copy-evolved from the
+  `held_timing_expected_probe.p4`; the probe itself is untouched) implements D_A-parametrized
+  ADMIT/hold/release/fallback/policy-off/reset, checked against an independent schedule oracle
+  `integration/read/join_reference.py`. **Current: `read_timing_05`, 12 of 12 ingress stages.**
+  It runs on the local model functionally (admit and held paths).
+- **A step-3 design note** `integration/core/STEP3_DESIGN.md` places roles across Tofino-1's four
+  pipes: N (connection) pipe 0 ingress, M (padding/mapping/carve, not yet built) pipe 1, T (timing)
+  pipe 2, pipe 3 reserved for step 4. The model's cross-pipe probe confirms the placement is
+  physically possible; it does not confirm the pipe-0/pipe-1/pipe-2 port numbers until gate
+  G-PORTS runs on the switch (`integration/evidence/model_28/PORTS_PROPOSAL.md` has the current
+  device-port table; `ports.p4` and `read_timing.p4`/`native_binding.p4` already use it).
+- **A resource canary for role M** (`integration/core/m/m_skeleton.p4`) compiles the mapping,
+  geometry and ledger core at exactly 12 of 12 ingress stages in pipe 1, with sequence translation
+  checked against the independent transport oracle (`framework/size/case4_transport.py`). The full
+  M (padding construct, descriptor build, carve decision, exact-byte replay) is **not yet built** —
+  see "Open / stopped" below.
 
-## Reuse these actual results
+## Open / stopped
 
-| Current source / immutable compiler run | Local9.13.1 stage fit | Meaning |
-|---|---:|---|
-| `integration/egress_wire.p4` / egress_wire06 | 10ingress/7egress | Actual shared cache/READ/carving resource composition |
-| `integration/egress_selected_wire.p4` / egress_selected_wire04 | 10/7 | Same banks plus configured object matching |
-| `integration/read/validator.p4` / validator05 | 6/0 | Full READ packet/profile/link/CRC validation; original forwarding |
-| `protocol/payload_mapping/forward.p4` / forward03 | 10/0 | Full32 two-boundary payload mapping/checksum adjustment |
-| `protocol/payload_mapping/reverse.p4` / reverse12 | 11/0 | Inverse clamp plus both receive-window edges |
-| `ownership/p4/held_timing_expected_probe.p4` / held_timing_expected02 | 12/0 | Actual originals, independent heartbeat, expected-phase qualification |
-| `ownership/p4/original_credit_native_probe.p4` / original_credit_native04 | 4/0 | Epoch/cookie-qualified native receipt/debt primitive |
-| `integration/handshake.p4` / handshake14 | 12/0 | Historical standalone protected handshake; old WorkRecord limitation |
-| `integration/connection/selected.p4` / selected22 | 12/0 | Autonomous native object publisher/matching, not live epoch integration |
+- **Role M beyond the canary (step-3 tickets S3-4–S3-6) is stopped, not failed.** The builder
+  assigned to it was interrupted twice by a safety classifier while reading the assignment prompt
+  and planning the produce/carve work; no code or test exists beyond the committed canary. This is
+  an authorized defensive-research task (timing-side-channel mitigation for DNP3, offline/model
+  only), and I did not try to reword or route around the stop. If you want this ticket to proceed,
+  that decision — and any rephrasing of the task — is yours to make, not mine.
+- **The supported-tuple catch-all** (an unparsed-but-matched IP length forwarded natively) needs
+  M's mapping-only path and is a documented gap in N until M exists.
+- **The foreign-epoch client-bank store** would add a 13th stage to N; pinned as a known limit,
+  not fixed.
+- **Step 4 (loss/lifecycle, fragment assembly)** is not started; the old assembly layouts
+  (`integration/assembly_passes/REPORT.md`) still fail PHV and were not revisited this session.
+- **Step 5 (qualification: 9.13.2 build, schema/inventory, hardware package)** is not started.
+  `candidate_bringup.py`'s SDE path (`SETUP_DIR`) and controller registry are from the earlier
+  framework track and have not been re-verified against the Case 4 sources.
+- **No hardware action of any kind occurred.** Every verified claim above is source-fragment,
+  whole-program-harness, or local-model evidence; the model's own clock is explicitly not timing
+  evidence (`read_timing_model_07`, `model_02/RESULT.md`).
 
-Full current source SHAs, binaries, schemas, compiler identity and resource hashes
-are in `integration/evidence/verified_milestones_02.json` and each referenced
-manifest. SDK9.13.1 is p4c e558d01; binary SHA
-`e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41`.
-Ignored licensed outputs stay local; rebuilding is required in a clean checkout.
-Earlier successful snapshots cannot qualify later source changes.
+## Reproduce
 
-## Exact blockers and defects
-
-- **Native retry/ACK forwarding: functionally repaired at source-fragment level
-  (2026-10-06), not packet- or target-verified.** Snapshot `35bf9aa3721b903c…`
-  (was `8b2164a4…`) forwards qualified SYN/SYNACK/final-ACK retries and established
-  client ACKs as unchanged originals through the private kind-8 path with no owner
-  mutation. It does not fit: `integration/evidence/native_03` needs 19 ingress
-  stages against 12. Out-of-sequence duplicate ACKs are still dropped. The next
-  coding task is step 2 of PLAN.md plus the missing packet harness.
-  ExpectedWorkRecord generation+phase checks are preserved.
-- Actual connection-binding composition still fails: native02 needs18stages;
-  the actual two-pipeline alternatives need17–18 at the authority. Split03 source
-  is `5e5074e9…`, with exact identity in its manifest. These are historical failed
-  snapshots, not current native compile results. No third-pipeline build was
-  started. Live receipt integration, transparent ACKs, READ/timing and safe reuse
-  remain missing. No private physical topology has been verified.
-- Shared scalar cache has an executable stale-descriptor/slot-overwrite example.
-  Current owner pin and no-reuse are mandatory. Payload mapping has a16-byte
-  producer envelope but no actual live WorkRecord gate. Configured context is
-  not autonomous validation/publication. Carved physical order is unmeasured.
-- Assembly's grouped, separate-worker, byte and staged layouts all fail PHV;
-  even one four-bank worker fails48slices. Current producer04 fails460slices.
-  `integration/assembly_passes/REPORT.md` states hypotheses, exact sources and
-  additional unimplemented choices. Do not repeat annotations/packing.
-- Holder still lacks native READ admission/join, full rekey/no-reuse lifecycle,
-  service-loss qualification and measured40ms/physical-gap behavior. Internal
-  commitment timestamps are not physical departure/drain measurements.
-- Controller rollback relabeling was repaired: preparation and rollback both
-  require a reviewed exact source/artifact/schema/profile/semantic-inventory
-  identity. Registry is empty; no probe can be enabled or restored as qualified.
-- Target model startup failed before packets because CAP_NET_RAW was unavailable.
-  No target-model packet PASS,9.13.2 full build, activation, capture, physical
-  OPERATE, measured campaign or saved-workload restoration occurred.
-
-## Verified repairs and bounded checks
-
-READ link/CRC/parser-error admission, descriptor-free response bypass, actual
-shared-bank dispatch, source interpreter control/scalar-table handling, expected
-work phase/terminal checks, and assembly parser/hop/deadline defects were repaired
-with retained red witnesses. Assembly now refuses hops16 before writes; quantized
-30ms expiry cannot accept a late write, with at most383ns early refusal.
-
-Independent protocol review `protocol/review/evidence/verification_01` has18
-passing checks, unchanged inputs,33/33 sealed hashes. It includes2560 deadline
-residue/wrap cases and1260 legal fresh/duplicate cases per four-bank worker.
-These execute source fragments, not the target. Fresh root verification is saved
-under `integration/evidence/checkpoint_tests_01` (27 root +7 assembly passes);
-controller17checks separately
-verify the rollback repair. Historical endpoint/BMv2 results remain historical.
-
-Reproduce only affected checks from this directory:
-
+From this directory:
 ```sh
-python3 -m unittest discover -s tests -p 'test_*.py' -v
-python3 -m unittest discover -s integration/connection/binding/tests -p 'test_*.py' -v
-python3 -m unittest discover -s integration/controller/tests -p 'test_*.py' -v
+python3 -m unittest discover -s tests -p 'test_*.py'
+python3 -m unittest discover -s integration/connection/binding/tests -p 'test_*.py'
+python3 -m unittest discover -s integration/controller/tests -p 'test_*.py'
+python3 -m unittest discover -s integration/core/harness/tests -p 'test_*.py'
+python3 -m unittest discover -s integration/core/m/tests -p 'test_*.py'
+python3 -m unittest discover -s integration/read/tests -p 'test_*.py'
 ```
+Compile a changed candidate to a NEW evidence directory with `build.py`; never overwrite retained
+evidence. `build.verify_evidence` checks source/compiler/schema identity. `python3 integration/
+core/scan_static_entries.py <out>` catches a table whose const entries exceed its declared size
+(the defect that stopped `native_04`/retained `handshake_14` loading on the model). The local
+model is driven via `integration/core/launch_model.sh` (see `model_17/RESULT.md` and
+`model_28/RESULT.md` for usage and what each prior run proved); it needs `unshare -Urn` and the
+pagemap shim built once (`integration/evidence/model_02/shim/`).
 
-Compile changed candidates to a new evidence directory with `build.py`; never
-overwrite retained evidence. `build.verify_evidence` refuses missing or changed
-sources/includes/logs/compiler/schema/pipeline artifacts/resource summaries.
-The campaign remains16,168 attempts≤18,360. No paper/figure edits are part of this
-assignment. Preserve pre-existing `CLAUDE.md` changes and user prompt/untracked files.
+See `LEDGER.md` for the full dated history of this session's findings and fixes.
