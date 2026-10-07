@@ -1,0 +1,21 @@
+test_actual_matching57_response_is_associated_and_forwarded_once (test_transport_reverse.ReverseTransport) ... ok
+test_external_reverse_steers_before_any_n_mutation (test_transport_reverse.ReverseTransport) ... ok
+test_foreign_epoch_uses_genuine_current_epoch_abort_and_loss_keeps_pin (test_transport_reverse.ReverseTransport) ... ok
+test_foreign_tuple_network_and_incomplete_ledger_refuse_without_m_mutation (test_transport_reverse.ReverseTransport) ... ok
+test_invalid_dnp3_or_profile_normalized_return_cannot_leak_prefix (test_transport_reverse.ReverseTransport) ... FAIL
+test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) ... ok
+test_normalized_ack_reaches_client_without_double_inverse (test_transport_reverse.ReverseTransport) ... ok
+test_valid_forward_tuple_is_not_reverse_admission (test_transport_reverse.ReverseTransport) ... ok
+
+======================================================================
+FAIL: test_invalid_dnp3_or_profile_normalized_return_cannot_leak_prefix (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 148, in test_invalid_dnp3_or_profile_normalized_return_cannot_leak_prefix
+    result=n.inject(68,bytes(out));self.assertTrue(result.dropped,fault)
+AssertionError: False is not true : crc
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.096s
+
+FAILED (failures=1)

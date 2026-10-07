@@ -1,0 +1,423 @@
+{
+  "scope": "Existing SDK9.13.2 first SELECT only; no ACK/window/SBO/timing/lifecycle/hardware qualification",
+  "physical": false,
+  "full_target": false,
+  "sdk_updates": false,
+  "compiled": {
+    "installed_nf_05": {
+      "source_sha256": "ca695e97ea673825563ce431ef3e7dd34592dcc2cbaa7b0b717e42c9eeeb950c",
+      "manifest_sha256": "b652c181314be7712f8cb694d5051d543aab0449a1c67d36af03d44cc0f07321",
+      "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+      "stages": {
+        "egress": 4,
+        "ingress": 12
+      },
+      "critical_path": 11,
+      "checks": {
+        "source_matches": true,
+        "snapshots_match": true,
+        "compiler_matches": true,
+        "compiled_artifacts_verified": true,
+        "full_target": false
+      }
+    },
+    "installed_m_baseline_01": {
+      "source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+      "manifest_sha256": "23bf9ecb7cee1a11c93d9bee8c970716c986416308b6db0069754daf9d96cdfe",
+      "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+      "stages": {
+        "egress": 0,
+        "ingress": 10
+      },
+      "critical_path": 9,
+      "checks": {
+        "source_matches": true,
+        "snapshots_match": true,
+        "compiler_matches": true,
+        "compiled_artifacts_verified": true,
+        "full_target": false
+      }
+    },
+    "installed_e_01": {
+      "source_sha256": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18",
+      "manifest_sha256": "3102c2e7c1aa085c2a0e3f1986b5ec0ebea47d1cc2cfcca5ce266be8f295273e",
+      "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+      "stages": {
+        "egress": 10,
+        "ingress": 1
+      },
+      "critical_path": 7,
+      "checks": {
+        "source_matches": true,
+        "snapshots_match": true,
+        "compiler_matches": true,
+        "compiled_artifacts_verified": true,
+        "full_target": false
+      }
+    }
+  },
+  "model_trials": [
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/installed_select_normal_01",
+      "start": 100,
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "frame_bytes": 109,
+      "payload_bytes": 55,
+      "ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "1218ab4477b11e90eca05aeefe4f816f0f35243749ccb7526b7840ff5cc21f9b",
+      "result_sha256": "4f5462c811eb1aa078de08eaa7a3b85424e00533912d5d6a4abe766cce176179",
+      "source_sha256": {
+        "nf.p4": "ca695e97ea673825563ce431ef3e7dd34592dcc2cbaa7b0b717e42c9eeeb950c",
+        "m3.p4": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+        "e3.p4": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18"
+      },
+      "configuration_only": true,
+      "model_mode": true,
+      "select_accounting": {
+        "ingress_visits": 19,
+        "ingress_ports": {
+          "1": 1,
+          "68": 10,
+          "196": 2,
+          "452": 3,
+          "198": 1,
+          "453": 2
+        },
+        "private_tx_records": 18,
+        "private_model_bytes": 2418,
+        "private_ethernet_bytes_excluding_4byte_model_trailers": 2346,
+        "tx_records": [
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            196,
+            121
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            196,
+            137
+          ],
+          [
+            198,
+            141
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            453,
+            141
+          ],
+          [
+            68,
+            141
+          ],
+          [
+            453,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            141
+          ]
+        ],
+        "exclusions": "Physical wire/TM/fabric occupancy unmeasured; completion internal24B separate."
+      }
+    },
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/installed_select_zero_02",
+      "start": 0,
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "frame_bytes": 109,
+      "payload_bytes": 55,
+      "ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "1218ab4477b11e90eca05aeefe4f816f0f35243749ccb7526b7840ff5cc21f9b",
+      "result_sha256": "de0c410ff60fdddcd3d68ddc975917a2177742b1acdca2d194a22496306df86a",
+      "source_sha256": {
+        "nf.p4": "ca695e97ea673825563ce431ef3e7dd34592dcc2cbaa7b0b717e42c9eeeb950c",
+        "m3.p4": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+        "e3.p4": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18"
+      },
+      "configuration_only": true,
+      "model_mode": true,
+      "select_accounting": {
+        "ingress_visits": 19,
+        "ingress_ports": {
+          "1": 1,
+          "68": 10,
+          "196": 2,
+          "452": 3,
+          "198": 1,
+          "453": 2
+        },
+        "private_tx_records": 18,
+        "private_model_bytes": 2418,
+        "private_ethernet_bytes_excluding_4byte_model_trailers": 2346,
+        "tx_records": [
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            196,
+            121
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            196,
+            137
+          ],
+          [
+            198,
+            141
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            453,
+            141
+          ],
+          [
+            68,
+            141
+          ],
+          [
+            453,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            141
+          ]
+        ],
+        "exclusions": "Physical wire/TM/fabric occupancy unmeasured; completion internal24B separate."
+      }
+    },
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/installed_select_wrap_03",
+      "start": 4294967280,
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "frame_bytes": 109,
+      "payload_bytes": 55,
+      "ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "1218ab4477b11e90eca05aeefe4f816f0f35243749ccb7526b7840ff5cc21f9b",
+      "result_sha256": "36356450db641db4933a14148f4b782bc19b1bcc4a3d20a88ac4bb495546687c",
+      "source_sha256": {
+        "nf.p4": "ca695e97ea673825563ce431ef3e7dd34592dcc2cbaa7b0b717e42c9eeeb950c",
+        "m3.p4": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+        "e3.p4": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18"
+      },
+      "configuration_only": true,
+      "model_mode": true,
+      "select_accounting": {
+        "ingress_visits": 19,
+        "ingress_ports": {
+          "1": 1,
+          "68": 10,
+          "196": 2,
+          "452": 3,
+          "198": 1,
+          "453": 2
+        },
+        "private_tx_records": 18,
+        "private_model_bytes": 2418,
+        "private_ethernet_bytes_excluding_4byte_model_trailers": 2346,
+        "tx_records": [
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            68,
+            121
+          ],
+          [
+            196,
+            121
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            196,
+            137
+          ],
+          [
+            198,
+            141
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            452,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            453,
+            141
+          ],
+          [
+            68,
+            141
+          ],
+          [
+            453,
+            137
+          ],
+          [
+            68,
+            137
+          ],
+          [
+            68,
+            141
+          ]
+        ],
+        "exclusions": "Physical wire/TM/fabric occupancy unmeasured; completion internal24B separate."
+      }
+    }
+  ],
+  "config_bindings_sha256": "2e4aeea146410b89a42e7269595ef360da143fb8b6db0d5212f8d18cd3666aa3",
+  "source_suite": {
+    "command": "python3 -B -m unittest discover -s defense4/timing/case4_architecture/integration/core/ordinary/tests -q",
+    "methods": 71,
+    "passed": 71,
+    "elapsed_seconds": 15.1,
+    "focused_methods": 19,
+    "ack_window_oracle_pairs": 168,
+    "scope": "source interpreter, not installed mapper fit/model",
+    "current_source_hashes": {
+      "transport.py": "6104a8cee12601bb2cef7073148d2b14054b71d18b4822efe128fc7be424b4e7",
+      "transport_source.py": "789f98610238834b118a7fb7d1ae9ee7b424a94dc3b3dcba5a12dca64a790317",
+      "tests/test_transport_reverse.py": "049de66115e9cac2f1f1c769a540c21c17830a3c65c2789a247d3f0b896cab99"
+    },
+    "mapper_source_sha256": "081b4122c060897c61014a83ea0cb6f0dde94accbf72e78cff993010d46fea25",
+    "mapper_target_status": "installed_m_13: compile_failed/table placement; not model-qualified"
+  },
+  "remaining": [
+    "full ACK/window mapper SDK fit and model",
+    "SELECT57 response; OPERATE padding/carving; two insertions; replay",
+    "timing; loss/lifecycle; complete target qualification"
+  ],
+  "static_scan_suite": {
+    "command": "python3 -B -m unittest discover -s defense4/timing/case4_architecture/tests -p test_static_scan.py -q",
+    "methods": 3,
+    "passed": 3,
+    "elapsed_seconds": 0.064
+  },
+  "bounded_review": {
+    "first_select_normal_zero_wrap": "approved independently",
+    "mapper_next15": "source-only approved; no SDK fit/model approval"
+  }
+}

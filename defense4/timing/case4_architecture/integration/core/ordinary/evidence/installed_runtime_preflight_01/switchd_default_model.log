@@ -1,0 +1,30 @@
+
+    if (/*(!switchd_ctx->asic[0].is_sw_model) &&*/
+        (!dev_state->device_locked && dev_state->device_ready)) {
+      bf_pm_tasklet_scheduler();
+    }
+  }
+  return NULL;
+}
+
+static void bf_switchd_default_device_type_set(void) {
+  bf_dev_id_t dev_id;
+
+  bf_sys_log_and_trace(BF_MOD_SWITCHD,
+                       BF_LOG_DBG,
+                       "bf_switch: Operational mode set to default: MODEL");
+
+  /* Set the device type to MODEL for all devices */
+  for (dev_id = 0; dev_id < BF_MAX_DEV_COUNT; dev_id++) {
+    if (switchd_ctx->asic[dev_id].configured == 0) {
+      continue;
+    }
+
+    switchd_ctx->asic[dev_id].is_sw_model = true;
+  }
+
+  return;
+}
+
+int bf_switchd_device_type_update(bf_dev_id_t dev_id, bool is_sw_model) {
+  /*

@@ -1,0 +1,53 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(147): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(206): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(206)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(47): [--Werror=unsupported] error: Before instruction tc.subtract in state activation_ip, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state activation_ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.len,hdr.ip.proto){(4w4,4w5,16w95,8w6):activation_ip_flags;default:accept;}}
+                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(49): [--Werror=unsupported] error: Before instruction tc.subtract in state activation_tcp, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state activation_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.urgent){(4w5,4w0,8w0x10,16w0):activation_image;(4w5,4w0,8w0x18,16w0):activation_image;default:accept;}}
+                                           ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(50): [--Werror=unsupported] error: Before instruction tc.subtract in state activation_image, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state activation_image{pkt.extract(hdr.image);tc.subtract(hdr.image);m.tcp_sum=tc.get();m.parsed=1w1;transition accept;}
+                                               ^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(55): [--Werror=unsupported] error: Before instruction tc.subtract in state ip, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.len,hdr.ip.proto){(4w4,4w5,16w75,8w6):ip_flags;default:accept;}}
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(57): [--Werror=unsupported] error: Before instruction tc.subtract in state tcp, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.urgent){(4w5,4w0,8w0x10,16w0):dl;(4w5,4w0,8w0x18,16w0):dl;default:accept;}}
+                                ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(58): [--Werror=unsupported] error: Before instruction tc.subtract in state dl, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition native;}
+                              ^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(59): [--Werror=unsupported] error: Before instruction tc.subtract in state dl, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state native{pkt.extract(hdr.native);tc.subtract(hdr.native);transition tail;}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(60): [--Werror=unsupported] error: Before instruction tc.subtract in state dl, checksum tc_0 operates on either an odd or an even number of bytes, depending on path through the parser. This makes it impossible to implement on Tofino. Consider adding a subtract instruction with a constant argument 8w0 in a preceding state to make the checksum always operate on either an odd or an even number of bytes.
+ state tail{pkt.extract(hdr.tail);tc.subtract(hdr.tail);m.tcp_sum=tc.get();m.parsed=1w1;transition accept;}
+                                  ^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(148): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+ RegisterAction<producer_cell_t,bit<1>,bit<64>>(reservation) read_map_reservation={void apply(inout producer_cell_t value,out bit<64> result){result=value.generation++value.phase;}};
+                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(149): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+ RegisterAction<ledger_tag_t,bit<1>,bit<64>>(ledger_tag) read_map_tag={void apply(inout ledger_tag_t value,out bit<64> result){result=value.epoch++value.generation;}};
+                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_06/source/m3.p4(150): [--Werror=unsupported] error: Bit concatenation result cannot be assigned to an output parameter
+ RegisterAction<context_t,bit<1>,bit<64>>(producer_context) read_map_context={void apply(inout context_t value,out bit<64> result){result=value.epoch++value.owner;}};
+                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^
+
+11 errors, 5 warnings generated.
+

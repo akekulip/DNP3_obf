@@ -1,0 +1,32 @@
+test_raw_reverse_requires_actual_snapshot_return_before_normalizing (test_transport_reverse.ReverseTransport) ... FAIL
+test_snapshot_foreign_full_refs_or_concurrent_publication_refuse_readonly (test_transport_reverse.ReverseTransport) ... FAIL
+test_snapshot_revalidates_network_tuple_marker_and_nonzero_refs (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_raw_reverse_requires_actual_snapshot_return_before_normalizing (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 75, in test_raw_reverse_requires_actual_snapshot_return_before_normalizing
+    self.assertFalse(dropped);self.assertEqual(m.env['tm.ucast_egress_port'],199)
+AssertionError: 68 != 199
+
+======================================================================
+FAIL: test_snapshot_foreign_full_refs_or_concurrent_publication_refuse_readonly (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 91, in test_snapshot_foreign_full_refs_or_concurrent_publication_refuse_readonly
+    self.assertFalse(dropped);self.assertEqual(m.env['tm.ucast_egress_port'],199)
+AssertionError: 68 != 199
+
+======================================================================
+FAIL: test_snapshot_revalidates_network_tuple_marker_and_nonzero_refs (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 108, in test_snapshot_revalidates_network_tuple_marker_and_nonzero_refs
+    self.assertFalse(dropped);self.assertEqual(m.env['tm.ucast_egress_port'],199)
+AssertionError: 68 != 199
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.317s
+
+FAILED (failures=3)

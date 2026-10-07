@@ -1,0 +1,23 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(147): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(206): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(206)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_m_04/source/m3.p4(30): [--Werror=legacy] error: hdr.ip.src field in rc_0 is not extracted in reverse_tcp. Operations on the checksum fields must be in the same parser state where the fields are extracted.
+ state reverse_tcp{pkt.extract(hdr.tcp);rc.add({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.urgent});tc.subtract({hdr.tcp.sport,hdr.tcp.dport,hdr.tcp.seq,hdr.tcp.ack,hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.flags,hdr.tcp.window,hdr.tcp.checksum,hdr.tcp.urgent});transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags,hdr.ip.len){(4w5,4w0,16w0,8w16,16w40):reverse_ack_finish;(4w5,4w0,16w0,8w16,16w97):reverse_image;(4w5,4w0,16w0,8w24,16w97):reverse_image;default:accept;}}
+                                                ^^^^^^^^^^
+Compilation failed!
+
+
+1 error, 3 warnings generated.
+

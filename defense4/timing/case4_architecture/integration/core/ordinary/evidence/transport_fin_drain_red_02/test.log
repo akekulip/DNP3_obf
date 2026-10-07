@@ -1,0 +1,23 @@
+test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) ... test_stamp_rejects_other_full_width_expected_owner_changes (test_transport_reverse.ReverseTransport) ... ok
+test_stamped_abort_epoch_pair_qualifies_before_work_advance (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) (close_stage=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 207, in test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return
+    self.assertEqual(n.state()['work']['phase'],4)
+AssertionError: 2 != 4
+
+======================================================================
+FAIL: test_stamped_abort_epoch_pair_qualifies_before_work_advance (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 233, in test_stamped_abort_epoch_pair_qualifies_before_work_advance
+    self.assertEqual(out[1][:4],out[1][8:12],'actual N stamp pair')
+AssertionError: b'\x00\x00\x00\x01' != b'\x00\x12\x00\x01' : actual N stamp pair
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.847s
+
+FAILED (failures=2)

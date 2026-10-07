@@ -1,0 +1,50 @@
+Trying to allocate layout for next_stage_t_0 
+Picking layout option for table : next_stage_t_0 with requested entries : 1
+picked layout for next_stage_t_0 FormatType(02) layout: 1V ixbar:0B/0b match:0B/0b adb:4 ov:32 imm:32
+entries:1 srams:0 local_tinds: 0 maprams:0 tcams:0 afi:2
+Trying to allocate adb for next_stage_t_0 
+Trying to allocate imem for next_stage_t_0 
+Entries : 1, needed_entries: 1, need_more: 0
+  Selected stage: 11    Furthest stage: 11
+  try_place_table returning 1 of next_stage_t_0 in stage 11
+Table is  placed
+    Pl vector: next_stage_t_0 
+snapshot_t_0 is not a gateway! Aborting search for merge choices
+try_place_table(snapshot_t_0, stage=10)
+  Initial # of stages is 10, initial # of entries is 2
+Try_alloc_all for Table use
+Trying to allocate layout for snapshot_t_0 
+Picking layout option for table : snapshot_t_0 with requested entries : 2
+picked layout for snapshot_t_0 FormatType(02) layout: 2tV ixbar:5B/33b match:5B/33b adb:8/8 ov:2
+entries:512 srams:2 local_tinds: 0 maprams:0 tcams:1 afi:0
+Trying to allocate adb for snapshot_t_0 
+Trying to allocate imem for snapshot_t_0 
+    table n_Ingress.snapshot_t could not fit in stage 10 with 512 entries
+    too many tables total
+Memuse for failed memory placement: 
+tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
+..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+    Pl vector: first_event_0 
+found 2 tables that could be placed: [ next_stage_t_0, first_event_0 ]
+Initial best is first table seen: next_stage_t_0
+For trial t : first_event_0 with best: next_stage_t_0
+    Keeping best next_stage_t_0 for reason: earlier stage calculated
+placing 1 entries of next_stage_t_0 ( n_Ingress.next_stage_t )  in stage 11(b4) FormatType(02)
+stage 11, work: [ 14848557 ], partly placed 0, placed 95
+    { id=4 ram=5 tcam=1 mram=2 eixb=7 tixb=0 malu=0 salu=0 local_tinds=0 }
+    - skipping snapshot_t_0 as its already done
+first_event_0 is not a gateway! Aborting search for merge choices
+try_place_table(first_event_0, stage=11)
+  - dependency between snapshot_t_0 and table advances stage
+  Initial # of stages is 12, initial # of entries is 67
+Try_alloc_all for Table use
+Trying to allocate layout for first_event_0 
+Picking layout option for table : first_event_0 with requested entries : 67
+picked layout for first_event_0 FormatType(022) layout: 67tV ixbar:12B/89b match:12B/89b ov:17
+entries:512 srams:3 local_tinds: 0 maprams:2 tcams:3 afi:0
+Trying to allocate adb for first_event_0 
+Trying to allocate imem for first_event_0 

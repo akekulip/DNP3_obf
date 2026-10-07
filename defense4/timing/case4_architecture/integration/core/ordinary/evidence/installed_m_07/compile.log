@@ -1,0 +1,72 @@
+/tmp/case4_compile_gSj2SO5d/evidence/source/m3.p4(152): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/tmp/case4_compile_gSj2SO5d/evidence/source/m3.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/tmp/case4_compile_gSj2SO5d/evidence/source/m3.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/tmp/case4_compile_gSj2SO5d/evidence/source/m3.p4(239): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/tmp/case4_compile_gSj2SO5d/evidence/source/m3.p4(239)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: In action Ingress.emit_mapping_snapshot, write ActionParam: ingress::hdr.map_snapshot.owner;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: 9, type: CONSTANT, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: In action Ingress.prepare_edges, write ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: ingress::hdr.tcp.window;, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::hdr.tcp.flags, ingress::hdr.tcp.reserved, ingress::hdr.tcp.offset, ingress::m.right, ingress::hdr.tcp.ack, ingress::hdr.tcp.window, ingress::m.left_offset, ingress::m.boundary, ingress::m.boundary_minus35, ingress::m.right_offset, ingress::m.left, ingress::m.window_after, ingress::m.geometry_diff, ingress::m.map_position, ingress::m.right, ingress::hdr.tcp.ack, ingress::m.left_offset, ingress::m.boundary, ingress::m.boundary_minus35, ingress::m.right_offset, ingress::m.left, ingress::m.window_after, ingress::m.geometry_diff, ingress::m.map_position, ingress::hdr.tcp.seq, ingress::hdr.tcp.dport, ingress::hdr.tcp.sport
+
+error: PHV allocation was not successful
+27 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::hdr.tcp.flags<8b>
+    ingress::hdr.tcp.reserved<4b>
+    ingress::hdr.tcp.offset<4b>
+    ingress::m.right<32b>[15:0]
+    ingress::hdr.tcp.ack<32b>[15:0]
+    ingress::hdr.tcp.window<16b>
+    ingress::m.left_offset<32b>[15:0]
+    ingress::m.boundary<32b>[15:0]
+    ingress::m.boundary_minus35<32b>[15:0]
+    ingress::m.right_offset<32b>[15:0]
+    ingress::m.left<32b>[15:0]
+    ingress::m.window_after<32b>[15:0]
+    ingress::m.geometry_diff<32b>[15:0]
+    ingress::m.map_position<32b>[15:0]
+    ingress::m.right<32b>[31:16]
+    ingress::hdr.tcp.ack<32b>[31:16]
+    ingress::m.left_offset<32b>[31:16]
+    ingress::m.boundary<32b>[31:16]
+    ingress::m.boundary_minus35<32b>[31:16]
+    ingress::m.right_offset<32b>[31:16]
+    ingress::m.left<32b>[31:16]
+    ingress::m.window_after<32b>[31:16]
+    ingress::m.geometry_diff<32b>[31:16]
+    ingress::m.map_position<32b>[31:16]
+    ingress::hdr.tcp.seq<32b>
+    ingress::hdr.tcp.dport<16b>
+    ingress::hdr.tcp.sport<16b>
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 20 warnings generated.
+

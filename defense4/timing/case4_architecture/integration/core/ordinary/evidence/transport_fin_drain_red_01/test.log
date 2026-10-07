@@ -1,0 +1,102 @@
+test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) ... test_stamp_rejects_other_full_width_expected_owner_changes (test_transport_reverse.ReverseTransport) ... ok
+test_stamped_abort_epoch_pair_qualifies_before_work_advance (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) (close_stage=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 197, in test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return
+    self.assertEqual(original.emitted,[(2,close)])
+AssertionError: Lists differ: [(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[195 chars]00')] != [(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[129 chars]00')]
+
+First differing element 0:
+(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[194 chars]x00')
+(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[128 chars]x00')
+
+- [(325,
+?   - -
+
++ [(2,
+-   b'\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x04\x01\x00\x00\x00\x11"3'
+-   b'DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06&\xcd\n\x00'
+?                                                                   -----------
+
++   b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06'
+?     ++++++++++
+
+-   b'\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
++   b'&\xcd\n\x00\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
+?     +++++++++++
+
+    b'\x10\x00\xc4s\x00\x00')]
+
+======================================================================
+FAIL: test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) (close_stage=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 197, in test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return
+    self.assertEqual(original.emitted,[(2,close)])
+AssertionError: Lists differ: [(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[195 chars]00')] != [(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[129 chars]00')]
+
+First differing element 0:
+(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[194 chars]x00')
+(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[128 chars]x00')
+
+- [(325,
+?   - -
+
++ [(2,
+-   b'\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x04\x01\x00\x00\x00\x11"3'
+-   b'DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06&\xcd\n\x00'
+?                                                                   -----------
+
++   b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06'
+?     ++++++++++
+
+-   b'\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
++   b'&\xcd\n\x00\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
+?     +++++++++++
+
+    b'\x10\x00\xc4s\x00\x00')]
+
+======================================================================
+FAIL: test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return (test_transport_reverse.ReverseTransport) (close_stage=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 197, in test_genuine_fin_before_or_after_epoch_stamp_drains_only_real_return
+    self.assertEqual(original.emitted,[(2,close)])
+AssertionError: Lists differ: [(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[195 chars]00')] != [(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[129 chars]00')]
+
+First differing element 0:
+(325, b'\x00\x00\x00\x01\x00\x00\x00\x01\x[194 chars]x00')
+(2, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff[128 chars]x00')
+
+- [(325,
+?   - -
+
++ [(2,
+-   b'\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x04\x01\x00\x00\x00\x11"3'
+-   b'DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06&\xcd\n\x00'
+?                                                                   -----------
+
++   b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06'
+?     ++++++++++
+
+-   b'\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
++   b'&\xcd\n\x00\x00\x01\n\x00\x00\x02u1N \x00\x00\x00\x87\x00\x00\x03\x85P\x11'
+?     +++++++++++
+
+    b'\x10\x00\xc4s\x00\x00')]
+
+======================================================================
+FAIL: test_stamped_abort_epoch_pair_qualifies_before_work_advance (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 231, in test_stamped_abort_epoch_pair_qualifies_before_work_advance
+    self.assertEqual(out[1][:4],out[1][8:12],'actual N stamp pair')
+AssertionError: b'\x00\x00\x00\x01' != b'\x00\x12\x00\x01' : actual N stamp pair
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.849s
+
+FAILED (failures=4)

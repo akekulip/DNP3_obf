@@ -1,0 +1,30 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name nf
+Binding with p4_name nf successful!!
+Received e3 on GetForwarding on client 1, device 0
+Received m3 on GetForwarding on client 1, device 0
+Received nf on GetForwarding on client 1, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name m3
+Binding with p4_name m3 successful!!
+Received e3 on GetForwarding on client 2, device 0
+Received m3 on GetForwarding on client 2, device 0
+Received nf on GetForwarding on client 2, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name e3
+Binding with p4_name e3 successful!!
+Received e3 on GetForwarding on client 3, device 0
+Received m3 on GetForwarding on client 3, device 0
+Received nf on GetForwarding on client 3, device 0
+PASS SYN                                expected=original exactly once observed={1: [], 2: [b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00,\x00\x01@\x00@\x06&\xc9\n\x00\x00\x01\n\x00\x00\x02u1N \xff\xff\xff\xef\x00\x00\x00\x00`\x02\x10\x00\xb0\xba\x00\x00\x02\x04\x05\xdc\x00\x00']}
+PASS SYNACK                             expected=original exactly once observed={1: [b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00,\x00\x01@\x00@\x06&\xc9\n\x00\x00\x02\n\x00\x00\x01N u1\x00\x00\x03\x84\xff\xff\xff\xf0`\x12\x10\x00\xad%\x00\x00\x02\x04\x05\xdc\x00\x00'], 2: []}
+PASS finalACK                           expected=original exactly once observed={1: [], 2: [b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06&\xcd\n\x00\x00\x01\n\x00\x00\x02u1N \xff\xff\xff\xf0\x00\x00\x03\x85P\x10\x10\x00\xc5\n\x00\x00\x00\x00\x00\x00\x00\x00']}
+PASS SELECT35_to55                      expected=one independent exact109-byte endpoint frame observed={1: [], 2: [b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00_\x00\x01@\x00@\x06&\x96\n\x00\x00\x01\n\x00\x00\x02u1N \xff\xff\xff\xf0\x00\x00\x03\x85P\x18\x10\x00\x1cv\x00\x00\x05d,\xc4\n\x00\x01\x00\x10\xfe\xc0\xc0\x03\x0c\x01(\x01\x00\x01\x00\x01\x01d\x00\x00\x00X[d\x00\x00\x00\x00\x0c\x01(\x01\x00\xc9\x00\x01\x01\x00\x00\xa5\xa7\x00\x00\x00\x00\x00\x00\x00\xff\xff']}
+PASS genuine_downstream_completion      expected=N9/M4/E4   observed={'p0.n_Ingress.owner': {'n_Ingress.owner.f1': [1179649], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.epoch': {'n_Ingress.epoch.f1': [1], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [4], 'n_Ingress.work.work.phase': [9], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.reservation': {'Ingress.reservation.generation': [4], 'Ingress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.geo_first': {'Ingress.geo_first.f1': [19], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_position': {'Ingress.ledger_position.f1': [4294967280], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_tag': {'Ingress.ledger_tag.epoch': [1], 'Ingress.ledger_tag.generation': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.reservation': {'Egress.reservation.generation': [4], 'Egress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_tag': {'Egress.cache_tag.epoch': [1], 'Egress.cache_tag.generation': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_owner': {'Egress.cache_owner.f1': [589825], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.wire_position': {'Egress.wire_position.f1': [4294967280], 'action_name': None, 'is_default_entry': False}}
+PASS actual_native_coordinates          expected=wire_start and full32 boundary observed={'p0.n_Ingress.owner': {'n_Ingress.owner.f1': [1179649], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.epoch': {'n_Ingress.epoch.f1': [1], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [4], 'n_Ingress.work.work.phase': [9], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.reservation': {'Ingress.reservation.generation': [4], 'Ingress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.geo_first': {'Ingress.geo_first.f1': [19], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_position': {'Ingress.ledger_position.f1': [4294967280], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_tag': {'Ingress.ledger_tag.epoch': [1], 'Ingress.ledger_tag.generation': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.reservation': {'Egress.reservation.generation': [4], 'Egress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_tag': {'Egress.cache_tag.epoch': [1], 'Egress.cache_tag.generation': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_owner': {'Egress.cache_owner.f1': [589825], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.wire_position': {'Egress.wire_position.f1': [4294967280], 'action_name': None, 'is_default_entry': False}}
+SUMMARY {'total': 6, 'passed': 6, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 124

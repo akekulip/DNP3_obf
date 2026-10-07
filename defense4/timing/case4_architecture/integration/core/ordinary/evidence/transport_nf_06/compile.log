@@ -1,0 +1,35 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(210): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(214): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(243): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(293): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(126): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'n_IgParser' terminates
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                                 ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(126)
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(574): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'f_EgParser' terminates
+parser f_EgParser(packet_in pkt,out f_headers_t hdr,out f_meta_t m,out egress_intrinsic_metadata_t eg){Checksum() ic;Checksum() tc;
+                                                                 ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_06/source/nf.p4(574)
+parser f_EgParser(packet_in pkt,out f_headers_t hdr,out f_meta_t m,out egress_intrinsic_metadata_t eg){Checksum() ic;Checksum() tc;
+       ^^^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+error: : Currently in p4c, the table partial_ack_t_0 cannot perform a range match on key ingress::m.server_diff as the key does not fit in under 5 PHV nibbles
+
+1 error, 12 warnings generated.
+
+Skipping assembler, assembly file is empty

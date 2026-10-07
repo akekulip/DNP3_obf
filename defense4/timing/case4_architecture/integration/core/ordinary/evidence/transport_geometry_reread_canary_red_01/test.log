@@ -1,0 +1,14 @@
+test_coherent_snapshot_coordinates_cannot_replace_current_geometry (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_coherent_snapshot_coordinates_cannot_replace_current_geometry (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 111, in test_coherent_snapshot_coordinates_cannot_replace_current_geometry
+    self.assertTrue(mp.MPrepare().execute(m,bytes(bad),199)[0],delta)
+AssertionError: False is not true : 1
+
+----------------------------------------------------------------------
+Ran 1 test in 0.110s
+
+FAILED (failures=1)

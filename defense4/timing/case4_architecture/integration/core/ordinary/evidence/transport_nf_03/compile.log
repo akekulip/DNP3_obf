@@ -1,0 +1,21 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_03/source/nf.p4(480): [--Werror=type-error] error: Entry
+ table reverse_route{key={ig.ingress_port:exact;m.normalized:exact;m.direction:exact;m.packet_kind:exact;}actions={reverse_to_m;NoAction;}size=2;const default_action=NoAction();const entries={(9w2,8w0,8w2,8w3):reverse_to_m();(9w2,8w0,8w2,8w6):reverse_to_m();}}
+                                                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ---- Actual error:
+  Cannot cast implicitly type 'bit<8>' to type 'bit<1>'
+  ---- Originating from:
+  /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_03/source/nf.p4(480): Table entry has type 'tuple<bit<9>, bit<1>, bit<8>, bit<8>>' which is not the expected type 'tuple<bit<9>, bit<8>, bit<8>, bit<8>>'
+   table reverse_route{key={ig.ingress_port:exact;m.normalized:exact;m.direction:exact;m.packet_kind:exact;}actions={reverse_to_m;NoAction;}size=2;const default_action=NoAction();const entries={(9w2,8w0,8w2,8w3):reverse_to_m();(9w2,8w0,8w2,8w6):reverse_to_m();}}
+                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_03/source/nf.p4(480): [--Werror=type-error] error: Entry
+ table reverse_route{key={ig.ingress_port:exact;m.normalized:exact;m.direction:exact;m.packet_kind:exact;}actions={reverse_to_m;NoAction;}size=2;const default_action=NoAction();const entries={(9w2,8w0,8w2,8w3):reverse_to_m();(9w2,8w0,8w2,8w6):reverse_to_m();}}
+                                                                                                                                                                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ---- Actual error:
+  Cannot cast implicitly type 'bit<8>' to type 'bit<1>'
+  ---- Originating from:
+  /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/transport_nf_03/source/nf.p4(480): Table entry has type 'tuple<bit<9>, bit<1>, bit<8>, bit<8>>' which is not the expected type 'tuple<bit<9>, bit<8>, bit<8>, bit<8>>'
+   table reverse_route{key={ig.ingress_port:exact;m.normalized:exact;m.direction:exact;m.packet_kind:exact;}actions={reverse_to_m;NoAction;}size=2;const default_action=NoAction();const entries={(9w2,8w0,8w2,8w3):reverse_to_m();(9w2,8w0,8w2,8w6):reverse_to_m();}}
+                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^
+
+2 errors, 0 warnings generated.
+

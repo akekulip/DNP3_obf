@@ -67,7 +67,14 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
 - [ ] **Protected SELECT N→M→E (first byte milestone passes).** Actual external
   handshake and native SELECT35 produce exactly one independent55-byte payload;
   genuine downstream completion retires N/M/E pins. Normal, zero and wrapped
-  positions pass6/6 each in `model_split_05`, `model_split_zero_06` and
+  positions now pass6/6 each on existing switch SDK9.13.2 in
+  `installed_select_normal_01`, `installed_select_zero_02` and
+  `installed_select_wrap_03`. Exact NF `installed_nf_05` uses12/4, baseline M
+  `installed_m_baseline_01`10/0 and E `installed_e_01`1/10, scopes0/1/3.
+  [Installed-SDK verification](integration/core/ordinary/evidence/installed_select_verification_01/verification.json)
+  binds sources/configuration/artifacts, raw MODEL logs and independent checksums.
+  No proof presets or SDK updates. Extended mapper fit remains separate.
+  Historical local9.13.1 positions pass6/6 each in `model_split_05`, `model_split_zero_06` and
   `model_split_wrap_07`. This covers first SELECT, not complete SELECT acceptance:
   duplicate/stale loaded-leg model cases and post-M cancellation/loss remain open.
   The accepted split placement is NF pipe0 (`nf_02`,12 ingress/4 egress,
@@ -88,14 +95,30 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   existing geometry banks and separate typed return, rather than add N banks.
   [Lead resource checks](integration/core/ordinary/evidence/lead_split_verification_01/verification.json)
   record exact final per-stage SALU/table/crossbar/RAM/TCAM and PHV allocations.
-- [ ] **Ordinary SBO transport (active).** Source suite66/66 and14 focused
-  ACK/window/response/FIN methods pass; the bounded review approves source only.
-  On existing switch9.13.2, `installed_e_01` qualifies E1/10 (critical7), but the
-  transport NF01 fails15 ingress stages. Dependency fusions are source-tested;
-  NF02 currently fails declaration order and M02 unsupported paired SALU output,
-  before placement. Preserve those failure artifacts, repair legal data access,
-  then compile and run the exact multipipe target model. Earlier split N12/M10
-  stage counts/model passes remain tied to9.13.1.
+- [ ] **Ordinary SBO transport (active).** Fresh source suite71/71 and19 focused
+  methods pass, including168 ACK/window pairs; bounded review approves source only.
+  Existing switch9.13.2 now builds extended NF `installed_nf_05` at12/4,
+  critical11 (failed extension reduced15→13→12), and exact E `installed_e_01`
+  at1/10, critical7. All identity/artifact and corrected per-pipeline static-entry
+  checks pass. N still has no spare ingress stage. Readonly M now uses genuine
+  snapshot/validation visits. Next14 captures actual full32 boundary/position in a
+  20-byte snapshot, computes inverse early, then independently rereads full
+  publication/identity and both coordinates before release. Paired-coordinate
+  forgery and a negative reread canary prove geometry relation alone is insufficient.
+  M10/M11 failed bank placement; M12 (`deceea36…94cd`) fails PHV allocation with36
+  unallocated slices. Preserve failures and obtain extended M fit before its
+  exact installed-version mapper model. Baseline first SELECT passes on9.13.2
+  with original M, which does not implement this mapper.
+  Source-counted ACK/response mapping is7 ingress visits and408/750 private bytes,
+  separate from endpoint bytes and unmeasured until mapper model execution.
+  Source parser consumption is at most153 bytes across roles (snapshot response147);
+  compiled depth is unverified. Old12-byte snapshots carried400/742 private bytes.
+  Latest next15 (`081b4122…fea25`) compares both full32 coordinates inside actual
+  readonly scalar actions and requires both genuine grants; source review passes.
+  Installed M13 removes the PHV error but fails table placement with no progress.
+  Inspect that exact dependency before another repair. Consider unused M egress
+  for stateless inverse arithmetic if it avoids the ingress dependency without
+  weakening actual publication/identity authority; this alternative is not built.
   First normalize reverse ACK and both
   receive-window edges through actual published M geometry BEFORE N association.
   Require the full current epoch; preserve pins on lost cancellation returns.

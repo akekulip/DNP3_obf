@@ -1,0 +1,36 @@
+test_actual_pair_struct_outputs_preserve_both_full_width_lanes (test_transport_reverse.ReverseTransport) ... ERROR
+
+======================================================================
+ERROR: test_actual_pair_struct_outputs_preserve_both_full_width_lanes (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 66, in test_actual_pair_struct_outputs_preserve_both_full_width_lanes
+    m.begin_pass(199);m.run_action('mapping_reads',[])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 378, in run_action
+    self.scoped(params, [v for v, _ in values], body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 386, in scoped
+    self.exec_all(body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 311, in exec_stmt
+    self.store(stmt[1], self.ev(stmt[2])[0])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/transport_source.py", line 15, in call
+    return super().call(path,args,node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 34, in call
+    return super().call(path, args, node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 344, in call
+    return self.execute(owner, self.ev(args[0])[0]), None
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 416, in execute
+    return self.scoped(list(zip(names + [rname], widths + [rwidth])), values + [0], body, after)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 384, in scoped
+    frame.loc[pname], frame.locw[pname] = value & ((1 << width) - 1), width
+TypeError: unsupported operand type(s) for <<: 'int' and 'NoneType'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.100s
+
+FAILED (errors=1)

@@ -1,0 +1,30 @@
+{
+  "host": "decps@10.10.54.81",
+  "sdk_updates": false,
+  "chip_activation": false,
+  "traffic": false,
+  "preflight_only": true,
+  "model_runtime_started": false,
+  "commands": {
+    "model_version": {
+      "argv": [
+        "unshare",
+        "-Urn",
+        "env",
+        "LD_LIBRARY_PATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib",
+        "/home/decps/Downloads/bf-sde-9.13.2/install/bin/tofino-model",
+        "--version"
+      ],
+      "exit_code": 0
+    },
+    "switchd_default_model": {
+      "argv": [
+        "sed",
+        "-n",
+        "4598,4627p",
+        "/home/decps/Downloads/bf-sde-9.13.2/pkgsrc/bf-drivers/bf_switchd/bf_switchd.c"
+      ],
+      "exit_code": 0
+    }
+  }
+}

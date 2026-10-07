@@ -1,0 +1,109 @@
+ 5 time(s), state = REDO_PHV2
+Number of stages in table allocation: 13
+  Number of stages for ingress table allocation: 13
+  Number of stages for egress table allocation: 4
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 96
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                     n_Ingress.ports                     |
+|   0   |    [ 0, 1 ]     |                    n_Ingress.network                    |
+|   0   |    [ 0, 2 ]     |                        tbl_nf489                        |
+|   0   |    [ 0, 2 ]     |                       tbl_nf486_0                       |
+|   0   |    [ 0, 2 ]     |                        tbl_nf486                        |
+|   0   |    [ 0, 2 ]     |                        tbl_nf488                        |
+|   0   |    [ 0, 2 ]     |                       tbl_nf488_0                       |
+|   0   |    [ -, - ]     |                        tbl_nf604                        |
+|   0   |    [ 0, 8 ]     |                   f_Egress.connection                   |
+|   0   |   [ 0, 11 ]     |                       tbl_deny_6                        |
+|   1   |    [ -, - ]     |                  n_Ingress.connection                   |
+|   1   |    [ -, - ]     |                 n_Ingress.input_head_t                  |
+|   1   |    [ -, - ]     |                n_Ingress.read_connection                |
+|   1   |    [ 1, 3 ]     |                   n_Ingress.rd_head_t                   |
+|   1   |    [ 1, 3 ]     |               n_Ingress.rd_request_crc_t                |
+|   1   |    [ 1, 3 ]     |                n_Ingress.rd_first_crc_t                 |
+|   1   |    [ 1, 3 ]     |                 n_Ingress.rd_tail_crc_t                 |
+|   1   |    [ 1, 3 ]     |                n_Ingress.rd_second_crc_t                |
+|   1   |    [ 1, 4 ]     |             n_Ingress.read_response_profile             |
+|   1   |    [ 1, 4 ]     |             n_Ingress.read_request_profile              |
+|   1   |    [ 1, 4 ]     |                n_Ingress.data_connection                |
+|   1   |    [ 1, 4 ]     |               n_Ingress.response_profile                |
+|   1   |    [ 1, 4 ]     |                    n_Ingress.profile                    |
+|   1   |    [ 1, 4 ]     |                         cond-61                         |
+|   1   |    [ 1, 9 ]     |                    f_Egress.claim_t                     |
+|   1   |   [ 1, 10 ]     |                       tbl_deny_3                        |
+|   2   |    [ 1, 3 ]     |                n_Ingress.response_crct_t                |
+|   2   |    [ 1, 3 ]     |                 n_Ingress.input_tail_t                  |
+|   2   |    [ 1, 3 ]     |                 n_Ingress.input_body_t                  |
+|   2   |    [ 1, 3 ]     |                n_Ingress.response_crc1_t                |
+|   2   |    [ 1, 3 ]     |                n_Ingress.response_crc0_t                |
+|   2   |    [ 2, 4 ]     |                       tbl_nf508_1                       |
+|   2   |    [ 2, 4 ]     |                       tbl_nf508_0                       |
+|   2   |    [ 2, 4 ]     |                        tbl_nf508                        |
+|   2   |    [ 2, 4 ]     |                        tbl_nf507                        |
+|   2   |    [ 2, 3 ]     |                        tbl_nf505                        |
+|   2   |    [ 2, 4 ]     |                        tbl_nf498                        |
+|   2   |    [ 1, 4 ]     |                         cond-53                         |
+|   2   |   [ 2, 10 ]     |                   tbl_endpoint_ready                    |
+|   2   |   [ 2, 11 ]     |                       tbl_deny_5                        |
+|   3   |    [ 2, 4 ]     |                        tbl_nf501                        |
+|   3   |    [ 2, 4 ]     |                       tbl_nf500_0                       |
+|   3   |    [ 2, 4 ]     |                        tbl_nf500                        |
+|   3   |    [ 2, 4 ]     |                        tbl_nf499                        |
+|   3   |    [ 3, 4 ]     |                        tbl_nf506                        |
+|   3   |    [ 2, 4 ]     |                 n_Ingress.reverse_route                 |
+|   3   |   [ 3, 11 ]     | egresshdr.tcp.checksum_encode_update_condition_1_egress |
+|   4   |    [ -, - ]     |                     n_Ingress.guard                     |
+|   5   |    [ -, - ]     |                 n_Ingress.work.dispatch                 |
+|   5   |    [ 5, 7 ]     |                 n_Ingress.read_input_t                  |
+|   5   |    [ 5, 7 ]     |                 n_Ingress.ack_native_t                  |
+|   5   |    [ 5, 7 ]     |                         cond-68                         |
+|   5   |    [ 5, 7 ]     |           n_Ingress.compare_response_inputs_t           |
+|   5   |    [ 5, 7 ]     |            n_Ingress.compare_select_inputs_t            |
+|   5   |    [ 5, 7 ]     |           n_Ingress.compare_operate_inputs_t            |
+|   5   |    [ -, - ]     |                  n_Ingress.next_seq_t                   |
+|   5   |   [ 5, 10 ]     |                        tbl_deny                         |
+|   5   |   [ 5, 10 ]     |                       tbl_deny_2                        |
+|   6   |    [ 6, 7 ]     |                    n_Ingress.epoch_t                    |
+|   6   |    [ 6, 7 ]     |              n_Ingress.active_generation_t              |
+|   7   |    [ 7, 8 ]     |                 n_Ingress.owner_command                 |
+|   7   |    [ 7, 8 ]     |                   n_Ingress.server_t                    |
+|   7   |    [ 7, 8 ]     |                   n_Ingress.client_t                    |
+|   7   |    [ 7, 9 ]     |                  n_Ingress.read_app_t                   |
+|   7   |    [ 7, 9 ]     |              n_Ingress.frozen_decoy_off_t               |
+|   8   |    [ 7, 9 ]     |             n_Ingress.frozen_decoy_object_t             |
+|   8   |    [ 7, 9 ]     |                 n_Ingress.application_t                 |
+|   8   |    [ 7, 9 ]     |                 n_Ingress.native_end_t                  |
+|   8   |    [ 7, 9 ]     |                  n_Ingress.real_off_t                   |
+|   9   |    [ 7, 9 ]     |                 n_Ingress.real_object_t                 |
+|   9   |    [ 7, 9 ]     |                n_Ingress.real_tcp_dst_t                 |
+|   9   |    [ 7, 9 ]     |                 n_Ingress.real_links_t                  |
+|   9   |    [ 8, 9 ]     |                    n_Ingress.owner_t                    |
+|   9   |    [ 8, 9 ]     |                 n_Ingress.sequence_diff                 |
+|  10   |   [ 9, 10 ]     |                n_Ingress.sequence_guard                 |
+|  10   |    [ -, - ]     |                n_Ingress.ready_result_t                 |
+|  10   |    [ -, - ]     |                         cond-74                         |
+|  10   |   [ 9, 10 ]     |                 n_Ingress.object_match                  |
+|  10   |    [ -, - ]     |                n_Ingress.reset_boundary                 |
+|  10   |    [ -, - ]     |                         cond-80                         |
+|  10   |   [ 9, 10 ]     |                n_Ingress.read_terminal_t                |
+|  10   |   [ 9, 10 ]     |                       tbl_deny_1                        |
+|  10   |   [ 9, 10 ]     |                         cond-81                         |
+|  10   |   [ 9, 10 ]     |                         cond-82                         |
+|  10   |   [ 9, 10 ]     |                         cond-83                         |
+|  10   |   [ 9, 10 ]     |                    n_Ingress.carry_t                    |
+|  10   |   [ 9, 10 ]     |                    n_Ingress.abort_t                    |
+|  10   |    [ -, - ]     |                         cond-76                         |
+|  10   |    [ -, - ]     |                         cond-76                         |
+|  10   |   [ 9, 10 ]     |                  n_Ingress.snapshot_t                   |
+|  11   |   [ 9, 10 ]*    |                         cond-77                         |
+|  11   |   [ 9, 10 ]*    |                       tbl_deny_0                        |
+|  11   |   [ 9, 10 ]*    |                    n_Ingress.busy_t                     |
+|  11   |   [ 10, 11 ]    |                  n_Ingress.first_event                  |
+|  11   |   [ 10, 11 ]    |                 n_Ingress.next_stage_t                  |
+|  12   |   [ 10, 11 ]*   |                       tbl_deny_4                        |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

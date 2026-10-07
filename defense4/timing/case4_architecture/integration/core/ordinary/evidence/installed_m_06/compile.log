@@ -1,0 +1,110 @@
+/tmp/case4_compile_ekt7psyJ/evidence/source/m3.p4(153): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/tmp/case4_compile_ekt7psyJ/evidence/source/m3.p4(26): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/tmp/case4_compile_ekt7psyJ/evidence/source/m3.p4(26)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/tmp/case4_compile_ekt7psyJ/evidence/source/m3.p4(235): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/tmp/case4_compile_ekt7psyJ/evidence/source/m3.p4(235)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: In action Ingress.emit_mapping_snapshot, write ActionParam: ingress::hdr.map_snapshot.owner;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: 9, type: CONSTANT, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: In action Ingress.prepare_edges, write ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: ingress::hdr.tcp.window;, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+error: Cannot find a slicing to satisfy @pa_container_size pragma(s): ingress::m.left
+SUPERCLUSTER Uid: 432
+    slice lists:	
+        [ ingress::hdr.tcp.flags<8> ^0 ^bit[0..111] deparsed exact_containers [0:7]
+          ingress::hdr.tcp.reserved<4> ^0 ^bit[0..103] deparsed exact_containers [0:3]
+          ingress::hdr.tcp.offset<4> ^4 ^bit[0..99] deparsed exact_containers [0:3]
+          ingress::hdr.tcp.ack<32> ^0 ^bit[0..95] deparsed no_split exact_containers [0:15]
+          ingress::hdr.tcp.ack<32> ^0 ^bit[0..79] deparsed no_split exact_containers [16:31]
+          ingress::hdr.tcp.seq<32> ^0 ^bit[0..63] deparsed exact_containers [0:31]
+          ingress::hdr.tcp.dport<16> ^0 ^bit[0..31] deparsed exact_containers [0:15]
+          ingress::hdr.tcp.sport<16> ^0 ^bit[0..15] deparsed exact_containers [0:15] ]
+        [ ingress::m.right<32> meta solitary no_split [0:15]
+          ingress::m.right<32> meta solitary no_split [16:31] ]
+        [ ingress::hdr.tcp.window<16> ^0 ^bit[0..127] deparsed solitary no_split exact_containers [0:15] ]
+        [ ingress::m.left_offset<32> meta solitary no_split [0:15]
+          ingress::m.left_offset<32> meta solitary no_split [16:31] ]
+        [ ingress::m.boundary<32> meta no_split [0:15]
+          ingress::m.boundary<32> meta no_split [16:31] ]
+        [ ingress::m.boundary_minus35<32> meta solitary no_split [0:15]
+          ingress::m.boundary_minus35<32> meta solitary no_split [16:31] ]
+        [ ingress::m.right_offset<32> meta solitary no_split [0:15]
+          ingress::m.right_offset<32> meta solitary no_split [16:31] ]
+        [ ingress::m.left<32> meta solitary no_split [0:15]
+          ingress::m.left<32> meta solitary no_split [16:31] ]
+        [ ingress::m.window_after<32> meta solitary no_split [0:15]
+          ingress::m.window_after<32> meta solitary no_split [16:31] ]
+        [ ingress::m.geometry_diff<32> meta solitary no_split [0:15]
+          ingress::m.geometry_diff<32> meta solitary no_split [16:31] ]
+        [ ingress::m.map_position<32> meta no_split [0:15]
+          ingress::m.map_position<32> meta no_split [16:31] ]
+    rotational clusters:	
+        [[ingress::hdr.tcp.flags<8> ^0 ^bit[0..111] deparsed exact_containers [0:7]]]
+        [[ingress::hdr.tcp.reserved<4> ^0 ^bit[0..103] deparsed exact_containers [0:3]]]
+        [[ingress::hdr.tcp.offset<4> ^4 ^bit[0..99] deparsed exact_containers [0:3]]]
+        [[ingress::m.right<32> meta solitary no_split [0:15], ingress::hdr.tcp.ack<32> ^0 ^bit[0..95] deparsed no_split exact_containers [0:15], ingress::hdr.tcp.window<16> ^0 ^bit[0..127] deparsed solitary no_split exact_containers [0:15], ingress::m.left_offset<32> meta solitary no_split [0:15], ingress::m.boundary<32> meta no_split [0:15], ingress::m.boundary_minus35<32> meta solitary no_split [0:15], ingress::m.right_offset<32> meta solitary no_split [0:15], ingress::m.left<32> meta solitary no_split [0:15], ingress::m.window_after<32> meta solitary no_split [0:15], ingress::m.geometry_diff<32> meta solitary no_split [0:15], ingress::m.map_position<32> meta no_split [0:15]]]
+        [[ingress::m.right<32> meta solitary no_split [16:31], ingress::hdr.tcp.ack<32> ^0 ^bit[0..79] deparsed no_split exact_containers [16:31], ingress::m.left_offset<32> meta solitary no_split [16:31], ingress::m.boundary<32> meta no_split [16:31], ingress::m.boundary_minus35<32> meta solitary no_split [16:31], ingress::m.right_offset<32> meta solitary no_split [16:31], ingress::m.left<32> meta solitary no_split [16:31], ingress::m.window_after<32> meta solitary no_split [16:31], ingress::m.geometry_diff<32> meta solitary no_split [16:31], ingress::m.map_position<32> meta no_split [16:31]]]
+        [[ingress::hdr.tcp.seq<32> ^0 ^bit[0..63] deparsed exact_containers [0:31]]]
+        [[ingress::hdr.tcp.dport<16> ^0 ^bit[0..31] deparsed exact_containers [0:15]]]
+        [[ingress::hdr.tcp.sport<16> ^0 ^bit[0..15] deparsed exact_containers [0:15]]]
+
+error: PHV allocation was not successful
+27 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::hdr.tcp.flags<8b>
+    ingress::hdr.tcp.reserved<4b>
+    ingress::hdr.tcp.offset<4b>
+    ingress::m.right<32b>[15:0]
+    ingress::hdr.tcp.ack<32b>[15:0]
+    ingress::hdr.tcp.window<16b>
+    ingress::m.left_offset<32b>[15:0]
+    ingress::m.boundary<32b>[15:0]
+    ingress::m.boundary_minus35<32b>[15:0]
+    ingress::m.right_offset<32b>[15:0]
+    ingress::m.left<32b>[15:0]
+    ingress::m.window_after<32b>[15:0]
+    ingress::m.geometry_diff<32b>[15:0]
+    ingress::m.map_position<32b>[15:0]
+    ingress::m.right<32b>[31:16]
+    ingress::hdr.tcp.ack<32b>[31:16]
+    ingress::m.left_offset<32b>[31:16]
+    ingress::m.boundary<32b>[31:16]
+    ingress::m.boundary_minus35<32b>[31:16]
+    ingress::m.right_offset<32b>[31:16]
+    ingress::m.left<32b>[31:16]
+    ingress::m.window_after<32b>[31:16]
+    ingress::m.geometry_diff<32b>[31:16]
+    ingress::m.map_position<32b>[31:16]
+    ingress::hdr.tcp.seq<32b>
+    ingress::hdr.tcp.dport<16b>
+    ingress::hdr.tcp.sport<16b>
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 20 warnings generated.
+

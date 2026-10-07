@@ -1,0 +1,93 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "18d34f2b44006945b8479fc850a5d225b3ae4f3cc1d10df7c11ae32f67679673",
+    "m3.conf": "2e55595e127302392dfb3dcbd917621b08250e01568011b900a2fa157ee7a56a",
+    "manifest.json": "5fba718b84984b4ac8451ccd891ab947cf309c3dfffb3bc6c5fbcdb958f3a349",
+    "pipe/context.json": "f23c5e81d18e8308ea664fac0193600eff8900feeca33c016559adcf7018e934",
+    "pipe/m3.bfa": "0e38e47d084f971cbeb4d1379939df497215366bf2e00f3acf745c996f776adc",
+    "pipe/tofino.bin": "c3f099c243937ea8f7cf31843cacc7ca89e47e20f67b0a69ad9c425b42d84e67"
+  },
+  "command": [
+    "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/tmp/case4_compile_gySTy99l/evidence/out",
+    "/tmp/case4_compile_gySTy99l/evidence/source/m3.p4"
+  ],
+  "compile_log_sha256": "91bf10750388a94c51b77062795fdeb812257c073d7ec2a74ad545b9247386b9",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "compiler_path": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+  "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14",
+  "elapsed_seconds": 31.729,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 9,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "b78c0be54452f7a90e6d4e5af199cb1ed86e11ab3fb77b81de7e201543238e3d",
+      "pipe/logs/phv.json": "ebc378ed2326beb81596a759bdf5945f502ca3d5be08b1462b06d5b20c592eb3",
+      "pipe/logs/phv_allocation_0.log": "760b1869baeeb043693c66250eba128b7b4becbceb3c6595c6af8c180c12a300",
+      "pipe/logs/phv_allocation_3.log": "760b1869baeeb043693c66250eba128b7b4becbceb3c6595c6af8c180c12a300",
+      "pipe/logs/phv_allocation_history_0.log": "eb54ab920bfffe5a3837bf4f8596e181c28d1f1b52a1c7044c3168090cd0640d",
+      "pipe/logs/phv_allocation_history_3.log": "bc7369e1df87b6236633010b51790bf8630f04ee956fba2b2444385710bc3f1d",
+      "pipe/logs/phv_allocation_summary_0.log": "e172f777d1d833abdcf6990927be35b2a3c2383f9c4624d022384b8fc820716b",
+      "pipe/logs/phv_allocation_summary_3.log": "35c500aa06f4111a2f8a896850e3bf352574459d7da3c2ad010355146692242e",
+      "pipe/logs/table_dependency_graph.log": "869bc92fa12fbaacfc46bc5b195bdf39763e636cf3ea8b8b7753898a25f92e33",
+      "pipe/logs/table_dependency_summary.log": "3876b2205c09354f429eea9308f964b2df3510aa62f9912b7662f4fb67babb23",
+      "pipe/logs/table_summary.log": "42076168780218478051d582d3bf6261ca1c25a4faaf78f26fe613bf8186fda1"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 10
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.reservation",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.producer_context",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.activation_receipt",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ledger_position",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.geo_first",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ledger_tag",
+        "size": 1
+      }
+    ],
+    "tables_by_type": {
+      "action": 3,
+      "condition": 20,
+      "match": 38,
+      "stateful": 6
+    }
+  },
+  "source": "/tmp/case4_compile_gySTy99l/inputs/m3.p4",
+  "source_files": {
+    "m3.p4": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0"
+  },
+  "source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+  "timeout_seconds": 300
+}

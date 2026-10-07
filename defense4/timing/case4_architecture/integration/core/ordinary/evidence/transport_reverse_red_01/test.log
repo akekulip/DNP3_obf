@@ -1,0 +1,1380 @@
+test_external_reverse_steers_before_any_n_mutation (test_transport_reverse.ReverseTransport) ... FAIL
+test_foreign_tuple_network_and_incomplete_ledger_refuse_without_m_mutation (test_transport_reverse.ReverseTransport) ... ok
+test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) ... test_normalized_ack_reaches_client_without_double_inverse (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_external_reverse_steers_before_any_n_mutation (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 66, in test_external_reverse_steers_before_any_n_mutation
+    self.assertEqual(out.emitted,[(199,packet(155,20))])
+AssertionError: Lists differ: [(1, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\[128 chars]00')] != [(199, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xf[130 chars]00')]
+
+First differing element 0:
+(1, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\[127 chars]x00')
+(199, b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xf[129 chars]x00')
+
+- [(1,
++ [(199,
+?    ++
+
+    b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@\x00@\x06'
+    b'&\xcd\n\x00\x00\x02\n\x00\x00\x01N u1\x00\x00\x03\x85\x00\x00\x00\x9bP\x10'
+    b'\x00\x14\xd4L\x00\x00')]
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=0, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=34, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=35, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=36, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=54, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=55, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=56, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=0, offset=70, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=0, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=34, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=35, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=36, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=54, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=55, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=56, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=100, offset=70, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=0, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=34, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=35, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=36, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=54, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=55, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=56, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=4096)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries (test_transport_reverse.ReverseTransport) (start=4294967280, offset=70, window=65535)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 80, in test_m_left_and_right_inverse_match_oracle_zero_wrap_and_boundaries
+    self.assertFalse(dropped,'published geometry refused')
+AssertionError: True is not false : published geometry refused
+
+======================================================================
+FAIL: test_normalized_ack_reaches_client_without_double_inverse (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 95, in test_normalized_ack_reaches_client_without_double_inverse
+    self.assertFalse(dropped)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.020s
+
+FAILED (failures=170)

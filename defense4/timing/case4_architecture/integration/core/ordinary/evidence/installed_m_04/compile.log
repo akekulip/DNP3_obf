@@ -1,0 +1,70 @@
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(147): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(219): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(219)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: In action Ingress.prepare_edges, write ActionParam: ingress::m.right;, type: PHV, speciality: NO_SPECIAL, is cond: 0 and read ActionParam: ingress::hdr.tcp.window;, type: PHV, speciality: NO_SPECIAL, is cond: 0 sizes do not match up
+warning: Instruction selection creates an instruction that the rest of the compiler cannot correctly interpret
+error: This program violates action constraints imposed by Tofino.
+
+/tmp/case4_compile_XmXEbloL/evidence/source/m3.p4(171):
+ action map_return(){hdr.tcp.ack=m.left;hdr.tcp.window=m.window_after[15:0];m.reverse_changed=1w1;m.tcp_length=hdr.ip.len-16w20;hdr.reference.setValid();hdr.reference.epoch=m.map_epoch;hdr.reference.generation=m.map_generation;hdr.reference.expected_owner=m.map_owner;hdr.reference.event=16w0x0000;hdr.reference.format=16w4;tm.ucast_egress_port=9w68;tm.bypass_egress=1w1;}
+        ^^^^^^^^^^
+
+  PHV allocation requires the following field slices to be packed together, because of the structure of header ingress::hdr.tcp
+	ingress::hdr.tcp.flags
+	ingress::hdr.tcp.reserved
+	ingress::hdr.tcp.offset
+	ingress::hdr.tcp.ack[15:0]
+	ingress::hdr.tcp.ack[31:16]
+	ingress::hdr.tcp.seq
+	ingress::hdr.tcp.dport
+	ingress::hdr.tcp.sport
+
+  Action Ingress.map_return must be rewritten, because it requires too many sources.
+	Source 1 is the container itself, imposed by the following fields that are unwritten in action Ingress.map_return:
+	  ingress::hdr.tcp.flags
+	  ingress::hdr.tcp.reserved
+	  ingress::hdr.tcp.offset
+	  ingress::hdr.tcp.seq
+	  ingress::hdr.tcp.dport
+	  ingress::hdr.tcp.sport
+	Source 2 contains the following fields:
+	  ingress::m.left[15:0] @ bits 0-15
+	Source 3 contains the following fields:
+	  ingress::m.left[31:16] @ bits 16-31
+  However, Tofino supports only two PHV sources.
+  Rewrite action Ingress.map_return to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).
+
+
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::hdr.tcp.flags, ingress::hdr.tcp.reserved, ingress::hdr.tcp.offset, ingress::m.right, ingress::hdr.tcp.ack, ingress::hdr.tcp.window, ingress::m.left_offset, ingress::m.boundary, ingress::m.boundary_minus35, ingress::m.right_offset, ingress::m.left, ingress::m.window_after, ingress::m.geometry_diff, ingress::m.map_position, ingress::m.right, ingress::hdr.tcp.ack, ingress::m.left_offset, ingress::m.boundary, ingress::m.boundary_minus35, ingress::m.right_offset, ingress::m.left, ingress::m.window_after, ingress::m.geometry_diff, ingress::m.map_position, ingress::hdr.tcp.seq, ingress::hdr.tcp.dport, ingress::hdr.tcp.sport
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 19 warnings generated.
+

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python",
+    "-m",
+    "unittest",
+    "test_transport_reverse.ReverseTransport.test_snapshot_carries_actual_full_geometry_and_position_zero_wrap",
+    "test_transport_reverse.ReverseTransport.test_snapshot_geometry_words_are_reread_full_width_before_return",
+    "-v"
+  ],
+  "exit_code": 1,
+  "sha256": {
+    "transport.py": "ef5870f9e652e7fad2638284e8fb419ac2a8f5901350a800573c14226969355a",
+    "tests/test_transport_reverse.py": "606f6eb9c8f25d538250f34580febd97b1800280208cd6fa1c539e5dcca93ad6",
+    "transport_candidate_next13/m3.p4": "530feb1b370e65bf8ecc16f25e40137262f668105d381dfc486dd02215d8eca3"
+  },
+  "classification": "RED actual snapshot lacks20-byte geometry/position record; source-only",
+  "full_target": false
+}

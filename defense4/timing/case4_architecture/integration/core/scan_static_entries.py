@@ -5,8 +5,8 @@ usage: scan_static_entries.py <out dir or evidence root> ...   exit 1 if any off
 import glob, json, os, sys
 bad = 0
 for root in sys.argv[1:]:
-    paths = [os.path.join(root, 'pipe', 'context.json')] if os.path.exists(os.path.join(root, 'pipe', 'context.json')) \
-        else glob.glob(os.path.join(root, '**', 'out', 'pipe', 'context.json'), recursive=True)
+    paths = glob.glob(os.path.join(root, '*', 'context.json')) or \
+        glob.glob(os.path.join(root, '**', 'out', '*', 'context.json'), recursive=True)
     for p in sorted(paths):
         for t in json.load(open(p))['tables']:
             n = len(t.get('static_entries') or [])

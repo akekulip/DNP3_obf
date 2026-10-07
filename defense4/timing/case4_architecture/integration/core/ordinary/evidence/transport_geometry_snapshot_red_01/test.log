@@ -1,0 +1,23 @@
+test_snapshot_carries_actual_full_geometry_and_position_zero_wrap (test_transport_reverse.ReverseTransport) ... FAIL
+test_snapshot_geometry_words_are_reread_full_width_before_return (test_transport_reverse.ReverseTransport) ... FAIL
+
+======================================================================
+FAIL: test_snapshot_carries_actual_full_geometry_and_position_zero_wrap (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 78, in test_snapshot_carries_actual_full_geometry_and_position_zero_wrap
+    self.assertEqual(snapshot[:4],bytes.fromhex('16c40006'))
+AssertionError: b'\x16\xc4\x00\x05' != b'\x16\xc4\x00\x06'
+
+======================================================================
+FAIL: test_snapshot_geometry_words_are_reread_full_width_before_return (test_transport_reverse.ReverseTransport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_transport_reverse.py", line 93, in test_snapshot_geometry_words_are_reread_full_width_before_return
+    self.assertEqual(snapshot[20:],packet(155,20))
+AssertionError: b'\xcc\xdd\xee\xff\x08\x00E\x00\x00(\x00\x01@[100 chars]\x00' != b'\x00\x11"3DU\xaa\xbb\xcc\xdd\xee\xff\x08\x0[120 chars]\x00'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.204s
+
+FAILED (failures=2)

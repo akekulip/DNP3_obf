@@ -1,0 +1,46 @@
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(147): [--Wwarn=unused] warning: Table crc_gate is not used; removing
+ table crc_gate{key={m.badh:exact;m.badb:exact;m.badt:exact;}actions={NoAction;}size=1;const default_action=NoAction();}
+       ^^^^^^^^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(25): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+                                                           ^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(25)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ic;Checksum() tc;Checksum() rc;
+       ^^^^^^^^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(215): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(215)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(163): [--Werror=unsupported] error: sub: action spanning multiple stages. Operations on operand 2 ($tmp23[0..31]) in action prepare_edges require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+ action prepare_edges(){m.left=hdr.tcp.ack;m.right=hdr.tcp.ack+(bit<32>)hdr.tcp.window;m.left_offset=hdr.tcp.ack-m.boundary;m.right_offset=m.right-m.boundary;}
+                                                                                                                                           ^^^^^^^^^^^^^^^^^^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(163)
+ action prepare_edges(){m.left=hdr.tcp.ack;m.right=hdr.tcp.ack+(bit<32>)hdr.tcp.window;m.left_offset=hdr.tcp.ack-m.boundary;m.right_offset=m.right-m.boundary;}
+        ^^^^^^^^^^^^^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(161): [--Werror=unsupported] error: add: action spanning multiple stages. Operations on operand 2 ($tmp24[0..31]) in action mapping_position require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.
+ action mapping_position(){m.map_position=read_map_position.execute(1w0);m.geometry_diff=m.boundary-m.map_position-32w35;}
+                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/case4_compile_zPB3yuh0/evidence/source/m3.p4(161)
+ action mapping_position(){m.map_position=read_map_position.execute(1w0);m.geometry_diff=m.boundary-m.map_position-32w35;}
+        ^^^^^^^^^^^^^^^^
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 17 warnings generated.
+

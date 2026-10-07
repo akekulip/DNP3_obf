@@ -3,12 +3,28 @@
 ## Existing-SDK checkpoint2026-10-07
 
 Use installed switch9.13.2 without updates. `ordinary/evidence/installed_e_01`
-binds the accepted E source to an exact1/10-stage build, critical7; all artifact
-checks and static capacities pass. Transport source suite66/66 and focused14/14
-pass, with independent source-only review. NF01 fails15 stages, NF02 declaration
-order, M02 incompatible full32 paired SALU output; failures remain retained.
-N12/M10/first SELECT model claims remain9.13.1 evidence. Full core and the exact
-installed-version multipipe model remain open in [PLAN.md](PLAN.md).
+binds E to1/10 stages, critical7. Extended NF `installed_nf_05` (`ca695e97…`)
+fits12/4, critical11; baseline M `installed_m_baseline_01` (`c8820a1f…`) fits10/0,
+critical9. Source/compiler/artifact and corrected per-pipeline static caps pass.
+Actual existing-SDK model normal/zero/wrap first SELECT passes18/18: exact109-byte
+frame/55-byte payload, independent checksums/CRCs and genuine N9/M4/E4 completion.
+No ownership/cache proof presets. Raw traces show19 SELECT ingress visits and18
+private TX records carrying2346 Ethernet bytes excluding model trailers.
+[Source-bound verification](integration/core/ordinary/evidence/installed_select_verification_01/verification.json)
+retains this partial scope. Fresh ordinary71/71 and scanner3/3 methods pass.
+
+Reverse transport remains source-only: next14 M (`deceea36…94cd`) captures actual
+full32 geometry in a20-byte record then independently revalidates full identities
+and both coordinates before release. Coherent paired-coordinate forgery rejects;
+removing both reread comparisons fails its negative canary. M12 still fails PHV
+allocation,36 unallocated slices; M10/M11 bank-placement failures remain.
+Next15 (`081b4122…fea25`) moves full32 comparisons into readonly scalar actions;
+reviewer approves source only and fresh71/71 pass. M13 fixes PHV allocation but
+still fails table placement with no progress. No mapper fit/model claim.
+Source-counted mapper cost is7 ingress visits,408/750 private ACK/response bytes;
+parser consumption is at most153 source bytes, compiled depth unverified.
+No mapper fit/model, full-core qualification, SDK update, hardware action or push.
+Continue [PLAN.md](PLAN.md).
 
 ## Execution resumed2026-10-07 — base834372cbb
 

@@ -1,0 +1,18 @@
+{
+  "scope": "Failed installed-SDK allocation diagnostics; no binary or stage-fit qualification",
+  "source_sha256": "3e3346bab7de095df3bef2013f952c3de4e8c62195bebb052d9abbf157855ad5",
+  "compiler": "p4c9.13.2 SHA1baf055",
+  "ingress_stages": 13,
+  "egress_stages": 4,
+  "critical_path": 11,
+  "bottleneck": "Stage10 table IDs16/16 reject snapshot_t; snapshot spills11 then dependent first_event12",
+  "repair": "Merge mutually exclusive kind20 ready_result and kind21 abort_epoch_stamp result tables with all guards retained",
+  "report_sha256": {
+    "out/p0/logs/table_summary.log": "e3d439509a5d9992b04fcf158904d0c1e1b66458bdf32cc128dd2975031e1873",
+    "out/p0/logs/table_dependency_summary.log": "1abf312f925b00bb7bacdd6700afef6cd62ee137f4637bc5f1f134c212d17223",
+    "out/p0/logs/table_placement_4.log": "57f3192957cc209a8f1b80127ad33d809fbcd0fa7d3ea616a85a8a292a01b177",
+    "out/p0/logs/table_dependency_graph.log": "ea0cc1e971f4c8f15e0044f76da9af17e3511c5be752ec0e999d736f7dfcb921",
+    "out/p0/logs/phv.json": "dfd84e8c77fe1a5a13f8d2cac5ebe801b90ea8822de19bf351df85fd04f1c3c6"
+  },
+  "review": "bounded independent source/resource review"
+}

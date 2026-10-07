@@ -11,7 +11,32 @@ inspection confirms `p4c9.13.2 (SHA:1baf055)` at
 activation or software changes. Older local9.13.1 results remain development
 evidence, not installed-version qualification.
 
-## Accepted first SELECT milestone — local SDK9.13.1
+## Accepted first SELECT milestone — existing switch SDK9.13.2
+
+Normal100, zero0 and wrapped0xfffffff0 each pass6/6 in the isolated SDK9.13.2
+software model on the switch CPU. External handshake and SELECT35 produce one
+exact109-byte Ethernet frame with55-byte padded payload. Independent IPv4/TCP
+checksums and every DNP3 CRC pass. Genuine packet-driven completion leaves
+N9/M4/E4; no ownership/cache/register proof presets. This covers first SELECT only.
+[Current verification](integration/core/ordinary/evidence/installed_select_verification_01/verification.json)
+binds saved raw logs, driver, source copies, configuration and compiler artifacts.
+
+| Device0 role | Exact source SHA prefix | Installed-SDK build | Ingress / egress | Critical path |
+| --- | --- | --- | --- | --- |
+| N + final emitter, pipe0 | `ca695e97ea67` | `installed_nf_05` |12 /4 |11 |
+| M preparation/activation, pipe1 | `c8820a1f7f14` | `installed_m_baseline_01` |10 /0 |9 |
+| E cache + typed bridge, pipe3 | `dae2efee6c5e` | `installed_e_01` |1 /10 |7 |
+
+Each pipe has its own12 ingress stages: N has none spare, baseline M has two,
+and E's ingress bridge has11. E's cache consumes10 egress stages. Pipe2 remains
+reserved for T. Recirculation reuses stages and adds passes; it does not add stage
+capacity. These counts do not establish extended mapper fit.
+Fresh SDK model traces confirm19 SELECT ingress visits and18 private TX records
+totaling2346 Ethernet bytes, excluding4-byte model trailers; the internal24-byte
+completion header and unmeasured physical costs remain separate. Fresh source
+suite71/71 and static-scanner3/3 pass. No SDK updates or chip activation.
+
+## Historical first SELECT milestone — local SDK9.13.1
 
 External SYN/SYNACK/ACK then SELECT35 produce one exact109-byte Ethernet frame
 with55-byte padded payload in the isolated local model. Genuine completion leaves
@@ -46,20 +71,43 @@ Failed front-loop attempts and the SYN-only controlled comparison are preserved.
 
 ## Installed-SDK transport checkpoint
 
-The switch's existing9.13.2 compiler now builds the exact accepted E cache source
-in `installed_e_01`:1 ingress/10 egress, critical7, all source/snapshot/compiler/
-artifact checks pass, and the static-entry capacity scan passes. This is a build
-claim only. The accepted N12/M10 split table above belongs to9.13.1; those stage
-counts have not yet been requalified for the installed-version transport extension.
+The switch's existing9.13.2 compiler now builds the extended N/F source
+`ca695e97…b950c` in `installed_nf_05`:12 ingress/4 egress, critical11.
+Source/snapshot/compiler/artifact checks pass. This reduces the failed15-stage
+extension to12 by fusing dependent writers and mutually exclusive result tables,
+then moving private-admission refusal before Work/state access. Full identity,
+FIN quarantine and malformed-return checks remain. N still has no spare stage.
+The exact E cache also builds in `installed_e_01`:1 ingress/10 egress, critical7.
+All compiler pipeline contexts, including `p0`, pass the corrected static-entry
+capacity scanner; its3 CLI regression tests pass after2 witnessed failures.
+The first-SELECT-only model result above now covers this exact N, baseline M
+and E on9.13.2. It does not qualify reverse normalization or the full transport.
 
-Transport source tests pass66/66, including14 focused ACK/window/response/FIN
-methods, and the bounded reviewer approves the frozen `transport_candidate_next`
-source only. Installed NF01 needs15 ingress stages. The subsequent dependency
-fusions preserve guards, but NF02 stops at an action declaration-order error;
-M02 stops at an unsupported two-member RegisterAction output. Both failed builds
-retain exact sources and logs. Repair these compiler blockers, then compile and
-run the exact installed-SDK multipipe model before accepting transport behavior.
-No installed-version transport fit or model completion is claimed.
+Fresh source regression passes71/71, including19 focused transport methods and
+168 independent ACK/window pairs. The readonly M path snapshots actual generation
+and owner plus actual full32 boundary/position in a20-byte typed record, then
+independently rereads full generation/epoch/owner/phase and BOTH coordinates in a
+second visit before external release. The source-only paired-coordinate forgery
+witness rejects even when boundary-position remains35; removing the two reread
+comparisons makes its retained negative canary fail. M10/M11 failed bank placement.
+M12 (`deceea36…94cd`, next14) still fails PHV allocation with36 unallocated slices;
+it has no fit/model claim. Preserve failed logs and freeze each replacement.
+The baseline10-stage M in the first-SELECT table has no ACK/window mapper.
+Latest source next15 (`081b4122…fea25`) moves both full32 coordinate comparisons
+inside readonly scalar actions and requires both genuine grants. Reviewer approves
+source only; fresh71/71 tests pass. Installed M13 resolves the PHV failure but
+still fails table placement with no more placeable tables. Inspect that dependency
+before another change; unused M egress arithmetic is a possible bounded alternative,
+not an implemented or accepted layout.
+
+Source-counted ACK mapping uses N5+M2 ingress visits and408 private Ethernet bytes;
+response57 uses the same7 visits and750 bytes. Endpoint54/111 bytes are separate.
+These counts remain unmeasured until the exact installed-SDK model runs.
+Source parser consumption is bounded by153 bytes across roles; the20-byte snapshot
+with111-byte response consumes147 including intrinsic/port metadata. No compiled
+parse-depth claim. Next: obtain extended M fit, load that exact9.13.2 N/M/E split,
+compare external
+normal/zero/wrap ACK/window and uncarved57 response frames, then continue OPERATE.
 
 ## Remaining core work, in execution order
 
@@ -76,7 +124,8 @@ No installed-version transport fit or model completion is claimed.
    package. The qualification registry stays empty until the complete target passes.
 
 Full transport, timing and hardware gates in [PLAN.md](PLAN.md) remain unchecked.
-The52 tests and18 model checks qualify this first-SELECT slice only. Earlier
+The current18 model checks qualify first SELECT only; the71 source tests do not
+qualify the mapper on the SDK model. Earlier
 590,976-case results include no-leak-only branches and are not that many full
 state/packet equivalences. Original N/T prerequisite model evidence is retained
 with its own exact sources; it does not qualify the new full target.
