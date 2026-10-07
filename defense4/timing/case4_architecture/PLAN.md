@@ -1,7 +1,8 @@
 # Case 4 architecture execution
 
 Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
-Current execution base: `834372cbb`, main; earlier assignments below are historical.
+Current execution: `main`; accepted checkpoints and their exact artifacts are listed below.
+Earlier assignment bases are historical.
 This directory contains new engineering candidates; it is not deployment evidence.
 
 ## Current plan: core functionality and its tests
@@ -55,37 +56,31 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
   this is source/build evidence, with two spare M ingress stages. The old
   single-pass canary remains a failed15-stage layout. OPERATE, full mapping and
   composed-model validation remain open.
-- [ ] **Protected SELECT N→M→E.** Extend N Work with an atomic transition from
-  phase3 to DOWNSTREAM_PENDING; only the winning handoff emits. Carry the full
-  WorkRef, actual expected owner and captured immutable decoy fields. M admits
-  each full identity once and constructs native35→55. E completes all image
-  words before publishing its identity tag and returning a genuine ready packet
-  privately to N. N rechecks current owner/epoch/cancellation and commits release;
-  M activates the relevant geometry and replay ledger before E emits. Actual downstream completion alone frees
-  Work after the final dirty write. Lost completion keeps the pin. Deduplicate
-  prepare, ready, commit and emit separately. Before commit cancellation aborts;
-  after commit work drains without reuse. Incomplete publication cannot forward
-  supported traffic with untranslated TCP values.
-  N prerequisite exists in `integration/core/ordinary`: retained
-  `n_local_abort_02` closes the pre-M abort race. Current `n_ready_03`, source
-  `1be0eb09…33b8b`, fits12/0, critical11. Actual E0514 first qualifies full active
-  generation/epoch/owner without Work mutation; genuine0614 then wins Work5→7
-  and the late full owner CAS9→17 before handing0714 to M. Cached owner9 stays
-  separate. The completed N/M/E preparation suites have25 source methods;
-  E endpoint emission/terminal, post-M abort and subsequent ACK
-  mapping still need integration; the checklist item remains open.
-  M's separate PREPARE slice now constructs the exact55-byte payload from that
-  actual N handoff and emits privately. Retained `m_prepare_03`, source
-  `2475f93b…ec9f3`, compiles12/0, critical8; three source packet tests verify
-  independent payload bytes and actual source deparser checksums. Its format2
-  prefix is24 bytes, preserving separate current/cached full identities.
-  E PREPARE `e_prepare_03`, source `55c2bae9…06589`, compiles9 egress stages
-  (1 ingress diagnostic drop stub), critical6. Three source tests verify all14
-  image words, full identity, duplicate refusal and missing-store refusal.
-  Actual final placement is stores3–6, owner/tag7, private ready8.
-  M activation now has the separate10-stage checkpoint above. Target-model
-  endpoint emission remains unfinished; this is not complete SELECT acceptance.
-- [ ] **Ordinary SBO transport.** Add matching SELECT/OPERATE responses and
+- [ ] **Protected SELECT N→M→E (first byte milestone passes).** Actual external
+  handshake and native SELECT35 produce exactly one independent55-byte payload;
+  genuine downstream completion retires N/M/E pins. Normal, zero and wrapped
+  positions pass6/6 each in `model_split_05`, `model_split_zero_06` and
+  `model_split_wrap_07`. This covers first SELECT, not complete SELECT acceptance:
+  duplicate/stale loaded-leg model cases and post-M cancellation/loss remain open.
+  The accepted split placement is NF pipe0 (`nf_02`,12 ingress/4 egress,
+  critical11), M pipe1 (`m3_01`,10/0, critical9), E cache pipe3
+  (`e3_02`,1/10, critical7). Pipe2 is available for T. All three programs loaded
+  together on model device0 with disjoint scopes; no state/cache proof presets.
+  N's ingress still has no spare stage; M has two. E's cache relocation avoids
+  the failed14-stage coupled layouts while retaining all14 image banks and
+  full identities. The final emitter includes a full32 current-generation receipt.
+  [Verification](integration/core/ordinary/evidence/split_verification_01/verification.json)
+  binds sources/configuration/artifacts,52 source/config tests, model packets and
+  independent checksums. Observed SELECT uses19 ingress visits,6 service egress
+  visits and18 private TX records totaling2346 Ethernet bytes, plus the internal
+  24-byte completion header. These are model counts, not physical wire occupancy.
+- [ ] **Ordinary SBO transport (active).** First normalize reverse ACK and both
+  receive-window edges through actual published M geometry BEFORE N association.
+  Require the full current epoch; preserve pins on lost cancellation returns.
+  Remove legacy double subtraction and accept the completed SELECT owner state.
+  Prove normal/zero/wrap/inside-insertion/zero-window from external frames, then
+  forward the matching SELECT57 response. Use a separate next candidate so the
+  accepted first-SELECT artifacts remain reproducible. Add matching OPERATE responses and
   OPERATE35→55 with the same object set. Carve57 into exactly two ordered28/29
   packets. Integrate both insertions, ACK clamps, both window edges, full32 wrap
   and sender-driven cached-tail repair. Preserve current replay Work identity
@@ -106,7 +101,7 @@ pipe do not consume another pipe's ingress or that pipe's egress budget.
 
 Use the existing restricted source harness and independent byte/transport/schedule
 oracles. Extend it where necessary; the compiled multipipe target model is the
-whole-target gate. The first byte milestone is SELECT35→55; it remains partial
+whole-target gate. The first byte milestone SELECT35→55 now passes on the exact split model; it remains partial
 until actual READ→SELECT→OPERATE, both boundaries and tail repair pass from external
 frames without configured ownership/publication proof. Save current source/include
 hashes, compiler/artifact identities, commands, packets/events and comparisons in

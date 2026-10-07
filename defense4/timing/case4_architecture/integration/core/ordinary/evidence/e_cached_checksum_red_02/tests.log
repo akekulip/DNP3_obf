@@ -1,0 +1,15 @@
+test_cached_read_overwrites_different_incoming_words_including_low24_tail (test_e_emit.EEmit) ... FAIL
+
+======================================================================
+FAIL: test_cached_read_overwrites_different_incoming_words_including_low24_tail (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 59, in test_cached_read_overwrites_different_incoming_words_including_low24_tail
+    self.assertEqual(out,raw[24:])
+AssertionError: b'\x0[145 chars]x00\x9b\x03\x00\x00\x05d,\xc4\n\x00\x01\x00\x1[163 chars]\xff' != b'\x0[145 chars]x00\x1c\x03\x00\x00\x05d,\xc4\n\x00\x01\x00\x1[163 chars]\xff'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.085s
+
+FAILED (failures=1)
+Retained E_emit03 cached-image replacement without TCP checksum regeneration

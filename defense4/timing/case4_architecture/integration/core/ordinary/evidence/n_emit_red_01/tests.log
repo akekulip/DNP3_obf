@@ -1,0 +1,76 @@
+test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) ... test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) ... test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit) ... FAIL
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 33, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 33, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 33, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 21, in test_genuine_query_rechecks_n_authority_before_endpoint_egress
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 21, in test_genuine_query_rechecks_n_authority_before_endpoint_egress
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 21, in test_genuine_query_rechecks_n_authority_before_endpoint_egress
+    pipe,e,raw=self.qualified(start)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+======================================================================
+FAIL: test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 44, in test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy
+    pipe,e,raw=self.qualified();dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 13, in qualified
+    out,reason=nr.NativeReady().one(pipe,query);self.assertIsNotNone(out,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=0, stage=11)
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.514s
+
+FAILED (failures=7)

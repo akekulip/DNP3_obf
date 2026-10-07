@@ -1,0 +1,16 @@
+test_foreign_device_or_duplicate_program_or_extra_pipeline_refused (test_model_config.ModelConfiguration) ... ok
+test_two_programs_one_device_disjoint_scopes_without_changing_artifact_paths (test_model_config.ModelConfiguration) ... ok
+test_three_programs_scopes_zero_one_three_preserve_artifacts (test_split_config.SplitConfiguration) ... FAIL
+
+======================================================================
+FAIL: test_three_programs_scopes_zero_one_three_preserve_artifacts (test_split_config.SplitConfiguration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_config.py", line 11, in test_three_programs_scopes_zero_one_three_preserve_artifacts
+    self.assertTrue((here/'split_model_config.py').exists(),'three-role scoped model configuration missing')
+AssertionError: False is not true : three-role scoped model configuration missing
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+FAILED (failures=1)

@@ -1,0 +1,50 @@
+{
+  "scope": "Fresh endpoint/completion after missing-load fixture repair; standalone fits only, composed01 fails",
+  "tests_command": [
+    "/usr/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "test_e_emit",
+    "test_n_complete",
+    "-v"
+  ],
+  "tests_cwd": "integration/core/ordinary/tests",
+  "tests_methods": 11,
+  "tests_exit_code": 0,
+  "tested_source_sha256": {
+    "integration/core/ordinary/n.p4": "249178e88d4b85bfc842cb60dd9daf52924107e2cf754f30f1abec8e6c1edde1",
+    "integration/core/ordinary/e.p4": "5071ae0f314d450ddc29701bcbb046b1a0bc5d8ef0415191857553d2e7718a4a",
+    "integration/core/ordinary/m.p4": "cf1eaaa4b6623005b76a90a3e0e5f076e79cfd2fb0096c0380acef6624746575",
+    "integration/core/ordinary/source_wire.py": "aa3ba0d2c1e5550f077d3368fac284130a078061d873574eeea1ec7a67d0c712",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/tests/test_e_emit.py": "23ddb2dedee08ccb969e4066c696a04eb9c6ad71e95ddf121da631f8811176ee",
+    "integration/core/ordinary/tests/test_n_complete.py": "962672e53198625e5f79f1a5f25faf1a7767efb2f05a608a8c8dfef89ffd0d74"
+  },
+  "sources_stable_during_tests": true,
+  "builds": {
+    "n_complete_03": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "m_activate_06": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "e_complete_05": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    }
+  },
+  "full_target": false,
+  "hardware": false
+}

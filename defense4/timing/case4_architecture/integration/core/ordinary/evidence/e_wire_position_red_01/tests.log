@@ -1,0 +1,31 @@
+test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) ... test_every_actual_store_completion_is_required_for_publication (test_e_prepare.EPrepare) ... ok
+test_malformed_full_identity_or_network_never_changes_any_bank (test_e_prepare.EPrepare) ... ok
+
+======================================================================
+ERROR: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 47, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertEqual(e.cells[('', 'wire_position')][0],start)
+KeyError: ('', 'wire_position')
+
+======================================================================
+ERROR: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 47, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertEqual(e.cells[('', 'wire_position')][0],start)
+KeyError: ('', 'wire_position')
+
+======================================================================
+ERROR: test_all14_image_words_stored_before_typed_ready_with_full_identity (test_e_prepare.EPrepare) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 47, in test_all14_image_words_stored_before_typed_ready_with_full_identity
+    self.assertEqual(e.cells[('', 'wire_position')][0],start)
+KeyError: ('', 'wire_position')
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.435s
+
+FAILED (errors=3)

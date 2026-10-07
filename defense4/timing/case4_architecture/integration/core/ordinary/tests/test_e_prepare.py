@@ -8,13 +8,13 @@ vectors=mp.vectors
 from source_wire import WireSource
 
 
-def e_source():
-    text=(HERE.parent/'e.p4').read_text()
+def e_source(text=None):
+    if text is None:text=(HERE.parent/'e.p4').read_text()
     # Select the actual egress source control for the existing AST engine.
     names={'IgParser':'UnusedParser','Ingress':'UnusedIngress','IgDeparser':'UnusedDeparser',
            'EgParser':'IgParser','Egress':'Ingress','EgDeparser':'IgDeparser'}
     text=re.sub(r'\b('+ '|'.join(names)+r')\b',lambda m:names[m[0]],text)
-    result=WireSource(text);result.width['eg.egress_port']=9
+    result=WireSource(text);result.width['eg.egress_port']=9;result.width['md.mirror_type']=3
     result.install('connection',(vectors.CLIENT,vectors.SERVER,vectors.CLIENT_PORT,vectors.SERVER_PORT),'allow_connection',())
     return result
 
@@ -44,6 +44,7 @@ class EPrepare(unittest.TestCase):
                 words.append(int.from_bytes(raw[130:133],'big'))
                 for i,word in enumerate(words):self.assertEqual(e.cells[('', 'image_%d'%i)][0],word)
                 self.assertEqual(e.cells[('', 'reservation')][0]['phase'],1)
+                self.assertEqual(e.cells[('', 'wire_position')][0],start)
                 self.assertEqual(e.cells[('', 'cache_tag')][0],{'epoch':int.from_bytes(raw[:4],'big'),'generation':int.from_bytes(raw[16:20],'big')})
                 self.assertEqual(e.cells[('', 'cache_owner')][0],int.from_bytes(raw[20:24],'big'))
                 before=copy.deepcopy(e.cells)

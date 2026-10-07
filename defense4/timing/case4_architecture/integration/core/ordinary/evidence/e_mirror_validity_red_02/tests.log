@@ -1,0 +1,203 @@
+test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) ... test_cached_read_overwrites_different_incoming_words_including_low24_tail (test_e_emit.EEmit) ... ERROR
+test_foreign_epoch_completion_cannot_retire_e_pin (test_e_emit.EEmit) ... ERROR
+test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) ... ok
+test_missing_any_actual_read_completion_cannot_release_or_mirror (test_e_emit.EEmit) ... ok
+test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit) ... ERROR
+
+======================================================================
+ERROR: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+======================================================================
+ERROR: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+======================================================================
+ERROR: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+======================================================================
+ERROR: test_cached_read_overwrites_different_incoming_words_including_low24_tail (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 57, in test_cached_read_overwrites_different_incoming_words_including_low24_tail
+    dropped,out=ep.EPrepare().execute(e,bad,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+======================================================================
+ERROR: test_foreign_epoch_completion_cannot_retire_e_pin (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 75, in test_foreign_epoch_completion_cannot_retire_e_pin
+    pipe,e,raw=self.qualified();dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+======================================================================
+ERROR: test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 83, in test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy
+    pipe,e,raw=self.qualified();dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_prepare.py", line 33, in execute
+    return bool(e.env.get('md.drop_ctl',0)&1),e.render_wire()+raw[cursor:]
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 56, in render_wire
+    self.apply_control('IgDeparser')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 597, in apply_control
+    self.exec_all(self.controls[name].apply_body)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 313, in exec_stmt
+    self.exec_all(stmt[2] if self.ev(stmt[1])[0] else stmt[3])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 307, in exec_all
+    self.exec_stmt(stmt)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 315, in exec_stmt
+    self.ev(stmt[1])
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 24, in ev
+    return super().ev(node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 274, in ev
+    return self.call(node[1], node[2], node)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 30, in call
+    self.mirror_headers.append((self.ev(args[0])[0], self.csum_bytes(args[1])))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/interp_ext.py", line 549, in csum_bytes
+    value, width = self.ev(item)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/source_wire.py", line 23, in ev
+    raise ValueError('undefined invalid-header Mirror input: ' + node[1])
+ValueError: undefined invalid-header Mirror input: hdr.reference.epoch
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.884s
+
+FAILED (errors=6)
+Replay exact retained E_complete01 source under strict invalid-header Mirror evaluator

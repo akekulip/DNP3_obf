@@ -1,0 +1,49 @@
+test_cache_load_keeps_full_reference_and_defers_endpoint_mirror (test_split_renderer.SplitRenderer) ... FAIL
+test_final_renderer_invalid_role_or_full_identity_cannot_consume_receipt (test_split_renderer.SplitRenderer) ... FAIL
+test_final_renderer_once_only_full_frame_and_defined24byte_mirror (test_split_renderer.SplitRenderer) ... FAIL
+test_n_loaded_leg_requires_live_full_reference_before_final_renderer (test_split_renderer.SplitRenderer) ... FAIL
+
+======================================================================
+FAIL: test_cache_load_keeps_full_reference_and_defers_endpoint_mirror (test_split_renderer.SplitRenderer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 17, in test_cache_load_keeps_full_reference_and_defers_endpoint_mirror
+    roles=self.roles();pipe,e,raw=ee.EEmit().qualified()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 12, in roles
+    self.assertTrue((mp.HERE.parent/'split.py').exists(),'split renderer generator missing')
+AssertionError: False is not true : split renderer generator missing
+
+======================================================================
+FAIL: test_final_renderer_invalid_role_or_full_identity_cannot_consume_receipt (test_split_renderer.SplitRenderer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 64, in test_final_renderer_invalid_role_or_full_identity_cannot_consume_receipt
+    roles=self.roles();pipe,e,raw=ee.EEmit().qualified()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 12, in roles
+    self.assertTrue((mp.HERE.parent/'split.py').exists(),'split renderer generator missing')
+AssertionError: False is not true : split renderer generator missing
+
+======================================================================
+FAIL: test_final_renderer_once_only_full_frame_and_defined24byte_mirror (test_split_renderer.SplitRenderer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 48, in test_final_renderer_once_only_full_frame_and_defined24byte_mirror
+    roles=self.roles()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 12, in roles
+    self.assertTrue((mp.HERE.parent/'split.py').exists(),'split renderer generator missing')
+AssertionError: False is not true : split renderer generator missing
+
+======================================================================
+FAIL: test_n_loaded_leg_requires_live_full_reference_before_final_renderer (test_split_renderer.SplitRenderer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 31, in test_n_loaded_leg_requires_live_full_reference_before_final_renderer
+    roles=self.roles();pipe,e,raw=ee.EEmit().qualified()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_split_renderer.py", line 12, in roles
+    self.assertTrue((mp.HERE.parent/'split.py').exists(),'split renderer generator missing')
+AssertionError: False is not true : split renderer generator missing
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+FAILED (failures=4)

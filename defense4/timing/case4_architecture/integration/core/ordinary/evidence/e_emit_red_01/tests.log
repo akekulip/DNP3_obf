@@ -1,0 +1,39 @@
+test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) ... test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) ... ok
+test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit) ... FAIL
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 34, in test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion
+    dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 44, in test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy
+    pipe,e,raw=self.qualified();dropped,endpoint=ep.EPrepare().execute(e,raw,2);self.assertFalse(dropped)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.514s
+
+FAILED (failures=4)

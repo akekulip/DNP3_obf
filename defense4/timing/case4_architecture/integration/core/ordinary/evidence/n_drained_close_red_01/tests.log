@@ -1,0 +1,18 @@
+test_genuine_completion_qualifies_owner_and_frees_only_on_next_actual_terminal (test_n_complete.NComplete) ... ok
+test_lost_terminal_retains_pin_and_foreign_stamp_does_not_free (test_n_complete.NComplete) ... ok
+test_real_close_after_owner_drain_cas_retires_without_stranding_work (test_n_complete.NComplete) ... ok
+test_real_close_before_drain_cas_requires_genuine_cleanup_return (test_n_complete.NComplete) ... FAIL
+test_stale_full_generation_or_epoch_completion_cannot_borrow_live_work (test_n_complete.NComplete) ... ok
+
+======================================================================
+FAIL: test_real_close_before_drain_cas_requires_genuine_cleanup_return (test_n_complete.NComplete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_n_complete.py", line 59, in test_real_close_before_drain_cas_requires_genuine_cleanup_return
+    cleanup,reason=nr.NativeReady().one(pipe,raw);self.assertIsNotNone(cleanup,reason)
+AssertionError: unexpectedly None : drop_ctl set by deny() (m.parsed=1, stage=14)
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.809s
+
+FAILED (failures=1)

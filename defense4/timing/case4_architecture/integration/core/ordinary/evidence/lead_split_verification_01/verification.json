@@ -1,0 +1,504 @@
+{
+  "scope": "accepted split first SELECT only",
+  "full_target": false,
+  "physical": false,
+  "source_suite": {
+    "command": "python3 -B -m unittest discover -s integration/core/ordinary/tests -q",
+    "tests": 52,
+    "passed": 52,
+    "elapsed_seconds": 8.586
+  },
+  "builds": {
+    "nf_02": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "m3_01": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "e3_02": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    }
+  },
+  "resource_usage": {
+    "nf_02": {
+      "source_sha256": "610d129d7446f56334df4571aedd35a17b71823143ef16d5fca770fd07b49971",
+      "stages": {
+        "egress": 4,
+        "ingress": 12
+      },
+      "critical_path": 11,
+      "resources_sha256": "c23c283e108774341d6e0088cc93de6d932274795326ad19e434585c5bdba27e",
+      "phv_sha256": "301ac6aa1809d969199283fe74c3aeb1e885a5caf185a0f32b5a1b9120dd6c6c",
+      "allocated_phv": {
+        "ingress": {
+          "containers": 161,
+          "bits": 3184
+        },
+        "egress": {
+          "containers": 69,
+          "bits": 1392
+        }
+      },
+      "physical_shared_mau_per_stage": [
+        {
+          "stage": 0,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 10,
+          "exact_crossbar_bytes": 20,
+          "ternary_crossbar_bytes": 11,
+          "ram_units": 6,
+          "tcam_units": 2
+        },
+        {
+          "stage": 1,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "f_Egress.emitted_generation"
+          ],
+          "logical_tables": 16,
+          "exact_crossbar_bytes": 103,
+          "ternary_crossbar_bytes": 44,
+          "ram_units": 24,
+          "tcam_units": 13
+        },
+        {
+          "stage": 2,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 14,
+          "exact_crossbar_bytes": 93,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 0,
+          "tcam_units": 0
+        },
+        {
+          "stage": 3,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 6,
+          "exact_crossbar_bytes": 18,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 1,
+          "tcam_units": 0
+        },
+        {
+          "stage": 4,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "n_Ingress.counter"
+          ],
+          "logical_tables": 1,
+          "exact_crossbar_bytes": 0,
+          "ternary_crossbar_bytes": 23,
+          "ram_units": 3,
+          "tcam_units": 5
+        },
+        {
+          "stage": 5,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "n_Ingress.work.work"
+          ],
+          "logical_tables": 10,
+          "exact_crossbar_bytes": 13,
+          "ternary_crossbar_bytes": 9,
+          "ram_units": 7,
+          "tcam_units": 2
+        },
+        {
+          "stage": 6,
+          "stateful_alus": 2,
+          "stateful_banks": [
+            "n_Ingress.active_work_generation",
+            "n_Ingress.epoch"
+          ],
+          "logical_tables": 2,
+          "exact_crossbar_bytes": 12,
+          "ternary_crossbar_bytes": 7,
+          "ram_units": 6,
+          "tcam_units": 4
+        },
+        {
+          "stage": 7,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "n_Ingress.client",
+            "n_Ingress.frozen_decoy_off",
+            "n_Ingress.read_app",
+            "n_Ingress.server"
+          ],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 40,
+          "ternary_crossbar_bytes": 39,
+          "ram_units": 19,
+          "tcam_units": 8
+        },
+        {
+          "stage": 8,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "n_Ingress.application",
+            "n_Ingress.pair_frozen_decoy_object_frozen_decoy_on",
+            "n_Ingress.pair_native_end_server_start",
+            "n_Ingress.pair_real_off_native_start"
+          ],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 29,
+          "ternary_crossbar_bytes": 10,
+          "ram_units": 12,
+          "tcam_units": 8
+        },
+        {
+          "stage": 9,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "n_Ingress.owner",
+            "n_Ingress.pair_real_links_real_tcp_src",
+            "n_Ingress.pair_real_object_real_on",
+            "n_Ingress.pair_real_tcp_dst_real_tcp_ports"
+          ],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 32,
+          "ternary_crossbar_bytes": 15,
+          "ram_units": 13,
+          "tcam_units": 8
+        },
+        {
+          "stage": 10,
+          "stateful_alus": 2,
+          "stateful_banks": [
+            "n_Ingress.count_busy",
+            "n_Ingress.count_term"
+          ],
+          "logical_tables": 16,
+          "exact_crossbar_bytes": 69,
+          "ternary_crossbar_bytes": 26,
+          "ram_units": 35,
+          "tcam_units": 7
+        },
+        {
+          "stage": 11,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "n_Ingress.count_first"
+          ],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 0,
+          "ternary_crossbar_bytes": 7,
+          "ram_units": 3,
+          "tcam_units": 2
+        }
+      ]
+    },
+    "m3_01": {
+      "source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+      "stages": {
+        "egress": 0,
+        "ingress": 10
+      },
+      "critical_path": 9,
+      "resources_sha256": "105616dfa118ab5fc5831cc0f6315c76f096965f509691b979a5e4f84f9ad466",
+      "phv_sha256": "7421aad47e1befec553e9521318aa01239a2865a86278ef85268e6a183311e05",
+      "allocated_phv": {
+        "ingress": {
+          "containers": 101,
+          "bits": 1896
+        },
+        "egress": {
+          "containers": 21,
+          "bits": 376
+        }
+      },
+      "physical_shared_mau_per_stage": [
+        {
+          "stage": 0,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 3,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 2,
+          "tcam_units": 0
+        },
+        {
+          "stage": 1,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 18,
+          "ternary_crossbar_bytes": 13,
+          "ram_units": 5,
+          "tcam_units": 3
+        },
+        {
+          "stage": 2,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 43,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 4,
+          "tcam_units": 0
+        },
+        {
+          "stage": 3,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 14,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 0,
+          "tcam_units": 0
+        },
+        {
+          "stage": 4,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "Ingress.reservation"
+          ],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 12,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 3,
+          "tcam_units": 0
+        },
+        {
+          "stage": 5,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "Ingress.producer_context"
+          ],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 13,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 8,
+          "tcam_units": 0
+        },
+        {
+          "stage": 6,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "Ingress.activation_receipt"
+          ],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 39,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 2,
+          "tcam_units": 0
+        },
+        {
+          "stage": 7,
+          "stateful_alus": 2,
+          "stateful_banks": [
+            "Ingress.geo_first",
+            "Ingress.ledger_position"
+          ],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 12,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 4,
+          "tcam_units": 0
+        },
+        {
+          "stage": 8,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "Ingress.ledger_tag"
+          ],
+          "logical_tables": 1,
+          "exact_crossbar_bytes": 10,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 2,
+          "tcam_units": 0
+        },
+        {
+          "stage": 9,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 3,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 4,
+          "tcam_units": 0
+        }
+      ]
+    },
+    "e3_02": {
+      "source_sha256": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18",
+      "stages": {
+        "egress": 10,
+        "ingress": 1
+      },
+      "critical_path": 7,
+      "resources_sha256": "8ab36b04b402e59cced6127f1c83a03fe3ef4aae7345d08b5c5f61c09899864b",
+      "phv_sha256": "5af0abb0af98b9a7796debce3d62702e157185bff63ce8097fcc5078a6d4bdd7",
+      "allocated_phv": {
+        "ingress": {
+          "containers": 15,
+          "bits": 296
+        },
+        "egress": {
+          "containers": 60,
+          "bits": 1488
+        }
+      },
+      "physical_shared_mau_per_stage": [
+        {
+          "stage": 0,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 24,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 12,
+          "tcam_units": 0
+        },
+        {
+          "stage": 1,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 2,
+          "exact_crossbar_bytes": 2,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 1,
+          "tcam_units": 0
+        },
+        {
+          "stage": 2,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 5,
+          "ternary_crossbar_bytes": 9,
+          "ram_units": 1,
+          "tcam_units": 2
+        },
+        {
+          "stage": 3,
+          "stateful_alus": 1,
+          "stateful_banks": [
+            "Egress.reservation"
+          ],
+          "logical_tables": 5,
+          "exact_crossbar_bytes": 15,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 2,
+          "tcam_units": 0
+        },
+        {
+          "stage": 4,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "Egress.image_10",
+            "Egress.image_11",
+            "Egress.image_12",
+            "Egress.image_13"
+          ],
+          "logical_tables": 12,
+          "exact_crossbar_bytes": 19,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 8,
+          "tcam_units": 0
+        },
+        {
+          "stage": 5,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "Egress.image_6",
+            "Egress.image_7",
+            "Egress.image_8",
+            "Egress.image_9"
+          ],
+          "logical_tables": 8,
+          "exact_crossbar_bytes": 16,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 8,
+          "tcam_units": 0
+        },
+        {
+          "stage": 6,
+          "stateful_alus": 4,
+          "stateful_banks": [
+            "Egress.image_2",
+            "Egress.image_3",
+            "Egress.image_4",
+            "Egress.image_5"
+          ],
+          "logical_tables": 8,
+          "exact_crossbar_bytes": 16,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 8,
+          "tcam_units": 0
+        },
+        {
+          "stage": 7,
+          "stateful_alus": 2,
+          "stateful_banks": [
+            "Egress.image_0",
+            "Egress.image_1"
+          ],
+          "logical_tables": 4,
+          "exact_crossbar_bytes": 8,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 4,
+          "tcam_units": 0
+        },
+        {
+          "stage": 8,
+          "stateful_alus": 3,
+          "stateful_banks": [
+            "Egress.cache_owner",
+            "Egress.cache_tag",
+            "Egress.wire_position"
+          ],
+          "logical_tables": 7,
+          "exact_crossbar_bytes": 32,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 6,
+          "tcam_units": 0
+        },
+        {
+          "stage": 9,
+          "stateful_alus": 0,
+          "stateful_banks": [],
+          "logical_tables": 3,
+          "exact_crossbar_bytes": 18,
+          "ternary_crossbar_bytes": 0,
+          "ram_units": 6,
+          "tcam_units": 0
+        }
+      ]
+    }
+  },
+  "independent_review": {
+    "result": "APPROVE",
+    "scope": "first SELECT source/compiler/configuration and three actual model trials",
+    "limits": [
+      "ACK/window inverse",
+      "full SBO",
+      "post-M abort/loss",
+      "replay",
+      "timing",
+      "exact9.13.2",
+      "physical qualification"
+    ],
+    "resource_pressure": {
+      "nf_02": "normal32PHV62/64; SALU4/4 at7-9; logicalIDs16/16 at1and10",
+      "m3_01": "SALUpeak2/4; logicalIDspeak5/16; exactxbar43/128",
+      "e3_02": "SALU4/4 at4-6; logicalIDspeak12/16; exactxbar32/128"
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "fb4f7733a7398f078f70647169db000a451c8ae831b03cc41e71a73ad5335b78",
+    "manifest.json": "32ab8888faee90bf06550f2cc788b0661c328037a401ee0156dbef782e96170f",
+    "n.conf": "6f417ab07b8a3607016da058969b712474f06fddc0bae9e0c4e21e6323c46573",
+    "pipe/context.json": "567db86f85d8fc4d598927da1d112c69d3774a6a95a018fa266c2a2896e106eb",
+    "pipe/n.bfa": "afa818ba814bc5d7199822bbac574cd270a0f6f4da7b155406aad1e0aefc30d4",
+    "pipe/tofino.bin": "0c42338825e65952dec18139bacf1ac286ae78a7d6a2087ac7454e00cb103cbd"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/n_complete_02/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/n_complete_02/source/n.p4"
+  ],
+  "compile_log_sha256": "4450d908ff0bf755c3c3211897969b4dfbd208b5276d39f1ae24ac1f719155e2",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 26.688,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 11,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "18a6457224bfa9b7381de5bcfad00beef7f8a5c0773d4f925f855e865933d2c1",
+      "pipe/logs/phv.json": "6845e4111f2a4790405f14db651c53ad46dd6b9fe883d658639fd9b0059ac91c",
+      "pipe/logs/phv_allocation_0.log": "77cd159f5e35dbf95c92465eb558b4b34ca00d99402f9b910c055ceb2d8bbfb7",
+      "pipe/logs/phv_allocation_history_0.log": "03a88c2d9ccde09ae37115c1294331f4837b7c76c98db6bee22441b0c7ef1c3e",
+      "pipe/logs/phv_allocation_summary_0.log": "b1f6c3b5855dc9dd01dd131a35604c625f75c80804f55d718c6abb03d65cd44b",
+      "pipe/logs/table_dependency_graph.log": "0d60bd47fa40fa42294ba03c871881e1846a83f9737f06c95acba01af309174e",
+      "pipe/logs/table_dependency_summary.log": "b8bc4b1e01b9469a46ca26485092475b0afbb2bb2a365f45cbd7fca6663c6f12",
+      "pipe/logs/table_summary.log": "3ed87c85b21e5c9e35a575d913533bca9455ee4eefb4c23847a5143314c1f593"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 12
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.counter",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.work.work",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.epoch",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.active_work_generation",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.server",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.client",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.read_app",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.frozen_decoy_off",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_frozen_decoy_object_frozen_decoy_on",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.application",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_native_end_server_start",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_real_off_native_start",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_real_object_real_on",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_real_tcp_dst_real_tcp_ports",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.pair_real_links_real_tcp_src",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.owner",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.count_busy",
+        "size": 4
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.count_term",
+        "size": 4
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.count_first",
+        "size": 4
+      }
+    ],
+    "tables_by_type": {
+      "action": 5,
+      "condition": 49,
+      "match": 76,
+      "stateful": 19
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/n.p4",
+  "source_files": {
+    "n.p4": "70f95ab8ee793714062ccfe3285fc59426d6fbb2327acdfb3cb7692b19628f8f",
+    "work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649"
+  },
+  "source_sha256": "70f95ab8ee793714062ccfe3285fc59426d6fbb2327acdfb3cb7692b19628f8f",
+  "timeout_seconds": 300
+}

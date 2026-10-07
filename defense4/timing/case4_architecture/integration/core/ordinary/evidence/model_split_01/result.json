@@ -1,0 +1,367 @@
+{
+ "cases": [
+  {
+   "expected": "original exactly once",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000630000000060021000b0470000020405dc",
+   "name": "SYN",
+   "observed": {
+    "1": [],
+    "2": []
+   },
+   "ok": false
+  },
+  {
+   "expected": "original exactly once",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006460121000acb20000020405dc",
+   "name": "SYNACK",
+   "observed": {
+    "1": [],
+    "2": []
+   },
+   "ok": false
+  },
+  {
+   "expected": "original exactly once",
+   "frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000640000038550101000c4970000",
+   "name": "finalACK",
+   "observed": {
+    "1": [],
+    "2": []
+   },
+   "ok": false
+  },
+  {
+   "expected": "one independent exact109-byte endpoint frame",
+   "expected_frame": "001122334455aabbccddeeff08004500005f00014000400626960a0000010a00000275314e200000006400000385501810001c03000005642cc40a00010010fec0c0030c012801000100010164000000585b64000000000c01280100c90001010000a5a700000000000000ffff",
+   "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000640000038550181000cbd5000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b",
+   "name": "SELECT35_to55",
+   "observed": {
+    "1": [],
+    "2": []
+   },
+   "ok": false
+  },
+  {
+   "expected": "N9/M4/E4",
+   "name": "genuine_downstream_completion",
+   "observed": {
+    "p0.n_Ingress.epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "p0.n_Ingress.owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      327681
+     ]
+    },
+    "p0.n_Ingress.work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      557
+     ],
+     "n_Ingress.work.work.phase": [
+      2
+     ]
+    },
+    "p1.m_Ingress.geo_first": {
+     "Ingress.geo_first.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.ledger_position": {
+     "Ingress.ledger_position.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.ledger_tag": {
+     "Ingress.ledger_tag.epoch": [
+      0
+     ],
+     "Ingress.ledger_tag.generation": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.reservation": {
+     "Ingress.reservation.generation": [
+      0
+     ],
+     "Ingress.reservation.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.cache_owner": {
+     "Egress.cache_owner.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.cache_tag": {
+     "Egress.cache_tag.epoch": [
+      0
+     ],
+     "Egress.cache_tag.generation": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.reservation": {
+     "Egress.reservation.generation": [
+      0
+     ],
+     "Egress.reservation.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.wire_position": {
+     "Egress.wire_position.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "ok": false
+  },
+  {
+   "expected": "wire_start and full32 boundary",
+   "name": "actual_native_coordinates",
+   "observed": {
+    "p0.n_Ingress.epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "p0.n_Ingress.owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      327681
+     ]
+    },
+    "p0.n_Ingress.work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      557
+     ],
+     "n_Ingress.work.work.phase": [
+      2
+     ]
+    },
+    "p1.m_Ingress.geo_first": {
+     "Ingress.geo_first.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.ledger_position": {
+     "Ingress.ledger_position.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.ledger_tag": {
+     "Ingress.ledger_tag.epoch": [
+      0
+     ],
+     "Ingress.ledger_tag.generation": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.m_Ingress.reservation": {
+     "Ingress.reservation.generation": [
+      0
+     ],
+     "Ingress.reservation.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.cache_owner": {
+     "Egress.cache_owner.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.cache_tag": {
+     "Egress.cache_tag.epoch": [
+      0
+     ],
+     "Egress.cache_tag.generation": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.reservation": {
+     "Egress.reservation.generation": [
+      0
+     ],
+     "Egress.reservation.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p3.e_Egress.wire_position": {
+     "Egress.wire_position.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "ok": false
+  }
+ ],
+ "meta": {
+  "configuration_only": true,
+  "driver_sha256": "02cd8ef1bd7112c0a006d7e60f31d1e2eb322a79a95c2b520f0c5547f4301881",
+  "m_source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):",
+   "198": "BfruntimeReadWriteRpcException: Error(s):",
+   "452": "BfruntimeReadWriteRpcException: Error(s):",
+   "453": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "proof_presets": false,
+  "scope": "first SELECT only; subsequent transport/SBO/lifecycle still gated",
+  "source_sha256": "610d129d7446f56334df4571aedd35a17b71823143ef16d5fca770fd07b49971",
+  "start": 100
+ },
+ "program": "nf",
+ "state": {
+  "p0.n_Ingress.epoch": {
+   "action_name": null,
+   "is_default_entry": false,
+   "n_Ingress.epoch.f1": [
+    1
+   ]
+  },
+  "p0.n_Ingress.owner": {
+   "action_name": null,
+   "is_default_entry": false,
+   "n_Ingress.owner.f1": [
+    327681
+   ]
+  },
+  "p0.n_Ingress.work.work": {
+   "action_name": null,
+   "is_default_entry": false,
+   "n_Ingress.work.work.generation": [
+    557
+   ],
+   "n_Ingress.work.work.phase": [
+    2
+   ]
+  },
+  "p1.m_Ingress.geo_first": {
+   "Ingress.geo_first.f1": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p1.m_Ingress.ledger_position": {
+   "Ingress.ledger_position.f1": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p1.m_Ingress.ledger_tag": {
+   "Ingress.ledger_tag.epoch": [
+    0
+   ],
+   "Ingress.ledger_tag.generation": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p1.m_Ingress.reservation": {
+   "Ingress.reservation.generation": [
+    0
+   ],
+   "Ingress.reservation.phase": [
+    4
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p3.e_Egress.cache_owner": {
+   "Egress.cache_owner.f1": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p3.e_Egress.cache_tag": {
+   "Egress.cache_tag.epoch": [
+    0
+   ],
+   "Egress.cache_tag.generation": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p3.e_Egress.reservation": {
+   "Egress.reservation.generation": [
+    0
+   ],
+   "Egress.reservation.phase": [
+    4
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  },
+  "p3.e_Egress.wire_position": {
+   "Egress.wire_position.f1": [
+    0
+   ],
+   "action_name": null,
+   "is_default_entry": false
+  }
+ },
+ "summary": {
+  "failed": [
+   "SYN",
+   "SYNACK",
+   "finalACK",
+   "SELECT35_to55",
+   "genuine_downstream_completion",
+   "actual_native_coordinates"
+  ],
+  "passed": 0,
+  "total": 6
+ }
+}

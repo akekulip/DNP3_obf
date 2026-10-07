@@ -1,0 +1,30 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name nf
+Binding with p4_name nf successful!!
+Received e3 on GetForwarding on client 1, device 0
+Received m3 on GetForwarding on client 1, device 0
+Received nf on GetForwarding on client 1, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name m3
+Binding with p4_name m3 successful!!
+Received e3 on GetForwarding on client 2, device 0
+Received m3 on GetForwarding on client 2, device 0
+Received nf on GetForwarding on client 2, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name e3
+Binding with p4_name e3 successful!!
+Received e3 on GetForwarding on client 3, device 0
+Received m3 on GetForwarding on client 3, device 0
+Received nf on GetForwarding on client 3, device 0
+FAIL SYN                                expected=original exactly once observed={1: [], 2: []}
+FAIL SYNACK                             expected=original exactly once observed={1: [], 2: []}
+FAIL finalACK                           expected=original exactly once observed={1: [], 2: []}
+FAIL SELECT35_to55                      expected=one independent exact109-byte endpoint frame observed={1: [], 2: []}
+FAIL genuine_downstream_completion      expected=N9/M4/E4   observed={'p0.n_Ingress.owner': {'n_Ingress.owner.f1': [327681], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.epoch': {'n_Ingress.epoch.f1': [1], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [557], 'n_Ingress.work.work.phase': [2], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.reservation': {'Ingress.reservation.generation': [0], 'Ingress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.geo_first': {'Ingress.geo_first.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_position': {'Ingress.ledger_position.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_tag': {'Ingress.ledger_tag.epoch': [0], 'Ingress.ledger_tag.generation': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.reservation': {'Egress.reservation.generation': [0], 'Egress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_tag': {'Egress.cache_tag.epoch': [0], 'Egress.cache_tag.generation': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_owner': {'Egress.cache_owner.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.wire_position': {'Egress.wire_position.f1': [0], 'action_name': None, 'is_default_entry': False}}
+FAIL actual_native_coordinates          expected=wire_start and full32 boundary observed={'p0.n_Ingress.owner': {'n_Ingress.owner.f1': [327681], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.epoch': {'n_Ingress.epoch.f1': [1], 'action_name': None, 'is_default_entry': False}, 'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [557], 'n_Ingress.work.work.phase': [2], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.reservation': {'Ingress.reservation.generation': [0], 'Ingress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.geo_first': {'Ingress.geo_first.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_position': {'Ingress.ledger_position.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p1.m_Ingress.ledger_tag': {'Ingress.ledger_tag.epoch': [0], 'Ingress.ledger_tag.generation': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.reservation': {'Egress.reservation.generation': [0], 'Egress.reservation.phase': [4], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_tag': {'Egress.cache_tag.epoch': [0], 'Egress.cache_tag.generation': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.cache_owner': {'Egress.cache_owner.f1': [0], 'action_name': None, 'is_default_entry': False}, 'p3.e_Egress.wire_position': {'Egress.wire_position.f1': [0], 'action_name': None, 'is_default_entry': False}}
+SUMMARY {'total': 6, 'passed': 0, 'failed': ['SYN', 'SYNACK', 'finalACK', 'SELECT35_to55', 'genuine_downstream_completion', 'actual_native_coordinates']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

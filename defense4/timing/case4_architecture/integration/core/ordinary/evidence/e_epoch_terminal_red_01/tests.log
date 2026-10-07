@@ -1,0 +1,29 @@
+test_cached_image_loaded_before_exactly_one_endpoint_and_distinct_completion (test_e_emit.EEmit) ... ok
+test_cached_read_overwrites_different_incoming_words_including_low24_tail (test_e_emit.EEmit) ... ok
+test_foreign_epoch_completion_cannot_retire_e_pin (test_e_emit.EEmit) ... FAIL
+test_genuine_query_rechecks_n_authority_before_endpoint_egress (test_e_emit.EEmit) ... ok
+test_missing_any_actual_read_completion_cannot_release_or_mirror (test_e_emit.EEmit) ... ok
+test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit) ... FAIL
+
+======================================================================
+FAIL: test_foreign_epoch_completion_cannot_retire_e_pin (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 79, in test_foreign_epoch_completion_cannot_retire_e_pin
+    dropped,_=ep.EPrepare().execute(e,bytes(bad),68);self.assertTrue(dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy (test_e_emit.EEmit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 86, in test_real_completion_retires_e_pin_without_cache_access_or_endpoint_copy
+    out=self.retire_completion(pipe,e,completion)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_emit.py", line 45, in retire_completion
+    self.assertEqual(qualified[12:16],bytes.fromhex('12140003'))
+AssertionError: b'\x0e\x14\x00\x02' != b'\x12\x14\x00\x03'
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.818s
+
+FAILED (failures=2)

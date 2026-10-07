@@ -1,127 +1,74 @@
 # Case4 continuation checkpoint — 2026-10-07
 
-Current continuation: [PLAN.md](PLAN.md). Task1 source-bound evidence is
-[integration/evidence/TASK1_VERIFICATION.json](integration/evidence/TASK1_VERIFICATION.json).
-The historical results below retain their original identities.
+Continue directly from [PLAN.md](PLAN.md#execution-checklist--2026-10-07).
+Core transport is the active step: ACK/window normalization, SELECT response,
+then OPERATE padding/carving and replay. Full Case4 remains incomplete.
 
-Latest accepted M source: `ordinary/m.p4`, SHA `cf1eaaa4…46575`,
-[`m_activate_06`](integration/core/ordinary/evidence/m_activate_06/manifest.json),
-10 ingress/0 egress, critical9, six stateful banks and two spare ingress stages.
-[Verification](integration/core/ordinary/evidence/m_activate_verification_01/verification.json)
-records ten passing source methods with their exact tested dependencies, all
-compiler/artifact checks and a clean table-capacity scan. Full identity and
-once-only activation precede geometry and ledger publication. Its actual
-stamped return releases M while N remains pinned. Independent review accepts
-M05 plus the M06 route-only change to existing port68. This supersedes the
-12-stage M PREPARE checkpoint below; it does not qualify the old15-stage canary.
-E endpoint output, N completion, post-M cancellation and the whole-target model
-remain active under [PLAN.md](PLAN.md#execution-checklist--2026-10-07).
+## Accepted first SELECT milestone
 
-Task1 fix-round current N `721fd4b7…` fits12/0,critical11
-(`task1_fix_n_01`); T `52b43d5a…` fits12/0,critical12 (`task1_fix_t_04`).
-The exact-source N0/T2 composition `task1_fix_nt_01` passes40 N/T model cases
-in `task1_fix_nt_model_01` and50 T model cases in `task1_fix_t_model_02`.
-Full suites: N84 with one compiler-evidence discovery skip; T103 pass. The skipped
-test searched the old evidence directory and missed the current N manifest. The
-coalesced finalACK+SELECT source regression passes; complete integrated target
-acceptance of that path is still open.
-The current evidence-discovery fix now finds the exact N manifest and checks
-included-source hashes; all5 static-entry tests pass with no skip. The historical
-N84 aggregate above has not been rerun for this test-only change.
-Logs/identity checks are in `integration/evidence/task1_fix_verification_01`.
-Earlier N05/T06/model34/35 had the two reviewed races and are historical evidence.
+External SYN/SYNACK/ACK then SELECT35 produce one exact109-byte Ethernet frame
+with55-byte padded payload in the isolated local model. Genuine completion leaves
+N Work9, M4 and E4; no ownership/cache/register proof presets were configured.
+Normal100, zero0 and wrapped0xfffffff0 coordinates each pass6/6 checks:
+[verification and packet identities](integration/core/ordinary/evidence/split_verification_01/verification.json).
+Lead freshly reran52 source/config tests successfully. IP/TCP checksums and DNP3
+CRCs independently pass for all three retained endpoint frames.
 
-Terminals now consume full owner/epoch checks. Returning T requests cancel before
-mint/install/commit, carry refusal through genuine Work terminals, and forward
-once while preserving installed receipts and consumed cookies. Model paused
-boundary fixtures are distinguished from the genuine full-packet source races.
-The raw-close parse token remains epoch-derived, not an observed Work generation.
-The old T selector12→11 A/B is historical; current guard chain uses12 stages.
-Current T stage4 grows from old0/9/59 SALUs/tables/xbar to1/9/63, an explicit
-resource concern. Model clocks prove functional commit order, not physical timing
-or normal deadline priority. No controller rearm authority exists.
+| Same modeled device0 role | Exact source SHA prefix | Build | Ingress / egress | Critical path |
+| --- | --- | --- | --- | --- |
+| N + final emitter, pipe0 | `610d129d7446` | `nf_02` |12 /4 |11 |
+| M preparation/activation, pipe1 | `c8820a1f7f14` | `m3_01` |10 /0 |9 |
+| E cache + typed bridge, pipe3 | `dae2efee6c5e` | `e3_02` |1 /10 |7 |
 
-Current execution base is `834372cbb`, main. Follow the
-[execution checklist in PLAN.md](PLAN.md#execution-checklist--2026-10-07): M admission
-and measured dependency reductions first, then protected SELECT materialization,
-ordinary SBO transport, timing join, loss/lifecycle and final qualification.
-One continuing implementer owns the code slice; one bounded reviewer checks its
-correctness and resource evidence. Lead alone integrates/commits in Philip's name.
+All three programs loaded together using
+[the source-bound split configuration](integration/core/ordinary/evidence/model_config_split_01/bindings.json).
+Pipe2 is reserved for the T join. N still uses all12 ingress stages; M now has two
+spare stages. Failed coupled N/E14-stage compositions are retained, not fit claims.
+The split retains all14 image banks, full owner/epoch/generation checks, actual
+publication/completion returns and a full32 current-generation emission receipt.
+Component sources and rendering are in [ordinary/README.md](integration/core/ordinary/README.md).
 
-Audit findings to close: N's ordinary SELECT/OPERATE/response terminals currently
-strip and forward natively rather than reaching M; Work is freed before downstream
-publication. M can mutate geometry/ledger before tuple/network admission. E's
-reusable cache lacks full slot identity and the retained carve run has a third
-unwanted frame. T→M197 is reserved but releases currently go to endpoint ports.
-These gaps mean there is no verified current N/M/T/E core. E's separate7-stage
-egress fit is reusable capacity, not a completed join or a stage minimum.
+Observed first-SELECT model accounting:19 ingress visits,6 service egress visits,
+18 private TX records totaling2346 Ethernet bytes excluding model trailers,
+plus an internal24-byte completion header. This is functional model accounting;
+TM/fabric and physical wire service are not measured. Successful runs omit the
+model's `--int-port-loop` flag; front ports remain cold-added with loopback NONE.
+Failed front-loop attempts and the SYN-only controlled comparison are preserved.
 
-At execution base834372cbb, M ports196/197 matched `task1_m_ports_01`,12/0.
-The working admission/replay repair changes M; its33 source tests and2 boundary
-tests pass. `m_replay_coordinate_02` matches SHA `d1e518f1…ae88`, but fails at15 ingress stages
-(critical11), with no binary/model. Earlier corrected layouts needed21 and19.
-The shared N harness now has42/42 passes after correcting the stale epoch0-forwarding
-fixture to bounded refusal. Its3 binding-equivalence tests also pass without the
-former replacement-test wrapper; frozen oracles are unchanged. This old single-pass
-repair has no fit; the separately staged ordinary candidate above now fits10 stages.
-The bounded reviewer accepts the source
-admission/contiguity/claim fixes and full replay-coordinate plus byte equality.
-Zero has a separate success result; the full wire start remains available. Next is protected
-staged M preflight/activation under actual N Work, as specified in the plan.
-Its production/rendering path remains unfinished. Exact current checkpoint:
-[m_replay_coordinate_02/verification.json](integration/evidence/m_replay_coordinate_02/verification.json).
-Complete retirement/loss,
-full Case4,9.13.2 qualification, physical port authority and hardware remain open.
+## Remaining core work, in execution order
 
-The separate [ordinary candidate](integration/core/ordinary/README.md) retains
-the protected N prerequisite: source `dfac97f8…4cbbe`, helper `273c405b…f0649`,
-exact build `n_local_abort_02`,12 ingress/0 egress, critical11, SDE9.13.1.
-[Its verification](integration/core/ordinary/evidence/n_local_abort_verification_01/verification.json)
-checks current source/include/compiler/artifacts and15 focused source tests.
-Actual handshake→SELECT hands one28-byte-prefixed packet to M196 while Work5 is
-pinned. A genuine pre-M cancellation return alone can free that pin; lost or
-foreign returns retain it. Independent review accepts this scoped prerequisite.
-There is no stage gain or new target-model result. M/E preparation, ready/commit,
-geometry activation, actual55-byte emission and subsequent ACK mapping remain
-active work under the linked [PLAN.md](PLAN.md); full-core completion is open.
+1. ACK/window inverse before N association, including inside-insertion clamps,
+   both edges, zero-window and full32 wrap; completed SELECT owner18 and its57-byte
+   matching response. Avoid the older N response's second20-byte subtraction.
+2. OPERATE35→55, matching57-byte response carved into exactly ordered28/29,
+   both insertions, every subsequent packet mapped, sender-driven cached-tail repair.
+3. Actual READ/T timing join and current-association OPERATE deadlines; finite
+   fallback, independent heartbeat and genuine credits.
+4. Post-M cancellation, duplicate/stale emission model witnesses, loss/lifecycle,
+   fragments/resegmentation, reset/FIN/reconnect/exhaustion and complete retirement.
+5. Complete exact9.13.2 offline build/model/schema/controller inventory and rollback
+   package. The qualification registry stays empty until the complete target passes.
 
-The retained M PREPARE checkpoint02 is a separate prerequisite: `ordinary/m.p4`
-SHA `23239836…ce16d`, exact `m_prepare_02`,12 ingress/0 egress, critical8.
-[Its verification](integration/core/ordinary/evidence/m_prepare_verification_01/verification.json)
-checks source/compiler/artifacts and three actual-source packet tests. Starting
-from a packet-created N association, it builds the independent codec's exact55
-bytes, recomputes IP/TCP checksums through the source deparser, and emits one
-private40-byte-prefixed PREPARE. Duplicate/invalid admission leaves banks unchanged.
-The separate cached producer owner/generation prevents confusing it with a later
-current release reference. No E-ready, geometry activation, endpoint emission or
-new target-model result is established yet. Continue the same protected SELECT
-item in [PLAN.md](PLAN.md#execution-checklist--2026-10-07); it remains unchecked.
+Full transport, timing and hardware gates in [PLAN.md](PLAN.md) remain unchecked.
+The52 tests and18 model checks qualify this first-SELECT slice only. Earlier
+590,976-case results include no-leak-only branches and are not that many full
+state/packet equivalences. Original N/T prerequisite model evidence is retained
+with its own exact sources; it does not qualify the new full target.
 
-Retained M PREPARE is `m_prepare_03`, SHA `2475f93b…ec9f3`,12/0, critical8.
-Current E PREPARE is `e_prepare_03`, SHA `55c2bae9…06589`,1 diagnostic ingress/
-9 egress, critical6. [Combined verification](integration/core/ordinary/evidence/me_prepare_verification_01/verification.json)
-checks exact source/compiler/artifacts, six source tests and actual final
-publication placement: all14 image writes at3–6, full owner/tag at7, typed ready
-at8. Each real store completion is required. M→E/ready uses a format2 24-byte
-prefix, preserving current and cached full identities; the captured decoy is
-already materialized and wire_start is full tcp.seq. This133-byte private frame
-fits exactly160 parser bytes including SDK metadata; failed176-byte E01 is retained.
-E readiness is private only. N ready/commit, M geometry activation, endpoint
-emission and target-model validation remain active under the linked plan.
+## Continuation boundaries
 
-Current N ready/commit checkpoint: `n_ready_03`, SHA `1be0eb09…33b8b`,
-helper `273c405b…f0649`,12/0, critical11. [Verification](integration/core/ordinary/evidence/n_ready_verification_01/verification.json)
-checks exact source/compiler/artifacts,25 completed-slice source methods and
-static table capacity. E0514 first checks full active Work generation/epoch/
-owner without changing Work; genuine0614 then uniquely advances5→7 and
-commits full owner9→17 before emitting0714 M196. Cached producer owner9 remains
-separate. FIN before CAS prevents activation and retains the pin. Both-reference
-wrong-generation witnesses exercise the authoritative generation guard.
-N02 compiled but had28 owner-command entries in capacity27; N03 fixes capacity28
-and passes the load-capacity scan. N01's parser-match-register failure is retained.
-At this N03 checkpoint, M activation tests were RED. They now pass for the M06
-slice above; no full-suite or full-core claim follows. E emission/completion,
-post-M abort, mapping and model validation remain next.
+Use one continuing implementer and one bounded reviewer. Lead integrates and
+commits on `main` as `akekulip <akekulip@gmail.com>` for author AND committer,
+without contributor trailers. No push. Preserve unrelated `CLAUDE.md`, frozen
+sources/evidence and the paper. Local isolated model/source work is authorized;
+live loading and physical port/TM/PRE/mirror/pktgen changes or traffic retain their
+separate gates. Physical OPERATE is attended-only. No hardware action occurred.
+
+## Historical continuation notes
+
+The following notes retain earlier identities and limits. Their old words
+"current" and "not yet" describe those checkpoints; the accepted split milestone
+above and [PLAN.md](PLAN.md) define the present execution state.
 
 The following continuation details retain pre-review historical identities;
 the current facts above and the linked PLAN supersede their role and completion claims.

@@ -1,0 +1,153 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "28eb77e49792dccbfd04ced9538f7b28e3a6251812c9fa5cc8499c47c5ad35a6",
+    "e.conf": "7b094d124852e8545877017426dd5f5d3d2e75ba1350b2eeb265262961ef50ed",
+    "manifest.json": "e5e97086db3288faea29615099f3a86c14c6d16720ea2871f9646a2d2a94e435",
+    "pipe/context.json": "9bd8a690645a369e0cdd590265ef6ab2e84c1b7180143d8280005d3d19c415b6",
+    "pipe/e.bfa": "2581879b44396a45267ee200ae3a70e1d3ad5644266343d5e770a55f5b78beb3",
+    "pipe/tofino.bin": "3c4b7c3740731ddeb55becb8a15e3a670bbb59f53fcf42857c82347d371520d2"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_lookup_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_lookup_01/source/e.p4"
+  ],
+  "compile_log_sha256": "8b3c51ef59c3ac0fde62daca5109078f56b1aa87d01861327f51a7c2edbb80f9",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 11.01,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 6,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "d18e3251b676dd6b3b4aa5d4b42a10c7c5babc756e4e6642d6a3292c6f0cba8c",
+      "pipe/logs/phv.json": "5dc3fc05d733143671d6e38bb3bbdae37d158b889286b5e706e387798b21f3de",
+      "pipe/logs/phv_allocation_0.log": "22b9b4d85978e34149f589c07cd5fdd3de62142f6a2d22f8d539d0db2fc486a5",
+      "pipe/logs/phv_allocation_3.log": "2a6644d47ded15277a56c310b631dcf158e331bf618fbcb6189af30e17f3e9dc",
+      "pipe/logs/phv_allocation_history_0.log": "4f002e874d5f99b35f1ae485ad773c2ea291a733f31abecd8b4f7e50226d9f3c",
+      "pipe/logs/phv_allocation_history_3.log": "d721784c2860db469d5058cd8a63c92d29a66211a7ca31197a526de7e855e5af",
+      "pipe/logs/phv_allocation_summary_0.log": "8b1af21e1c2ae4cd9e2163d2cd11eca50116b6786a8d738a10636104e416bbb4",
+      "pipe/logs/phv_allocation_summary_3.log": "b18b55f2fa53a2845b44cdffaee42d4f34964a1cdae912b2f530ab6c165e8ed8",
+      "pipe/logs/table_dependency_graph.log": "859b98b1f617c288ef51795f2bd934703500c126f894f3325be1b242238510ee",
+      "pipe/logs/table_dependency_summary.log": "dddd8f61bdcfef566b26337d1937a33446b0095c15f3fa2d1667b26287551412",
+      "pipe/logs/table_summary.log": "6d213100fa9dbf145c04459d3c0229bfe69c914c8c897c708178c424bb182323"
+    },
+    "stages": {
+      "egress": 9,
+      "ingress": 1
+    },
+    "stateful_tables": [
+      {
+        "direction": "egress",
+        "name": "Egress.reservation",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_13",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_12",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_11",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_10",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_9",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_8",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_7",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_6",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_5",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_4",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_3",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_2",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_1",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.image_0",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.wire_position",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.cache_owner",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.cache_tag",
+        "size": 1
+      }
+    ],
+    "tables_by_type": {
+      "action": 1,
+      "condition": 16,
+      "match": 55,
+      "stateful": 18
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/e.p4",
+  "source_files": {
+    "e.p4": "9a899b3f7992b1ba46be67eec6c452e175967debb2cb328502931d6b815db6fe"
+  },
+  "source_sha256": "9a899b3f7992b1ba46be67eec6c452e175967debb2cb328502931d6b815db6fe",
+  "timeout_seconds": 300
+}

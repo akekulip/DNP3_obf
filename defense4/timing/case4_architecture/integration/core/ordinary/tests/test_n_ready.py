@@ -14,7 +14,7 @@ class NativeReady(unittest.TestCase):
             out=pipe.inject(port,frame);self.assertFalse(out.dropped)
         out=pipe.inject(1,mp.vectors.packet(24,start,901,payload=mp.vectors.native_select()))
         helper=mp.MPrepare();pipe.ordinary_m=helper.receiver();dropped,prepared=helper.execute(pipe.ordinary_m,out.emitted[0][1]);self.assertFalse(dropped)
-        e=ep.e_source();dropped,ready=ep.EPrepare().execute(e,prepared);self.assertFalse(dropped)
+        e=ep.e_source();pipe.ordinary_e=e;dropped,ready=ep.EPrepare().execute(e,prepared);self.assertFalse(dropped)
         return pipe,ready
 
     def one(self,pipe,raw):

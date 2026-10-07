@@ -1,0 +1,119 @@
+{
+ "cases": [
+  {
+   "expected": "original exactly once",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000630000000060021000b0470000020405dc",
+   "name": "SYN",
+   "observed": {
+    "1": [],
+    "2": []
+   },
+   "ok": false
+  },
+  {
+   "expected": "successful actual model",
+   "name": "execution",
+   "observed": "error",
+   "ok": false
+  }
+ ],
+ "error": "ValueError: external handshake failed at SYN",
+ "meta": {
+  "configuration_only": true,
+  "driver_sha256": "e0be7a8d80340ec00f5305d7db1d4234a54a92f7d23df74be064446f0fc6ee29",
+  "front_port_enable_calls": false,
+  "front_port_readback": {
+   "1": {
+    "$AUTO_NEGOTIATION": "PM_AN_DEFAULT",
+    "$CHNL_ID": 1,
+    "$CONN_ID": 1,
+    "$CUT_THROUGH_EN": false,
+    "$FEC": "BF_FEC_TYP_NONE",
+    "$IS_INTERNAL": false,
+    "$IS_VALID": true,
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "$MEDIA_TYPE": "BF_MEDIA_TYPE_UNKNOWN",
+    "$N_LANES": 1,
+    "$PLL_OVRCLK": 0.0,
+    "$PORT_DIR": "PM_PORT_DIR_DEFAULT",
+    "$PORT_ENABLE": false,
+    "$PORT_NAME": "1/1",
+    "$PORT_UP": false,
+    "$RX_MTU": 10240,
+    "$RX_PAUSE_FRAME_EN": false,
+    "$RX_PFC_EN_MAP": 0,
+    "$RX_PRSR_PRI_THRESH": 0,
+    "$SDS_TX_ATTN": 0,
+    "$SDS_TX_POST": 0,
+    "$SDS_TX_POST2": 0,
+    "$SDS_TX_PRE": 0,
+    "$SDS_TX_PRE2": 0,
+    "$SPEED": "BF_SPEED_10G",
+    "$TIMESTAMP_1588_DELTA_RX": 2989,
+    "$TIMESTAMP_1588_DELTA_TX": 2989,
+    "$TIMESTAMP_1588_ID": 1,
+    "$TIMESTAMP_1588_VALID": false,
+    "$TIMESTAMP_1588_VALUE": 0,
+    "$TX_MTU": 10240,
+    "$TX_PAUSE_FRAME_EN": false,
+    "$TX_PFC_EN_MAP": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "2": {
+    "$AUTO_NEGOTIATION": "PM_AN_DEFAULT",
+    "$CHNL_ID": 2,
+    "$CONN_ID": 1,
+    "$CUT_THROUGH_EN": false,
+    "$FEC": "BF_FEC_TYP_NONE",
+    "$IS_INTERNAL": false,
+    "$IS_VALID": true,
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "$MEDIA_TYPE": "BF_MEDIA_TYPE_UNKNOWN",
+    "$N_LANES": 1,
+    "$PLL_OVRCLK": 0.0,
+    "$PORT_DIR": "PM_PORT_DIR_DEFAULT",
+    "$PORT_ENABLE": false,
+    "$PORT_NAME": "1/2",
+    "$PORT_UP": false,
+    "$RX_MTU": 10240,
+    "$RX_PAUSE_FRAME_EN": false,
+    "$RX_PFC_EN_MAP": 0,
+    "$RX_PRSR_PRI_THRESH": 0,
+    "$SDS_TX_ATTN": 0,
+    "$SDS_TX_POST": 0,
+    "$SDS_TX_POST2": 0,
+    "$SDS_TX_PRE": 0,
+    "$SDS_TX_PRE2": 0,
+    "$SPEED": "BF_SPEED_10G",
+    "$TIMESTAMP_1588_DELTA_RX": 2989,
+    "$TIMESTAMP_1588_DELTA_TX": 2989,
+    "$TIMESTAMP_1588_ID": 1,
+    "$TIMESTAMP_1588_VALID": false,
+    "$TIMESTAMP_1588_VALUE": 0,
+    "$TX_MTU": 10240,
+    "$TX_PAUSE_FRAME_EN": false,
+    "$TX_PFC_EN_MAP": 0,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  },
+  "m_source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+  "physical": false,
+  "port_enable_errors": {},
+  "proof_presets": false,
+  "scope": "first SELECT only; subsequent transport/SBO/lifecycle still gated",
+  "source_sha256": "610d129d7446f56334df4571aedd35a17b71823143ef16d5fca770fd07b49971",
+  "start": 100
+ },
+ "program": "nf",
+ "summary": {
+  "failed": [
+   "SYN",
+   "execution"
+  ],
+  "passed": 0,
+  "total": 2
+ },
+ "traceback": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/split_model_select.py\", line 110, in main\n    if not passed:raise ValueError('external handshake failed at '+name)\nValueError: external handshake failed at SYN\n"
+}

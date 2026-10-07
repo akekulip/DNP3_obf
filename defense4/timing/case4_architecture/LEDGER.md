@@ -424,3 +424,20 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   N frees only after genuine full-identity completion. Endpoint/completion
   sources and the composed model remain work in progress, not accepted by the
   M-only review or the interface ruling. No hardware or push occurred.
+
+- 2026-10-07 First external SELECT model milestone: accepted split NF0/M1/E3
+  loads together on one modeled device0. Exact builds NF02/M3_01/E3_02 fit12/4,
+  10/0 and1/10, critical11/9/7. Relocating E cache to pipe3 preserves its14 actual
+  image banks and full checks; failed coupled14-stage layouts are retained.
+  Normal100, zero0 and wrapped0xfffffff0 external handshake→SELECT trials each
+  pass6/6, with exact independent109-byte endpoint frames and valid checksums/CRCs.
+  Genuine downstream completion leaves N9/M4/E4. No proof presets; no hardware.
+  The lead freshly reran52 source/config methods successfully. Model SELECT costs
+  19 ingress visits,6 service egress visits,18 private TX records totaling2346
+  Ethernet bytes plus an internal24-byte completion header; physical occupancy
+  remains unmeasured. `split_verification_01` binds all identities and packets.
+  Front-loop failures are preserved; omitting the model int-port-loop flag passes
+  the SYN control and all three trials. The current full32 generation receipt
+  prevents duplicate final emission. Full transport/timing is not claimed: ACK/
+  window inverse and SELECT57 response are next, followed by OPERATE/carve/replay,
+  post-M cancellation/loss and final qualification under PLAN.md.

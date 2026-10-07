@@ -1,0 +1,205 @@
+{
+  "scope": "first native SELECT only; no ACK inverse/SBO/physical qualification",
+  "physical": false,
+  "full_target": false,
+  "source_suite": {
+    "command": "python3 -m unittest discover -s defense4/timing/case4_architecture/integration/core/ordinary/tests -q",
+    "methods": 52,
+    "passed": 52
+  },
+  "compiled": {
+    "nf_02": {
+      "source_sha256": "610d129d7446f56334df4571aedd35a17b71823143ef16d5fca770fd07b49971",
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "stages": {
+        "egress": 4,
+        "ingress": 12
+      },
+      "critical_path": 11,
+      "manifest_sha256": "1f0d4e12fcca90ae51eb809ebf6199c9c04a8af88515110040074b882d2ceb9a"
+    },
+    "m3_01": {
+      "source_sha256": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "stages": {
+        "egress": 0,
+        "ingress": 10
+      },
+      "critical_path": 9,
+      "manifest_sha256": "57b82a762aab3ef764166fa685c26404594e561d4e0fb3614c0416b75dea4a3c"
+    },
+    "e3_02": {
+      "source_sha256": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18",
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "stages": {
+        "egress": 10,
+        "ingress": 1
+      },
+      "critical_path": 7,
+      "manifest_sha256": "35dd7d0a47809eafd84a7db3366606f2bf9ba24d04d40c8f32ab2522a2df2ff0"
+    }
+  },
+  "model_trials": [
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/model_split_05",
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "start": 100,
+      "endpoint_frame_bytes": 109,
+      "payload_bytes": 55,
+      "independent_ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "e0be7a8d80340ec00f5305d7db1d4234a54a92f7d23df74be064446f0fc6ee29",
+      "configuration_only": true,
+      "result_sha256": "a87201a3b2fc760ecd01b37bfd3960bc40cb192914fa8a7af82ddfb732c462ab"
+    },
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/model_split_zero_06",
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "start": 0,
+      "endpoint_frame_bytes": 109,
+      "payload_bytes": 55,
+      "independent_ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "e0be7a8d80340ec00f5305d7db1d4234a54a92f7d23df74be064446f0fc6ee29",
+      "configuration_only": true,
+      "result_sha256": "02951847329a2fd9d4982782b45ae427b59092df95922506962c38dfaa36c022"
+    },
+    {
+      "path": "defense4/timing/case4_architecture/integration/core/ordinary/evidence/model_split_wrap_07",
+      "summary": {
+        "failed": [],
+        "passed": 6,
+        "total": 6
+      },
+      "start": 4294967280,
+      "endpoint_frame_bytes": 109,
+      "payload_bytes": 55,
+      "independent_ip_tcp_dnp3_checks": "PASS",
+      "driver_sha256": "e0be7a8d80340ec00f5305d7db1d4234a54a92f7d23df74be064446f0fc6ee29",
+      "configuration_only": true,
+      "result_sha256": "053f619ba7058e579b0f7e73cdee822e16e987734b8555f9ef45bc733f411ee7"
+    }
+  ],
+  "remaining": [
+    "reverse ACK/window inverse before N association",
+    "SELECT response association/carving and OPERATE",
+    "post-M precommit abort and general loss/lifecycle",
+    "distinct current/cached generation replay",
+    "physical target/controller/admission/campaign"
+  ],
+  "observed_model_select_accounting": {
+    "ingress_visits": 19,
+    "ingress_ports": {
+      "1": 1,
+      "68": 10,
+      "196": 2,
+      "452": 3,
+      "198": 1,
+      "453": 2
+    },
+    "service_egress_visits": {
+      "E3": 5,
+      "F0": 1
+    },
+    "private_tx_records": 18,
+    "private_tx_model_bytes": 2418,
+    "private_tx_ethernet_bytes_excluding_model4byte_trailers": 2346,
+    "mirror_internal_completion_header_bytes": 24,
+    "warning": "TX record sum does not include separate within-TM handoffs or infer physical wire occupancy",
+    "tx_records": [
+      [
+        "68",
+        "121"
+      ],
+      [
+        "68",
+        "121"
+      ],
+      [
+        "68",
+        "121"
+      ],
+      [
+        "196",
+        "121"
+      ],
+      [
+        "452",
+        "137"
+      ],
+      [
+        "68",
+        "137"
+      ],
+      [
+        "68",
+        "137"
+      ],
+      [
+        "196",
+        "137"
+      ],
+      [
+        "198",
+        "141"
+      ],
+      [
+        "452",
+        "137"
+      ],
+      [
+        "68",
+        "137"
+      ],
+      [
+        "452",
+        "137"
+      ],
+      [
+        "68",
+        "137"
+      ],
+      [
+        "2",
+        "113"
+      ],
+      [
+        "453",
+        "141"
+      ],
+      [
+        "68",
+        "141"
+      ],
+      [
+        "453",
+        "137"
+      ],
+      [
+        "68",
+        "137"
+      ],
+      [
+        "68",
+        "141"
+      ]
+    ]
+  },
+  "inputs": {
+    "split.py": "3a5a2674c11b11120e8cc9766e3f2bd80193a6b4d5b2c4afcb24fbb14a9766ea",
+    "split_model_config.py": "515825e40a79a1e3977f3fb59435c8f633bfe394be3a501bdff749cde10849d8",
+    "split_model_select.py": "e0be7a8d80340ec00f5305d7db1d4234a54a92f7d23df74be064446f0fc6ee29",
+    "placement/inputs.json": "68ccaa3c74a8cc3c0b8eff24d79a13ad3ff9f3258e6ff9252c996d66b0d4abab",
+    "placement/nf.p4": "610d129d7446f56334df4571aedd35a17b71823143ef16d5fca770fd07b49971",
+    "placement/n3.p4": "30bd220d949333349f4026b214551c7c89978df05d942ffa0e746260b60299f7",
+    "placement/m3.p4": "c8820a1f7f145b3c7e86f002d4ce288edf8eef860070dbfb6ea1351cff6a48a0",
+    "placement/e3.p4": "dae2efee6c5e08760e362e05a5f7351decf3260595b3a7950b563854c9b1bb18",
+    "placement/f.p4": "da638c1a67772b1cb6a1aeb32807944a5870f8f134e6486d639f728392a8ada4"
+  }
+}

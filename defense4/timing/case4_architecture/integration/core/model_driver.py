@@ -41,10 +41,10 @@ def veth_for(port):
 
 class Model:
     def __init__(self, prog=None, grpc=None, ports=None, enable=True, speed='BF_SPEED_10G',
-                 pipe=0xffff, settle=2.0):
+                 pipe=0xffff, settle=2.0, client_id=1):
         self.prog = prog or os.environ['PROG']
         self.grpc = grpc or os.environ.get('MODEL_GRPC', '127.0.0.1:50052')
-        self.iface = gc.ClientInterface(self.grpc, client_id=1, device_id=0)
+        self.iface = gc.ClientInterface(self.grpc, client_id=client_id, device_id=0)
         self.iface.bind_pipeline_config(self.prog)
         self.info = self.iface.bfrt_info_get(self.prog)
         self.target = gc.Target(device_id=0, pipe_id=pipe)

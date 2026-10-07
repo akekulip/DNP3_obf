@@ -1,0 +1,70 @@
+{
+  "scope": "Ordinary first SELECT endpoint/completion source and standalone builds; composed target-model still pending",
+  "tests_command": [
+    "/usr/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "integration/core/ordinary/tests",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "tests_exit_code": 0,
+  "tests_methods": 42,
+  "tested_source_sha256": {
+    "integration/core/ordinary/composed.p4": "97b1e6be3e8b273566a171fb9d8356fe092a975c229a83615dc8cfce26644dfe",
+    "integration/core/ordinary/e.p4": "5071ae0f314d450ddc29701bcbb046b1a0bc5d8ef0415191857553d2e7718a4a",
+    "integration/core/ordinary/m.p4": "cf1eaaa4b6623005b76a90a3e0e5f076e79cfd2fb0096c0380acef6624746575",
+    "integration/core/ordinary/n.p4": "249178e88d4b85bfc842cb60dd9daf52924107e2cf754f30f1abec8e6c1edde1",
+    "integration/core/ordinary/work_record.p4": "273c405b8188943086c951f73d716a62a82c8f5e08c2c9fe81c0170e79ff0649",
+    "integration/core/ordinary/source_wire.py": "aa3ba0d2c1e5550f077d3368fac284130a078061d873574eeea1ec7a67d0c712",
+    "integration/core/ordinary/tests/test_composition.py": "df347e016ebdfb1f5175e7836c4096f80d99ba68bd138aa6a7a54519e5439463",
+    "integration/core/ordinary/tests/test_e_emit.py": "bf5039d02033e9209ad05d7fc03f1332d4f993c79b2cd0f2bbc037f9acc419d3",
+    "integration/core/ordinary/tests/test_e_prepare.py": "eb6da452f5c32b08e833af6495ed1eaabb51be28f86b230a5279b70eaf1a40b8",
+    "integration/core/ordinary/tests/test_e_query.py": "f8218634e8a39e4511d33ab051a7f5636953fce5129360baf16795a9e3424d18",
+    "integration/core/ordinary/tests/test_m_activate.py": "2672441ac831c7d67fd4e6b6ed1cb53ef8fd265304699f2cb5038c31184bbeaf",
+    "integration/core/ordinary/tests/test_m_prepare.py": "10c3ae985573f7984fb836be61fffef488e1221bcdc987b7e72939532cc49018",
+    "integration/core/ordinary/tests/test_n_complete.py": "962672e53198625e5f79f1a5f25faf1a7767efb2f05a608a8c8dfef89ffd0d74",
+    "integration/core/ordinary/tests/test_n_handoff.py": "e3c6faa221ac42e8de209ed3145b8dcb3a13efbf751ff24b7e745bcc74ca5c73",
+    "integration/core/ordinary/tests/test_n_ready.py": "ef58060ccca401a6bc5c5689631ba87ff8cab03774987deac9a5672d725e0698",
+    "integration/core/ordinary/tests/test_work.py": "de4c848945d2f9afc4f4ab423b93da8847d73e3a4d7540370658e4b4adb91805"
+  },
+  "sources_stable_during_tests": true,
+  "builds": {
+    "n_complete_03": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "m_activate_06": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    },
+    "e_complete_05": {
+      "source_matches": true,
+      "snapshots_match": true,
+      "compiler_matches": true,
+      "compiled_artifacts_verified": true,
+      "full_target": false
+    }
+  },
+  "static_capacity_command": [
+    "/usr/bin/python3",
+    "-B",
+    "integration/core/scan_static_entries.py",
+    "integration/core/ordinary/evidence/n_complete_03/out",
+    "integration/core/ordinary/evidence/m_activate_06/out",
+    "integration/core/ordinary/evidence/e_complete_05/out"
+  ],
+  "static_capacity_exit_code": 0,
+  "hardware": false,
+  "full_target": false
+}

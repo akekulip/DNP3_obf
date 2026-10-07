@@ -1,0 +1,30 @@
+test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification (test_e_query.EQuery) ... test_valid_network_wrong_cache_epoch_owner_generation_or_coordinate_refused (test_e_query.EQuery) ... ok
+
+======================================================================
+FAIL: test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification (test_e_query.EQuery) (start=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_query.py", line 23, in test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification
+    dropped,out=ep.EPrepare().execute(e,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification (test_e_query.EQuery) (start=100)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_query.py", line 23, in test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification
+    dropped,out=ep.EPrepare().execute(e,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification (test_e_query.EQuery) (start=4294967280)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/tests/test_e_query.py", line 23, in test_actual_cache_full_identity_and_zero_wrap_position_before_emit_qualification
+    dropped,out=ep.EPrepare().execute(e,raw);self.assertFalse(dropped)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.496s
+
+FAILED (failures=3)

@@ -1,0 +1,32 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(17): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){Checksum() ic;Checksum() tc;
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(17)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){Checksum() ic;Checksum() tc;
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(229): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(229)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);transition accept;}}
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+[--Wwarn=target-error] warning: Tofino does not support clear-on-write semantic on re-assignment to field egress::m.expected_phase in parser state egress::completion_cache. Try to use advance() to skip over there-assigned values and only extract them once.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(31): [--Wwarn=target-error] warning: egress::m.expected_phase is assigned in state egress::completion_cache but has also previous assignment. See the following errors for the list of previous assignments. This re-assignment is not supported by Tofino.
+ state completion_cache{m.role=8w3;m.expected_phase=32w2;pkt.extract(hdr.cache);transition eth;}
+                                   ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(18): warning: egress::m.expected_phase previously assigned in state $entry_point.start.
+ state start{pkt.extract(eg);m.expected_phase=32w1;m.emit_ready=1w0;m.role=8w0;m.parsed=1w0;m.enabled=1w0;m.identity_grant=1w0;m.position_done=1w0;m.tag_done=1w0;m.owner_done=1w0;m.done0=1w0;m.done1=1w0;m.done2=1w0;m.done3=1w0;m.done4=1w0;m.done5=1w0;m.done6=1w0;m.done7=1w0;m.done8=1w0;m.done9=1w0;m.done10=1w0;m.done11=1w0;m.done12=1w0;m.done13=1w0;transition select(eg.egress_port){9w68:reference;9w2:emit_reference;default:reject;}}
+                             ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/ordinary/evidence/e_complete_03/source/e.p4(197): error: : condition expression too complex
+   if(m.identity_grant==1w1&&m.completion_diff==32w0){retire_emit_t.apply();completion_result_t.apply();}else{deny();}
+                             ^^^^^^^^^^^^^^^^^
+
+1 error, 11 warnings generated.
+
+Skipping assembler, assembly file is empty
