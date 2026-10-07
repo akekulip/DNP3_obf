@@ -1,0 +1,85 @@
+#ifndef CASE4_EXPECTED_WORK_RECORD_P4
+#define CASE4_EXPECTED_WORK_RECORD_P4
+struct expected_work_cell_t { bit<32> generation; bit<32> phase; }
+// A genuine producer emits expected phase1/2/3 in its private return packet.
+// Full generation and full expected phase are compared in one atomic SALU.
+// The caller must quarantine lifecycle ownership separately on raw close;
+// operation3 uniquely hands SELECT to downstream processing: 3->5 pending,
+// 5->7 ready-received/pinned, 7->9 terminal/free. Ready progress is NOT release
+// authority: the caller must subsequently commit the current owner atomically.
+// Uniform +2 needs only the two identity
+// comparisons available in the SALU. Free9 is physical and reported as9;
+// the caller's existing selectors must accept both free4 and free9.
+// Callers derive each expected phase from an
+// actual private return; this helper alone does not prove owner/cache validity.
+// Normal handshake operation2 retains its actual phase3->free4 return. Global full32
+// generations must not wrap; epoch and final dirty-write lifetime are caller
+// authority. No shared bank write may follow a terminal that permits reuse.
+control ExpectedWorkRecord(in bit<8> operation, in bit<32> generation,
+                           in bit<32> expected_phase,
+                           inout bit<32> observed_phase) {
+    Register<expected_work_cell_t, bit<1>>(1, {0, 4}) work;
+    RegisterAction<expected_work_cell_t, bit<1>, bit<32>>(work) claim = {
+        void apply(inout expected_work_cell_t value, out bit<32> old_phase) {
+            old_phase = value.phase;
+            if (value.phase == 4 || value.phase == 9) {
+                value.generation = generation; value.phase = 1;
+            }
+        }
+    };
+    RegisterAction<expected_work_cell_t, bit<1>, bit<32>>(work) advance = {
+        void apply(inout expected_work_cell_t value, out bit<32> old_phase) {
+            old_phase = 0;
+            if (value.generation == generation && value.phase == expected_phase) {
+                old_phase = value.phase; value.phase = value.phase + 1;
+            }
+        }
+    };
+    RegisterAction<expected_work_cell_t, bit<1>, bit<32>>(work) downstream = {
+        void apply(inout expected_work_cell_t value, out bit<32> old_phase) {
+            old_phase = 0;
+            if (value.generation == generation && value.phase == expected_phase) {
+                old_phase = value.phase;
+                value.phase = value.phase + 2;
+            }
+        }
+    };
+    RegisterAction<expected_work_cell_t, bit<1>, bit<32>>(work) read = {
+        void apply(inout expected_work_cell_t value, out bit<32> old_phase) {
+            old_phase = value.phase;
+            // Closed dispatch below supplies phase0 for read, never a live
+            // phase; phase5 is exclusively the genuine pre-M local abort.
+            // Returned raw phase is not a qualified success indication.
+            if (value.generation == generation && value.phase == expected_phase) {
+                value.phase = 9;
+            }
+        }
+    };
+    action claim_work() { observed_phase = claim.execute(0); }
+    action return_work() { observed_phase = advance.execute(0); }
+    action read_work() { observed_phase = read.execute(0); }
+    action abort_read() { observed_phase = read.execute(0); }
+    action downstream_work() { observed_phase = downstream.execute(0); }
+    action unavailable_work() { observed_phase = 0; }
+    table dispatch {
+        key = { operation : exact; generation : ternary; expected_phase : ternary; }
+        actions = { claim_work; return_work; read_work; abort_read; downstream_work; unavailable_work; }
+        const entries = {
+            (0, _, 0) : read_work();
+            (1, 0, _) : unavailable_work();
+            (1, _, _) : claim_work();
+            (2, _, 1) : return_work();
+            (2, _, 2) : return_work();
+            (2, _, 3) : return_work();
+            (2, _, _) : unavailable_work();
+            (3, _, 3) : downstream_work();
+            (3, _, 5) : downstream_work();
+            (3, _, 7) : downstream_work();
+            (3, _, _) : unavailable_work();
+            (4, _, 5) : abort_read();
+        }
+        const default_action = unavailable_work(); size = 12;
+    }
+    apply { dispatch.apply(); }
+}
+#endif

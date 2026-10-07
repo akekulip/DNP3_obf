@@ -557,3 +557,83 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   role==0 admission chain (`profile`/CRC checks) before a verdict is possible -- a materially larger
   change than the two diagnosed fixes, not implemented or claimed here.
   No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
+
+- 2026-10-07 (this session, continued) Applied the same merge technique to the m17 wall itself.
+  m17's exact blocker was `Ingress.reservation`'s two touch points after fix 2's partial hoist --
+  `inspect_reservation_t` (role==1, read-only, hoisted early, no real dependency) and
+  `activation_reservation_t` (role==2's `retire_reservation`, genuinely gated on enabled/profile,
+  left late) -- sharing one register's pinned SALU while sitting at very different required
+  depths. Per the task's instruction, merged them into ONE table (`activation_reservation_t`)
+  with ONE apply() site, keyed on `(m.role, m.enabled, m.profile)`: role==1 unconditionally reads
+  (`inspect_reservation`), role==2 retires only if `enabled==1&&profile==1`
+  (`retire_reservation`), everything else takes an explicit `no_reservation_grant()` (never a bare
+  `NoAction` on a field read downstream, so `m.reservation_grant` is never left
+  non-deterministic). This needed `m.enabled`/`m.profile` available at the early call site, so
+  `reference_differences_t`/`activation_identity_t` -- pure header/`m.stamp_diff` math with no
+  other dependency -- were hoisted to the same early position (`m.stamp_diff` already comes from
+  the unconditional top-of-apply `stamp_t.apply()`, `m.enabled` from the unconditional top-of-apply
+  `connection.apply()`). `qualify_context_t`, `claim_once_t`, `activate_geometry_t`,
+  `activate_position_t`, `activate_ledger_t`, `dirty_return_t` and `terminal_result_t` are
+  UNCHANGED from m17 -- same tables, same keys, same nested-if gating, same position. No role-3/4
+  packet can reach the merged table (it is still applied only inside
+  `if(m.role==8w1||m.role==8w2)`), and retire's own enabled/profile gate, the claim/activate
+  mutation chain and the paired-coordinate reread invariant are untouched; only WHEN the register's
+  two reads/one write get decided moves, exactly as fix 2 already established for the read alone.
+  New generation `transport_candidate_next18/m3.p4` (sha
+  `fccac9016df1287185a20ee0d17ac3993e4cbde79bcadc046b6bef19912905a4`, generator sha
+  `4979f7b86cde14e9cc78e11e6292dc6b0833769d50fa22c3316582a1c1da6460`).
+  Regression: fresh `ordinary` 71/71, root `tests` 33/33, `connection/binding` 84/84 (590,976
+  differential cases, 0 mismatches), `controller` 17/17, `core/harness` 42/42, `core/m` 33/33,
+  `read` 103/103 -- all pass, run twice (once against an earlier, reverted broader variant of this
+  same source and once against the final kept source), nothing regressed.
+  Compile (local 9.13.1, `build.py`, `evidence/stage_fit_m18_01`, exit 2, FAILS to fit): critical
+  path through the table dependency graph is **10** (`out/pipe/logs/table_summary.log`, consistent
+  across all 5 retained retry logs) -- worse than m17's 8, but the originally named wall is gone:
+  `grep -c inspect_reservation out/pipe/logs/table_placement_7.log` is 0, and no
+  "activation_reservation_t" line reports "requiring more than one stage" as a *repeated, final*
+  blocker (it appears exactly once per retry, at an abandoned early exploratory branch against
+  `reference_differences_t_0`, line 414 of every retry log, never the reason placement gives up).
+  The placement log's SOLE repeated, final "requiring more than one stage" conflict, identical
+  across every one of the 5 retry logs and immediately preceding "table placement ending with
+  unplaced tables" in the last one: `dependency between activate_geometry_t_0 and
+  activate_ledger_t_0 requiring more than one stage` (`table_placement_7.log` lines 664, 730, 781,
+  819, 829) -- this is the task's named `Ingress.ledger_tag` conflict (`mapping_tag_t`, role==4,
+  early read vs `activate_ledger_t`, role==1, late write). No `mapping_position_t`/
+  `activate_position_t` "requiring more than one stage" line appears anywhere in any retry log this
+  time, so `Ingress.ledger_position`'s conflict is not the active blocker in this placement attempt
+  (whether it is resolved or merely not yet reached is not established either way by this evidence).
+  The regressed critical path (8 -> 10) is the direct cost of giving `activation_reservation_t` a
+  real data dependency it did not carry in m17 (on `reference_differences_t`/
+  `activation_identity_t`'s outputs, needed for its new key) in exchange for removing the two-table
+  split that made m17 unplaceable.
+  A broader variant was tried and reverted (not present in the kept generator): hoisting
+  `claim_once_t`/`activate_geometry_t`/`activate_position_t`/`activate_ledger_t`/`dirty_return_t`/
+  `terminal_result_t` out to the same early position too, replacing their nested-if gating with
+  table keys the same way (`claim_once_t` keyed on
+  `(role,enabled,profile,reservation_grant,context_grant)`; `activate_geometry_t`/
+  `activate_position_t` keyed on `(role,activation_grant)`, each with an explicit zero/no-op
+  action on a miss). Tests: ran green on this variant too (same 7 suites). Compile
+  (`evidence/stage_fit_m18_01`, pre-revert): critical path **regressed to 14**, and the dominant
+  remaining conflict became `dependency between activation_reservation_t_0 and construct_t_0` (and
+  `activate_geometry_t_0`/`activate_position_t_0`) -- `construct_t` sits deep in role==0's
+  native/DNP3 admission chain (`profile`/CRC checks) and reaches `Ingress.reservation` through
+  `reserve_t`'s own RegisterAction. Pulling `activation_reservation_t`'s required stage later (to
+  resolve enabled/profile) just relocated the same two-sided, far-apart register conflict onto a
+  third table this task never named and LEDGER.md already flagged out of scope (role==0's admission
+  chain restructuring, "Not attempted this session" in the entry above). It made the graph strictly
+  worse and did not fit, so it was reverted and is not in `transport.py`.
+  `Ingress.ledger_position` (`mapping_position_t` vs `activate_position_t`) and the newly-found
+  `Ingress.ledger_tag` conflict (`activate_geometry_t` vs `activate_ledger_t`) were therefore NOT
+  merged this session; `ledger_tag`'s conflict is the confirmed, reproducible remaining wall. Both
+  registers' writers (`activate_position_t`, `activate_ledger_t`) are gated behind `claim_once_t`'s
+  `m.activation_grant`, itself produced by a MUTATING register (`activation_receipt`) gated behind
+  the full enabled/profile/reservation_grant/context_grant chain -- unlike `retire_reservation`,
+  which needed only `enabled`/`profile` (already hoistable with no further mutation moved), hoisting
+  either write's gate early means hoisting `claim_once_t`'s own mutation ahead of its validation --
+  exactly the broader variant above, which regressed the critical path and introduced the
+  `construct_t` conflict instead of removing a conflict. A single-call-site merge of each read
+  (role 3/4, early) and write (role 1, gated behind that mutation chain) is not achievable without
+  either moving a mutation earlier than its own validation (outside this task's gating-preservation
+  constraint) or restructuring role==0's admission chain (out of scope, already deferred above).
+  Not attempted further this session.
+  No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.

@@ -119,6 +119,31 @@ half to extract, unlike `reservation`'s. See `LEDGER.md`'s 2026-10-07 "Both diag
 implemented" entry for the full compiler quotes and unplaced-table list. No mapper fit, model,
 SDK update, hardware action or push.
 
+2026-10-07 continuation 2: merged `inspect_reservation_t`/`activation_reservation_t` into one
+table (`transport_candidate_next18/m3.p4`, sha `fccac9016d…905a4`), keyed on
+`(role,enabled,profile)` so `Ingress.reservation` has exactly one apply() site instead of two --
+this removes m17's named wall (`inspect_reservation_t`/`activation_reservation_t` no longer
+conflict; confirmed 0 occurrences in the placement log). Needed hoisting
+`reference_differences_t`/`activation_identity_t` to the same early call site (pure header math,
+no new dependency); `qualify_context_t`/`claim_once_t`/`activate_geometry_t`/`activate_position_t`/
+`activate_ledger_t`/`dirty_return_t`/`terminal_result_t` are unchanged from m17. Fresh regression
+(same 7 suites as m17's entry) stays green. Compile
+(`evidence/stage_fit_m18_01`, local 9.13.1, exit 2, FAILS): critical path **10** (worse than m17's
+8 -- `activation_reservation_t` now carries a real dependency it didn't have before). The sole
+repeated, final "requiring more than one stage" conflict across every retry log is now
+`dependency between activate_geometry_t_0 and activate_ledger_t_0` -- the task's named
+`Ingress.ledger_tag` conflict. `Ingress.ledger_position` does not appear as an active blocker in
+this attempt. A broader variant that also hoisted `claim_once_t`/`activate_geometry_t`/
+`activate_position_t`/`activate_ledger_t`/`dirty_return_t`/`terminal_result_t` the same way was
+tried, tests passed, but compiled to critical path **14** with a NEW conflict against `construct_t`
+(role==0's native admission chain, out of scope) -- reverted, not in `transport.py`. Resolving
+`ledger_position`/`ledger_tag` properly needs hoisting `claim_once_t`'s own MUTATION
+(`activation_receipt`) ahead of its validation gate, which this task's gating-preservation
+constraint rules out without a larger restructuring of role==0's admission chain (already deferred
+above); not attempted further. See `LEDGER.md`'s 2026-10-07 "Applied the same merge technique to
+the m17 wall itself" entry for the full compiler quotes, unplaced-table list and the reverted
+variant's evidence. No mapper fit, model, SDK update, hardware action or push.
+
 Source-counted ACK mapping uses N5+M2 ingress visits and408 private Ethernet bytes;
 response57 uses the same7 visits and750 bytes. Endpoint54/111 bytes are separate.
 These counts remain unmeasured until the exact installed-SDK model runs.

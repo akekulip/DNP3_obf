@@ -412,6 +412,94 @@ def generate_roles():
     m=replace(m,'    activation_reservation_t.apply();\n    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){\n     qualify_context_t.apply();\n     if(m.context_grant==32w0){',
                  '    activation_reservation_t.apply();\n    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){\n     if(m.context_grant==32w0){')
 
+    # stage_fit_m18 (this task): the m17 wall is "dependency between
+    # inspect_reservation_t_0 and activation_reservation_t_0 requiring more than
+    # one stage" -- Ingress.reservation's backing SALU is pinned to one physical
+    # stage, and inspect_reservation_t (hoisted early, no real dependency) and
+    # activation_reservation_t (role==2's retire, genuinely gated on
+    # enabled/profile) cannot both occupy that one stage while sitting at their
+    # own very different required depths. Per the task's own technique, MERGE
+    # the two into one table with one apply() site, keyed on role plus the exact
+    # enabled/profile bits retire already required, so there is exactly one
+    # placement decision for this register instead of two. This requires
+    # enabled/profile available at the hoisted call site, so
+    # reference_differences_t/activation_identity_t (pure header/stamp math with
+    # no other dependency -- m.stamp_diff already comes from the unconditional
+    # top-of-apply stamp_t.apply(), m.enabled from the unconditional top-of-apply
+    # connection.apply()) move out to the same early position. Nothing else
+    # moves: qualify_context_t, claim_once_t, activate_geometry_t,
+    # activate_position_t, activate_ledger_t, dirty_return_t and
+    # terminal_result_t stay in their original nested-if-gated position,
+    # unchanged, so retire's own gating, the claim/activate mutation chain and
+    # the paired-coordinate reread invariant are untouched -- only WHEN the
+    # reservation register's two reads/one write get decided moves, exactly as
+    # fix 2 already established for the read alone.
+    #
+    # A broader attempt (same session, reverted, not kept in this generator) also
+    # hoisted claim_once_t/activate_geometry_t/activate_position_t/
+    # activate_ledger_t/dirty_return_t/terminal_result_t out to this same early
+    # position, replacing their nested-if gating with table keys the same way.
+    # Compiled (local 9.13.1, evidence/stage_fit_m18_01 before this revert):
+    # critical path through the table dependency graph **regressed 8 -> 14**,
+    # and the placement log's remaining unplaced-table dependencies moved to
+    # "dependency between activation_reservation_t_0 and construct_t_0" (and
+    # activate_geometry_t_0/activate_position_t_0) -- construct_t sits inside
+    # role==0's native/DNP3 admission chain (profile/CRC checks) and reaches
+    # Ingress.reservation via reserve_t's own RegisterAction, deep in that
+    # separate branch. Pulling activation_reservation_t's required stage later
+    # (to resolve enabled/profile) just moved the SAME kind of two-sided,
+    # far-apart register conflict onto a THIRD table that this task's scope
+    # never named and that the Ledger already flagged as out of scope (role==0's
+    # admission chain restructuring). It did not fit and made the graph worse,
+    # so it is not kept.
+    #
+    # Ingress.ledger_position (mapping_position_t vs activate_position_t) and
+    # Ingress.ledger_tag (mapping_tag_t vs activate_ledger_t) were NOT merged
+    # this session. Both registers' writers (activate_position_t,
+    # activate_ledger_t) are gated behind claim_once_t's activation_grant, which
+    # is itself a MUTATING register (activation_receipt) gated behind the full
+    # enabled/profile/reservation_grant/context_grant chain. Unlike retire,
+    # which only needed enabled/profile (already available with no further
+    # hoist), moving these writes' gate early means hoisting claim_once_t's
+    # mutation itself -- exactly the broader attempt above, which regressed the
+    # critical path and introduced the construct_t conflict. A single-call-site
+    # merge of the read (role 3/4, early) and the write (role 1, gated behind
+    # that mutation chain) is not achievable without either moving the mutation
+    # earlier than its validation (which this task's own gating-preservation
+    # constraint forbids) or restructuring role==0's admission chain (out of
+    # scope, already deferred in LEDGER.md). Not attempted further; see
+    # LEDGER.md for the full account.
+    old_tables=(' RegisterAction<producer_cell_t,bit<1>,bit<32>>(reservation) inspect={void apply(inout producer_cell_t value,out bit<32> result){result=32w0;if(value.generation==hdr.reference.generation&&value.phase==32w1){result=32w1;}}};\n'
+                ' RegisterAction<producer_cell_t,bit<1>,bit<32>>(reservation) retire={void apply(inout producer_cell_t value,out bit<32> result){result=32w0;if(value.generation==hdr.reference.generation&&value.phase==32w1){value.phase=32w4;result=32w1;}}};\n'
+                ' action inspect_reservation(){m.reservation_grant=inspect.execute(1w0);}\n'
+                ' action retire_reservation(){m.reservation_grant=retire.execute(1w0);}\n'
+                ' table inspect_reservation_t{key={m.role:exact;}actions={inspect_reservation;NoAction;}size=1;const default_action=NoAction();const entries={8w1:inspect_reservation();}}\n'
+                ' table activation_reservation_t{key={m.role:exact;}actions={retire_reservation;NoAction;}size=1;const default_action=NoAction();const entries={8w2:retire_reservation();}}\n')
+    new_tables=(' RegisterAction<producer_cell_t,bit<1>,bit<32>>(reservation) inspect={void apply(inout producer_cell_t value,out bit<32> result){result=32w0;if(value.generation==hdr.reference.generation&&value.phase==32w1){result=32w1;}}};\n'
+                ' RegisterAction<producer_cell_t,bit<1>,bit<32>>(reservation) retire={void apply(inout producer_cell_t value,out bit<32> result){result=32w0;if(value.generation==hdr.reference.generation&&value.phase==32w1){value.phase=32w4;result=32w1;}}};\n'
+                ' action inspect_reservation(){m.reservation_grant=inspect.execute(1w0);}\n'
+                ' action retire_reservation(){m.reservation_grant=retire.execute(1w0);}\n'
+                ' action no_reservation_grant(){m.reservation_grant=32w0;}\n'
+                ' table activation_reservation_t{key={m.role:exact;m.enabled:ternary;m.profile:ternary;}actions={inspect_reservation;retire_reservation;no_reservation_grant;}size=2;const default_action=no_reservation_grant();const entries={(8w1,_,_):inspect_reservation();(8w2,1w1,1w1):retire_reservation();}}\n')
+    m=replace(m,old_tables,new_tables)
+
+    old_early_calls=(' if(m.role==8w1){inspect_reservation_t.apply();}\n'
+                      ' if(m.role==8w1||m.role==8w2){qualify_context_t.apply();}\n')
+    new_early_calls=(' if(m.role==8w1||m.role==8w2){reference_differences_t.apply();activation_identity_t.apply();}\n'
+                      ' if(m.role==8w1||m.role==8w2){activation_reservation_t.apply();}\n'
+                      ' if(m.role==8w1||m.role==8w2){qualify_context_t.apply();}\n')
+    m=replace(m,old_early_calls,new_early_calls)
+
+    old_deep=(' }else  if(m.role==8w1||m.role==8w2){\n'
+              '   reference_differences_t.apply();activation_identity_t.apply();\n'
+              '   if(m.enabled==1w1&&m.profile==1w1){\n'
+              '    activation_reservation_t.apply();\n'
+              '    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){')
+    new_deep=(' }else  if(m.role==8w1||m.role==8w2){\n'
+              '   if(m.enabled==1w1&&m.profile==1w1){\n'
+              '    if(m.role==8w2){terminal_result_t.apply();}else if(m.reservation_grant==32w1){')
+    m=replace(m,old_deep,new_deep)
+
     roles['n3.p4']=n;roles['m3.p4']=m
     return roles
 
