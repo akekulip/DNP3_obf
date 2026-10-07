@@ -99,7 +99,7 @@ class NativeBinding(unittest.TestCase):
         # initialisation at the top of apply. The pinned semantics are unchanged: ExpectedWorkRecord is
         # still qualified by generation AND the phase expected from the emitted stage, `m.stage` is never
         # written after parsing, and the initialisation precedes both the guard and the work call.
-        body=text[text.index(' apply{\n  m.work_op='):]
+        body=text[text.index(' apply{\n  m.return_abort='):]
         self.assertEqual(body.count('m.expected_work_phase='),1)
         self.assertLess(body.index('m.expected_work_phase=(bit<32>)m.stage;'),body.index('guard.apply()'))
         self.assertLess(body.index('guard.apply()'),body.index('work.apply(m.work_op'))
@@ -139,7 +139,8 @@ class TransparentForwarding(unittest.TestCase):
         events = [s.env['hdr.event.event']]
         for stage in (1, 2, 3):
             s.env.update({'m.stage': stage, 'm.kind': events[-1] & 255, 'm.work_phase': stage,
-                          'm.work_op': 2, 'm.owner_op': 0, 'm.expected': 0, 'm.desired': 0,
+                          'm.work_op': 2, 'm.owner_op': 0,
+                          'm.expected': s.env.get('hdr.expected_cell.expected_cell',0), 'm.desired': 0,
                           'tm.ucast_egress_port': self.OUT})
             # epoch_diff_t is folded into the epoch bank: epoch_t returns register minus envelope
             s.table('epoch_t'); s.table('owner_command'); s.table('owner_t')

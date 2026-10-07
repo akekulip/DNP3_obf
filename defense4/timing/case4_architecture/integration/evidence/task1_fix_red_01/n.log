@@ -1,0 +1,53 @@
+test_read_terminals_recheck_full_owner_after_genuine_close (test_task1_cancel_races.CancelledTerminal) ... test_stale_expected_owner_cannot_publish_even_with_current_epoch (test_task1_cancel_races.CancelledTerminal) ... 
+======================================================================
+FAIL: test_read_terminals_recheck_full_owner_after_genuine_close (test_task1_cancel_races.CancelledTerminal) (kind=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 24, in test_read_terminals_recheck_full_owner_after_genuine_close
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_read_terminals_recheck_full_owner_after_genuine_close (test_task1_cancel_races.CancelledTerminal) (kind=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 24, in test_read_terminals_recheck_full_owner_after_genuine_close
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_read_terminals_recheck_full_owner_after_genuine_close (test_task1_cancel_races.CancelledTerminal) (kind=11)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 24, in test_read_terminals_recheck_full_owner_after_genuine_close
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_stale_expected_owner_cannot_publish_even_with_current_epoch (test_task1_cancel_races.CancelledTerminal) (kind=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 37, in test_stale_expected_owner_cannot_publish_even_with_current_epoch
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_stale_expected_owner_cannot_publish_even_with_current_epoch (test_task1_cancel_races.CancelledTerminal) (kind=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 37, in test_stale_expected_owner_cannot_publish_even_with_current_epoch
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_stale_expected_owner_cannot_publish_even_with_current_epoch (test_task1_cancel_races.CancelledTerminal) (kind=11)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_task1_cancel_races.py", line 37, in test_stale_expected_owner_cannot_publish_even_with_current_epoch
+    self.assertTrue(out.dropped)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.238s
+
+FAILED (failures=6)

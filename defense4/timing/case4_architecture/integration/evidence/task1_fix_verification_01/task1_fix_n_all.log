@@ -1,0 +1,52 @@
+.......................harness packets replayed: 18; identical to raw oracle: 14; differing from raw oracle (witnesses, kind-8 fix): 4; identical to fixed oracle: all
+sweep: 2500 frames, invariants held: 2500, identical to fixed oracle (rest): 1518, epoch-0 (H1, invariants only): 646, READ_ACK candidates (D6, same bytes and state): 74, busy data dropped (D10): 262, differ from raw oracle only by the kind-8 deny: 3
+READ sweep: 1500 frames, invariants held: 1500, reached the tev handoff: 30
+....F.........................s..............................
+======================================================================
+FAIL: test_zero_observable_mismatches_over_the_whole_grid (test_native_binding_differential.Differential)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/test_native_binding_differential.py", line 85, in test_zero_observable_mismatches_over_the_whole_grid
+    self.assertEqual(self.bad[:3], [])
+AssertionError: Lists differ: [({'stage': 3, 'pk': 1, 'kind': 1, 'direct[445 chars]1)])] != []
+
+First list contains 3 additional elements.
+First extra element 0:
+({'stage': 3, 'pk': 1, 'kind': 1, 'direction': 1, 'flags': (1, 1, 0, 0, 0, 0), 'shape': 0, 'work': (3, 1), 'counter': 0}, None, [('fields', 'md.drop_ctl', 0, 1)])
+
++ []
+- [({'counter': 0,
+-    'direction': 1,
+-    'flags': (1, 1, 0, 0, 0, 0),
+-    'kind': 1,
+-    'pk': 1,
+-    'shape': 0,
+-    'stage': 3,
+-    'work': (3, 1)},
+-   None,
+-   [('fields', 'md.drop_ctl', 0, 1)]),
+-  ({'counter': 0,
+-    'direction': 1,
+-    'flags': (0, 1, 0, 0, 0, 0),
+-    'kind': 1,
+-    'pk': 1,
+-    'shape': 1,
+-    'stage': 3,
+-    'work': (3, 1)},
+-   None,
+-   [('fields', 'md.drop_ctl', 0, 1)]),
+-  ({'counter': 0,
+-    'direction': 1,
+-    'flags': (1, 0, 0, 0, 0, 0),
+-    'kind': 1,
+-    'pk': 1,
+-    'shape': 0,
+-    'stage': 3,
+-    'work': (3, 1)},
+-   None,
+-   [('fields', 'md.drop_ctl', 0, 1)])]
+
+----------------------------------------------------------------------
+Ran 84 tests in 143.211s
+
+FAILED (failures=1, skipped=1)

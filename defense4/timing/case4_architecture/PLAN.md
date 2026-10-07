@@ -1,7 +1,7 @@
 # Case 4 architecture execution
 
 Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
-Base: `a96a8e32758d498c58a3772ee774596658aad2d9`, main.
+Task1 execution base: `221131324`, main; earlier base assignments below are historical.
 This directory contains new engineering candidates; it is not deployment evidence.
 
 ## Current plan: core functionality and its tests
@@ -21,40 +21,39 @@ Use one implementation owner and one bounded reviewer. Reuse the sources listed
 in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
 integration change. Do not rerun unaffected legacy suites or failed layouts.
 
-1. **Restore a correct transparent connection path.** *(Done 2026-10-07, now MODEL-verified, not
-   hardware: `native_18` (source `642dfe54…`) fits 12/12 stages and loads on the local Tofino-1
-   model; the model agrees with the whole-program source harness on 68/71 independent steps
-   including READ (3 differences are model/harness artifacts, not program bugs — see
-   `integration/evidence/model_24`-`model_27`/RESULT.md). READ kinds 9-11, the step-3
-   OPERATE-response exchange, and three real bugs found by review/model (epoch-0 endless
-   recirculation, guard-miss envelope leak, flow-miss WorkRecord pin) are fixed. See
-   LEDGER.md and HANDOVER.md for the full history.)* Fix native binding's SYN,
-   SYNACK/final-ACK retries and established pure ACKs: the retained source currently
-   turns them into event01ff and drops them. Keep malformed/foreign traffic from
-   mutating an owner, while preserving ordinary supported forwarding. Use the
-   complete-byte witnesses in `ownership/review/counterexamples.py` as the red
-   regressions. Retain full expected-phase/generation qualification. This is the
-   immediate next coding task; no new architecture search comes before it.
-2. **Complete one real READ timing path.** *(Done 2026-10-07: `read_timing.p4` (role T, a
-   separate pipe, copy-evolved from the frozen probe) implements ADMIT/hold/release/fallback/
-   policy-off/reset with D_A 5/10/15/20 ms parametrized by action data, checked against the
-   independent `join_reference.py` schedule oracle; `read_timing_05` fits 12/12 stages and runs
-   functionally on the local model. The model's clock is not wall time, so no timing number here
-   is hardware evidence. N's `tev` handoff and T's listen port were cross-pipe-incompatible until
-   the model's port probe fixed them — see `model_28/PORTS_PROPOSAL.md`.)* Join the actual READ
-   validator to the live connection identity and compiled expected-phase holder. Capture actual
-   request arrival, preserve wire ACK observation before inverse mapping, and
-   forward the actual released ACK/response. Prove independent heartbeat/fallback,
-   full gap after actual ACK commitment, off-drain and actual terminal credits.
-   This is the first complete timing milestone, not completion of control sizing.
+1. **Connection prerequisite races repaired; full connection acceptance still open.**
+   Current N is `integration/connection/binding/evidence/task1_fix_n_01`
+   (source `721fd4b7…`,12 ingress/0 egress,critical11). Actual terminal publication
+   consumes full expected-owner and epoch results, including genuine close before
+   READ9/10/11 terminals. The exact-source N0/T2 composition `task1_fix_nt_01`
+   passes40 model cases in `task1_fix_nt_model_01`; its new cancellation cases
+   include diagnostic paused returns, with genuine full-packet races independently
+   derived by the source scheduler. Old N05/model34 evidence did not cover those
+   races. Coalesced finalACK+SELECT and complete retirement remain mandatory gates.
+2. **READ producer cancellation repaired; full timing qualification still open.**
+   Current T is `integration/evidence/task1_fix_t_04` (source `52b43d5a…`,
+   12 ingress/0 egress,critical12). Every pinned request return checks current
+   quarantine/policy; cancelled stages12/13 drain genuine Work and forward the
+   original once. Mint follows exact Work qualification; installed ACK receipt
+   and minted cookie remain consumed after cancellation, with no anchor/binding
+   publication. `task1_fix_t_model_02` passes50 model cases, including paused
+   request boundaries, actual reset/policy controls, duplicate/foreign controls,
+   old-cookie saturation and heartbeat/original debit. Full source suites pass
+   N84(one existing skip) and T103; unaffected M19/controller17 remain prior results.
+   The pre-review T selector pair12/12→11/11 is historical. Mandatory race guards
+   make current T12/12; stage4 now has1 SALU/9 logical tables/63 ternary-crossbar
+   bytes versus old0/9/59, an explicit resource concern requiring bounded review.
+   No rearm authority is added. Model commit order proves no physical gap,
+   heartbeat/drain bound or normal-path priority. Complete validated READ join,
+   all timing populations and hardware gates remain open.
 3. **Complete the ordinary unfragmented control path.** *(In progress 2026-10-07: pipe placement
    decided and model-verified feasible (`integration/core/STEP3_DESIGN.md`); N already binds
    SELECT/OPERATE/response to the live owner with the correct per-exchange ACK offset and
    busy-record drop-and-count. Role M's mapping/geometry/ledger core compiles at 12/12 stages in
    pipe 1 (`integration/core/m/m_skeleton.p4`), checked against the transport oracle. **Not yet
    built: the 35→55 produce construct, the descriptor/carve decision, and exact-byte replay in
-   M** — stopped by a safety-classifier interruption during planning, not by a technical
-   blocker; resuming it is Philip's call, not an autonomous one.)* Bind validated native
+   M** — unfinished; Task1 changes only its receiving ports196/197. Its canary
+   remains at12 stages before the full production/rendering path is composed.)* Bind validated native
    SELECT/OPERATE and successful matching response to that same live authority;
    integrate35→55 production,57→[28,29], payload mapping and shared replay banks.
    Require actual owner/work pin before cache access and no reuse until terminals.
@@ -77,6 +76,13 @@ in step3, not a later optional optimization. A single supported connection and
 unfragmented requests can establish an intermediate path; bounded capacity and
 fragment/lifecycle coverage remain mandatory for final completion.
 
+
+Task1 evidence index: [integration/evidence/TASK1_VERIFICATION.json](integration/evidence/TASK1_VERIFICATION.json).
+The direct SELECT native-end expression removes a source dependency, but its paired
+N comparison remains12 stages/critical11; no N stage gain is claimed. Role M and
+steps3–5 remain unfinished. Campaign accounting remains44 blocks/16,168 attempts
+under18,360, with no acquisition or extra retries.
+
 ## Tests and acceptance for each step
 
 | Step | Required tests | Acceptance |
@@ -96,9 +102,9 @@ implementation of the proposed P4 as the only expected-output reference.
 
 Run targeted tests for the changed behavior first, then compile that integrated
 source into a fresh evidence directory. Use legitimate target-model packet
-execution when available. The present CAP_NET_RAW startup failure is an explicit
-test gap: source interpreters and compiled resources cannot substitute for full
-pipeline execution. Do not mark a step target-verified while that gap persists.
+execution when available. The local namespace model now runs source-current N/T functional cases;
+source interpreters and component fits still cannot substitute for whole-target
+execution. No complete-program target verification is claimed.
 Run real pinned OpenDNP3/TCP loss tests against the completed path when the harness
 supports it; historical software socket success does not qualify new target code.
 

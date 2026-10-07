@@ -1,0 +1,78 @@
+{
+  "evidence": "integration/evidence/task1_fix_nt_model_01",
+  "compiled_evidence": "integration/evidence/task1_fix_nt_01",
+  "primary_source_sha256": "4ad3246789998d563665c65543c56f90c9cb5ff5ecb4e615bb5a55a3216c15a8",
+  "N_source_sha256": "721fd4b77b9e6bff5bb5d6c4452e5fd16095c1f844f4572a51def2a84526dd8c",
+  "T_source_sha256": "52b43d5ad2378638a3533c94f0ab063623ebcc5a982d67843d6c54427c3af762",
+  "source_files": {
+    "n/native_binding.p4": "721fd4b77b9e6bff5bb5d6c4452e5fd16095c1f844f4572a51def2a84526dd8c",
+    "n/work_record.p4": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+    "nt.p4": "4ad3246789998d563665c65543c56f90c9cb5ff5ecb4e615bb5a55a3216c15a8",
+    "t/expected_work_record.p4": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+    "t/ports.p4": "17295a0654f7efa638efb68e0bb6c583f1636f11f6bda4b41ab5d16ff9e07c91",
+    "t/probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "t/read_credit.p4": "9d8f9b8b48fc073e237a75b4dd815274826aeb6bb008458f82211124f8e33eef",
+    "t/read_timing.p4": "52b43d5ad2378638a3533c94f0ab063623ebcc5a982d67843d6c54427c3af762"
+  },
+  "driver_sha256": "d4a581ae0f235cc19ab695e1b6d3755422841d577bf889003c3971f16021dc91",
+  "dependency_sha256": {
+    "integration/core/model_driver.py": "2005025b65b2ebcf704c8bc5c9a088e9629c821f6bda337ad6ed1c4305a22cb8",
+    "integration/core/launch_model.sh": "872aa857d149e356cb4901b9f8cc1d67a58f657d2b1de13565a07d2363268461",
+    "integration/core/harness/vectors.py": "16a65e3e890bd1c6e97a156867fb241c9417fd6729abf01984a11fc6e7ad5189",
+    "integration/connection/binding/tests/read_support.py": "4beba10d65472e83518f0e9b47707bc6ff6ebc443301cc81dcf3e0535df1c62e",
+    "integration/read/tests/whole_program.py": "0c8e20f15145c426feeba9077657f09b321cb6cf794f3e753b152dd58d822c12",
+    "../framework/size/case4_padding.py": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37",
+    "ownership/review/counterexamples.py": "d07e1af22fc80c715b3009ad05bc83fa8f81585ec95e3fbecea98c9ab2b64211",
+    "integration/core/harness/driver.py": "61980f6b50b46b51fcef2515f043e9e6503f147681139bf8a0efc813c0e26701",
+    "integration/core/harness/interp_ext.py": "aa0e18952fa4f62f6892b830243065d2fe03c22deaa1b9603684cda73bdb72a6",
+    "integration/core/harness/tna_dialect.py": "fe10ac51c4d380c5ed70c49a97f676da26a18c93301c497bdfe07d9664a37c83"
+  },
+  "configuration_sha256": {
+    "noagent.conf": "35f3041c3bad6c13ef65509dbe9578d081434c9ec491c2801c2b9c1df6ab574a",
+    "ports.json": "c486bb300710cf969d20b8d961f1125dc4085548d3673c52da0e39006a3cea4b",
+    ".inner.sh": "d5957af262ff6d656962f59de0a40646c103fa05ba4a928a135e256d834e55c7"
+  },
+  "artifact_sha256": {
+    "bfrt.json": "8b3c2860eb10565554d86ffa941b4d525aea23e2ad4ea3362f1882fc690a998a",
+    "manifest.json": "255dc3e53c16342a50db479ecdfd7c5b07f721ac5760481f0a371c45e69deb97",
+    "nt.conf": "5e232a2331ee3d0f5711f64164593c0ca19084ddb7dd8093b5871a034e061e88",
+    "p0/context.json": "88c897bd94210821cc9896a8c2e864e59021a04afe7faa594e848b7c56a804db",
+    "p0/nt.bfa": "33accec680d91294e10c4ef46ba83d7ad1c28be1a64e5649fca77554811a9f34",
+    "p0/tofino.bin": "9a15f52888b7e1fa40469613477898e6a6e3c7344f8cc8b8dec115ca953be709",
+    "p1/context.json": "c5a94d0188781e20730721574ba69d7bde18b7f91ca2f3b988ee89f6694b09f6",
+    "p1/nt.bfa": "187a3ddbaa3c2429eb504663640f6ba7b2fe283199f47ec9c9206faffa7eb65e",
+    "p1/tofino.bin": "f7fd489c14d0b87cf163c2c41b45e38ab3adbf8bc79cf5d360985c67d072a753",
+    "p2/context.json": "e4e027f2eb65e5c84ec40a15dd06657933df8eb08fcd13850911546fd17b7eaf",
+    "p2/nt.bfa": "6b013f161fc34cb37a7660227681c42e5bf8c014a89d3ce4fdb655863ab78955",
+    "p2/tofino.bin": "b9ac5ac75fb172894e4c2dee398296120e728e2c450b32fe427b71c0bf9bcde9",
+    "p3/context.json": "a2ff15a4ec644c7bfbdc63e74ecc6a8efc718b69c4f3737250dd5c0426f593b8",
+    "p3/nt.bfa": "187a3ddbaa3c2429eb504663640f6ba7b2fe283199f47ec9c9206faffa7eb65e",
+    "p3/tofino.bin": "f7fd489c14d0b87cf163c2c41b45e38ab3adbf8bc79cf5d360985c67d072a753"
+  },
+  "result_sha256": "827087d619edcd7411994e12445f55e4470e2d85685efcf47052b0327ad2ed86",
+  "expected_cases": 40,
+  "summary": {
+    "failed": [],
+    "passed": 40,
+    "total": 40
+  },
+  "driver_exit_zero": true,
+  "physical": false,
+  "scope": "Functional local model including paused private-return boundary fixtures; no physical clock/gap/drain claim",
+  "pass": true,
+  "retained_logs": {
+    "model.out": {
+      "sha256": "051ae954764e45e1bfcf1142d3102d7bc19a336833e72c3be323b5638d16c2ab",
+      "compressed_sha256": "41072808dd1c3b5cbcf910d693530bf11441b8269e0117551bfc0e7dece758ae"
+    },
+    "switchd.out": {
+      "sha256": "c6b8337db931cfcbe8e25755a202f2669d4f57a64b5d4b5d12f3db6de254cf72",
+      "compressed_sha256": "2a49f53c32794e502b60fc3809219890d6a90980ed476e17b8d4a30f73e1c150"
+    }
+  },
+  "runtime_sha256": {
+    "/home/philip/bf-sde-9.13.1/install/bin/tofino-model": "777a4661846843931eaf1ad3104926f80ad88d436a3ce9620b0f374463b7125f",
+    "/home/philip/bf-sde-9.13.1/install/bin/bf_switchd": "3a7a84816de0cc21cb3e9ff25e50115c7d156c7012adffbeca2fc893b9d7d952",
+    "/usr/bin/python3": "298a9e830ed52f36c299427565485d717d1ce0179c0597cc16560513eb780b06"
+  }
+}

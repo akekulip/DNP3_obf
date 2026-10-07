@@ -1,0 +1,111 @@
+test_anchor_is_the_request_arrival_not_a_later_original (test_read_admit.Admit) ... ok
+test_busy_debt_forwards_the_request_unchanged_and_mints_nothing (test_read_admit.Admit) ... ok
+test_cookie_is_minted_once_per_read_and_never_reused (test_read_admit.Admit) ... ok
+test_exhaustion_boundary_65535_is_the_last_cookie (test_read_admit.Admit) ... ok
+test_original_of_another_epoch_is_not_held (test_read_admit.Admit) ... ok
+test_original_without_an_association_is_forwarded_unheld (test_read_admit.Admit) ... ok
+test_policy_off_forwards_the_request_unchanged (test_read_admit.Admit) ... ok
+test_request_runs_four_passes_commits_the_association_and_forwards_unchanged (test_read_admit.Admit) ... ok
+test_request_while_pinned_is_forwarded_unchanged_and_counted_busy (test_read_admit.Admit) ... ok
+test_next_read_is_busy_until_drain_then_admitted_and_scheduled (test_read_fallbacks.BothLost) ... ok
+test_nothing_is_fabricated_and_the_heartbeat_continues (test_read_fallbacks.BothLost) ... ok
+test_readiness_and_cap_state_is_finite_and_the_pin_is_free (test_read_fallbacks.BothLost) ... ok
+test_late_originals_before_the_cap_clamp_the_response_to_the_cap (test_read_fallbacks.Cap) ... ok
+test_no_hold_exceeds_the_cap_for_any_d_a (test_read_fallbacks.Cap) ... ok
+test_originals_after_the_cap_are_released_at_once (test_read_fallbacks.Cap) ... ok
+test_ticks_without_an_association_change_nothing (test_read_fallbacks.FiniteHeartbeat) ... ok
+test_heartbeat_keeps_advancing (test_read_fallbacks.OneLost) ... ok
+test_no_terminal_is_fabricated_and_the_debt_stays (test_read_fallbacks.OneLost) ... ok
+test_reuse_is_refused_until_the_controller_drains (test_read_fallbacks.OneLost) ... ok
+test_the_other_original_is_released_by_readiness_per_the_oracle (test_read_fallbacks.OneLost) ... ok
+test_matrix (test_read_join_reference.AgainstSchedule) ... ok
+test_wrap_case_really_crosses_2_pow_32 (test_read_join_reference.AgainstSchedule) ... ok
+test_cap_clamps_response_commit_after_readiness (test_read_join_reference.Cap) ... ok
+test_no_release_exceeds_cap_for_held_originals (test_read_join_reference.Cap) ... ok
+test_original_arriving_after_cap_is_not_held (test_read_join_reference.Cap) ... ok
+test_quantize_masks_low_byte (test_read_join_reference.Constants) ... ok
+test_quantized_constants_match_the_probe_literals (test_read_join_reference.Constants) ... ok
+test_ticked_is_independent_of_original_arrival_phase (test_read_join_reference.Heartbeat) ... ok
+test_ticked_releases_at_first_tick_not_before (test_read_join_reference.Heartbeat) ... ok
+test_ack_without_response_falls_back_at_readiness (test_read_join_reference.IdealEquations) ... ok
+test_both_absent_releases_nothing (test_read_join_reference.IdealEquations) ... ok
+test_fallback_is_finite_at_30ms_for_all_d_a (test_read_join_reference.IdealEquations) ... ok
+test_late_original_moves_e_ack_to_the_later_arrival (test_read_join_reference.IdealEquations) ... ok
+test_normal_path_equations_for_every_d_a (test_read_join_reference.IdealEquations) ... ok
+test_response_after_readiness_with_ack_committed_uses_the_gap (test_read_join_reference.IdealEquations) ... ok
+test_response_without_ack_is_released_at_readiness (test_read_join_reference.IdealEquations) ... ok
+test_response_deadline_follows_the_actual_ack_commit_not_the_ideal_release (test_read_originals.DelayedCommit) ... ok
+test_duplicate_created_after_release_is_suppressed (test_read_originals.Duplicates) ... ok
+test_duplicated_held_ack_is_forwarded_exactly_once (test_read_originals.Duplicates) ... ok
+test_second_ack_of_the_same_read_is_not_held_again (test_read_originals.Duplicates) ... ok
+test_originals_are_not_forwarded_before_the_oracle_release (test_read_originals.Hold) ... ok
+test_matrix (test_read_originals.Matrix) ... ok
+test_held_originals_are_forwarded_and_debited_when_policy_goes_off (test_read_policy.PolicyOff) ... ok
+test_policy_back_on_holds_the_next_read_per_the_oracle (test_read_policy.PolicyOff) ... ok
+test_policy_off_read_is_forwarded_unheld_end_to_end (test_read_policy.PolicyOff) ... ok
+test_unsent_operate_is_aborted_and_its_credit_debited (test_read_policy.PolicyOff) ... ok
+test_quarantined_epoch_admits_no_request_and_holds_no_original (test_read_policy.Reset) ... ok
+test_reset_flushes_held_originals_and_is_consumed (test_read_policy.Reset) ... ok
+test_reset_of_another_epoch_does_not_flush (test_read_policy.Reset) ... ok
+test_reuse_after_reset_needs_zero_debt_then_a_new_epoch_is_scheduled (test_read_policy.Reset) ... ok
+test_reuse_is_refused_while_a_lost_original_still_owns_credit (test_read_policy.Reset) ... ok
+test_device_port_rule (test_read_ports.Ports) ... ok
+test_every_port_constant_has_a_role_tag (test_read_ports.Ports) ... ok
+test_frozen_probe_uses_ports_72_and_73_flagged (test_read_ports.Ports)
+The 72/73 problem: the probe's FORWARD_PORT/heartbeat-return are not valid local ports. ... ok
+test_heartbeat_is_recognised_by_the_timer_header_not_a_port (test_read_ports.Ports) ... ok
+test_n_to_t_handoff_crosses_pipes (test_read_ports.Ports) ... ok
+test_no_device_port_serves_two_roles (test_read_ports.Ports) ... ok
+test_read_timing_includes_ports_and_has_no_numeric_port (test_read_ports.Ports) ... ok
+test_read_timing_uses_every_role_it_owns (test_read_ports.Ports) ... ok
+test_local_include_copies_are_byte_identical_to_the_ownership_originals (test_read_timing_params.Includes) ... ok
+test_probe_is_untouched (test_read_timing_params.Includes) ... ok
+test_ack_eligibility_flips_exactly_at_each_d_a_and_matches_the_oracle (test_read_timing_params.Params) ... ok
+test_cap_row_releases_ack_even_if_readiness_is_pushed_past_it (test_read_timing_params.Params) ... ok
+test_deadline_offsets_is_a_parametrized_action (test_read_timing_params.Params) ... ok
+test_each_d_a_offset_is_installable_and_exact (test_read_timing_params.Params) ... ok
+test_gap_comes_from_action_data (test_read_timing_params.Params) ... ok
+test_probe_constants_appear_only_as_installable_defaults (test_read_timing_params.Params) ... ok
+test_readiness_releases_ack_when_response_unseen (test_read_timing_params.Params) ... ok
+test_unarmed_anchor_never_releases (test_read_timing_params.Params) ... ok
+test_armed_deadline_in_the_future_is_not_overridden_by_readiness (test_read_timing_params.ResponseRelease) ... ok
+test_armed_deadline_releases_only_when_due (test_read_timing_params.ResponseRelease) ... ok
+test_cap_releases_response_even_with_a_far_deadline (test_read_timing_params.ResponseRelease) ... ok
+test_fallback_needs_the_response_to_have_been_seen (test_read_timing_params.ResponseRelease) ... ok
+test_fallback_no_ack_at_readiness_when_deadline_unarmed (test_read_timing_params.ResponseRelease) ... ok
+test_unarmed_anchor_never_releases_response (test_read_timing_params.ResponseRelease) ... ok
+test_heartbeat_return_phase_is_widened_in_the_control_not_the_parser (test_read_timing_state.HeartbeatLoss)
+Model run 04: the compiled parser gave 0x101 for a parser-time (bit<32>) cast of the stage. ... ok
+test_next_tick_commits_release_after_an_earlier_tick_was_lost (test_read_timing_state.HeartbeatLoss) ... ok
+test_no_pinned_service_record_remains (test_read_timing_state.HeartbeatLoss) ... ok
+test_service_passes_are_derived_from_the_packet_alone (test_read_timing_state.HeartbeatLoss) ... ok
+test_cookie_zero_state_never_matches_a_minted_cookie (test_read_timing_state.Rearm) ... ok
+test_second_read_arms_and_accumulates_independently (test_read_timing_state.Rearm) ... ok
+test_second_read_starts_from_zero_state (test_read_timing_state.Rearm) ... ok
+test_stale_cookie_cannot_arm_record_release_commit_or_ready (test_read_timing_state.Rearm) ... ok
+test_stale_cookie_reads_see_nothing_of_a_newer_association (test_read_timing_state.Rearm) ... ok
+test_ack_alone_is_released_at_readiness (test_read_timing_whole_program.Fallbacks) ... ok
+test_response_alone_is_released_at_readiness (test_read_timing_whole_program.Fallbacks) ... ok
+test_frozen_probe_wedges_after_one_lost_service_pass (test_read_timing_whole_program.HeartbeatLoss)
+Baseline for the defect T7 removed: same loss on the untouched probe, heartbeat_work pins. ... ok
+test_loss_of_the_deciding_pass_delays_by_at_most_one_tick (test_read_timing_whole_program.HeartbeatLoss) ... ok
+test_new_program_recovers_on_the_next_tick (test_read_timing_whole_program.HeartbeatLoss) ... ok
+test_every_d_a_releases_ack_then_response_per_oracle (test_read_timing_whole_program.NormalPath) ... ok
+test_heartbeat_reports_are_independent_of_originals (test_read_timing_whole_program.NormalPath) ... ok
+test_late_response_moves_the_ack_release_to_the_response (test_read_timing_whole_program.NormalPath) ... ok
+test_original_bytes_are_forwarded_unchanged_once (test_read_timing_whole_program.NormalPath) ... ok
+test_second_read_is_held_for_its_own_d_a (test_read_timing_whole_program.Rearm) ... ok
+test_m_receives_both_approved_device_ports_and_rejects_old_local_port (test_task1_boundaries.BoundaryAdmission) ... ok
+test_n_producer_and_t_private_receiving_parsers_share_the_approved_ports (test_task1_boundaries.BoundaryAdmission) ... ok
+test_cancelled_installed_ack_consumes_cookie_and_next_request_advances (test_task1_cancel_races.CancelledRequest) ... ok
+test_cancelled_return_remains_cancelled_if_policy_is_reenabled (test_task1_cancel_races.CancelledRequest) ... ok
+test_duplicate_request_return_cannot_mint_a_second_cookie (test_task1_cancel_races.CancelledRequest) ... ok
+test_foreign_reset_does_not_cancel_the_current_request (test_task1_cancel_races.CancelledRequest) ... ok
+test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) ... ok
+test_common_selector_qualifies_policy_off_terminal_without_second_selector (test_task1_rearm.PartialRearm) ... ok
+test_counter_only_reset_is_counted_refusal_without_stale_binding (test_task1_rearm.PartialRearm) ... ok
+
+----------------------------------------------------------------------
+Ran 103 tests in 53.473s
+
+OK

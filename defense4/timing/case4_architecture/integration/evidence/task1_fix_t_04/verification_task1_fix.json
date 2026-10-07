@@ -1,0 +1,97 @@
+{
+  "evidence": "integration/evidence/task1_fix_t_04",
+  "source_sha256": "52b43d5ad2378638a3533c94f0ab063623ebcc5a982d67843d6c54427c3af762",
+  "source_files": {
+    "expected_work_record.p4": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+    "ports.p4": "17295a0654f7efa638efb68e0bb6c583f1636f11f6bda4b41ab5d16ff9e07c91",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "read_credit.p4": "9d8f9b8b48fc073e237a75b4dd815274826aeb6bb008458f82211124f8e33eef",
+    "read_timing.p4": "52b43d5ad2378638a3533c94f0ab063623ebcc5a982d67843d6c54427c3af762"
+  },
+  "manifest_sha256": "c5f3d9b07c7017abaa8cb419905f7d78dba86ab36d165661484426ce8cf76dfb",
+  "identity": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "stages": {
+    "egress": 0,
+    "ingress": 12
+  },
+  "critical_path": 12,
+  "static_entry_errors": [],
+  "per_stage_resource": {
+    "pipe/logs/mau.resources.log": {
+      "0": {
+        "Meter ALU": 2,
+        "Logical TableID": 14,
+        "Ternary Match Input xbar": 0
+      },
+      "1": {
+        "Meter ALU": 0,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 0
+      },
+      "2": {
+        "Meter ALU": 1,
+        "Logical TableID": 6,
+        "Ternary Match Input xbar": 20
+      },
+      "3": {
+        "Meter ALU": 1,
+        "Logical TableID": 6,
+        "Ternary Match Input xbar": 9
+      },
+      "4": {
+        "Meter ALU": 1,
+        "Logical TableID": 9,
+        "Ternary Match Input xbar": 63
+      },
+      "5": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 7
+      },
+      "6": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 8
+      },
+      "7": {
+        "Meter ALU": 1,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 7
+      },
+      "8": {
+        "Meter ALU": 3,
+        "Logical TableID": 4,
+        "Ternary Match Input xbar": 0
+      },
+      "9": {
+        "Meter ALU": 1,
+        "Logical TableID": 2,
+        "Ternary Match Input xbar": 15
+      },
+      "10": {
+        "Meter ALU": 2,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 20
+      },
+      "11": {
+        "Meter ALU": 2,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 22
+      }
+    }
+  },
+  "artifact_sha256": {
+    "bfrt.json": "0a60c756970323f31e60a1780e12b9721332f169f6d12e14b8fe3ed9656e9b6d",
+    "manifest.json": "060fb3f7a12dc540823af4dca6b66fb4d7cfa7cf91c1661cd3b7a5391140d6d5",
+    "pipe/context.json": "79d7739c3985704e826dd0c8b9489186bf1e8140ec75e95d0266e029127a9fdb",
+    "pipe/read_timing.bfa": "1d9c90297ee3e8185b56539103095e9c14a737cbd68c9095fed139308228a76e",
+    "pipe/tofino.bin": "0873d208923b02a8680eb5f25409ce09186da9946d11219e7323b86fab055228",
+    "read_timing.conf": "683e1a313f9df831ea4e9321ca162026938f03d79b0fb4f2026553abf88639fd"
+  }
+}

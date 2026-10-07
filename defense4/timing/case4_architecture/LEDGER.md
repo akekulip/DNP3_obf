@@ -186,3 +186,50 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   budget that fits even if the classifier stop is resolved. (M3) N/T/M port agreement across files
   is asserted by hand, not tested; M's canary still listens on port 68, not the cross-pipe ports N
   and T now use. Not yet fixed as of this entry; next action is a TDD pass on H1/H2/M1/M2/M4.
+
+- 2026-10-07 Task1 current-source correction and repair (execution base221131324):
+  N `task1_n_05` SHA00d2a736… fits12/0 stages,critical11; T `task1_t_06`
+  SHAbf5ac01b… fits11/0,critical11. The independent paired N calculate/copy
+  comparison remains12/11 (no gain); T's combined off-terminal/admission
+  selector changes12/12 to11/11. Stage4 remains9 logical tables,0 SALUs,
+  59 ternary-crossbar bytes. Actual per-stage reports/identities are in
+  `integration/evidence/TASK1_VERIFICATION.json`.
+  Task1 fixes READ FIN/RST13/14/15, both directions, through a qualified typed
+  reset carrying the original to T and its proper endpoint exactly once. Its
+  prefix token is epoch-derived, not observed Work generation. Full epoch and
+  owner CAS qualify close; active Work/receipt credits remain unchanged.
+  Foreign client/server writes and terminal publication refuse; later config
+  removal quarantines6 before bounded abort returns release the pin. T saturation
+  and partial counter reset are counted persistent refusals, not reset authority.
+  Minimal M parser/apply normalization accepts196/197 and rejects old68.
+  Source-current N0/T2 fixture `task1_nt_01` compiles at N12/T11 ingress;
+  `task1_nt_model_04` passes34 functional cases and `task1_t_model_08` passes35,
+  including actual generator-driven heartbeat, ordered ACK/response release, terminal
+  debit/duplicates and reset/rearm boundaries. Physical timing/clock/drain remain
+  unavailable. Older model24–27/read_timing_model05 are not transferred to these
+  sources. The590,976-case historical-oracle grid still includes READ intentional
+  differences and H2 no-leak-only branches; it is not590,976 full equivalences.
+  Frozen oracle/core files are untouched. The binding wrapper explicitly adapts
+  the inconsistent epoch0 established-owner fixture to the approved bounded
+  refusal. Coalesced finalACK+SELECT remains a declared skipped/open target case.
+  Full M, loss/retirement integration,9.13.2 qualification and hardware remain open.
+  Final suites: N82 tests (one existing coalesced ACK+SELECT skip), T98 passed,
+  M19 passed, controller17 passed; logs/identity checks are retained in
+  `integration/evidence/task1_verification_01`. The model holding case establishes
+  ordered functional commits, not normal-path deadline priority or a measured gap.
+
+- 2026-10-07 Task1 independent review found two HIGH races in the previous
+  N05/T06 sources despite their passing prerequisite cases. That review supersedes
+  the earlier blanket repaired statement. Witnessed reds are retained in
+  `integration/evidence/task1_fix_red_01` (six N and six T failing subcases).
+  Current N `721fd4b7…`/`task1_fix_n_01` consumes full owner/epoch at terminal;
+  current T `52b43d5a…`/`task1_fix_t_04` cancels before request publication and
+  mints only under genuine Work qualification, retaining minted cookies/receipts.
+  Actual fits: N12/critical11 and T12/critical12; stage4 T1SALU/9tables/63xbar,
+  versus earlier0/9/59. The previous T12→11 selector reduction is historical,
+  not the current guarded chain's resource claim. New current composition/model
+  identities pass40 N/T and50 T cases, with paused-boundary model fixtures
+  explicitly distinguished from genuine whole-source packet races. Full N84
+  tests(one existing coalesced skip) and T103 pass. All old/failing evidence is
+  retained, no counter rollback/rearm authority or physical activity is added.
+  Full M/loss/retirement/9.13.2/hardware gates remain; bounded re-review is next.

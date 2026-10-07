@@ -1,0 +1,90 @@
+test_foreign_reset_does_not_cancel_the_current_request (test_task1_cancel_races.CancelledRequest) ... ok
+test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) ... 
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=1, cause='reset')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=1, cause='policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=2, cause='reset')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=2, cause='policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=3, cause='reset')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+======================================================================
+FAIL: test_reset_and_policy_before_each_request_side_effect_boundary (test_task1_cancel_races.CancelledRequest) (boundary=3, cause='policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/tests/test_task1_cancel_races.py", line 26, in test_reset_and_policy_before_each_request_side_effect_boundary
+    self.assertEqual(sim.cell('timing_binding'), {'epoch': 0, 'cookie': 0})
+AssertionError: {'epoch': 1, 'cookie': 1} != {'epoch': 0, 'cookie': 0}
+- {'cookie': 1, 'epoch': 1}
+?            ^           ^
+
++ {'cookie': 0, 'epoch': 0}
+?            ^           ^
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.238s
+
+FAILED (failures=6)

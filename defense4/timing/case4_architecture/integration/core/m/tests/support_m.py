@@ -18,7 +18,9 @@ from scapy.packet import Raw  # noqa: E402
 
 import os
 SOURCE = Path(os.environ.get('M_SOURCE', HERE.parent / 'm_skeleton.p4'))  # M_SOURCE: mutation checks only
-M_IN, M_OUT = 68, 64
+# These existing control-path cases arrive from N; READ arrivals from T use197
+# and both receiving boundaries are covered by test_task1_boundaries.py.
+M_IN, M_OUT = 196, 64
 CLIENT, SERVER, CPORT, SPORT = '10.0.0.1', '10.0.0.2', 42000, 20000
 MASK = 0xffffffff
 KIND_SELECT, KIND_RESPONSE, KIND_OPERATE, KIND_FWD, KIND_REPLAY, KIND_REV = 5, 6, 7, 8, 12, 13

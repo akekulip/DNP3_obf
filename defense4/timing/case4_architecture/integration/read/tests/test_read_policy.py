@@ -162,8 +162,8 @@ class Reset(unittest.TestCase):
         sim.run(T + 6 * MS)
         self.assertEqual(counters(sim)[0], 1)                           # busy: reuse refused
         self.assertEqual(sim.cell('cookie_counter')['cookie'], 1)
-        sim.src.cells[('', 'debt_cell')][0] = 0                         # controller drain
-        sim.src.cells[('credits', 'cell')][0] = {'epoch': 0, 'credit': 0}
+        sim.src.cells[('', 'debt_cell')][0] = 0                         # TEST-ONLY quiescent fixture: retain the installed tag, clear debt/owned bit
+        sim.src.cells[('credits', 'cell')][0] = {'epoch': 1, 'credit': 1 << 16}
         request(sim, T + 7 * MS, epoch=2)
         sim.run(T + 8 * MS)
         self.assertEqual(sim.cell('timing_binding'), {'epoch': 2, 'cookie': 2})

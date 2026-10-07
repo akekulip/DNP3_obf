@@ -182,10 +182,7 @@ class ReadNeverMutates(unittest.TestCase):
         self.assertTrue(out.dropped)
         self.assertEqual(out.emitted, [])
         self.assertEqual(pipe.state()['owner'], before['owner'])
-        # Known limit shared with SELECT/OPERATE (kinds 5, 7): client_t is keyed on stage/kind/work
-        # phase/work op, not on the epoch difference computed in the same stage, so the client position
-        # bank is stored under a foreign epoch. The owner and the READ application register are not.
-        self.assertEqual(pipe.state()['client'], 1020)
+        self.assertEqual(pipe.state()['client'], before['client'])
         self.assertEqual(pipe.read_app(), 0)
         self.assertEqual(pipe.state()['work']['phase'], 4, 'abort passes release the work pin')
 
@@ -212,7 +209,7 @@ class ReadStructure(unittest.TestCase):
                                  flags in flags_ok, (kind, flags))
 
     def test_selectop_chain_predicates_are_explicit_not_ordered(self):
-        body = self.text[self.text.index(' apply{\n  m.work_op='):]
+        body = self.text[self.text.index(' apply{\n  m.return_abort='):]
         self.assertNotIn('m.packet_kind>=8w5', body)
         self.assertNotIn('m.packet_kind>8w', body)
 

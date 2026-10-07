@@ -102,7 +102,8 @@ class Engine:
             return case
         self.load(src, case)
         pk = case['env']['m.packet_kind']
-        src.action('calculate_native_end')
+        if 'calculate_native_end' in src.controls['Ingress'].actions:
+            src.action('calculate_native_end')
         src.action({6: 'compare_response_inputs', 5: 'compare_select_inputs', 7: 'compare_operate_inputs'}.get(
             pk, 'compare_operate_inputs'))
         get = lambda n: src.env.get('m.' + n, 0)  # noqa: E731
@@ -179,6 +180,65 @@ class Engine:
         if (label['stage'] == 0 and label['pk'] in (5, 6, 7) and (label['work'][0] != 4 or label['counter'] == 0xffffffff)
                 and diff == [('fields', 'md.drop_ctl', 0, 1)]):
             return None, a
+        # Task1 declared changes are checked against absolute state/prefix predicates,
+        # not excluded wholesale from the differential denominator.
+        if (label['stage'] and cb['env'].get('hdr.envelope.epoch')!=cb['cells'][('', 'epoch')]):
+            expected=copy.deepcopy(a)
+            for name in ('client','server'):
+                key=('',name)
+                expected['cells'][key]=[cb['cells'][key]]
+            if expected==b:return None,b
+        if (label['stage']==3 and cb['env'].get('hdr.envelope.epoch')!=cb['cells'][('', 'epoch')] and a['cells']==b['cells'] and diff==[('fields','md.drop_ctl',0,1)]):
+            return None,b
+        # Reviewed Task1 cancellation: a genuine phase3 return whose full
+        # expected owner differs must drain Work and refuse terminal publication.
+        # The frozen oracle admitted it. Only the exact drop difference is allowed.
+        if (label['stage']==3 and self.new.env.get('m.work_phase')==3
+                and self.new.env.get('m.owner_diff',0)!=0 and a['cells']==b['cells']
+                and diff==[('fields','md.drop_ctl',0,1)]):
+            owner=b['cells'][('', 'owner')][0]
+            expected=cb['env']['hdr.expected_cell.expected_cell']
+            assert self.new.env['m.owner_diff']==(owner-expected)&0xffffffff
+            assert b['cells'][('work','work')][0]['phase']==4
+            return None,b
+        if label['stage']==0 and label['pk']==4 and cb['cells'][('', 'owner')]>>16 in (13,14,15) and a['cells']==b['cells']:
+            expected=copy.deepcopy(a)
+            for key in PRIVATE:expected['valid'][key]=True
+            expected['fields'].update({'hdr.envelope.epoch':cb['cells'][('', 'epoch')],
+                'hdr.work_generation.generation':cb['cells'][('', 'epoch')],
+                'hdr.expected_cell.expected_cell':cb['cells'][('', 'owner')],
+                'hdr.event.event':0x104,'hdr.event.reserved':0,'m.emit_loop':1,'tm.ucast_egress_port':68})
+            if expected==b:return None,b
+        if label['stage'] and label['kind'] in (0,8):
+            foreign = cb['env'].get('hdr.envelope.epoch') != cb['cells'][('', 'epoch')]
+            owner_miss = cb['env'].get('hdr.expected_cell.expected_cell') != cb['cells'][('', 'owner')]
+            if (foreign or owner_miss) and a['cells'] == b['cells']:
+                expected=copy.deepcopy(a)
+                if label['stage'] < 3:
+                    expected['fields']['hdr.event.event'] = ((label['stage']+1)<<8)|255
+                else:
+                    for key in list(expected['fields']):
+                        if key.split('.')[1] in PRIVATE:expected['fields'].pop(key)
+                    for key in PRIVATE:expected['valid'][key]=False
+                    expected['fields']['md.drop_ctl']=1
+                if expected == b:return None,b
+        if label['stage'] and label['kind'] == 4 and a['cells'] == b['cells']:
+            # Successful full-key close emits reset4/direction to T; a lost CAS or
+            # foreign epoch must strip/drop instead. Active WorkRecord is unchanged.
+            expected=copy.deepcopy(a)
+            if b['fields']['md.drop_ctl'] == 0:
+                for key in PRIVATE:expected['valid'][key]=True
+                expected['fields'].update({key:value for key,value in cb['env'].items()
+                    if key.startswith('hdr.') and key.split('.')[1] in PRIVATE})
+                expected['fields']['hdr.expected_cell.expected_cell']=0
+                expected['fields']['hdr.event.event']=(4<<8)|cb['env']['m.direction']
+                expected['fields']['tm.ucast_egress_port']=325
+            else:
+                for key in list(expected['fields']):
+                    if key.split('.')[1] in PRIVATE:expected['fields'].pop(key)
+                for key in PRIVATE:expected['valid'][key]=False
+                expected['fields']['md.drop_ctl']=1
+            if expected == b:return None,b
         return diff, a
 
     def drive_epoch(self, case):

@@ -1,0 +1,20 @@
+{
+  "N_sha256": "00d2a7360c7bcdbf4d940d6cfb780aa2e89ad8cc0e54cbb57d79e69fc0796d0c",
+  "T_sha256": "bf5ac01bca03d19243f7beda8655fa5bb7c2ca51019df078a0d4533c4a5221b6",
+  "retained_source_snapshots": [
+    "integration/connection/binding/evidence/task1_n_05/source",
+    "integration/evidence/task1_t_06/source"
+  ],
+  "commands": [
+    "python3 -m unittest discover -s integration/connection/binding/tests -p test_task1_cancel_races.py -v",
+    "python3 -m unittest discover -s integration/read/tests -p test_task1_cancel_races.py -v"
+  ],
+  "results": {
+    "N": "2 methods;6 failing subcases",
+    "T": "2 methods;6 failing subcases"
+  },
+  "log_sha256": {
+    "n.log": "ea7b9a6727a8c50489f621eaf00edc3f61ac0dada9c097723f8b6f5d7050d2db",
+    "t.log": "7b0f7b0b3835531eac97c447a73c7b49c3d3bc1cb81a772a0de4ed1a763761c1"
+  }
+}

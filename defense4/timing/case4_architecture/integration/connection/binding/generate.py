@@ -55,7 +55,7 @@ def generate():
     text=once(text,'const PortId_t RETURN_PORT=9w68;','const PortId_t RETURN_PORT=9w68;\nconst PortId_t READ_HANDOFF_PORT=9w325;\nconst PortId_t STEP3_M_PORT=9w196;')
     existing={name for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(text,'struct meta_t'))}
     added=''.join(kind+' '+name+';' for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(selected,'struct meta_t')) if name not in existing)
-    text=text.replace('struct meta_t{','struct meta_t{'+added+'bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;')
+    text=text.replace('struct meta_t{','struct meta_t{'+added+'bit<8> return_abort;bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;')
     text=text.replace('WorkRecord() work;','ExpectedWorkRecord() work;')
     text=text.replace('MSS-only TCP: final ACK+SELECT still REQUIRED and blocked in this P4.',
         'Actual native35 final ACK+SELECT admitted; composed transformation remains blocked.')
@@ -156,9 +156,10 @@ def generate():
     start=selected.index('table object_match{');end=selected.index('\n',start)
     match=selected[start:end].replace('match_response;match_operate;','matched;').replace(':match_response();',':matched();').replace(':match_operate();',':matched();')
     bank_text+='action matched(){m.matched=8w1;}\n'+match+'\n'
-    bank_text+='''action calculate_native_end(){m.native_end=hdr.tcp.seq+32w55;}
-table calculate_native_end_t{actions={calculate_native_end;}size=1;const default_action=calculate_native_end();}
-'''
+    # The consumer derives the exact full-width end directly; no calculate then
+    # copy table or truncated intermediate is needed.
+    bank_text=bank_text.replace('m.compare_native_end=(bit<32>)(m.native_end);',
+        'm.compare_native_end=hdr.tcp.seq+32w55;')
     # Native READ (kinds 9..11), validated like the frozen validator.p4 observer: tuple and link
     # addresses from the controller, the exact profile, and every DNP3 CRC. The application
     # sequence of the request is stored and the response is matched against it, in one register
@@ -196,8 +197,10 @@ table read_app_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoc
 action emit_tev(bit<16> event){hdr.expected_cell.expected_cell=hdr.t0.t0q;hdr.event.event=event;hdr.t0.setInvalid();tm.ucast_egress_port=READ_HANDOFF_PORT;m.emit_loop=8w0;}
 action terminal_strip(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();}
 action terminal_abort(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();md.drop_ctl=3w1;}
+action emit_reset(){hdr.event.event=8w4++m.direction;hdr.expected_cell.expected_cell=32w0;tm.ucast_egress_port=READ_HANDOFF_PORT;m.emit_loop=8w0;}
+table reset_boundary{key={m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_reset;terminal_abort;}size=1;const entries={(8w1,32w0,32w0):emit_reset();}const default_action=terminal_abort();}
 action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_term_bump.execute(4w0);}
-table read_terminal_t{key={m.kind:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=5;const entries={8w9:emit_tev(16w0x0900);8w10:emit_tev(16w0x0a00);8w11:emit_tev(16w0x0b00);8w12:emit_replay();8w255:terminal_abort();}const default_action=terminal_strip();}
+table read_terminal_t{key={m.kind:ternary;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=6;const entries={(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
 '''
     # Exposed counters (read by the controller; a WorkRecord reset does not clear them). A register belongs to
     # one table, so there is one array per counting table: count_first (first_event), count_busy (busy_t),
@@ -241,7 +244,7 @@ RegisterAction<bit<32>,bit<4>,bit<32>>(count_term) count_term_bump={void apply(i
 action go_keep(bit<8> k){m.go=8w1;m.kind=k;}
 action go_ret_work(){m.go=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;}
 action go_ret_nowork(){m.go=8w1;m.generation=hdr.work_generation.generation;}
-action go_ret_abort(){m.go=8w1;m.kind=8w255;m.generation=hdr.work_generation.generation;m.work_op=8w2;hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();}
+action go_ret_abort(){m.go=8w1;m.kind=8w255;m.return_abort=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();}
 table guard{key={m.stage:ternary;m.packet_kind:ternary;m.kind:ternary;m.direction:ternary;m.shape_valid:ternary;m.enabled:ternary;m.profile:ternary;m.badh:ternary;m.badb:ternary;m.bad1:ternary;m.badt:ternary;}
 actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48;const default_action=NoAction();const entries={'''+''.join(rows)+'}}\n'
     mark=text.index(' apply{\n  m.work_op=');text=text[:mark]+bank_text+guard+text[mark:]
@@ -256,6 +259,8 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48
         where=bank_table.index('}const default_action=')
         bank_table=bank_table[:where]+''.join('(8w1,8w'+str(k)+',32w1,8w2):store_'+bank+'();' for k in kinds)+bank_table[where:]
         bank_table=bank_table.replace('size=1;', 'size='+str(1+len(kinds))+';')
+        bank_table=bank_table.replace('m.work_op:exact;', 'm.work_op:exact;m.epoch_diff:exact;')
+        bank_table=re.sub(r'(\(8w1,8w\d+,32w1,8w2)\)',r'\1,32w0)',bank_table)
         text=text[:begin]+bank_table+text[stop:]
     # A response acknowledges native + 20 after SELECT and native + 40 after OPERATE (the client bank then
     # already holds the OPERATE end), which is a client difference of 0 or 20 once 20 is taken off the ack.
@@ -307,16 +312,23 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48
     # An abort drops the READ timestamp word with the kind, so the next pass parses a plain kind-255 envelope.
     text=once(text,'action abort_work(){hdr.event.event[7:0]=8w255;}','action abort_work(){hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();}')
     text=once(text,'action owner_cas(){m.observed=compare_owner.execute(1w0);}','action owner_cas(){m.owner_diff=compare_owner.execute(1w0);}')
+    text=once(text,'Register<bit<32>,bit<1>>(1,0) owner;',
+        'Register<bit<32>,bit<1>>(1,0) owner;\n RegisterAction<bit<32>,bit<1>,bit<32>>(owner) check_owner={void apply(inout bit<32> v,out bit<32> r){r=v-m.expected;}};')
+    text=once(text,' table owner_t{',' action owner_check(){m.owner_diff=check_owner.execute(1w0);}\n table owner_t{')
+    text=once(text,'table owner_t{key={m.owner_op:exact;}actions={owner_read;owner_cas;}size=1;const entries={8w1:owner_cas();}const default_action=owner_read();}',
+        'table owner_t{key={m.stage:ternary;m.owner_op:exact;}actions={owner_read;owner_cas;owner_check;}size=2;const entries={(_,8w1):owner_cas();(8w0,8w0):owner_read();}const default_action=owner_check();}')
     # Native SELECT/response/OPERATE owner commands for the claim and publication passes.
     marker=text.index(' table owner_command{');end=text.index(' action owner_read()',marker)
-    command=text[marker:end].replace('close_free;NoAction;', 'close_free;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;claim_read;publish_read;claim_read_rsp;publish_read_rsp;claim_response_op;publish_response_op;NoAction;').replace('size=10;', 'size=22;')
+    command=text[marker:end].replace('close_free;NoAction;', 'close_free;quarantine_abort;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;claim_read;publish_read;claim_read_rsp;publish_read_rsp;claim_response_op;publish_response_op;NoAction;').replace('size=10;', 'size=24;')
+    command=command.replace('m.epoch_diff:exact;', 'm.epoch_diff:exact;m.return_abort:ternary;')
+    command=re.sub(r'(\(8w\d+,8w\d+,32w\d+,32w0)\)',r'\1,_)',command)
     at=command.rindex('}}')
     command=command[:at]+''.join(f'(8w{s},8w{k},32w{s},32w0):{a}();' for s,k,a in
-        ((1,5,'claim_select'),(2,5,'publish_select'),(1,6,'claim_response'),(2,6,'publish_response'),(1,7,'claim_operate'),(2,7,'publish_operate'),(1,9,'claim_read'),(2,9,'publish_read'),(1,11,'claim_read_rsp'),(2,11,'publish_read_rsp'),(1,16,'claim_response_op'),(2,16,'publish_response_op')))+command[at:]
+        ((1,5,'claim_select'),(2,5,'publish_select'),(1,6,'claim_response'),(2,6,'publish_response'),(1,7,'claim_operate'),(2,7,'publish_operate'),(1,9,'claim_read'),(2,9,'publish_read'),(1,11,'claim_read_rsp'),(2,11,'publish_read_rsp'),(1,16,'claim_response_op'),(2,16,'publish_response_op'))).replace('32w0):','32w0,_):')+''.join(f'(8w{s},8w255,32w{s},32w0,8w1):quarantine_abort();' for s in (2,3))+command[at:]
     actions=''.join(f'action {name}(){{m.expected=hdr.expected_cell.expected_cell;m.desired=16w{phase}++hdr.expected_cell.expected_cell[15:0];m.owner_op=8w1;}}\n' for name,phase in
         (('claim_select',8),('publish_select',9),('claim_response',10),('publish_response',10),('claim_operate',11),('publish_operate',12),
         ('claim_read',13),('publish_read',14),('claim_read_rsp',15),('publish_read_rsp',5),('claim_response_op',16),('publish_response_op',5)))
-    text=text[:marker]+actions+command+text[end:]
+    text=text[:marker]+'action quarantine_abort(){m.expected=hdr.expected_cell.expected_cell;m.desired=16w6++hdr.expected_cell.expected_cell[15:0];m.owner_op=8w1;}\n'+actions+command+text[end:]
     # first_event now also carries the transparent-forward rows and the kind-4 strip row.
     # Entry order is semantics: first_* rows, then forward_original rows, then close_forward.
     marker=text.index(' table first_event{');end=text.index('\n action next_stage',marker)
@@ -339,7 +351,7 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48
         '(8w5,8w3,_,_):count_resent();(8w7,8w3,_,_):count_resent();'
         '(8w5,_,_,_):count_refused();(8w6,_,_,_):count_refused();(8w7,_,_,_):count_refused();(8w9,_,_,_):count_refused();(8w11,_,_,_):count_refused();')
     forward=''.join('(8w%d,8w1,8w0,32w%s&&&32w0xffff0000):forward_original();'%(kind,hex(phase<<16)) for kind in (1,2,3) for phase in phases[kind])
-    first=first[:at]+'''(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();'''+''.join('(8w4,8w1,8w0,32w'+hex(phase<<16)+'&&&32w0xffff0000):first_close();' for phase in range(8,13))+forward+'(8w4,_,_,_):close_forward();'+READ_FIRST+first[at:]
+    first=first[:at]+'''(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();'''+''.join('(8w4,8w1,8w0,32w'+hex(phase<<16)+'&&&32w0xffff0000):first_close();' for phase in range(8,16))+forward+'(8w4,_,_,_):close_forward();'+READ_FIRST+first[at:]
     text=text[:marker]+'''action first_select(){hdr.event.event=16w0x0105;}
 action first_response(){hdr.event.event=16w0x0106;}
 action first_operate(){hdr.event.event=16w0x0107;}
@@ -361,7 +373,7 @@ action first_operate(){hdr.event.event=16w0x0107;}
     # `guard` hits, so no table waits on the far side of an if/else join.
     mark=text.index(' apply{\n  m.work_op=');stop=text.index('control IgDeparser')
     text=text[:mark]+''' apply{
-  m.work_op=8w0;m.owner_op=8w0;m.generation=32w0;m.expected=32w0;m.desired=32w0;m.go=8w0;m.owner_diff=32w1;m.expected_work_phase=(bit<32>)m.stage;
+  m.return_abort=8w0;m.work_op=8w0;m.owner_op=8w0;m.generation=32w0;m.expected=hdr.expected_cell.expected_cell;m.desired=32w0;m.go=8w0;m.owner_diff=32w1;m.expected_work_phase=(bit<32>)m.stage;
   ports.apply();network.apply();
   if(m.port_valid==8w1&&m.network_valid==8w1&&(m.stage==8w0||hdr.event.reserved==16w0)){
    connection.apply();
@@ -383,7 +395,7 @@ action first_operate(){hdr.event.event=16w0x0107;}
    guard.apply();
    if(m.go==8w1){
     if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){
-     calculate_native_end_t.apply();if(m.response==8w1){compare_response_inputs_t.apply();}else{if(m.packet_kind==8w5){compare_select_inputs_t.apply();}else{compare_operate_inputs_t.apply();}}
+     if(m.response==8w1){compare_response_inputs_t.apply();}else{if(m.packet_kind==8w5){compare_select_inputs_t.apply();}else{compare_operate_inputs_t.apply();}}
     }
     ack_native_t.apply();read_input_t.apply();
     work.apply(m.work_op,m.generation,m.expected_work_phase,m.work_phase);
@@ -399,9 +411,11 @@ action first_operate(){hdr.event.event=16w0x0107;}
      if((m.work_op==8w1&&m.work_phase==32w4)||(m.kind==8w4&&m.shape_valid==8w1)){
       snapshot_t.apply();first_event.apply();
      }else if(m.work_op==8w1){busy_t.apply();}
-    }else if(m.kind==8w4){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();if(m.owner_op!=8w1){deny();}}
+    }else if(m.kind==8w4){reset_boundary.apply();}
     else if(m.work_phase==32w1||m.work_phase==32w2){
-     if(m.kind!=8w8&&m.kind!=8w10&&m.kind!=8w12){if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
+     if(m.epoch_diff!=32w0){abort_t.apply();}
+     else if(m.kind==8w8||m.kind==8w10||m.kind==8w12){if(m.owner_diff!=32w0){abort_t.apply();}}
+     else{if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
      next_stage_t.apply();
     }else if(m.work_phase==32w3){read_terminal_t.apply();}
     else{deny();}
@@ -410,6 +424,8 @@ action first_operate(){hdr.event.event=16w0x0107;}
  }
 }
 '''+text[stop:]
+    text=once(text,'Pipeline(IgParser(),Ingress(),IgDeparser(),EgParser(),Egress(),EgDeparser()) pipe;Switch(pipe) main;',
+        '#ifndef NATIVE_BINDING_NO_MAIN\nPipeline(IgParser(),Ingress(),IgDeparser(),EgParser(),Egress(),EgDeparser()) pipe;Switch(pipe) main;\n#endif')
     return text
 
 

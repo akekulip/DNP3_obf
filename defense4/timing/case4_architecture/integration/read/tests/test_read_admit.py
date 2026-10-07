@@ -58,6 +58,8 @@ class Admit(unittest.TestCase):
     def test_exhaustion_boundary_65535_is_the_last_cookie(self):
         sim = new_sim()
         sim.src.cells[('', 'cookie_counter')][0] = {'cookie': 65534, 'word': 0xfffe0000}
+        # Coherent quiescent historical fixture; counter-only seeding is now refused.
+        sim.src.cells[('credits', 'cell')][0] = {'epoch': 1, 'credit': 0xfffe0000}
         request(sim, T)
         request(sim, T + 1_000_000)
         sim.run(T + 2_000_000)

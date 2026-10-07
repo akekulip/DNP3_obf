@@ -97,7 +97,7 @@ class Differential(unittest.TestCase):
         step3 = ('response_op' in action or action in ('seq_ok_second', 'seq_resent', 'seq_replay', 'first_replay') or 16 in numbers
                  or 12 in numbers or action.startswith('count_') or table == 'busy_t'
                  or (action.startswith('store_') and 7 in numbers))      # D9 entries, covered by test_step3_exchange
-        return 'read' in action or bool(numbers & {9, 10, 11}) or server_ack or epoch_zero or step3
+        return 'read' in action or bool(numbers & {9, 10, 11, 0xd0000, 0xe0000, 0xf0000}) or server_ack or epoch_zero or step3
 
     def test_every_const_entry_of_every_data_path_table_was_exercised_on_both_sides(self):
         engine = d.Engine()

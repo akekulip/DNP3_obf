@@ -130,8 +130,9 @@ Rules:
    live connection and matches sequence/application; T proves identity of the timing association.
 4. Cookie budget: 16-bit non-wrapping, refuse at 65535 (`owner_cell.p4:26`, `reference.py:44`).
    The accepted campaign is 16,168 attempts (`Codex_...Prompt.md:158`), under 65,535.
-   [I] only if the controller re-arms the cookie between campaigns; otherwise state exhaustion
-   explicitly and test it (T2-EXHAUST).
+   [I] No controller rearm is authorized by Task1. Saturation is a counted persistent refusal
+   (T2-EXHAUST); resetting only the counter is refused. Any future fresh, quiescent
+   initialization must qualify all tagged state separately.
 
 ### 1.4 Private events and kinds
 
@@ -419,7 +420,7 @@ Clock: `due(now,deadline) = ((now-deadline) mod 2^32) < 2^31` (`reference.py:113
 |---|---|---|---|---|---|
 | held original | policy register 0 | `held_dispatch (4,0,1)` | terminal | debit by actual receipt, forward ACK/response, abort nothing in READ | T2-POLICY-OFF |
 | ACTIVE or ACK_COMMITTED | RESET typed event (kind 4 from N, validated FIN/RST) | epoch equal | QUARANTINE | held originals flush on next pass; cookie debited; no new admit | T2-RESET |
-| QUARANTINE | credits all zero, debt 0 | heartbeat | IDLE | cookie may re-arm | T2-REUSE |
+| QUARANTINE | credits all zero, debt 0 | heartbeat | IDLE | retain nonwrapping cookie; no counter-only rearm | T2-REUSE |
 | QUARANTINE | credit still owned | lost original | stays QUARANTINE | reuse refused until controller drain | T2-BOTH-LOST |
 | any | clock wraps | `now-deadline` crosses 2^32 | unchanged semantics | modular compare | T2-WRAP |
 
@@ -501,3 +502,16 @@ Files read: `PLAN.md`, `HANDOVER.md`, `LEDGER.md`, `Codex_Case4_Hardware_Archite
 `integration/connection/binding/native_binding.p4`, `work_record.p4`, `generate.py`, the binding tests, `integration/egress_wire.p4`,
 `integration/PIPE_SPLIT.md`, `defense4/timing/response_ready/README.md`, `POLICY_CONTRACT.md` (lines 19-130), and the two compile logs quoted.
 Not done: no compile, no test run, no packet execution, no hardware. Items marked [I] are inferences.
+
+### Task1 reviewed cancellation boundaries
+
+Pinned request returns sample current policy and full-epoch quarantine. Refusal
+is carried on stages12/13 to the genuine expected-generation/phase terminal;
+the request forwards once. Mint requires the actual phase2 Work grant. Cancel
+before mint leaves the counter untouched; cancel after ACK-receipt installation
+retains the consumed cookie and that receipt, with no response receipt, binding
+or anchor publication. The next permitted request consumes the next cookie.
+No production reset/rollback authority is introduced. Current source52b43d5a
+fits12 ingress stages; stage4 occupancy1SALU/9tables/63xbar is a resource concern,
+not the earlier unchanged stage4 claim. Local model boundary presets are
+functional diagnostics, not a physical coherent-state mutation procedure.

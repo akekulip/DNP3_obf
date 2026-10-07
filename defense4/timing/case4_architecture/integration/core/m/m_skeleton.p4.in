@@ -7,6 +7,8 @@
  * Excluded on purpose (S3-4): construct and the three output CRC hashes, descriptor, carve. */
 #include <core.p4>
 #include <tna.p4>
+const PortId_t N_TO_M=9w196;
+const PortId_t T_TO_M=9w197;
 header work_h{bit<32> epoch;bit<32> generation;bit<32> expected_cell;bit<16> event;bit<16> reserved;}
 header eth_h{bit<48> dst;bit<48> src;bit<16> type;}
 header ip_h{bit<4> version;bit<4> ihl;bit<8> tos;bit<16> len;bit<16> id;bit<3> flags;bit<13> frag;bit<8> ttl;bit<8> proto;bit<16> checksum;bit<32> src;bit<32> dst;}
@@ -22,7 +24,7 @@ struct meta_t{bit<8> network_allowed;bit<32> repair_sum_pad;bit<16> repair_sum;b
  bit<32> full_window;bit<32> window_after;bit<16> tcp_len;bool ip_error;bit<8> parsed;bit<1> changed;
  bit<32> native_last;bit<8> kind;bit<16> phase;bit<8> contig;bit<8> led_ok;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){Checksum() ipcheck;Checksum() repaircheck;
- state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.parsed=8w0;m.changed=1w0;m.direction=8w0;m.valid=8w0;m.network_allowed=8w0;m.kind=8w0;m.phase=16w0;m.contig=8w0;m.led_ok=8w0;m.ro1=32w0;transition select(ig.ingress_port){9w68:work;default:reject;}}
+ state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.parsed=8w0;m.changed=1w0;m.direction=8w0;m.valid=8w0;m.network_allowed=8w0;m.kind=8w0;m.phase=16w0;m.contig=8w0;m.led_ok=8w0;m.ro1=32w0;transition select(ig.ingress_port){N_TO_M:work;T_TO_M:work;default:reject;}}
  state work{pkt.extract(hdr.work);m.kind=hdr.work.event[7:0];m.phase=hdr.work.expected_cell[31:16];transition select(hdr.work.reserved){16w0:eth;default:reject;}}
  state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:reject;}}
  state ip{pkt.extract(hdr.ip);ipcheck.add(hdr.ip);m.ip_error=ipcheck.verify();transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w75):ip_flags_n;(4w4,4w5,8w6,16w41):ip_flags_r;(4w4,4w5,8w6,_):ip_flags;default:reject;}}
@@ -131,8 +133,8 @@ control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata
  apply{forwarding.apply();network_gate.apply();connection.apply();prep_t.apply();
   if(hdr.native.isValid()){prep_native_t.apply();}
   if(hdr.replay.isValid()){prep_replay_t.apply();}
-  if(ig.ingress_port==9w68&&p.parser_err==16w0&&hdr.work.generation!=32w0){geo_first_t.apply();geo_second_t.apply();geo_tag_t.apply();led_id_t.apply();led_pos_t.apply();}
-  if(ig.ingress_port==9w68&&p.parser_err==16w0&&md.drop_ctl==3w0){if(hdr.work.generation!=32w0){
+  if((ig.ingress_port==N_TO_M||ig.ingress_port==T_TO_M)&&p.parser_err==16w0&&hdr.work.generation!=32w0){geo_first_t.apply();geo_second_t.apply();geo_tag_t.apply();led_id_t.apply();led_pos_t.apply();}
+  if((ig.ingress_port==N_TO_M||ig.ingress_port==T_TO_M)&&p.parser_err==16w0&&md.drop_ctl==3w0){if(hdr.work.generation!=32w0){
   if(m.network_allowed==8w1&&m.direction!=8w0){
    if(m.kind==8w5||m.kind==8w7){
     if(m.led_ok==8w0){deny();}

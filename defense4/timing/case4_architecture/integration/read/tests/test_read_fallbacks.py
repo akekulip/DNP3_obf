@@ -101,9 +101,9 @@ class OneLost(unittest.TestCase):
         self.assertEqual(list(sim.src.cells[('', 'bypass_counters')]), [1, 0, 0, 0])
         self.assertEqual(sim.cell('cookie_counter')['cookie'], 1)
         self.assertEqual(emitted(sim, REQ_FRAME, port=RELAY)[-1], T + 35 * MS + 3 * L)
-        # controller drain: clear the owned receipt and the debt, then a new READ is admitted
+        # TEST-ONLY quiescent fixture: retain the installed tag, clear debt/owned bit: clear the owned receipt and the debt, then a new READ is admitted
         sim.src.cells[('', 'debt_cell')][0] = 0
-        sim.src.cells[('credits', 'cell')][0] = {'epoch': 0, 'credit': 0}
+        sim.src.cells[('credits', 'cell')][0] = {'epoch': 1, 'credit': 1 << 16}
         request(sim, T + 37 * MS)
         sim.run(T + 38 * MS)
         self.assertEqual(sim.cell('cookie_counter')['cookie'], 2)
@@ -147,7 +147,7 @@ class BothLost(unittest.TestCase):
         self.assertEqual(sim.cell('cookie_counter')['cookie'], 1)
         sim.src.cells[('', 'debt_cell')][0] = 0
         for i in (0, 1):
-            sim.src.cells[('credits', 'cell')][i] = {'epoch': 0, 'credit': 0}
+            sim.src.cells[('credits', 'cell')][i] = {'epoch': 1, 'credit': 1 << 16}
         sim.lose = lambda time, egress, raw: False                # the lost originals were a one-off
         ticks(sim, T + 47 * MS, T + 60 * MS)
         read(sim, T + 48 * MS)

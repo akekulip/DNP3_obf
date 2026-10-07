@@ -1,0 +1,295 @@
+{
+  "evidence": "integration/evidence/task1_fix_nt_01",
+  "source_sha256": "4ad3246789998d563665c65543c56f90c9cb5ff5ecb4e615bb5a55a3216c15a8",
+  "source_files": {
+    "n/native_binding.p4": "721fd4b77b9e6bff5bb5d6c4452e5fd16095c1f844f4572a51def2a84526dd8c",
+    "n/work_record.p4": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+    "nt.p4": "4ad3246789998d563665c65543c56f90c9cb5ff5ecb4e615bb5a55a3216c15a8",
+    "t/expected_work_record.p4": "26b2019ec6e549e22e98cf8361ee208952bd1cc94021d2ea56b9f8bc88571ef2",
+    "t/ports.p4": "17295a0654f7efa638efb68e0bb6c583f1636f11f6bda4b41ab5d16ff9e07c91",
+    "t/probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "t/read_credit.p4": "9d8f9b8b48fc073e237a75b4dd815274826aeb6bb008458f82211124f8e33eef",
+    "t/read_timing.p4": "52b43d5ad2378638a3533c94f0ab063623ebcc5a982d67843d6c54427c3af762"
+  },
+  "manifest_sha256": "e8dfda3b2432c0ee57d8159d70d5ef55e730684c2663ed01b64cd8f3580f78f6",
+  "identity": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "stages": {
+    "egress": 0,
+    "ingress": 12
+  },
+  "critical_path": 12,
+  "static_entry_errors": [],
+  "per_stage_resource": {
+    "p0/logs/mau.resources.log": {
+      "0": {
+        "Meter ALU": 0,
+        "Logical TableID": 4,
+        "Ternary Match Input xbar": 11
+      },
+      "1": {
+        "Meter ALU": 0,
+        "Logical TableID": 13,
+        "Ternary Match Input xbar": 37
+      },
+      "2": {
+        "Meter ALU": 0,
+        "Logical TableID": 14,
+        "Ternary Match Input xbar": 12
+      },
+      "3": {
+        "Meter ALU": 0,
+        "Logical TableID": 5,
+        "Ternary Match Input xbar": 0
+      },
+      "4": {
+        "Meter ALU": 1,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 11
+      },
+      "5": {
+        "Meter ALU": 1,
+        "Logical TableID": 8,
+        "Ternary Match Input xbar": 9
+      },
+      "6": {
+        "Meter ALU": 1,
+        "Logical TableID": 2,
+        "Ternary Match Input xbar": 7
+      },
+      "7": {
+        "Meter ALU": 4,
+        "Logical TableID": 5,
+        "Ternary Match Input xbar": 31
+      },
+      "8": {
+        "Meter ALU": 4,
+        "Logical TableID": 4,
+        "Ternary Match Input xbar": 10
+      },
+      "9": {
+        "Meter ALU": 4,
+        "Logical TableID": 5,
+        "Ternary Match Input xbar": 15
+      },
+      "10": {
+        "Meter ALU": 2,
+        "Logical TableID": 16,
+        "Ternary Match Input xbar": 9
+      },
+      "11": {
+        "Meter ALU": 1,
+        "Logical TableID": 2,
+        "Ternary Match Input xbar": 7
+      }
+    },
+    "p3/logs/mau.resources.log": {
+      "0": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 0
+      },
+      "1": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "2": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "3": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "4": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "5": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "6": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "7": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "8": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "9": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "10": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "11": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      }
+    },
+    "p1/logs/mau.resources.log": {
+      "0": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 0
+      },
+      "1": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "2": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "3": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "4": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "5": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "6": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "7": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "8": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "9": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "10": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      },
+      "11": {
+        "Meter ALU": 0,
+        "Logical TableID": 0,
+        "Ternary Match Input xbar": 0
+      }
+    },
+    "p2/logs/mau.resources.log": {
+      "0": {
+        "Meter ALU": 2,
+        "Logical TableID": 14,
+        "Ternary Match Input xbar": 0
+      },
+      "1": {
+        "Meter ALU": 0,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 0
+      },
+      "2": {
+        "Meter ALU": 1,
+        "Logical TableID": 6,
+        "Ternary Match Input xbar": 20
+      },
+      "3": {
+        "Meter ALU": 1,
+        "Logical TableID": 6,
+        "Ternary Match Input xbar": 9
+      },
+      "4": {
+        "Meter ALU": 1,
+        "Logical TableID": 9,
+        "Ternary Match Input xbar": 63
+      },
+      "5": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 7
+      },
+      "6": {
+        "Meter ALU": 0,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 8
+      },
+      "7": {
+        "Meter ALU": 1,
+        "Logical TableID": 1,
+        "Ternary Match Input xbar": 7
+      },
+      "8": {
+        "Meter ALU": 3,
+        "Logical TableID": 4,
+        "Ternary Match Input xbar": 0
+      },
+      "9": {
+        "Meter ALU": 1,
+        "Logical TableID": 2,
+        "Ternary Match Input xbar": 15
+      },
+      "10": {
+        "Meter ALU": 2,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 20
+      },
+      "11": {
+        "Meter ALU": 2,
+        "Logical TableID": 3,
+        "Ternary Match Input xbar": 22
+      }
+    }
+  },
+  "artifact_sha256": {
+    "bfrt.json": "8b3c2860eb10565554d86ffa941b4d525aea23e2ad4ea3362f1882fc690a998a",
+    "manifest.json": "255dc3e53c16342a50db479ecdfd7c5b07f721ac5760481f0a371c45e69deb97",
+    "nt.conf": "5e232a2331ee3d0f5711f64164593c0ca19084ddb7dd8093b5871a034e061e88",
+    "p0/context.json": "88c897bd94210821cc9896a8c2e864e59021a04afe7faa594e848b7c56a804db",
+    "p0/nt.bfa": "33accec680d91294e10c4ef46ba83d7ad1c28be1a64e5649fca77554811a9f34",
+    "p0/tofino.bin": "9a15f52888b7e1fa40469613477898e6a6e3c7344f8cc8b8dec115ca953be709",
+    "p1/context.json": "c5a94d0188781e20730721574ba69d7bde18b7f91ca2f3b988ee89f6694b09f6",
+    "p1/nt.bfa": "187a3ddbaa3c2429eb504663640f6ba7b2fe283199f47ec9c9206faffa7eb65e",
+    "p1/tofino.bin": "f7fd489c14d0b87cf163c2c41b45e38ab3adbf8bc79cf5d360985c67d072a753",
+    "p2/context.json": "e4e027f2eb65e5c84ec40a15dd06657933df8eb08fcd13850911546fd17b7eaf",
+    "p2/nt.bfa": "6b013f161fc34cb37a7660227681c42e5bf8c014a89d3ce4fdb655863ab78955",
+    "p2/tofino.bin": "b9ac5ac75fb172894e4c2dee398296120e728e2c450b32fe427b71c0bf9bcde9",
+    "p3/context.json": "a2ff15a4ec644c7bfbdc63e74ecc6a8efc718b69c4f3737250dd5c0426f593b8",
+    "p3/nt.bfa": "187a3ddbaa3c2429eb504663640f6ba7b2fe283199f47ec9c9206faffa7eb65e",
+    "p3/tofino.bin": "f7fd489c14d0b87cf163c2c41b45e38ab3adbf8bc79cf5d360985c67d072a753"
+  }
+}

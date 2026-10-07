@@ -1,5 +1,34 @@
 # Case4 continuation checkpoint — 2026-10-07
 
+Current continuation: [PLAN.md](PLAN.md). Task1 source-bound evidence is
+[integration/evidence/TASK1_VERIFICATION.json](integration/evidence/TASK1_VERIFICATION.json).
+The historical results below retain their original identities.
+
+Task1 fix-round current N `721fd4b7…` fits12/0,critical11
+(`task1_fix_n_01`); T `52b43d5a…` fits12/0,critical12 (`task1_fix_t_04`).
+The exact-source N0/T2 composition `task1_fix_nt_01` passes40 N/T model cases
+in `task1_fix_nt_model_01` and50 T model cases in `task1_fix_t_model_02`.
+Full suites: N84 with one existing coalesced finalACK+SELECT skip; T103 pass.
+Logs/identity checks are in `integration/evidence/task1_fix_verification_01`.
+Earlier N05/T06/model34/35 had the two reviewed races and are historical evidence.
+
+Terminals now consume full owner/epoch checks. Returning T requests cancel before
+mint/install/commit, carry refusal through genuine Work terminals, and forward
+once while preserving installed receipts and consumed cookies. Model paused
+boundary fixtures are distinguished from the genuine full-packet source races.
+The raw-close parse token remains epoch-derived, not an observed Work generation.
+The old T selector12→11 A/B is historical; current guard chain uses12 stages.
+Current T stage4 grows from old0/9/59 SALUs/tables/xbar to1/9/63, an explicit
+resource concern. Model clocks prove functional commit order, not physical timing
+or normal deadline priority. No controller rearm authority exists.
+
+M receiving ports196/197 remain source-bound to `task1_m_ports_01`,12/0;
+its production/rendering path remains unfinished. Complete retirement/loss,
+full Case4,9.13.2 qualification, physical port authority and hardware remain open.
+
+The following continuation details retain pre-review historical identities;
+the current Task1 facts above and the linked PLAN supersede their N/T claims.
+
 **Resume from the [core functionality and testing plan](PLAN.md).** This checkpoint replaces the
 2026-10-06 one in full: steps 1 and 2 are done at the level stated below, step 3 is in progress.
 The complete target is still absent (no 9.13.2 build, no hardware run); everything here is
@@ -31,7 +60,7 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
   READ kinds 9 (request), 10 (ACK), 11 (response) with a `tev` handoff, the step-3 OPERATE-response
   exchange with per-exchange ACK offset, busy-WorkRecord drop-and-count, whole-segment-resend
   counting, and fixes for three real bugs the model/review found: an epoch-0 endless-recirculation
-  wedge, a guard-miss private-envelope leak, and a flow-miss WorkRecord pin. **Current: `native_18`,
+  wedge, a guard-miss private-envelope leak, and a flow-miss WorkRecord pin. **Previous baseline: `native_18`,
   source sha `642dfe54…`, 12 of 12 ingress stages, no spare stage.**
   **Correction (found by the 2026-10-07 acceptance audit): the 68/71-step model agreement
   (`model_24`–`model_27`) ran against `native_11` (sha `c2352572…`), one commit before the
@@ -42,7 +71,7 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
 - **A separate READ timing role** `integration/read/read_timing.p4` (copy-evolved from the
   `held_timing_expected_probe.p4`; the probe itself is untouched) implements D_A-parametrized
   ADMIT/hold/release/fallback/policy-off/reset, checked against an independent schedule oracle
-  `integration/read/join_reference.py`. **Current: `read_timing_05`, 12 of 12 ingress stages.**
+  `integration/read/join_reference.py`. **Previous baseline: `read_timing_05`, 12 of 12 ingress stages.**
   **Correction (same audit): the one passing held-path model run (`read_timing_model_05`) was
   launched against `read_timing_04` (sha `01b93f01…`), not `read_timing_05` (sha `d2b35563…`,
   the port-renumbered current source, different hash). `read_timing_05` has not been run on the
@@ -61,16 +90,15 @@ hardware action (physical OPERATE is attended-only per repo `CLAUDE.md`).
 
 ## Open / stopped
 
-- **Role M beyond the canary (step-3 tickets S3-4–S3-6) is stopped, not failed.** The builder
-  assigned to it was interrupted twice by a safety classifier while reading the assignment prompt
-  and planning the produce/carve work; no code or test exists beyond the committed canary. This is
-  an authorized defensive-research task (timing-side-channel mitigation for DNP3, offline/model
-  only), and I did not try to reword or route around the stop. If you want this ticket to proceed,
-  that decision — and any rephrasing of the task — is yours to make, not mine.
+- **Role M beyond the canary is unfinished (plan step3).** Task1 only normalizes
+  parser/apply receiving ports196/197. The canary already occupies12 stages;
+  actual35→55 production, descriptor/carve decisions and exact replay must be
+  integrated and measured before any complete-target claim. Earlier planning
+  interruptions remain historical evidence, not a qualification result.
 - **The supported-tuple catch-all** (an unparsed-but-matched IP length forwarded natively) needs
   M's mapping-only path and is a documented gap in N until M exists.
-- **The foreign-epoch client-bank store** would add a 13th stage to N; pinned as a known limit,
-  not fixed.
+- **Foreign-epoch client/server stores and terminal leakage are repaired in Task1.**
+  The exact current build stays within12 stages; see the current evidence index above.
 - **Step 4 (loss/lifecycle, fragment assembly)** is not started; the old assembly layouts
   (`integration/assembly_passes/REPORT.md`) still fail PHV and were not revisited this session.
 - **Step 5 (qualification: 9.13.2 build, schema/inventory, hardware package)** is not started.

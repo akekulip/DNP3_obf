@@ -1,5 +1,40 @@
 # Integration workload and guarded preparation
 
+## Task1 fix-round source-current prerequisites (2026-10-07)
+
+Current identities are in [evidence/TASK1_VERIFICATION.json](evidence/TASK1_VERIFICATION.json).
+N `connection/binding/evidence/task1_fix_n_01` SHA721fd4b7… compiles12/0,
+critical11; T `evidence/task1_fix_t_04` SHA52b43d5a… compiles12/0,critical12.
+N's direct expression still has no measured total-stage reduction. The earlier
+T separate/common selector12→11 comparison remains historical; new mandatory
+cancellation guards consume that gain. Current T stage4 is1 SALU/9 logical
+tables/63 ternary-crossbar bytes versus old0/9/59, an explicit resource concern.
+Source/include/compiler/artifact/resource identities and all static entries pass.
+
+N consumes the full expected-owner/epoch result at terminal publication after
+actual close. T rechecks quarantine/policy before request mint/receipt/association
+boundaries, keeps cancellation on stages12/13, drains real Work and forwards the
+original once. Already installed ACK receipts and consumed cookies are retained;
+no counter rollback, new anchor or binding appears after cancellation.
+
+Current composition `task1_fix_nt_01` binds exact N0/T2 sources. Models pass40
+N/T cases (`task1_fix_nt_model_01`) and50 T cases (`task1_fix_t_model_02`).
+New model races use explicitly seeded paused private-return boundaries; source
+schedulers independently derive genuine in-flight races. The model has actual
+reset/FIN packet controls and no front-port-loop bitmap. Full source suites pass
+N84(one existing coalesced skip) and T103. M19/controller17 are unchanged prior
+results. Final logs are in `evidence/task1_fix_verification_01`. Old34/35 model
+results lacked these races and are retained separately, never transferred.
+
+Model clocks/padding remain functional limitations: ordered ACK/response commits
+do not establish normal deadline priority, physical gap, heartbeat period or drain.
+The raw-close parse token is epoch-derived, not actual Work generation. All
+compile/test/model failures remain retained, including first T race layout13-stage
+failure and a T driver filter failure after18 cases. No rearm/deployment authority
+or hardware activity is added. M is still a12-stage receiving-port canary; full
+M, Case4, retirement/loss and physical qualification remain open. Campaign44
+blocks/16,168 attempts with18,360 ceiling remains unchanged and unacquired.
+
 This slice implements offline accounting, an inert controller package planner, and new protected connection/context experiments.
 It does not qualify a complete target. The production qualification registry is
 empty, and there is no device connection or mutation interface. All paths below
