@@ -54,6 +54,9 @@ def stubbed(text, oracle):
         replacement = HEAD + 'data_guard.apply();}' + tail
     else:
         stop, replacement = end, ''
+        read = 'else if(m.packet_kind==8w9||m.packet_kind==8w11){'
+        if text[end:].startswith(read):          # the READ validation block: its flags are inputs here too
+            stop = end + len(read) + len(block(text[end:], read[:-1] + '{')) + 1
     return text[:start] + replacement + text[stop:]
 
 
@@ -124,7 +127,7 @@ class Engine:
         keys['tm.ucast_egress_port'] = src.env.get('tm.ucast_egress_port', 0)
         keys['tm.bypass_egress'] = src.env.get('tm.bypass_egress', 0)
         keys['m.emit_loop'] = src.env.get('m.emit_loop', 0)
-        valid = {k: bool(v) for k, v in src.valid.items()}
+        valid = {k: bool(v) for k, v in src.valid.items() if not (k == 't0' and not v)}   # t0 exists only in the new source
         cells = {k: copy.deepcopy(v) for k, v in src.cells.items()}
         return {'fields': keys, 'valid': valid, 'cells': cells}
 
@@ -135,7 +138,14 @@ class Engine:
 
     def compare(self, case):
         self.prepare(case)
+        self.old.hits, self.new.hits = set(), set()
         a, b = self.run(self.old, case), self.run(self.new, case)
+        self.old_ran_body = any(t == 'epoch_t' for t, _ in self.old.hits)
+        # The READ application register exists only in the new source. Non-READ traffic must leave it at 0.
+        read_app = b['cells'].pop(('', 'read_app'), [0])
+        if read_app != [0] and not is_read_candidate(case):
+            b['cells'][('', 'read_app')] = read_app
+        self.last_new = b
         self.coverage['old'] |= self.old.hits
         self.coverage['new'] |= self.new.hits
         if a == b:
@@ -275,6 +285,12 @@ def deep_return():
                                         owner=owner, expected=expected, epoch=epoch, bank=bank)
 
 
+def is_read_candidate(case):
+    """Stage-0 server pure ACK (packet kind 3, direction 2): READ_ACK kind 10, an intentional difference."""
+    label = case['label']
+    return label['stage'] == 0 and label['pk'] == 3 and label['direction'] == 2
+
+
 _engine = None
 
 
@@ -286,8 +302,25 @@ def run_chunk(args):
     for item in args:
         index, spec, over = (item + ({},))[:3] if len(item) == 2 else item
         case = case_for(index, *spec, **over)
+        if is_read_candidate(case):
+            _engine.compare(case)          # must still execute cleanly; outcome is a READ intentional difference
+            hist[('READ-INTENTIONAL',)] = hist.get(('READ-INTENTIONAL',), 0) + 1
+            n += 1
+            continue
         diff, obs = _engine.compare(case)
         n += 1
+        if case['label']['stage'] >= 1 and not _engine.old_ran_body:
+            # H2: the oracle did nothing on a return pass the guard refused and let the private
+            # envelope out of a front-panel port. The restructured source aborts it instead. Absolute
+            # property checked here: such a pass is denied, or recirculated to the return port, or its
+            # private headers are gone; never forwarded with an envelope.
+            new = _engine.last_new
+            leak = (new['valid'].get('event') and new['fields']['md.drop_ctl'] == 0
+                    and new['fields']['tm.ucast_egress_port'] != 68)
+            hist[('H2-GUARD-MISS',)] = hist.get(('H2-GUARD-MISS',), 0) + 1
+            if leak:
+                bad.append((case['label'], case['bank'], 'private envelope leaves on a front-panel port'))
+            continue
         ev = obs['fields'].get('hdr.event.event') if obs['valid'].get('event') else None
         tag = ('ev=%s' % (hex(ev) if ev is not None else 'none'), 'drop=%d' % obs['fields']['md.drop_ctl'],
                'port=%d' % obs['fields']['tm.ucast_egress_port'])

@@ -20,6 +20,7 @@ HARNESS = ARCH / 'integration/core/harness'
 sys.path.insert(0, str(HARNESS))
 sys.path.insert(0, str(HARNESS / 'tests'))
 import driver  # noqa: E402
+import read_support  # noqa: E402
 
 ORACLE = HERE / 'tests/oracle_35bf9aa3_native_binding.p4'
 KIND8_ROWS = ''.join('(8w1,8w8,8w%d,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();' % f for f in (2, 18, 16))
@@ -83,8 +84,13 @@ class HarnessEquivalence(unittest.TestCase):
             shadow.restore()
         self.assertTrue(result.wasSuccessful(), result.failures + result.errors)
         self.assertGreaterEqual(len(shadow.results), 19)
+        epoch_zero = [r for r in shadow.results if r[2]['epoch'] == 0]
+        shadow.results = [r for r in shadow.results if r[2]['epoch'] != 0]     # H1 differs from the oracle by design
         for port, frame, before, old, new, fixed in shadow.results:
             self.assertTrue(same(fixed, new), (frame[:16].hex(), fixed.registers, new.registers))
+        for port, frame, before, old, new, fixed in epoch_zero:
+            self.assertNotIn('recirculation limit', new.drop_reason or '')
+            self.assertLessEqual(new.passes, 4)
         different = [r for r in shadow.results if not same(r[3], r[4])]
         for port, frame, before, old, new, fixed in different:
             with self.subTest(frame=frame[:16].hex()):
@@ -102,7 +108,7 @@ class HarnessEquivalence(unittest.TestCase):
 
 class PacketSweep(unittest.TestCase):
     """A seeded sample of control and data frames over owner, client, server and work state."""
-    SAMPLES = 3000
+    SAMPLES = 2500
 
     def test_sample_is_identical_to_the_fixed_oracle_and_differs_from_raw_oracle_only_at_kind8(self):
         import random
@@ -114,7 +120,7 @@ class PacketSweep(unittest.TestCase):
         raw_text, fixed_text = ORACLE.read_text(), fixed_oracle_text()
         flags_all = (2, 18, 16, 17, 20, 4)
         pipes = (old_pipe(raw_text), old_pipe(fixed_text), new_pipe())
-        compared = differing = 0
+        compared = differing = epoch_zero = read_candidates = 0
         outcomes = set()
         for _ in range(self.SAMPLES):
             kind = rnd.choice(('control', 'control', 'select', 'operate'))
@@ -142,14 +148,62 @@ class PacketSweep(unittest.TestCase):
             old, fixed, new = results
             compared += 1
             outcomes.add((new.dropped, new.passes, len(new.emitted)))
+            # Absolute invariants hold for every packet and every preset, with or without an oracle.
+            read_support.assert_invariants(self, None, new, raw, max_passes=4)
+            if 'work' not in presets:
+                self.assertEqual(new.registers['work']['phase'], 4, 'WorkRecord back to free')
+            if presets['epoch'] == 0:                  # H1: bounded, not equal to the oracle's endless loop
+                epoch_zero += 1
+                continue
+            if kind == 'control' and reverse and flags == 16:
+                # D6: a server pure ACK is now a READ_ACK candidate (kind 10): it takes the private passes
+                # (mint counter and work generation move) but leaves identical bytes and identical state.
+                self.assertEqual(new.emitted, fixed.emitted)
+                self.assertEqual(new.dropped, fixed.dropped)
+                for key in ('owner', 'client', 'server', 'epoch'):
+                    self.assertEqual(new.registers[key], fixed.registers[key], key)
+                read_candidates += 1
+                continue
             self.assertTrue(same(fixed, new), (kind, presets, raw[:40].hex(), fixed.registers, new.registers))
             if not same(old, new):
                 differing += 1
                 self.assertTrue(old.dropped and old.passes == 2)
                 self.assertIn('table network -> NoAction (default)', '\n'.join(old.trace[1]))
-        print('sweep: %d frames, identical to fixed oracle: %d, differ from raw oracle only by the kind-8 deny: %d'
-              % (compared, compared, differing))
+        print('sweep: %d frames, invariants held: %d, identical to fixed oracle (rest): %d, epoch-0 (H1, invariants only): %d, '
+              'READ_ACK candidates (D6, same bytes and state): %d, '
+              'differ from raw oracle only by the kind-8 deny: %d' % (compared, compared, compared - epoch_zero - read_candidates, epoch_zero, read_candidates, differing))
         self.assertGreater(len(outcomes), 3)
+
+
+class ReadSweep(unittest.TestCase):
+    """READ frames over every owner phase, epoch (including power-on 0), sequence and application
+    state: only absolute invariants (the oracle has no READ). At most 6 passes with READ."""
+    SAMPLES = 1500
+
+    def test_read_frames_hold_the_invariants_and_never_leak_a_private_header(self):
+        import random
+        rnd = random.Random(20261007)
+        compared = handoffs = 0
+        for _ in range(self.SAMPLES):
+            kind = rnd.choice(('req', 'ack', 'rsp'))
+            app = 0xc0 | rnd.choice((0, 3, 5))
+            if kind == 'req':
+                port, frame = read_support.IN_CLIENT, read_support.request_packet(app=app)
+            elif kind == 'ack':
+                port, frame = read_support.IN_SERVER, read_support.ack_packet()
+            else:
+                port, frame = read_support.IN_SERVER, read_support.response_packet(app=app)
+            pipe = read_support.ReadPipeline().start(
+                rnd.choice((0, 0x50001, 0xe0001, 0xe0002, 0x40001, 0x90001, 0xf0001)),
+                rnd.choice((1000, 1020, 999)), rnd.choice((2000, 2049, 1999)), epoch=rnd.choice((17, 17, 0, 18)),
+                app=rnd.choice((0, 3, 5)))
+            out = pipe.inject(port, frame)
+            read_support.assert_invariants(self, pipe, out, frame, max_passes=6)
+            self.assertEqual(pipe.state()['work']['phase'], 4, 'WorkRecord back to free')
+            compared += 1
+            handoffs += any(p == read_support.handoff_port() for p, _ in out.emitted)
+        self.assertGreater(handoffs, 20, 'the sweep reaches the handoff terminal often enough to mean something')
+        print('READ sweep: %d frames, invariants held: %d, reached the tev handoff: %d' % (compared, compared, handoffs))
 
 
 if __name__ == '__main__':

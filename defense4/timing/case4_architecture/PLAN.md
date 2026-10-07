@@ -21,7 +21,7 @@ Use one implementation owner and one bounded reviewer. Reuse the sources listed
 in [HANDOVER.md](HANDOVER.md). Resume at step1; compile only after a meaningful
 integration change. Do not rerun unaffected legacy suites or failed layouts.
 
-1. **Restore a correct transparent connection path.** *(Source-fragment repair done 2026-10-06, see LEDGER.md; compile native_03 fails 19/12 stages; no packet harness yet.)* Fix native binding's SYN,
+1. **Restore a correct transparent connection path.** *(Done at source level 2026-10-07: restructured binding fits 12/12 stages on the Tofino-1 compiler (`native_11`), the whole-program source harness runs the four witnesses, native READ kinds 9-11 and the review fixes H1/H2 are in; see LEDGER.md. The 2026-10-06 note that kind 8 forwards was false until b977ad426. Not target-, model- or hardware-verified here.)* Fix native binding's SYN,
    SYNACK/final-ACK retries and established pure ACKs: the retained source currently
    turns them into event01ff and drops them. Keep malformed/foreign traffic from
    mutating an owner, while preserving ordinary supported forwarding. Use the

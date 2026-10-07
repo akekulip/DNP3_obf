@@ -53,6 +53,7 @@ LD_PRELOAD="$HERE/model_shim/pagemap_shim.so" bf_switchd --install-dir $SDE_INST
   --init-mode=cold --status-port 7777 --background > switchd.out 2>&1 &
 for i in $(seq 1 ${WAIT:-15}); do ss -lnt | grep -q ':50052 ' && break; sleep 1; done
 ss -lnt | grep -q ':50052 ' || { echo "FAIL: bf_switchd gRPC (50052) never came up"; tail -5 switchd.out; exit 3; }
+grep -q 'device_add failed' switchd.out && { echo "FAIL: device add failed (program did not load):"; grep -E 'ERROR' switchd.out | head -4; exit 4; }
 sleep 1
 if [ -n "$POST_DRIVER" ]; then python3 "$POST_DRIVER" $DRIVER_ARGS; rc=$?; else sleep ${HOLD:-0}; rc=0; fi
 echo "driver exit code $rc"

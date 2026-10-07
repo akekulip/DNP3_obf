@@ -1,0 +1,41 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(95): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(99): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(128): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(174): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(34): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(34)
+parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(373): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+                                                           ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(373)
+parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+       ^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Werror=unsupported] error: Two or more assignments of r inside the register action read_epoch are not mutually exclusive and thus cannot be implemented in Tofino Stateful ALU.
+	These potentially sequential assignments have been detected here:
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(130)
+ RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) read_epoch={void apply(inout bit<32> v,out bit<32> r){r=v;if(v==32w0){r=32w0xffffffff;}}};
+                                                                                                      ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(130)
+ RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) read_epoch={void apply(inout bit<32> v,out bit<32> r){r=v;if(v==32w0){r=32w0xffffffff;}}};
+                                                                                                                      ^
+Please, rewrite your code to make sure the value is assigned no more than once in all cases.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/native_09/source/native_binding.p4(130): [--Werror=unsupported] error: In Stateful ALU, only two values can be computed per apply. Value(s) written back to the register, including unchanged values (even if not explicitly included in the P4 code), count as computed values.
+ RegisterAction<bit<32>,bit<1>,bit<32>>(epoch) read_epoch={void apply(inout bit<32> v,out bit<32> r){r=v;if(v==32w0){r=32w0xffffffff;}}};
+                                                                ^^^^^
+
+2 errors, 8 warnings generated.
+

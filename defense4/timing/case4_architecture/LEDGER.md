@@ -89,3 +89,40 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   also needs `work.apply(args)`, range keys and multi-pass recirculation. The
   `integration/core/` packet harness is therefore still absent; step 1 is NOT
   target- or packet-verified.
+- 2026-10-07 CORRECTION of the 2026-10-06 step-1 entry above. Its claim that kind 8 "leaves as
+  the original" was FALSE at 78a0b50da: `network` had no kind-8 rows, so the private forwarding
+  pass was denied on pass 2 (`else if(m.stage!=8w0){deny();}`). The fragment tests never applied
+  `network`. Found by the whole-program harness; fixed in b977ad426 (rows for flags 2, 18, 16), with
+  `test_network_admits_the_private_forwarding_pass_for_kind_8` so it cannot recur. The binding was
+  also restructured there to 11 stages (`native_04`).
+- 2026-10-07 native READ (kinds 9 REQ, 10 ACK, 11 RSP) and review fixes, `generate.py` ->
+  `native_binding.p4` (sha c2352572...). Source-level and Tofino-compiler evidence only; no model,
+  no hardware. Compile `integration/evidence/native_11`: 12 ingress stages (limit 12, critical path
+  11, no margin), PHV 51.6 percent, ingress power 16.6, `verify_evidence` all True, static-entry scan
+  clean. Failed compiles are kept: native_05 and native_06 (table applied twice), native_07 (condition
+  too complex), native_09 (register action with two non-exclusive assignments), native_10 (13 stages).
+  * READ: parser, network, guard, owner and first_event rows; owner 5->13->14 (request), nonmutating
+    at 14 (ACK), 14->15->5 (response); the request application sequence is stored in its own
+    register and the response is matched against it (wrong sequence is denied, owner unchanged).
+    READ never enters the SELECT/OPERATE bank chain (`pk>=5` ordering predicates replaced by
+    explicit {5,6,7} tests). The terminal builds the 16-byte `tev` (epoch, wgen, t0q, kind, stage 0,
+    reserved 0) in front of the unchanged original and sends it to `READ_HANDOFF_PORT` (66,
+    PROVISIONAL, gate G-PORTS); `t0q` is the pass-0 timestamp with its low 8 bits zero. A server pure
+    ACK that is not an outstanding READ ACK is forwarded unchanged through the kind-8 passes.
+  * H1 fixed: epoch register 0 no longer produces an envelope the parser rejects (snapshot writes a
+    nonzero sentinel; `first_close` copies the envelope epoch). H2 fixed: a return pass the guard does
+    not admit is aborted as kind 255 (work pin returned, denied at the terminal); a removed flow entry
+    is denied immediately and QUARANTINES the work pin (no guard, no way to advance it; only the
+    controller register reset frees it). Kind-255 passes are no longer gated on validation flags.
+  * M1: `split.py`, `split_binding.p4` and `test_split_binding.py` were removed. `split.py` no longer
+    regenerated (it needed ' action mint()') and its output described the pre-restructure two-pipe
+    layout. `integration/REPORT.md` still mentions it; that text is historical.
+  * M2 (pinned, not changed): when the WorkRecord is busy the claimed packet is not bound to a
+    private pass. SELECT, OPERATE, response, READ request, ACK and response are forwarded
+    transparently in one pass with no owner or bank change. This is silent (no counter) and is a design
+    gap: a stuck pin therefore disables binding for all traffic. `test_native_invariants.BusyWorkRecord`
+    pins it. A counted event needs a design note first.
+  * Known limit shared with SELECT/OPERATE: `client_t` is not keyed on the epoch difference, so the
+    client position bank is stored under a foreign epoch (the owner is not).
+  * Model finding: native_04 declared `sequence_diff` size 8 with 9 const entries and would not load.
+    Every table now has size >= const entries (`test_native_static_entries.py`).

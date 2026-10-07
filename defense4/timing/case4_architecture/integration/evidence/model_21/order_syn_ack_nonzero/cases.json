@@ -1,0 +1,121 @@
+{
+ "cases": [
+  {
+   "expected": "harness",
+   "frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000560021000b0410000020405dc",
+   "frames_equal": true,
+   "harness": {
+    "drop_reason": "recirculation limit of 8 passes exceeded",
+    "dropped": true,
+    "emitted": [],
+    "passes": 8
+   },
+   "harness_registers": {
+    "('', 'application')": 0,
+    "('', 'client')": 0,
+    "('', 'counter')": 1,
+    "('', 'epoch')": 0,
+    "('', 'frozen_decoy_off')": 0,
+    "('', 'owner')": 0,
+    "('', 'pair_frozen_decoy_object_frozen_decoy_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_native_end_server_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_links_real_tcp_src')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_object_real_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_off_native_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_tcp_dst_real_tcp_ports')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'server')": 0,
+    "('work', 'work')": {
+     "generation": 1,
+     "phase": 1
+    }
+   },
+   "in_port": 1,
+   "model": {
+    "emitted": [],
+    "passes": 317
+   },
+   "model_registers": {
+    "('', 'application')": 0,
+    "('', 'client')": 0,
+    "('', 'counter')": 1,
+    "('', 'epoch')": 0,
+    "('', 'frozen_decoy_off')": 0,
+    "('', 'owner')": 0,
+    "('', 'pair_frozen_decoy_object_frozen_decoy_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_native_end_server_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_links_real_tcp_src')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_object_real_on')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_off_native_start')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'pair_real_tcp_dst_real_tcp_ports')": {
+     "first": 0,
+     "second": 0
+    },
+    "('', 'server')": 0,
+    "('work', 'work')": {
+     "generation": 1,
+     "phase": 1
+    }
+   },
+   "model_work_free": false,
+   "model_work_record": {
+    "generation": 1,
+    "phase": 1
+   },
+   "name": "order_syn_ack_nonzero/0:syn",
+   "observed": "MISMATCH",
+   "ok": false,
+   "passes_equal": false,
+   "register_diffs": {},
+   "stray_model_frames": []
+  }
+ ],
+ "meta": {
+  "harness_source_sha": "4ee923b9cea27ee6e7a09de5cf3af94486c1ee9fcde6055c5c31ace8b979e757",
+  "ports": [
+   1,
+   2,
+   9
+  ]
+ },
+ "program": "native_binding",
+ "summary": {
+  "failed": [
+   "order_syn_ack_nonzero/0:syn"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

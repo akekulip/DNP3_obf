@@ -42,23 +42,41 @@ def generate():
     extras=''.join(re.search(r'(header '+name+r'\{[^\n]+\n)',selected)[1] for name in
         ('dl_h','block_h','tail_h','response_tail_h'))
     extras+=re.search(r'(struct object_pair_t\{[^\n]+\n)',selected)[1]
+    # READ (kinds 9..11): the 20-byte request body, the 3-byte response tail, and the private
+    # 4-byte pass-0 timestamp that rides with the envelope until the terminal builds the `tev`.
+    extras+='header read_req_h{bit<8> tp;bit<8> app;bit<8> func;bit<8> group;bit<8> variation;bit<8> qualifier;bit<8> first;bit<8> last;bit<16> crc;}\n'
+    extras+='header read_tail_h{bit<8> value;bit<16> crc;}\nheader t0_h{bit<32> t0q;}\n'
     text=text.replace('header eth_h{',extras+'header eth_h{')
-    text=text.replace('mss_h mss;}', 'mss_h mss;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;}')
+    text=once(text,'event_h event;eth_h eth;','event_h event;t0_h t0;eth_h eth;')
+    text=text.replace('mss_h mss;}', 'mss_h mss;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;read_req_h rd_req;read_tail_h rd_tail;}')
+    # Provisional N-to-T handoff egress (STEP2_DESIGN.md 1.1, gate G-PORTS): not a verified port.
+    text=once(text,'const PortId_t RETURN_PORT=9w68;','const PortId_t RETURN_PORT=9w68;\nconst PortId_t READ_HANDOFF_PORT=9w66;')
     existing={name for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(text,'struct meta_t'))}
     added=''.join(kind+' '+name+';' for kind,name in re.findall(r'(bit<\d+>|bool|PortId_t) (\w+);',braced(selected,'struct meta_t')) if name not in existing)
-    text=text.replace('struct meta_t{','struct meta_t{'+added+'bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;')
+    text=text.replace('struct meta_t{','struct meta_t{'+added+'bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;')
     text=text.replace('WorkRecord() work;','ExpectedWorkRecord() work;')
     text=text.replace('MSS-only TCP: final ACK+SELECT still REQUIRED and blocked in this P4.',
         'Actual native35 final ACK+SELECT admitted; composed transformation remains blocked.')
     text=text.replace('m.parsed=8w0;', 'm.parsed=8w0;m.enabled=8w0;m.profile=8w0;m.response=8w0;m.matched=8w0;m.data_valid=8w0;m.cache_mode=8w0;m.badh=8w0;m.badb=8w0;m.bad1=8w0;m.badt=8w0;')
     # Role paths avoid retaining IP-length PMRs across later TCP selectors.
-    text=text.replace('(4w4,4w5,8w6,16w44):ip_flags;', '(4w4,4w5,8w6,16w44):ip_flags;(4w4,4w5,8w6,16w75):native_ip_flags;(4w4,4w5,8w6,16w97):response_ip_flags;')
+    text=text.replace('(4w4,4w5,8w6,16w44):ip_flags;', '(4w4,4w5,8w6,16w44):ip_flags;(4w4,4w5,8w6,16w75):native_ip_flags;(4w4,4w5,8w6,16w97):response_ip_flags;(4w4,4w5,8w6,16w60):read_ip_flags;(4w4,4w5,8w6,16w89):read_response_ip_flags;')
     mark=text.index(' state finish{')
     states=''
     for role,next_state in (('native','native_block'),('response','response_block')):
         states+=f''' state {role}_ip_flags{{transition select(hdr.ip.frag,hdr.ip.flags){{(13w0,3w0):{role}_tcp;(13w0,3w2):{role}_tcp;default:accept;}}}}
  state {role}_tcp{{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){{(4w5,4w0,16w0,8w16):{role}_dl;(4w5,4w0,16w0,8w24):{role}_dl;default:accept;}}}}
  state {role}_dl{{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition {next_state};}}
+'''
+    for role,next_state in (('read','read_request'),('read_response','read_response_block')):
+        states+=f''' state {role}_ip_flags{{transition select(hdr.ip.frag,hdr.ip.flags){{(13w0,3w0):{role}_tcp;(13w0,3w2):{role}_tcp;default:accept;}}}}
+ state {role}_tcp{{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){{(4w5,4w0,16w0,8w16):{role}_dl;(4w5,4w0,16w0,8w24):{role}_dl;default:accept;}}}}
+ state {role}_dl{{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition {next_state};}}
+'''
+    states+=''' state read_request{pkt.extract(hdr.rd_req);tc.subtract(hdr.rd_req);m.packet_kind=8w9;transition finish;}
+ state read_response_block{pkt.extract(hdr.first);tc.subtract(hdr.first);transition read_response_second;}
+ state read_response_second{pkt.extract(hdr.second);tc.subtract(hdr.second);transition read_response_tail;}
+ state read_response_tail{pkt.extract(hdr.rd_tail);tc.subtract(hdr.rd_tail);m.packet_kind=8w11;transition finish;}
+ state read_t0{pkt.extract(hdr.t0);transition eth;}
 '''
     states+=''' state native_block{pkt.extract(hdr.first);tc.subtract(hdr.first);transition native_tail;}
  state native_tail{pkt.extract(hdr.tail);tc.subtract(hdr.tail);transition select(hdr.first.w0[15:8]){8w3:select_finish;8w4:operate_finish;default:accept;}}
@@ -72,15 +90,17 @@ def generate():
     # The private envelope carries original operation, never a supplied CRC bit.
     marker=text.index(' state envelope_event{');end=text.index('\n',marker)
     line=text[marker:end]
-    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (5,6,7,8))+'default:accept;')
+    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (5,6,7,8))+''.join(f'16w0x{s:02x}{k:02x}:read_t0;' for s in (1,2,3) for k in (9,10,11))+'default:accept;')
     text=text[:marker]+line+text[end:]
     network_start=text.index(' table network{');network_end=text.index('\n action syn_shape',network_start)
     network=text[network_start:network_end]
-    network=network.replace('size=8;', 'size=20;').replace('size=9;', 'size=21;')
+    network=network.replace('size=8;', 'size=24;').replace('size=9;', 'size=25;')
     at=network.rindex('}}')
     rows=''.join(f'(8w1,8w{k},8w{flags},false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();' for k in (5,6,7) for flags in (16,24))
     # The private forwarding pass (kind 8) re-enters on the original SYN, SYNACK or ACK flags.
     rows+=''.join(f'(8w1,8w8,8w{flags},false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();' for flags in (2,18,16))
+    # READ private passes: request and response ride TCP flags 16 or 24, the server ACK flags 16.
+    rows+=''.join(f'(8w1,8w{k},8w{flags},false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();' for k,fl in ((9,(16,24)),(10,(16,)),(11,(16,24))) for flags in fl)
     network=network[:at]+rows+network[at:]
     text=text[:network_start]+network+text[network_end:]
     # Reuse the actual selected22 native/response/profile/CRC source algorithms.
@@ -120,6 +140,45 @@ def generate():
     bank_text+='''action calculate_native_end(){m.native_end=hdr.tcp.seq+32w35;}
 table calculate_native_end_t{actions={calculate_native_end;}size=1;const default_action=calculate_native_end();}
 '''
+    # Native READ (kinds 9..11), validated like the frozen validator.p4 observer: tuple and link
+    # addresses from the controller, the exact profile, and every DNP3 CRC. The application
+    # sequence of the request is stored and the response is matched against it, in one register
+    # that is separate from the SELECT/OPERATE banks, which READ never touches.
+    bank_text+='''action read_configure(bit<16> dst,bit<16> src){m.enabled=8w1;m.link_dst=dst;m.link_src=src;}
+table read_connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;}actions={read_configure;NoAction;}size=2;default_action=NoAction();}
+table read_request_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req.tp:ternary;hdr.rd_req.app:ternary;hdr.rd_req.func:exact;hdr.rd_req.group:exact;hdr.rd_req.variation:exact;hdr.rd_req.qualifier:exact;hdr.rd_req.first:exact;hdr.rd_req.last:exact;}
+ actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w13,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,8w10,8w2,8w0,8w0,8w22):eligible();}}
+table read_response_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.first.w0[31:24]:ternary;hdr.first.w0[23:16]:ternary;hdr.first.w0[15:8]:exact;hdr.first.w1[23:16]:exact;hdr.first.w1[15:8]:exact;hdr.first.w1[7:0]:exact;hdr.first.w2[31:24]:exact;hdr.first.w2[23:16]:exact;}
+ actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();}}
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_head;
+action rd_head_crc(){m.hcrc=hash_rd_head.get({hdr.dl.magic,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}
+table rd_head_t{actions={rd_head_crc;}size=1;const default_action=rd_head_crc();}
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_first;
+action rd_first_crc(){m.bcrc=hash_rd_first.get({hdr.first.w0,hdr.first.w1,hdr.first.w2,hdr.first.w3});}
+table rd_first_crc_t{actions={rd_first_crc;}size=1;const default_action=rd_first_crc();}
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;
+action rd_second_crc(){m.crc1=hash_rd_second.get({hdr.second.w0,hdr.second.w1,hdr.second.w2,hdr.second.w3});}
+table rd_second_crc_t{actions={rd_second_crc;}size=1;const default_action=rd_second_crc();}
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_request;
+action rd_request_crc(){m.bcrc=hash_rd_request.get({hdr.rd_req.tp,hdr.rd_req.app,hdr.rd_req.func,hdr.rd_req.group,hdr.rd_req.variation,hdr.rd_req.qualifier,hdr.rd_req.first,hdr.rd_req.last});}
+table rd_request_crc_t{actions={rd_request_crc;}size=1;const default_action=rd_request_crc();}
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;
+action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value});}
+table rd_tail_crc_t{actions={rd_tail_crc;}size=1;const default_action=rd_tail_crc();}
+action read_request_input(){m.compare_read_app=(bit<32>)(hdr.rd_req.app[3:0]);}
+action read_response_input(){m.compare_read_app=(bit<32>)(hdr.first.w0[19:16]);}
+table read_input_t{key={m.packet_kind:exact;}actions={read_request_input;read_response_input;NoAction;}size=2;const entries={8w9:read_request_input();8w11:read_response_input();}const default_action=NoAction();}
+Register<bit<32>,bit<1>>(1,0) read_app;
+RegisterAction<bit<32>,bit<1>,bit<32>>(read_app) write_read_app={void apply(inout bit<32> v,out bit<32> r){v=m.compare_read_app;r=v;}};
+RegisterAction<bit<32>,bit<1>,bit<8>>(read_app) check_read_app={void apply(inout bit<32> v,out bit<8> r){r=8w0;if(v==m.compare_read_app){r=8w1;}}};
+action store_read_app(){write_read_app.execute(1w0);}
+action match_read_app(){m.matched=check_read_app.execute(1w0);}
+table read_app_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_read_app;match_read_app;NoAction;}size=2;const entries={(8w1,8w9,32w1,32w0):store_read_app();(8w0,8w11,32w4,_):match_read_app();}const default_action=NoAction();}
+action emit_tev(bit<16> event){hdr.expected_cell.expected_cell=hdr.t0.t0q;hdr.event.event=event;hdr.t0.setInvalid();tm.ucast_egress_port=READ_HANDOFF_PORT;m.emit_loop=8w0;}
+action terminal_strip(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();}
+action terminal_abort(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();md.drop_ctl=3w1;}
+table read_terminal_t{key={m.kind:exact;}actions={emit_tev;terminal_strip;terminal_abort;}size=4;const entries={8w9:emit_tev(16w0x0900);8w10:emit_tev(16w0x0a00);8w11:emit_tev(16w0x0b00);8w255:terminal_abort();}const default_action=terminal_strip();}
+'''
     # One ternary guard replaces data_guard, return_kind_guard, direction_guard and mint_t.
     # A hit is the old condition `direction!=0 && data_valid==1` (after return_kind_guard at
     # stage!=0 and direction_guard/shape at stage 0), and the action also does the old
@@ -128,35 +187,53 @@ table calculate_native_end_t{actions={calculate_native_end;}size=1;const default
     good='8w1,8w1,8w0,8w0,8w0,8w0'   # enabled, profile, badh, badb, bad1, badt
     wild='_,_,_,_,_,_'
     rows=[]
-    for pk,direction in ((1,1),(2,2),(3,1),(4,1),(4,2),(5,1),(6,2),(7,1)):
-        rows.append('(8w0,8w%d,8w0,8w%d,8w1,%s):%s;'%(pk,direction,good if pk>=5 else wild,'go_keep(8w4)' if pk==4 else 'go_new(8w%d)'%pk))
-    for kind,pk in [(k,k) for k in range(1,8)]+[(8,1),(8,2),(8,3)]:
-        rows.append('(_,8w%d,8w%d,_,_,%s):%s;'%(pk,kind,good if pk>=5 else wild,'go_ret_nowork()' if kind==4 else 'go_ret_work()'))
-    for pk in (5,6,7):
-        rows.append('(_,8w%d,8w255,_,_,%s):go_ret_work();'%(pk,good))
-    for pk in (5,6,7):
-        rows.append('(_,8w%d,8w255,_,_,_,_,_,_,_,_):NoAction();'%pk)
+    validated=(5,6,7,9,11)   # packet kinds whose frame passed profile and CRC validation
+    # (packet kind, direction, event kind). Kind 10 is a server pure ACK (packet kind 3).
+    for pk,direction,kind in ((1,1,1),(2,2,2),(3,1,3),(4,1,4),(4,2,4),(5,1,5),(6,2,6),(7,1,7),(9,1,9),(11,2,11),(3,2,10)):
+        rows.append('(8w0,8w%d,8w0,8w%d,8w1,%s):%s;'%(pk,direction,good if pk in validated else wild,'go_keep(8w4)' if pk==4 else 'go_new(8w%d)'%kind))
+    for kind,pk in [(k,k) for k in range(1,8)]+[(8,1),(8,2),(8,3),(9,9),(10,3),(11,11)]:
+        rows.append('(_,8w%d,8w%d,_,_,%s):%s;'%(pk,kind,good if pk in validated else wild,'go_ret_nowork()' if kind==4 else 'go_ret_work()'))
+    # Kind 255 (abort) passes carry no validation: they only return the work pin and deny.
     rows.append('(_,_,8w255,_,_,%s):go_ret_work();'%wild)
+    # A return pass nothing above admits (profile or flow entry removed mid-flight, a relabelled
+    # event, a bad flag): it is aborted as kind 255 but still returns its work pin, so the packet
+    # is denied at the terminal and never leaves with a private envelope.
+    rows+=['(8w%d,_,_,_,_,%s):go_ret_abort();'%(stage,wild) for stage in (1,2,3)]
     guard='''action go_new(bit<8> k){m.go=8w1;m.kind=k;m.generation=allocate.execute(1w0);m.work_op=8w1;}
 action go_keep(bit<8> k){m.go=8w1;m.kind=k;}
 action go_ret_work(){m.go=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;}
 action go_ret_nowork(){m.go=8w1;m.generation=hdr.work_generation.generation;}
+action go_ret_abort(){m.go=8w1;m.kind=8w255;m.generation=hdr.work_generation.generation;m.work_op=8w2;hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();}
 table guard{key={m.stage:ternary;m.packet_kind:ternary;m.kind:ternary;m.direction:ternary;m.shape_valid:ternary;m.enabled:ternary;m.profile:ternary;m.badh:ternary;m.badb:ternary;m.bad1:ternary;m.badt:ternary;}
-actions={go_new;go_keep;go_ret_work;go_ret_nowork;NoAction;}size=40;const default_action=NoAction();const entries={'''+''.join(rows)+'}}\n'
+actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48;const default_action=NoAction();const entries={'''+''.join(rows)+'}}\n'
     mark=text.index(' apply{\n  m.work_op=');text=text[:mark]+bank_text+guard+text[mark:]
     # Both commits use actual validated payload sizes; no nominal timer inputs.
     text=once(text,'table next_seq_t{actions={next_seq;}',
-        'action next_control(){m.new_seq=hdr.tcp.seq+32w35;}\n action next_response(){m.new_seq=hdr.tcp.seq+32w57;}\n table next_seq_t{key={m.packet_kind:exact;}actions={next_seq;next_control;next_response;}')
+        'action next_control(){m.new_seq=hdr.tcp.seq+32w35;}\n action next_response(){m.new_seq=hdr.tcp.seq+32w57;}\n action next_read_request(){m.new_seq=hdr.tcp.seq+32w20;}\n action next_read_response(){m.new_seq=hdr.tcp.seq+32w49;}\n table next_seq_t{key={m.packet_kind:exact;}actions={next_seq;next_control;next_response;next_read_request;next_read_response;}')
     text=once(text,'size=1;const default_action=next_seq();}',
-        'size=3;const entries={8w5:next_control();8w7:next_control();8w6:next_response();}const default_action=next_seq();}')
-    for bank,kinds in (('client',(5,7)),('server',(6,))):
+        'size=5;const entries={8w5:next_control();8w7:next_control();8w6:next_response();8w9:next_read_request();8w11:next_read_response();}const default_action=next_seq();}')
+    for bank,kinds in (('client',(5,7,9)),('server',(6,11))):
         begin=text.index(' table '+bank+'_t{');stop=text.index('\n',text.index(' const entries=',begin))
         bank_table=text[begin:stop]
         where=bank_table.index('}const default_action=')
         bank_table=bank_table[:where]+''.join('(8w1,8w'+str(k)+',32w1,8w2):store_'+bank+'();' for k in kinds)+bank_table[where:]
         bank_table=bank_table.replace('size=1;', 'size='+str(1+len(kinds))+';')
         text=text[:begin]+bank_table+text[stop:]
-    text=once(text,'table sequence_diff{','action ack_native(){m.ack_native=hdr.tcp.ack-32w20;}\n table ack_native_t{actions={ack_native;}size=1;const default_action=ack_native();}\n action diff_response(){m.client_diff=m.ack_native-m.client;m.server_diff=hdr.tcp.seq-m.server;}\n table data_sequence_diff{key={m.packet_kind:exact;}actions={diff_forward;diff_response;NoAction;}size=3;const entries={8w5:diff_forward();8w6:diff_response();8w7:diff_forward();}const default_action=NoAction();}\n table sequence_diff{')
+    # One ternary sequence table: data frames are selected by packet kind (no `>=5` ordering,
+    # so the READ kinds 9 and 11 are never mistaken for SELECT/OPERATE), everything else by
+    # direction and flags exactly as before. First match wins.
+    begin=text.index(' table sequence_diff{');stop=text.index('\n',text.index(' const entries=',begin))
+    old_rows=re.findall(r'\((8w\d+),(8w\d+)\):(\w+\(\));',text[begin:stop])
+    assert len(old_rows)==9 and text[begin:stop].endswith('}}'),old_rows
+    data_rows=((5,'diff_forward'),(6,'diff_response'),(7,'diff_forward'),(9,'diff_forward'),(11,'diff_read_response'))
+    rows=''.join('(8w%d,_,_):%s();'%r for r in data_rows)+''.join('(_,%s,%s):%s;'%r for r in old_rows)+'(8w3,8w2,8w16):diff_reverse();'
+    text=text[:begin]+''' action ack_native(){m.ack_native=hdr.tcp.ack-32w20;}
+ table ack_native_t{actions={ack_native;}size=1;const default_action=ack_native();}
+ action diff_response(){m.client_diff=m.ack_native-m.client;m.server_diff=hdr.tcp.seq-m.server;}
+ action diff_read_response(){m.client_diff=hdr.tcp.ack-m.client;m.server_diff=hdr.tcp.seq-m.server;}
+ table sequence_diff{key={m.packet_kind:ternary;m.direction:ternary;hdr.tcp.flags:ternary;}
+ actions={diff_syn;diff_synack;diff_forward;diff_reverse;diff_reset_forward;diff_reset_reverse;diff_response;diff_read_response;NoAction;}size=20;const default_action=NoAction();
+ const entries={'''+rows+'}}'+text[stop:]
     # Epoch authority: the bank returns the live difference (zero means equal) and the
     # install returns zero, so epoch_diff_t is gone. The difference is reg-minus-header
     # (the old table computed header-minus-reg); every consumer only tests it against zero.
@@ -173,31 +250,53 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;NoAction;}size=40;const defaul
     # Owner CAS returns observed-minus-expected (still compare-and-swap on equality).
     text=once(text,'(owner) compare_owner={void apply(inout bit<32> v,out bit<32> r){r=v;if(v==m.expected){v=m.desired;}}};',
         '(owner) compare_owner={void apply(inout bit<32> v,out bit<32> r){r=v-m.expected;if(v==m.expected){v=m.desired;}}};')
+    # H1: the epoch register powers on at 0, which the envelope parser treats as "no envelope". A
+    # snapshot must never carry 0, so snapshot_t has a second action, chosen by the epoch itself in the
+    # same table (no extra stage), that writes a nonzero sentinel instead.
+    snap=re.search(r' action snapshot\(\)\{[^\n]*\n table snapshot_t\{[^\n]*\n',text)
+    assert snap and text.count(' action snapshot()')==1
+    action=re.search(r' action snapshot\(\)\{[^\n]*\}',snap[0])[0]
+    zero=action.replace('action snapshot()','action snapshot_epoch_zero()').replace('hdr.envelope.epoch=m.epoch;','hdr.envelope.epoch=32w0xffffffff;')
+    assert zero!=action.replace('snapshot()','snapshot_epoch_zero()')
+    table=' table snapshot_t{key={m.epoch:exact;}actions={snapshot;snapshot_epoch_zero;}size=1;const entries={32w0:snapshot_epoch_zero();}const default_action=snapshot();}\n'
+    text=text.replace(snap[0],action+'\n'+zero+'\n'+table)
+    text=once(text,'hdr.work_generation.generation=m.epoch;}','hdr.work_generation.generation=hdr.envelope.epoch;}')   # nonzero even at power-on
+    # An abort drops the READ timestamp word with the kind, so the next pass parses a plain kind-255 envelope.
+    text=once(text,'action abort_work(){hdr.event.event[7:0]=8w255;}','action abort_work(){hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();}')
     text=once(text,'action owner_cas(){m.observed=compare_owner.execute(1w0);}','action owner_cas(){m.owner_diff=compare_owner.execute(1w0);}')
     # Native SELECT/response/OPERATE owner commands for the claim and publication passes.
     marker=text.index(' table owner_command{');end=text.index(' action owner_read()',marker)
-    command=text[marker:end].replace('close_free;NoAction;', 'close_free;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;NoAction;').replace('size=10;', 'size=16;')
+    command=text[marker:end].replace('close_free;NoAction;', 'close_free;claim_select;publish_select;claim_response;publish_response;claim_operate;publish_operate;claim_read;publish_read;claim_read_rsp;publish_read_rsp;NoAction;').replace('size=10;', 'size=20;')
     at=command.rindex('}}')
     command=command[:at]+''.join(f'(8w{s},8w{k},32w{s},32w0):{a}();' for s,k,a in
-        ((1,5,'claim_select'),(2,5,'publish_select'),(1,6,'claim_response'),(2,6,'publish_response'),(1,7,'claim_operate'),(2,7,'publish_operate')))+command[at:]
+        ((1,5,'claim_select'),(2,5,'publish_select'),(1,6,'claim_response'),(2,6,'publish_response'),(1,7,'claim_operate'),(2,7,'publish_operate'),(1,9,'claim_read'),(2,9,'publish_read'),(1,11,'claim_read_rsp'),(2,11,'publish_read_rsp')))+command[at:]
     actions=''.join(f'action {name}(){{m.expected=hdr.expected_cell.expected_cell;m.desired=16w{phase}++hdr.expected_cell.expected_cell[15:0];m.owner_op=8w1;}}\n' for name,phase in
-        (('claim_select',8),('publish_select',9),('claim_response',10),('publish_response',10),('claim_operate',11),('publish_operate',12)))
+        (('claim_select',8),('publish_select',9),('claim_response',10),('publish_response',10),('claim_operate',11),('publish_operate',12),
+        ('claim_read',13),('publish_read',14),('claim_read_rsp',15),('publish_read_rsp',5)))
     text=text[:marker]+actions+command+text[end:]
     # first_event now also carries the transparent-forward rows and the kind-4 strip row.
     # Entry order is semantics: first_* rows, then forward_original rows, then close_forward.
     marker=text.index(' table first_event{');end=text.index('\n action next_stage',marker)
     first=text[marker:end].replace('m.kind:exact;m.sequence_valid:exact;', 'm.kind:ternary;m.sequence_valid:ternary;m.matched:ternary;')
     first=re.sub(r'\(8w(\d+),8w1,32w',r'(8w\1,8w1,8w0,32w',first)
-    first=first.replace('first_close;NoAction;', 'first_close;first_select;first_response;first_operate;forward_original;close_forward;NoAction;')
-    first=first.replace('size=9;', 'size=40;')
+    first=first.replace('first_close;NoAction;', 'first_close;first_select;first_response;first_operate;first_read_request;first_read_ack;first_read_response;forward_original;close_forward;NoAction;')
+    first=first.replace('size=9;', 'size=48;')
     at=first.rindex('}}')
     phases={1:(2,3),2:(3,4,5),3:(5,8,9,10,11,12)}
+    # READ: a request needs the idle owner (phase 5), a response the outstanding owner (phase 14)
+    # and the stored application sequence (matched), an ACK the outstanding owner. An ACK that
+    # does not qualify is not a READ ACK: it is forwarded unchanged as a kind-8 original.
+    READ_FIRST=('(8w9,8w1,8w0,32w0x50000&&&32w0xffff0000):first_read_request();(8w11,8w1,8w1,32w0xe0000&&&32w0xffff0000):first_read_response();'
+        '(8w10,8w1,8w0,32w0xe0000&&&32w0xffff0000):first_read_ack();(8w10,_,_,_):forward_original();')
     forward=''.join('(8w%d,8w1,8w0,32w%s&&&32w0xffff0000):forward_original();'%(kind,hex(phase<<16)) for kind in (1,2,3) for phase in phases[kind])
-    first=first[:at]+'''(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();'''+''.join('(8w4,8w1,8w0,32w'+hex(phase<<16)+'&&&32w0xffff0000):first_close();' for phase in range(8,13))+forward+'(8w4,_,_,_):close_forward();'+first[at:]
+    first=first[:at]+'''(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();'''+''.join('(8w4,8w1,8w0,32w'+hex(phase<<16)+'&&&32w0xffff0000):first_close();' for phase in range(8,13))+forward+'(8w4,_,_,_):close_forward();'+READ_FIRST+first[at:]
     text=text[:marker]+'''action first_select(){hdr.event.event=16w0x0105;}
 action first_response(){hdr.event.event=16w0x0106;}
 action first_operate(){hdr.event.event=16w0x0107;}
  action forward_original(){hdr.event.event=16w0x0108;}
+ action first_read_request(){hdr.event.event=16w0x0109;hdr.t0.setValid();hdr.t0.t0q=p.global_tstamp[31:8]++8w0;}
+ action first_read_ack(){hdr.event.event=16w0x010a;hdr.t0.setValid();hdr.t0.t0q=p.global_tstamp[31:8]++8w0;}
+ action first_read_response(){hdr.event.event=16w0x010b;hdr.t0.setValid();hdr.t0.t0q=p.global_tstamp[31:8]++8w0;}
  action close_forward(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();m.emit_loop=8w0;tm.ucast_egress_port=m.output_port;}
 '''+first+text[end:]
     # Valid retries and established ACKs: the claimed work travels the normal four
@@ -218,20 +317,28 @@ action first_operate(){hdr.event.event=16w0x0107;}
     if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}
     if(m.response==8w1){if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}if(hdr.response_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}
     else{if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}
+   }else if(m.packet_kind==8w9||m.packet_kind==8w11){
+    read_connection.apply();rd_head_t.apply();
+    if(m.packet_kind==8w9){read_request_profile.apply();rd_request_crc_t.apply();}else{read_response_profile.apply();rd_first_crc_t.apply();rd_second_crc_t.apply();rd_tail_crc_t.apply();}
+    if(hdr.dl.dst!=m.link_dst||hdr.dl.src!=m.link_src){m.badh=8w1;}
+    if(hdr.dl.crc!=(m.hcrc[7:0]++m.hcrc[15:8])){m.badh=8w1;}
+    if(m.packet_kind==8w9){if(hdr.rd_req.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}}
+    else{if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}if(hdr.rd_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}
    }
    if(m.direction!=8w0){guard.apply();}
    if(m.go==8w1){
-    if(m.packet_kind>=8w5){
+    if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){
      calculate_native_end_t.apply();if(m.response==8w1){compare_response_inputs_t.apply();}else{if(m.packet_kind==8w5){compare_select_inputs_t.apply();}else{compare_operate_inputs_t.apply();}}
     }
-    if(m.packet_kind>=8w5){ack_native_t.apply();}
+    ack_native_t.apply();read_input_t.apply();
     work.apply(m.work_op,m.generation,m.expected_work_phase,m.work_phase);
     next_seq_t.apply();epoch_t.apply();client_t.apply();server_t.apply();
-    if(m.packet_kind>=8w5){data_sequence_diff.apply();}else{sequence_diff.apply();}sequence_guard.apply();
+    sequence_diff.apply();sequence_guard.apply();
     owner_command.apply();owner_t.apply();
-    if(m.packet_kind>=8w5){
+    if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){
      real_links_t.apply();real_tcp_dst_t.apply();real_object_t.apply();real_off_t.apply();native_end_t.apply();application_t.apply();frozen_decoy_object_t.apply();frozen_decoy_off_t.apply();
     }
+    read_app_t.apply();
     if(m.stage==8w0){
      if(m.packet_kind==8w6||m.packet_kind==8w7){object_match.apply();}
      if((m.work_op==8w1&&m.work_phase==32w4)||(m.kind==8w4&&m.shape_valid==8w1)){
@@ -239,11 +346,11 @@ action first_operate(){hdr.event.event=16w0x0107;}
      }
     }else if(m.kind==8w4){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();if(m.owner_op!=8w1){deny();}}
     else if(m.work_phase==32w1||m.work_phase==32w2){
-     if(m.kind!=8w8){if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
+     if(m.kind!=8w8&&m.kind!=8w10){if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
      next_stage_t.apply();
-    }else if(m.work_phase==32w3){hdr.envelope.setInvalid();hdr.work_generation.setInvalid();hdr.expected_cell.setInvalid();hdr.event.setInvalid();if(m.kind==8w255){deny();}}
+    }else if(m.work_phase==32w3){read_terminal_t.apply();}
     else{deny();}
-   }
+   }else if(m.stage!=8w0){deny();}
   }else if(m.stage!=8w0){deny();}
  }
 }

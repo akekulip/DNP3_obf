@@ -21,11 +21,16 @@ INTENTIONAL DIFFERENCES (everything else must be identical)
   D4  Stage 0 with a nonzero private event kind is not reproduced. The old code overwrote
       m.kind with the packet kind there; the guard keys stage-0 rows on kind 0. The parser makes that
       state unreachable (test_stage0_never_carries_a_private_kind).
+  D6  READ (kinds 9..11) is new behaviour with no oracle counterpart: a stage-0 server pure ACK
+      (packet kind 3, direction 2) is now a READ_ACK candidate, kind 10. Those grid points are executed
+      but excluded from the comparison (hist key READ-INTENTIONAL); they are covered by
+      test_native_read.py. The READ application register must stay 0 for every other case.
   D5  m.expected_work_phase is assigned once at the top of apply instead of directly before
       work.apply; m.stage is never written after parsing, so the value is identical.
 """
 import itertools
 import multiprocessing
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -70,15 +75,27 @@ class Differential(unittest.TestCase):
         self.assertEqual(self.bad[:3], [])
         print('differential cases compared: %d, mismatches: %d' % (self.total, len(self.bad)))
 
+    @staticmethod
+    def is_read_entry(table, index, src):
+        """An entry that exists only for the READ kinds (9, 10, 11): the oracle has no counterpart."""
+        terms, action, args = src.controls['Ingress'].tables[table]['entries'][index]
+        flat = repr((terms, args))
+        numbers = {int(v) for v in re.findall(r"\('num', (\d+), \d+\)", flat)}
+        server_ack = table == 'sequence_diff' and action == 'diff_reverse' and numbers == {3, 2, 16}
+        # H1 power-on epoch entry: the oracle grid fixes epoch 17; test_native_invariants.EpochZero covers it.
+        epoch_zero = table == 'snapshot_t' and action == 'snapshot_epoch_zero'
+        return 'read' in action or bool(numbers & {9, 10, 11}) or server_ack or epoch_zero
+
     def test_every_const_entry_of_every_data_path_table_was_exercised_on_both_sides(self):
         engine = d.Engine()
         skipped = {'network', 'syn_shapes', 'short_shapes', 'profile', 'response_profile', 'available_t', 'epoch_guard'}
         for side, src in (('old', engine.old), ('new', engine.new)):
             unhit = []
             for name, table in src.controls['Ingress'].tables.items():
-                if table['entries'] and name not in skipped:
+                if table['entries'] and name not in skipped and not name.startswith('read_'):
                     unhit += [(name, i) for i in list(range(len(table['entries']))) + ['default']
-                              if (name, i) not in self.coverage[side]]
+                              if (name, i) not in self.coverage[side]
+                              and not (side == 'new' and i != 'default' and self.is_read_entry(name, i, src))]
             self.assertEqual(unhit, [], side)
 
     def test_grid_has_teeth_each_mutation_of_the_new_source_is_caught(self):

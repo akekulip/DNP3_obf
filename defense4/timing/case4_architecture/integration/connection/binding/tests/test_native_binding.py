@@ -49,13 +49,15 @@ class NativeBinding(unittest.TestCase):
             self.assertEqual(source.registers[('owner',0)],expected)
 
     def test_private_event_cannot_relabel_actual_operate_as_select(self):
-        # Rewritten from return_kind_guard (data_valid) to the merged `guard` table (m.go):
-        # the same kind/packet-kind pairing property, with a valid data frame and stage 1.
-        for kind,actual,expected in ((5,5,1),(5,7,0),(6,5,0),(7,7,1)):
-            source=self.source({'m.stage':1,'m.kind':kind,'m.packet_kind':actual,'m.direction':1,'m.shape_valid':1,
+        # Rewritten from return_kind_guard (data_valid) to the merged `guard` table, and for H2: a
+        # relabelled event is aborted (kind 255, work pin still returned), not silently passed.
+        for kind,actual,expected_kind in ((5,5,5),(5,7,255),(6,5,255),(7,7,7)):
+            source=ExtSource((HERE/'native_binding.p4').read_text(),HERE)
+            source.env.update({'m.stage':1,'m.kind':kind,'m.packet_kind':actual,'m.direction':1,'m.shape_valid':1,
                 'm.enabled':1,'m.profile':1,'m.go':0})
             source.table('guard')
-            self.assertEqual(source.env['m.go'],expected)
+            self.assertEqual(source.env['m.go'],1)
+            self.assertEqual(source.env['m.kind'],expected_kind)
 
     def test_real_close_can_quarantine_every_native_producer_phase(self):
         for phase in range(8,13):
@@ -192,23 +194,33 @@ class TransparentForwarding(unittest.TestCase):
             self.assertEqual(s.env['m.owner_op'], 0)
 
     def test_reverse_pure_ack_is_not_claimed(self):
-        # Rewritten from direction_guard (shape_valid) to the merged `guard` table at stage 0: an ACK
-        # (packet kind 3) is claimed only in the forward direction, so the reverse one is a miss, which
-        # is the old direction_guard default. The forward ACK is the positive control (ExtSource runs
-        # the parametrised go_new action, which the fragment evaluator cannot).
-        for direction, expected in ((1, 1), (2, 0), (0, 0)):
+        # Rewritten for the READ kinds. A server pure ACK is still never claimed as the
+        # client's kind-3 ACK (no kind-3 event, no owner command); it is now a READ_ACK
+        # candidate, kind 10, which only forwards or hands off and never commands the owner.
+        # The forward ACK is the positive control (ExtSource runs the parametrised go_new).
+        for direction, expected_kind in ((1, 3), (2, 10), (0, None)):
             s = ExtSource(self.text.replace('8w0&&&8w0', '_'), HERE)
             s.env.update({'m.stage': 0, 'm.packet_kind': 3, 'm.kind': 0, 'm.direction': direction, 'm.shape_valid': 1})
             s.table('guard')
-            self.assertEqual(s.env.get('m.go', 0), expected, direction)
+            self.assertEqual(s.env.get('m.go', 0), int(expected_kind is not None), direction)
+            if expected_kind:
+                self.assertEqual(s.env['m.kind'], expected_kind, direction)
+        s = Source(self.text, {'m.stage': 1, 'm.kind': 10, 'm.work_phase': 1, 'm.epoch_diff': 0, 'm.owner_op': 0},
+                   registers={('owner', 0): 0xe0001})
+        s.table('owner_command')
+        self.assertEqual(s.env['m.owner_op'], 0)
 
     def test_private_forwarding_kind_requires_a_matching_real_packet(self):
         # Rewritten from return_kind_guard (data_valid) to `guard` (m.go) on a stage-1 forwarding pass.
         for actual, expected in ((1, 1), (2, 1), (3, 1), (4, 0), (5, 0), (6, 0), (7, 0)):
-            s = Source(self.text, {'m.stage': 1, 'm.kind': 8, 'm.packet_kind': actual, 'm.direction': 1,
-                                   'm.shape_valid': 1, 'm.enabled': 1, 'm.profile': 1, 'm.go': 0})
+            s = ExtSource(self.text.replace('8w0&&&8w0', '_'), HERE)
+            s.env.update({'m.stage': 1, 'm.kind': 8, 'm.packet_kind': actual, 'm.direction': 1,
+                          'm.shape_valid': 1, 'm.enabled': 1, 'm.profile': 1, 'm.go': 0})
             s.table('guard')
-            self.assertEqual(s.env['m.go'], expected)
+            # Rewritten for H2: a mismatch is no longer a silent miss. It still enters the return
+            # pass, but as kind 255 (abort), so the work pin is returned and the packet is denied.
+            self.assertEqual(s.env['m.go'], 1)
+            self.assertEqual(s.env['m.kind'], 8 if expected else 255)
 
     def test_network_admits_the_private_forwarding_pass_for_kind_8(self):
         # The step-1 fragment tests never applied `network`, so the missing kind-8 row (private pass 2

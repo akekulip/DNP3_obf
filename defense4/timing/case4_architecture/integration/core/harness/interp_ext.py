@@ -16,9 +16,10 @@ sys.path[:0] = [str(ARCH / 'protocol/egress'), str(ARCH / 'tests'), str(ARCH / '
 from source_packets import Source as PacketSource, folded, checksum  # noqa: E402
 from source_eval import block  # noqa: E402
 import p4syntax  # noqa: E402
+from tna_dialect import normalize  # noqa: E402
 from p4syntax import Parser, match_brace, parse_expr, parse_statements, split_top  # noqa: E402
 
-INTRINSIC = {'ig.ingress_port': 9, 'md.drop_ctl': 3, 'tm.ucast_egress_port': 9, 'tm.bypass_egress': 1}
+INTRINSIC = {'ig.ingress_port': 9, 'ig.global_tstamp': 48, 'md.drop_ctl': 3, 'tm.ucast_egress_port': 9, 'tm.bypass_egress': 1}
 PARAM = re.compile(r'(?:(in|inout|out)\s+)?(?:bit<(\d+)>|(PortId_t)|(bool)|(\w+))\s+(\w+)$')
 
 
@@ -172,6 +173,7 @@ class ExtSource(PacketSource):
             return Path(include_dir, match[1]).read_text()
         text = re.sub(r'^\s*#include\s+"([^"]+)"', include, text, flags=re.M)
         text = re.sub(r'^\s*#(?:ifndef|define|endif).*$', '', text, flags=re.M)
+        text = normalize(text)
         PacketSource.__init__(self, text)
         meta = block(self.text, 'struct meta_t')
         for name in re.findall(r'PortId_t\s+(\w+);', meta):
@@ -185,8 +187,14 @@ class ExtSource(PacketSource):
         self.structs = {n: [(f, int(w)) for w, f in re.findall(r'bit<(\d+)>\s+(\w+);', b)]
                         for n, b in re.findall(r'struct\s+(\w+)\s*\{([^}]*)\}', self.text)}
         self.header_order = re.findall(r'\w+\s+(\w+);', block(self.text, 'struct headers_t'))
-        self.controls = {n: Control(self.text, n) for n in re.findall(r'\bcontrol\s+(\w+)\s*\(', self.text)
-                         if n in ('Ingress', 'ExpectedWorkRecord')}
+        # Ingress and every control it instantiates, transitively (any number of externs).
+        self.controls = {'Ingress': Control(self.text, 'Ingress')}
+        pending = list(self.controls['Ingress'].insts.values())
+        while pending:
+            kind = pending.pop()
+            if kind not in self.controls:
+                self.controls[kind] = Control(self.text, kind)
+                pending.extend(self.controls[kind].insts.values())
         self.cells = {}
         self.runtime_installed = []
         self.frame = Frame(self.controls['Ingress'], '')
@@ -208,7 +216,7 @@ class ExtSource(PacketSource):
     def initial(self, typ, init):
         if typ.startswith('bit<'):
             return int(init, 0)
-        values = [int(v) for v in re.findall(r'\d+', init)]
+        values = [int(v, 0) for v in re.findall(r'0[xX][0-9a-fA-F]+|\d+', init)]
         return {f: v for (f, _), v in zip(self.structs[typ], values)}
 
     def begin_pass(self, ingress_port):
@@ -279,8 +287,10 @@ class ExtSource(PacketSource):
             return (a << bw) | b, aw + bw
         if op in ('==', '!=', '<', '>', '<=', '>='):
             return int({'==': a == b, '!=': a != b, '<': a < b, '>': a > b, '<=': a <= b, '>=': a >= b}[op]), 1
-        value = {'+': a + b, '-': a - b, '*': a * b, '&': a & b, '|': a | b, '^': a ^ b,
-                 '<<': a << b, '>>': a >> b, '/': a // b if b else 0, '%': a % b if b else 0}[op]
+        # operators are evaluated lazily: `a << b` with a 32-bit b allocates gigabytes
+        value = {'+': lambda: a + b, '-': lambda: a - b, '*': lambda: a * b, '&': lambda: a & b,
+                 '|': lambda: a | b, '^': lambda: a ^ b, '<<': lambda: a << b, '>>': lambda: a >> b,
+                 '/': lambda: a // b if b else 0, '%': lambda: a % b if b else 0}[op]()
         return (value & ((1 << width) - 1) if width is not None else value), width
 
     def expr(self, text):
