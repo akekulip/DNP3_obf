@@ -1075,3 +1075,74 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   parallel streams per the approved plan, converging on the first-milestone demonstration (one
   complete READ and one complete SELECT/OPERATE transaction through timing + this size pattern +
   transport repair, on the local model).
+
+- 2026-10-08 (continued) Dispatched the Phase D qualifier-rewrite-codec stream in parallel with
+  Phase C (queue-timing). Two separate agents for the Option B hardware-feasibility follow-up (what
+  does padding READ's response, newly required since Option A died, actually cost) each stalled
+  mid-task for infrastructure reasons unrelated to the question itself (a context-budget cutoff, then
+  a content-safety classifier stop) -- wrote `integration/size/OPTION_B_FEASIBILITY.md` directly from
+  reading `framework/size/case4_transport.py`'s `RequestLedger`/`ControlConnection` rather than
+  attempt a third dispatch. Finding: any response padding needs per-connection sequence/ACK/window
+  translation state for the life of the connection (inherent to inserting bytes into a TCP stream, not
+  specific to any role). For SELECT/OPERATE this is the same mechanism the software oracle already
+  proves (bounded at 2 entries per connection, one shared table read by both directions) --
+  structurally smaller than M's four independently-conflicting registers, likely cheaper, not free.
+  For READ this is new: the existing ledger is scoped to a one-shot SBO pair, not repeated polling on
+  a long-lived connection; a fixed-delta running-counter register (every READ padded by the same
+  +9B) is the simpler path, smaller than SELECT/OPERATE's case. Not implemented or compiled; the
+  concrete next step (not performed) is to build and compile both designs for real stage/PHV numbers.
+
+  **Qualifier-rewrite codec (Phase D, closing SELECTED_PATTERN.md gate 1): built, tested, and
+  validated against the real production master -- fails.** New sibling codec
+  `framework/size/case4_qualifier_rewrite.py` (native G12V1 object qualifier `0x28`->`0x17`, count
+  1->2, reaching exactly 49 TCP-payload bytes) is byte-exact, CRC-correct, round-trips losslessly
+  (9/9 new tests, mutation-tested, baseline 37/37 unaffected). Run against the real pinned OpenDNP3
+  production master (`endpoint_gate`, commit `4648fcb898`, via a small additive `--qualifier` flag
+  verified not to change the existing default build path): 78/81 assertions pass; all 3 failures are
+  in the qualifier-rewrite-specific SBO scenarios, traced to
+  `TypedCommandHeader<T>::ApplySelectResponse` (`cpp/lib/src/master/TypedCommandHeader.h`), which
+  silently declines to select any point when the response header carries more indexed objects (2)
+  than the master's own request header held (1) -- not an ASIC limit, the real client correctly
+  refusing a wire construction it never sent. Per `SELECTED_PATTERN.md`'s own pre-committed
+  contingency, this promotes **Option B (uniform 58-byte pad, no split, MI = 0 exactly)** to the
+  active size pattern -- updated `SELECTED_PATTERN.md` (superseded-but-kept original reasoning) and
+  `selected_pattern.json` (`selection_history`) accordingly, flagging the real new cost this surfaces:
+  Option A let READ stay untouched (already native at 49B); Option B needs insertion on READ too
+  (49->58B), which is exactly what the `OPTION_B_FEASIBILITY.md` finding above addresses.
+
+  **T's queue-resident timing role (Phase C): all 7 invariants implemented and pass, 18/18, on the
+  source-level harness interpreter.** `integration/read/read_queue_timing.p4` (new), built on the
+  blocker-queue mechanism per `INTEGRATION_CONTRACT.md` section 1's hard constraint, not
+  `read_timing.p4`'s heartbeat design (kept as a correctness reference only). New test-side
+  simulator `integration/read/tests/queue_sim.py` (strict-priority ladder queues, mirror+generator
+  blocker seeding matching the model's real packet-generator delay, fault/timing injection) and
+  `test_t_queue_invariants.py`. Full existing regression suite (root `tests` 33/33,
+  `connection/binding/tests` 85/85, `controller/tests` 17/17, `core/harness/tests` 42/42,
+  `read/tests` 124/124 incl. the 18 new) stays green.
+
+  Real `bf-p4c` compile against the local SDK 9.13.1 found and fixed four distinct hardware
+  constraint classes in sequence (type mismatches; the already-known "one register per table" limit;
+  single-stage-per-action ALU restrictions; a table cannot be `.apply()`'d from more than one
+  branch), and correctly applied the fifth fix too -- `read_timing.p4`'s own proven
+  delta-then-sign-bit-ternary-match pattern, replacing every live `now >= deadline` comparison
+  (which Tofino's conditional-execution gateway rejects as "too complex... one operand must be
+  constant") -- confirmed correct in isolation (stubbing the apply block to just the new
+  unconditional top-of-pass computation produces a *different*, PHV-allocation error instead of the
+  original gateway-complexity one). **The fully assembled file still hits an undiagnosed internal
+  compiler crash** ("Internal compiler error", exit 4, no stack trace obtainable even with core
+  dumps enabled and `--verbose 3`) that an extensive bisection (stubbing each T_IN sub-branch, each
+  HELD_RETURN/HB_RETURN role branch, and the generator-token branch, individually) did not isolate to
+  one construct. The PHV-allocation-failure finding (18 unallocated 32-bit field slices when the new
+  fields are computed but not yet consumed) is concrete evidence the gateway-complexity fix is
+  correct in shape but resource-expensive, and is the most likely driver of the crash, though that
+  specific causal link is not proven. Full findings and the next concrete step (narrow the new
+  fields' width and/or stop sharing them unconditionally across every port) are in
+  `integration/read/TIMING_QUEUE_MIGRATION_STATUS.md` -- committed as an honest partial result per
+  this project's own standing discipline, not reverted or hidden.
+
+  First-milestone status (one complete READ and one complete SELECT/OPERATE transaction through
+  timing + size + transport repair, on the local model): not yet reached. Both of its remaining
+  blockers are now precisely characterized rather than open-ended: T's queue-resident timing compiles
+  at the interpreter level but not yet on real hardware (PHV pressure, this entry); Option B's
+  padding mechanism (now required on all three roles, not just two) is designed on paper
+  (`OPTION_B_FEASIBILITY.md`) but not yet implemented in P4 or in a software codec.
