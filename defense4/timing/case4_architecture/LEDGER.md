@@ -799,3 +799,148 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   above (73/73 etc., identical counts) already covers everything M-R7 could have affected, and
   `integration/core/ordinary/tests` was re-run once more after M-R7's compile (73/73, unchanged).
   No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
+
+- 2026-10-07 (this session) M-R2 through M-R6 of `M_STRUCTURAL_OPTIONS.md`'s ordered TDD tickets,
+  implemented FULLY and TOGETHER this time (not the M-R7 canary's minimal slice) -- the decisive
+  attempt at option (a). **Result: still does NOT fit, and the real reason is a different, harder
+  kind of wall than any previous attempt found.** Per the task's own hard-stop condition, this is
+  the planned end of the recirculation line; no further variant was attempted.
+
+  **What changed vs. the M-R7 canary.** The canary left `reserve_t`'s own placement unchanged (deep
+  in role==0's admission chain, behind `profile.apply()`+three CRC tables) and trusted a bare
+  carried `reservation_grant`/`activation_grant` bit at pass-1 entry, with no reread. This session
+  moved `reserve_t` ITSELF into the resumed pass (so role==0's pass 0 now does nothing to
+  `Ingress.reservation` at all -- it only validates profile/CRC and recirculates; pass 1 opens with
+  `reserve_t.apply()` as its very first table, immediately), and added a genuinely NEW cheap reread
+  table, `confirm_activation_t` (`RegisterAction` `confirm_activation_ra` on `Ingress.activation_receipt`,
+  comparing its current value against the recirculated packet's own `hdr.reference.generation` --
+  the same cookie-reread discipline `read_timing.p4` already uses for T, not a carried bit), gating
+  `activate_geometry_t`/`activate_position_t`/`activate_ledger_t`/`dirty_return_t` at pass-1 entry
+  for role==1. No table anywhere trusts a bit that crossed the recirculation boundary without first
+  rereading the real register it governs -- `reserve_t`'s own compare-and-set already is this reread
+  for `reservation`; `confirm_activation_t` is the same discipline newly added for `activation_receipt`.
+  `producer_context`'s writer (`construct_t`'s `context_write`) needed no separate reread: it is
+  gated transitively by `reservation_grant`, resolved by the same `reserve_t` call immediately before
+  it, in the same pass-1 branch, unchanged internally. M-R3/M-R5's forgery property falls out of this
+  structurally, not from a separate check: a forged pass-1-shaped packet with no real pass-0 visit
+  still has to satisfy `reserve_t`/`confirm_activation_t`'s own business-logic compare against the
+  CURRENT register content, exactly as any packet does -- it cannot bypass validation by asserting a
+  grant bit, because no grant bit is ever read. The devil's-advocate duplicate-recirculation case
+  (section 5, risk 2) is covered the same way: a duplicated pass-0-exit packet replayed twice before
+  any pass-1 confirm hits `reserve_t`'s own atomic phase-4-to-phase-1 compare-and-set (or
+  `confirm_activation_t`'s exact-generation compare) on its second arrival and is refused/no-ops,
+  since the first copy already advanced the register past the state the replay needs -- single-use
+  consumption is a property of reusing the register's own real semantics as the gate, not a new
+  mechanism. M-R6's letter (one *dispatch* table, explicit `operation` field) was NOT built as a
+  literal `ExpectedWorkRecord`-style multi-operation table -- pass 0 never touches either register at
+  all in this design (it only validates and recirculates), so there is exactly one real operation per
+  register, not a multi-operation dispatch to key on. Its INTENT (no single owning table -> ad hoc
+  carried-bit trust) is met: `reserve_t` and `confirm_activation_t` are each the one table governing
+  their register-pair's hand-off, and neither consumes a carried grant. This is a deliberate,
+  disclosed deviation from M-R6's literal table shape, not a silent shortcut.
+
+  Two compile-blocking bugs were found and fixed before a real result was reachable. (1) bf-p4c's
+  TNA "legacy" checksum-conditional recognizer only accepts `if(m.reverse_changed==1w1){...}` and
+  `if(m.changed==1w1){...}` as the literal FIRST statements of `IgDeparser`'s `apply{}` --
+  wrapping them in an added sibling `if`/`else` (even on unrelated fields) made the checker
+  misclassify both EXISTING reads and the new ones as "Destination X must be intrinsic metadata"
+  (3 errors, confirmed by reproducing with a flat `if` restructuring that still failed identically).
+  Fixed by abandoning deparser branching entirely: the emit list stays the single unconditional
+  statement sequence it always was, and the two headers a recirculating role==0 exit needs that
+  were not already unconditionally emitted (`hdr.pass`, the new 32-bit marker header, and
+  `hdr.captured`) were added to that SAME list, relying on header VALIDITY alone to decide what
+  actually reaches the wire -- `hdr.pass` is extracted-then-invalidated in the resume parser states,
+  `hdr.captured` is invalidated as the last statement of `construct()` (symmetric with
+  `hdr.tail.setInvalid()` already there), so both are zero bytes on every final, non-recirculating
+  wire, unchanged from before this session. Role==1's full header set (`reference`/`cache`/`eth`/
+  `ip`/`tcp`/`image`) needed no addition: all six were already unconditionally emitted and untouched
+  by role==1's own pass-0 chain, so they already carried across the recirculation hop for free. (2)
+  `forwarding`'s const `route(9w199)` entry would have re-fired on a resumed packet (ingress_port
+  still reads 199 after recirculation) and re-routed it back to itself instead of toward its real
+  destination; guarded with `m.m_pass!=1w1` and an explicit `tm.ucast_egress_port=9w68;
+  tm.bypass_egress=1w0;` baseline at the top of the resumed role==0 branch, replacing the baseline
+  `forwarding(196)` used to provide for a fresh packet.
+
+  New generation: `transport_candidate_next23/m3.p4` sha
+  `33c803c34e7fee269e41926b0354de80f3ef53c1bdec4921e8ea988809cafeda`. This was FIRST built directly
+  inside `transport.py`'s `generate_roles()` (per the task's "generate via `transport.py` normally"
+  instruction), and the compile result below was obtained that way. While confirming the result did
+  not regress the existing suites, `integration/core/ordinary/tests` showed 21 new failures, all in
+  `test_transport_reverse.py`'s shared `completed()` setup helper, root-caused to one real bug: the
+  resumed role==0 success path hardcoded `tm.ucast_egress_port=9w68` instead of reproducing whatever
+  the real, runtime-installed `forwarding` table chose for the packet's original arrival port
+  (`test_m_prepare.py`'s own fixture installs 196/198->68/2, but `test_transport_reverse.py`'s
+  installs 196/198->452/452 for its own topology -- the hardcoded port was simply wrong for the
+  second fixture). A fix was attempted (carry `tm.ucast_egress_port` across the recirculation hop via
+  a new `hdr.pass.carry_port` field) but hit a SEPARATE, unrelated PHV packing error ("Unable to
+  slice the following group of fields..."). Because the compile result this entry exists to report
+  (the hard allocation error below) is already a refutation for a reason that has nothing to do with
+  this port bug, and because this session's own established convention is to keep a refuted
+  direction OUT of the live generator (m18's broader variant, m20's refuted direction), the fix was
+  not pursued further; instead the whole M-R2-R6 block was moved out of `transport.py` into a new
+  scratch generator, `transport_experiment_m23.py` (same pattern as `transport_experiment_m19/m20/
+  m22.py`), and `transport.py` itself was reverted to its pre-session state (`git checkout --
+  transport.py`; confirmed byte-identical to `HEAD` afterward). The scratch generator keeps the
+  simpler, hardcoded-port version, since it is a one-off research artifact, not production code, and
+  the port choice does not affect the register-allocation result below (confirmed by recompiling:
+  identical error, identical source sha, both before and after the revert).
+
+  Compile (local 9.13.1, `build.py`, `evidence/stage_fit_m23_01`): **exit 3, a compile ERROR, not
+  the familiar "doesn't fit" exit 2.** Log, one line: "Table placement was not able to allocate
+  Ingress.confirm_activation_t, Ingress.claim_once_t in the same stage along with Register
+  Ingress.activation_receipt" (`evidence/stage_fit_m23_01/compile.log`). This is a harder failure
+  than every prior attempt's: `table_summary.log`'s per-table stage-RANGE report (quoted exactly,
+  `evidence/stage_fit_m23_01/out/pipe/logs/table_summary.log`) shows `confirm_activation_t` schedulable
+  in `[1,8]` and `claim_once_t` schedulable in `[4,10]` -- these ranges OVERLAP (4-8) -- yet the
+  compiler still could not place them in one shared stage, meaning this is not a simple depth-ordering
+  mismatch (the kind every earlier `stage_fit_m*` entry reports) but an actual stateful-ALU resource
+  conflict: two DIFFERENT `RegisterAction` definitions (`claim_activation`'s conditional claim-and-set,
+  `confirm_activation_ra`'s read-only compare) on ONE register apparently cannot both be configured
+  into one physical stage even when their legal stage windows overlap. The underlying cause is exactly
+  what `M_STRUCTURAL_OPTIONS.md` section 1 already named in the abstract -- "every table that invokes
+  a RegisterAction on it must share ONE stage number for EVERY caller, in every branch, regardless of
+  which branch a given packet takes" -- now confirmed concretely for `activation_receipt`:
+  `claim_once_t`'s OWN required depth is genuinely deep (gated behind
+  `enabled`&&`profile`&&`reservation_grant`&&`context_grant`, all resolved only after real admission;
+  moving it shallower would be the same "mutation ahead of validation" the task forbids and that
+  m18's broader variant already showed regresses the whole graph), while `confirm_activation_t` needs
+  to be shallow (the whole point of pass 1 having a short preceding chain) -- recirculation changes
+  WHERE in the control-flow tree a table's call site sits, but the one-SALU-one-stage rule is
+  enforced across the ENTIRE compiled program, not per branch, so splitting into two mutually
+  exclusive passes does not exempt two RegisterActions on one register from needing the same stage.
+  `Ingress.reservation`'s pair, by contrast, did NOT hit this failure mode: `reserve_t` ended up
+  schedulable at `[1,9]` with no companion table added on that register in pass 0 (pass 0 for role==0
+  touches `reservation` not at all now), so there was only ONE call site needing placement, not two --
+  consistent with and explaining why reservation's half of this design is sound while the activation
+  half is not. The table-dependency-graph-level "critical path" metric (a different, graph-only
+  measure, computed before resource-allocation failure) is unchanged at **10**, same as every m19-m22
+  entry, so the earlier, softer depth-mismatch wall is NOT what blocks this build: `grep -c "requiring
+  more than one stage" out/pipe/logs/table_placement_7.log` still finds 138 occurrences across five
+  distinct pairs (`activate_geometry_t_0`x`activate_ledger_t_0` 56x, the SAME intra-pass-1 key
+  dependency m22 already flagged as unrelated to register sharing; `connection_0`x`activation_reservation_t_0`
+  31x; `reference_differences_t_0`/`activation_identity_t_0`x`activation_reservation_t_0` 20x/19x,
+  both carried over from every prior entry; `activate_position_t_0`x`activate_ledger_t_0` 12x) --
+  none of these is the error that actually stops the build; the hard allocation error on
+  `activation_receipt` is. Separately, the compiler's own unconstrained diagnostic schedule
+  (`table_summary.log`, shown to explain the failure to the user) places some role==3/4 tables as
+  late as stage 14 -- two stages past the 12-stage budget -- confirming the overall graph is further
+  from fitting than m21's baseline, not closer.
+
+  **Verdict for this task's hard-stop condition: it does NOT fit.** Per the task's explicit
+  instruction, no further variant of recirculation was attempted after this result. See the new file
+  `integration/core/M_RECIRCULATION_VERDICT.md` for the full, plain-language account across all
+  attempts (m13 through m23) and the options that remain.
+
+  Regression (the forgery/duplicate-replay tests M-R3/M-R5/M-R8 would have added are NOT written --
+  per the task's own branching instruction, those and the full-suite gate apply only to a FIT
+  compile, and this one does not fit): the pre-existing baseline across all 7 named suites was
+  re-run after `transport.py`'s revert, fresh this session, and is unaffected --
+  `integration/core/ordinary/tests` 73/73, root `tests` 33/33, `integration/connection/binding/tests`
+  84/84 (590,976 differential cases, 0 mismatches), `integration/controller/tests` 17/17,
+  `integration/core/harness/tests` 42/42, `integration/core/m/tests` 33/33, `integration/read/tests`
+  103/103 -- identical counts to every prior entry's regression baseline. `git status`/`git diff`
+  confirm `transport.py` is byte-identical to `HEAD` after the revert; this session's only surviving
+  file changes are new, additive ones: `transport_experiment_m23.py` (scratch generator),
+  `transport_candidate_next23/` (generated source), `evidence/stage_fit_m23_01/` (compile evidence),
+  this `LEDGER.md` entry, and `integration/core/M_RECIRCULATION_VERDICT.md`.
+  No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
