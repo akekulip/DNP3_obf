@@ -1146,3 +1146,41 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   at the interpreter level but not yet on real hardware (PHV pressure, this entry); Option B's
   padding mechanism (now required on all three roles, not just two) is designed on paper
   (`OPTION_B_FEASIBILITY.md`) but not yet implemented in P4 or in a software codec.
+
+- 2026-10-08 (continued) Two more real attempts at T's queue-timing compiler crash (the next step
+  `TIMING_QUEUE_MIGRATION_STATUS.md` itself named): narrowed the five `*_ready`/`resp_seen_mask`/`dup`
+  metadata fields from bit<32> to bit<8> and deleted six genuinely dead fields, then separately
+  eliminated all five ternary-match sign-bit tables entirely, replacing them with plain bit-slice
+  assignments (`md.da_ready = (bit<8>)(~md.da_delta[31:31]);`, pure data-plane ALU ops, no
+  gateway/table at all). 18/18 invariant tests and the full regression suite stayed green through
+  both. **Neither changed the crash at all** -- confirmed on both the local SDK 9.13.1 and the switch
+  host's real installed SDK 9.13.2 (compile-only, `installed_sdk_build.py`, no activation): identical
+  signature both times (table placement succeeds, converging to 8 of 12 stages;
+  `phv_allocation_0.log` zero bytes on every single run). This rules out both obvious theories --
+  not simply too much live PHV data, and not the ternary-match-table mechanism itself -- and,
+  combined with confirming the very first pre-fix version of the file hit the identical crash before
+  any of this session's mitigations existed, leaves the true cause undiagnosed after four independent,
+  substantive attempts. `TIMING_QUEUE_MIGRATION_STATUS.md` updated with the full picture; its own
+  recommendation now is to bisect by register count or escalate to whoever maintains this SDK
+  installation, not to keep varying the P4 source the same way. `HANDOVER.md`'s read-first pointer
+  updated to flag this so a later attempt doesn't retread the same four variants.
+
+  **Option B's padding codec, the other open Phase D item, is built and independently verified.**
+  New sibling `framework/size/case4_pad58.py` (not an edit to `case4_padding.py` or any other existing
+  codec) implements the uniform 58-byte pad for READ and SELECT/OPERATE responses. Worked byte
+  arithmetic (TCP payload = 10 + user + 2*ceil(user/16)): READ's native 33-byte user payload needs
+  +9 bytes (stays in the same 3-CRC-block bracket); SELECT/OPERATE's native 23-byte user payload
+  needs +19 bytes, not +18, because that addition crosses from a 2-block into a 3-block bracket --
+  exactly why the existing separate-header G12V1 CROB construction (`case4_padding.py`) lands one byte
+  short at 57, confirming `SELECTED_PATTERN.md`'s own finding rather than just restating it. No G12V1
+  CROB encoding at any qualifier/count lands on exactly 9 or 19 bytes alone; the filler that does is a
+  G41V2 (16-bit analog output) object under qualifier `0x27` (1-byte count, less common than `0x28`'s
+  2-byte count) -- 4-byte header + 5 bytes/point, giving exactly 9 bytes at 1 point and 19 at 3 points.
+  Both roles converge on the same filler type and the same 42-byte final user payload. 18 new tests
+  pass; the existing 46 tests across the other four codec test files are unaffected. Independently
+  re-verified outside the dispatched agent's own tests by hand-building synthetic native READ and
+  control frames and confirming both pad to exactly 58 bytes with valid DNP3 CRCs and exact round-trip
+  recovery. Endpoint acceptance (would a real OpenDNP3 master/outstation actually accept this filler
+  object and the less-common qualifier) is explicitly unverified -- the next concrete step, not
+  performed here, given the qualifier-rewrite codec's own real-master validation failure earlier this
+  same session is a direct precedent for why this check matters and cannot be assumed to pass.
