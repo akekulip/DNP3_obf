@@ -1184,3 +1184,33 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   object and the less-common qualifier) is explicitly unverified -- the next concrete step, not
   performed here, given the qualifier-rewrite codec's own real-master validation failure earlier this
   same session is a direct precedent for why this check matters and cannot be assumed to pass.
+
+- 2026-10-08 (continued) **Ran that exact next step, and Option B as coded also failed real-master
+  validation -- more severely than Option A.** `endpoint_gate/TestCase4Pad58.cpp` and
+  `emit_vectors_pad58.py` (new, additive; default gate and the `--qualifier` gate both reproduced their
+  documented baselines first, 46/46 and 78/81) ran `case4_pad58.py`'s exact filler construction against
+  the real pinned OpenDNP3 master/outstation (commit `4648fcb898`). Root cause traced to source: the
+  pinned library implements exactly seven qualifier codes (`QualifierCode.cpp`: `0x00, 0x01, 0x06, 0x07,
+  0x08, 0x17, 0x28`); `0x27` is not among them and decodes to `QualifierCode::UNDEFINED`.
+  `APDUParser::ParseQualifier`'s `default:` branch returns `UNKNOWN_QUALIFIER` for it, and
+  `APDUParser::Parse`'s two-pass design aborts the **entire fragment's parse** on any non-OK result
+  before the dispatch-to-handler pass ever runs -- so the real native data ahead of the filler in the
+  same fragment is lost too, not just the filler. Measured directly: a padded READ response carrying
+  all 23 real points delivered zero points to the master's SOE handler; a padded SELECT/OPERATE echo
+  left the command status at `CommandStatus::UNDEFINED` (127), because `CommandSetOps::IsAllowed`'s
+  whitelist (`{0x17, 0x28}`) rejected the qualifier in pass 1 before `TypedCommandHeader` ever ran. A
+  following unpadded READ on the same connection recovered all 23 points cleanly, isolating the loss to
+  the padded fragment specifically. This is categorically worse than Option A's failure (a stage-2 guard
+  that silently withheld OPERATE but still let the SELECT echo itself parse and read correctly) --
+  Option B's construction never reaches stage 2 at all, destroying the legitimate payload on every
+  transaction it touches. `case4_pad58.py` was not modified (scope boundary); `SELECTED_PATTERN.md` and
+  `selected_pattern.json` updated with the finding and a new, not-yet-built candidate ("Option B′"):
+  byte arithmetic restricted to the library's seven whitelisted qualifiers shows READ's 9-byte filler
+  has no single-object exact fit with real point data and needs two header-only, count=0 objects (4B +
+  5B = 9B, no point data), while CONTROL's 19-byte filler has a clean single-object fit (one
+  `0x07`-qualified, no-index-prefix G41V2 object, 5 points, 4 + 5*3 = 19B). Neither piece is built or
+  tested; the empty-object-group construction for READ is untested territory. This is now the second
+  consecutive size candidate killed by the same class of problem (real-decode-path non-compliance that
+  no software-only unit test could have caught) -- the standing lesson is now doubly confirmed: no size
+  candidate is "done" until it clears `endpoint_gate` against the real pinned master/outstation, full
+  stop, regardless of how clean its own unit tests and byte arithmetic look.

@@ -1,9 +1,56 @@
 # Selected common size pattern — Phase B decision
 
-**UPDATE 2026-10-08, same day, after Gate 1 was tested: Option A is dead. Option B is now the active
-pattern.** Section "The decision" below is kept as the original record, not deleted, because the reasoning
-in it (why A′ and C/D/E were rejected) still stands and still applies to the choice between what's left.
-Read this update first, then the rest of the document for context on the alternatives already ruled out.
+**UPDATE 2026-10-08, later the same day, after Option B's own codec was gated: Option B as coded is also
+dead.** Read this update first; it supersedes the "Option B is now the active pattern" update immediately
+below, which is kept, not deleted, for the same reason that update kept the original Option A record.
+
+**What happened:** `case4_pad58.py` (the G41V2/qualifier-`0x27` uniform-58-byte filler) was built, tested
+byte-exact (18/18 new unit tests, independently re-verified), and run against the real pinned OpenDNP3
+production master/outstation (`endpoint_gate`, commit `4648fcb898`) on both protected roles. **It failed, and
+failed more severely than Option A's qualifier-rewrite codec did.** The pinned library implements exactly
+seven qualifier codes (`QualifierCode.cpp`: `0x00, 0x01, 0x06, 0x07, 0x08, 0x17, 0x28`); `0x27` is not one of
+them and decodes to `QualifierCode::UNDEFINED`. `APDUParser::ParseQualifier`'s `default:` branch returns
+`ParseResult::UNKNOWN_QUALIFIER` for it, and `APDUParser::Parse`'s two-pass design means a non-`OK` result
+anywhere in the fragment aborts the **entire parse** before pass 2 (the dispatch-to-handler pass) ever runs —
+so the real, well-formed native data that precedes the filler in the same fragment is never delivered either.
+Measured: a padded READ response carrying all 23 real points plus the filler delivered **zero** points to the
+master's SOE handler (`points_received_after_padded=0`); a padded SELECT/OPERATE echo left every command
+point at `CommandStatus::UNDEFINED` (127) — the master never even reached `TypedCommandHeader`'s per-point
+logic, because `CommandSetOps::IsAllowed`'s whitelist (`{0x17, 0x28}`) already rejected the qualifier in pass
+1. A subsequent, unpadded READ on the same connection recovered all 23 points cleanly, confirming the loss
+was specific to the padded fragment. Where Option A's failure silently withheld OPERATE but still let the
+master's app-layer read of the SELECT echo succeed, Option B's construction destroys the legitimate payload
+on every transaction it touches. Full trace: `endpoint_gate/TestCase4Pad58.cpp`,
+`endpoint_gate/emit_vectors_pad58.py`, and the source citations above.
+
+**What this means:** any filler object's qualifier byte must be one of the library's seven implemented codes.
+Of those, only `0x17` (1-byte index prefix, 1-byte count; header 4B, point 4B for G41V2) and `0x28` (2-byte
+index prefix, 2-byte count; header 5B, point 5B) carry a per-point index, matching this project's own default
+gate's already-proven-transparent construction (`TestCase4.cpp`, a G12V1/qualifier-`0x28` trailing object,
+46/46). `0x07`/`0x08` (no index prefix, sequential points) are also whitelisted and usable for an object whose
+points don't need individual addresses. Byte arithmetic for a **whitelisted-qualifier replacement filler**
+(not yet built or tested — a candidate, from this document's own author doing the arithmetic directly, not a
+dispatched result):
+
+- **READ** needs filler = 9 bytes (33→42 user bytes, same 58B TCP target). No single whitelisted-qualifier
+  object hits 9 exactly with real point data (`0x17`: 4+4k; `0x28`: 5+5k; `0x07`: 4+3k; `0x08`: 5+3k — none
+  solve for an integer k≥1 at 9). The only exact fit is **two header-only objects, each count=0, no point
+  data at all**: a 4-byte-header qualifier (`0x17` or `0x07`) plus a 5-byte-header qualifier (`0x28` or
+  `0x08`), both empty, 4+5=9. This needs its own validation: whether a real master's parser/dispatcher
+  tolerates a declared-empty object group cleanly, same rigor this gate already applied twice.
+- **CONTROL** needs filler = 19 bytes (23→42). This one has a clean single-object solution with real point
+  data: **one `0x07`-qualified (no index prefix) G41V2 object, 5 points, header 4B + 5×3B = 19B exactly**
+  (value+status only per point, no index octets).
+
+This is a new candidate (call it **Option B′**), not yet built, not yet endpoint-gate-tested. It must clear
+the same gate that killed both A and B before being treated as more than arithmetic. The empty-object-group
+piece of READ's construction in particular is untested territory this project hasn't touched before.
+
+---
+
+**Prior update 2026-10-08, earlier the same day, after Gate 1 was tested: Option A is dead. Option B is now
+the active pattern.** (Superseded by the update above — Option B's own codec has now also failed its gate.)
+Kept for the record, same reasoning as before.
 
 **What happened:** the qualifier-rewrite codec (`0x28`→`0x17`, count 1→2) that Option A depended on for
 SELECT/OPERATE was built, tested byte-exact, and then run against the real pinned OpenDNP3 production

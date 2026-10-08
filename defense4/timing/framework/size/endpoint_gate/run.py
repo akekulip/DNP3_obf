@@ -18,7 +18,7 @@ sys.path.insert(0, str(FRAMEWORK))
 from runner.evidence import reserve_run, sha256
 
 
-def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=False, qualifier=False):
+def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=False, qualifier=False, pad58=False):
     source_repo, work = Path(source_repo).resolve(), Path(work).resolve()
     for protected in (REPO.resolve(), source_repo):
         if work == protected or protected in work.parents:
@@ -34,9 +34,11 @@ def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=Fa
     names = ['run.py', 'emit_vectors.py', 'DecoyGateCommandHandler.h', 'TestCase4.cpp']
     if sockets: names += ['SocketGate.cpp', 'socket_lab.py']
     if qualifier and not sockets: names += ['TestCase4Qualifier.cpp', 'emit_vectors_qualifier.py']
+    if pad58 and not sockets: names += ['TestCase4Pad58.cpp', 'emit_vectors_pad58.py']
     snapshots = {name: run.snapshot(HERE / name) for name in names}
     sources = ['case4_padding.py', 'case4_transport.py', 'rrc.py']
     if qualifier and not sockets: sources.append('case4_qualifier_rewrite.py')
+    if pad58 and not sockets: sources.append('case4_pad58.py')
     for name in sources:
         run.snapshot(HERE.parent / name)
     if sockets:
@@ -63,7 +65,18 @@ def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=Fa
             qvectors = subprocess.check_output([sys.executable, str(snapshots['emit_vectors_qualifier.py'])], env=dict(os.environ, PYTHONPATH=str(run.path / 'sources')))
             (unit / 'vectors_qualifier.h').write_bytes(qvectors)
             run.write_bytes('vectors_qualifier.h', qvectors)
-            extra_sources = ' ./TestCase4Qualifier.cpp'
+            extra_sources += ' ./TestCase4Qualifier.cpp'
+        if pad58:
+            # Small, scoped extension: a second (independent of --qualifier)
+            # TEST_CASE source validating Option B's uniform-58-byte pad codec
+            # through the same production Endpoint fixture. Independent file,
+            # independent vectors header, same binary target -- not a change
+            # to the default build or to the --qualifier path.
+            (unit / 'TestCase4Pad58.cpp').write_bytes(snapshots['TestCase4Pad58.cpp'].read_bytes())
+            p58vectors = subprocess.check_output([sys.executable, str(snapshots['emit_vectors_pad58.py'])], env=dict(os.environ, PYTHONPATH=str(run.path / 'sources')))
+            (unit / 'vectors_pad58.h').write_bytes(p58vectors)
+            run.write_bytes('vectors_pad58.h', p58vectors)
+            extra_sources += ' ./TestCase4Pad58.cpp'
         cmake = unit / 'CMakeLists.txt'
         cmake.write_text(cmake.read_text() + '''
     add_executable(case4_endpoint ./main.cpp ./TestCase4.cpp''' + extra_sources + '''
@@ -110,6 +123,7 @@ def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=Fa
                 'archive_model': 'git archive pinned clean commit; dirty sibling excluded',
                 'software_only': True, 'scope': 'production TCP sockets' if sockets else 'production contexts; no TCP sockets',
                 'qualifier_rewrite_included': bool(qualifier and not sockets),
+                'pad58_included': bool(pad58 and not sockets),
                 'result': result, 'binary_path': str(binary), 'binary_sha256': sha256(binary) if binary.exists() else None,
                 'production_library_sha256': sha256(build / 'cpp/lib/libopendnp3.so') if (build / 'cpp/lib/libopendnp3.so').exists() else None,
                 'files': {name: sha256(path) for name, path in snapshots.items()},
@@ -117,6 +131,7 @@ def build_gate(run, source_repo, work, dependency_cache=None, jobs=2, sockets=Fa
                 'transport_sha256': sha256(run.path / 'sources/case4_transport.py'),
                 'crc_model_sha256': sha256(run.path / 'sources/rrc.py'),
                 'qualifier_rewrite_sha256': sha256(run.path / 'sources/case4_qualifier_rewrite.py') if (qualifier and not sockets) else None,
+                'pad58_sha256': sha256(run.path / 'sources/case4_pad58.py') if (pad58 and not sockets) else None,
                 'dependency_declarations': {p.name: sha256(p) for p in (source / 'deps').glob('*.cmake')},
                 'compiler': subprocess.check_output(['c++', '--version'], text=True).splitlines()[0],
                 'cmake': subprocess.check_output(['cmake', '--version'], text=True).splitlines()[0],
@@ -160,10 +175,13 @@ def main(argv=None):
     parser.add_argument('--jobs', type=int, choices=range(1, 5), default=2)
     parser.add_argument('--sockets', action='store_true')
     parser.add_argument('--qualifier', action='store_true', help='also build/run TestCase4Qualifier.cpp (qualifier-rewrite codec); non-sockets builds only')
+    parser.add_argument('--pad58', action='store_true', help='also build/run TestCase4Pad58.cpp (Option B uniform-58-byte pad codec); non-sockets builds only')
     parser.add_argument('--built-manifest', type=Path, help='reuse a hash-verified pinned production socket artifact in a fresh acquisition')
     args = parser.parse_args(argv)
     if args.qualifier and args.sockets:
         raise ValueError('--qualifier is only defined for the non-sockets production-context build')
+    if args.pad58 and args.sockets:
+        raise ValueError('--pad58 is only defined for the non-sockets production-context build')
     run = reserve_run(args.output, {'scope': 'OpenDNP3 socket gate' if args.sockets else 'OpenDNP3 production context gate', 'commit': PIN, 'attempted_pairs': 1})
     with run:
         if args.built_manifest:
@@ -171,7 +189,7 @@ def main(argv=None):
                 raise ValueError('artifact reuse requires sockets and excludes build/work arguments')
             manifest = reuse_socket_artifact(run, args.built_manifest)
         else:
-            manifest = build_gate(run, args.source, args.work or Path('/tmp') / ('case4-endpoint-' + run.token), args.dependency_cache, args.jobs, args.sockets, args.qualifier)
+            manifest = build_gate(run, args.source, args.work or Path('/tmp') / ('case4-endpoint-' + run.token), args.dependency_cache, args.jobs, args.sockets, args.qualifier, args.pad58)
         if manifest['result']:
             run.finish('failed', {'reason': 'pinned gate build/test failed', 'exit_code': manifest['result']})
             return manifest['result']

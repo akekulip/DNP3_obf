@@ -3,7 +3,7 @@
   "decided": "2026-10-08",
   "updated": "2026-10-08",
   "unit": "tcp_payload_bytes",
-  "selected_option": "B",
+  "selected_option": "B_prime_candidate_untested",
   "selection_history": [
     {
       "option": "A",
@@ -14,8 +14,14 @@
     {
       "option": "B",
       "decided": "2026-10-08",
-      "status": "active",
-      "reason": "Pre-committed fallback in SELECTED_PATTERN.md's original text, triggered by Option A's gate-1 failure. Cleanest measured leakage of any option scored (MI = 0 exactly). Newly surfaced cost: unlike Option A, Option B needs insertion on READ (49B->58B) in addition to SELECT/OPERATE (37B->58B) -- READ was free under Option A and is not free under B. Hardware feasibility of this on all three roles is a follow-up, not yet closed."
+      "status": "rejected_same_day",
+      "reason": "Pre-committed fallback, triggered by Option A's gate-1 failure. Built as case4_pad58.py (G41V2/qualifier-0x27 filler), tested byte-exact, then FAILED endpoint-gate validation against the real pinned OpenDNP3 master/outstation -- more severely than Option A. Qualifier 0x27 is not one of the library's seven implemented qualifier codes (QualifierCode.cpp: 0x00,0x01,0x06,0x07,0x08,0x17,0x28); it decodes to QualifierCode::UNDEFINED, and APDUParser's two-pass design aborts the WHOLE fragment parse on any unrecognized qualifier, discarding the real native data (all 23 READ points; the SELECT/OPERATE echo) along with the filler, not just rejecting the filler itself. Evidence: defense4/timing/framework/size/case4_pad58.py, defense4/timing/framework/size/endpoint_gate/TestCase4Pad58.cpp, emit_vectors_pad58.py."
+    },
+    {
+      "option": "B_prime_candidate_untested",
+      "decided": "2026-10-08",
+      "status": "proposed_not_built",
+      "reason": "Byte-arithmetic candidate using only the library's seven whitelisted qualifier codes. READ filler (9B) has no single-object exact fit with real point data; the only exact match is two header-only, count=0 objects (one 4B-header qualifier [0x17 or 0x07], one 5B-header qualifier [0x28 or 0x08]), 4+5=9B, no point data at all -- untested whether a real master tolerates a declared-empty object group. CONTROL filler (19B) has a clean single-object fit: one 0x07-qualified (no index prefix) G41V2 object, 5 points, 4B header + 5x3B = 19B. Neither construction built or endpoint-gate-tested yet; this is a design proposal, not a result."
     }
   ],
   "pattern": {
