@@ -8,7 +8,8 @@ Tofino background assumed beyond what is explained inline.
 We tried the "split the work across two trips through the chip" fix for M's hardest remaining
 problem, built it completely and honestly this time, and the chip's compiler still refuses to fit
 the program. The refusal this time is a harder, more fundamental one than every previous attempt
-hit, and it rules out not just this attempt but the whole approach.
+hit, and it rules out this specific two-trip design for this specific register pair -- not every
+conceivable recirculation arrangement, and not the original queue-plus-carve timing mechanism.
 
 ## Some background you need first
 
@@ -51,20 +52,34 @@ same as "early in the first trip." That risk is exactly what killed this attempt
 
 ## What was tried, in order, with the real numbers
 
-All of this is measured by actually running the chip's compiler, not estimated. "Fits" means 12 or
-fewer stages with no errors; "doesn't fit" means the compiler refuses.
+**Correction (2026-10-08):** the table below originally called m16 and m17 "fits," and described their
+9/8 numbers as stage counts. That was wrong. Every number in this table except m13's starting point is the
+**dependency-graph critical path length** -- a measure of how deep the chain of "this table must come after
+that one" requirements is, computed *before* the compiler tries to actually assign tables to physical
+stages. A shorter critical path makes a fit more likely but is not one. Checked against the actual compiler
+manifests and logs (`evidence/stage_fit_m16_01`, `_02`, `m17_01`, `m18_01`, `m19_01`, `m20_01`, `m21_01`,
+`m22_01`, `m23_01`): **every attempt from m16 through m23 ended in a nonzero compiler exit code and a
+`compile_failed` result. None of them fit.** `LEDGER.md`'s own entries for these same attempts already used
+the correct "critical path" language throughout; this document's summary table did not match it. Fixed here
+to match the raw evidence, with no new compiler runs.
 
 | attempt | what it did | result |
 |---|---|---|
-| m13 (baseline) | -- | 13 stages, doesn't fit |
-| m16 | merged two chains that were wastefully run one-after-another instead of side-by-side | 13 → 9, fits |
-| m17 | moved two read-only checks earlier so they'd land next to a related early check | 9 → 8, fits |
-| m18 | merged two touches on the first stubborn register into one table | 8 → 10, fits, but uncovered a brand-new, fourth conflict on a different register (a wider attempt at the same idea made things much worse, 8 → 14, and was undone) |
-| m19 | an unrelated, free cleanup (recompute a value from data already on hand instead of re-reading something just written) | still 10, no change to the fit question, kept because it's a genuine small win |
-| m20 | tried restructuring the code a different way | 10 → 15, clearly worse, dropped |
-| m21 | confirmed m19's cleanup is now the real baseline | 10, same stubborn conflict remains |
-| m22 | first recirculation attempt: built the two-trip plumbing (new internal routing, a marker, a second pass), but only split the work for 2 of the 4 registers, and the second trip simply trusted whatever the first trip told it, without rechecking | doesn't fit -- and made it *worse*: now 5 separate conflicts instead of 2, with a brand-new, dominant one on the very register (reservation) that recirculation hadn't even touched yet |
-| **m23 (this attempt, today)** | the full, honest version: all 4 registers split across the two trips, every late-update step actually rereads its own register's real state before trusting anything the first trip claimed (so a forged or duplicated "second trip" packet can't sneak a false update through) | **the compiler stops with an outright error, not just a bad number** |
+| m13 (baseline) | -- | critical path 13, doesn't fit |
+| m16 | merged two chains that were wastefully run one-after-another instead of side-by-side | critical path 13 → 9; table placement still fails to allocate all tables (`stage_fit_m16_02`, exit 2, "no more tables placeable") |
+| m17 | moved two read-only checks earlier so they'd land next to a related early check | critical path 9 → 8; table placement still cannot complete (`stage_fit_m17_01`, exit 2, same error) |
+| m18 | merged two touches on the first stubborn register into one table | critical path 8 → 10; the originally named wall is gone, but table placement still fails on a new dependency (`stage_fit_m18_01`, exit 2, same error) -- a wider attempt at the same idea regressed to critical path 14 and was undone |
+| m19 | an unrelated, free cleanup (recompute a value from data already on hand instead of re-reading something just written) | critical path still 10, no change to the fit question, kept because it's a genuine small win |
+| m20 | tried restructuring the code a different way | critical path 10 → 15, clearly worse, dropped |
+| m21 | confirmed m19's cleanup is now the real baseline | critical path 10, same stubborn conflict remains, compile still fails (exit 2) |
+| m22 | first recirculation attempt: built the two-trip plumbing (new internal routing, a marker, a second pass), but only split the work for 2 of the 4 registers, and the second trip simply trusted whatever the first trip told it, without rechecking | doesn't fit (exit 2) -- and made it *worse*: now 5 separate conflicts instead of 2, with a brand-new, dominant one on the very register (reservation) that recirculation hadn't even touched yet |
+| **m23 (this attempt, today)** | the full, honest version: all 4 registers split across the two trips, every late-update step actually rereads its own register's real state before trusting anything the first trip claimed (so a forged or duplicated "second trip" packet can't sneak a false update through) | **the compiler stops with an outright error (exit 3), not just a failed placement** |
+
+**Scope of this correction, and of the verdict below:** the compiler logs establish that these specific
+tested implementations (m13 through m23) failed to compile. They do not establish that every possible
+recirculation arrangement, every arrangement of a shared register between two tables, or the original
+queue-plus-carve timing mechanism is infeasible on this chip. The conclusion below is about the two-trip
+split as implemented and tested here, not a general impossibility proof.
 
 ## What exactly broke this time, in plain terms
 
