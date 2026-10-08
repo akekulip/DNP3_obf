@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.1.0",
+  "candidate_id": "two_state_round8",
+  "corpus_scope": "multicrob",
+  "declared_corpus": "current corpus scope (multicrob)",
+  "selection_rule": "two states = round8(median=74B)=80B and align128(corpus max=118B)=128B; splits the packet population at the empirical median to cut padding vs single-state.",
+  "corpus_max_frame_bytes": 118,
+  "per_class_max_frame_bytes": {
+    "ACK": 66,
+    "OPERATE": 116,
+    "RESPONSE": 118,
+    "SELECT": 116,
+    "WRITE_REQUEST": 87,
+    "unknown": 90
+  },
+  "size_states": [
+    {
+      "state": "S1",
+      "target_frame_bytes": 80
+    },
+    {
+      "state": "S2",
+      "target_frame_bytes": 128
+    }
+  ],
+  "covers_largest_frame": true,
+  "unfit_packets": 0,
+  "maps_upward_only": true,
+  "needs_split_or_failopen_or_larger_state": false,
+  "real_queues_required": 2,
+  "cover_queues_required": 0,
+  "cover_slot_target_sizes": [],
+  "fits_existing_p4": false,
+  "fits_existing_p4_reason": "targets [80] not all in P4 pad set [128, 256] (needs recompile with new pad header)",
+  "pct_packets_per_state": {
+    "S1": 51.02,
+    "S2": 48.98
+  },
+  "max_original_per_state": {
+    "S1": 74,
+    "S2": 118
+  },
+  "transaction_window_schedules": {
+    "per_mode_operation": {
+      "separate_READ": {
+        "observed": false,
+        "note": "no separate-ACK READ transaction observed in this corpus scope"
+      },
+      "combined_READ": {
+        "observed": false,
+        "note": "no combined-ACK READ transaction observed in this corpus scope"
+      },
+      "separate_DIRECT_OPERATE": {
+        "observed": false,
+        "note": "no separate-ACK DIRECT_OPERATE transaction observed in this corpus scope"
+      },
+      "combined_DIRECT_OPERATE": {
+        "observed": false,
+        "note": "no combined-ACK DIRECT_OPERATE transaction observed in this corpus scope"
+      }
+    },
+    "common_ackmode_hiding": {
+      "READ": {
+        "observed": false,
+        "note": "operation READ not present in this corpus scope"
+      },
+      "DIRECT_OPERATE": {
+        "observed": false,
+        "note": "operation DIRECT_OPERATE not present in this corpus scope"
+      }
+    },
+    "synthetic_sbo": {
+      "SYNTHETIC": true,
+      "seed": "multicrob real SELECT/OPERATE sizes",
+      "note": "SYNTHETIC SBO (SELECT/confirm/OPERATE/confirm). No real SBO exists in base/long; do NOT claim strong transaction hiding from synthetic SBO alone.",
+      "slots": [
+        {
+          "timing_position": 0,
+          "direction": "master_to_outstation",
+          "role": "SELECT",
+          "target_size": 128,
+          "original_frame_bytes": 116,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 1,
+          "direction": "outstation_to_master",
+          "role": "RESPONSE",
+          "target_size": 128,
+          "original_frame_bytes": 118,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 2,
+          "direction": "master_to_outstation",
+          "role": "ACK",
+          "target_size": 80,
+          "original_frame_bytes": 66,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 3,
+          "direction": "master_to_outstation",
+          "role": "OPERATE",
+          "target_size": 128,
+          "original_frame_bytes": 116,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 4,
+          "direction": "outstation_to_master",
+          "role": "RESPONSE",
+          "target_size": 128,
+          "original_frame_bytes": 118,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 5,
+          "direction": "master_to_outstation",
+          "role": "ACK",
+          "target_size": 80,
+          "original_frame_bytes": 66,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        }
+      ]
+    }
+  }
+}

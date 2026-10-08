@@ -1,0 +1,60 @@
+{
+  "schema": "case4_selected_pattern.1.0.0",
+  "decided": "2026-10-08",
+  "unit": "tcp_payload_bytes",
+  "selected_option": "A",
+  "pattern": {
+    "description": "Shared 49-byte pre-carve TCP payload for READ, SELECT, OPERATE responses; RID-driven carve to [28,21] via the proven RRC mechanism.",
+    "pre_carve_size": 49,
+    "response_vector": [28, 21],
+    "carve_mechanism": "defense4_rrc_kernel.p4 RID1/RID2 (9ffa9102, RRC_49_CUT28, fixed cut, no runtime parameter)"
+  },
+  "per_role": {
+    "READ": {
+      "request_bytes": 20,
+      "native_response_bytes": 49,
+      "transform_required": "none",
+      "status": "hardware_proven"
+    },
+    "SELECT": {
+      "request_bytes": 45,
+      "native_response_bytes": 49,
+      "transform_required": "request-side qualifier rewrite: native G12V1 object qualifier 0x28 -> 0x17, count 1 -> 2, in place",
+      "status": "hardware_proven_with_master_built_command; switch-side codec not yet implemented"
+    },
+    "OPERATE": {
+      "request_bytes": 45,
+      "native_response_bytes": 49,
+      "transform_required": "same as SELECT",
+      "status": "expected_by_structural_symmetry; physical OPERATE never run through RRC at any cardinality; UNMEASURED"
+    },
+    "all_points_state_read": {
+      "request_bytes": 18,
+      "native_response_bytes": 58,
+      "transform_required": "none",
+      "status": "correctly_excluded_from_49B_eligibility; passes through unsplit"
+    }
+  },
+  "fallback_if_qualifier_rewrite_codec_fails_validation": {
+    "option": "B",
+    "description": "Single uniform 58-byte pad, no split.",
+    "measured_mi_bits": 0.0
+  },
+  "not_selected_but_worth_pursuing_in_parallel": {
+    "option": "A_prime",
+    "description": "Converge on native 37-byte response (no switch transform) if an operator-acceptable 13-point READ poll is available.",
+    "blocking_reason": "depends on production master poll configuration outside this task's authorization/access"
+  },
+  "open_gates_before_phase_d_can_call_this_complete": [
+    "qualifier-rewrite codec built and validated against the OpenDNP3 endpoint_gate semantic harness",
+    "OPERATE exercised through the RRC path on the local model (not assumed from SELECT symmetry)",
+    "combined pipe-0 egress compile against installed_nf_05 (only 2/64 32-bit PHV containers free)",
+    "request-direction size residual (20B READ vs 45B SELECT/OPERATE) stated explicitly in any indistinguishability claim",
+    "arrival-order reversal ([21,28] recorded vs [28,21] TCP sequence) remains open, unaffected by this pattern choice"
+  ],
+  "evidence_sources": [
+    "defense4/timing/case4_architecture/integration/size/DISTRIBUTION_AND_PATTERN_ANALYSIS.md",
+    "defense4/timing/case4_architecture/integration/size/HARDWARE_FEASIBILITY_ANALYSIS.md",
+    "9ffa9102d7a60095ed286f5c5dde2561a679b3d9:defense4/size/native_parity/{RRC_DESIGN.md,RRC_HW_RESULTS.md,READSBO_NORMALIZATION_RESULT.md}"
+  ]
+}

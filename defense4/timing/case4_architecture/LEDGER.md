@@ -1010,3 +1010,68 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   by `transport.py`/`compose.py`/`split.py`, not derived from `connection/binding/generate.py`. The
   current M-stage-fit work (M-R1 through M-R7, same day) lives in this tree; touching it was out of
   scope here and risked that unrelated, still-open work.
+
+- 2026-10-08 Started the combined timing+size integration per
+  `DNP3_Timing_Size_Integration_Prompt.md` (Philip-supplied, evidence-audited against HEAD `85c9f8cbf`).
+
+  **Phase A (reconcile, freeze one contract).** Two read-only verification agents confirmed the
+  prompt's claims against actual repo state and recovered-history evidence (`2ce9910a`, `9ffa9102`,
+  both ordinary ancestors of HEAD). Found and fixed a real defect: `M_RECIRCULATION_VERDICT.md`'s
+  summary table called m16/m17 "fits" (9/8 "stages"). The actual manifests
+  (`stage_fit_m16_01`/`_02`, `m17_01`-`m22_01`, exit 2; `m23_01`, exit 3) show **every** attempt from
+  m16 through m23 as `compile_failed` -- the 9/8/10/15 numbers are dependency-graph critical-path
+  lengths computed before register allocation, not stage counts. `LEDGER.md`'s own entries above
+  already used the correct "critical path" language throughout; only the verdict document's summary
+  table was wrong. Fixed to match (no new compiler runs), and narrowed the conclusion: these logs
+  refute the *tested* m13-m23 two-trip designs, not every recirculation arrangement or the original
+  queue-plus-carve mechanism. Wrote `integration/INTEGRATION_CONTRACT.md` as the one decision record
+  for the rest of this effort (byte-unit convention, per-capability evidence map, timing-anchor
+  convention, accept/supersede/unresolved status for every named conflict). Committed `fdf99f6e8`.
+
+  **Phase B (the decisive phase -- select one shared size pattern).** Dispatched two parallel agents
+  against the same candidate option set to resolve the named mismatch (READ response historically
+  `[28,21]`, current Case 4 control-path software profile `[28,29]` -- an observer can currently tell
+  READ from control apart by size alone): a research-scientist pass (recovered and independently
+  re-verified the historical size-pattern-builder tooling and all four RRC hardware PCAPs from
+  `9ffa9102`, ran the real MI/Miller-Madow/flow-grouped-bootstrap/permutation/grouped-CV machinery
+  against 9 candidate options) and a p4-dataplane-engineer pass (resolved the DNP3 byte arithmetic
+  behind every native/padded size, ran 6 local carve-only compile probes confirming egress carve cost
+  stays at 3 stages regardless of profile count, with PHV the real constraint). Both converged
+  independently on the same answer despite running in parallel (the statistics pass corrected its own
+  early guess mid-flight after reading the hardware pass's output).
+
+  **Selected (`integration/size/SELECTED_PATTERN.md`, `selected_pattern.json`): Option A** -- converge
+  READ and SELECT/OPERATE on a shared 49-byte pre-carve TCP payload, split `[28,21]` via the already
+  hardware-proven RRC mechanism (`9ffa9102`, R1-R6 PASS). READ already reaches 49B natively (20B
+  request, no change). SELECT/OPERATE need a new request-side codec, not yet built: rewrite the native
+  G12V1 object's qualifier `0x28`->`0x17` and count 1->2 in place (the current
+  `case4_padding.expand_control()` separate-header approach can only reach 52-57B, never exactly 49).
+  Measured leakage on the recovered RRC pool (244 segments / 124 transactions, 4 flow-groups): MI =
+  0.0162 bits (Miller-Madow 0.0132), flow-grouped bootstrap 95% CI `[0.0, 0.206]` (spans zero),
+  permutation p = 0.166 -- not significant, but thin-sample (4 flow-groups), flagged honestly, not
+  glossed over. Option A' (converge on the native 37B response, no switch transform, via an
+  operator-chosen READ poll) scored cheaper on hardware cost in both analyses but was not selected --
+  it depends on a production master poll-configuration decision outside this task's access, and it
+  would mean building no padding mechanism at all, under-delivering on the prompt's explicit framing
+  of padding as a required framework capability. Recorded as worth raising in parallel, not blocking.
+  Option B (uniform 58B pad, no split; MI = 0 exactly) is the documented fallback if the qualifier-
+  rewrite codec fails its endpoint-compliance validation. Options C/D/E scored and rejected with
+  reasons in `SELECTED_PATTERN.md`.
+
+  Five explicit, falsifiable gates before Phase D can call this pattern complete (not closed by this
+  phase): the qualifier-rewrite codec doesn't exist yet and needs `endpoint_gate` semantic validation;
+  OPERATE's 49B landing is a structural inference from SELECT, never physically measured; the combined
+  pipe-0 egress compile against `installed_nf_05` (only 2/64 32-bit PHV containers free) has not been
+  run; the request-direction size residual (20B READ vs 45B SELECT/OPERATE) is unaddressed by this
+  pattern and must be stated in any indistinguishability claim; the arrival-order reversal (`[21,28]`
+  recorded vs `[28,21]` TCP sequence, prompt Sec 2.5) remains open and unaffected by this choice.
+
+  Trimmed ~103MB of reproducible per-packet intermediate JSON/CSV (`inventory_v2/{base,long}_*`) before
+  committing -- regenerable via the documented commands in `DISTRIBUTION_AND_PATTERN_ANALYSIS.md`, not
+  needed in the tree. `queue_microbench/test_pattern_builder.py` reconfirmed 16/16 passing, unmodified.
+
+  Next: Phase C (queue timing mechanism + response-ready corrections) and Phase D (wire this pattern
+  into the P4 data plane, build the qualifier-rewrite codec, close the five gates above) run as
+  parallel streams per the approved plan, converging on the first-milestone demonstration (one
+  complete READ and one complete SELECT/OPERATE transaction through timing + this size pattern +
+  transport repair, on the local model).
