@@ -1,12 +1,25 @@
-# Case4 continuation checkpoint — 2026-10-07 (size pattern selected 2026-10-08)
+# Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08, same day, twice)
 
-**Read first, in order: [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md)
-(the decision record for the whole timing+size integration effort), then
-[`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) (2026-10-08: the common
-size pattern is decided — converge READ and SELECT/OPERATE on a shared 49-byte pre-carve TCP payload,
-split `[28,21]` via the already hardware-proven RRC mechanism; SELECT/OPERATE need a new request-side
-codec, not yet built, rewriting the native object's qualifier `0x28`→`0x17` and count 1→2 — this
-**supersedes** the `35→55`/`57→[28,29]` separate-header plan named below in "Remaining core work" item 2).**
+**Read first, in order:**
+1. [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md) — the decision record
+   for the whole timing+size integration effort.
+2. [`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) — **the active
+   pattern is Option B as of 2026-10-08**: a single uniform 58-byte TCP-payload pad for READ,
+   SELECT, and OPERATE responses, no splitting (MI = 0 exactly, the cleanest measured leakage of any
+   option scored). Option A (converge on a 49-byte pre-carve payload via a request-side qualifier
+   `0x28`→`0x17` rewrite) was selected earlier the same day and then **failed real-master
+   endpoint-compliance validation** — the real OpenDNP3 master correctly rejects the rewritten echo —
+   so it is dead, not just superseded; see the document's own "UPDATE 2026-10-08" section for the
+   full story. This supersedes the `35→55`/`57→[28,29]` separate-header plan named below in
+   "Remaining core work" item 2 a second time, in a different direction (padding, not a cut-to-49
+   carve).
+3. [`integration/read/TIMING_QUEUE_MIGRATION_STATUS.md`](integration/read/TIMING_QUEUE_MIGRATION_STATUS.md)
+   — T's queue-resident timing role (`read_queue_timing.p4`): all 7 invariants pass, 18/18, at the
+   source-level interpreter. The real `bf-p4c` compile (both local SDK 9.13.1 and the switch's
+   installed 9.13.2, compile-only) hits a reproducible internal compiler crash in PHV allocation
+   (table placement itself succeeds at 8 of 12 stages) that four independent, substantive attempts
+   did not resolve — read the document before attempting a fifth; its own recommendation is to
+   bisect by register count or escalate, not to keep varying the P4 source the same way again.
 
 **Separately, read [`integration/core/M_RECIRCULATION_VERDICT.md`](integration/core/M_RECIRCULATION_VERDICT.md).**
 M's extended ACK/window mapper does not fit in 12 ingress stages. Eight compiler-verified attempts
