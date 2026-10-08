@@ -177,7 +177,7 @@ class Engine:
         # D10 (PI decision, step 3): a data packet that finds the WorkRecord busy is now dropped (counted)
         # instead of forwarded natively. Nothing else may differ.
         label = case['label']
-        if (label['stage'] == 0 and label['pk'] in (5, 6, 7) and (label['work'][0] != 4 or label['counter'] == 0xffffffff)
+        if (label['stage'] == 0 and label['pk'] in (1, 2, 5, 6, 7) and (label['work'][0] != 4 or label['counter'] == 0xffffffff)
                 and diff == [('fields', 'md.drop_ctl', 0, 1)]):
             return None, a
         # Task1 declared changes are checked against absolute state/prefix predicates,

@@ -34,7 +34,10 @@ INTENTIONAL DIFFERENCES (everything else must be identical)
       (packet kind 5, 6, 7) is dropped and counted instead of forwarded natively; the only differing
       observable is md.drop_ctl 0 -> 1. Counters (count_first, count_busy, count_term) are exposed state
       that exists only in the new source. Whole-segment resend, one-byte replay (kind 12, IP length 41)
-      and the sequence_valid codes 3 and 4 are new and covered by test_step3_catchall.py.
+      and the sequence_valid codes 3 and 4 are new and covered by test_step3_catchall.py. L3 (2026-10-07
+      review): the same busy-drop policy also covers a racing SYN or SYNACK (packet kind 1, 2), which
+      previously fell through busy_t's default action and passed natively; covered by
+      test_step3_catchall.Busy.test_busy_record_drops_and_counts_syn_and_synack.
   D5  m.expected_work_phase is assigned once at the top of apply instead of directly before
       work.apply; m.stage is never written after parsing, so the value is identical.
 """

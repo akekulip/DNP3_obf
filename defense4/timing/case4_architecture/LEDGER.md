@@ -944,3 +944,69 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   `transport_candidate_next23/` (generated source), `evidence/stage_fit_m23_01/` (compile evidence),
   this `LEDGER.md` entry, and `integration/core/M_RECIRCULATION_VERDICT.md`.
   No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
+
+- 2026-10-07 (this session) M3/M6/L3 of the two adversarial review passes (line 374 above), disposed
+  individually with TDD where a code change applied:
+
+  **M3 -- FIXED (test gap, now closed).** N/T/M port agreement was asserted by hand. Added
+  `integration/read/tests/test_read_ports.py::CrossFileAgreement`: parses the actual generated
+  `native_binding.p4` (`READ_HANDOFF_PORT`, `STEP3_M_PORT`) and the live ordinary M
+  (`integration/core/ordinary/m.p4`'s ingress-port `select`) against `ports.p4`'s canonical `T_IN`/
+  `N_TO_M`, so a future edit to one file that forgets another fails loudly. `read_timing.p4` (T) only
+  `#include`s `ports.p4`, so it cannot drift from it on its own (already covered by
+  `test_read_timing_includes_ports_and_has_no_numeric_port`). Confirmed the M3 port note itself is
+  stale: the canary's port 68 was already replaced by 196/197 in commit `834372cbb`, before this
+  session started; the new test only adds the missing regression guard. Also confirmed (read-only, no
+  mismatch): the live ordinary M (`m_activate_06`'s source, `integration/core/ordinary/m.p4`) already
+  listens on `9w196` for N's traffic, matching N's `STEP3_M_PORT`. Open, not a bug: that parser has no
+  case for `9w197` (`T_TO_M`) yet -- T-to-M integration has not started (consistent with "Full M...
+  integration... remain open", multiple prior entries); a default-`accept` of port 197 today is
+  inert because nothing sends M traffic on it yet.
+
+  **M6 -- CONFIRMED NOT A BUG (STEP3_DESIGN.md corrected in place, not T).** Traced the actual packet
+  path rather than guessing. `read_timing.p4` does set `bypass_egress=0` unconditionally, including on
+  every forward to `FORWARD_PORT`/`RELAY_PORT` (pipe 0, device ports 9/64) -- true as read. But
+  `STEP3_DESIGN.md`'s own status line already marks the whole document "design note, no code, nothing
+  compiled or run" and "Historical design"; its section 6.3 invariant ("no ingress action of N, T or
+  the carve role sets `bypass_egress=0`; only M's... may") is a requirement for the single combined
+  N+M+E+T program that section proposes, not a description of anything built. T has never been
+  compiled with E: T's own file ends in its own `Pipeline(...,EmptyEgress(),...)`/`Switch(pipe) main`
+  (`read_timing.p4:811-818`); the only existing N+T fixture, `integration/model_task1/nt.p4`, pairs N's
+  own pipe-0 `Egress` (a literal `apply{}` no-op, `native_binding.p4:406`) with T's `EmptyEgress` and
+  says so explicitly ("No M, production or physical qualification"); E (`integration/egress_wire.p4`,
+  which carries the descriptor-magic check) has never been combined with N or T in any build this
+  repository contains. So T's `bypass_egress=0` cannot reach E's actual logic today -- there is no
+  compiled path on which it would. Added one paragraph to `STEP3_DESIGN.md` section 6.3 recording this
+  so a future reviewer reads the invariant as forward-looking, not already-enforced, and re-establishes
+  it on T only when/if T is actually merged into that combined build. No source change.
+
+  **L3 -- FIXED, red-first.** The busy-drop policy (PI decision, step 3: data packets dropped and
+  counted with a WorkRecord busy, pure ACKs still forwarded) did not cover a SYN or SYNACK racing the
+  pin: `busy_t`'s const entries covered kinds 5/6/7/9/11/12 only, so kind 1 (SYN) and kind 2 (SYNACK)
+  fell to the default `busy_pass()` -- forwarded natively and counted as a passed ACK, same as a
+  genuine pure ACK, leaving the owner unclaimed for every later SELECT on that connection until the
+  WorkRecord freed. Red test added first: `test_step3_catchall.Busy.
+  test_busy_record_drops_and_counts_syn_and_synack` failed (`False is not true`) against the
+  unmodified source. Fix is one line in the generator (`generate.py`'s `busy_t` entries gain
+  `8w1:busy_drop();8w2:busy_drop();`, size 6 to 8), regenerated through `generate.py` itself (the
+  documented, hash-pinned path from `work_record.p4`), landing as a 1-line diff in
+  `native_binding.p4`. Fixing it surfaced two oracle/equivalence tests that had hardcoded the old
+  (pass-through) SYN/SYNACK-while-busy behaviour as the expected invariant:
+  `test_native_binding_differential.py` (D10's exclusion list extended from packet kinds `(5,6,7)` to
+  `(1,2,5,6,7)` in `differential.py`) and `test_harness_equivalence.PacketSweep` (added the same
+  busy-drop expectation for a genuinely-shaped SYN/SYNACK, i.e. matching direction and a present MSS
+  option -- a malformed SYN/SYNACK with no MSS or the wrong direction never reaches `syn_shapes`/
+  `guard`'s `go_new`, so it is a no-op on both sources, same as before). Both updated, not weakened:
+  the assertions still require the busy-drop outcome, only broadened to the correct packet-kind set.
+
+  Full suites, fresh this session, all green: root `tests` 33/33; `integration/connection/binding/tests`
+  85/85 (one net new test; differential still 590,976 cases, 0 mismatches); `integration/controller/tests`
+  17/17; `integration/core/harness/tests` 42/42; `integration/core/m/tests` 33/33; `integration/read/tests`
+  106/106 (three net new tests); `integration/core/ordinary/tests` 73/73 (untouched this entry).
+
+  NOTE for a later session, not fixed here (out of this task's scope -- a different, independently
+  maintained artifact): `integration/core/ordinary/{n.p4,ne.p4,composed.p4}` each carry their own
+  copy of the identical pre-fix `busy_t` table (kinds 5/6/7/9/11/12 only, same SYN/SYNACK gap), built
+  by `transport.py`/`compose.py`/`split.py`, not derived from `connection/binding/generate.py`. The
+  current M-stage-fit work (M-R1 through M-R7, same day) lives in this tree; touching it was out of
+  scope here and risked that unrelated, still-open work.

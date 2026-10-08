@@ -342,6 +342,19 @@ arrive with `egress_rid == 0`, and make a program-level invariant that no ingres
 carving, split the route and split actions so `ucast_egress_port` is never assigned on the multicast path (finding 14, the
 compiler tracks assignment as validity [I]).
 
+M6 (2026-10-07 review correction): this "no ingress action of N, T or the carve role sets `bypass_egress=0`" line is a
+requirement for the single combined N+M+E+T program this section proposes, not a description of anything compiled
+today. `read_timing.p4` (T) sets `bypass_egress=0` on every forward to `FORWARD_PORT`/`RELAY_PORT` (pipe 0, 9/64) so
+those cross-pipe hops reach the egress pipe at all [V, `read_timing.p4:766`], but T has never been compiled or deployed
+together with E: T's own file ends in its own `Pipeline(...,EmptyEgress(),...) pipe; Switch(pipe) main;` [V,
+`read_timing.p4:811-818`], and the only existing N+T fixture (`integration/model_task1/nt.p4`) pairs N's pipe-0 egress
+(`native_binding.p4`'s own `Egress`, a literal `apply{}` no-op [V, `native_binding.p4:406`]) with T's pipe-2
+`EmptyEgress`, explicitly "No M, production or physical qualification" [V, `nt.p4:2`]. E (`egress_wire.p4`, with the
+descriptor-magic check this invariant protects) has never been combined with either N or T in any build. So T's
+`bypass_egress=0` is harmless today: there is no compiled path on which it reaches E's actual logic. This is not a bug
+in T and this document's status line already marks it historical/uncompiled; a future reviewer merging T into the
+combined build must re-establish this invariant on T at that time, not read this section as already-enforced.
+
 ### 6.4 Stage budget (to be replaced by compiler evidence)
 | Role | Known | Added by step 3 | Estimate | Evidence required |
 |---|---|---|---|---|

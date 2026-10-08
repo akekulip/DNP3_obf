@@ -164,8 +164,15 @@ class PacketSweep(unittest.TestCase):
                     self.assertEqual(new.registers[key], fixed.registers[key], key)
                 read_candidates += 1
                 continue
-            if 'work' in presets and presets['work'][1] != 4 and kind in ('select', 'operate') and not fixed.dropped:
+            # A genuinely shaped SYN (forward, flags 2) or SYNACK (reverse, flags 18) with its MSS option:
+            # mismatched direction/flags or a missing MSS never reach syn_shapes, so guard leaves m.go at 0
+            # and busy_t is never consulted (same no-op on both sources).
+            syn_or_synack = kind == 'control' and flags in (2, 18) and mss is not None and ((flags == 2) != reverse)
+            if ('work' in presets and presets['work'][1] != 4
+                    and (kind in ('select', 'operate') or syn_or_synack)
+                    and not fixed.dropped):
                 # D10 (PI decision): a data packet that finds the WorkRecord busy is dropped, not forwarded.
+                # L3 (2026-10-07 review): a racing SYN or SYNACK gets the same treatment.
                 self.assertTrue(new.dropped)
                 self.assertEqual(new.emitted, [])
                 self.assertEqual(new.registers, fixed.registers)

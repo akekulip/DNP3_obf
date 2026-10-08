@@ -64,6 +64,26 @@ class Busy(unittest.TestCase):
                 # the generation is minted before the busy record is known, so a busy drop burns one
                 self.assertEqual(pipe.state()['counter'], before['counter'] + 1)
 
+    def test_busy_record_drops_and_counts_syn_and_synack(self):
+        """L3: the PI's busy-drop policy (data packets dropped and counted) must also cover a SYN or
+        SYNACK that races a pinned WorkRecord, not only SELECT/OPERATE/response/READ. Before the fix,
+        kind 1 (SYN) and kind 2 (SYNACK) fell through busy_t's default action (busy_pass) and were
+        forwarded natively and uncounted as a busy ACK, leaving the owner at 0 for every later SELECT
+        on that connection until the WorkRecord freed."""
+        cases = ((rs.IN_CLIENT, vectors.frame(2, 100, 0, False, 1500), 0x10001, 101, 901),
+                 (rs.IN_SERVER, vectors.frame(18, 900, 101, True, 1500), 0x20001, 101, 901))
+        for port, frame, owner, client, server in cases:
+            with self.subTest(len(frame)):
+                pipe = ReadPipeline().start(owner, client, server, work=(7, 2))
+                before = pipe.state()
+                out = pipe.inject(port, frame)
+                self.assertTrue(out.dropped, out.drop_reason)
+                self.assertEqual(out.emitted, [])
+                self.assertEqual(out.passes, 1)
+                self.assertEqual(counters(pipe)[COUNTER['busy_drop']], 1)
+                for key in ('owner', 'client', 'server', 'epoch', 'work'):
+                    self.assertEqual(pipe.state()[key], before[key], key)
+
     def test_busy_record_still_forwards_pure_acks_and_counts_them(self):
         for port, frame, owner in ((rs.IN_CLIENT, vectors.frame(16, 136, 958), 0x90001),
                                    (rs.IN_SERVER, rs.ack_packet(), 0xe0001)):

@@ -339,10 +339,10 @@ action terminal_abort(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid
 action emit_reset(){hdr.event.event=8w4++m.direction;hdr.expected_cell.expected_cell=32w0;tm.ucast_egress_port=READ_HANDOFF_PORT;m.emit_loop=8w0;}
 table reset_boundary{key={m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_reset;terminal_abort;}size=1;const entries={(8w1,32w0,32w0):emit_reset();}const default_action=terminal_abort();}
 action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_term_bump.execute(4w0);}
-table read_terminal_t{key={m.kind:ternary;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=6;const entries={(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
+table read_terminal_t{key={m.kind:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=5;const entries={8w9:emit_tev(16w0x0900);8w10:emit_tev(16w0x0a00);8w11:emit_tev(16w0x0b00);8w12:emit_replay();8w255:terminal_abort();}const default_action=terminal_strip();}
 action busy_drop(){md.drop_ctl=3w1;count_busy_bump.execute(4w0);}
 action busy_pass(){count_busy_bump.execute(4w1);}
-table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=8;const entries={8w1:busy_drop();8w2:busy_drop();8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}
+table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=6;const entries={8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}
 action go_new(bit<8> k){m.go=8w1;m.kind=k;m.generation=allocate.execute(1w0);m.work_op=8w1;}
 action go_keep(bit<8> k){m.go=8w1;m.kind=k;}
 action go_ret_work(){m.go=8w1;m.generation=hdr.work_generation.generation;m.work_op=8w2;}
@@ -395,7 +395,7 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48
      else if(m.kind==8w8||m.kind==8w10||m.kind==8w12){if(m.owner_diff!=32w0){abort_t.apply();}}
      else{if(m.owner_op==8w1&&m.owner_diff==32w0){carry_t.apply();}else{abort_t.apply();}}
      next_stage_t.apply();
-    }else if(m.work_phase==32w3){read_terminal_t.apply();}
+    }else if(m.work_phase==32w3){if(m.epoch_diff==32w0){read_terminal_t.apply();}else{terminal_abort();}}
     else{deny();}
    }else if(m.stage!=8w0){deny();}
   }else if(m.stage!=8w0){deny();}
@@ -405,6 +405,4 @@ control IgDeparser(packet_out pkt,inout headers_t hdr,in meta_t m,in ingress_int
 parser EgParser(packet_in pkt,out headers_t hdr,out meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
 control Egress(inout headers_t hdr,inout meta_t m,in egress_intrinsic_metadata_t eg,in egress_intrinsic_metadata_from_parser_t p,inout egress_intrinsic_metadata_for_deparser_t md,inout egress_intrinsic_metadata_for_output_port_t port){apply{}}
 control EgDeparser(packet_out pkt,inout headers_t hdr,in meta_t m,in egress_intrinsic_metadata_for_deparser_t md){apply{}}
-#ifndef NATIVE_BINDING_NO_MAIN
 Pipeline(IgParser(),Ingress(),IgDeparser(),EgParser(),Egress(),EgDeparser()) pipe;Switch(pipe) main;
-#endif

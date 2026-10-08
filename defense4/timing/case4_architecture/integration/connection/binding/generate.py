@@ -207,7 +207,7 @@ table read_terminal_t{key={m.kind:ternary;m.owner_diff:exact;m.epoch_diff:exact;
     # count_term (read_terminal_t).
     bank_text+='''action busy_drop(){md.drop_ctl=3w1;count_busy_bump.execute(4w0);}
 action busy_pass(){count_busy_bump.execute(4w1);}
-table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=6;const entries={8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}
+table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=8;const entries={8w1:busy_drop();8w2:busy_drop();8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}
 '''
     text=once(text,' action deny(){md.drop_ctl=3w1;}',''' Register<bit<32>,bit<4>>(4,0) count_first;
 RegisterAction<bit<32>,bit<4>,bit<32>>(count_first) count_first_bump={void apply(inout bit<32> v,out bit<32> r){if((int<32>)v!=-1){v=v+32w1;}r=v;}};

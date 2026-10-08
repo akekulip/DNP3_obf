@@ -12,7 +12,9 @@ ARCH = Path(__file__).resolve().parents[3]
 READ = ARCH / 'integration/read'
 PROBE = ARCH / 'ownership/p4/held_timing_expected_probe.p4'
 NATIVE = ARCH / 'integration/connection/binding/native_binding.p4'
+ORDINARY_M = ARCH / 'integration/core/ordinary/m.p4'
 DECL = re.compile(r'const\s+PortId_t\s+(\w+)\s*=\s*9w(\d+)\s*;\s*//\s*(ingress|egress|peer)\b')
+NATIVE_DECL = re.compile(r'const\s+PortId_t\s+(\w+)\s*=\s*9w(\d+)\s*;')
 
 
 def strip_comments(text):
@@ -26,6 +28,15 @@ def declared():
         assert name not in result, 'duplicate constant ' + name
         result[name] = (int(value), role)
     return text, result
+
+
+def native_declared():
+    """N's own `const PortId_t` declarations (native_binding.p4 carries no role-tagged comment)."""
+    text = NATIVE.read_text()
+    result = {}
+    for name, value in NATIVE_DECL.findall(text):
+        result.setdefault(name, int(value))
+    return result
 
 
 class Ports(unittest.TestCase):
@@ -93,6 +104,39 @@ class Ports(unittest.TestCase):
         _, ports = declared()
         self.assertNotIn(72, [v for v, _ in ports.values()])
         self.assertNotIn(73, [v for v, _ in ports.values()])
+
+
+class CrossFileAgreement(unittest.TestCase):
+    """M3 (2026-10-07 review): port agreement between N (native_binding.p4), T (ports.p4,
+    read_timing.p4 only #includes it so it cannot drift on its own) and the live ordinary M
+    (integration/core/ordinary/m.p4; the frozen single-pass canary under integration/core/m/ is a
+    separate, retired artifact per LEDGER.md) was asserted by hand, not cross-checked. These parse
+    the actual generated/compiled sources, not a restated copy of the numbers."""
+
+    def test_native_binding_read_handoff_port_matches_t_in(self):
+        _, ports = declared()
+        native = native_declared()
+        self.assertEqual(native['READ_HANDOFF_PORT'], ports['T_IN'][0],
+                          "N's READ_HANDOFF_PORT must equal the device port T listens on (T_IN)")
+
+    def test_native_binding_step3_m_port_matches_n_to_m(self):
+        _, ports = declared()
+        native = native_declared()
+        self.assertEqual(native['STEP3_M_PORT'], ports['N_TO_M'][0],
+                          "N's STEP3_M_PORT must equal the device port M expects traffic from N on (N_TO_M)")
+
+    def test_ordinary_m_dispatches_the_n_to_m_port_to_a_real_parser_state(self):
+        """Confirms the live ordinary M (m_activate_06; see LEDGER.md) listens where N actually sends,
+        not on the retired canary's port 68."""
+        _, ports = declared()
+        source = ORDINARY_M.read_text()
+        block = re.search(r'select\(ig\.ingress_port\)\{([^}]*)\}', source)[1]
+        cases = dict(re.findall(r'9w(\d+):(\w+);', block))
+        n_to_m = str(ports['N_TO_M'][0])
+        self.assertIn(n_to_m, cases, 'ordinary M must dispatch an ingress case for N_TO_M (%s)' % n_to_m)
+        self.assertNotIn(cases[n_to_m], ('accept', 'reject'),
+                          'N_TO_M must route to a real parser state, not fall through to the default')
+        self.assertNotIn('68', cases, "the retired canary's port 68 must not reappear in the live M")
 
 
 if __name__ == '__main__':
