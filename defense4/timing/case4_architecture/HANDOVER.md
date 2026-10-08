@@ -1,5 +1,14 @@
 # Case4 continuation checkpoint — 2026-10-07
 
+**Decision point, read first: [`integration/core/M_RECIRCULATION_VERDICT.md`](integration/core/M_RECIRCULATION_VERDICT.md).**
+M's extended ACK/window mapper does not fit in 12 ingress stages. Eight compiler-verified attempts
+(m13 through m23, `LEDGER.md`) narrowed this to a genuine four-register hardware placement limit;
+the most promising fix (a second ingress pass via recirculation) was implemented in full and refuted
+by the compiler itself, not just argued. The two remaining options (move the registers to egress, or
+redesign M from scratch around this limit) are each a real project, not a quick follow-up, and the
+verdict document asks Philip to choose before more engineering time goes into either. Everything
+below this point continues to describe work that does NOT depend on that decision.
+
 Continue directly from [PLAN.md](PLAN.md#execution-checklist--2026-10-07).
 Core transport is the active step: ACK/window normalization, SELECT response,
 then OPERATE padding/carving and replay. Full Case4 remains incomplete.
