@@ -87,5 +87,28 @@ class MPrepare(unittest.TestCase):
         dropped,_=self.execute(m,raw,197)
         self.assertTrue(dropped);self.assertEqual(m.cells,before)
 
+    def test_forwarding_routes_new_recirc_port_back_into_m_ingress(self):
+        # M-R1: local 71 (device port 199 in pipe 1, per model_28/PORTS_PROPOSAL.md) is the
+        # new M-local recirculation hop. Before the fix, forwarding has no entry for 199 and
+        # hits its default deny(); after the fix it must route(9w199) -- a self-loop egress
+        # that model_28 confirms re-enters this same pipe's ingress with ingress_port=199.
+        raw,_=self.handoff();m=self.receiver()
+        self.execute(m,raw,199)
+        hits=[e for e in m.events if e.startswith('table forwarding ->')]
+        self.assertEqual(len(hits),1,m.events)
+        self.assertTrue(hits[0].startswith('table forwarding -> route'),hits[0])
+        self.assertEqual(m.env.get('tm.ucast_egress_port'),199)
+        self.assertEqual(m.env.get('tm.bypass_egress'),0)
+
+    def test_forwarding_existing_196_and_198_routes_unaffected(self):
+        raw,_=self.handoff();m=self.receiver()
+        self.execute(m,raw,196)
+        hits=[e for e in m.events if e.startswith('table forwarding ->')]
+        self.assertEqual(hits,["table forwarding -> route (runtime) keys=[196]"])
+        m=self.receiver()
+        self.execute(m,raw,198)
+        hits=[e for e in m.events if e.startswith('table forwarding ->')]
+        self.assertEqual(hits,["table forwarding -> route (runtime) keys=[198]"])
+
 
 if __name__=='__main__':unittest.main()

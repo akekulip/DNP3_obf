@@ -54,7 +54,7 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
 control Ingress(inout headers_t hdr,inout meta_t m,in ingress_intrinsic_metadata_t ig,in ingress_intrinsic_metadata_from_parser_t p,inout ingress_intrinsic_metadata_for_deparser_t md,inout ingress_intrinsic_metadata_for_tm_t tm){
  action deny(){md.drop_ctl=3w1;}
  action route(PortId_t port){tm.ucast_egress_port=port;tm.bypass_egress=1w0;}
- table forwarding{key={ig.ingress_port:exact;}actions={route;deny;}size=4;default_action=deny();}
+ table forwarding{key={ig.ingress_port:exact;}actions={route;deny;}size=4;default_action=deny();const entries={9w199:route(9w199);}}
  action allow_connection(){m.enabled=1w1;}
  table connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;}actions={allow_connection;NoAction;}size=1;default_action=NoAction();}
  Register<producer_cell_t,bit<1>>(1,{0,4}) reservation;

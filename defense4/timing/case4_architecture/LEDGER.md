@@ -715,3 +715,87 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   listed structural options ((a) recirculation second pass, (b) move the registers to egress, (c) a
   new M layout) is still open and not attempted here.
   No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
+- 2026-10-07 (this session) M-R1 and M-R7 of `integration/core/M_STRUCTURAL_OPTIONS.md`'s ordered
+  TDD tickets (option (a), second M ingress pass via recirculation). Scope: ONLY these two tickets;
+  M-R2 through M-R6 are explicitly NOT attempted, per the canary-gate-first instruction below.
+  **M-R1** (M-local recirculation route): extended `forwarding`'s `const entries` in the real
+  `integration/core/ordinary/m.p4` with `9w199:route(9w199);` -- local 71/pipe1 (device port 199,
+  `model_28/PORTS_PROPOSAL.md`), a self-loop route/recirculation entry, leaving `default_action=
+  deny()` and all 196/197/198 behavior (installed only at runtime/control-plane, unchanged) alone.
+  Red test first (`tests/test_m_prepare.py::test_forwarding_routes_new_recirc_port_back_into_m_ingress`,
+  asserted the ROUTE outcome, failed against the unmodified table: `table forwarding -> deny
+  (default) keys=[199]`), then the one-line fix, then green; a second new test
+  (`test_forwarding_existing_196_and_198_routes_unaffected`) pins 196/198's existing runtime-install
+  behavior. `transport.py` required NO edit -- `forwarding`'s table declaration text is not a
+  `replace()` target anywhere in `transport.py`/`split.py`, so the new const entry flows through
+  `generate_roles()` into `m3.p4` unchanged (confirmed by regenerating and diffing the `table
+  forwarding{...}` line). Regression: `integration/core/ordinary/tests` 73/73 (71 baseline + 2 new),
+  root `tests` 33/33, `integration/connection/binding/tests` 84/84, `integration/controller/tests`
+  17/17, `integration/core/harness/tests` 42/42, `integration/core/m/tests` 33/33,
+  `integration/read/tests` 103/103 -- all identical counts to every prior entry's regression, plus
+  the 2 new M-R1 tests.
+  **M-R7** (stage-fit canary, resource canary only, no M-R2-M-R6 logic): new scratch generator
+  `integration/core/ordinary/transport_experiment_m22.py` (does NOT edit `transport.py`, same
+  pattern as m19/m20), building directly on the live `transport.generate_roles()` output (i.e. the
+  exact apply{} this design note's section 1 quotes, now carrying M-R1's fix). Implements the
+  MINIMAL two-pass skeleton: a new `pass_h{marker;carry}` header and `m.m_pass` meta bit; role 0's
+  `reserve_t` success branch now calls a new `pass0_exit_role0_t` (recirculates to 9w199 carrying
+  `reservation_grant` as `carry`, instead of calling `construct_t`/`output_new*`/`crc_render_t`
+  directly); role 1's `claim_once_t` success branch analogously calls `pass0_exit_role1_t`
+  (recirculates carrying `activation_grant`, instead of `activate_geometry_t`/`activate_position_t`/
+  `activate_ledger_t`/`dirty_return_t`). The parser's existing `reverse_entry` state (9w199) gets two
+  new magic-lookahead cases (`32w0xca220001`/`32w0xca220002`) alongside its existing mapping-snapshot/
+  raw-reverse discrimination, routing to new `resume_role0`/`resume_role1` states that set
+  `m.role`/`m.m_pass`/the resumed grant with NO further parsing -- the minimal possible preceding
+  chain. `apply{}`'s top level becomes `if(m.m_pass==1w1){<construct_t|activate_* immediately>}else
+  if(<original outer gate>){<original body, untouched except the two exit points>}`; role 3/4's own
+  mapping chain and registers are completely untouched, matching the design note's own section 2(a)
+  point 3. No `replace()` seam-count error on generation (all 9 edits matched exactly once).
+  Compile (local 9.13.1, `build.py`, `evidence/stage_fit_m22_01`, source
+  `transport_candidate_next22/m3.p4` sha `a8dbbc9804937a6b9b650567b0314a8797c5bf34f25a3e604ffafb9a5007151d`):
+  **exit 2, FAILS** with the identical top-level error as every prior attempt ("Table placement
+  cannot make any more progress. Though some tables have not yet been placed, dependency analysis
+  has found that no more tables are placeable.").
+  **THE GATE'S OWN QUESTION, ANSWERED FROM THE COMPILER'S LOG, NOT GUESSED:** comparing
+  `out/pipe/logs/table_placement_7.log`'s repeated, final "requiring more than one stage" lines
+  between m21 (pre-split, single pass) and m22 (this two-pass split):
+  m21 -- two distinct conflicts: `activate_geometry_t_0`x`activate_ledger_t_0` (5x),
+  `reference_differences_t_0`x`activation_reservation_t_0` (2x, not a register-SALU pair).
+  m22 -- FIVE distinct conflicts, now also including the `reservation` register's own early
+  reader/late writer pair directly: `activation_reservation_t_0`x`reserve_t_0` (12x -- now the
+  single most-retried conflict in the whole log, more than any one conflict in m21),
+  `activate_geometry_t_0`x`activate_ledger_t_0` (5x, UNCHANGED, still present), a NEW
+  `activate_position_t_0`x`activate_ledger_t_0` pairing (2x), plus `connection_0`x
+  `activation_reservation_t_0` (1x) and `reference_differences_t_0`x`activation_reservation_t_0`
+  (2x, carried over). Exact quoted line (`table_placement_7.log`, matching context
+  `mapping_reservation_t_0 is not a gateway! ... try_place_table(mapping_reservation_t_0, stage=4) -
+  dependency between activation_reservation_t_0 and reserve_t_0 requiring more than one stage`):
+  the placer is trying to place `mapping_reservation_t_0` -- `reservation`'s role-3/4 EARLY READER,
+  the exact table this design note's section 1 names -- and failing on the SAME register's
+  early/late pair the two-pass split was built to fix.
+  **VERDICT: the split does NOT resolve the four-register wall on any of the four registers; it
+  reproduces it on `reservation` (now the dominant conflict) and leaves `ledger_tag`/
+  `ledger_position` unresolved (same pairing as before, plus one new pairing).** This is precisely
+  the failure mode this design note's section 5 devil's-advocate #1 named as the top risk before any
+  code was written: "It is possible the compiler's dependency graph treats a recirculated field's
+  availability differently from a freshly-parsed one ... which would reproduce the same 'late' depth
+  this option is meant to avoid." A second, previously-unstated factor is also visible in the log:
+  within pass 1 itself, `activate_geometry_t`/`activate_position_t` still sequentially precede
+  `activate_ledger_t` (it is keyed on their own `geometry_done`/`position_done` output), so
+  `activate_ledger_t`'s depth-from-pass-entry is 2, not 0, even in the recirculated pass -- shallower
+  than its pre-split depth, but still deeper than `mapping_tag_t_0`'s 1-table preceding chain in its
+  own pass. This second factor was not analyzed in this design note's section 1 and may be part of
+  why the wall persists even on the specific registers recirculation targeted.
+  **Per this design note's own gate (section 4, M-R7 row; section 5, devil's-advocate #1's own
+  "catching test"): this FAILS the gate. M-R2 through M-R6 are NOT built on this result, matching
+  the task's explicit instruction.** Option (a) as specified needs revisiting -- likely candidates
+  for a follow-up design pass: parsing the carried marker/grant earlier in the parser (before
+  `ig.ingress_port`'s own select, if that changes how the compiler's dependency graph treats its
+  availability), or re-examining whether `activate_ledger_t`'s own intra-pass dependency on
+  `activate_geometry_t`/`activate_position_t` needs to be broken too, not just the admission chain
+  ahead of `claim_once_t`. Neither is attempted here.
+  Regression: production code is untouched by M-R7 (new file `transport_experiment_m22.py`, new
+  directories `transport_candidate_next22/`, `evidence/stage_fit_m22_01/`); the M-R1 regression run
+  above (73/73 etc., identical counts) already covers everything M-R7 could have affected, and
+  `integration/core/ordinary/tests` was re-run once more after M-R7's compile (73/73, unchanged).
+  No SDK update, hardware action, remote 9.13.2 run, or push occurred this session.
