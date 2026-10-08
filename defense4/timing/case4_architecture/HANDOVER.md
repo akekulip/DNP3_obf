@@ -1,26 +1,25 @@
-# Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08, same day, three times)
+# Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08, same day, four times)
 
 **Read first, in order:**
 1. [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md) — the decision record
    for the whole timing+size integration effort.
-2. [`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) — **both Option A and
-   Option B are now dead; there is no implemented, validated size pattern as of 2026-10-08.** Option A
-   (request-side qualifier `0x28`→`0x17` rewrite, converging on a 49-byte pre-carve payload) failed
-   real-master endpoint-compliance validation first. Option B (`case4_pad58.py`, a uniform 58-byte pad
-   via a G41V2/qualifier-`0x27` filler) was built, tested byte-exact, and then failed the same
-   real-master gate **more severely**: qualifier `0x27` is not one of the pinned OpenDNP3 library's
-   seven implemented qualifier codes, so the real master's parser aborts the *entire* fragment parse on
-   it, discarding the real native data (all 23 READ points, the whole SELECT/OPERATE echo) along with
-   the filler — total data loss, not a localized rejection. A third candidate, **Option B′**, is
-   proposed (byte arithmetic only, not built): a filler restricted to the library's seven whitelisted
-   qualifiers (`0x00, 0x01, 0x06, 0x07, 0x08, 0x17, 0x28`). CONTROL's 19-byte filler has a clean
-   single-object fit (`0x07`-qualified, no-index-prefix G41V2, 5 points, 4+5×3=19B); READ's 9-byte
-   filler has no single-object fit and needs two header-only, count=0 objects (4B+5B=9B, no point data
-   at all — untested whether a real master tolerates a declared-empty object group). See the document's
-   own latest "UPDATE 2026-10-08" section (there are now three, read top-to-bottom, newest first) for
-   the full story. **Standing lesson, now confirmed twice in one day: no size candidate is done until it
-   clears `endpoint_gate` against the real pinned master/outstation — clean unit tests and clean byte
-   arithmetic are necessary but not sufficient, and have now both been wrong twice.**
+2. [`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) — **Option B′ is built,
+   validated against the real pinned OpenDNP3 master/outstation, and CLEARED. This is the active pattern
+   as of 2026-10-08.** Options A (request-side qualifier `0x28`→`0x17` rewrite) and B (`case4_pad58.py`,
+   G41V2/qualifier-`0x27` filler) both failed the same real-master endpoint-compliance gate first — see
+   the document's history for why. Option B′ (`framework/size/case4_pad58b.py`) restricts the filler to
+   the pinned library's seven whitelisted qualifier codes: CONTROL's 19-byte gap closes with one G41V3
+   (32-bit float Analog Output Block) object at qualifier `0x28`, 2 points; READ's 9-byte gap closes with
+   three `ALL_OBJECTS`/qualifier-`0x06` headers (G41V1/V2/V3), no point data — the arithmetic-only
+   count=0 design this document originally floated for READ is **wrong** (`NumParser::ParseCount` rejects
+   a parsed count of zero, aborting the whole fragment exactly like `0x27` did), caught only by running
+   it, not by source review. Empirically confirmed twice (dispatching agent + an independent re-run in
+   this session, fresh output directory, same pinned commit): `62/62 assertions pass`; CONTROL gets a
+   real OPERATE and genuine SBO actuation; READ delivers all 23 real points; both roles recover cleanly
+   afterward. **This clears the software model only — Phase D's P4 realization of this exact filler is
+   unstarted, and nothing here says it fits the ASIC's own constraints.** Standing lesson, confirmed
+   three times today: no size candidate is done until it clears `endpoint_gate` against the real pinned
+   master/outstation — clean unit tests and clean byte arithmetic are necessary but not sufficient.
 3. [`integration/read/TIMING_QUEUE_MIGRATION_STATUS.md`](integration/read/TIMING_QUEUE_MIGRATION_STATUS.md)
    — T's queue-resident timing role (`read_queue_timing.p4`): all 7 invariants pass, 18/18, at the
    source-level interpreter. The real `bf-p4c` compile (both local SDK 9.13.1 and the switch's

@@ -1214,3 +1214,44 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   no software-only unit test could have caught) -- the standing lesson is now doubly confirmed: no size
   candidate is "done" until it clears `endpoint_gate` against the real pinned master/outstation, full
   stop, regardless of how clean its own unit tests and byte arithmetic look.
+
+- 2026-10-08 (continued) **Third candidate, Option B-prime, CLEARS the real-master gate -- Phase B's
+  software model is resolved.** Dispatched a bounded build-and-validate task restricted to the pinned
+  library's seven whitelisted qualifier codes (`0x00, 0x01, 0x06, 0x07, 0x08, 0x17, 0x28`). New sibling
+  codec `framework/size/case4_pad58b.py`: CONTROL's 19-byte gap closes with one G41V3 (32-bit float
+  Analog Output Block) object, qualifier `0x28`, 2 points (5B header + 2x7B = 19B) -- the only
+  whitelisted single-object construction with real point data that reaches 19 exactly. READ's 9-byte
+  gap closes with three `ALL_OBJECTS` (qualifier `0x06`) headers -- G41V1, G41V2, G41V3, each a bare
+  3-byte header, no count field, no point data (3+3+3=9B). **The arithmetic-only design this project
+  itself proposed for READ (two header-only, count=0 objects, 4+5=9) is wrong, and was only caught by
+  actually running it**: `NumParser::ParseCount` rejects a parsed count of zero
+  (`ParseResult::COUNT_OF_ZERO`), aborting the whole fragment exactly like Option B's
+  `UNKNOWN_QUALIFIER` did -- confirmed empirically (`points_received_after_padded=0` on that first
+  `--pad58b` run) before being replaced with the `ALL_OBJECTS` construction, which never calls
+  `NumParser` at all. Also newly found: `0x07`/`0x08` are whitelisted in general, but
+  `CountParser::ParseCountOfObjects` only recognizes Group50/51/52 for them -- any G41Vx/G12V1 filler
+  under `0x07`/`0x08` hits `INVALID_OBJECT_QUALIFIER` and fails the same way `0x27` did, so they are
+  unusable for this filler at all, a finding beyond what `SELECTED_PATTERN.md` itself had assumed when
+  it floated them.
+
+  **Empirical result, confirmed twice** -- once by the dispatching agent, once by an independent re-run
+  in this same session against the same pinned commit (`4648fcb898`) with a fresh output directory, not
+  reused state: `All tests passed (62 assertions in 7 test cases)`. CONTROL: the real master accepts the
+  padded SELECT echo, emits a genuine OPERATE, and completes a real SBO actuation
+  (`master_emitted_operate=1`/`physicalActuations=1` in both runs' logs). READ: all 23 real points are
+  delivered through the padded response (`points_received_after_padded=23` in both runs). A subsequent
+  native, unpadded transaction on the same connection recovers cleanly on both roles afterward. Raw
+  evidence from the independent re-run, `/tmp/pad58b-verify-out/test.log`, shows the exact padded wire
+  bytes matching the design precisely: READ's filler tail `29 01 06 29 02 06 29 03 06`; CONTROL's filler
+  tail `29 03 28 02 00 2D 01 00 00 20 41 00 2E 01 00 00 A0 41 00`. This is a strictly better result than
+  either prior candidate -- no partial loss (Option A) and no total loss (Option B) on either protected
+  role. `SELECTED_PATTERN.md` and `selected_pattern.json` updated; Option B-prime is now the active
+  pattern.
+
+  **What this does not close**: the size-pattern software model is resolved, but it does not exist in P4
+  yet. Phase D's data-plane realization of this exact filler, and its PHV/stage/SRAM cost including
+  sharing pipe-0 egress with the existing final-emitter program, is unstarted and untested -- the same
+  category of gap currently blocking T's queue-timing role on the hardware side. The filler point values
+  themselves being "inert" (not interpretable as a meaningful command by whatever the real
+  master/outstation eventually runs in production) is an externally verified prerequisite this codec
+  cannot establish on its own, per its own docstring.

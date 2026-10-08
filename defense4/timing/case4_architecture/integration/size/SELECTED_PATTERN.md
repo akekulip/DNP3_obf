@@ -1,8 +1,49 @@
 # Selected common size pattern — Phase B decision
 
-**UPDATE 2026-10-08, later the same day, after Option B's own codec was gated: Option B as coded is also
-dead.** Read this update first; it supersedes the "Option B is now the active pattern" update immediately
-below, which is kept, not deleted, for the same reason that update kept the original Option A record.
+**UPDATE 2026-10-08, still later the same day: Option B′ is built, validated against the real pinned
+OpenDNP3 master/outstation, and CLEARED. This is now the active pattern.** Read this update first; it
+supersedes both updates below, which are kept for the record of why A and B each failed.
+
+**What Option B′ is:** a filler restricted to the pinned library's seven implemented qualifier codes
+(`0x00, 0x01, 0x06, 0x07, 0x08, 0x17, 0x28`), built as a new sibling codec
+`defense4/timing/framework/size/case4_pad58b.py`. **CONTROL** (SELECT/OPERATE, 19-byte gap): one G41V3
+(32-bit float Analog Output Block) object at qualifier `0x28`, 2 points — header 5B + 2×7B = 19B exactly;
+the only whitelisted single-object construction that reaches 19 with real point data. **READ** (9-byte gap):
+three `ALL_OBJECTS` (qualifier `0x06`) headers — G41V1, G41V2, G41V3, each a bare 3-byte group+variation+
+qualifier header, no count field, no point data — 3+3+3 = 9B exactly.
+
+**The arithmetic-only candidate this document itself proposed for READ (two header-only, count=0 objects,
+4+5=9) is wrong, caught only empirically, not by source review alone**: `NumParser::ParseCount`
+(`cpp/lib/src/app/parsing/NumParser.cpp`) rejects a parsed count of zero outright
+(`ParseResult::COUNT_OF_ZERO`), which — exactly like Option B's `UNKNOWN_QUALIFIER` on `0x27` — aborts the
+whole two-pass `APDUParser::Parse` before dispatch, losing the real 23-point READ data too (confirmed:
+`points_received_after_padded=0` on that first construction). The `ALL_OBJECTS`/`0x06` qualifier avoids
+`NumParser` entirely (`APDUParser::ParseQualifier` routes it straight to `HandleAllObjectsHeader`, which
+consumes only the 3-byte header), so it cannot hit that failure. Also newly found: `0x07`/`0x08` are
+whitelisted qualifier codes in general, but `CountParser::ParseCountOfObjects` only recognizes Group50/51/52
+for them under default parse settings — G41Vx/G12V1 fillers under `0x07`/`0x08` hit `INVALID_OBJECT_QUALIFIER`
+and fail exactly like `0x27` did. They are unusable for this filler at all, not a corner case.
+
+**Empirical result, independently re-run and confirmed twice** (once by the dispatching agent, once
+independently re-run in this session against the same pinned commit with a fresh output directory):
+`All tests passed (62 assertions in 7 test cases)`. CONTROL: the real master accepts the padded SELECT echo,
+emits a genuine OPERATE, and completes a real SBO actuation (`master_emitted_operate=1`,
+`physicalActuations=1`). READ: all 23 real points are delivered through the padded response
+(`points_received_after_padded=23`). A subsequent native, unpadded transaction on the same connection
+recovers cleanly on both roles. This is a strictly better result than either prior candidate — no partial or
+total data loss on either protected role. Full trace: `endpoint_gate/TestCase4Pad58B.cpp`,
+`emit_vectors_pad58b.py`, `case4_pad58b.py`'s own module docstring (which documents the failed first design
+honestly, not just the final one).
+
+**What remains open:** this clears the size-pattern *software model*. It does not yet exist in P4 — Phase D's
+data-plane realization of this exact filler construction is the next concrete step, and per the standing
+lesson from this same day (twice), nothing about a software-correct construction guarantees it fits the
+ASIC's own constraints; that is a separate, unstarted check.
+
+---
+
+**Prior update 2026-10-08, after Option B's own codec was gated: Option B as coded is dead.** (Superseded by
+the update above — a third candidate, Option B′, has now cleared the same gate.) Kept for the record.
 
 **What happened:** `case4_pad58.py` (the G41V2/qualifier-`0x27` uniform-58-byte filler) was built, tested
 byte-exact (18/18 new unit tests, independently re-verified), and run against the real pinned OpenDNP3

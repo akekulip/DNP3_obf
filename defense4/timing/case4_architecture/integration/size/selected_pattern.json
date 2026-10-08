@@ -3,7 +3,7 @@
   "decided": "2026-10-08",
   "updated": "2026-10-08",
   "unit": "tcp_payload_bytes",
-  "selected_option": "B_prime_candidate_untested",
+  "selected_option": "B_prime_cleared",
   "selection_history": [
     {
       "option": "A",
@@ -18,36 +18,36 @@
       "reason": "Pre-committed fallback, triggered by Option A's gate-1 failure. Built as case4_pad58.py (G41V2/qualifier-0x27 filler), tested byte-exact, then FAILED endpoint-gate validation against the real pinned OpenDNP3 master/outstation -- more severely than Option A. Qualifier 0x27 is not one of the library's seven implemented qualifier codes (QualifierCode.cpp: 0x00,0x01,0x06,0x07,0x08,0x17,0x28); it decodes to QualifierCode::UNDEFINED, and APDUParser's two-pass design aborts the WHOLE fragment parse on any unrecognized qualifier, discarding the real native data (all 23 READ points; the SELECT/OPERATE echo) along with the filler, not just rejecting the filler itself. Evidence: defense4/timing/framework/size/case4_pad58.py, defense4/timing/framework/size/endpoint_gate/TestCase4Pad58.cpp, emit_vectors_pad58.py."
     },
     {
-      "option": "B_prime_candidate_untested",
+      "option": "B_prime_cleared",
       "decided": "2026-10-08",
-      "status": "proposed_not_built",
-      "reason": "Byte-arithmetic candidate using only the library's seven whitelisted qualifier codes. READ filler (9B) has no single-object exact fit with real point data; the only exact match is two header-only, count=0 objects (one 4B-header qualifier [0x17 or 0x07], one 5B-header qualifier [0x28 or 0x08]), 4+5=9B, no point data at all -- untested whether a real master tolerates a declared-empty object group. CONTROL filler (19B) has a clean single-object fit: one 0x07-qualified (no index prefix) G41V2 object, 5 points, 4B header + 5x3B = 19B. Neither construction built or endpoint-gate-tested yet; this is a design proposal, not a result."
+      "status": "active_cleared",
+      "reason": "Filler restricted to the library's seven whitelisted qualifier codes, built as case4_pad58b.py. CONTROL (19B gap): one G41V3 (32-bit float Analog Output Block) object, qualifier 0x28, 2 points (5B header + 2x7B = 19B) -- the only whitelisted single-object fit with real point data. READ (9B gap): three ALL_OBJECTS (qualifier 0x06) headers, G41V1/V2/V3, 3B each, no count field, no point data (3+3+3=9B) -- the arithmetic-only count=0 design this document originally proposed is WRONG (NumParser::ParseCount rejects COUNT_OF_ZERO, aborting the whole fragment exactly like 0x27 did; caught only empirically). Also found: 0x07/0x08 are whitelisted in general but CountParser only recognizes Group50/51/52 for them, so G41Vx/G12V1 fillers under 0x07/0x08 fail too -- unusable for this filler at all. Empirically CLEARED against the real pinned OpenDNP3 master/outstation, confirmed twice (dispatching agent + independent re-run same session, fresh output dir): 62/62 assertions pass; CONTROL gets a real OPERATE and genuine SBO actuation (physicalActuations=1); READ delivers all 23 real points (points_received_after_padded=23); clean recovery on both roles afterward. Strictly better than A (silent decline) or B (total data loss)."
     }
   ],
   "pattern": {
     "description": "Single uniform 58-byte padded TCP payload for READ, SELECT, OPERATE responses; no split.",
     "pad_target_bytes": 58,
     "response_vector": [58],
-    "mechanism": "in-stream insertion / deparser constant-filler padding (mechanism choice not yet finalized -- see follow-up hardware-feasibility task)"
+    "mechanism": "whitelisted-qualifier filler append (case4_pad58b.py), empirically cleared against the real pinned OpenDNP3 master/outstation; P4 data-plane realization not yet started"
   },
   "per_role": {
     "READ": {
       "request_bytes": 20,
       "native_response_bytes": 49,
-      "transform_required": "pad response +9 application-consistent bytes to reach 58B -- NEW requirement, not needed under the superseded Option A",
-      "status": "not_yet_implemented"
+      "transform_required": "append a 9-byte filler (three ALL_OBJECTS/qualifier-0x06 headers, G41V1/V2/V3, no point data) to reach 58B",
+      "status": "software_codec_cleared_endpoint_gate; P4 realization not started"
     },
     "SELECT": {
       "request_bytes": 35,
       "native_response_bytes": 37,
-      "transform_required": "pad response +21 bytes to reach 58B via the existing proven separate-header insertion codec (case4_padding.expand_control-style; the qualifier-rewrite codec is NOT used for this option)",
-      "status": "not_yet_implemented"
+      "transform_required": "append a 19-byte filler (one G41V3/qualifier-0x28 object, 2 points) to reach 58B",
+      "status": "software_codec_cleared_endpoint_gate; P4 realization not started"
     },
     "OPERATE": {
       "request_bytes": 35,
       "native_response_bytes": 37,
       "transform_required": "same as SELECT",
-      "status": "not_yet_implemented; OPERATE's native 37B is itself inferred from SELECT symmetry, not physically measured"
+      "status": "software_codec_cleared_endpoint_gate (exercised directly in TestCase4Pad58B.cpp's OPERATE round trip, not just inferred from SELECT); P4 realization not started"
     },
     "all_points_state_read": {
       "request_bytes": 18,
@@ -64,12 +64,12 @@
     "E": "cheap but reintroduces the exact size-channel leak this project exists to close"
   },
   "open_gates_before_phase_d_can_call_this_complete": [
-    "hardware feasibility of insertion/padding on READ's response, which previously needed none under Option A -- IN PROGRESS, follow-up task dispatched 2026-10-08",
-    "hardware feasibility of padding SELECT/OPERATE via the existing separate-header codec to exactly 58B (currently proven only to 52-57B range)",
+    "P4 data-plane realization of case4_pad58b.py's exact filler bytes does not exist yet -- not started",
+    "hardware feasibility (PHV/stage/SRAM cost) of appending these fillers on all three response roles, and of doing so next to the existing combined pipe-0 egress program, is unmeasured",
     "whether this still requires the same sequence/ACK/window mapper that does not currently fit (M_RECIRCULATION_VERDICT.md), now for three roles instead of two",
-    "OPERATE's native 37B response is a structural inference from SELECT, never physically measured",
     "request-direction size residual (20B READ vs 35B SELECT/OPERATE) stated explicitly in any indistinguishability claim",
-    "arrival-order reversal question from the original RRC evidence is moot under this option (no split, no carve, no children to order)"
+    "arrival-order reversal question from the original RRC evidence is moot under this option (no split, no carve, no children to order)",
+    "the filler point values (AnalogFloatPoint placeholders 10.0/20.0, status=0) are an externally verified 'inert' profile prerequisite this codec cannot itself establish -- not yet independently reviewed for that property"
   ],
   "evidence_sources": [
     "defense4/timing/case4_architecture/integration/size/DISTRIBUTION_AND_PATTERN_ANALYSIS.md",
@@ -77,6 +77,10 @@
     "defense4/timing/case4_architecture/integration/size/SELECTED_PATTERN.md",
     "defense4/timing/framework/size/case4_qualifier_rewrite.py",
     "defense4/timing/framework/size/endpoint_gate/context_evidence_qualifier_01/",
+    "defense4/timing/framework/size/case4_pad58.py",
+    "defense4/timing/framework/size/endpoint_gate/{TestCase4Pad58.cpp,emit_vectors_pad58.py}",
+    "defense4/timing/framework/size/case4_pad58b.py",
+    "defense4/timing/framework/size/endpoint_gate/{TestCase4Pad58B.cpp,emit_vectors_pad58b.py}",
     "9ffa9102d7a60095ed286f5c5dde2561a679b3d9:defense4/size/native_parity/{RRC_DESIGN.md,RRC_HW_RESULTS.md,READSBO_NORMALIZATION_RESULT.md}"
   ]
 }
