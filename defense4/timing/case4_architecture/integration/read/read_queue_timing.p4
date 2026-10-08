@@ -52,15 +52,15 @@ struct metadata_t {
     bit<8> resp_seen_mask; bit<8> dup;
     // Tofino's conditional-execution gateway cannot evaluate a live comparison between two fully
     // dynamic values (bf-p4c: "condition too complex ... one operand must be constant"), so every
-    // now-vs-deadline check here is precomputed as delta = now - deadline, then a table with a
-    // ternary match on the delta's sign bit turns it into a 1-bit ready flag -- the same pattern
-    // read_timing.p4 already uses (deadline_deltas / heartbeat_eligibility). The deltas/deadlines
-    // need the full dynamic range; the *_ready outputs are 0/1 flags and are narrowed accordingly.
+    // now-vs-deadline check here is precomputed as delta = now - deadline, then its sign bit is
+    // extracted with a plain bit-slice assignment into a 1-bit ready flag -- read_timing.p4's own
+    // deadline_deltas/heartbeat_eligibility pattern, adapted to avoid a table per check. The
+    // deltas/deadlines need the full dynamic range; the *_ready outputs are 0/1 flags and are
+    // narrowed accordingly.
     bit<32> deadline_da; bit<32> da_delta; bit<8> da_ready;
     bit<32> deadline_readiness; bit<32> readiness_delta; bit<8> readiness_ready;
     bit<32> gap_delta; bit<8> gap_ready;
     bit<32> op_t0_masked; bit<32> op_deadline; bit<32> op_delta; bit<8> op_ready;
-    bit<8> resp_seen_flag;
     bit<32> op_gen; bit<32> op_commit_gen; bit<32> op_done_g; bit<32> op_t0_v;
     bit<32> clone_tag; bit<32> token_gen; bit<32> token_domain;
 }
@@ -384,55 +384,28 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     action stop_blocking_off() { ig_dprsr_md.drop_ctl = 1; count(OUT_TOKEN_OFF); }
 
     // ---- deadline readiness: delta-then-sign-bit, read_timing.p4's own proven pattern -----------
+    // A live "now >= deadline" comparison is a gateway/conditional operation Tofino caps tightly
+    // (bf-p4c: "condition too complex ... one operand must be constant"). Computing delta = now -
+    // deadline and then testing its sign bit is still the fix, but the sign bit is extracted with a
+    // plain bit-slice assignment (pure data-plane ALU op, not a conditional) instead of a
+    // ternary-match table -- this removes five single-row tables entirely, which is a more direct
+    // way to relieve both gateway pressure and the table-dependency-graph complexity than narrowing
+    // field widths alone (see TIMING_QUEUE_MIGRATION_STATUS.md).
     action compute_deadline_da() { md.deadline_da = md.t0_v + md.da; }
     action compute_da_delta() { md.da_delta = md.now - md.deadline_da; }
-    action da_ready_yes() { md.da_ready = 1; }
-    action da_ready_no() { md.da_ready = 0; }
-    table da_check {
-        key = { md.da_delta : ternary; }
-        actions = { da_ready_yes; da_ready_no; }
-        const entries = { (32w0 &&& 32w0x80000000) : da_ready_yes(); }
-        const default_action = da_ready_no(); size = 1;
-    }
+    action extract_da_ready() { md.da_ready = (bit<8>)(~md.da_delta[31:31]); }
     action compute_deadline_readiness() { md.deadline_readiness = md.t0_v + md.readiness; }
     action compute_readiness_delta() { md.readiness_delta = md.now - md.deadline_readiness; }
-    action readiness_ready_yes() { md.readiness_ready = 1; }
-    action readiness_ready_no() { md.readiness_ready = 0; }
-    table readiness_check {
-        key = { md.readiness_delta : ternary; }
-        actions = { readiness_ready_yes; readiness_ready_no; }
-        const entries = { (32w0 &&& 32w0x80000000) : readiness_ready_yes(); }
-        const default_action = readiness_ready_no(); size = 1;
-    }
+    action extract_readiness_ready() { md.readiness_ready = (bit<8>)(~md.readiness_delta[31:31]); }
     action compute_gap_delta() { md.gap_delta = md.now - md.resp_target; }
-    action gap_ready_yes() { md.gap_ready = 1; }
-    action gap_ready_no() { md.gap_ready = 0; }
-    table gap_check {
-        key = { md.gap_delta : ternary; }
-        actions = { gap_ready_yes; gap_ready_no; }
-        const entries = { (32w0 &&& 32w0x80000000) : gap_ready_yes(); }
-        const default_action = gap_ready_no(); size = 1;
-    }
+    action extract_gap_ready() { md.gap_ready = (bit<8>)(~md.gap_delta[31:31]); }
     action compute_op_t0_masked() { md.op_t0_masked = md.op_t0_v & 32w0xfffffffe; }
     action compute_op_deadline() { md.op_deadline = md.op_t0_masked + md.op_j; }
     action compute_op_delta() { md.op_delta = md.now - md.op_deadline; }
-    action op_ready_yes() { md.op_ready = 1; }
-    action op_ready_no() { md.op_ready = 0; }
-    table op_check {
-        key = { md.op_delta : ternary; }
-        actions = { op_ready_yes; op_ready_no; }
-        const entries = { (32w0 &&& 32w0x80000000) : op_ready_yes(); }
-        const default_action = op_ready_no(); size = 1;
-    }
-    // resp_seen_mask != 0 is also a live dynamic comparison; narrow it to a 1-bit flag the same way.
-    action resp_seen_flag_yes() { md.resp_seen_flag = 1; }
-    action resp_seen_flag_no() { md.resp_seen_flag = 0; }
-    table resp_seen_check {
-        key = { md.resp_seen_mask : ternary; }
-        actions = { resp_seen_flag_yes; resp_seen_flag_no; }
-        const entries = { (8w0 &&& 8w0xff) : resp_seen_flag_no(); }
-        const default_action = resp_seen_flag_yes(); size = 1;
-    }
+    action extract_op_ready() { md.op_ready = (bit<8>)(~md.op_delta[31:31]); }
+    // resp_seen_mask != 0 compares one dynamic field against the constant 0 -- already legal for a
+    // gateway (unlike the deadline sums above, this was never the "two dynamic operands" problem),
+    // so it needs no delta/sign-bit treatment at all; used directly in conditions below.
 
     // ---- ladder dispatch: held originals release or rewait --------------------------------------
     // mark_ack_done touches only ack_done_reg; arming resp_deadline and bumping outcomes are
@@ -570,17 +543,16 @@ control Ingress(inout header_t hdr, inout metadata_t md,
             md.t0_v = t0_read.execute(0);
             md.ack_commit_at_v = commit_at_read.execute(0);
             md.resp_seen_mask = (bit<8>)mask_read.execute(0);
-            compute_deadline_da(); compute_da_delta(); da_check.apply();
-            compute_deadline_readiness(); compute_readiness_delta(); readiness_check.apply();
-            compute_resp_target(); compute_gap_delta(); gap_check.apply();
-            resp_seen_check.apply();
+            compute_deadline_da(); compute_da_delta(); extract_da_ready();
+            compute_deadline_readiness(); compute_readiness_delta(); extract_readiness_ready();
+            compute_resp_target(); compute_gap_delta(); extract_gap_ready();
             if (hdr.ladder.role == ROLE_ACK_BLK) {
                 md.ack_done_g = ack_done_read.execute(0);
                 if ((bit<32>)hdr.ladder.generation != (md.cur_gen & 32w0xffff)) { stop_blocking_stale(); }
                 else if (md.enabled == 0) { stop_blocking_off(); }
                 else if (md.ack_done_g == md.cur_gen) { stop_blocking(); }
                 else {
-                    if ((md.da_ready == 1 && md.resp_seen_flag == 1) || md.readiness_ready == 1) { stop_blocking(); }
+                    if ((md.da_ready == 1 && md.resp_seen_mask != 8w0) || md.readiness_ready == 1) { stop_blocking(); }
                     else if (hdr.ladder.budget == 0) { stop_blocking_tmo(); }
                     else { keep_blocking(HELD_RETURN, 7); }
                 }
@@ -601,7 +573,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 else if (md.enabled == 0) { flush_ack_off(); }
                 else if (md.ack_done_g == md.cur_gen) { mark_ack_done(); count(OUT_ACK_COMMIT); }
                 else {
-                    if (md.da_ready == 1 && md.resp_seen_flag == 1) {
+                    if (md.da_ready == 1 && md.resp_seen_mask != 8w0) {
                         mark_ack_commit_at(); compute_resp_target(); arm_resp_deadline(); mark_ack_done(); count(OUT_ACK_COMMIT);
                     } else if (md.readiness_ready == 1) { mark_ack_done(); count(OUT_ACK_FALLBACK); }
                     else { rewait_ack(); }
@@ -623,7 +595,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         } else if (ig_intr_md.ingress_port == HB_RETURN) {
             md.op_gen = op_gen_peek.execute(0);
             md.op_t0_v = op_t0_read.execute(0);
-            compute_op_t0_masked(); compute_op_deadline(); compute_op_delta(); op_check.apply();
+            compute_op_t0_masked(); compute_op_deadline(); compute_op_delta(); extract_op_ready();
             if (hdr.ladder.role == ROLE_OP_BLK) {
                 md.op_done_g = op_done_read.execute(0);
                 if ((bit<32>)hdr.ladder.generation != (md.op_gen & 32w0xffff)) { stop_blocking_stale(); }

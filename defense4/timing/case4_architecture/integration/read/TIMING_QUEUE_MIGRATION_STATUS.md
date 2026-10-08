@@ -50,10 +50,12 @@ distinct classes of real hardware constraint. Four were fixed, with the fixes ke
    gateway) cannot evaluate a live comparison between two fully dynamic values, especially not a
    compound `&&`/`||` of several. **The fix for this specific error is applied and is in the file**:
    `read_timing.p4` already solves exactly this, via its `deadline_deltas`/`heartbeat_eligibility`
-   tables — compute `delta = now - deadline` as its own single-operation action, then use a table with
-   a **ternary match on the delta's sign bit** instead of a live `>=`. This file now has that pattern
-   for all five deadline checks (ACK `da`, shared `readiness`, response `gap`, OPERATE `op_j`), each
-   reduced to a 1-bit `*_ready` flag consumed by plain, narrow `== 1` comparisons.
+   tables — compute `delta = now - deadline` as its own single-operation action, then turn the delta's
+   sign bit into a 1-bit `*_ready` flag with a plain bit-slice assignment (`md.da_ready =
+   (bit<8>)(~md.da_delta[31:31]);` — a pure data-plane ALU op, no table needed; see finding below for
+   why this ended up simpler than a ternary-match table) for all five deadline checks (ACK `da`,
+   shared `readiness`, response `gap`, OPERATE `op_j`), each then consumed by plain, narrow `== 1`
+   comparisons.
 
    **This closed the specific diagnostic it targeted** (confirmed: stubbing the apply block down to
    just the unconditional top-of-pass computation, with no consuming branches, compiles with a
@@ -74,15 +76,31 @@ distinct classes of real hardware constraint. Four were fixed, with the fixes ke
    placement actually succeeding, converging to **8 stages** (well inside the 12-stage budget) across
    two placement passes. `out/pipe/logs/phv_allocation_0.log` is **zero bytes** on both runs — the
    allocator crashes before writing anything, consistent with the crash happening at or immediately
-   after PHV allocation starts. This also rules out the most obvious explanation: narrowing the
-   `*_ready`/`resp_seen_mask`/`dup` fields from `bit<32>` to `bit<8>` and deleting six genuinely dead
-   metadata fields left over from earlier iterations (`cap`, `child_bit`, `can_release`, `is_commit`,
-   `stale`, `is_off`, `out_code`) did **not** change the outcome — same crash, same signature, on both
-   SDK versions, after the narrowing. A pure capacity shortfall would be expected to respond to
-   removing roughly a third of the live 32-bit fields; this did not, which argues against "simply too
-   much data" as the full explanation and toward either a deeper resource-interaction effect this
-   narrowing didn't reach, or a genuine PHV-allocator defect in this SDK line triggered by the
-   specific shape of many small ternary-keyed single-entry tables scattered across sibling branches.
+   after PHV allocation starts.
+
+   **Two independent mitigation attempts, both confirmed on both SDK versions, neither changed the
+   crash at all:**
+   1. Narrowing the `*_ready`/`resp_seen_mask`/`dup` fields from `bit<32>` to `bit<8>` and deleting six
+      genuinely dead metadata fields left over from earlier iterations (`cap`, `child_bit`,
+      `can_release`, `is_commit`, `stale`, `is_off`, `out_code`) — same crash, same signature (8
+      stages placed, zero-byte PHV log), on both SDK versions.
+   2. **Eliminating all five ternary-match tables entirely** (`da_check`/`readiness_check`/
+      `gap_check`/`op_check`/`resp_seen_check`), replacing each with a plain bit-slice assignment on
+      the delta's sign bit (`md.da_ready = (bit<8>)(~md.da_delta[31:31]);`, a pure data-plane ALU
+      operation, not a gateway/conditional construct at all) plus a direct `!= 0` comparison for
+      `resp_seen_mask` (legal for a gateway on its own terms, since one operand is already the
+      constant 0 — it never needed the sign-bit treatment). This removes the entire table-based
+      mechanism the "gateway complexity" fix originally introduced, leaving only plain arithmetic and
+      narrow flag comparisons. **Identical crash, identical signature, on both SDK versions.**
+
+   Taken together, these two results rule out both of the obvious theories: it is not simply "too
+   much live PHV data" (narrowing a third of the fields changed nothing), and it is not the
+   ternary-match-table mechanism itself (removing all five tables changed nothing). Separately,
+   re-examining the very first version of this file (before the gateway-complexity fix existed at
+   all, using plain `if (md.now >= md.t0_v + md.da ...)` comparisons) confirms it hit the identical
+   crash too — this is not something introduced by any of the fixes in this document; it was present
+   from the first full compile attempt. The true cause remains undiagnosed after four substantive,
+   independent attempts to isolate or resolve it.
 
 ## Why this stops here rather than continuing
 
@@ -93,30 +111,33 @@ established at the level this phase actually needed (the interpreter is the auth
 invariant tests are written against, and nothing found in the real compile contradicts the logic; all
 five findings above are hardware ALU/gateway/PHV resource constraints, not behavioral bugs the
 interpreter missed). Four rounds of real, substantive fixes landed real progress (one-register-per-
-table, single-stage ALU, table-applied-once, the gateway-complexity delta/ternary pattern, confirmed
-correct in isolation); a fifth attempt (narrowing field widths, confirmed via two independent SDK
-builds to pin the crash down to PHV allocation specifically, with table placement proven to already
-fit in 8 of 12 stages) produced a precise, reproducible characterization but not a fix. Continuing to
-guess further structural variants against an unexplained ICE, with the two cheapest and most obvious
-levers (narrowing fields, confirming across SDK versions) already pulled and not resolving it, is
-exactly the pattern this project's own standing discipline (the M-mapper saga,
-`M_RECIRCULATION_VERDICT.md`) says to stop rather than repeat.
+table, single-stage ALU, table-applied-once, the gateway-complexity delta/sign-bit pattern — the last
+of these confirmed correct in isolation and then shown, via two further independent mitigation
+attempts, not to be the source of the remaining crash at all). Four separate things have now been
+tried against the crash itself (bisection, cross-SDK confirmation, field narrowing, full table
+elimination) with no diagnostic information gained beyond "it happens at the same point regardless."
+Continuing to guess further structural variants with no new signal to act on is exactly the pattern
+this project's own standing discipline (the M-mapper saga, `M_RECIRCULATION_VERDICT.md`) says to stop
+rather than repeat. This crash is now a well-characterized, reproducible finding in its own right —
+precisely where it happens (PHV allocation, after successful 8-stage table placement), what doesn't
+cause it (table count, field width, the specific gateway-complexity fix), and that it is stable across
+two SDK point releases — which is a legitimate basis for someone with access to the compiler's source
+or Intel/Barefoot support to take further, rather than more blind source-level variation.
 
 ## Next concrete step (not performed here)
 
-1. **Reduce the number of distinct ternary-keyed single-entry tables, not just their field widths.**
-   This session's attempt narrowed data widths (bit<32> to bit<8> for flags, dead fields removed) and
-   that alone did not change the crash — the next lever is reducing the *count* of tables
-   (`da_check`/`readiness_check`/`gap_check`/`op_check`/`resp_seen_check`, 5 total, each its own
-   single-row ternary match) by merging the ones used together into one multi-key table (e.g.
-   `readiness_check` is applied identically regardless of domain and could key on more than one
-   delta's sign bit at once, or the deltas that are never needed simultaneously could share one
-   table instance keyed by which domain is asking).
+1. **Treat this as a compiler-level question, not a source-restructuring one.** Two independent,
+   substantial restructuring attempts (narrower fields; zero tables, pure data-plane ops) produced
+   the identical crash signature on two SDK point releases. That is evidence the remaining lever is
+   not in this file's shape. A productive next step is bisecting by *register count* instead (this
+   file declares roughly a dozen single-cell registers; try merging several into one wider struct
+   register, or temporarily deleting whole domains' registers to see if the crash threshold is tied
+   to total register count rather than anything examined here), or escalating to whoever maintains
+   this SDK installation with the exact reproduction already assembled in this document.
 2. Re-run the `bf-p4c` compile after each change on **both** SDK builds (local 9.13.1 via `bf-p4c`
-   directly, and the switch's installed 9.13.2 via `installed_sdk_build.py`, compile-only) — if the
-   crash is version-specific this will show it; if it persists on both (as every finding in this
-   document did), treat it as evidence about this design shape, not this one toolchain build. The
-   interpreter does not model any of the five hardware constraints found in this session, so it
-   cannot be relied on to catch a regression here; only a real compile can.
+   directly, and the switch's installed 9.13.2 via `installed_sdk_build.py`, compile-only) — every
+   finding in this document held on both, so a fix should be confirmed on both too. The interpreter
+   does not model any of the hardware constraints found in this session, so it cannot catch a
+   regression here; only a real compile can.
 3. Once it compiles, run it on the local Tofino-1 model (`integration/core/launch_model.sh`) with
    real packet inputs, per the original task.
