@@ -1,6 +1,14 @@
-# Case4 continuation checkpoint — 2026-10-07
+# Case4 continuation checkpoint — 2026-10-07 (size pattern selected 2026-10-08)
 
-**Decision point, read first: [`integration/core/M_RECIRCULATION_VERDICT.md`](integration/core/M_RECIRCULATION_VERDICT.md).**
+**Read first, in order: [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md)
+(the decision record for the whole timing+size integration effort), then
+[`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) (2026-10-08: the common
+size pattern is decided — converge READ and SELECT/OPERATE on a shared 49-byte pre-carve TCP payload,
+split `[28,21]` via the already hardware-proven RRC mechanism; SELECT/OPERATE need a new request-side
+codec, not yet built, rewriting the native object's qualifier `0x28`→`0x17` and count 1→2 — this
+**supersedes** the `35→55`/`57→[28,29]` separate-header plan named below in "Remaining core work" item 2).**
+
+**Separately, read [`integration/core/M_RECIRCULATION_VERDICT.md`](integration/core/M_RECIRCULATION_VERDICT.md).**
 M's extended ACK/window mapper does not fit in 12 ingress stages. Eight compiler-verified attempts
 (m13 through m23, `LEDGER.md`) narrowed this to a genuine four-register hardware placement limit;
 the most promising fix (a second ingress pass via recirculation) was implemented in full and refuted
@@ -167,8 +175,14 @@ normal/zero/wrap ACK/window and uncarved57 response frames, then continue OPERAT
 1. ACK/window inverse before N association, including inside-insertion clamps,
    both edges, zero-window and full32 wrap; completed SELECT owner18 and its57-byte
    matching response. Avoid the older N response's second20-byte subtraction.
-2. OPERATE35→55, matching57-byte response carved into exactly ordered28/29,
-   both insertions, every subsequent packet mapped, sender-driven cached-tail repair.
+2. **SUPERSEDED 2026-10-08 by `integration/size/SELECTED_PATTERN.md`**: this item originally read
+   "OPERATE 35→55, matching 57-byte response carved into exactly ordered 28/29, both insertions, every
+   subsequent packet mapped, sender-driven cached-tail repair." The selected pattern instead targets a
+   shared 49-byte pre-carve payload split `[28,21]` for both SELECT and OPERATE, via a request-side
+   qualifier-rewrite codec (`0x28`→`0x17`, count 1→2) rather than the separate-header insertion this item
+   described — the old 55/57 separate-header codec (`case4_padding.expand_control()`) is kept as a
+   working reference and as the documented fallback (Option B, 58-byte uniform pad) if the qualifier-
+   rewrite codec fails endpoint-compliance validation, but it is not the current target.
 3. Actual READ/T timing join and current-association OPERATE deadlines; finite
    fallback, independent heartbeat and genuine credits.
 4. Post-M cancellation, duplicate/stale emission model witnesses, loss/lifecycle,
