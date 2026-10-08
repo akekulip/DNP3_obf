@@ -1,0 +1,68 @@
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+SUCCESS native_select=C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+padded_select=C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+select_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+native_operate=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+operate_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 06 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+REAL_SELECT_FAIL echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 06 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 no_operate=true
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C2 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C2 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 06 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 02 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 02 next=
+DECOY_SELECT_FAIL select_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 06
+operate_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 02 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 02
+master_ignored_trailing_failure=true endpoint_callbacks=0
+DELIVER echo=C2 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C3 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C3 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+DELIVER_Q echo=C0 81 80 00 0C 01 17 02 01 01 01 64 00 00 00 64 00 00 00 00 C9 01 01 64 00 00 00 64 00 00 00 00 next=
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+case4_endpoint is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+Case4 qualifier-rewrite vectors accepted through production master and
+outstation
+-------------------------------------------------------------------------------
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:85
+...............................................................................
+
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:94: FAILED:
+  REQUIRE( operate.substr(3,2)=="04" )
+due to unexpected exception with message:
+  basic_string::substr: __pos (which is 3) > this->size() (which is 0)
+
+DELIVER_Q echo=C0 81 80 00 0C 01 17 02 01 01 01 64 00 00 00 64 00 00 00 06 C9 01 01 64 00 00 00 64 00 00 00 00 next=
+-------------------------------------------------------------------------------
+Case4 qualifier-rewrite real SELECT failure emits no OPERATE and next
+transaction recovers
+-------------------------------------------------------------------------------
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:107
+...............................................................................
+
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:113: FAILED:
+  REQUIRE( q.values.front().results.front().status==CommandStatus::HARDWARE_ERROR )
+with expansion:
+  '' == 6
+
+DELIVER_Q echo=C0 81 80 00 0C 01 17 02 01 01 01 64 00 00 00 64 00 00 00 00 C9 01 01 64 00 00 00 64 00 00 00 06 next=
+QUALIFIER_DECOY_SELECT_FAIL select_echo=C0 81 80 00 0C 01 17 02 01 01 01 64 00 00 00 64 00 00 00 00 C9 01 01 64 00 00 00 64 00 00 00 06 master_emitted_operate=0 task_results=1
+DELIVER_Q echo=C1 81 80 00 0C 01 17 02 01 01 01 64 00 00 00 64 00 00 00 00 C9 01 01 64 00 00 00 64 00 00 00 00 next=
+-------------------------------------------------------------------------------
+Case4 qualifier-rewrite decoy SELECT failure cannot produce successful SBO at
+endpoint
+-------------------------------------------------------------------------------
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:123
+...............................................................................
+
+/tmp/case4-qualifier-build/source/cpp/tests/unit/TestCase4Qualifier.cpp:140: FAILED:
+  REQUIRE( !operate.empty() )
+with expansion:
+  false
+
+===============================================================================
+test cases:  9 |  6 passed | 3 failed
+assertions: 81 | 78 passed | 3 failed
+

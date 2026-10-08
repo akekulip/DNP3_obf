@@ -1,15 +1,54 @@
 # Selected common size pattern — Phase B decision
 
-This is the Phase B decision the plan calls for: not a survey, a choice. It synthesizes two independent
+**UPDATE 2026-10-08, same day, after Gate 1 was tested: Option A is dead. Option B is now the active
+pattern.** Section "The decision" below is kept as the original record, not deleted, because the reasoning
+in it (why A′ and C/D/E were rejected) still stands and still applies to the choice between what's left.
+Read this update first, then the rest of the document for context on the alternatives already ruled out.
+
+**What happened:** the qualifier-rewrite codec (`0x28`→`0x17`, count 1→2) that Option A depended on for
+SELECT/OPERATE was built, tested byte-exact, and then run against the real pinned OpenDNP3 production
+master (`endpoint_gate`, commit `4648fcb898`) — exactly the validation gate this document itself required
+before Option A could be called complete (see "What this decision does not close," item 1, below). It
+failed: `TypedCommandHeader::ApplySelectResponse` in the real master silently declines to select any point
+when the response header carries more indexed objects (2) than the master's own request header held (1)
+— `if (commands.Count() > this->records.size()) return;`. A live master never issues OPERATE after seeing
+the rewritten echo. This is not a hardware limit and not a bug in the codec; it is the real production
+client correctly refusing a wire construction that doesn't match what it sent. There is no variant of the
+in-place qualifier rewrite that gets around this guard without changing what the master itself sends, which
+is outside this project's control. Full trace: the codec's own report, kept at
+`defense4/timing/framework/size/case4_qualifier_rewrite.py` and
+`defense4/timing/framework/size/endpoint_gate/context_evidence_qualifier_01/`.
+
+**What this means for Option B, now that it is live rather than a documented fallback:** Option A let READ
+stay completely untouched (it was already native at 49B) and only needed insertion on SELECT/OPERATE
+(37B→49B gap, 12 bytes). Option B's uniform 58B target needs insertion on **all three roles**, including
+READ (49B→58B, a gap neither this document nor the hardware-feasibility analysis separately costed, since
+READ was assumed free under the option that was actually picked at the time). This is a real, newly
+surfaced increase in scope, not a free substitution — Option B is not simply "the fallback," it is "the
+fallback, now revealed to need insertion on the one role that previously needed none." A follow-up
+hardware-feasibility check on this specific point is in progress; this document will be updated again when
+it reports.
+
+**Why proceeding with B now, rather than pausing on it:** `SELECTED_PATTERN.md`'s "Why this option over the
+alternatives" section already pre-committed, in writing, before this result was known, that a validation
+failure on Option A's codec falls through to Option B — precisely so this moment wouldn't need to re-litigate
+the whole Phase B choice from scratch. Option A′ (native 37B, no padding) was rejected for reasons unrelated
+to this failure (operator poll dependency outside this project's access; builds no padding mechanism at all)
+and those reasons are unchanged by today's result, so A′ is not reconsidered here either. Options C/D/E were
+already dominated or rejected on their own terms and remain so.
+
+## The original decision (superseded above; kept for the record)
+
+This was the Phase B decision the plan called for: not a survey, a choice. It synthesizes two independent
 analyses (`DISTRIBUTION_AND_PATTERN_ANALYSIS.md`, statistical/leakage; `HARDWARE_FEASIBILITY_ANALYSIS.md`,
 ASIC cost), which converged closely despite working independently (the second was written first and the
 first corrected its own early guess to match it after reading it — see that document's §2.3). All sizes
 below are **TCP-payload bytes** unless marked Ethernet-frame bytes (`INTEGRATION_CONTRACT.md` §2).
 
-## The decision
-
-**Selected: Option A — converge READ and SELECT/OPERATE on a shared 49-byte pre-carve TCP payload, split
-`[28, 21]` via the Release-Replicate-Carve (RRC) mechanism already proven on real Tofino-1 silicon.**
+**Selected at the time: Option A — converge READ and SELECT/OPERATE on a shared 49-byte pre-carve TCP
+payload, split `[28, 21]` via the Release-Replicate-Carve (RRC) mechanism already proven on real Tofino-1
+silicon. Superseded by the update above — kept here only so the reasoning for rejecting A′/B/C/D/E at the
+time remains legible.**
 
 | Role | Native request | Native response | Transform | Final response vector |
 |---|---:|---:|---|---|
