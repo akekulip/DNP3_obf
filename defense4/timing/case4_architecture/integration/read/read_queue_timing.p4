@@ -39,27 +39,30 @@ struct header_t { pktgen_timer_header_t timer; clone_hdr_t clone; tev_t tev; lad
 struct gen_mask_t { bit<32> gen; bit<32> mask; }
 
 struct metadata_t {
-    bit<32> da; bit<32> readiness; bit<32> cap; bit<32> gap; bit<32> op_j; bit<32> budget_cap; bit<32> enabled;
+    // da/readiness/gap/op_j are config action-data (set_params); cap is accepted (the test always
+    // passes it) but not stored -- nothing in this design uses it as a deadline.
+    bit<32> da; bit<32> readiness; bit<32> gap; bit<32> op_j; bit<32> budget_cap; bit<32> enabled;
     bit<32> now;
     bit<32> in_epoch; bit<32> cur_epoch; bit<32> quarantine;
     bit<32> cur_gen; bit<32> new_gen; bit<32> commit_gen; bit<32> t0_v;
     bit<32> ack_done_g; bit<32> resp_done_g;
     bit<32> ack_commit_at_v; bit<32> resp_deadline_v; bit<32> resp_target;
-    bit<32> resp_seen_mask; bit<32> child_bit; bit<32> dup;
+    // Narrow: these only ever hold a 3-bit child mask or a 0/1 flag -- bit<32> would occupy 4x the
+    // PHV this design doesn't have to spare (see TIMING_QUEUE_MIGRATION_STATUS.md's PHV finding).
+    bit<8> resp_seen_mask; bit<8> dup;
     // Tofino's conditional-execution gateway cannot evaluate a live comparison between two fully
     // dynamic values (bf-p4c: "condition too complex ... one operand must be constant"), so every
     // now-vs-deadline check here is precomputed as delta = now - deadline, then a table with a
     // ternary match on the delta's sign bit turns it into a 1-bit ready flag -- the same pattern
-    // read_timing.p4 already uses (deadline_deltas / heartbeat_eligibility).
-    bit<32> deadline_da; bit<32> da_delta; bit<32> da_ready;
-    bit<32> deadline_readiness; bit<32> readiness_delta; bit<32> readiness_ready;
-    bit<32> gap_delta; bit<32> gap_ready;
-    bit<32> op_t0_masked; bit<32> op_deadline; bit<32> op_delta; bit<32> op_ready;
-    bit<32> resp_seen_flag;
+    // read_timing.p4 already uses (deadline_deltas / heartbeat_eligibility). The deltas/deadlines
+    // need the full dynamic range; the *_ready outputs are 0/1 flags and are narrowed accordingly.
+    bit<32> deadline_da; bit<32> da_delta; bit<8> da_ready;
+    bit<32> deadline_readiness; bit<32> readiness_delta; bit<8> readiness_ready;
+    bit<32> gap_delta; bit<8> gap_ready;
+    bit<32> op_t0_masked; bit<32> op_deadline; bit<32> op_delta; bit<8> op_ready;
+    bit<8> resp_seen_flag;
     bit<32> op_gen; bit<32> op_commit_gen; bit<32> op_done_g; bit<32> op_t0_v;
     bit<32> clone_tag; bit<32> token_gen; bit<32> token_domain;
-    bit<8> can_release; bit<8> is_commit; bit<8> stale; bit<8> is_off;
-    bit<32> out_code;
 }
 
 parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
@@ -121,7 +124,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     // ---- configuration (per-pass action data, not registers) --------------------------------
     action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
                       bit<32> budget, bit<32> enabled) {
-        md.da = da; md.readiness = readiness; md.cap = cap; md.gap = gap; md.op_j = op_j;
+        md.da = da; md.readiness = readiness; md.gap = gap; md.op_j = op_j;
         md.budget_cap = budget; md.enabled = enabled;
     }
     table params {
@@ -279,7 +282,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     RegisterAction<bit<32>, bit<4>, bit<32>>(outcomes) bump_outcome = {
         void apply(inout bit<32> value, out bit<32> out_value) { value = value + 1; out_value = value; }
     };
-    action count(bit<32> code) { md.out_code = bump_outcome.execute((bit<4>)code); }
+    action count(bit<32> code) { bump_outcome.execute((bit<4>)code); }
 
     // ---- request admission ---------------------------------------------------------------------
     action admit_request_gen() {
@@ -427,7 +430,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     table resp_seen_check {
         key = { md.resp_seen_mask : ternary; }
         actions = { resp_seen_flag_yes; resp_seen_flag_no; }
-        const entries = { (32w0 &&& 32w0xffffffff) : resp_seen_flag_no(); }
+        const entries = { (8w0 &&& 8w0xff) : resp_seen_flag_no(); }
         const default_action = resp_seen_flag_yes(); size = 1;
     }
 
@@ -500,23 +503,13 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     apply {
         ig_tm_md.bypass_egress = 0;
         params.apply(); clock.apply();
-        // Run unconditionally: a table cannot be .apply()'d from multiple branches (Tofino
-        // next-table propagation), and these are cheap register peeks and deadline checks,
-        // harmless on passes that don't need them. md.t0_v/ack_commit_at_v/op_t0_v/resp_seen_mask
-        // reflect whatever a PRIOR pass stored; a later branch in THIS pass that performs a new
-        // commit (mark_ack_commit_at/mark_ack_done/etc.) recomputes its own fresh value locally
-        // for that immediate purpose and does not depend on these.
+        // gen_snapshot stays global: T_IN (ACK/response epoch checks), port 0 (token staleness) and
+        // HELD_RETURN (every role's staleness check) all need md.cur_gen. Everything else that used
+        // to run unconditionally here moved into the one branch that actually needs it (HELD_RETURN
+        // or HB_RETURN, below) -- narrowing each field's live range to its own branch lets the PHV
+        // allocator reuse containers across mutually exclusive branches instead of holding every
+        // domain's deltas/deadlines live for the whole pipeline on every packet type.
         gen_snapshot.apply();
-        md.t0_v = t0_read.execute(0);
-        md.ack_commit_at_v = commit_at_read.execute(0);
-        md.op_gen = op_gen_peek.execute(0);
-        md.op_t0_v = op_t0_read.execute(0);
-        md.resp_seen_mask = mask_read.execute(0);
-        compute_deadline_da(); compute_da_delta(); da_check.apply();
-        compute_deadline_readiness(); compute_readiness_delta(); readiness_check.apply();
-        compute_resp_target(); compute_gap_delta(); gap_check.apply();
-        compute_op_t0_masked(); compute_op_deadline(); compute_op_delta(); op_check.apply();
-        resp_seen_check.apply();
 
         if (ig_intr_md.ingress_port == PKTGEN_RETURN) {
             if (hdr.tev.kind == KIND_OPERATE && md.enabled != 0) { admit_operate_held(); }
@@ -544,9 +537,9 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                     md.resp_done_g = resp_done_read.execute(0);
                     if (md.resp_done_g == md.cur_gen) { passthrough_tev_forward(); }
                     else {
-                        if (hdr.tev.stage == 0) { md.dup = mask_try_admit0.execute(0); }
-                        else if (hdr.tev.stage == 1) { md.dup = mask_try_admit1.execute(0); }
-                        else { md.dup = mask_try_admit2.execute(0); }
+                        if (hdr.tev.stage == 0) { md.dup = (bit<8>)mask_try_admit0.execute(0); }
+                        else if (hdr.tev.stage == 1) { md.dup = (bit<8>)mask_try_admit1.execute(0); }
+                        else { md.dup = (bit<8>)mask_try_admit2.execute(0); }
                         if (md.dup == 1) { drop_duplicate_response(); }
                         else { admit_response(); }
                     }
@@ -574,6 +567,13 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 else { seed_resp_blocker(); }
             }
         } else if (ig_intr_md.ingress_port == HELD_RETURN) {
+            md.t0_v = t0_read.execute(0);
+            md.ack_commit_at_v = commit_at_read.execute(0);
+            md.resp_seen_mask = (bit<8>)mask_read.execute(0);
+            compute_deadline_da(); compute_da_delta(); da_check.apply();
+            compute_deadline_readiness(); compute_readiness_delta(); readiness_check.apply();
+            compute_resp_target(); compute_gap_delta(); gap_check.apply();
+            resp_seen_check.apply();
             if (hdr.ladder.role == ROLE_ACK_BLK) {
                 md.ack_done_g = ack_done_read.execute(0);
                 if ((bit<32>)hdr.ladder.generation != (md.cur_gen & 32w0xffff)) { stop_blocking_stale(); }
@@ -621,6 +621,9 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 }
             } else { unmatched(); }
         } else if (ig_intr_md.ingress_port == HB_RETURN) {
+            md.op_gen = op_gen_peek.execute(0);
+            md.op_t0_v = op_t0_read.execute(0);
+            compute_op_t0_masked(); compute_op_deadline(); compute_op_delta(); op_check.apply();
             if (hdr.ladder.role == ROLE_OP_BLK) {
                 md.op_done_g = op_done_read.execute(0);
                 if ((bit<32>)hdr.ladder.generation != (md.op_gen & 32w0xffff)) { stop_blocking_stale(); }

@@ -65,16 +65,24 @@ distinct classes of real hardware constraint. Four were fixed, with the fixes ke
    sub-branches individually, both HELD_RETURN and HB_RETURN's four role branches individually, and
    the generator-token branch, one at a time — none of these in isolation reproduces a clean
    diagnostic in place of the crash; only stubbing enormous swaths, or the whole apply body, avoids
-   it). **Separately, and more informatively**: stubbing the apply block to just the new unconditional
-   top-of-pass block (no branches at all, so none of the newly-computed fields are ever consumed)
-   fails PHV allocation outright — 18 field slices, mostly the 32-bit intermediate deltas/deadlines
-   this fix introduces, could not be allocated simultaneously. That is real evidence, not a guess,
-   that the delta/ternary-match fix is correct in shape but **expensive**: it adds roughly a dozen new
-   always-live 32-bit metadata fields to a pipe that is already one of several sharing this switch's
-   stage/PHV budget (the same resource pressure this session's M-mapper saga hit from a different
-   angle). The crash on the full file is most plausibly this same pressure interacting badly with
-   table-placement/dependency-graph construction in a way bf-p4c does not fail gracefully on, though
-   that specific causal claim is not proven — only the PHV-pressure finding is.
+   it).
+
+   **Follow-up evidence, confirmed on both local SDK 9.13.1 and the switch host's real installed SDK
+   9.13.2** (compile-only, via `installed_sdk_build.py`, no activation — same authorized mechanism
+   used throughout this effort): the crash is specifically and reproducibly in **PHV allocation, not
+   table placement**. `out/pipe/logs/table_dependency_graph.log` on both SDK runs shows table
+   placement actually succeeding, converging to **8 stages** (well inside the 12-stage budget) across
+   two placement passes. `out/pipe/logs/phv_allocation_0.log` is **zero bytes** on both runs — the
+   allocator crashes before writing anything, consistent with the crash happening at or immediately
+   after PHV allocation starts. This also rules out the most obvious explanation: narrowing the
+   `*_ready`/`resp_seen_mask`/`dup` fields from `bit<32>` to `bit<8>` and deleting six genuinely dead
+   metadata fields left over from earlier iterations (`cap`, `child_bit`, `can_release`, `is_commit`,
+   `stale`, `is_off`, `out_code`) did **not** change the outcome — same crash, same signature, on both
+   SDK versions, after the narrowing. A pure capacity shortfall would be expected to respond to
+   removing roughly a third of the live 32-bit fields; this did not, which argues against "simply too
+   much data" as the full explanation and toward either a deeper resource-interaction effect this
+   narrowing didn't reach, or a genuine PHV-allocator defect in this SDK line triggered by the
+   specific shape of many small ternary-keyed single-entry tables scattered across sibling branches.
 
 ## Why this stops here rather than continuing
 
@@ -84,28 +92,31 @@ valuable stopping point." Here that is doubly true — the correctness of the de
 established at the level this phase actually needed (the interpreter is the authority the 18
 invariant tests are written against, and nothing found in the real compile contradicts the logic; all
 five findings above are hardware ALU/gateway/PHV resource constraints, not behavioral bugs the
-interpreter missed). Three rounds of real, substantive fixes landed real progress (one-register-per-
-table, single-stage ALU, table-applied-once); a fourth (gateway complexity) has its fix in place and
-independently confirmed correct in isolation; what remains is an un-diagnosed compiler crash on the
-assembled whole, compounded by genuine PHV pressure that a narrower fix (not attempted here) would be
-needed to relieve. Continuing to blindly retry variants against an unexplained ICE, with no new
-diagnostic information available after a real bisection effort, is exactly the pattern this project's
-own standing discipline (the M-mapper saga, `M_RECIRCULATION_VERDICT.md`) says to stop rather than
-repeat.
+interpreter missed). Four rounds of real, substantive fixes landed real progress (one-register-per-
+table, single-stage ALU, table-applied-once, the gateway-complexity delta/ternary pattern, confirmed
+correct in isolation); a fifth attempt (narrowing field widths, confirmed via two independent SDK
+builds to pin the crash down to PHV allocation specifically, with table placement proven to already
+fit in 8 of 12 stages) produced a precise, reproducible characterization but not a fix. Continuing to
+guess further structural variants against an unexplained ICE, with the two cheapest and most obvious
+levers (narrowing fields, confirming across SDK versions) already pulled and not resolving it, is
+exactly the pattern this project's own standing discipline (the M-mapper saga,
+`M_RECIRCULATION_VERDICT.md`) says to stop rather than repeat.
 
 ## Next concrete step (not performed here)
 
-1. **Reduce PHV pressure before fighting the crash further.** The five `*_ready` flags and their
-   intermediate deltas/deadlines do not all need to be bit<32> or all computed unconditionally at the
-   top of every pass. Narrowing them (the deltas only need their sign bit to survive past the
-   ternary-match table; a `bit<8>` or even `bit<1>` flag is all any consumer needs) and/or computing
-   each domain's checks only on the ports that actually need them (accepting the "applied in multiple
-   places" duplication by giving HELD_RETURN and HB_RETURN their own private copies of the relevant
-   tables, rather than one shared unconditional block) would directly address the PHV allocation
-   failure found here, and may independently make the crash go away if it is in fact resource-pressure
-   driven.
-2. Re-run the `bf-p4c` compile after each change — the interpreter does not model any of the five
-   hardware constraints found in this session, so it cannot be relied on to catch a regression here;
-   only the real compiler can.
+1. **Reduce the number of distinct ternary-keyed single-entry tables, not just their field widths.**
+   This session's attempt narrowed data widths (bit<32> to bit<8> for flags, dead fields removed) and
+   that alone did not change the crash — the next lever is reducing the *count* of tables
+   (`da_check`/`readiness_check`/`gap_check`/`op_check`/`resp_seen_check`, 5 total, each its own
+   single-row ternary match) by merging the ones used together into one multi-key table (e.g.
+   `readiness_check` is applied identically regardless of domain and could key on more than one
+   delta's sign bit at once, or the deltas that are never needed simultaneously could share one
+   table instance keyed by which domain is asking).
+2. Re-run the `bf-p4c` compile after each change on **both** SDK builds (local 9.13.1 via `bf-p4c`
+   directly, and the switch's installed 9.13.2 via `installed_sdk_build.py`, compile-only) — if the
+   crash is version-specific this will show it; if it persists on both (as every finding in this
+   document did), treat it as evidence about this design shape, not this one toolchain build. The
+   interpreter does not model any of the five hardware constraints found in this session, so it
+   cannot be relied on to catch a regression here; only a real compile can.
 3. Once it compiles, run it on the local Tofino-1 model (`integration/core/launch_model.sh`) with
    real packet inputs, per the original task.
