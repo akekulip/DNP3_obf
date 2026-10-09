@@ -11,10 +11,24 @@ is released (an INTERNAL held-ACK return, not an externally measured departure).
 emits a released packet at that pass's time, so a_commit == the ACK's emission time here.
 """
 import struct
+import sys
 import unittest
+from pathlib import Path
 
 from queue_sim import (ACK_FRAME, CAP, CHILD1, CHILD2, DA, FORWARD, GAP, LADDER, OP_FRAME, OP_J,
                        OP_LADDER, READINESS, RELAY, REQ_FRAME, RSP_FRAME, T0, QueueSim, q)
+
+
+INTEGRATION = Path(__file__).resolve().parents[2]
+
+
+def n_support():
+    """N's own READ source harness (connection/binding/tests/read_support.py)."""
+    path = str(INTEGRATION / 'connection/binding/tests')
+    if path not in sys.path:
+        sys.path.insert(0, path)
+    import read_support
+    return read_support
 
 
 def ladder_token(role, gen, budget=1000):
@@ -325,6 +339,249 @@ class G_PassThroughAndRecovery(unittest.TestCase):
         self.assertEqual(sim.emissions(CHILD2, FORWARD), [other + 10_000])
         self.assertEqual(out(sim, 'OUT_ACK_FALLBACK'), 1, "another epoch's response did not open this ACK gate")
         self.assertGreaterEqual(sim.emissions(ACK_FRAME)[0], q(T0) + READINESS)
+
+
+class H_NRealisticAssociation(unittest.TestCase):
+    """What N actually hands T, and what T does with it.
+
+    Every T_IN frame here is produced by running N's own source (connection/binding/native_binding.p4
+    and core/ordinary/n.p4, through the connection-binding READ harness), not built by hand. N
+    allocates a fresh wgen for every packet it starts processing (`go_new` -> `allocate`), including
+    packets it then refuses, so one transaction's request, ACK and response never share a wgen; T
+    must not and does not compare it. Transaction association comes from N instead: a READ request is
+    admitted only from owner state 5 (idle), a response only at state 14 with seq/ack equal to the live
+    banks, and the single work pin serialises their hand-offs onto one T_IN port. Source-level only;
+    the cross-pipe N->T path's FIFO order is an assumption, not a target measurement."""
+
+    N_SOURCES = ('connection/binding/native_binding.p4', 'core/ordinary/n.p4')
+    IDLE = 0x50001
+
+    @staticmethod
+    def n_run(source, steps):
+        """Run (label, side, frame) through N in order; return {label: T_IN frame or None, label + ':out': outcome}."""
+        rs = n_support()
+        pipe = rs.ReadPipeline(text=(INTEGRATION / source).read_text()).start(H_NRealisticAssociation.IDLE, 1000, 2000)
+        handoff, got = rs.handoff_port(), {}
+        for label, side, frame in steps:
+            outcome = pipe.inject(rs.IN_CLIENT if side == 'client' else rs.IN_SERVER, frame)
+            tevs = [raw for port, raw in outcome.emitted if port == handoff]
+            got[label] = tevs[0] if tevs else None
+            got[label + ':out'] = outcome
+        return got
+
+    @staticmethod
+    def steps(*labels):
+        """Labels are a packet name, optionally suffixed '~note' for a repeat of the same bytes."""
+        rs = n_support()
+        table = {
+            'req1': ('client', rs.request_packet(app=0xc1)),
+            'ack1': ('server', rs.ack_packet()),
+            'rsp1': ('server', rs.response_packet(app=0xc1)),
+            'req2': ('client', rs.request_packet(seq=1020, ack=2049, app=0xc2)),
+            'ack2': ('server', rs.ack_packet(seq=2049, ack=1040)),
+            'rsp2': ('server', rs.response_packet(seq=2049, ack=1040, app=0xc2)),
+        }
+        return [(label,) + table[label.split('~')[0]] for label in labels]
+
+    @staticmethod
+    def wgen(raw):
+        return struct.unpack('!I', raw[4:8])[0]
+
+    def test_one_transaction_with_n_wgens_completes(self):
+        """Scenario 1: request, ACK and response each carry the distinct wgen N really assigns."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1'))
+                wgens = [self.wgen(n[k]) for k in ('req1', 'ack1', 'rsp1')]
+                self.assertEqual(len(set(wgens)), 3, 'N gives each packet of one transaction its own wgen')
+                self.assertEqual(wgens, sorted(wgens))
+                sim = QueueSim()
+                sim.handoff(T0, n['req1'])
+                sim.handoff(T0 + ACK_OFF, n['ack1'])
+                sim.handoff(T0 + RSP_OFF, n['rsp1'])
+                sim.run(HORIZON)
+                finished(self, sim)
+                ack, rsp = sim.emissions(n['ack1'][16:], FORWARD), sim.emissions(n['rsp1'][16:], FORWARD)
+                self.assertEqual((len(ack), len(rsp)), (1, 1))
+                self.assertEqual(sim.emissions(n['req1'][16:], RELAY), [T0])
+                self.assertGreaterEqual(ack[0], q(T0) + DA)
+                self.assertGreaterEqual(rsp[0], ack[0] + GAP)
+                self.assertEqual((out(sim, 'OUT_ACK_COMMIT'), out(sim, 'OUT_RESP_RELEASE')), (1, 1))
+                self.assertEqual((out(sim, 'OUT_ACK_FALLBACK'), out(sim, 'OUT_RESP_FALLBACK')), (0, 0))
+
+    def test_retransmissions_n_really_produces(self):
+        """Scenario 2: a TCP-retransmitted request never reaches T (N refuses it outside owner state
+        5); a duplicate ACK reaches T with its own wgen and does not disturb the transaction; a
+        retransmitted response after N accepted the first is refused by N."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'req1~again', 'ack1', 'ack1~dup', 'rsp1', 'rsp1~again'))
+                self.assertIsNone(n['req1~again'], 'retransmitted request is not handed to T')
+                self.assertTrue(n['req1~again:out'].dropped)
+                self.assertIsNone(n['rsp1~again'], 'retransmitted response is not handed to T')
+                self.assertTrue(n['rsp1~again:out'].dropped)
+                self.assertNotEqual(self.wgen(n['ack1']), self.wgen(n['ack1~dup']))
+                self.assertEqual(n['ack1'][8:], n['ack1~dup'][8:], 'same original, only wgen differs')
+                sim = QueueSim()
+                sim.handoff(T0, n['req1'])
+                sim.handoff(T0 + ACK_OFF, n['ack1'])
+                sim.handoff(T0 + ACK_OFF + 10_000, n['ack1~dup'])
+                sim.handoff(T0 + RSP_OFF, n['rsp1'])
+                sim.run(HORIZON)
+                finished(self, sim)
+                self.assertEqual(sim.cell('gen_alloc_reg'), 1, 'one admitted transaction')
+                acks, rsp = sim.emissions(n['ack1'][16:], FORWARD), sim.emissions(n['rsp1'][16:], FORWARD)
+                self.assertEqual((len(acks), len(rsp)), (2, 1))
+                self.assertGreaterEqual(min(acks), q(T0) + DA)
+                self.assertGreaterEqual(rsp[0], min(acks) + GAP)
+                self.assertEqual(out(sim, 'OUT_RESP_RELEASE'), 1)
+
+    def test_old_response_cannot_reach_t_after_a_newer_request(self):
+        """Scenario 3: after transaction 2's request is admitted, the old response (and its ACK)
+        arriving late at N are refused (response) or forwarded natively around T (pure ACK); T's view
+        of transaction 2 is identical to a run without the late packets."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1', 'req2', 'rsp1~late', 'ack1~late',
+                                                  'ack2', 'rsp2'))
+                self.assertIsNone(n['rsp1~late'])
+                self.assertTrue(n['rsp1~late:out'].dropped, 'N refuses the stale response')
+                self.assertIsNone(n['ack1~late'])
+                self.assertEqual([p for p, _ in n['ack1~late:out'].emitted], [1], 'stale ACK bypasses T natively')
+                second = T0 + CAP + 1_000_000
+                runs = []
+                for late in (False, True):
+                    sim = QueueSim()
+                    for base, (req, ack, rsp) in ((T0, ('req1', 'ack1', 'rsp1')), (second, ('req2', 'ack2', 'rsp2'))):
+                        sim.handoff(base, n[req])
+                        sim.handoff(base + ACK_OFF, n[ack])
+                        sim.handoff(base + RSP_OFF, n[rsp])
+                    if late:   # what N handed T for the late packets: nothing
+                        for label in ('rsp1~late', 'ack1~late'):
+                            if n[label] is not None:
+                                sim.handoff(second + 20_000, n[label])
+                    sim.run(second + CAP + 2_000_000)
+                    finished(self, sim)
+                    runs.append(sim)
+                clean, dirty = runs
+                for frame in (n['ack2'][16:], n['rsp2'][16:]):
+                    self.assertEqual(dirty.emissions(frame), clean.emissions(frame))
+                self.assertEqual(out(dirty, 'OUT_HELD_STALE_FLUSH'), 0)
+                self.assertEqual((out(dirty, 'OUT_ACK_COMMIT'), out(dirty, 'OUT_RESP_RELEASE')), (2, 2))
+
+    def test_old_response_still_held_does_not_open_the_new_ack_gate(self):
+        """Scenario 3, the only real-path overlap: N returns to idle when the old response passes
+        it, so a new request can be admitted while T still holds that response. The held old response
+        is flushed as stale and its admission (generation 1) does not satisfy generation 2's ACK gate:
+        with no response of its own, the new ACK waits for readiness and leaves as a fallback."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1', 'req2', 'ack2'))
+                self.assertTrue(all(n[k] is not None for k in ('req1', 'ack1', 'rsp1', 'req2', 'ack2')))
+                req2_at = T0 + RSP_OFF + 20_000             # before rsp1's a_commit + gap release
+                sim = QueueSim()
+                sim.handoff(T0, n['req1'])
+                sim.handoff(T0 + ACK_OFF, n['ack1'])
+                sim.handoff(T0 + RSP_OFF, n['rsp1'])
+                sim.handoff(req2_at, n['req2'])
+                sim.handoff(req2_at + ACK_OFF, n['ack2'])
+                sim.run(req2_at + CAP + 2_000_000)
+                finished(self, sim)
+                self.assertGreaterEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1, 'generation-1 originals flushed')
+                self.assertEqual(len(sim.emissions(n['rsp1'][16:], FORWARD)), 1, 'old response delivered once')
+                ack2 = sim.emissions(n['ack2'][16:], FORWARD)
+                self.assertEqual(len(ack2), 1)
+                self.assertGreaterEqual(ack2[0], q(req2_at) + READINESS, 'old response did not open the new gate')
+                self.assertEqual(out(sim, 'OUT_ACK_FALLBACK'), 1)
+
+    def test_t_alone_does_not_associate_a_response_bypassing_n(self):
+        """The trust boundary, recorded rather than hidden: the same stale response N refuses in
+        scenario 3, injected directly at T_IN (bypassing N), IS admitted into generation 2 and opens
+        its ACK gate. T has no association check of its own; the guarantee above is N's. If T ever
+        gains one, this test is expected to change."""
+        n = self.n_run(self.N_SOURCES[0], self.steps('req1', 'ack1', 'rsp1', 'req2', 'ack2'))
+        second = T0 + CAP + 1_000_000
+        sim = QueueSim()
+        sim.handoff(T0, n['req1'])
+        sim.handoff(T0 + ACK_OFF, n['ack1'])
+        sim.handoff(T0 + RSP_OFF, n['rsp1'])
+        sim.handoff(second, n['req2'])
+        sim.handoff(second + ACK_OFF, n['ack2'])
+        sim.handoff(second + RSP_OFF, n['rsp1'])        # synthetic: N would have dropped this
+        sim.run(second + CAP + 2_000_000)
+        finished(self, sim)
+        self.assertEqual(out(sim, 'OUT_ACK_FALLBACK'), 0)
+        self.assertEqual(out(sim, 'OUT_ACK_COMMIT'), 2, 'the bypassing stale response opened generation 2')
+
+
+CLOCK_WRAP = 1 << 32           # md.now is the 32-bit truncation of the 48-bit global timestamp
+RESET_OFF = 200_000            # OPERATE -> RESET spacing of Philip's 2026-10-08 temporary-copy run
+
+
+class I_OperateDeadlineAnchor(unittest.TestCase):
+    """The OPERATE hold is anchored on the arrival of the operation being held, and RESET's
+    clearing of that anchor flushes a held OPERATE promptly."""
+
+    def test_second_operate_is_held_to_its_own_deadline(self):
+        """Regression: op_t0_arm used to write only when op_t0_reg was zero, so a second OPERATE
+        with no RESET in between inherited the first one's anchor and left 200,000 ns after its
+        own arrival instead of no earlier than q(arrival) + OP_J (599,808 ns)."""
+        sim = QueueSim()
+        second = T0 + 2_000_000
+        sim.operate(T0)
+        sim.operate(second)
+        sim.run(second + 2_000_000)
+        finished(self, sim)
+        releases = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(releases), 2)
+        self.assertGreaterEqual(releases[0], q(T0) + OP_J)
+        self.assertGreaterEqual(releases[1], q(second) + OP_J, 'second OPERATE released before its own deadline')
+
+    def test_reset_flushes_a_held_operate_150us_after_the_reset(self):
+        """Non-regression for the RESET path: the cleared op_t0_reg reads as overdue, so the held
+        OPERATE leaves on the next ladder round (150,000 ns here). Removing the clear makes it wait
+        for the full hold instead (570,000 ns), which is the regression this pins."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.reset(T0 + RESET_OFF)
+        sim.run(T0 + 3_000_000)
+        finished(self, sim)
+        releases = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(releases), 1)
+        self.assertEqual(releases[0] - (T0 + RESET_OFF), 150_000)
+
+    def test_operate_deadline_crossing_the_clock_wrap_is_honored(self):
+        """Arm op_t0 300 us below the 32-bit wrap so the deadline sum wraps: the release offset must
+        equal the same run far from the wrap, not leave early or stall."""
+        reference = QueueSim()
+        reference.operate(T0)
+        reference.run(T0 + 3_000_000)
+        base = CLOCK_WRAP - 300_000
+        sim = QueueSim()
+        sim.operate(base)
+        sim.run(base + 3_000_000)
+        finished(self, sim)
+        self.assertGreater((sim.cell('op_t0_reg') & ~1) + OP_J, CLOCK_WRAP - 1, 'the deadline sum really wraps')
+        releases = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(releases), 1)
+        self.assertGreaterEqual(releases[0], q(base) + OP_J)
+        self.assertEqual(releases[0] - base, reference.emissions(OP_FRAME, RELAY)[0] - T0)
+
+    @unittest.expectedFailure
+    def test_reset_flush_near_the_clock_wrap(self):
+        """KNOWN DEFECT, pre-existing and outside the op_t0_arm fix: a cleared op_t0_reg makes
+        op_delta = now - OP_J, whose sign bit is set whenever now sits in the upper half of the
+        32-bit clock. The held OPERATE then reads as not ready until the clock wraps and passes
+        OP_J: measured 870,000 ns after the RESET at this phase (vs 150,000 ns), and 1.074 s at
+        base 0xC0000000. Late, never early. Expected to fail until the RESET path is redesigned."""
+        base = CLOCK_WRAP - 300_000
+        sim = QueueSim()
+        sim.operate(base)
+        sim.reset(base + RESET_OFF)
+        sim.run(base + 3_000_000)
+        releases = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(releases), 1)
+        self.assertEqual(releases[0] - (base + RESET_OFF), 150_000)
 
 
 if __name__ == '__main__':

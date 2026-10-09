@@ -4,20 +4,64 @@ Status of `read_queue_timing.p4`, the blocker-queue-based replacement for T's he
 design (`read_timing.p4`), per `INTEGRATION_CONTRACT.md` §5's hard constraint that real ACKs/responses
 stay queue-resident and only blocker tokens circulate.
 
+## 2026-10-08 correction: "all 7 invariants established" was too broad
+
+An external review of this file (audited at commit `5e848351c`) found, and this session independently
+confirmed by direct source inspection plus live reproduction, three real gaps the original 18-test suite
+did not catch: (F1) `IngressDeparser` sets `ig_dprsr_md.mirror_type`/`md.clone_tag` but never actually
+emits a `Mirror()` clone — the interpreter's test simulator synthesizes the clone+blocker-token behavior
+in Python, standing in for hardware behavior the file itself doesn't implement; (F2) `op_t0_arm` only
+armed once per register lifetime, so a second OPERATE admitted without an intervening RESET inherited
+the first operation's deadline (reproduced: released 399,808ns before its own earliest-permitted
+release); (F3) `hdr.tev.wgen` was parsed and never read anywhere, flagged by the review as allowing a
+stale response to satisfy a newer request's ACK gate.
+
+**Investigation outcome, same day:**
+- **F2 is fixed.** One-line change, see below.
+- **F3 required no fix.** A deeper investigation (reading N's real implementation, `n.p4`/
+  `native_binding.p4`, and replaying N's own real output bytes through `QueueSim` rather than injecting
+  synthetic T_IN events) found the review's literal diagnosis was wrong: N allocates a new `wgen` per
+  packet-processing operation, not per transaction, so a legitimate request/ACK/response can legitimately
+  carry three *different* `wgen` values — an equality check against `wgen` would have rejected legitimate
+  traffic. The real question (can a stale response reach T through the real N→T path) was answered
+  empirically: **no.** N's own admission guarantees (single work slot; state-machine-gated READ admission;
+  sequence/ack checks against live banks) already prevent a stale response from ever being forwarded to T
+  in the real path. This boundary (T trusts N's filtering; T has no independent association check of its
+  own) is now pinned by an explicit test (`H_NRealisticAssociation`, `test_t_queue_invariants.py`) rather
+  than being an unstated assumption. OPERATE duplicate-detection was investigated for the same reason and
+  found **not reachable today**: nothing in the real N implementation sends OPERATE events to T's input
+  port at all (T's OPERATE path is exercised only by synthetic tests) — adding duplicate-detection now
+  would mean designing against an interface that doesn't exist yet.
+- **F1 is not yet fixed** — queued as the next step (Stream 1c), to be compiled and verified separately
+  from F2 per this document's own standing discipline about isolating one new variable per compile attempt.
+
+**New, previously-undiscovered defect found as a byproduct of adding a timestamp-wrap test for F2's
+fix**: RESET's fast-flush of a held OPERATE assumes a cleared `op_t0` register reads as "trivially
+overdue." This breaks when the quantized 32-bit clock is in its upper half at the moment of the RESET:
+`op_delta = now - OP_J` has its sign bit set in that range, so the flush is **late, not early** — measured
+870µs to 1.56ms late near the wrap boundary, and up to ~2.15s late at worst. The release is always late,
+never early (not a safety regression, but a real timing-accuracy defect). This is recorded as an
+`expectedFailure` test (`test_reset_flush_near_the_clock_wrap`) rather than fixed — redesigning the RESET
+path is a separate decision, out of scope for the bounded F2 fix.
+
 ## What is done and verified
 
-**All 7 invariants from the integration prompt §4C, Phase C, are implemented and pass, 18/18 tests,
-on the source-level harness interpreter** (`integration/core/harness`, via `integration/read/tests/
-queue_sim.py` and `test_t_queue_invariants.py`): residency (real ACK/response enqueue once, release
-once, under a sufficient blocker reservoir; a degraded reservoir is detected and reported, not
-hidden); no early response; both response children share one release decision; ACK/response/OPERATE
-have separate gates; stale tokens and duplicate arrivals are rejected without disturbing a new
-transaction; missing-response/missing-ACK/lost-blocker-service/budget-exhaustion fallback is bounded
-and distinguishable from a normal completion; policy-off and reset both flush held originals and
-preserve exactly-once delivery, with epoch quarantine correctly bypassing a superseded connection.
+**All 7 invariants from the integration prompt §4C, Phase C, are implemented and pass on the source-level
+harness interpreter** (`integration/core/harness`, via `integration/read/tests/queue_sim.py` and
+`test_t_queue_invariants.py`), now **133 tests, 132 passing + 1 expected failure** (up from the original
+18, after today's F2/F3 investigation work added the `H_NRealisticAssociation` and
+`I_OperateDeadlineAnchor` classes): residency (real ACK/response enqueue once, release once, under a
+sufficient blocker reservoir; a degraded reservoir is detected and reported, not hidden); no early
+response; both response children share one release decision; ACK/response/OPERATE have separate gates;
+stale tokens and duplicate arrivals are rejected without disturbing a new transaction;
+missing-response/missing-ACK/lost-blocker-service/budget-exhaustion fallback is bounded and
+distinguishable from a normal completion; policy-off and reset both flush held originals and preserve
+exactly-once delivery, with epoch quarantine correctly bypassing a superseded connection; the OPERATE
+deadline is correctly anchored to the admitted operation's own generation; transaction association across
+the real N→T path is explicitly tested, not assumed.
 
 The full existing regression suite (root `tests`, `connection/binding/tests`,
-`controller/tests`, `core/harness/tests`, `read/tests`) stays green with this file added — nothing
+`controller/tests`, `core/harness/tests`, `read/tests`) stays green with these changes — nothing
 elsewhere in the tree was touched.
 
 ## What is not done: the local SDK 9.13.1 compile
@@ -99,8 +143,18 @@ distinct classes of real hardware constraint. Four were fixed, with the fixes ke
    re-examining the very first version of this file (before the gateway-complexity fix existed at
    all, using plain `if (md.now >= md.t0_v + md.da ...)` comparisons) confirms it hit the identical
    crash too — this is not something introduced by any of the fixes in this document; it was present
-   from the first full compile attempt. The true cause remains undiagnosed after four substantive,
-   independent attempts to isolate or resolve it.
+   from the first full compile attempt.
+
+   3. **2026-10-08: the F2 fix (removing `op_t0_arm`'s `if (value == 0)` guard — a pure subtraction,
+      zero new live metadata) also produced the identical crash signature on both SDKs** (table
+      placement to 8 stages, zero-byte `phv_allocation_0.log`), confirmed by a direct compile of both
+      the fixed and unfixed source on the same day. This is a third independent confirmation that small
+      logic changes within existing registers do not move the needle at all — consistent with, and
+      further supporting, the register-count bisection theory below rather than anything about this
+      specific conditional.
+
+   The true cause remains undiagnosed after five substantive, independent attempts to isolate or
+   resolve it.
 
 ## Why this stops here rather than continuing
 
@@ -113,9 +167,10 @@ five findings above are hardware ALU/gateway/PHV resource constraints, not behav
 interpreter missed). Four rounds of real, substantive fixes landed real progress (one-register-per-
 table, single-stage ALU, table-applied-once, the gateway-complexity delta/sign-bit pattern — the last
 of these confirmed correct in isolation and then shown, via two further independent mitigation
-attempts, not to be the source of the remaining crash at all). Four separate things have now been
+attempts, not to be the source of the remaining crash at all). Five separate things have now been
 tried against the crash itself (bisection, cross-SDK confirmation, field narrowing, full table
-elimination) with no diagnostic information gained beyond "it happens at the same point regardless."
+elimination, the F2 register-guard removal) with no diagnostic information gained beyond "it happens
+at the same point regardless."
 Continuing to guess further structural variants with no new signal to act on is exactly the pattern
 this project's own standing discipline (the M-mapper saga, `M_RECIRCULATION_VERDICT.md`) says to stop
 rather than repeat. This crash is now a well-characterized, reproducible finding in its own right —

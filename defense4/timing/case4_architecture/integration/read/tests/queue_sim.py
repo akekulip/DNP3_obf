@@ -96,6 +96,11 @@ class QueueSim:
         t0q = q(time) if t0q is None else t0q
         self.at(time, PORTS['T_IN'], struct.pack('!IIIBBH', epoch, 0, t0q, kind, stage, 0) + original)
 
+    def handoff(self, time, raw):
+        """A T_IN frame exactly as N emitted it (tev header + original), e.g. bytes captured from
+        N's own source run; nothing is rebuilt, so wgen/epoch/t0q are whatever N produced."""
+        self.at(time, PORTS['T_IN'], raw)
+
     def request(self, time, epoch=1):
         self.event(time, 9, REQ_FRAME, epoch)
 
