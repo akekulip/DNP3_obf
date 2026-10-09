@@ -1,0 +1,32 @@
+{
+  "source_sha256": "d10e67d2f6878f248d5602e0fd74ef503a47f2ef459aaa4c6fc998a1f8e3efc7",
+  "source_path_at_compile": "case4_architecture/protocol/case4_response_path.p4 (identical to the committed file in 12a30b168's tree, verified byte-for-byte)",
+  "command": [
+    "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+    "--target", "tofino",
+    "--arch", "tna",
+    "-g",
+    "-o", "/tmp/case4_response_path_9132_out",
+    "/tmp/case4_response_path.p4"
+  ],
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "compiler_path": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+  "host": "ufispace (10.10.54.81), the switch's own installed SDE",
+  "exit_code": 0,
+  "elapsed_seconds": 25.22,
+  "warnings": 6,
+  "resources": {
+    "stages_ingress": 1,
+    "stages_egress": 12,
+    "critical_path": 11,
+    "tables_allocated": 48
+  },
+  "comparison_to_local_9_13_1_build": {
+    "evidence": "evidence/transport_mapper_02/fused_12/manifest.json",
+    "stages_ingress": 1,
+    "stages_egress": 12,
+    "critical_path": 11,
+    "match": true
+  },
+  "notes": "First successful compile of the fused size+transport mechanism on the switch's own installed SDK (9.13.2), not just local 9.13.1. Compiled and verified read-only on the switch host (scp source over, bf-p4c run in /tmp, no chip activation, no load, no BFRT/context binding, no port/TM/mirror/pktgen config, nothing written to the switch's own program directories); scratch files removed from the switch after pulling evidence back. This is a compile-only result -- it has not been loaded onto the chip."
+}
