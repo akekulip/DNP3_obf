@@ -1,0 +1,10 @@
+# This run's text evidence is small (sub-200KB) and committed in full, the
+# same convention socket_evidence_01/02/03 use. This file exists so a future
+# rerun that turns on verbose Catch/compiler tracing, or that is repeated
+# many times into this same directory tree, does not silently balloon the
+# tracked tree with raw build output that carries no evidence value beyond
+# what manifest.json's hashes and completion.json's status already capture.
+configure.log.verbose
+build.log.verbose
+*.pcap
+*.pcapng
