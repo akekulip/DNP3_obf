@@ -1,0 +1,7 @@
+# run from integration/read/tests ; K=D_SeparateGates (4 tests, 2 of them new:
+#   test_same_generation_copy_is_not_released_while_its_generation_is_current
+#   test_same_generation_copy_is_flushed_to_the_relay_when_the_next_operate_arrives)
+python3 -m pytest -q test_t_queue_invariants.py::$K                                              -> current_tree.txt (4 passed)
+T_QUEUE_SOURCE=<this dir>/rqt_mut_op_done_never_writes.p4 python3 -m pytest -q ...::$K            -> mutated.txt (both new tests fail)
+T_QUEUE_SOURCE=<git show HEAD:.../read_queue_timing.p4> python3 -m pytest -q ...::$K               -> head_source.txt (4 passed)
+mutation.diff = current read_queue_timing.p4 vs the mutant (op_done_try's write line removed)

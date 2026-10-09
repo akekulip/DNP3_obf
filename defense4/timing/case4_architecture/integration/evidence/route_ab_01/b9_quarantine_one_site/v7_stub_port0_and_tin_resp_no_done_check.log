@@ -1,0 +1,23 @@
+source/v7_stub_port0_and_tin_resp_no_done_check.p4(140): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/v7_stub_port0_and_tin_resp_no_done_check.p4(83): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/v7_stub_port0_and_tin_resp_no_done_check.p4(83)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Table placement cannot make any more progress.  Though some tables have not yet been placed, dependency analysis has found that no more tables are placeable.
+
+
+1 error, 5 warnings generated.
+
+Skipping assembler, assembly file is empty

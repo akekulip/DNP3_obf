@@ -1,0 +1,23 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final3_full_local/source/read_queue_timing.p4(146): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final3_full_local/source/read_queue_timing.p4(89): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final3_full_local/source/read_queue_timing.p4(89)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final3_full_local/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final3_full_local/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Table placement was not able to allocate tbl_reset_clear_commit_at, tbl_read_gap_delta, tbl_mark_ack_commit_at in the same stage along with Register Ingress.ack_commit_at_reg
+
+
+1 error, 5 warnings generated.
+
+Skipping assembler, assembly file is empty

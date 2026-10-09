@@ -1,0 +1,21 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b4_full_all_done_regs/source/read_queue_timing.p4(139): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b4_full_all_done_regs/source/read_queue_timing.p4(82): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b4_full_all_done_regs/source/read_queue_timing.p4(82)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b4_full_all_done_regs/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b4_full_all_done_regs/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+1 error, 5 warnings generated.
+
+Internal compiler error. Please submit a bug report with your code.

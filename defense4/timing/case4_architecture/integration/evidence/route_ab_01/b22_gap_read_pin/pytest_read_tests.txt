@@ -1,0 +1,1288 @@
+........................................................................ [ 53%]
+.........................FFFFFFFFFFFFFFFFFFFFFFFFFxFF.........           [100%]
+=================================== FAILURES ===================================
+____ A_Residency.test_blocker_reservoir_below_continuity_floor_is_reported _____
+
+self = <test_t_queue_invariants.A_Residency testMethod=test_blocker_reservoir_below_continuity_floor_is_reported>
+
+    def test_blocker_reservoir_below_continuity_floor_is_reported(self):
+        """One token cannot keep qid7 backlogged across its own loop (service 30us < 50us round trip):
+        the held ACK is served early and must be re-held. Residency is a reservoir-size property, and
+        the program reports the violation instead of hiding it."""
+>       sim = QueueSim(k=1)
+
+read/tests/test_t_queue_invariants.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c227d700>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+____ A_Residency.test_originals_enter_their_hold_queue_once_and_return_once ____
+
+self = <test_t_queue_invariants.A_Residency testMethod=test_originals_enter_their_hold_queue_once_and_return_once>
+
+    def test_originals_enter_their_hold_queue_once_and_return_once(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c18994c0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+___ B_NoEarlyResponse.test_response_follows_ack_commit_by_the_configured_gap ___
+
+self = <test_t_queue_invariants.B_NoEarlyResponse testMethod=test_response_follows_ack_commit_by_the_configured_gap>
+
+    def test_response_follows_ack_commit_by_the_configured_gap(self):
+        for name, (ack_off, rsp_off) in self.SCENARIOS.items():
+            with self.subTest(name):
+>               sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1fa0ac0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_____ C_Children.test_two_response_children_are_held_and_released_together _____
+
+self = <test_t_queue_invariants.C_Children testMethod=test_two_response_children_are_held_and_released_together>
+
+    def test_two_response_children_are_held_and_released_together(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1eccd90>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+___________ D_SeparateGates.test_ack_and_response_gates_are_distinct ___________
+
+self = <test_t_queue_invariants.D_SeparateGates testMethod=test_ack_and_response_gates_are_distinct>
+
+    def test_ack_and_response_gates_are_distinct(self):
+        """The ACK opens on (deadline and response pending); the response opens on a_commit + gap.
+        Without a response the ACK gate stays shut until readiness even though D_A has passed."""
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1feafa0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ D_SeparateGates.test_operate_is_held_on_its_own_ladder_and_does_not_move_read_timing _
+
+self = <test_t_queue_invariants.D_SeparateGates testMethod=test_operate_is_held_on_its_own_ladder_and_does_not_move_read_timing>
+
+    def test_operate_is_held_on_its_own_ladder_and_does_not_move_read_timing(self):
+>       plain = QueueSim()
+
+read/tests/test_t_queue_invariants.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1fa0430>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ D_SeparateGates.test_released_operate_cannot_be_released_again_by_a_same_generation_copy _
+
+self = <test_t_queue_invariants.D_SeparateGates testMethod=test_released_operate_cannot_be_released_again_by_a_same_generation_copy>
+
+    def test_released_operate_cannot_be_released_again_by_a_same_generation_copy(self):
+        """Exactly-once OPERATE release rests on op_done_reg recording the released generation. After
+        a normal release, a second held-OPERATE ladder record carrying the SAME generation must not
+        reach the relay or bump OUT_OP_RELEASE. Without the record (op_done_try never writing), the
+        copy passes the generation check and its deadline has long passed, so it would be released."""
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c13fc490>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+____ E_StaleAndDuplicate.test_duplicate_ack_arms_the_response_deadline_once ____
+
+self = <test_t_queue_invariants.E_StaleAndDuplicate testMethod=test_duplicate_ack_arms_the_response_deadline_once>
+
+    def test_duplicate_ack_arms_the_response_deadline_once(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:231: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c227d8b0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ E_StaleAndDuplicate.test_duplicate_response_is_suppressed_only_while_the_original_is_held _
+
+self = <test_t_queue_invariants.E_StaleAndDuplicate testMethod=test_duplicate_response_is_suppressed_only_while_the_original_is_held>
+
+    def test_duplicate_response_is_suppressed_only_while_the_original_is_held(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c18ad790>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ E_StaleAndDuplicate.test_stale_tokens_die_on_first_pass_and_do_not_move_the_new_transaction _
+
+self = <test_t_queue_invariants.E_StaleAndDuplicate testMethod=test_stale_tokens_die_on_first_pass_and_do_not_move_the_new_transaction>
+
+    def test_stale_tokens_die_on_first_pass_and_do_not_move_the_new_transaction(self):
+        second = T0 + CAP + 1_000_000
+>       clean = QueueSim()
+
+read/tests/test_t_queue_invariants.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1884250>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ E_StaleAndDuplicate.test_superseding_request_flushes_old_originals_without_loss _
+
+self = <test_t_queue_invariants.E_StaleAndDuplicate testMethod=test_superseding_request_flushes_old_originals_without_loss>
+
+    def test_superseding_request_flushes_old_originals_without_loss(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:221: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c142cfd0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ F_BoundedFallback.test_blocker_budget_exhaustion_is_counted_and_next_read_recovers _
+
+self = <test_t_queue_invariants.F_BoundedFallback testMethod=test_blocker_budget_exhaustion_is_counted_and_next_read_recovers>
+
+    def test_blocker_budget_exhaustion_is_counted_and_next_read_recovers(self):
+>       sim = QueueSim(budget=3)
+
+read/tests/test_t_queue_invariants.py:297: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1e31790>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+______ F_BoundedFallback.test_lost_blocker_service_is_bounded_and_marked _______
+
+self = <test_t_queue_invariants.F_BoundedFallback testMethod=test_lost_blocker_service_is_bounded_and_marked>
+
+    def test_lost_blocker_service_is_bounded_and_marked(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:284: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1df4400>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ F_BoundedFallback.test_missing_ack_releases_response_at_readiness_as_fallback _
+
+self = <test_t_queue_invariants.F_BoundedFallback testMethod=test_missing_ack_releases_response_at_readiness_as_fallback>
+
+    def test_missing_ack_releases_response_at_readiness_as_fallback(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:273: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c18db370>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ F_BoundedFallback.test_missing_response_releases_ack_at_readiness_as_fallback _
+
+self = <test_t_queue_invariants.F_BoundedFallback testMethod=test_missing_response_releases_ack_at_readiness_as_fallback>
+
+    def test_missing_response_releases_ack_at_readiness_as_fallback(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c119f520>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+______ G_PassThroughAndRecovery.test_other_epoch_traffic_is_not_inserted _______
+
+self = <test_t_queue_invariants.G_PassThroughAndRecovery testMethod=test_other_epoch_traffic_is_not_inserted>
+
+    def test_other_epoch_traffic_is_not_inserted(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:354: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c11c4340>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ G_PassThroughAndRecovery.test_policy_off_forwards_every_event_unchanged_in_one_pass _
+
+self = <test_t_queue_invariants.G_PassThroughAndRecovery testMethod=test_policy_off_forwards_every_event_unchanged_in_one_pass>
+
+    def test_policy_off_forwards_every_event_unchanged_in_one_pass(self):
+>       sim = QueueSim(enabled=0)
+
+read/tests/test_t_queue_invariants.py:314: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1410d30>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ G_PassThroughAndRecovery.test_policy_off_while_held_delivers_each_original_once_in_order _
+
+self = <test_t_queue_invariants.G_PassThroughAndRecovery testMethod=test_policy_off_while_held_delivers_each_original_once_in_order>
+
+    def test_policy_off_while_held_delivers_each_original_once_in_order(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:326: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c11c18b0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ G_PassThroughAndRecovery.test_reset_flushes_held_originals_and_quarantines_the_epoch _
+
+self = <test_t_queue_invariants.G_PassThroughAndRecovery testMethod=test_reset_flushes_held_originals_and_quarantines_the_epoch>
+
+    def test_reset_flushes_held_originals_and_quarantines_the_epoch(self):
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:339: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c11df400>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ H_NRealisticAssociation.test_old_response_cannot_reach_t_after_a_newer_request _
+
+self = <test_t_queue_invariants.H_NRealisticAssociation testMethod=test_old_response_cannot_reach_t_after_a_newer_request>
+
+    def test_old_response_cannot_reach_t_after_a_newer_request(self):
+        """Scenario 3: after transaction 2's request is admitted, the old response (and its ACK)
+        arriving late at N are refused (response) or forwarded natively around T (pure ACK); T's view
+        of transaction 2 is identical to a run without the late packets."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1', 'req2', 'rsp1~late', 'ack1~late',
+                                                  'ack2', 'rsp2'))
+                self.assertIsNone(n['rsp1~late'])
+                self.assertTrue(n['rsp1~late:out'].dropped, 'N refuses the stale response')
+                self.assertIsNone(n['ack1~late'])
+                self.assertEqual([p for p, _ in n['ack1~late:out'].emitted], [1], 'stale ACK bypasses T natively')
+                second = T0 + CAP + 1_000_000
+                runs = []
+                for late in (False, True):
+>                   sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:477: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1ae8ee0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ H_NRealisticAssociation.test_old_response_still_held_does_not_open_the_new_ack_gate _
+
+self = <test_t_queue_invariants.H_NRealisticAssociation testMethod=test_old_response_still_held_does_not_open_the_new_ack_gate>
+
+    def test_old_response_still_held_does_not_open_the_new_ack_gate(self):
+        """Scenario 3, the only real-path overlap: N returns to idle when the old response passes
+        it, so a new request can be admitted while T still holds that response. The held old response
+        is flushed as stale and its admission (generation 1) does not satisfy generation 2's ACK gate:
+        with no response of its own, the new ACK waits for readiness and leaves as a fallback."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1', 'req2', 'ack2'))
+                self.assertTrue(all(n[k] is not None for k in ('req1', 'ack1', 'rsp1', 'req2', 'ack2')))
+                req2_at = T0 + RSP_OFF + 20_000             # before rsp1's a_commit + gap release
+>               sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:505: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c16decd0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_____ H_NRealisticAssociation.test_one_transaction_with_n_wgens_completes ______
+
+self = <test_t_queue_invariants.H_NRealisticAssociation testMethod=test_one_transaction_with_n_wgens_completes>
+
+    def test_one_transaction_with_n_wgens_completes(self):
+        """Scenario 1: request, ACK and response each carry the distinct wgen N really assigns."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'ack1', 'rsp1'))
+                wgens = [self.wgen(n[k]) for k in ('req1', 'ack1', 'rsp1')]
+                self.assertEqual(len(set(wgens)), 3, 'N gives each packet of one transaction its own wgen')
+                self.assertEqual(wgens, sorted(wgens))
+>               sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:421: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c18e9eb0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+________ H_NRealisticAssociation.test_retransmissions_n_really_produces ________
+
+self = <test_t_queue_invariants.H_NRealisticAssociation testMethod=test_retransmissions_n_really_produces>
+
+    def test_retransmissions_n_really_produces(self):
+        """Scenario 2: a TCP-retransmitted request never reaches T (N refuses it outside owner state
+        5); a duplicate ACK reaches T with its own wgen and does not disturb the transaction; a
+        retransmitted response after N accepted the first is refused by N."""
+        for source in self.N_SOURCES:
+            with self.subTest(source):
+                n = self.n_run(source, self.steps('req1', 'req1~again', 'ack1', 'ack1~dup', 'rsp1', 'rsp1~again'))
+                self.assertIsNone(n['req1~again'], 'retransmitted request is not handed to T')
+                self.assertTrue(n['req1~again:out'].dropped)
+                self.assertIsNone(n['rsp1~again'], 'retransmitted response is not handed to T')
+                self.assertTrue(n['rsp1~again:out'].dropped)
+                self.assertNotEqual(self.wgen(n['ack1']), self.wgen(n['ack1~dup']))
+                self.assertEqual(n['ack1'][8:], n['ack1~dup'][8:], 'same original, only wgen differs')
+>               sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:448: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c16de760>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ H_NRealisticAssociation.test_t_alone_does_not_associate_a_response_bypassing_n _
+
+self = <test_t_queue_invariants.H_NRealisticAssociation testMethod=test_t_alone_does_not_associate_a_response_bypassing_n>
+
+    def test_t_alone_does_not_associate_a_response_bypassing_n(self):
+        """The trust boundary, recorded rather than hidden: the same stale response N refuses in
+        scenario 3, injected directly at T_IN (bypassing N), IS admitted into generation 2 and opens
+        its ACK gate. T has no association check of its own; the guarantee above is N's. If T ever
+        gains one, this test is expected to change."""
+        n = self.n_run(self.N_SOURCES[0], self.steps('req1', 'ack1', 'rsp1', 'req2', 'ack2'))
+        second = T0 + CAP + 1_000_000
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:527: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c142c2b0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ I_OperateDeadlineAnchor.test_operate_deadline_crossing_the_clock_wrap_is_honored _
+
+self = <test_t_queue_invariants.I_OperateDeadlineAnchor testMethod=test_operate_deadline_crossing_the_clock_wrap_is_honored>
+
+    def test_operate_deadline_crossing_the_clock_wrap_is_honored(self):
+        """Arm op_t0 300 us below the 32-bit wrap so the deadline sum wraps: the release offset must
+        equal the same run far from the wrap, not leave early or stall."""
+>       reference = QueueSim()
+
+read/tests/test_t_queue_invariants.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1dd74f0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+_ I_OperateDeadlineAnchor.test_reset_flushes_a_held_operate_150us_after_the_reset _
+
+self = <test_t_queue_invariants.I_OperateDeadlineAnchor testMethod=test_reset_flushes_a_held_operate_150us_after_the_reset>
+
+    def test_reset_flushes_a_held_operate_150us_after_the_reset(self):
+        """Non-regression for the RESET path: the cleared op_t0_reg reads as overdue, so the held
+        OPERATE leaves on the next ladder round (150,000 ns here). Removing the clear makes it wait
+        for the full hold instead (570,000 ns), which is the regression this pins."""
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:567: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c18e51f0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+___ I_OperateDeadlineAnchor.test_second_operate_is_held_to_its_own_deadline ____
+
+self = <test_t_queue_invariants.I_OperateDeadlineAnchor testMethod=test_second_operate_is_held_to_its_own_deadline>
+
+    def test_second_operate_is_held_to_its_own_deadline(self):
+        """Regression: op_t0_arm used to write only when op_t0_reg was zero, so a second OPERATE
+        with no RESET in between inherited the first one's anchor and left 200,000 ns after its
+        own arrival instead of no earlier than q(arrival) + OP_J (599,808 ns)."""
+>       sim = QueueSim()
+
+read/tests/test_t_queue_invariants.py:552: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+read/tests/queue_sim.py:64: in __init__
+    self.src = w.ExtSource(Path(source).read_text(), READ)
+core/harness/interp_ext.py:195: in __init__
+    self.controls = {'Ingress': Control(self.text, 'Ingress')}
+core/harness/interp_ext.py:48: in __init__
+    self.scan(body)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <interp_ext.Control object at 0x7fd8c1e31eb0>
+body = '\n    \n    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,\n               ...      }\n            } else { unmatched(); }\n        } else { unmatched(); }\n        outcome_count.apply();\n    }\n'
+
+    def scan(self, body):
+        at = 0
+        while at < len(body):
+            if body[at].isspace():
+                at += 1
+                continue
+            word = re.match(r'(action|table|apply)\b', body[at:])
+            if word:
+                opening = body.index('{', at)
+                end = match_brace(body, opening)
+                head, inner = body[at:opening].strip(), body[opening + 1:end - 1]
+                if word[1] == 'action':
+                    self.add_action(head, inner)
+                elif word[1] == 'table':
+                    self.add_table(head.split()[1], inner)
+                else:
+                    self.apply_body = parse_statements(inner)
+                at = end
+                continue
+            depth, end = 0, at
+>           while not (body[end] == ';' and depth == 0):
+E           IndexError: string index out of range
+
+core/harness/interp_ext.py:70: IndexError
+=========================== short test summary info ============================
+FAILED read/tests/test_t_queue_invariants.py::A_Residency::test_blocker_reservoir_below_continuity_floor_is_reported
+FAILED read/tests/test_t_queue_invariants.py::A_Residency::test_originals_enter_their_hold_queue_once_and_return_once
+FAILED read/tests/test_t_queue_invariants.py::B_NoEarlyResponse::test_response_follows_ack_commit_by_the_configured_gap
+FAILED read/tests/test_t_queue_invariants.py::C_Children::test_two_response_children_are_held_and_released_together
+FAILED read/tests/test_t_queue_invariants.py::D_SeparateGates::test_ack_and_response_gates_are_distinct
+FAILED read/tests/test_t_queue_invariants.py::D_SeparateGates::test_operate_is_held_on_its_own_ladder_and_does_not_move_read_timing
+FAILED read/tests/test_t_queue_invariants.py::D_SeparateGates::test_released_operate_cannot_be_released_again_by_a_same_generation_copy
+FAILED read/tests/test_t_queue_invariants.py::E_StaleAndDuplicate::test_duplicate_ack_arms_the_response_deadline_once
+FAILED read/tests/test_t_queue_invariants.py::E_StaleAndDuplicate::test_duplicate_response_is_suppressed_only_while_the_original_is_held
+FAILED read/tests/test_t_queue_invariants.py::E_StaleAndDuplicate::test_stale_tokens_die_on_first_pass_and_do_not_move_the_new_transaction
+FAILED read/tests/test_t_queue_invariants.py::E_StaleAndDuplicate::test_superseding_request_flushes_old_originals_without_loss
+FAILED read/tests/test_t_queue_invariants.py::F_BoundedFallback::test_blocker_budget_exhaustion_is_counted_and_next_read_recovers
+FAILED read/tests/test_t_queue_invariants.py::F_BoundedFallback::test_lost_blocker_service_is_bounded_and_marked
+FAILED read/tests/test_t_queue_invariants.py::F_BoundedFallback::test_missing_ack_releases_response_at_readiness_as_fallback
+FAILED read/tests/test_t_queue_invariants.py::F_BoundedFallback::test_missing_response_releases_ack_at_readiness_as_fallback
+FAILED read/tests/test_t_queue_invariants.py::G_PassThroughAndRecovery::test_other_epoch_traffic_is_not_inserted
+FAILED read/tests/test_t_queue_invariants.py::G_PassThroughAndRecovery::test_policy_off_forwards_every_event_unchanged_in_one_pass
+FAILED read/tests/test_t_queue_invariants.py::G_PassThroughAndRecovery::test_policy_off_while_held_delivers_each_original_once_in_order
+FAILED read/tests/test_t_queue_invariants.py::G_PassThroughAndRecovery::test_reset_flushes_held_originals_and_quarantines_the_epoch
+FAILED read/tests/test_t_queue_invariants.py::H_NRealisticAssociation::test_old_response_cannot_reach_t_after_a_newer_request
+FAILED read/tests/test_t_queue_invariants.py::H_NRealisticAssociation::test_old_response_still_held_does_not_open_the_new_ack_gate
+FAILED read/tests/test_t_queue_invariants.py::H_NRealisticAssociation::test_one_transaction_with_n_wgens_completes
+FAILED read/tests/test_t_queue_invariants.py::H_NRealisticAssociation::test_retransmissions_n_really_produces
+FAILED read/tests/test_t_queue_invariants.py::H_NRealisticAssociation::test_t_alone_does_not_associate_a_response_bypassing_n
+FAILED read/tests/test_t_queue_invariants.py::I_OperateDeadlineAnchor::test_operate_deadline_crossing_the_clock_wrap_is_honored
+FAILED read/tests/test_t_queue_invariants.py::I_OperateDeadlineAnchor::test_reset_flushes_a_held_operate_150us_after_the_reset
+FAILED read/tests/test_t_queue_invariants.py::I_OperateDeadlineAnchor::test_second_operate_is_held_to_its_own_deadline
+27 failed, 106 passed, 1 xfailed in 53.58s

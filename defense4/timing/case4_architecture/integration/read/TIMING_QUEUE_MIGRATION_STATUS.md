@@ -1,8 +1,101 @@
-# T's queue-resident timing role: source-level complete, hardware compile not yet closed
+# T's queue-resident timing role: source-level complete, hardware compile not yet closed (placement, zero slack)
 
 Status of `read_queue_timing.p4`, the blocker-queue-based replacement for T's heartbeat/recirculation
 design (`read_timing.p4`), per `INTEGRATION_CONTRACT.md` §5's hard constraint that real ACKs/responses
 stay queue-resident and only blocker tokens circulate.
+
+## Current state (2026-10-09): crash gone; whole file fails placement with zero slack on the ACK->response chain
+
+All evidence: `integration/evidence/route_ab_01/` (rounds `b1`..`b27`, `t_op_exactly_once/`, `final3_*`).
+Everything below the "2026-10-08 correction" heading is history; where it disagrees with this section, this
+section is current. (`final_*` and `final2_*` record earlier source versions of this same session.)
+
+**Whole-file compile** of `read_queue_timing.p4`, sha256 `4cd8d25196d5…`: exit 2, an ordinary placement
+error, on both local 9.13.1 (`final3_full_local`) and the switch's installed 9.13.2, compile-only
+(`final3_full_switch_9132`): "Table placement was not able to allocate tbl_reset_clear_commit_at,
+tbl_read_gap_delta, tbl_mark_ack_commit_at in the same stage along with Register Ingress.ack_commit_at_reg".
+The "Internal compiler error" no longer occurs. The OPERATE slice compiles at 8 ingress / 0 egress stages
+(`final3_slice_local`); the capture slice compiles at 3 / 0.
+
+**What the crash was.** It hid ordinary errors. Stubbing whole top-level branches (`b6`), then pieces of the
+generator-token branch (`b19`), exposed them:
+1. The `~delta[31:31]` sign-bit slices (mitigation 2 below) split the whole now/t0/deadline chain,
+   including `global_tstamp`, at bit 31 ("PHV allocation was not successful"). Fix: one-entry ternary
+   `*_sign` tables (`b7`).
+2. The generation counter's output was masked inside the action that receives it (IMPOSSIBLE_ALIGNMENT).
+   Fix: a separate `make_request_tag` (`b8`).
+3. **The crash trigger.** The generator-token staleness gateways compared two runtime fields with a mask on
+   one side: `md.token_gen != (md.X_gen & 32w0xffff)`. Removing both (`p3`) gives readable errors; removing
+   either alone still crashes. Fix: `tok_diff = batch_id ^ (bit<16>)gen`, then `tok_diff != 0`. This is the
+   same test, because `token_gen` is the zero-extended 16-bit `batch_id` (`b20`).
+
+**Behavior-preserving repairs.** Every one is source-checked, and tests stayed green after each.
+- **One access per register per pass; read-then-dependent-write folded into one action.**
+  - `op_done_try`, `ack_done_try` and `resp_done_try` return the old value and record the generation when a
+    precomputed go flag is set (`b1`, `b4`).
+  - `outcomes` is bumped by a single `outcome_count` table at the end of the pass (`b2`).
+  - Quarantine has a read action and a RESET action, selected by a gateway on `hdr.tev.kind`. The read
+    returns `q_diff = epoch ^ quarantine` (`b14`, `b26`).
+  - `gen_alloc_reg`, `cur_epoch_reg` and `t0_reg` are each accessed by one ternary table (`gen_access`,
+    `epoch_access`, `t0_access`), applied once after quarantine. The quarantine condition is decided inside
+    the register action from `q_diff`. Rows are matched in order, so `enabled == 0` comes first and the rest
+    mean `enabled != 0` exactly (`b17`, `b26`).
+  - The ACK/response epoch gate is one register action, `epoch_check`. It returns 0 exactly when the epoch is
+    current and not quarantined. The three-field gateway it replaces was split across stages by bf-p4c
+    (`b27`).
+  - The gap delta is read only on response-role passes, so a held ACK's commit pass no longer accesses
+    `ack_commit_at_reg` twice (`b25`, code-review finding).
+- **The resp_done → resp_mask → ack_done → resp_done ordering loop.** On T_IN, a response now marks its
+  child in `resp_mask_reg` before reading `resp_done_reg`. The decision order is unchanged. The only new
+  effect is a child bit set in a generation that has already released a response. That bit is not
+  observable: the mask's only other consumer, the ACK gate, tests only "some child seen", which is already
+  true there. Folding "released" into the mask would not break the loop (`b11`).
+- **Shorter chains, exact mod 2^32.**
+  - Deadline deltas are computed as `(now - X) - t0`.
+  - The `ack_commit_at_reg` read returns the gap delta directly (`b13`).
+  - `ack_go_check` and `resp_go_check` are single ternary tables. `ack_done_read` returns `value ^ cur_gen`,
+    so "committed in cur_gen" is a match on 0 (`b18`, `b23`).
+
+**What blocks the whole file now.** The ACK→response chain has zero slack.
+- **Stages are earlier now.** With the prologue tables, `t0` is read at stage 2, `da_delta` is at 3 and the
+  signs at 4 (`final3_full_local/.../table_placement_7.log`).
+- **One legal stage.** The compiler's dependency bounds (`b26_qdiff_t0_access/.../table_dependency_summary.log`)
+  put `tbl_read_gap_delta` at stages 3–6 and `tbl_mark_ack_commit_at` at 6–9. So `ack_commit_at_reg` can
+  live in exactly one stage, 6, and everything behind it must place without slip.
+- **The placer does not find that layout.** It places the RESET-arm clear and the gap read first, at other
+  stages. A compile-only probe pinning all three users to 6, with `resp_done_reg` users at 9 and
+  `resp_deadline` users at 10, still fails (`b24`, `b26`, `b27` `pins2`). In that probe the placer leaves the
+  RESET clears and most of the response tables unplaced.
+- **No placement option helps.** `--table-placement-in-order`, `--disable_backfill`, `--relax-phv-init` and
+  `--auto-init-metadata` change nothing (`b21`). The source interpreter rejects `@stage` (`b22`: 27 failures),
+  so pins could not be landed anyway.
+- **More of the same is queued.** `op_t0_reg` and `resp_deadline` show the same "RESET clear placed early"
+  pattern in the port-0-stubbed variant.
+
+Conclusion: another local repair is unlikely to close this. It needs a structural idea that creates slack on
+the ACK-commit → response path. Two options:
+- Remove the RESET-arm clears of late registers (`ack_commit_at_reg`, `resp_deadline`, `op_t0_reg`), for
+  example with generation-scoped values. This needs a decision, because the clears are observable today.
+- Move part of the response gating off this pipeline.
+
+`outcome_count` is not the limiting term: its bounds (8–11) are inside budget, and it does not gate any
+decision.
+
+**Tests.**
+- `D_SeparateGates.test_same_generation_copy_is_not_released_while_its_generation_is_current`: a
+  same-generation copy of a released OPERATE (generation read back from `op_gen_alloc_reg`, truncated to the
+  16-bit ladder field) is not released while its generation is current.
+- `..._is_flushed_to_the_relay_when_the_next_operate_arrives` pins the known, accepted behavior. A later
+  OPERATE makes the copy stale and `flush_operate_stale` sends it to the relay: three relay emissions,
+  `OUT_HELD_STALE_FLUSH` = 1, `OUT_OP_RELEASE` = 2. Exactly-once delivery is not claimed.
+- Both pass on this tree and on HEAD, and both fail when `op_done_try`'s write is removed
+  (`t_op_exactly_once/`).
+- `python3 -m pytest -q read/tests core/harness/tests` from `integration/` gives 176 passed and 1 expected
+  failure (134 + 42; `final3_pytest.txt`). The expected failure is the RESET-near-clock-wrap case below,
+  still open.
+
+**Not done.** No model run of the regenerated capture slice. Nothing was loaded or run on the switch; the
+9.13.2 build was compile-only.
 
 ## 2026-10-08 correction: "all 7 invariants established" was too broad
 
@@ -192,7 +285,9 @@ distinct classes of real hardware constraint. Four were fixed, with the fixes ke
       genuinely dead metadata fields left over from earlier iterations (`cap`, `child_bit`,
       `can_release`, `is_commit`, `stale`, `is_off`, `out_code`) — same crash, same signature (8
       stages placed, zero-byte PHV log), on both SDK versions.
-   2. **Eliminating all five ternary-match tables entirely** (`da_check`/`readiness_check`/
+   2. *(Superseded 2026-10-09: this bit-slice form was itself one of the hidden errors; the file now
+      uses one-entry ternary `*_sign` tables again. See "Current state" above.)*
+      **Eliminating all five ternary-match tables entirely** (`da_check`/`readiness_check`/
       `gap_check`/`op_check`/`resp_seen_check`), replacing each with a plain bit-slice assignment on
       the delta's sign bit (`md.da_ready = (bit<8>)(~md.da_delta[31:31]);`, a pure data-plane ALU
       operation, not a gateway/conditional construct at all) plus a direct `!= 0` comparison for
@@ -244,6 +339,9 @@ two SDK point releases — which is a legitimate basis for someone with access t
 or Intel/Barefoot support to take further, rather than more blind source-level variation.
 
 ## Next concrete step (not performed here)
+
+*Superseded 2026-10-09 by "Current state" above: the crash was diagnosed by branch bisection, not
+register count, and the remaining blocker is stage budget on the ACK→response path.*
 
 1. **Treat this as a compiler-level question, not a source-restructuring one.** Two independent,
    substantial restructuring attempts (narrower fields; zero tables, pure data-plane ops) produced

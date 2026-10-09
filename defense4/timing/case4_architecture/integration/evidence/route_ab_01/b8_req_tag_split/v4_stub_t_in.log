@@ -1,0 +1,63 @@
+source/v4_stub_t_in.p4(139): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/v4_stub_t_in.p4(248): [--Wwarn=unused] warning: mask_try_admit0: unused instance
+    RegisterAction<gen_mask_t, bit<1>, bit<32>>(resp_mask_reg) mask_try_admit0 = {
+                                                               ^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(256): [--Wwarn=unused] warning: mask_try_admit1: unused instance
+    RegisterAction<gen_mask_t, bit<1>, bit<32>>(resp_mask_reg) mask_try_admit1 = {
+                                                               ^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(264): [--Wwarn=unused] warning: mask_try_admit2: unused instance
+    RegisterAction<gen_mask_t, bit<1>, bit<32>>(resp_mask_reg) mask_try_admit2 = {
+                                                               ^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(278): [--Wwarn=unused] warning: op_gen_bump: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_gen_alloc_reg) op_gen_bump = {
+                                                               ^^^^^^^^^^^
+source/v4_stub_t_in.p4(300): [--Wwarn=unused] warning: op_t0_arm: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_t0_reg) op_t0_arm = {
+                                                        ^^^^^^^^^
+source/v4_stub_t_in.p4(153): [--Wwarn=unused] warning: epoch_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(cur_epoch_reg) epoch_read = {
+                                                            ^^^^^^^^^^
+source/v4_stub_t_in.p4(156): [--Wwarn=unused] warning: epoch_write: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(cur_epoch_reg) epoch_write = {
+                                                            ^^^^^^^^^^^
+source/v4_stub_t_in.p4(160): [--Wwarn=unused] warning: quarantine_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(quarantine_reg) quarantine_read = {
+                                                             ^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(163): [--Wwarn=unused] warning: quarantine_write: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(quarantine_reg) quarantine_write = {
+                                                             ^^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(170): [--Wwarn=unused] warning: gen_bump: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(gen_alloc_reg) gen_bump = {
+                                                            ^^^^^^^^
+source/v4_stub_t_in.p4(181): [--Wwarn=unused] warning: t0_write: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(t0_reg) t0_write = {
+                                                     ^^^^^^^^
+source/v4_stub_t_in.p4(212): [--Wwarn=unused] warning: commit_at_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_at_reg) commit_at_clear = {
+                                                                ^^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(234): [--Wwarn=unused] warning: deadline_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(resp_deadline) deadline_clear = {
+                                                            ^^^^^^^^^^^^^^
+source/v4_stub_t_in.p4(306): [--Wwarn=unused] warning: op_t0_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_t0_reg) op_t0_clear = {
+                                                        ^^^^^^^^^^^
+source/v4_stub_t_in.p4(82): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/v4_stub_t_in.p4(82)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+1 error, 19 warnings generated.
+
+Internal compiler error. Please submit a bug report with your code.

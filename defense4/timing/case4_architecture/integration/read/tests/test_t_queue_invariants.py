@@ -156,6 +156,53 @@ class D_SeparateGates(unittest.TestCase):
         self.assertGreaterEqual(relay[0], q(T0 + 20_000) + OP_J)
         self.assertEqual(out(mixed, 'OUT_OP_RELEASE'), 1)
 
+    @staticmethod
+    def _release_then_inject_same_generation_copy():
+        """One OPERATE released normally, then a second held-OPERATE ladder record carrying the SAME
+        generation the real one carried (read back, not assumed: the ladder field is 16 bits, written
+        as (bit<16>)md.op_gen from the 32-bit op_gen_alloc_reg)."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.run(T0 + OP_J + 1_000_000)
+        (_, _, _, role, gen, _), = sim.held_records(OP_FRAME)
+        inject = T0 + OP_J + 1_100_000
+        copy = struct.pack('!BBHI', 16, 0, gen, 0) + OP_FRAME
+        sim.call(inject, lambda s: s.enqueue(inject, OP_LADDER, 2, copy))
+        return sim, role, gen, inject
+
+    def test_same_generation_copy_is_not_released_while_its_generation_is_current(self):
+        """op_done_reg records the released generation, so a same-generation copy of a released OPERATE
+        is held (re-waited), not released, for as long as that generation is current. Without the
+        record (op_done_try never writing) the copy passes the generation check, its deadline has long
+        passed, and it is released. This is NOT exactly-once delivery, which the project does not claim:
+        the next OPERATE makes the copy stale and it is flushed to the relay (next test)."""
+        sim, role, gen, inject = self._release_then_inject_same_generation_copy()
+        self.assertEqual(role, 'OP_HELD')
+        self.assertEqual(gen, sim.cell('op_gen_alloc_reg') & 0xffff)
+        self.assertEqual(len(sim.emissions(OP_FRAME, RELAY)), 1)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
+        sim.run(inject + 2_000_000)                     # no further OPERATE arrives
+        finished(self, sim)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1, 'the same-generation copy was released')
+        self.assertEqual(len(sim.emissions(OP_FRAME, RELAY)), 1, 'a second relay emission appeared')
+
+    def test_same_generation_copy_is_flushed_to_the_relay_when_the_next_operate_arrives(self):
+        """Known, accepted behavior (exactly-once is not claimed): once a later OPERATE opens a new
+        generation, the circulating copy is stale and flush_operate_stale sends it to the relay. Pinned
+        here so the behavior is recorded by a test rather than only observed by accident."""
+        sim, _, _, inject = self._release_then_inject_same_generation_copy()
+        second = inject + 500_000
+        sim.operate(second)
+        sim.run(second + OP_J + 2_000_000)
+        finished(self, sim)
+        relay = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(relay), 3, 'first release, stale-flushed copy, second release')
+        self.assertLess(relay[0], inject)
+        self.assertTrue(second <= relay[1] < second + 100_000, 'copy flushed on its first pass after the new generation')
+        self.assertGreaterEqual(relay[2], q(second) + OP_J, 'the second OPERATE keeps its own deadline')
+        self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 2)
+
     def test_ack_and_response_gates_are_distinct(self):
         """The ACK opens on (deadline and response pending); the response opens on a_commit + gap.
         Without a response the ACK gate stays shut until readiness even though D_A has passed."""

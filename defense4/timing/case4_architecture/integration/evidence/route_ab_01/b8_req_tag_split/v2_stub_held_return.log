@@ -1,0 +1,54 @@
+source/v2_stub_held_return.p4(139): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/v2_stub_held_return.p4(178): [--Wwarn=unused] warning: t0_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(t0_reg) t0_read = {
+                                                     ^^^^^^^
+source/v2_stub_held_return.p4(194): [--Wwarn=unused] warning: ack_done_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_done_reg) ack_done_read = {
+                                                           ^^^^^^^^^^^^^
+source/v2_stub_held_return.p4(199): [--Wwarn=unused] warning: ack_done_try: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_done_reg) ack_done_try = {
+                                                           ^^^^^^^^^^^^
+source/v2_stub_held_return.p4(206): [--Wwarn=unused] warning: commit_at_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_at_reg) commit_at_read = {
+                                                                ^^^^^^^^^^^^^^
+source/v2_stub_held_return.p4(221): [--Wwarn=unused] warning: resp_done_try: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(resp_done_reg) resp_done_try = {
+                                                            ^^^^^^^^^^^^^
+source/v2_stub_held_return.p4(238): [--Wwarn=unused] warning: mask_read: unused instance
+    RegisterAction<gen_mask_t, bit<1>, bit<32>>(resp_mask_reg) mask_read = {
+                                                               ^^^^^^^^^
+source/v2_stub_held_return.p4(450): [--Wwarn=unused] warning: Table da_sign is not used; removing
+    table da_sign {
+          ^^^^^^^
+source/v2_stub_held_return.p4(459): [--Wwarn=unused] warning: Table readiness_sign is not used; removing
+    table readiness_sign {
+          ^^^^^^^^^^^^^^
+source/v2_stub_held_return.p4(467): [--Wwarn=unused] warning: Table gap_sign is not used; removing
+    table gap_sign {
+          ^^^^^^^^
+source/v2_stub_held_return.p4(209): [--Wwarn=unused] warning: commit_at_write: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_at_reg) commit_at_write = {
+                                                                ^^^^^^^^^^^^^^^
+source/v2_stub_held_return.p4(228): [--Wwarn=unused] warning: deadline_arm: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(resp_deadline) deadline_arm = {
+                                                            ^^^^^^^^^^^^
+source/v2_stub_held_return.p4(82): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/v2_stub_held_return.p4(82)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+1 error, 16 warnings generated.
+
+Internal compiler error. Please submit a bug report with your code.

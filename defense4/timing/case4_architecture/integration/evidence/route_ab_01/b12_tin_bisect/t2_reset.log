@@ -1,0 +1,32 @@
+source/t2_reset.p4(140): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/t2_reset.p4(217): [--Wwarn=unused] warning: commit_at_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_at_reg) commit_at_clear = {
+                                                                ^^^^^^^^^^^^^^^
+source/t2_reset.p4(239): [--Wwarn=unused] warning: deadline_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(resp_deadline) deadline_clear = {
+                                                            ^^^^^^^^^^^^^^
+source/t2_reset.p4(311): [--Wwarn=unused] warning: op_t0_clear: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_t0_reg) op_t0_clear = {
+                                                        ^^^^^^^^^^^
+source/t2_reset.p4(83): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/t2_reset.p4(83)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Table placement cannot make any more progress.  Though some tables have not yet been placed, dependency analysis has found that no more tables are placeable.
+
+
+1 error, 8 warnings generated.
+
+Skipping assembler, assembly file is empty

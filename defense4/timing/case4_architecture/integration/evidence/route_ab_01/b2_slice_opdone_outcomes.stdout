@@ -1,0 +1,82 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "ddece98de9f63b912b1138698fb982597fa16f7a6a165b0dae46270ca2732925",
+    "manifest.json": "563cf93c0c22acd47de1f6e4fde2f8c9dff6a3cd83c8740a3b708988edfcc455",
+    "operate_slice.conf": "d475ced8d6509c954ee98357c6f8e2072d178d53cc38381da6409101665ccad4",
+    "pipe/context.json": "2aa038af1b82bfc4e534d36789a86c1d40b549e5a5acc6cc7da473d320f43c4d",
+    "pipe/operate_slice.bfa": "74c0caee3f69b7db501f848b691e7d0f85106e5aace546e8b2c67dcb87874af5",
+    "pipe/tofino.bin": "38ddf8b14ccd9308cb8346ee36a1e76319f0fa3c2bf222c43d15f6d738d55b1c"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b2_slice_opdone_outcomes/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b2_slice_opdone_outcomes/source/operate_slice.p4"
+  ],
+  "compile_log_sha256": "8a8892d3d78500b6cf150a107e602e3a563acf322bdd5f9cb5e59c0783c18015",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 4.272,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 9,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "2f9474ef9b78176b09ee886255e61bee2c85e346660fe41b3519bf1cf559c8ed",
+      "pipe/logs/phv.json": "355d310e610e1fe9746f08dbfaeaf580250f50c5d9d7266277acd45156897c7d",
+      "pipe/logs/phv_allocation_0.log": "26ee4fa2c0ead5303732f4513b7def9316fb159d94814ca65e48f62fee629c94",
+      "pipe/logs/phv_allocation_history_0.log": "1d149c3f4cc2e05456009f28500e98c9ef29e53d47f9ab3af1376cc385ade103",
+      "pipe/logs/phv_allocation_summary_0.log": "94679d820f59712703409d0fafd6f4d6aa287dd62e9729933ecaa4ab173f56ef",
+      "pipe/logs/table_dependency_graph.log": "1e555bad64cd972c27a84fbe1116c5404d4c0dd0689ea167d9bac1633ac059fd",
+      "pipe/logs/table_dependency_summary.log": "4732c25767bb819e43be3b99f32b8bffaf3505a9980abbccd0e24c208921a7e1",
+      "pipe/logs/table_summary.log": "d058bdf40070c6f11e2488b3416e3c8ec338af0fd0fa3c985f8d434552173699"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 9
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_t0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_gen_alloc_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.outcomes",
+        "size": 16
+      }
+    ],
+    "tables_by_type": {
+      "action": 1,
+      "condition": 17,
+      "match": 34,
+      "stateful": 4
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/operate_slice.p4",
+  "source_files": {
+    "operate_slice.p4": "6cade10d85f746d78d8a8b534bd70cc91a4d39893de09f0c2d191357503ef53e",
+    "ports.p4": "17295a0654f7efa638efb68e0bb6c583f1636f11f6bda4b41ab5d16ff9e07c91",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e"
+  },
+  "source_sha256": "6cade10d85f746d78d8a8b534bd70cc91a4d39893de09f0c2d191357503ef53e",
+  "timeout_seconds": 300
+}

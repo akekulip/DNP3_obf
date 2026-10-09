@@ -1,0 +1,67 @@
+source/v5_stub_port0.p4(139): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/v5_stub_port0.p4(82): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/v5_stub_port0.p4(82)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: PHV allocation was not successful
+40 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::md.now<32b>[30:0]
+    ingress::ig_intr_md_from_prsr.global_tstamp<48b>[30:0]
+    ingress::md.da_delta<32b>[30:0]
+    ingress::md.deadline_da<32b>[30:0]
+    ingress::md.t0_v<32b>[30:0]
+    ingress::md.da<32b>[30:0]
+    ingress::md.deadline_readiness<32b>[30:0]
+    ingress::md.readiness<32b>[30:0]
+    ingress::md.readiness_delta<32b>[30:0]
+    ingress::md.gap_delta<32b>[30:0]
+    ingress::md.resp_target<32b>[30:0]
+    ingress::md.ack_commit_at_v<32b>[30:0]
+    ingress::md.gap<32b>[30:0]
+    ingress::md.op_delta<32b>[30:0]
+    ingress::md.op_t0_masked<32b>[30:0]
+    ingress::md.op_t0_v<32b>[30:0]
+    ingress::md.op_deadline<32b>[30:0]
+    ingress::md.op_j<32b>[30:0]
+    ingress::md.now<32b>[31:31]
+    ingress::ig_intr_md_from_prsr.global_tstamp<48b>[31:31]
+    ingress::md.da_delta<32b>[31:31]
+    ingress::md.deadline_da<32b>[31:31]
+    ingress::md.t0_v<32b>[31:31]
+    ingress::md.da<32b>[31:31]
+    ingress::md.da_ready<8b>[0:0]
+    ingress::md.deadline_readiness<32b>[31:31]
+    ingress::md.readiness<32b>[31:31]
+    ingress::md.readiness_delta<32b>[31:31]
+    ingress::md.readiness_ready<8b>[0:0]
+    ingress::md.gap_delta<32b>[31:31]
+    ingress::md.resp_target<32b>[31:31]
+    ingress::md.ack_commit_at_v<32b>[31:31]
+    ingress::md.gap<32b>[31:31]
+    ingress::md.gap_ready<8b>[0:0]
+    ingress::md.op_delta<32b>[31:31]
+    ingress::md.op_t0_masked<32b>[31:31]
+    ingress::md.op_t0_v<32b>[31:31]
+    ingress::md.op_deadline<32b>[31:31]
+    ingress::md.op_j<32b>[31:31]
+    ingress::md.op_ready<8b>[0:0]
+
+
+
+1 error, 5 warnings generated.
+
+Skipping assembler, assembly file is empty

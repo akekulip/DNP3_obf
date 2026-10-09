@@ -1,0 +1,62 @@
+source/v5_stub_port0.p4(141): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/v5_stub_port0.p4(84): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/v5_stub_port0.p4(84)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/v5_stub_port0.p4(163): [--Wwarn=invalid_header] warning: accessing a field of an invalid header hdr.tev
+        void apply(inout bit<32> value, out bit<32> out_value) { value = hdr.tev.epoch; out_value = value; }
+                                                                         ^^^^^^^
+source/v5_stub_port0.p4(606): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                if (hdr.tev.kind == KIND_RESET) {
+                    ^^^^^^^
+source/v5_stub_port0.p4(611): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                if (hdr.tev.kind == KIND_ACK) {
+                    ^^^^^^^
+source/v5_stub_port0.p4(612): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                    if (hdr.tev.epoch != md.cur_epoch || hdr.tev.epoch == md.quarantine) { passthrough_tev_forward(); }
+                        ^^^^^^^
+source/v5_stub_port0.p4(612): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                    if (hdr.tev.epoch != md.cur_epoch || hdr.tev.epoch == md.quarantine) { passthrough_tev_forward(); }
+                                                         ^^^^^^^
+source/v5_stub_port0.p4(615): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                if (hdr.tev.kind == KIND_RESPONSE) {
+                    ^^^^^^^
+source/v5_stub_port0.p4(616): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                    if (hdr.tev.epoch != md.cur_epoch || hdr.tev.epoch == md.quarantine) { passthrough_tev_forward(); }
+                        ^^^^^^^
+source/v5_stub_port0.p4(616): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                    if (hdr.tev.epoch != md.cur_epoch || hdr.tev.epoch == md.quarantine) { passthrough_tev_forward(); }
+                                                         ^^^^^^^
+source/v5_stub_port0.p4(629): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                        if (hdr.tev.stage == 0) { md.dup = (bit<8>)mask_try_admit0.execute(0); }
+                            ^^^^^^^
+source/v5_stub_port0.p4(630): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                        else if (hdr.tev.stage == 1) { md.dup = (bit<8>)mask_try_admit1.execute(0); }
+                                 ^^^^^^^
+source/v5_stub_port0.p4(384): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+        hdr.ladder.role = ROLE_RESP_HELD; hdr.ladder.child = (bit<8>)hdr.tev.stage;
+                                                                     ^^^^^^^
+source/v5_stub_port0.p4(638): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.tev
+                if (hdr.tev.kind == KIND_OPERATE) {
+                    ^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: Table placement was not able to allocate tbl_read_cur_epoch, tbl_admit_request_epoch in the same stage along with Register Ingress.cur_epoch_reg
+
+error: Table placement was not able to allocate tbl_admit_operate_held, tbl_v5_stub_port0l639, tbl_v5_stub_port0l705 in the same stage along with Register Ingress.op_gen_alloc_reg
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 17 warnings generated.
+
