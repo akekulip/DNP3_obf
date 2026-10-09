@@ -1,14 +1,108 @@
-# T's queue-resident timing role: source-level complete, hardware compile not yet closed (table placement)
+# T's queue-resident timing role: source-level complete; whole file compiles for Tofino-1 (11/0 stages)
 
 Status of `read_queue_timing.p4`, the blocker-queue-based replacement for T's heartbeat/recirculation
 design (`read_timing.p4`), per `INTEGRATION_CONTRACT.md` §5's hard constraint that real ACKs/responses
 stay queue-resident and only blocker tokens circulate.
 
-## Current state (2026-10-09, late): RESET is generation-scoped; whole file still fails placement
+## Current state (2026-10-09, latest): the whole file compiles on both SDKs, 11 ingress / 0 egress stages
 
-All evidence: `integration/evidence/route_ab_01/` (rounds `b1`..`b34`, `t_op_exactly_once/`, `final5_*`).
-Everything below the "2026-10-08 correction" heading is history; where it disagrees with this section, this
-section is current. (`final_*`..`final4_*` record earlier source versions from the same day.)
+**Whole-file compile** of `read_queue_timing.p4`, sha256 `b3470a690e89…`: **exit 0** on local 9.13.1
+(`final7_full_local`) and on the switch's installed 9.13.2, compile-only (`final7_full_switch_9132`). Both
+report 11 ingress / 0 egress stages, critical path 9, and 54 match + 5 action + 21 condition + 15 stateful
+tables. The OPERATE slice compiles at 8 / 0 and the capture slice at 3 / 0. Tests:
+`python3 -m pytest -q read/tests core/harness/tests` gives 195 passed (`final8_pytest.txt`; 193 at `final7`). Nothing has been
+loaded or run on the switch.
+
+**Local Tofino-1 model run of the whole compiled program** (`route_ab_01/model_t_queue_03`, driver
+`read/model_drive_t_queue.py`, build `final7_full_local`): **20 of 20 checks pass**. Seven phases of real
+packets on T_IN, with the mirror session bound locally, were compared against the interpreter (`QueueSim`)
+replaying the same events at a scaled time base (`--predict` prints its prediction):
+- A: READ request, ACK, response and a duplicate response.
+- B: an ACK released by readiness fallback, then a late response.
+- C: an OPERATE held and released.
+- D: an OPERATE followed immediately by RESET (the clone-window case).
+- E: a quarantined-epoch request and ACK.
+- F: RESET while an ACK is held.
+- G: policy off.
+
+What matched in every phase: the released frames, in order, on the forward (9) and relay (64) ports; every
+decision counter delta (`OUT_ACK_COMMIT`, `OUT_RESP_RELEASE`, `OUT_RESP_DUP_DROP`, `OUT_OP_RELEASE`,
+`OUT_HELD_STALE_FLUSH`, `OUT_ACK_FALLBACK`, `OUT_RESP_FALLBACK`, `OUT_HELD_OFF_FLUSH`, `OUT_REQ_BYPASS`,
+`OUT_UNMATCHED`); and the final generation registers (READ 5, OPERATE 4, quarantined epoch 2). In phases
+A, B, C and F the held originals waited 9 to 28 recirculation laps on the model before release
+(`OUT_HELD_REWAIT`), so the holds are real.
+
+Limits of this run:
+- **Functional only.** The model clock moves in about 1 ms quanta and one pass costs several ms, so no
+  timing claim is made.
+- **No packet generator.** Without it there are no READ blocker tokens, and token and re-wait counters are
+  not compared. Strict-priority residency was not exercised.
+- **Not exercised:** two response children, and pipe-local ports outside 324–327.
+- `model_t_queue_01` stopped before phase G on a driver bug (passing `enabled` twice); `model_t_queue_02` is
+  the same run before the lap check was added (16 of 16).
+
+**The model run shows the try register actions return the value from BEFORE their write.** Each `*_try`
+action returns `value ^ generation` and then writes the generation. If the compiled register unit
+returned the just-written value instead, the result would always be 0 ("already done or duplicate"). The
+run rules that out for each action separately:
+- **`child_try*`:** the first response would read as a duplicate and be dropped. In phase A the first
+  response (`a2`) was released and only the real duplicate was dropped (`OUT_RESP_DUP_DROP` = 1).
+- **`ack_done_try`:** the commit-path writes are gated on `done_diff != 0`, so a_commit would never be
+  recorded and the response would fall back. Phase A has `OUT_ACK_COMMIT` = 1, `OUT_RESP_RELEASE` = 1 and
+  `OUT_RESP_FALLBACK` = 0.
+- **`resp_done_try`:** a readiness-fallback commit would hit the `done == 0` row and be counted as a
+  release. Phase B has `OUT_RESP_FALLBACK` = 1 and `OUT_RESP_RELEASE` = 0.
+- **`op_done_try`:** the releasing pass would hit the `done == 0` row and re-wait indefinitely. Phase C
+  has exactly one relay emission (`c0`) and `OUT_OP_RELEASE` = 1, after 10 laps held.
+
+**Control-plane reset rule.** These registers reset to 0xffffffff, not 0, and any control-plane clear or
+re-initialization must restore 0xffffffff:
+- `child_seen0_reg`, `child_seen1_reg`, `child_seen2_reg`
+- `ack_commit_gen_reg`
+- `quarantine_reg`
+
+Each is compared for equality with a live READ generation or epoch, and 0 is both the live generation
+before the first request and a possible epoch. A zeroed `quarantine_reg` would quarantine epoch 0. In
+generation 0 a zeroed child register cannot drop a response: `resp_done_reg` also resets to 0, so a
+generation-0 response passes through as already released, before any duplicate check. Tests:
+`K_ResetValues` pins the reset values (it fails on a zero-initialized variant) and that generation-0
+behavior. The rule is also stated next to the child registers and `ack_commit_gen_reg` in
+`read_queue_timing.p4`. `quarantine_reg` has no such comment yet; adding one would change the source bytes
+that the compile and model evidence above are tied to, so it is left for the next source change. No
+controller or core code reads or clears these registers today (checked by grep of `controller/*.py` and
+`core/*.py`).
+
+**What closed it** (rounds `b35`..`b40`; scripts `b35_verdict_tables/consolidate.py`, `child_regs.py`).
+Every step is behavior-preserving at the source level, and the full suite passed after each one.
+- **Per-port verdict tables (`b35`).** Each port's terminal decision is one const-entries ternary table
+  (`tin_verdict`, `token_verdict`, `held_verdict`, `hb_verdict`) instead of a chain of gateways and
+  one-action tables. Rows keep the original if/else priority.
+  - Two-field equalities become "== 0" keys through XOR diffs: `lgen_diff`, plus `done_diff` returned by the
+    done registers as `value ^ generation`.
+  - "!= 0" is expressed by an earlier row that matches 0.
+  - The `*_sign` tables are gone; deltas are keyed on their sign bit directly.
+  - The go tables (`ack_go_check`, `resp_go_check`, new `op_go_check`) now include liveness, so each try
+    register action runs for its whole role and writes only on a live pass.
+  - Result: 116 → 49 tables and 32 → 18 gateways, and "too many tables total" disappeared.
+- **No write-after-write between two call sites of one register (`b36`).** The RESET-path OPERATE
+  generation bump no longer writes `md.op_gen`, and it is chained `else if` with the OPERATE arm.
+- **Gateway chains ordered by stage (`b37`, `b38`).** bf-p4c places a gateway together with the first table
+  it guards, so a late branch first in an else-if chain held every later branch back. The held-return role
+  chain now runs held ACK, ACK blocker, held response, response blocker. The response-only reads of
+  `ack_commit_at_reg` and `ack_commit_gen_reg` moved into the response branches. The N-input read of
+  `resp_done_reg` has its own gateway.
+- **Seed actions read `batch_id` before invalidating the timer header (`b38`).** The consolidation had
+  briefly read it after `setInvalid()` (a compiler warning; the read value is undefined).
+- **Per-child response registers (`b40`).** With placement solved, the assembler rejected the
+  `{gen, mask}` pair's masked condition `(value.mask & BIT) != 0` ("Syntax error, expecting register
+  slice"; swapping field order does not help, `b39`). It was replaced by `child_seen{0,1,2}_reg`, each
+  holding the READ generation in which that child was last admitted. Same semantics. Initial value
+  0xffffffff, which must be restored on any clear.
+
+**Fit headroom.** 11 of 12 ingress stages, with egress unused. Any addition on the ingress critical path
+must be checked against that one spare stage.
+
+### Earlier on 2026-10-09 (superseded by the above)
 
 **Whole-file compile** of `read_queue_timing.p4`, sha256 `323c5bc56bfa…`: exit 2 on both local 9.13.1
 (`final5_full_local`) and the switch's installed 9.13.2, compile-only (`final5_full_switch_9132`): "Table

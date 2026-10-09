@@ -1,0 +1,33 @@
+source/read_queue_timing.p4(150): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+source/read_queue_timing.p4(93): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+source/read_queue_timing.p4(93)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+source/read_queue_timing.p4(534): [--Wwarn=invalid_header] warning: accessing a field of an invalid header hdr.timer
+        hdr.ladder.generation = hdr.timer.batch_id; hdr.ladder.budget = md.budget_cap;
+                                ^^^^^^^^^
+source/read_queue_timing.p4(522): [--Wwarn=invalid_header] warning: accessing a field of an invalid header hdr.timer
+        hdr.ladder.generation = hdr.timer.batch_id; hdr.ladder.budget = md.budget_cap;
+                                ^^^^^^^^^
+source/read_queue_timing.p4(528): [--Wwarn=invalid_header] warning: accessing a field of an invalid header hdr.timer
+        hdr.ladder.generation = hdr.timer.batch_id; hdr.ladder.budget = md.budget_cap;
+                                ^^^^^^^^^
+source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+0 errors, 8 warnings generated.
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b38_resp_reads_in_chain/read_queue_timing/out/pipe/read_queue_timing.bfa:1658: error: Syntax error, expecting register slice
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b38_resp_reads_in_chain/read_queue_timing/out/pipe/read_queue_timing.bfa:1665: error: Syntax error, expecting register slice
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/b38_resp_reads_in_chain/read_queue_timing/out/pipe/read_queue_timing.bfa:1672: error: Syntax error, expecting register slice
+failed command assembler

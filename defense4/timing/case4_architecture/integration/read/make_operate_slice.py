@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Generate operate_slice.p4: read_queue_timing.p4's OPERATE path, extracted VERBATIM, as a compilable test fixture.
 
-read_queue_timing.p4 as a whole does not compile (the unresolved PHV-allocation crash,
-TIMING_QUEUE_MIGRATION_STATUS.md), so its F1 mirror clone cannot be run on the model through the whole
-program. This script copies, character for character, everything the OPERATE admission/clone/release path
-executes: the prelude (constants, headers, metadata, IngressParser), the IngressDeparser + Pipeline tail, the
-named registers/register actions/actions/tables below, and the three apply-block branches PKTGEN_RETURN,
-T_IN's KIND_OPERATE arm, and HB_RETURN. Only the glue that joins those branches is new (marked GLUE).
-It is a test fixture for the model, not a variant of the production file; nothing here is meant to compile
-around the crash.
+Written when read_queue_timing.p4 as a whole did not compile (TIMING_QUEUE_MIGRATION_STATUS.md); since
+2026-10-09 it does, and this slice remains a smaller model fixture for the OPERATE path. This script copies,
+character for character, everything the OPERATE admission/clone/release path executes: the prelude
+(constants, headers, metadata, IngressParser), the IngressDeparser + Pipeline tail, the named
+registers/register actions/actions/tables below, and the apply-block pieces PKTGEN_RETURN, T_IN's OPERATE
+register block, and HB_RETURN. Only the glue that joins those pieces is new (marked GLUE; it calls
+hold_operate, which tin_verdict selects in the full file). It is a test fixture for the model, not a
+variant of the production file.
 
   python3 make_operate_slice.py [out.p4]                 (default: operate_slice.p4 next to this script)
   python3 make_operate_slice.py --capture-hb [out.p4]    (default: operate_slice_capture.p4)
@@ -32,8 +32,9 @@ DECLS = ['set_params', 'params', 'clock_sample', 'clock',
          'op_t0_reg', 'op_t0_read', 'op_t0_arm', 'outcomes', 'bump_outcome', 'count', 'bump', 'outcome_count',
          'passthrough_tev_relay', 'hold_operate', 'admit_operate_held', 'drop_clone',
          'keep_blocking', 'stop_blocking', 'stop_blocking_stale', 'stop_blocking_tmo', 'stop_blocking_off',
-         'op_offset', 'compute_op_t0_masked', 'compute_op_delta', 'set_op_ready', 'op_sign',
-         'release_operate', 'rewait_operate', 'flush_operate_stale', 'flush_operate_off', 'unmatched']
+         'op_offset', 'compute_op_t0_masked', 'compute_op_delta', 'op_lgen_diff', 'read_op_done', 'try_op_done',
+         'release_operate', 'rewait_operate', 'flush_operate_stale', 'flush_operate_off',
+         'release_operate_counted', 'set_op_go', 'op_go_check', 'unmatched', 'hb_verdict']
 
 
 def balanced(text, start):
@@ -83,7 +84,7 @@ def build(capture_hb=False):
     body, apply = ingress[sig_end:apply_at], ingress[apply_at:]
     pieces = [decl(body, n) for n in DECLS]
     pktgen = branch(apply, 'if (ig_intr_md.ingress_port == PKTGEN_RETURN) {')
-    operate = branch(apply, 'if (hdr.tev.kind == KIND_OPERATE) {\n                md.op_gen = op_gen_bump')
+    operate = branch(apply, 'if (hdr.tev.kind == KIND_OPERATE && md.enabled != 0) {\n                md.op_gen = op_gen_bump')
     hb = branch(apply, 'if (ig_intr_md.ingress_port == HB_RETURN) {')
     copied = [pktgen, operate] + ([] if capture_hb else [hb])
     if capture_hb:
@@ -94,11 +95,14 @@ def build(capture_hb=False):
         '        md.outcome_code = OUT_NONE;\n'
         '        params.apply(); clock.apply();\n'
         '        ' + pktgen + '\n'
-        '        // GLUE: T_IN with only the policy-off OPERATE passthrough and the OPERATE admission arm.\n'
+        '        // GLUE: T_IN with only the policy-off OPERATE passthrough and the OPERATE admission: the\n'
+        '        // copied register block, then hold_operate (tin_verdict\'s OPERATE row in the full file).\n'
         '        else if (ig_intr_md.ingress_port == T_IN) {\n'
         '            if (md.enabled == 0) { passthrough_tev_relay(); }\n'
-        '            else ' + operate + '\n'
-        '            else { unmatched(); }\n'
+        '            else {\n'
+        '                ' + operate + '\n'
+        '                if (hdr.tev.kind == KIND_OPERATE) { hold_operate(); } else { unmatched(); }\n'
+        '            }\n'
         '        }\n'
         '        else ' + hb + '\n'
         '        else { unmatched(); }\n'

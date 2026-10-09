@@ -752,5 +752,34 @@ class J_GenerationScopedReset(unittest.TestCase):
         self.assertEqual((out(sim, 'OUT_OP_RELEASE'), out(sim, 'OUT_RESP_RELEASE')), (1, 1))
 
 
+
+class K_ResetValues(unittest.TestCase):
+    """Registers whose reset value must NOT be 0 (control-plane rule, TIMING_QUEUE_MIGRATION_STATUS.md).
+    Each holds a generation or epoch that is compared for equality with a live one, and 0 is a live READ
+    generation (before the first request) and a possible epoch. Any control-plane clear or re-init of
+    these registers must restore 0xffffffff, never 0."""
+
+    NONZERO = ('child_seen0_reg', 'child_seen1_reg', 'child_seen2_reg', 'ack_commit_gen_reg', 'quarantine_reg')
+
+    def test_generation_and_epoch_registers_reset_to_all_ones(self):
+        sim = QueueSim()
+        for name in self.NONZERO:
+            with self.subTest(register=name):
+                self.assertEqual(sim.cell(name), 0xffffffff)
+
+    def test_generation_zero_response_is_delivered_once_not_dropped(self):
+        """Generation 0 is live only before the first request. resp_done_reg also resets to 0, so a
+        generation-0 response takes the "already released in this generation" row and passes straight
+        through, before any duplicate check: it is delivered once and never dropped as a duplicate, even
+        if the child registers were zeroed. The all-ones reset values above remain the guard; this pins
+        the generation-0 behavior they protect."""
+        sim = QueueSim()
+        sim.response(T0, epoch=0)
+        sim.run(T0 + CAP + 2_000_000)
+        finished(self, sim)
+        self.assertEqual(len(sim.emissions(RSP_FRAME, FORWARD)), 1)
+        self.assertEqual(out(sim, 'OUT_RESP_DUP_DROP'), 0)
+
+
 if __name__ == '__main__':
     unittest.main()

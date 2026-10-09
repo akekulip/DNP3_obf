@@ -303,16 +303,13 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 md.op_gen = op_gen_bump.execute(0);
                 op_t0_arm.execute(0);
             }
-                if (hdr.tev.kind == KIND_OPERATE) { hold_operate(); } else { unmatched(); }
+                hold_operate();
             }
         }
         else if (ig_intr_md.ingress_port == HB_RETURN) {
-            md.op_gen = op_gen_peek.execute(0);
-            md.op_t0_v = op_t0_read.execute(0);
-            op_offset(); compute_op_t0_masked(); compute_op_delta(); op_lgen_diff();
-            if (hdr.ladder.role == ROLE_OP_HELD) { op_go_check.apply(); try_op_done(); }
-            else if (hdr.ladder.role == ROLE_OP_BLK) { read_op_done(); }
-            hb_verdict.apply();
+            // GLUE (--capture-hb): export every HB_RETURN arrival, ladder intact, for counting.
+            if (hdr.ladder.role == ROLE_OP_BLK) { ig_tm_md.ucast_egress_port = 9w1; }
+            else { ig_tm_md.ucast_egress_port = 9w2; }
         }
         else { unmatched(); }
         outcome_count.apply();

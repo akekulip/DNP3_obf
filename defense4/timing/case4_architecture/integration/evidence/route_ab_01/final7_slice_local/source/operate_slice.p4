@@ -303,7 +303,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 md.op_gen = op_gen_bump.execute(0);
                 op_t0_arm.execute(0);
             }
-                if (hdr.tev.kind == KIND_OPERATE) { hold_operate(); } else { unmatched(); }
+                hold_operate();
             }
         }
         else if (ig_intr_md.ingress_port == HB_RETURN) {

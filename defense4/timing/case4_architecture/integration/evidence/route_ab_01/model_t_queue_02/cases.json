@@ -1,0 +1,376 @@
+{
+ "cases": [
+  {
+   "expected": {},
+   "name": "ports_enabled",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [
+     "a1",
+     "a2"
+    ],
+    "64": [
+     "a0"
+    ]
+   },
+   "name": "A_read_normal_and_duplicate_emissions",
+   "observed": {
+    "9": [
+     "a1",
+     "a2"
+    ],
+    "64": [
+     "a0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 1,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 1,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "A_read_normal_and_duplicate_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 1,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 1,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [
+     "b1",
+     "b2"
+    ],
+    "64": [
+     "b0"
+    ]
+   },
+   "name": "B_fallback_ack_then_late_response_emissions",
+   "observed": {
+    "9": [
+     "b1",
+     "b2"
+    ],
+    "64": [
+     "b0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 1,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 1,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "B_fallback_ack_then_late_response_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 1,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 1,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [],
+    "64": [
+     "c0"
+    ]
+   },
+   "name": "C_operate_held_then_released_emissions",
+   "observed": {
+    "9": [],
+    "64": [
+     "c0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 1,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "C_operate_held_then_released_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 1,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [],
+    "64": [
+     "d0"
+    ]
+   },
+   "name": "D_operate_then_immediate_reset_emissions",
+   "observed": {
+    "9": [],
+    "64": [
+     "d0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 1,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "D_operate_then_immediate_reset_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 1,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [
+     "e1"
+    ],
+    "64": [
+     "e0"
+    ]
+   },
+   "name": "E_quarantined_epoch_passes_through_emissions",
+   "observed": {
+    "9": [
+     "e1"
+    ],
+    "64": [
+     "e0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 1,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "E_quarantined_epoch_passes_through_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 1,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [
+     "f1"
+    ],
+    "64": [
+     "f0"
+    ]
+   },
+   "name": "F_reset_while_ack_held_emissions",
+   "observed": {
+    "9": [
+     "f1"
+    ],
+    "64": [
+     "f0"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 1,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "F_reset_while_ack_held_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 1,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": [
+     "11"
+    ],
+    "64": [
+     "10",
+     "12"
+    ]
+   },
+   "name": "G_policy_off_passthrough_emissions",
+   "observed": {
+    "9": [
+     "11"
+    ],
+    "64": [
+     "10",
+     "12"
+    ]
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "G_policy_off_passthrough_decision_counters",
+   "observed": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "gen_alloc_reg": 5,
+    "op_gen_alloc_reg": 4,
+    "quarantine_reg": 2
+   },
+   "name": "final_generation_registers",
+   "observed": {
+    "gen_alloc_reg": 5,
+    "op_gen_alloc_reg": 4,
+    "quarantine_reg": 2
+   },
+   "ok": true
+  }
+ ],
+ "meta": {
+  "model_params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "sim_ns_per_s": 10000000,
+  "sim_scale": 0.008
+ },
+ "program": "read_queue_timing",
+ "summary": {
+  "failed": [],
+  "passed": 16,
+  "total": 16
+ }
+}

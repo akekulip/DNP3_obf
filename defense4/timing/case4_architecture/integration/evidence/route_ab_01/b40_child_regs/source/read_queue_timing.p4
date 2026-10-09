@@ -5,9 +5,9 @@
 // (integration/INTEGRATION_CONTRACT.md section 1; the heartbeat design is a correctness
 // reference only, never the base). Invariants (a)-(g): see
 // integration/read/tests/test_t_queue_invariants.py and
-// DNP3_Timing_Size_Integration_Prompt.md section 4, Phase C. The whole file compiles for Tofino-1
-// (2026-10-09, after the per-port verdict-table consolidation); what has been compiled and model-run
-// is listed in read/TIMING_QUEUE_MIGRATION_STATUS.md.
+// DNP3_Timing_Size_Integration_Prompt.md section 4, Phase C. The whole file still does not compile:
+// table placement fails with zero slack on the ACK-commit->response chain (no longer a compiler crash);
+// what has been compiled and model-run is listed in read/TIMING_QUEUE_MIGRATION_STATUS.md.
 #include <core.p4>
 #include <tna.p4>
 #include "ports.p4"
@@ -71,11 +71,13 @@ struct metadata_t {
     bit<8> ack_go; bit<8> resp_go; bit<8> commit_ok; bit<8> op_go;
     // Tofino's conditional-execution gateway cannot evaluate a live comparison between two fully
     // dynamic values (bf-p4c: "condition too complex ... one operand must be constant"), so every
-    // now-vs-deadline check here is precomputed as delta = now - deadline, and its sign bit is matched
-    // as a ternary key (32w0 &&& 32w0x80000000 = "deadline passed") in the go and verdict tables --
-    // read_timing.p4's own deadline_deltas/heartbeat_eligibility pattern.
+    // now-vs-deadline check here is precomputed as delta = now - deadline, then its sign bit is
+    // matched by a one-entry ternary table into a 0/1 ready flag -- read_timing.p4's own
+    // deadline_deltas/heartbeat_eligibility pattern (see the *_sign tables). The
+    // deltas/deadlines need the full dynamic range; the *_ready outputs are 0/1 flags and are
+    // narrowed accordingly.
     // now_m_X = now - X: delta = now - (t0 + X) is computed as now_m_X - t0, the same value mod 2^32
-    // in one subtraction after the register read instead of two (stage budget).
+    // in one subtraction after the register read instead of two (stage budget, see the *_sign tables).
     bit<32> now_m_da; bit<32> da_delta;
     bit<32> now_m_readiness; bit<32> readiness_delta;
     bit<32> now_m_gap; bit<32> gap_delta;
@@ -162,7 +164,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     Register<bit<32>, bit<1>>(1, 0) cur_epoch_reg;
     // The ACK/response epoch gate `epoch != cur_epoch || epoch == quarantine` as one value: a gateway
     // over three 32-bit fields exceeds the gateway width, bf-p4c split it across stages (cond-81$split),
-    // and that pushed the response-child admission past its read's stage (route_ab_01/b26_qdiff_t0_access/pins2).
+    // and that pushed mask_try_admit* past mask_read's stage (route_ab_01/b26_qdiff_t0_access/pins2).
     // Quarantined (q_diff == 0) -> q_diff | 1, never 0; otherwise value XOR epoch, 0 iff current.
     RegisterAction<bit<32>, bit<1>, bit<32>>(cur_epoch_reg) epoch_check = {
         void apply(inout bit<32> value, out bit<32> out_value) {
@@ -303,7 +305,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     // Generation-scoped a_commit (2026-10-09, route_ab_01/b30). Both registers are written only by a
     // genuine ACK commit (da passed with a response child seen): ack_commit_at_reg the time, and
     // ack_commit_gen_reg the READ generation it belongs to. A response may use a_commit only when
-    // ack_commit_gen_reg is the current generation (commit_diff == 0, gating every use of the gap delta). A RESET
+    // ack_commit_gen_reg is the current generation (commit_diff == 0, gating every gap_ready use). A RESET
     // (which bumps the generation) or an ACK that finished by readiness fallback (which records no
     // a_commit) leaves a non-matching generation, so a zero or stale time is never taken as a_commit in
     // the signed gap comparison; no RESET-time clear is needed. Two single-word registers rather than one
@@ -553,8 +555,8 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     // ---- deadline readiness: delta-then-sign-bit, read_timing.p4's own proven pattern -----------
     // A live "now >= deadline" comparison is a gateway/conditional operation Tofino caps tightly
     // (bf-p4c: "condition too complex ... one operand must be constant"). Computing delta = now -
-    // deadline and then testing its sign bit is still the fix. The sign bit is matched as a ternary key
-    // (go and verdict tables), not read by a `delta[31:31]` slice: the slice forced every field in the
+    // deadline and then testing its sign bit is still the fix. The sign bit is read by a one-entry
+    // ternary table (*_sign), not by a `delta[31:31]` slice: the slice forced every field in the
     // now/t0/deadline/delta add chain, and global_tstamp itself, to split at bit 31, which no 32-bit
     // container can hold across an add ("PHV allocation was not successful", 40 slices [30:0]/[31:31],
     // evidence/route_ab_01/b6_branch_probes/v5_stub_port0.log). A TCAM key needs no such split.
@@ -575,15 +577,20 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     action compute_op_t0_masked() { md.op_t0_masked = md.op_t0_v & 32w0xfffffffe; }
     action op_offset() { md.now_m_opj = md.now - md.op_j; }
     action compute_op_delta() { md.op_delta = md.now_m_opj - md.op_t0_masked; }
+    // resp_seen_mask != 0 compares one dynamic field against the constant 0 -- already legal for a
+    // gateway (unlike the deadline sums above, this was never the "two dynamic operands" problem),
+    // so it needs no delta/sign-bit treatment at all; used directly in conditions below.
 
     // ---- ladder dispatch: held originals release or rewait --------------------------------------
     // release_ack touches no register (ack_done_try commits); recording a_commit and outcomes are
     // separate single-register actions called as separate statements at each call site (Tofino:
     // one table/action may address at most one indirect extern).
     // Release only; ack_done_reg was already committed by ack_done_try on this same pass.
-    // ack_go is read straight from the deltas' sign bits and the three child registers by one ternary
-    // table (route_ab_01/b17, b40): "a response child seen in this generation" is one row per child with
-    // that child's seen<k>_diff == 0. Rows match in order; no row -> 0.
+    // ack_go = (da passed AND a response child seen) OR readiness passed, read straight from the two
+    // deltas' sign bits and the child mask by one ternary table instead of the *_sign tables followed by
+    // a gateway and an assignment: that saves the stage the response commit chain needs to fit in 12
+    // (route_ab_01/b17_gen_epoch_tables). resp_seen_mask != 0 is exact as three one-bit rows because the
+    // mask_try_admit actions only ever set bits 0..2. Rows match in order; no row -> 0.
     // ack_go: this pass may commit the ACK domain (live, and da passed with a child seen, or readiness
     // passed). commit_ok: the genuine-commit case (live, da passed, child seen), which alone records
     // a_commit. Liveness is in the rows, so ack_done_try may run on every held-ACK pass and still writes
@@ -625,7 +632,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
 
     // resp_go = (genuine ACK commit in cur_gen AND a_commit + gap passed) OR readiness passed, as one ternary
     // table (rows match in order; no row -> 0). commit_diff == 0 is "a_commit belongs to this generation"
-    // (see ack_commit_gen_reg); the deltas' sign bits stand for "gap / readiness passed". An ACK that
+    // (see ack_commit_gen_reg); the deltas' sign bits stand for gap_ready / readiness_ready. An ACK that
     // finished by readiness fallback has no a_commit, so its response opens by readiness (OUT_RESP_FALLBACK).
     action set_resp_go(bit<8> v) { md.resp_go = v; }
     table resp_go_check {
@@ -701,8 +708,8 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     // 0 on a key makes "_" on that key mean "!= 0" in every later row of the same role/kind. Keys:
     // lgen_diff == 0 (ladder generation is current), done_diff == 0 (domain already completed in this
     // generation), 32w0 &&& 32w0x80000000 on a delta (that deadline has passed), commit_diff == 0
-    // (genuine a_commit in this generation), seen<k>_diff == 0 (response child k seen in this generation;
-    // one row per child), budget == 0 (blocker budget exhausted).
+    // (genuine a_commit in this generation), one bit of resp_seen_mask (a response child seen; only bits
+    // 0..2 are ever set), budget == 0 (blocker budget exhausted).
     table tin_verdict {
         key = { hdr.tev.kind : ternary; md.enabled : ternary; md.q_diff : ternary; md.e_bad : ternary;
                 md.done_diff : ternary; md.dup_diff : ternary; }
@@ -821,11 +828,11 @@ control Ingress(inout header_t hdr, inout metadata_t md,
             else { drop_clone(); }
         } else if (ig_intr_md.ingress_port == T_IN) {
             // Register work first, each under a gateway of at most 40 bits; then one verdict. e_bad is
-            // nonzero whenever the policy is off (epoch_access), so no child register is touched then.
-            // The child is recorded before resp_done_reg is read (stage-ordering loop, b11): the child
-            // registers' only other consumer is the ACK gate (read_seen<k> -> ack_go_check and the ACK
-            // roles' verdict rows), which tests only "some child seen in this generation", already true
-            // once a response has been released in this generation.
+            // nonzero whenever the policy is off (epoch_access), so the mask is never touched then. The
+            // child is marked before resp_done_reg is read (stage-ordering loop, b11): the mask's only
+            // other consumer is the ACK gate (mask_read -> resp_seen_mask in ack_go_check and the
+            // ACK roles' verdict rows), which tests only "some child seen", already true once a response
+            // has been released in this generation.
             if (hdr.tev.kind == KIND_RESPONSE && md.e_bad == 0) {
                 if (hdr.tev.stage == 0) { md.dup_diff = child_try0.execute(0); }
                 else if (hdr.tev.stage == 1) { md.dup_diff = child_try1.execute(0); }

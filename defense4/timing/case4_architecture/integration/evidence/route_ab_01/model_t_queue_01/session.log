@@ -1,0 +1,28 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name read_queue_timing
+Binding with p4_name read_queue_timing successful!!
+Received read_queue_timing on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS A_read_normal_and_duplicate_emissions expected={9: ['a1', 'a2'], 64: ['a0']} observed={9: ['a1', 'a2'], 64: ['a0']}
+PASS A_read_normal_and_duplicate_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'OUT_RESP_DUP_DROP': 1, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'OUT_RESP_DUP_DROP': 1, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0}
+PASS B_fallback_ack_then_late_response_emissions expected={9: ['b1', 'b2'], 64: ['b0']} observed={9: ['b1', 'b2'], 64: ['b0']}
+PASS B_fallback_ack_then_late_response_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 1, 'OUT_RESP_FALLBACK': 1, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 1, 'OUT_RESP_FALLBACK': 1, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0}
+PASS C_operate_held_then_released_emissions expected={9: [], 64: ['c0']} observed={9: [], 64: ['c0']}
+PASS C_operate_held_then_released_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 1, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 1, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0}
+PASS D_operate_then_immediate_reset_emissions expected={9: [], 64: ['d0']} observed={9: [], 64: ['d0']}
+PASS D_operate_then_immediate_reset_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 1, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 1, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0}
+PASS E_quarantined_epoch_passes_through_emissions expected={9: ['e1'], 64: ['e0']} observed={9: ['e1'], 64: ['e0']}
+PASS E_quarantined_epoch_passes_through_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 1} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 1}
+PASS F_reset_while_ack_held_emissions   expected={9: ['f1'], 64: ['f0']} observed={9: ['f1'], 64: ['f0']}
+PASS F_reset_while_ack_held_decision_counters expected={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 1, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0} observed={'OUT_UNMATCHED': 0, 'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_DUP_DROP': 0, 'OUT_OP_RELEASE': 0, 'OUT_HELD_STALE_FLUSH': 1, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0, 'OUT_HELD_OFF_FLUSH': 0, 'OUT_REQ_BYPASS': 0}
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/model_drive_t_queue.py", line 166, in <module>
+    main()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/model_drive_t_queue.py", line 131, in main
+    set_params(**(params or {}))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/model_drive_t_queue.py", line 126, in set_params
+    m.set_default('Ingress.params', 'Ingress.set_params', dict(MODEL, enabled=1, **over))
+TypeError: type object got multiple values for keyword argument 'enabled'
+driver exit code 1
+hugepages free after run: HugePages_Free: 196
