@@ -251,18 +251,22 @@ class E_StaleAndDuplicate(unittest.TestCase):
         self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
         self.assertEqual(out(sim, 'OUT_ACK_COMMIT'), 1)
 
-    def test_duplicate_ack_arms_the_response_deadline_once(self):
+    def test_duplicate_ack_records_a_commit_once(self):
+        """The response deadline is a_commit + gap, and a_commit is what ack_commit_at_reg holds (the
+        separate resp_deadline register, armed but never read by any decision, was removed 2026-10-09).
+        A duplicate ACK's later commit must not move a_commit, so it cannot move the response deadline."""
         sim = QueueSim()
         sim.read(T0)
         sim.ack(T0 + ACK_OFF + 10_000)                  # duplicate ACK while the first is held
-        armed = []
-        sim.call(T0 + DA + 150_000, lambda s: armed.append(s.cell('resp_deadline')))
+        recorded = []
+        sim.call(T0 + DA + 150_000, lambda s: recorded.append(s.cell('ack_commit_at_reg')))
         sim.run(HORIZON)
         finished(self, sim)
         acks = sim.emissions(ACK_FRAME)
         self.assertEqual(len(acks), 2)
-        self.assertEqual(sim.cell('resp_deadline'), armed[0], 'second commit did not re-arm')
-        self.assertEqual(armed[0], q(acks[0]) + GAP | 1)
+        self.assertEqual(sim.cell('ack_commit_at_reg'), recorded[0], 'second commit did not move a_commit')
+        self.assertEqual(recorded[0], q(acks[0]), 'a_commit is the first ACK commit pass (quantized)')
+        self.assertEqual(sim.cell('ack_commit_gen_reg'), sim.cell('gen_alloc_reg'), 'tagged with the generation that committed')
         self.assertGreaterEqual(sim.emissions(RSP_FRAME)[0], acks[0] + GAP)
 
     def test_duplicate_response_is_suppressed_only_while_the_original_is_held(self):
@@ -566,8 +570,9 @@ RESET_OFF = 200_000            # OPERATE -> RESET spacing of Philip's 2026-10-08
 
 
 class I_OperateDeadlineAnchor(unittest.TestCase):
-    """The OPERATE hold is anchored on the arrival of the operation being held, and RESET's
-    clearing of that anchor flushes a held OPERATE promptly."""
+    """The OPERATE hold is anchored on the arrival of the operation being held. RESET flushes a held
+    OPERATE promptly by bumping the OPERATE generation (since 2026-10-09; it used to zero the anchor),
+    so the held original fails its generation check and leaves as a stale flush."""
 
     def test_second_operate_is_held_to_its_own_deadline(self):
         """Regression: op_t0_arm used to write only when op_t0_reg was zero, so a second OPERATE
@@ -585,9 +590,10 @@ class I_OperateDeadlineAnchor(unittest.TestCase):
         self.assertGreaterEqual(releases[1], q(second) + OP_J, 'second OPERATE released before its own deadline')
 
     def test_reset_flushes_a_held_operate_150us_after_the_reset(self):
-        """Non-regression for the RESET path: the cleared op_t0_reg reads as overdue, so the held
-        OPERATE leaves on the next ladder round (150,000 ns here). Removing the clear makes it wait
-        for the full hold instead (570,000 ns), which is the regression this pins."""
+        """Non-regression for the RESET path: RESET bumps the OPERATE generation, so the held OPERATE
+        fails its generation check and is flushed on the next ladder round (150,000 ns here) instead of
+        waiting for the full hold (570,000 ns). (Before 2026-10-09 the same timing came from a zeroed
+        op_t0_reg read as overdue, which broke near the clock wrap, next test.)"""
         sim = QueueSim()
         sim.operate(T0)
         sim.reset(T0 + RESET_OFF)
@@ -614,21 +620,136 @@ class I_OperateDeadlineAnchor(unittest.TestCase):
         self.assertGreaterEqual(releases[0], q(base) + OP_J)
         self.assertEqual(releases[0] - base, reference.emissions(OP_FRAME, RELAY)[0] - T0)
 
-    @unittest.expectedFailure
     def test_reset_flush_near_the_clock_wrap(self):
-        """KNOWN DEFECT, pre-existing and outside the op_t0_arm fix: a cleared op_t0_reg makes
-        op_delta = now - OP_J, whose sign bit is set whenever now sits in the upper half of the
-        32-bit clock. The held OPERATE then reads as not ready until the clock wraps and passes
-        OP_J: measured 870,000 ns after the RESET at this phase (vs 150,000 ns), and 1.074 s at
-        base 0xC0000000. Late, never early. Expected to fail until the RESET path is redesigned."""
-        base = CLOCK_WRAP - 300_000
+        """Formerly a KNOWN DEFECT (expectedFailure): a cleared op_t0_reg made op_delta = now - OP_J,
+        whose sign bit is set in the upper half of the 32-bit clock, so the flush was late (870,000 ns at
+        CLOCK_WRAP - 300 us, 1.074 s at 0xC0000000). Fixed 2026-10-09 by the generation-scoped RESET. The
+        flush must happen by the generation mechanism (a stale flush, not a timed release) at every clock
+        phase, including both phases the old defect was measured at."""
+        for base in (CLOCK_WRAP - 300_000, 0xC0000000):
+            with self.subTest(base=hex(base)):
+                sim = QueueSim()
+                sim.operate(base)
+                sim.reset(base + RESET_OFF)
+                sim.run(base + 3_000_000)
+                finished(self, sim)
+                releases = sim.emissions(OP_FRAME, RELAY)
+                self.assertEqual(len(releases), 1)
+                self.assertEqual(releases[0] - (base + RESET_OFF), 150_000)
+                self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1, 'flushed by its stale generation')
+                self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0, 'not a timed release')
+
+class J_GenerationScopedReset(unittest.TestCase):
+    """RESET and readiness fallback under generation-scoped state (2026-10-09): a_commit is usable only
+    when ack_commit_gen_reg is the current READ generation, and RESET invalidates OPERATE by bumping its own
+    generation allocator. Release times are unchanged from the zero-clear design in every case here; what
+    changes is that a fallback or stale a_commit can no longer masquerade as a genuine one."""
+
+    def test_fallback_ack_does_not_supply_a_commit_to_the_response(self):
+        """The ACK finishes by readiness fallback (no response yet), so no a_commit is recorded. The late
+        response must open by readiness and be counted as a fallback, not as a gap release computed from
+        an a_commit that never happened (the zero-clear design counted OUT_RESP_RELEASE here)."""
         sim = QueueSim()
-        sim.operate(base)
-        sim.reset(base + RESET_OFF)
-        sim.run(base + 3_000_000)
-        releases = sim.emissions(OP_FRAME, RELAY)
-        self.assertEqual(len(releases), 1)
-        self.assertEqual(releases[0] - (base + RESET_OFF), 150_000)
+        sim.request(T0)
+        sim.ack(T0 + ACK_OFF)
+        late = T0 + READINESS + 400_000
+        sim.response(late)
+        sim.run(T0 + CAP + 3_000_000)
+        finished(self, sim)
+        self.assertEqual(out(sim, 'OUT_ACK_FALLBACK'), 1)
+        self.assertGreaterEqual(sim.emissions(ACK_FRAME)[0], q(T0) + READINESS)
+        self.assertEqual(len(sim.emissions(RSP_FRAME, FORWARD)), 1)
+        self.assertGreaterEqual(sim.emissions(RSP_FRAME)[0], late)
+        self.assertEqual((out(sim, 'OUT_RESP_FALLBACK'), out(sim, 'OUT_RESP_RELEASE')), (1, 0))
+
+    def test_stale_a_commit_from_an_earlier_generation_is_not_used(self):
+        """Generation 1 commits genuinely; generation 2's ACK finishes by fallback. Generation 1's a_commit
+        is still in ack_commit_at_reg, but its tag is not the current generation, so generation 2's
+        response is a fallback, not a gap release from the old timestamp."""
+        sim = QueueSim()
+        sim.read(T0)
+        second = T0 + CAP + 1_000_000
+        sim.request(second)
+        sim.ack(second + ACK_OFF)
+        sim.response(second + READINESS + 400_000)
+        sim.run(second + CAP + 3_000_000)
+        finished(self, sim)
+        self.assertEqual((out(sim, 'OUT_ACK_COMMIT'), out(sim, 'OUT_ACK_FALLBACK')), (1, 1))
+        self.assertEqual((out(sim, 'OUT_RESP_RELEASE'), out(sim, 'OUT_RESP_FALLBACK')), (1, 1))
+        self.assertNotEqual(sim.cell('ack_commit_gen_reg'), sim.cell('gen_alloc_reg'))
+
+    def test_reset_invalidates_a_held_operate_by_its_own_generation(self):
+        """RESET bumps the OPERATE allocator (separate from READ's): the held OPERATE is flushed to the
+        relay as stale (released, not dropped, not counted as a timed release) and its blockers die
+        stale instead of continuing to circulate."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.reset(T0 + 20_000)
+        sim.run(T0 + 3_000_000)
+        finished(self, sim)
+        self.assertEqual(sim.cell('op_gen_alloc_reg'), 2, 'admission 1, RESET 2')
+        self.assertEqual(len(sim.emissions(OP_FRAME, RELAY)), 1, 'the held original is not lost')
+        self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0)
+        self.assertGreater(out(sim, 'OUT_TOKEN_STALE'), 0, 'old-generation OPERATE blockers die stale')
+
+    def test_reset_just_after_an_operate_flushes_it_as_stale(self):
+        """RESET inside the window between the OPERATE's admission and its clone's return (pktgen_ns/2 in
+        the simulator). The held original must carry the admitted OPERATE's generation (the clone's tag),
+        not the generation current when the clone returns: otherwise it passes the generation check after
+        the RESET and is released on its old deadline (630,000 ns, counted OUT_OP_RELEASE)."""
+        for dt in (1_000, 3_000, 5_000):
+            with self.subTest(dt=dt):
+                sim = QueueSim()
+                sim.operate(T0)
+                sim.reset(T0 + dt)
+                sim.run(T0 + 3_000_000)
+                finished(self, sim)
+                relay = sim.emissions(OP_FRAME, RELAY)
+                self.assertEqual(len(relay), 1, 'the held original is not lost')
+                self.assertLess(relay[0], q(T0) + OP_J, 'flushed, not held to its old deadline')
+                self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
+                self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0)
+
+    def test_two_operates_inside_the_clone_window_both_reach_the_relay(self):
+        """A second OPERATE 1 us after the first, inside the first one's clone window. The first held
+        original carries its own generation (the clone's tag), so it is flushed as stale once superseded,
+        and the second is released on its own deadline. Before 2026-10-09 the first original took the
+        second's generation from a fresh register read and was never released at all (one relay emission)."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.operate(T0 + 1_000)
+        sim.run(T0 + 3_000_000)
+        finished(self, sim)
+        relay = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(relay), 2, 'neither OPERATE is lost')
+        self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
+        self.assertGreaterEqual(max(relay), q(T0 + 1_000) + OP_J, 'the second keeps its own deadline')
+
+    def test_after_reset_both_domains_start_from_their_own_anchors(self):
+        """After a RESET that superseded a held OPERATE and a held READ transaction, a new OPERATE and a
+        new-epoch READ are each held to their own deadlines, and the new READ's response follows its own
+        new a_commit by the configured gap: no state from before the RESET moves them."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.read(T0, epoch=1)
+        sim.reset(T0 + 200_000, epoch=1)
+        later = T0 + 1_000_000
+        sim.operate(later, epoch=2)
+        sim.read(later, epoch=2)
+        sim.run(later + CAP + 3_000_000)
+        finished(self, sim)
+        relay = sim.emissions(OP_FRAME, RELAY)
+        self.assertEqual(len(relay), 2)
+        self.assertLess(relay[0], later, 'the pre-RESET OPERATE was flushed at the RESET')
+        self.assertGreaterEqual(relay[1], q(later) + OP_J, 'the new OPERATE keeps its own deadline')
+        acks, rsps = sim.emissions(ACK_FRAME), sim.emissions(RSP_FRAME)
+        self.assertEqual((len(acks), len(rsps)), (2, 2))
+        self.assertGreaterEqual(acks[1], q(later) + DA)
+        self.assertGreaterEqual(rsps[1], acks[1] + GAP, 'gap measured from the new a_commit')
+        self.assertEqual(sim.cell('ack_commit_at_reg'), q(acks[1]))
+        self.assertEqual((out(sim, 'OUT_OP_RELEASE'), out(sim, 'OUT_RESP_RELEASE')), (1, 1))
 
 
 if __name__ == '__main__':

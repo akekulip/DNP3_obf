@@ -214,10 +214,11 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         md.clone_ses = CLONE_SESSION_ID;
     }
     action admit_operate_held() {
+        md.op_gen = op_gen_peek.execute(0);
+        hdr.clone.setInvalid(); hdr.tev.setInvalid();
         hdr.ladder.setValid();
         hdr.ladder.role = ROLE_OP_HELD; hdr.ladder.child = 0;
-        hdr.ladder.generation = (bit<16>)hdr.clone.tag; hdr.ladder.budget = 0;
-        hdr.clone.setInvalid(); hdr.tev.setInvalid();
+        hdr.ladder.generation = (bit<16>)md.op_gen; hdr.ladder.budget = 0;
         ig_tm_md.ucast_egress_port = HB_RETURN; ig_tm_md.qid = 2;
     }
     action drop_clone() { ig_dprsr_md.drop_ctl = 1; }

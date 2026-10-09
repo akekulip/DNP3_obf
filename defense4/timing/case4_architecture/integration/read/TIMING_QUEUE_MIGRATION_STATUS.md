@@ -1,21 +1,20 @@
-# T's queue-resident timing role: source-level complete, hardware compile not yet closed (placement, zero slack)
+# T's queue-resident timing role: source-level complete, hardware compile not yet closed (table placement)
 
 Status of `read_queue_timing.p4`, the blocker-queue-based replacement for T's heartbeat/recirculation
 design (`read_timing.p4`), per `INTEGRATION_CONTRACT.md` §5's hard constraint that real ACKs/responses
 stay queue-resident and only blocker tokens circulate.
 
-## Current state (2026-10-09): crash gone; whole file fails placement with zero slack on the ACK->response chain
+## Current state (2026-10-09, late): RESET is generation-scoped; whole file still fails placement
 
-All evidence: `integration/evidence/route_ab_01/` (rounds `b1`..`b27`, `t_op_exactly_once/`, `final3_*`).
+All evidence: `integration/evidence/route_ab_01/` (rounds `b1`..`b34`, `t_op_exactly_once/`, `final5_*`).
 Everything below the "2026-10-08 correction" heading is history; where it disagrees with this section, this
-section is current. (`final_*` and `final2_*` record earlier source versions of this same session.)
+section is current. (`final_*`..`final4_*` record earlier source versions from the same day.)
 
-**Whole-file compile** of `read_queue_timing.p4`, sha256 `4cd8d25196d5…`: exit 2, an ordinary placement
-error, on both local 9.13.1 (`final3_full_local`) and the switch's installed 9.13.2, compile-only
-(`final3_full_switch_9132`): "Table placement was not able to allocate tbl_reset_clear_commit_at,
-tbl_read_gap_delta, tbl_mark_ack_commit_at in the same stage along with Register Ingress.ack_commit_at_reg".
-The "Internal compiler error" no longer occurs. The OPERATE slice compiles at 8 ingress / 0 egress stages
-(`final3_slice_local`); the capture slice compiles at 3 / 0.
+**Whole-file compile** of `read_queue_timing.p4`, sha256 `323c5bc56bfa…`: exit 2 on both local 9.13.1
+(`final5_full_local`) and the switch's installed 9.13.2, compile-only (`final5_full_switch_9132`): "Table
+placement was not able to allocate tbl_read_gap_delta, tbl_mark_ack_commit_at in the same stage along with
+Register Ingress.ack_commit_at_reg". No "Internal compiler error". The OPERATE slice compiles at 8 ingress /
+0 egress stages; the capture slice at 3 / 0.
 
 **What the crash was.** It hid ordinary errors. Stubbing whole top-level branches (`b6`), then pieces of the
 generator-token branch (`b19`), exposed them:
@@ -56,43 +55,80 @@ generator-token branch (`b19`), exposed them:
   - `ack_go_check` and `resp_go_check` are single ternary tables. `ack_done_read` returns `value ^ cur_gen`,
     so "committed in cur_gen" is a match on 0 (`b18`, `b23`).
 
-**What blocks the whole file now.** The ACK→response chain has zero slack.
-- **Stages are earlier now.** With the prologue tables, `t0` is read at stage 2, `da_delta` is at 3 and the
-  signs at 4 (`final3_full_local/.../table_placement_7.log`).
-- **One legal stage.** The compiler's dependency bounds (`b26_qdiff_t0_access/.../table_dependency_summary.log`)
-  put `tbl_read_gap_delta` at stages 3–6 and `tbl_mark_ack_commit_at` at 6–9. So `ack_commit_at_reg` can
-  live in exactly one stage, 6, and everything behind it must place without slip.
-- **The placer does not find that layout.** It places the RESET-arm clear and the gap read first, at other
-  stages. A compile-only probe pinning all three users to 6, with `resp_done_reg` users at 9 and
-  `resp_deadline` users at 10, still fails (`b24`, `b26`, `b27` `pins2`). In that probe the placer leaves the
-  RESET clears and most of the response tables unplaced.
-- **No placement option helps.** `--table-placement-in-order`, `--disable_backfill`, `--relax-phv-init` and
-  `--auto-init-metadata` change nothing (`b21`). The source interpreter rejects `@stage` (`b22`: 27 failures),
-  so pins could not be landed anyway.
-- **More of the same is queued.** `op_t0_reg` and `resp_deadline` show the same "RESET clear placed early"
-  pattern in the port-0-stubbed variant.
+**Late 2026-10-09 changes** (each round recompiled, tests green after each):
+- **`resp_deadline` removed (`b28`).** It was armed (only while zero, so once per RESET) and cleared, and no
+  decision read it. Release is decided from `ack_commit_at_reg` plus the configured gap. The release decision
+  has always used the gap configured at release time, not a gap frozen at a_commit; the frozen value existed
+  only in this unread register. Its one test now checks `ack_commit_at_reg`
+  (`test_duplicate_ack_records_a_commit_once`). Compile effect: none.
+- **Generation-scoped a_commit (`b30`).** A genuine ACK commit writes `ack_commit_at_reg` (time) and the new
+  `ack_commit_gen_reg` (READ generation). Response roles gate every gap use on `commit_diff == 0`, which means
+  this generation had a genuine commit. There is no RESET-time clear.
+  - A single `{gen, at}` pair register is not possible: a two-field stateful ALU may not return a computed
+    value (`b29`).
+  - **Intended counter change.** After a readiness-fallback ACK, or with a stale a_commit from an earlier
+    generation, the response is now counted `OUT_RESP_FALLBACK`. The zero-clear design counted
+    `OUT_RESP_RELEASE` from a zero or stale timestamp. Release times are unchanged
+    (`b32/measure_reset.txt`).
+- **RESET invalidates OPERATE by generation (`b32`).** RESET bumps `op_gen_alloc_reg` instead of zeroing
+  `op_t0_reg`.
+  - **Counter change.** A held OPERATE is flushed as stale: `OUT_HELD_STALE_FLUSH` instead of
+    `OUT_OP_RELEASE`. Its blockers die stale (`OUT_TOKEN_STALE`).
+  - **Flush time.** Unchanged at the tested offsets: 150,000 ns after a RESET 200 us after the OPERATE,
+    and 180,000 ns at 20 us. This is not a general invariant. With a RESET 6 us after the OPERATE, the
+    flush now comes 74,000 ns after the RESET, against 194,000 ns on the zero-clear `b28` source. It is earlier, and still
+    a flush, not a timed release (`b34/reset_window.txt`).
+  - **Bug found in review and fixed (`b34`).** `admit_operate_held` tagged the held original with a fresh
+    `op_gen_peek()` instead of the generation the clone carries. A RESET landing between the OPERATE's
+    admission and its clone's return (1–5 us in the simulator) therefore left the superseded OPERATE with
+    a current tag. It was then released on its old deadline (about 625,000–629,000 ns after the RESET,
+    counted `OUT_OP_RELEASE`). The tag now comes from `hdr.clone.tag`, whose low 16 bits are the admitted
+    generation, and the PKTGEN branch no longer touches `op_gen_alloc_reg`. Test:
+    `test_reset_just_after_an_operate_flushes_it_as_stale` (RESET at 1, 3 and 5 us). It fails on `b32` and
+    passes now.
+  - **A second pre-existing defect is fixed by the same change.** Before this fix, including at the
+    committed HEAD, two OPERATEs 1–4 us apart (inside the first one's clone window) lost the first one. Its
+    held original took the second's generation and was never released: one relay emission instead of
+    two. Now the first is flushed as stale (at 770,000 ns) and the second is released on its own deadline
+    (at 800,000 ns). Test: `test_two_operates_inside_the_clone_window_both_reach_the_relay`; it fails on
+    HEAD `723bfd1ad` (`b34/two_ops.txt`).
+  - **Tracked follow-up, not fixed (token path, not admission).** Once `op_gen` reaches 0x10000, its own
+    bit 16 and above land in the 24-bit generator key, and the `| 0x10000` OPERATE marker no longer
+    separates the OPERATE domain as intended. Each RESET now bumps `op_gen`, which brings that point
+    closer.
+  - **Defect fixed.** The RESET-near-clock-wrap defect, formerly the one expected failure, is fixed by this
+    change. Its test now also checks the mechanism (`finished()`, `OUT_HELD_STALE_FLUSH` = 1,
+    `OUT_OP_RELEASE` = 0) and covers the 0xC0000000 phase as well. It fails on the zero-clear `b28` source.
+  - **Low-priority notes, not fixed.** Every RESET now bumps the OPERATE generation even when nothing is
+    held, which uses up the 16-bit ladder generation field faster (wraparound is already a known
+    follow-up). `ack_commit_gen_reg` depends on its 0xffffffff initial value: a clear to 0 would match
+    generation 0. This is now stated in the source; a controller that clears registers must restore
+    0xffffffff.
+- **New tests**, class `J_GenerationScopedReset`:
+  - a fallback ACK supplies no a_commit;
+  - a stale a_commit from an earlier generation is not used;
+  - RESET invalidates a held OPERATE by its own generation;
+  - after RESET both domains start from their own anchors.
 
-Conclusion: another local repair is unlikely to close this. It needs a structural idea that creates slack on
-the ACK-commit → response path. Two options:
-- Remove the RESET-arm clears of late registers (`ack_commit_at_reg`, `resp_deadline`, `op_t0_reg`), for
-  example with generation-scoped values. This needs a decision, because the clears are observable today.
-- Move part of the response gating off this pipeline.
+  All four pass on this tree and fail on the pre-redesign source (`b28`).
 
-`outcome_count` is not the limiting term: its bounds (8–11) are inside budget, and it does not gate any
-decision.
+**What blocks the whole file now.**
+- **Slack exists, but placement still fails.** The redesign gave `ack_commit_at_reg` two legal stages
+  instead of one (dependency bounds: read 3..7, write 6..11; `b30`), but it still does not place.
+- **The new limit is logical tables per stage.** The placement logs report "too many tables total" in the
+  early stages (stages 2–4 full). This is the per-stage logical-table limit. Every bare action call and
+  assignment in the apply block is its own table: 116 tables and 32 gateways (`b30`).
+- **Two cheap tests did not resolve it.**
+  - Merging the seven release+count pairs changed nothing, and was reverted (`b31`).
+  - Removing whole early branches (port 0, PKTGEN, the policy-off block) lowers the pressure but still
+    gives the same error (`b33_table_pressure_probe`).
+- **Next options.** Consolidate the role and kind dispatch into decision tables with mutually exclusive
+  actions, a substantial rewrite of the apply block. Or compose Route A's hardware-tested ingress with the
+  new egress mapper.
 
-**Tests.**
-- `D_SeparateGates.test_same_generation_copy_is_not_released_while_its_generation_is_current`: a
-  same-generation copy of a released OPERATE (generation read back from `op_gen_alloc_reg`, truncated to the
-  16-bit ladder field) is not released while its generation is current.
-- `..._is_flushed_to_the_relay_when_the_next_operate_arrives` pins the known, accepted behavior. A later
-  OPERATE makes the copy stale and `flush_operate_stale` sends it to the relay: three relay emissions,
-  `OUT_HELD_STALE_FLUSH` = 1, `OUT_OP_RELEASE` = 2. Exactly-once delivery is not claimed.
-- Both pass on this tree and on HEAD, and both fail when `op_done_try`'s write is removed
-  (`t_op_exactly_once/`).
-- `python3 -m pytest -q read/tests core/harness/tests` from `integration/` gives 176 passed and 1 expected
-  failure (134 + 42; `final3_pytest.txt`). The expected failure is the RESET-near-clock-wrap case below,
-  still open.
+**Tests:** `python3 -m pytest -q read/tests core/harness/tests` from `integration/`: 193 passed, 0 expected
+failures (`final6_pytest.txt`; includes 10 tests in `read/tests/test_n_operate_handoff.py` added by another
+workstream).
 
 **Not done.** No model run of the regenerated capture slice. Nothing was loaded or run on the switch; the
 9.13.2 build was compile-only.

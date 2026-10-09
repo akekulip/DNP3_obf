@@ -214,10 +214,11 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         md.clone_ses = CLONE_SESSION_ID;
     }
     action admit_operate_held() {
+        md.op_gen = op_gen_peek.execute(0);
+        hdr.clone.setInvalid(); hdr.tev.setInvalid();
         hdr.ladder.setValid();
         hdr.ladder.role = ROLE_OP_HELD; hdr.ladder.child = 0;
-        hdr.ladder.generation = (bit<16>)hdr.clone.tag; hdr.ladder.budget = 0;
-        hdr.clone.setInvalid(); hdr.tev.setInvalid();
+        hdr.ladder.generation = (bit<16>)md.op_gen; hdr.ladder.budget = 0;
         ig_tm_md.ucast_egress_port = HB_RETURN; ig_tm_md.qid = 2;
     }
     action drop_clone() { ig_dprsr_md.drop_ctl = 1; }
@@ -275,29 +276,9 @@ control Ingress(inout header_t hdr, inout metadata_t md,
             else { unmatched(); }
         }
         else if (ig_intr_md.ingress_port == HB_RETURN) {
-            md.op_gen = op_gen_peek.execute(0);
-            md.op_t0_v = op_t0_read.execute(0);
-            op_offset(); compute_op_t0_masked(); compute_op_delta(); op_sign.apply();
-            if (hdr.ladder.role == ROLE_OP_BLK) {
-                md.op_done_g = op_done_read.execute(0);
-                if ((bit<32>)hdr.ladder.generation != (md.op_gen & 32w0xffff)) { stop_blocking_stale(); }
-                else if (md.enabled == 0) { stop_blocking_off(); }
-                else if (md.op_done_g == md.op_gen) { stop_blocking(); }
-                else {
-                    if (md.op_ready == 1) { stop_blocking(); }
-                    else if (hdr.ladder.budget == 0) { stop_blocking_tmo(); }
-                    else { keep_blocking(HB_RETURN, 3); }
-                }
-            } else if (hdr.ladder.role == ROLE_OP_HELD) {
-                if ((bit<32>)hdr.ladder.generation != (md.op_gen & 32w0xffff)) { flush_operate_stale(); }
-                else if (md.enabled == 0) { flush_operate_off(); }
-                else {
-                    md.op_done_g = op_done_try.execute(0);
-                    if (md.op_done_g == md.op_gen) { rewait_operate(); }
-                    else if (md.op_ready == 1) { release_operate(); count(OUT_OP_RELEASE); }
-                    else { rewait_operate(); }
-                }
-            } else { unmatched(); }
+            // GLUE (--capture-hb): export every HB_RETURN arrival, ladder intact, for counting.
+            if (hdr.ladder.role == ROLE_OP_BLK) { ig_tm_md.ucast_egress_port = 9w1; }
+            else { ig_tm_md.ucast_egress_port = 9w2; }
         }
         else { unmatched(); }
         outcome_count.apply();

@@ -29,7 +29,7 @@ SOURCE = HERE / 'read_queue_timing.p4'
 
 DECLS = ['set_params', 'params', 'clock_sample', 'clock',
          'op_gen_alloc_reg', 'op_gen_peek', 'op_gen_bump', 'op_done_reg', 'op_done_read', 'op_done_try',
-         'op_t0_reg', 'op_t0_read', 'op_t0_arm', 'op_t0_clear', 'outcomes', 'bump_outcome', 'count', 'bump', 'outcome_count',
+         'op_t0_reg', 'op_t0_read', 'op_t0_arm', 'outcomes', 'bump_outcome', 'count', 'bump', 'outcome_count',
          'passthrough_tev_relay', 'hold_operate', 'admit_operate_held', 'drop_clone',
          'keep_blocking', 'stop_blocking', 'stop_blocking_stale', 'stop_blocking_tmo', 'stop_blocking_off',
          'op_offset', 'compute_op_t0_masked', 'compute_op_delta', 'set_op_ready', 'op_sign',

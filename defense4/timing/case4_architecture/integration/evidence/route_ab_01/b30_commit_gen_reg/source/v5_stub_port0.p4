@@ -311,9 +311,6 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_at_reg) commit_at_write = {
         void apply(inout bit<32> value, out bit<32> out_value) { value = md.now; out_value = value; }
     };
-    // Initial value 0xffffffff, not 0: generation 0 is the live READ generation before the first request,
-    // so a register holding 0 would read as "a genuine commit in generation 0" (commit_diff == 0). Any
-    // control-plane or hardware clear of this register must restore 0xffffffff, not 0.
     Register<bit<32>, bit<1>>(1, 0xffffffff) ack_commit_gen_reg;
     // value XOR cur_gen: 0 exactly when a genuine ACK commit happened in the current generation.
     RegisterAction<bit<32>, bit<1>, bit<32>>(ack_commit_gen_reg) commit_gen_read = {
@@ -407,10 +404,9 @@ control Ingress(inout header_t hdr, inout metadata_t md,
             out_value = value;
         }
     };
-    // No RESET-time clear (2026-10-09, route_ab_01/b32). RESET invalidates OPERATE by bumping its
-    // generation (reset_bump_op_gen): a held OPERATE and its blockers then fail the generation check and
-    // are flushed / dropped as stale, without op_t0_reg's zero being read as "overdue" in the signed
-    // deadline comparison (which was late by up to ~2.1 s in the upper half of the clock).
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_t0_reg) op_t0_clear = {
+        void apply(inout bit<32> value, out bit<32> out_value) { value = 0; out_value = 0; }
+    };
 
     // ---- outcomes -----------------------------------------------------------------------------
     Register<bit<32>, bit<4>>(16, 0) outcomes;
@@ -450,7 +446,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         ig_tm_md.ucast_egress_port = RELAY_PORT;
         count(OUT_REQ_BYPASS);
     }
-    action reset_bump_op_gen() { md.op_gen = op_gen_bump.execute(0); }
+    action reset_clear_op_t0() { op_t0_clear.execute(0); }
 
     // ---- hold admission (ACK / response) --------------------------------------------------------
     action hold_ack() {
@@ -491,17 +487,12 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         ig_dprsr_md.mirror_type = 1; md.clone_tag = md.op_gen | 32w0x10000;
         md.clone_ses = CLONE_SESSION_ID;
     }
-    // The held original carries the generation of the OPERATE that was admitted: the clone's own tag
-    // (hold_operate wrote op_gen | 0x10000, so its low 16 bits are that generation's ladder value), not a
-    // fresh read of op_gen_alloc_reg. Since RESET bumps the OPERATE generation, a fresh read could pick up
-    // a RESET that landed between the admission and the clone's return, and the superseded OPERATE was
-    // then released on its old deadline instead of flushed as stale (code review, 2026-10-09: RESET 1..5
-    // us after the OPERATE; route_ab_01/b34_clone_tag_generation).
     action admit_operate_held() {
+        md.op_gen = op_gen_peek.execute(0);
+        hdr.clone.setInvalid(); hdr.tev.setInvalid();
         hdr.ladder.setValid();
         hdr.ladder.role = ROLE_OP_HELD; hdr.ladder.child = 0;
-        hdr.ladder.generation = (bit<16>)hdr.clone.tag; hdr.ladder.budget = 0;
-        hdr.clone.setInvalid(); hdr.tev.setInvalid();
+        hdr.ladder.generation = (bit<16>)md.op_gen; hdr.ladder.budget = 0;
         ig_tm_md.ucast_egress_port = HB_RETURN; ig_tm_md.qid = 2;
     }
     action drop_clone() { ig_dprsr_md.drop_ctl = 1; }
@@ -715,7 +706,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 if (md.q_diff == 0) { bypass_request(); }
                 else { admit_request_gen(); make_request_tag(); }
             } else if (hdr.tev.kind == KIND_RESET) {
-                reset_bump_op_gen();
+                reset_clear_op_t0();
                 ig_dprsr_md.drop_ctl = 1;
             } else if (hdr.tev.kind == KIND_ACK) {
                 if (md.e_bad != 0) { passthrough_tev_forward(); }
@@ -750,27 +741,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
                 op_t0_arm.execute(0);
                 hold_operate();
             } else { unmatched(); }
-        } else if (ig_intr_md.ingress_port == 0) {
-            md.token_domain = (bit<32>)hdr.timer.app_id;
-            md.token_gen = (bit<32>)hdr.timer.batch_id;
-            if (md.token_domain == 1) {
-                // OPERATE domain token (app_id == 1)
-                md.op_gen = op_gen_peek.execute(0);
-                op_token_diff();
-                if (md.tok_diff != 0) { drop_timer_stale(); }
-                else { seed_op_blocker(); }
-            } else if (((bit<32>)hdr.timer.packet_id & 32w1) == 0) {
-                // READ domain token (app_id == 0); even packet_id -> ACK reservoir
-                read_token_diff();
-                if (md.tok_diff != 0) { drop_timer_stale(); }
-                else { seed_ack_blocker(); }
-            } else {
-                // READ domain token; odd packet_id -> response reservoir
-                read_token_diff();
-                if (md.tok_diff != 0) { drop_timer_stale(); }
-                else { seed_resp_blocker(); }
-            }
-        } else if (ig_intr_md.ingress_port == HELD_RETURN) {
+        } else if (ig_intr_md.ingress_port == 0) { unmatched(); } else if (ig_intr_md.ingress_port == HELD_RETURN) {
             md.resp_seen_mask = (bit<8>)mask_read.execute(0);
             held_offsets();
             compute_da_delta(); da_sign.apply();

@@ -1,0 +1,32 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(147): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(166): [--Wwarn=unused] warning: op_done_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_done_reg) op_done_read = {
+                                                          ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(169): [--Wwarn=unused] warning: op_done_try: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_done_reg) op_done_try = {
+                                                          ^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(176): [--Wwarn=unused] warning: op_t0_read: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(op_t0_reg) op_t0_read = {
+                                                        ^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(237): [--Wwarn=unused] warning: Table op_sign is not used; removing
+    table op_sign {
+          ^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(91): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'IngressParser' terminates
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                     ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/operate_slice_capture.p4(91)
+parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/probe_shell.p4(4): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 'EmptyEgressParser' terminates
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+                                                                         ^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/final4_capture_local/source/probe_shell.p4(4)
+parser EmptyEgressParser(packet_in pkt, out header_t hdr, out metadata_t md,
+       ^^^^^^^^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+
+0 errors, 9 warnings generated.
+
