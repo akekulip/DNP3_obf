@@ -1,0 +1,27 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name operate_slice_capture
+Binding with p4_name operate_slice_capture successful!!
+Received operate_slice_capture on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS first_op_gen_allocated             expected=1          observed=1
+PASS first_admitting_pass_is_one_blocker expected=1          observed=1
+PASS first_blocker_bytes                expected=True       observed=True
+PASS first_clone_admitted_exactly_once_as_held expected=1          observed=1
+PASS first_held_is_role16_gen_plus_pristine_original expected=True       observed=True
+PASS first_nothing_released_to_relay    expected=0          observed=0
+PASS first_op_t0_armed                  expected=True       observed=True
+PASS second_op_gen_allocated            expected=2          observed=2
+PASS second_admitting_pass_is_one_blocker expected=1          observed=1
+PASS second_blocker_bytes               expected=True       observed=True
+PASS second_clone_admitted_exactly_once_as_held expected=1          observed=1
+PASS second_held_is_role16_gen_plus_pristine_original expected=True       observed=True
+PASS second_nothing_released_to_relay   expected=0          observed=0
+PASS second_op_t0_armed                 expected=True       observed=True
+PASS off_passthrough_once_to_relay      expected=1          observed=1
+PASS off_relay_bytes_are_original       expected=True       observed=True
+PASS off_no_clone_no_blocker            expected=[0, 0]     observed=[0, 0]
+PASS off_op_gen_unchanged               expected=2          observed=2
+SUMMARY {'total': 19, 'passed': 19, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

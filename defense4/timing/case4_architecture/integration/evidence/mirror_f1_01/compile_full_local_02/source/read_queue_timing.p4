@@ -5,9 +5,8 @@
 // (integration/INTEGRATION_CONTRACT.md section 1; the heartbeat design is a correctness
 // reference only, never the base). Invariants (a)-(g): see
 // integration/read/tests/test_t_queue_invariants.py and
-// DNP3_Timing_Size_Integration_Prompt.md section 4, Phase C. The whole file still does not compile
-// (unresolved bf-p4c crash); what has been compiled and model-run is listed in
-// read/TIMING_QUEUE_MIGRATION_STATUS.md.
+// DNP3_Timing_Size_Integration_Prompt.md section 4, Phase C. Source-level (harness
+// interpreter) evidence only; no compile or model run performed by this revision of the file.
 #include <core.p4>
 #include <tna.p4>
 #include "ports.p4"

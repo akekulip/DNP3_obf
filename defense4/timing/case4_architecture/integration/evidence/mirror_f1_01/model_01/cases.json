@@ -1,0 +1,139 @@
+{
+ "cases": [
+  {
+   "expected": {},
+   "name": "ports_enabled",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "A_original_once_on_port1",
+   "observed": 1,
+   "ok": true,
+   "originals": [
+    "0d0001020a0b0c0dc8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e50000"
+   ]
+  },
+  {
+   "expected": true,
+   "name": "A_original_is_modified_image",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clones": [
+    "00010005000000050000abcd010000000c0000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5"
+   ],
+   "expected": 1,
+   "name": "A_clone_once_on_session_port",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "0x10005",
+   "name": "A_clone_tag_first_4_bytes",
+   "observed": "0x10005",
+   "ok": true
+  },
+  {
+   "clone_body": "000000050000abcd010000000c0000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5",
+   "expected": "recorded",
+   "name": "A_clone_body_kind",
+   "observed": "pristine",
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "A_clone_body_is_pristine_original",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "B_original_once_on_port1",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "B_nothing_on_capture_port",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": "recorded",
+   "frames": [],
+   "name": "B_frames_on_veth_of_324",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": [
+    0,
+    0,
+    1,
+    0
+   ],
+   "name": "B_clone_reentered_ingress_324_exactly_once",
+   "observed": [
+    0,
+    0,
+    1,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "expected": "0x10005",
+   "name": "B_parse_clone_tag",
+   "observed": "0x10005",
+   "ok": true
+  },
+  {
+   "expected": 12,
+   "name": "B_parse_clone_tev_kind_is_operate",
+   "observed": 12,
+   "ok": true,
+   "seen": {
+    "epoch": 5,
+    "eth_type": 34997,
+    "kind": 12,
+    "tag": 65541
+   }
+  },
+  {
+   "expected": 5,
+   "name": "B_parse_clone_tev_epoch",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": [
+    0,
+    0,
+    1,
+    0
+   ],
+   "name": "C_no_late_second_clone",
+   "observed": [
+    0,
+    0,
+    1,
+    0
+   ],
+   "ok": true
+  }
+ ],
+ "meta": {
+  "frame": "000000050000abcd010000000c0000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5",
+  "modified_original": "0d0001020a0b0c0dc8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5",
+  "tag": "0x10005"
+ },
+ "program": "mirror_probe",
+ "summary": {
+  "failed": [],
+  "passed": 15,
+  "total": 15
+ }
+}

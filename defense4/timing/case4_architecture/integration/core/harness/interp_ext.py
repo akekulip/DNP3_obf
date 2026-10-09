@@ -180,9 +180,11 @@ class ExtSource(PacketSource):
             self.width['m.' + name] = 9
         for name in re.findall(r'bool\s+(\w+);', meta):
             self.width['m.' + name] = 1
+        for name in re.findall(r'MirrorId_t\s+(\w+);', meta):   # bit<10> on Tofino-1 (tofino1_specs.p4)
+            self.width['m.' + name] = 10
         self.width.update(INTRINSIC)
         self.consts = {}
-        for match in re.finditer(r'const\s+PortId_t\s+(\w+)\s*=\s*(\d+)w(0[xX][0-9a-fA-F]+|\d+)\s*;', self.text):
+        for match in re.finditer(r'const\s+(?:PortId_t|MirrorId_t)\s+(\w+)\s*=\s*(\d+)w(0[xX][0-9a-fA-F]+|\d+)\s*;', self.text):
             self.consts[match[1]] = (int(match[3], 0), int(match[2]))
         for match in re.finditer(r'const\s+bit<(\d+)>\s+(\w+)\s*=\s*(0[xX][0-9a-fA-F]+|\d+)\s*;', self.text):
             self.consts[match[2]] = (int(match[3], 0), int(match[1]))

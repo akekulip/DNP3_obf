@@ -1,0 +1,23 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name mirror_probe
+Binding with p4_name mirror_probe successful!!
+Received mirror_probe on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS A_original_once_on_port1           expected=1          observed=1
+PASS A_original_is_modified_image       expected=True       observed=True
+PASS A_clone_once_on_session_port       expected=1          observed=1
+PASS A_clone_tag_first_4_bytes          expected=0x10005    observed=0x10005
+PASS A_clone_body_kind                  expected=recorded   observed=pristine
+PASS A_clone_body_is_pristine_original  expected=True       observed=True
+PASS B_original_once_on_port1           expected=1          observed=1
+PASS B_nothing_on_capture_port          expected=0          observed=0
+PASS B_frames_on_veth_of_324            expected=recorded   observed=0
+PASS B_clone_reentered_ingress_324_exactly_once expected=[0, 0, 1, 0] observed=[0, 0, 1, 0]
+PASS B_parse_clone_tag                  expected=0x10005    observed=0x10005
+PASS B_parse_clone_tev_kind_is_operate  expected=12         observed=12
+PASS B_parse_clone_tev_epoch            expected=5          observed=5
+PASS C_no_late_second_clone             expected=[0, 0, 1, 0] observed=[0, 0, 1, 0]
+SUMMARY {'total': 15, 'passed': 15, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

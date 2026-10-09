@@ -1,0 +1,150 @@
+{
+ "cases": [
+  {
+   "expected": {},
+   "name": "ports_enabled",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "first_op_gen_allocated",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "frames": [
+    "0d0000010003a980c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e50000"
+   ],
+   "name": "first_admitting_pass_is_one_blocker",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "first_blocker_bytes",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "frames": [
+    "10000001000000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5"
+   ],
+   "name": "first_clone_admitted_exactly_once_as_held",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "first_held_is_role16_gen_plus_pristine_original",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "first_nothing_released_to_relay",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "first_op_t0_armed",
+   "observed": true,
+   "ok": true,
+   "op_t0": 3881315329
+  },
+  {
+   "expected": 2,
+   "name": "second_op_gen_allocated",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "frames": [
+    "0d0000020003a980c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e50000"
+   ],
+   "name": "second_admitting_pass_is_one_blocker",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "second_blocker_bytes",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "frames": [
+    "10000002000000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5"
+   ],
+   "name": "second_clone_admitted_exactly_once_as_held",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "second_held_is_role16_gen_plus_pristine_original",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "second_nothing_released_to_relay",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "second_op_t0_armed",
+   "observed": true,
+   "ok": true,
+   "op_t0": 3472598017
+  },
+  {
+   "expected": 1,
+   "frames": [
+    "0a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5"
+   ],
+   "name": "off_passthrough_once_to_relay",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "off_relay_bytes_are_original",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": [
+    0,
+    0
+   ],
+   "name": "off_no_clone_no_blocker",
+   "observed": [
+    0,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "expected": 2,
+   "name": "off_op_gen_unchanged",
+   "observed": 2,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "operate": "000000050000abcd010000000c0000000a00000000020a000000000188b5c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5"
+ },
+ "program": "operate_slice_capture",
+ "summary": {
+  "failed": [],
+  "passed": 19,
+  "total": 19
+ }
+}
