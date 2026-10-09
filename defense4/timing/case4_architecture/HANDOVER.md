@@ -1,32 +1,37 @@
-# Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08, same day, four times)
+# Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08; T's status corrected same day)
 
 **Read first, in order:**
 1. [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md) — the decision record
    for the whole timing+size integration effort.
-2. [`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) — **Option B′ is built,
-   validated against the real pinned OpenDNP3 master/outstation, and CLEARED. This is the active pattern
-   as of 2026-10-08.** Options A (request-side qualifier `0x28`→`0x17` rewrite) and B (`case4_pad58.py`,
-   G41V2/qualifier-`0x27` filler) both failed the same real-master endpoint-compliance gate first — see
-   the document's history for why. Option B′ (`framework/size/case4_pad58b.py`) restricts the filler to
-   the pinned library's seven whitelisted qualifier codes: CONTROL's 19-byte gap closes with one G41V3
-   (32-bit float Analog Output Block) object at qualifier `0x28`, 2 points; READ's 9-byte gap closes with
-   three `ALL_OBJECTS`/qualifier-`0x06` headers (G41V1/V2/V3), no point data — the arithmetic-only
-   count=0 design this document originally floated for READ is **wrong** (`NumParser::ParseCount` rejects
-   a parsed count of zero, aborting the whole fragment exactly like `0x27` did), caught only by running
-   it, not by source review. Empirically confirmed twice (dispatching agent + an independent re-run in
-   this session, fresh output directory, same pinned commit): `62/62 assertions pass`; CONTROL gets a
-   real OPERATE and genuine SBO actuation; READ delivers all 23 real points; both roles recover cleanly
-   afterward. **This clears the software model only — Phase D's P4 realization of this exact filler is
-   unstarted, and nothing here says it fits the ASIC's own constraints.** Standing lesson, confirmed
-   three times today: no size candidate is done until it clears `endpoint_gate` against the real pinned
-   master/outstation — clean unit tests and clean byte arithmetic are necessary but not sufficient.
+2. [`integration/size/SELECTED_PATTERN.md`](integration/size/SELECTED_PATTERN.md) — **Option B′
+   (`framework/size/case4_pad58b.py`) is the active pattern, confirmed production-context compatible
+   against the real pinned OpenDNP3 master/outstation in the mocked endpoint-gate harness (no TCP
+   sockets).** Options A and B both failed the same gate first — see the document's history for why.
+   CONTROL's 19-byte gap closes with one G41V3 object at qualifier `0x28`, 2 points; READ's 9-byte gap
+   closes with three `ALL_OBJECTS`/qualifier-`0x06` headers, no point data. **An external review of the
+   commit that first reported this found the original 62-assertion gate's own key checks did not
+   actually require real data delivery** — the READ recovery assertion could pass even if the padded
+   response delivered zero points, by the test file's own admission. The gate has since been
+   strengthened and re-run to real completion: **165/165 assertions pass**, source-hashed at
+   `framework/size/endpoint_gate/context_evidence_pad58b_01/`. CONTROL gets a real OPERATE and a
+   software-counted actuation in the mock command handler (not a hardware measurement); READ delivers
+   all 23 real points. **This clears the software model only, in the mocked (no-sockets) harness — Phase
+   D's P4 realization is unstarted, no real-TCP-socket gate exists yet, and nothing here says it fits the
+   ASIC's own constraints.** Standing lesson: no size candidate is done until it clears `endpoint_gate`
+   with assertions that actually require what they claim — a passing summary count is not sufficient
+   either, as this same gate just demonstrated.
 3. [`integration/read/TIMING_QUEUE_MIGRATION_STATUS.md`](integration/read/TIMING_QUEUE_MIGRATION_STATUS.md)
-   — T's queue-resident timing role (`read_queue_timing.p4`): all 7 invariants pass, 18/18, at the
-   source-level interpreter. The real `bf-p4c` compile (both local SDK 9.13.1 and the switch's
-   installed 9.13.2, compile-only) hits a reproducible internal compiler crash in PHV allocation
-   (table placement itself succeeds at 8 of 12 stages) that four independent, substantive attempts
-   did not resolve — read the document before attempting a fifth; its own recommendation is to
-   bisect by register count or escalate, not to keep varying the P4 source the same way again.
+   — T's queue-resident timing role (`read_queue_timing.p4`). **An external review of the same commit
+   found three real gaps the original 18-test interpreter suite missed**: a missing `Mirror()` emission
+   (the interpreter synthesizes clone/blocker behavior the P4 doesn't implement — still open, queued
+   next), an OPERATE deadline that was reused across generations (**fixed**, one-line change, 133 tests
+   now, 132 passing + 1 new expected failure for a separate, lower-severity RESET-near-clock-wrap defect
+   found as a byproduct), and a `wgen` field parsed but never read (**investigated and found to need no
+   fix** — N's real implementation already prevents a stale response from reaching T through the real
+   path; this trust boundary is now pinned by an explicit test rather than assumed). The real `bf-p4c`
+   compile (both local SDK 9.13.1 and the switch's installed 9.13.2, compile-only) still hits the same
+   reproducible internal compiler crash in PHV allocation — five independent attempts now, including
+   today's OPERATE fix, none changed the signature at all. Read the document before attempting a sixth.
 
 **Separately, read [`integration/core/M_RECIRCULATION_VERDICT.md`](integration/core/M_RECIRCULATION_VERDICT.md).**
 M's extended ACK/window mapper does not fit in 12 ingress stages. Eight compiler-verified attempts

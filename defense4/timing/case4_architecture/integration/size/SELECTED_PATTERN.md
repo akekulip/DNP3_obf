@@ -1,8 +1,23 @@
 # Selected common size pattern — Phase B decision
 
-**UPDATE 2026-10-08, still later the same day: Option B′ is built, validated against the real pinned
-OpenDNP3 master/outstation, and CLEARED. This is now the active pattern.** Read this update first; it
-supersedes both updates below, which are kept for the record of why A and B each failed.
+**UPDATE 2026-10-08, after an external review of the commit that first reported this: the "CLEARED"
+verdict below was real but overstated.** An external review of commit `5e848351c` found, and this session
+confirmed by direct inspection, that `TestCase4Pad58B.cpp`'s own key assertions did not actually require
+what they were reported as showing — the READ recovery check could pass even if the padded response
+delivered zero real points (the test file's own comment admitted this), and the CONTROL test discarded the
+padded transaction's own master-visible result before asserting anything. The gate has since been
+strengthened (per-index point/flag checks on the READ leg; the padded CONTROL transaction's own task
+result required before being discarded; command-handler call-count checks) and re-run to real completion:
+**all 165 assertions pass** (up from 62), with a fresh, source-hashed evidence manifest at
+`defense4/timing/framework/size/endpoint_gate/context_evidence_pad58b_01/` — the "62/62" claim below had
+no such artifact behind it. The underlying result — CONTROL gets a real OPERATE and a software-counted
+actuation in the mock command handler (`physicalActuations`, `DecoyGateCommandHandler.h` — **not** a
+hardware measurement); READ delivers all 23 real points — now holds under the strengthened assertions, not
+just the weaker ones that could not have detected its absence. Scope it precisely:
+**production-context compatible in the mocked `MasterTestFixture`/`MockLowerLayer`/`MockExecutor` harness,
+no TCP sockets** — `run.py --pad58b` is hard-incompatible with `--sockets`; no real-socket gate has ever
+run this codec. Read this update first; it supersedes both updates below, which are kept for the record
+of why A and B each failed.
 
 **What Option B′ is:** a filler restricted to the pinned library's seven implemented qualifier codes
 (`0x00, 0x01, 0x06, 0x07, 0x08, 0x17, 0x28`), built as a new sibling codec

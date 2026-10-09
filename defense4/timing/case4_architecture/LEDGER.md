@@ -1255,3 +1255,45 @@ The checkpoint preserves exact failures, repairs and remaining dependency order.
   themselves being "inert" (not interpretable as a meaningful command by whatever the real
   master/outstation eventually runs in production) is an externally verified prerequisite this codec
   cannot establish on its own, per its own docstring.
+
+- 2026-10-08 (external review, same day) An independent review of commit `5e848351c` found six real
+  findings, all confirmed this session by direct inspection and live reproduction before acting on any
+  of them: (F1) `read_queue_timing.p4` sets mirror metadata but never emits a real `Mirror()` clone —
+  the interpreter's `queue_sim.py` synthesizes the clone+blocker-token behavior in Python, standing in
+  for hardware the P4 doesn't implement; still open, queued next. (F2) `op_t0_arm` only armed once per
+  register lifetime, so a second OPERATE without an intervening RESET inherited the first operation's
+  deadline (reproduced: released 399,808ns early) — **fixed**, a one-line change (remove the
+  `if (value == 0)` guard), with RESET's own clears left untouched (a previous, rejected draft of this
+  fix removed them too and was shown, via a direct measurement Philip ran himself in a temporary copy,
+  to regress RESET-triggered flush timing from 150µs to 570µs). (F3) `hdr.tev.wgen` parsed but never
+  read, originally diagnosed via a synthetic T_IN injection as allowing a stale response to satisfy a
+  newer request's ACK gate — **investigated and found to need no fix**: reading N's real implementation
+  (`n.p4`, `native_binding.p4`) and replaying N's own real output bytes (not synthetic events) through
+  `QueueSim` showed N's own admission guarantees already prevent a stale response from reaching T in the
+  real path; a literal `wgen`-equality fix (an earlier, rejected proposal) would have rejected legitimate
+  traffic, since N allocates a new `wgen` per packet-processing operation, not per transaction. This
+  trust boundary (T trusts N's filtering; T has no independent check) is now pinned by an explicit test
+  (`H_NRealisticAssociation`) instead of being an unstated assumption. OPERATE duplicate-detection was
+  investigated for the same reason and found not reachable today — nothing in the real N implementation
+  sends OPERATE events to T's input port. (F4) the B′ endpoint gate's own key assertions did not require
+  what they claimed to show (its own comment admitted the READ recovery check "passes regardless") —
+  **fixed**, strengthened to 165/165 assertions with a real evidence manifest
+  (`endpoint_gate/context_evidence_pad58b_01/`). (F5/F6) `OPTION_B_FEASIBILITY.md` and
+  `extract_inventory_v2.py` both overclaim capabilities their own code doesn't have — wording corrected
+  in place, no logic change (see those files' own updated docstrings/comments for the exact correction).
+
+  A byproduct of F2's fix: adding a timestamp-wrap regression test surfaced a new, previously-undiscovered,
+  lower-severity defect — RESET's fast-flush of a held OPERATE assumes a cleared `op_t0` reads as
+  trivially overdue, which breaks when the 32-bit quantized clock is in its upper half at RESET time,
+  making the flush late (870µs–2.15s), never early. Recorded as `expectedFailure`
+  (`test_reset_flush_near_the_clock_wrap`), not fixed — redesigning the RESET path is a separate decision.
+
+  Full suites green throughout: `integration/read/tests` 133 (132 passing + 1 expected failure, up from
+  18), root `tests` 33, `connection/binding` 85 (590,976 differential cases), `controller` 17,
+  `core/harness` 42. Real `bf-p4c` compile on both SDKs after the F2 fix: identical, unchanged crash
+  signature — a fifth independent confirmation that small logic changes within existing registers do not
+  move the PHV-allocation crash at all.
+
+  SELECTED_PATTERN.md, selected_pattern.json, and HANDOVER.md updated to replace the unqualified
+  "CLEARED"/"62/62 assertions"/"genuine SBO actuation" language with the strengthened, precisely-scoped
+  result above; TIMING_QUEUE_MIGRATION_STATUS.md updated with the corrected F1/F2/F3 picture.

@@ -51,13 +51,29 @@ Empirical result on this corpus (see DISTRIBUTION_AND_PATTERN_ANALYSIS.md
 "Repaired-extractor corpus-deficiency findings"): a length-aware full-corpus scan
 of base/long/multicrob finds ZERO genuine coalesced segments, ZERO genuine
 cross-segment splits, and ZERO continuation (FIR=0) transport segments. The three
-repairs are implemented and exercised by `test_pattern_builder_v2.py`, but they do
+repairs are implemented in this file (`extract_raw`/`walk_frames`) and exercised
+by this project's existing pcap corpus via DISTRIBUTION_AND_PATTERN_ANALYSIS.md's
+own re-run (no separate `test_pattern_builder_v2.py` exists — a prior version of
+this comment referenced one that was never created); they do
 not change a single record's classification on this corpus — the v1.1 numbers in
 SIZE_PATTERN_BUILDER_REPORT.md are reproduced byte-for-byte (verified below), and
 the 4 "unknown"-with-payload records v1.1 already flagged are confirmed to be
 zero-filled, non-DNP3 teardown bytes attached to RST segments at connection close
 (not a mis-extracted DNP3 continuation) — v1.1's "unknown (correct, not misparsed)"
 characterization holds, not an uncaught bug.
+
+**2026-10-08 scope-limit correction, confirmed by external review:** the three
+repairs above do not make this general per-flow, sequence-aware TCP reassembly.
+The per-direction reassembly buffers (`buf['out']`/`buf['in']` in `extract_raw`)
+are keyed by direction only, for the WHOLE capture file — not per-connection or
+per-5-tuple — even though a 5-tuple-equivalent `flow` string is already computed
+per packet and available to key on. This extractor is correct for simple,
+single-connection, non-overlapping, non-reordered captures only (which is what
+this project's corpus consists of); it will silently interleave bytes from
+concurrent connections sharing a direction if ever run against a multi-connection
+capture, and it does not use TCP sequence numbers to place, deduplicate, or
+reconcile bytes before frame parsing. Treat "repaired" above as scoped to the
+three named deficiencies on this corpus, not as general reassembly correctness.
 
 Usage identical to v1.1:
   $RESEARCH_PYTHON extract_inventory_v2.py --scope base

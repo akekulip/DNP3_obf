@@ -81,6 +81,18 @@ implemented yet:
 Path 1 is the one worth attempting first: it is a smaller hardware problem than the general SELECT/OPERATE
 ledger, not a larger one, precisely because every READ insertion is the same fixed size.
 
+**2026-10-08 correction, confirmed by external review and verified against this project's own transport
+model:** the single-counter sketch above is necessary but not sufficient. It tracks only the cumulative
+byte offset, not which exact bytes were already rewritten at each point in the stream. It does not by
+itself account for (a) retransmissions of an already-padded response needing byte-for-byte identical
+replay (not re-padding) of what the real master already received once, (b) a partial ACK that leaves a
+padded response only partly acknowledged, forcing the mapper to resume mid-insertion, or (c) either
+receive-window edge capping how much of a padded response is reachable at a given moment. A sound design
+needs a full per-connection transport-sequence state machine tracking inserted-byte regions by absolute
+sequence number — the same class of model `case4_transport.py`'s existing `RequestLedger`/`Image`/`Forward`
+already implements in bounded form for the one-shot SBO case — not a single scalar counter. Treat this as
+a first-pass sketch, not a sufficient design, before any P4 realization is attempted.
+
 ## What this means for the combined Option B mechanism
 
 - **Carve/PRE machinery is not needed at all under Option B** (no splitting) — this removes the RID-driven
