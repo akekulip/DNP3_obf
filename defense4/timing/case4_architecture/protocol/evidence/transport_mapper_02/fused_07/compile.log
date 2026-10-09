@@ -1,0 +1,33 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(139): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ig) {
+                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(139)
+parser IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ig) {
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(155): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(155)
+parser EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(231): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(231): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_07/source/case4_response_path.p4(460): warning: table Egress.sfx_fix_t: In the ALU operation over container B43 in action Egress.sfx_fix, the alignment of fields within the container renders the action impossible Container Action : not
+  Field Actions : not ActionParam: egress::m.sfx_b[15:8];, type: PHV, speciality: NO_SPECIAL, is cond: 0, ActionParam: hash_dist($hash0((egress::m.sfx_a[7:0] ++ egress::m.sfx_a[15:8])))[15:8];, type: ACTIONDATA, speciality: HASH_DIST, is cond: 0; 
+  Error_code: 20 - [  IMPOSSIBLE_ALIGNMENT ]
+  Convert to [ Bitmasked Set : 0 Deposit Field : 0 Byte Rotate Merge : 0 ]
+  Action Data [ HASH_DIST: 1 METER COLOR: 0 RANDOM: 0 METER_ALU: 0 STFUL_COUNTER: 0 ]
+  Total Overwrite Possible: N Deposit Field Variant: N Implicit [ SRC1: N SRC2: N ] Impossible: N Unhandled Action: N Constant To AD: N
+    table sfx_fix_t{actions={sfx_fix;}size=1;const default_action=sfx_fix();}
+          ^^^^^^^^^
+error: PHV allocation creates an invalid container action within a Tofino ALU
+
+1 error, 7 warnings generated.
+
+Skipping assembler, assembly file is empty

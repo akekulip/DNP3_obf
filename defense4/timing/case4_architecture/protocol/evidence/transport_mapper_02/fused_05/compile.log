@@ -1,0 +1,23 @@
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(85): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+parser IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ig) {
+                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(85)
+parser IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ig) {
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(101): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                             ^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(101)
+parser EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(174): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_05/source/case4_response_path.p4(174): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 6 warnings generated.
+

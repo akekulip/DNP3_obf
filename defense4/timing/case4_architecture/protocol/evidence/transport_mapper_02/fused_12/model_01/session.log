@@ -1,0 +1,173 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_response_path
+Binding with p4_name case4_response_path successful!!
+Received case4_response_path on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS master_SYN                         expected=frame      observed=frame
+PASS master_SYN_outcome                 expected={12: 1}    observed={12: 1}
+PASS outstation_SYNACK_mss_only_arms    expected=frame      observed=frame
+PASS outstation_SYNACK_mss_only_arms_outcome expected={13: 1}    observed={13: 1}
+PASS master_handshake_ACK               expected=frame      observed=frame
+PASS master_handshake_ACK_outcome       expected={9: 1}     observed={9: 1}
+PASS request_0                          expected=frame      observed=frame
+PASS request_0_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_0                         expected=frame      observed=frame
+PASS response_0_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_0                     expected=frame      observed=frame
+PASS spurious_rto_0_outcome             expected={4: 1}     observed={4: 1}
+PASS request_1                          expected=frame      observed=frame
+PASS request_1_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_1                         expected=frame      observed=frame
+PASS response_1_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_1                     expected=frame      observed=frame
+PASS spurious_rto_1_outcome             expected={4: 1}     observed={4: 1}
+PASS request_2                          expected=frame      observed=frame
+PASS request_2_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_2                         expected=frame      observed=frame
+PASS response_2_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_2                     expected=frame      observed=frame
+PASS spurious_rto_2_outcome             expected={4: 1}     observed={4: 1}
+PASS request_3                          expected=frame      observed=frame
+PASS request_3_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_3                         expected=frame      observed=frame
+PASS response_3_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_3                     expected=frame      observed=frame
+PASS spurious_rto_3_outcome             expected={4: 1}     observed={4: 1}
+PASS request_4                          expected=frame      observed=frame
+PASS request_4_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_4                         expected=frame      observed=frame
+PASS response_4_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_4                     expected=frame      observed=frame
+PASS spurious_rto_4_outcome             expected={4: 1}     observed={4: 1}
+PASS request_5                          expected=frame      observed=frame
+PASS request_5_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_5                         expected=frame      observed=frame
+PASS response_5_outcome                 expected={1: 1}     observed={1: 1}
+PASS spurious_rto_5                     expected=frame      observed=frame
+PASS spurious_rto_5_outcome             expected={4: 1}     observed={4: 1}
+PASS P1_exactly_once_commits            expected=['commit', 'commit', 'commit', 'commit', 'commit', 'commit'] observed=['commit', 'commit', 'commit', 'commit', 'commit', 'commit']
+PASS P2_spurious_copies_replay_at_committed_seq expected=[(4294967169, True), (4294967227, True), (4294967285, True), (47, True), (105, True), (163, True)] observed=[(4294967169, True), (4294967227, True), (4294967285, True), (47, True), (105, True), (163, True)]
+PASS ack_all_1                          expected=frame      observed=frame
+PASS ack_all_1_outcome                  expected={9: 1}     observed={9: 1}
+PASS request_6                          expected=frame      observed=frame
+PASS request_6_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_6_lost                    expected=frame      observed=frame
+PASS response_6_lost_outcome            expected={1: 1}     observed={1: 1}
+PASS dup_ack_at_image_start             expected=frame      observed=frame
+PASS dup_ack_at_image_start_outcome     expected={10: 1}    observed={10: 1}
+PASS rto_after_loss                     expected=frame      observed=frame
+PASS rto_after_loss_outcome             expected={4: 1}     observed={4: 1}
+PASS P2_lost_image_replayed_identically expected=[(221, True, 'replay')] observed=[(221, True, 'replay')]
+PASS ack_after_replay                   expected=frame      observed=frame
+PASS ack_after_replay_outcome           expected={9: 1}     observed={9: 1}
+PASS request_read_partial_30            expected=frame      observed=frame
+PASS request_read_partial_30_outcome    expected={9: 1}     observed={9: 1}
+PASS read_partial_30                    expected=frame      observed=frame
+PASS read_partial_30_outcome            expected={1: 1}     observed={1: 1}
+PASS read_partial_30_ack_zero_window    expected=frame      observed=frame
+PASS read_partial_30_ack_zero_window_outcome expected={10: 1}    observed={10: 1}
+PASS read_partial_30_ack_window_65535   expected=frame      observed=frame
+PASS read_partial_30_ack_window_65535_outcome expected={10: 1}    observed={10: 1}
+PASS read_partial_30_rto                expected=frame      observed=frame
+PASS read_partial_30_rto_outcome        expected={4: 1}     observed={4: 1}
+PASS read_partial_30_final_ack          expected=frame      observed=frame
+PASS read_partial_30_final_ack_outcome  expected={9: 1}     observed={9: 1}
+PASS P3_read_partial_30_not_stranded    expected=['withhold', 'withhold', 'replay', 'translate', True] observed=['withhold', 'withhold', 'replay', 'translate', True]
+PASS request_control_partial_tail_45    expected=frame      observed=frame
+PASS request_control_partial_tail_45_outcome expected={9: 1}     observed={9: 1}
+PASS control_partial_tail_45            expected=frame      observed=frame
+PASS control_partial_tail_45_outcome    expected={1: 1}     observed={1: 1}
+PASS control_partial_tail_45_ack_zero_window expected=frame      observed=frame
+PASS control_partial_tail_45_ack_zero_window_outcome expected={10: 1}    observed={10: 1}
+PASS control_partial_tail_45_ack_window_65535 expected=frame      observed=frame
+PASS control_partial_tail_45_ack_window_65535_outcome expected={10: 1}    observed={10: 1}
+PASS control_partial_tail_45_rto        expected=frame      observed=frame
+PASS control_partial_tail_45_rto_outcome expected={4: 1}     observed={4: 1}
+PASS control_partial_tail_45_final_ack  expected=frame      observed=frame
+PASS control_partial_tail_45_final_ack_outcome expected={9: 1}     observed={9: 1}
+PASS P3_control_partial_tail_45_not_stranded expected=['withhold', 'withhold', 'replay', 'translate', True] observed=['withhold', 'withhold', 'replay', 'translate', True]
+PASS request_9                          expected=frame      observed=frame
+PASS request_9_outcome                  expected={9: 1}     observed={9: 1}
+PASS response_9_commit                  expected=frame      observed=frame
+PASS response_9_commit_outcome          expected={1: 1}     observed={1: 1}
+PASS response_10_refused                expected=frame      observed=frame
+PASS response_10_refused_outcome        expected={2: 1}     observed={2: 1}
+PASS refused_response_is_native         expected=translate  observed=translate
+PASS ack_both                           expected=frame      observed=frame
+PASS ack_both_outcome                   expected={9: 1}     observed={9: 1}
+PASS request_11                         expected=frame      observed=frame
+PASS request_11_outcome                 expected={9: 1}     observed={9: 1}
+PASS response_11_commit_lost            expected=frame      observed=frame
+PASS response_11_commit_lost_outcome    expected={1: 1}     observed={1: 1}
+PASS response_12_refused_lost           expected=frame      observed=frame
+PASS response_12_refused_lost_outcome   expected={2: 1}     observed={2: 1}
+PASS dup_ack_before_merge               expected=frame      observed=frame
+PASS dup_ack_before_merge_outcome       expected={10: 1}    observed={10: 1}
+PASS merged_rto                         expected=dropped    observed=dropped
+PASS merged_rto_outcome                 expected={15: 1}    observed={15: 1}
+PASS merged_retransmission_with_suffix_dropped_and_counted expected=[('drop_merged', False)] observed=[('drop_merged', False)]
+PASS plain_rto_after_merge              expected=frame      observed=frame
+PASS plain_rto_after_merge_outcome      expected={4: 1}     observed={4: 1}
+PASS plain_rto_after_merge              expected=frame      observed=frame
+PASS plain_rto_after_merge_outcome      expected={2: 1}     observed={2: 1}
+PASS plain_copies_after_merge_replay_then_translate expected=['replay', 'translate'] observed=['replay', 'translate']
+PASS ack_after_merge                    expected=frame      observed=frame
+PASS ack_after_merge_outcome            expected={9: 1}     observed={9: 1}
+PASS request_13                         expected=frame      observed=frame
+PASS request_13_outcome                 expected={9: 1}     observed={9: 1}
+PASS response_13_commit_lost            expected=frame      observed=frame
+PASS response_13_commit_lost_outcome    expected={1: 1}     observed={1: 1}
+PASS dup_ack_before_fin                 expected=frame      observed=frame
+PASS dup_ack_before_fin_outcome         expected={10: 1}    observed={10: 1}
+PASS fin_whole_frame_rto                expected=frame      observed=frame
+PASS fin_whole_frame_rto_outcome        expected={4: 1}     observed={4: 1}
+PASS fin_whole_frame_retransmission_replays expected=[('replay', True)] observed=[('replay', True)]
+PASS ack_after_fin_copy                 expected=frame      observed=frame
+PASS ack_after_fin_copy_outcome         expected={9: 1}     observed={9: 1}
+PASS request_14                         expected=frame      observed=frame
+PASS request_14_outcome                 expected={9: 1}     observed={9: 1}
+PASS crc_invalid_response_native        expected=frame      observed=frame
+PASS crc_invalid_response_native_outcome expected={2: 1}     observed={2: 1}
+PASS crc_invalid_never_committed        expected=('translate', False) observed=('translate', False)
+PASS ack_crc_invalid                    expected=frame      observed=frame
+PASS ack_crc_invalid_outcome            expected={9: 1}     observed={9: 1}
+PASS request_15                         expected=frame      observed=frame
+PASS request_15_outcome                 expected={9: 1}     observed={9: 1}
+PASS response_15_commit_lost            expected=frame      observed=frame
+PASS response_15_commit_lost_outcome    expected={1: 1}     observed={1: 1}
+PASS crc_invalid_replay_dropped         expected=dropped    observed=dropped
+PASS crc_invalid_replay_dropped_outcome expected={6: 1}     observed={6: 1}
+PASS crc_invalid_replay_dropped         expected=drop_overlap observed=drop_overlap
+PASS response_15_rto                    expected=frame      observed=frame
+PASS response_15_rto_outcome            expected={4: 1}     observed={4: 1}
+PASS good_replay_after_corrupt_copy     expected=[(716, True)] observed=[(716, True)]
+PASS ack_after_15                       expected=frame      observed=frame
+PASS ack_after_15_outcome               expected={9: 1}     observed={9: 1}
+PASS tcp_offset6_on_mapped_drop         expected=dropped    observed=dropped
+PASS tcp_offset6_on_mapped_drop_outcome expected={8: 1}     observed={8: 1}
+PASS unconfigured_flow_eligible_frame_untouched expected=frame      observed=frame
+PASS unconfigured_flow_eligible_frame_untouched_outcome expected={0: 1}     observed={0: 1}
+PASS keepalive_zero                     expected=frame      observed=frame
+PASS keepalive_zero_outcome             expected={3: 1}     observed={3: 1}
+PASS overlap_drop                       expected=dropped    observed=dropped
+PASS overlap_drop_outcome               expected={6: 1}     observed={6: 1}
+PASS ahead_drop                         expected=dropped    observed=dropped
+PASS ahead_drop_outcome                 expected={7: 1}     observed={7: 1}
+PASS tcp_options_on_mapped_drop         expected=dropped    observed=dropped
+PASS tcp_options_on_mapped_drop_outcome expected={8: 1}     observed={8: 1}
+PASS stale_ack_drop                     expected=dropped    observed=dropped
+PASS stale_ack_drop_outcome             expected={11: 1}    observed={11: 1}
+PASS fin_translated                     expected=frame      observed=frame
+PASS fin_translated_outcome             expected={2: 1}     observed={2: 1}
+PASS registers_match_software_model     expected={'mode': 1, 'front': 610, 'acct.lo': 775, 'acct.hi': 201, 'img_end': 609, 'img_start': 560, 'img_wend': 774} observed={'mode': 1, 'front': 610, 'acct.lo': 775, 'acct.hi': 201, 'img_end': 609, 'img_start': 560, 'img_wend': 774}
+PASS SYNACK_with_wscale_stays_native    expected=frame      observed=frame
+PASS SYNACK_with_wscale_stays_native_outcome expected={14: 1}    observed={14: 1}
+PASS native_mode_eligible_response_untouched expected=frame      observed=frame
+PASS native_mode_eligible_response_untouched_outcome expected={12: 1}    observed={12: 1}
+PASS native_mode_never_pads             expected=('passthrough', False) observed=('passthrough', False)
+PASS cp_remove_then_reinstall_on_bfrt   expected=True       observed=True
+PASS cp_same_host_pair_reconnect_refused_without_writes expected=True       observed=True
+SUMMARY {'total': 165, 'passed': 165, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

@@ -1,0 +1,91 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "42849927f4521d94d742770207aaccc3783e23a46a38fdd465cb68d207f1a0d4",
+    "case4_response_path.conf": "8caf53bfb936a74d50224fced8b728c974fb8ba32578d040dd0b0a6afee09641",
+    "manifest.json": "49c2952febd6c7e03ca7de9cd47d9e92f078ed13b5192b1e9541dcbddf93cdc6",
+    "pipe/case4_response_path.bfa": "0fffbab5b60155708b2b0ae91bce754bda9c3a5f04d5d223427800fe0efc8679",
+    "pipe/context.json": "442ef4e82921c24bdae714db424c102dc9ff8ea9d1640bac980e24057bbe7596",
+    "pipe/tofino.bin": "36578896fde91d3b4a344497dfbca9fae71752743e83265e4615aeb1bb8f44cf"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/transport_mapper_02/fused_01/source/case4_response_path.p4"
+  ],
+  "compile_log_sha256": "7ef814af32577994be802a83369fd51026b04632dad71e437d99889f687abe0b",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 10.349,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 10,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "3f796ebede069e1e0119d9367b942cc99228a3e69b8fb4504fc25686a11c20b7",
+      "pipe/logs/phv.json": "cc76379fc2bc05ff57fd5c6cfe8f41feefbb0de2a44f7b7eaae6aad8ec974fb1",
+      "pipe/logs/phv_allocation_0.log": "bd9c1573ad088fbce80a4df85cf14ad0aa61ffc29682ec6f26ee9b9a85e9201f",
+      "pipe/logs/phv_allocation_history_0.log": "ce2a1061b225529856d64b5c1fabced7f4103abe119ebbd7f122fb231ad09794",
+      "pipe/logs/phv_allocation_summary_0.log": "631d3a2dc3b98c5f8f1ae0e612fb10ea19180497dded9573501b310c49b1e81b",
+      "pipe/logs/table_dependency_graph.log": "c3389c5ddce30a8cf3b22c9c254eae67e5db06cf1d4d5c58a55cd76786f7b6a8",
+      "pipe/logs/table_dependency_summary.log": "9bb569d6cf6d677329afa8a80156451291243399e4e11fe376af13889159277d",
+      "pipe/logs/table_summary.log": "1bc30a357abdffb75c0ee868cc071d0a91a992276c4e45f0c3605bf2dc19bc01"
+    },
+    "stages": {
+      "egress": 11,
+      "ingress": 1
+    },
+    "stateful_tables": [
+      {
+        "direction": "egress",
+        "name": "Egress.front",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.mode",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.acct",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.img_start",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.img_end",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "Egress.img_wend",
+        "size": 16
+      }
+    ],
+    "tables_by_type": {
+      "action": 4,
+      "condition": 29,
+      "match": 47,
+      "stateful": 6,
+      "statistics": 1
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/case4_response_path.p4",
+  "source_files": {
+    "case4_response_path.p4": "32dd4faa0d27536ef99a787d6ee7c52e077c3b4cc427aa55d6246983cad65ff7"
+  },
+  "source_sha256": "32dd4faa0d27536ef99a787d6ee7c52e077c3b4cc427aa55d6246983cad65ff7",
+  "timeout_seconds": 300
+}
