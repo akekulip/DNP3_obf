@@ -1,0 +1,737 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_pad58b_carve28_30
+Binding with p4_name case4_pad58b_carve28_30 successful!!
+Received case4_pad58b_carve28_30 on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS pre_group_node_order               expected=recorded   observed=recorded
+PASS oracle_read_native_49              expected=49         observed=49
+PASS oracle_ctl_native_37               expected=37         observed=37
+PASS oracle_read_padded_58              expected=58         observed=58
+PASS oracle_ctl_padded_58               expected=58         observed=58
+PASS oracle_read_padded_frame_ok        expected=True       observed=True
+PASS oracle_read_cut28_on_crc_boundary  expected=True       observed=True
+PASS oracle_ctl_padded_frame_ok         expected=True       observed=True
+PASS oracle_ctl_cut28_on_crc_boundary   expected=True       observed=True
+PASS read_split_two_frames              expected=2          observed=2
+PASS read_split_prefix_byte_identical   expected=1          observed=1
+PASS read_split_suffix_byte_identical   expected=1          observed=1
+PASS read_split_no_other_frame          expected=0          observed=0
+PASS read_split_seq_numbers             expected=[286331153, 286331181] observed=[286331153, 286331181]
+PASS read_split_payload_sizes           expected=[28, 30]   observed=[28, 30]
+PASS read_split_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_ip_total_lengths        expected=[68, 70]   observed=[68, 70]
+PASS read_split_ip_checksums_valid      expected=[True, True] observed=[True, True]
+PASS read_split_tcp_checksums_valid     expected=[True, True] observed=[True, True]
+PASS read_split_flags                   expected=[16, 24]   observed=[16, 24]
+PASS read_split_ack_and_ip_id_kept      expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_prefix_crcs_intact      expected=True       observed=True
+PASS read_split_suffix_crcs_intact      expected=True       observed=True
+PASS read_split_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_ack_only_two_frames     expected=2          observed=2
+PASS read_split_ack_only_prefix_byte_identical expected=1          observed=1
+PASS read_split_ack_only_suffix_byte_identical expected=1          observed=1
+PASS read_split_ack_only_no_other_frame expected=0          observed=0
+PASS read_split_ack_only_seq_numbers    expected=[286331153, 286331181] observed=[286331153, 286331181]
+PASS read_split_ack_only_payload_sizes  expected=[28, 30]   observed=[28, 30]
+PASS read_split_ack_only_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_ack_only_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_ack_only_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_ack_only_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_ack_only_flags          expected=[16, 16]   observed=[16, 16]
+PASS read_split_ack_only_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_ack_only_prefix_crcs_intact expected=True       observed=True
+PASS read_split_ack_only_suffix_crcs_intact expected=True       observed=True
+PASS read_split_ack_only_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_seq_wrap_two_frames     expected=2          observed=2
+PASS read_split_seq_wrap_prefix_byte_identical expected=1          observed=1
+PASS read_split_seq_wrap_suffix_byte_identical expected=1          observed=1
+PASS read_split_seq_wrap_no_other_frame expected=0          observed=0
+PASS read_split_seq_wrap_seq_numbers    expected=[4294967280, 12] observed=[4294967280, 12]
+PASS read_split_seq_wrap_payload_sizes  expected=[28, 30]   observed=[28, 30]
+PASS read_split_seq_wrap_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_seq_wrap_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_seq_wrap_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_seq_wrap_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_seq_wrap_flags          expected=[16, 24]   observed=[16, 24]
+PASS read_split_seq_wrap_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_seq_wrap_prefix_crcs_intact expected=True       observed=True
+PASS read_split_seq_wrap_suffix_crcs_intact expected=True       observed=True
+PASS read_split_seq_wrap_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial00_two_frames expected=2          observed=2
+PASS read_split_order_trial00_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial00_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial00_no_other_frame expected=0          observed=0
+PASS read_split_order_trial00_seq_numbers expected=[805306368, 805306396] observed=[805306368, 805306396]
+PASS read_split_order_trial00_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial00_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial00_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial00_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial00_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial00_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial00_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial00_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial00_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial00_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial01_two_frames expected=2          observed=2
+PASS read_split_order_trial01_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial01_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial01_no_other_frame expected=0          observed=0
+PASS read_split_order_trial01_seq_numbers expected=[805310464, 805310492] observed=[805310464, 805310492]
+PASS read_split_order_trial01_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial01_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial01_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial01_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial01_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial01_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial01_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial01_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial01_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial01_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial02_two_frames expected=2          observed=2
+PASS read_split_order_trial02_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial02_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial02_no_other_frame expected=0          observed=0
+PASS read_split_order_trial02_seq_numbers expected=[805314560, 805314588] observed=[805314560, 805314588]
+PASS read_split_order_trial02_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial02_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial02_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial02_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial02_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial02_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial02_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial02_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial02_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial02_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial03_two_frames expected=2          observed=2
+PASS read_split_order_trial03_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial03_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial03_no_other_frame expected=0          observed=0
+PASS read_split_order_trial03_seq_numbers expected=[805318656, 805318684] observed=[805318656, 805318684]
+PASS read_split_order_trial03_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial03_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial03_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial03_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial03_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial03_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial03_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial03_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial03_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial03_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial04_two_frames expected=2          observed=2
+PASS read_split_order_trial04_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial04_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial04_no_other_frame expected=0          observed=0
+PASS read_split_order_trial04_seq_numbers expected=[805322752, 805322780] observed=[805322752, 805322780]
+PASS read_split_order_trial04_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial04_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial04_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial04_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial04_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial04_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial04_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial04_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial04_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial04_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial05_two_frames expected=2          observed=2
+PASS read_split_order_trial05_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial05_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial05_no_other_frame expected=0          observed=0
+PASS read_split_order_trial05_seq_numbers expected=[805326848, 805326876] observed=[805326848, 805326876]
+PASS read_split_order_trial05_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial05_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial05_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial05_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial05_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial05_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial05_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial05_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial05_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial05_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial06_two_frames expected=2          observed=2
+PASS read_split_order_trial06_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial06_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial06_no_other_frame expected=0          observed=0
+PASS read_split_order_trial06_seq_numbers expected=[805330944, 805330972] observed=[805330944, 805330972]
+PASS read_split_order_trial06_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial06_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial06_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial06_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial06_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial06_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial06_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial06_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial06_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial06_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial07_two_frames expected=2          observed=2
+PASS read_split_order_trial07_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial07_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial07_no_other_frame expected=0          observed=0
+PASS read_split_order_trial07_seq_numbers expected=[805335040, 805335068] observed=[805335040, 805335068]
+PASS read_split_order_trial07_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial07_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial07_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial07_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial07_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial07_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial07_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial07_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial07_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial07_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial08_two_frames expected=2          observed=2
+PASS read_split_order_trial08_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial08_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial08_no_other_frame expected=0          observed=0
+PASS read_split_order_trial08_seq_numbers expected=[805339136, 805339164] observed=[805339136, 805339164]
+PASS read_split_order_trial08_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial08_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial08_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial08_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial08_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial08_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial08_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial08_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial08_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial08_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial09_two_frames expected=2          observed=2
+PASS read_split_order_trial09_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial09_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial09_no_other_frame expected=0          observed=0
+PASS read_split_order_trial09_seq_numbers expected=[805343232, 805343260] observed=[805343232, 805343260]
+PASS read_split_order_trial09_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial09_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial09_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial09_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial09_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial09_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial09_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial09_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial09_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial09_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial10_two_frames expected=2          observed=2
+PASS read_split_order_trial10_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial10_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial10_no_other_frame expected=0          observed=0
+PASS read_split_order_trial10_seq_numbers expected=[805347328, 805347356] observed=[805347328, 805347356]
+PASS read_split_order_trial10_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial10_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial10_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial10_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial10_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial10_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial10_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial10_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial10_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial10_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial11_two_frames expected=2          observed=2
+PASS read_split_order_trial11_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial11_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial11_no_other_frame expected=0          observed=0
+PASS read_split_order_trial11_seq_numbers expected=[805351424, 805351452] observed=[805351424, 805351452]
+PASS read_split_order_trial11_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial11_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial11_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial11_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial11_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial11_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial11_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial11_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial11_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial11_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial12_two_frames expected=2          observed=2
+PASS read_split_order_trial12_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial12_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial12_no_other_frame expected=0          observed=0
+PASS read_split_order_trial12_seq_numbers expected=[805355520, 805355548] observed=[805355520, 805355548]
+PASS read_split_order_trial12_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial12_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial12_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial12_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial12_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial12_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial12_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial12_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial12_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial12_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial13_two_frames expected=2          observed=2
+PASS read_split_order_trial13_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial13_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial13_no_other_frame expected=0          observed=0
+PASS read_split_order_trial13_seq_numbers expected=[805359616, 805359644] observed=[805359616, 805359644]
+PASS read_split_order_trial13_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial13_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial13_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial13_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial13_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial13_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial13_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial13_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial13_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial13_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial14_two_frames expected=2          observed=2
+PASS read_split_order_trial14_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial14_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial14_no_other_frame expected=0          observed=0
+PASS read_split_order_trial14_seq_numbers expected=[805363712, 805363740] observed=[805363712, 805363740]
+PASS read_split_order_trial14_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial14_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial14_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial14_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial14_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial14_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial14_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial14_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial14_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial14_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial15_two_frames expected=2          observed=2
+PASS read_split_order_trial15_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial15_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial15_no_other_frame expected=0          observed=0
+PASS read_split_order_trial15_seq_numbers expected=[805367808, 805367836] observed=[805367808, 805367836]
+PASS read_split_order_trial15_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial15_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial15_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial15_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial15_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial15_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial15_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial15_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial15_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial15_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial16_two_frames expected=2          observed=2
+PASS read_split_order_trial16_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial16_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial16_no_other_frame expected=0          observed=0
+PASS read_split_order_trial16_seq_numbers expected=[805371904, 805371932] observed=[805371904, 805371932]
+PASS read_split_order_trial16_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial16_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial16_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial16_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial16_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial16_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial16_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial16_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial16_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial16_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial17_two_frames expected=2          observed=2
+PASS read_split_order_trial17_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial17_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial17_no_other_frame expected=0          observed=0
+PASS read_split_order_trial17_seq_numbers expected=[805376000, 805376028] observed=[805376000, 805376028]
+PASS read_split_order_trial17_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial17_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial17_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial17_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial17_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial17_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial17_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial17_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial17_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial17_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial18_two_frames expected=2          observed=2
+PASS read_split_order_trial18_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial18_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial18_no_other_frame expected=0          observed=0
+PASS read_split_order_trial18_seq_numbers expected=[805380096, 805380124] observed=[805380096, 805380124]
+PASS read_split_order_trial18_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial18_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial18_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial18_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial18_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial18_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial18_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial18_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial18_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial18_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_split_order_trial19_two_frames expected=2          observed=2
+PASS read_split_order_trial19_prefix_byte_identical expected=1          observed=1
+PASS read_split_order_trial19_suffix_byte_identical expected=1          observed=1
+PASS read_split_order_trial19_no_other_frame expected=0          observed=0
+PASS read_split_order_trial19_seq_numbers expected=[805384192, 805384220] observed=[805384192, 805384220]
+PASS read_split_order_trial19_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS read_split_order_trial19_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c observed=05642fc40a000100406dc7c58180000a02000016010203040506593b0708090a0b0c0d0e0f10111213141516e93317290106290206290306122c
+PASS read_split_order_trial19_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS read_split_order_trial19_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial19_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS read_split_order_trial19_flags     expected=[16, 24]   observed=[16, 24]
+PASS read_split_order_trial19_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS read_split_order_trial19_prefix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial19_suffix_crcs_intact expected=True       observed=True
+PASS read_split_order_trial19_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_two_frames               expected=2          observed=2
+PASS ctl_split_prefix_byte_identical    expected=1          observed=1
+PASS ctl_split_suffix_byte_identical    expected=1          observed=1
+PASS ctl_split_no_other_frame           expected=0          observed=0
+PASS ctl_split_seq_numbers              expected=[286331153, 286331181] observed=[286331153, 286331181]
+PASS ctl_split_payload_sizes            expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_ip_total_lengths         expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_ip_checksums_valid       expected=[True, True] observed=[True, True]
+PASS ctl_split_tcp_checksums_valid      expected=[True, True] observed=[True, True]
+PASS ctl_split_flags                    expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_ack_and_ip_id_kept       expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_prefix_crcs_intact       expected=True       observed=True
+PASS ctl_split_suffix_crcs_intact       expected=True       observed=True
+PASS ctl_split_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_ack_only_two_frames      expected=2          observed=2
+PASS ctl_split_ack_only_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_ack_only_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_ack_only_no_other_frame  expected=0          observed=0
+PASS ctl_split_ack_only_seq_numbers     expected=[286331153, 286331181] observed=[286331153, 286331181]
+PASS ctl_split_ack_only_payload_sizes   expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_ack_only_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_ack_only_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_ack_only_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_ack_only_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_ack_only_flags           expected=[16, 16]   observed=[16, 16]
+PASS ctl_split_ack_only_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_ack_only_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_ack_only_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_ack_only_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_seq_wrap_two_frames      expected=2          observed=2
+PASS ctl_split_seq_wrap_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_seq_wrap_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_seq_wrap_no_other_frame  expected=0          observed=0
+PASS ctl_split_seq_wrap_seq_numbers     expected=[4294967280, 12] observed=[4294967280, 12]
+PASS ctl_split_seq_wrap_payload_sizes   expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_seq_wrap_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_seq_wrap_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_seq_wrap_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_seq_wrap_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_seq_wrap_flags           expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_seq_wrap_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_seq_wrap_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_seq_wrap_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_seq_wrap_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial00_two_frames expected=2          observed=2
+PASS ctl_split_order_trial00_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial00_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial00_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial00_seq_numbers expected=[805306368, 805306396] observed=[805306368, 805306396]
+PASS ctl_split_order_trial00_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial00_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial00_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial00_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial00_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial00_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial00_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial00_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial00_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial00_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial01_two_frames expected=2          observed=2
+PASS ctl_split_order_trial01_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial01_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial01_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial01_seq_numbers expected=[805310464, 805310492] observed=[805310464, 805310492]
+PASS ctl_split_order_trial01_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial01_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial01_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial01_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial01_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial01_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial01_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial01_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial01_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial01_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial02_two_frames expected=2          observed=2
+PASS ctl_split_order_trial02_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial02_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial02_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial02_seq_numbers expected=[805314560, 805314588] observed=[805314560, 805314588]
+PASS ctl_split_order_trial02_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial02_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial02_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial02_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial02_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial02_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial02_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial02_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial02_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial02_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial03_two_frames expected=2          observed=2
+PASS ctl_split_order_trial03_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial03_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial03_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial03_seq_numbers expected=[805318656, 805318684] observed=[805318656, 805318684]
+PASS ctl_split_order_trial03_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial03_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial03_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial03_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial03_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial03_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial03_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial03_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial03_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial03_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial04_two_frames expected=2          observed=2
+PASS ctl_split_order_trial04_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial04_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial04_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial04_seq_numbers expected=[805322752, 805322780] observed=[805322752, 805322780]
+PASS ctl_split_order_trial04_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial04_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial04_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial04_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial04_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial04_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial04_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial04_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial04_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial04_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial05_two_frames expected=2          observed=2
+PASS ctl_split_order_trial05_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial05_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial05_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial05_seq_numbers expected=[805326848, 805326876] observed=[805326848, 805326876]
+PASS ctl_split_order_trial05_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial05_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial05_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial05_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial05_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial05_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial05_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial05_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial05_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial05_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial06_two_frames expected=2          observed=2
+PASS ctl_split_order_trial06_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial06_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial06_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial06_seq_numbers expected=[805330944, 805330972] observed=[805330944, 805330972]
+PASS ctl_split_order_trial06_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial06_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial06_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial06_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial06_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial06_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial06_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial06_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial06_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial06_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial07_two_frames expected=2          observed=2
+PASS ctl_split_order_trial07_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial07_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial07_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial07_seq_numbers expected=[805335040, 805335068] observed=[805335040, 805335068]
+PASS ctl_split_order_trial07_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial07_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial07_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial07_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial07_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial07_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial07_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial07_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial07_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial07_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial08_two_frames expected=2          observed=2
+PASS ctl_split_order_trial08_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial08_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial08_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial08_seq_numbers expected=[805339136, 805339164] observed=[805339136, 805339164]
+PASS ctl_split_order_trial08_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial08_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial08_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial08_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial08_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial08_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial08_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial08_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial08_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial08_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial09_two_frames expected=2          observed=2
+PASS ctl_split_order_trial09_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial09_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial09_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial09_seq_numbers expected=[805343232, 805343260] observed=[805343232, 805343260]
+PASS ctl_split_order_trial09_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial09_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial09_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial09_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial09_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial09_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial09_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial09_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial09_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial09_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial10_two_frames expected=2          observed=2
+PASS ctl_split_order_trial10_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial10_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial10_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial10_seq_numbers expected=[805347328, 805347356] observed=[805347328, 805347356]
+PASS ctl_split_order_trial10_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial10_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial10_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial10_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial10_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial10_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial10_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial10_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial10_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial10_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial11_two_frames expected=2          observed=2
+PASS ctl_split_order_trial11_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial11_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial11_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial11_seq_numbers expected=[805351424, 805351452] observed=[805351424, 805351452]
+PASS ctl_split_order_trial11_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial11_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial11_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial11_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial11_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial11_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial11_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial11_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial11_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial11_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial12_two_frames expected=2          observed=2
+PASS ctl_split_order_trial12_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial12_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial12_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial12_seq_numbers expected=[805355520, 805355548] observed=[805355520, 805355548]
+PASS ctl_split_order_trial12_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial12_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial12_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial12_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial12_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial12_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial12_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial12_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial12_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial12_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial13_two_frames expected=2          observed=2
+PASS ctl_split_order_trial13_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial13_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial13_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial13_seq_numbers expected=[805359616, 805359644] observed=[805359616, 805359644]
+PASS ctl_split_order_trial13_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial13_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial13_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial13_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial13_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial13_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial13_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial13_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial13_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial13_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial14_two_frames expected=2          observed=2
+PASS ctl_split_order_trial14_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial14_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial14_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial14_seq_numbers expected=[805363712, 805363740] observed=[805363712, 805363740]
+PASS ctl_split_order_trial14_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial14_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial14_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial14_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial14_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial14_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial14_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial14_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial14_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial14_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial15_two_frames expected=2          observed=2
+PASS ctl_split_order_trial15_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial15_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial15_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial15_seq_numbers expected=[805367808, 805367836] observed=[805367808, 805367836]
+PASS ctl_split_order_trial15_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial15_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial15_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial15_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial15_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial15_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial15_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial15_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial15_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial15_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial16_two_frames expected=2          observed=2
+PASS ctl_split_order_trial16_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial16_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial16_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial16_seq_numbers expected=[805371904, 805371932] observed=[805371904, 805371932]
+PASS ctl_split_order_trial16_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial16_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial16_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial16_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial16_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial16_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial16_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial16_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial16_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial16_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial17_two_frames expected=2          observed=2
+PASS ctl_split_order_trial17_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial17_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial17_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial17_seq_numbers expected=[805376000, 805376028] observed=[805376000, 805376028]
+PASS ctl_split_order_trial17_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial17_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial17_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial17_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial17_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial17_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial17_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial17_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial17_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial17_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial18_two_frames expected=2          observed=2
+PASS ctl_split_order_trial18_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial18_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial18_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial18_seq_numbers expected=[805380096, 805380124] observed=[805380096, 805380124]
+PASS ctl_split_order_trial18_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial18_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial18_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial18_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial18_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial18_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial18_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial18_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial18_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial18_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS ctl_split_order_trial19_two_frames expected=2          observed=2
+PASS ctl_split_order_trial19_prefix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial19_suffix_byte_identical expected=1          observed=1
+PASS ctl_split_order_trial19_no_other_frame expected=0          observed=0
+PASS ctl_split_order_trial19_seq_numbers expected=[805384192, 805384220] observed=[805384192, 805384220]
+PASS ctl_split_order_trial19_payload_sizes expected=[28, 30]   observed=[28, 30]
+PASS ctl_split_order_trial19_prefix_cat_suffix_eq_padded expected=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995 observed=05642fc40a000100406dc3c28100000c01280100050003016400bf840000640000000029032802002d010000ce4a2041002e010000a04100f995
+PASS ctl_split_order_trial19_ip_total_lengths expected=[68, 70]   observed=[68, 70]
+PASS ctl_split_order_trial19_ip_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial19_tcp_checksums_valid expected=[True, True] observed=[True, True]
+PASS ctl_split_order_trial19_flags      expected=[16, 24]   observed=[16, 24]
+PASS ctl_split_order_trial19_ack_and_ip_id_kept expected=[[572662306, 4660], [572662306, 4660]] observed=[[572662306, 4660], [572662306, 4660]]
+PASS ctl_split_order_trial19_prefix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial19_suffix_crcs_intact expected=True       observed=True
+PASS ctl_split_order_trial19_reassembled_dnp3_frame_ok expected=True       observed=True
+PASS read_arrival_order_tally           expected=recorded   observed=recorded
+PASS ctl_arrival_order_tally            expected=recorded   observed=recorded
+PASS read_fin_not_split_padded58        expected=1          observed=1
+PASS read_fin_not_split_padded58_byte_identical expected=True       observed=True
+PASS read_unselected_connection_padded58 expected=1          observed=1
+PASS read_unselected_connection_padded58_byte_identical expected=True       observed=True
+PASS ctl_unselected_connection_padded58 expected=1          observed=1
+PASS ctl_unselected_connection_padded58_byte_identical expected=True       observed=True
+PASS oracle_read_head_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_head_crc_once_unchanged expected=1          observed=1
+PASS read_corrupt_head_crc_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_read_blk0_data_unchanged    expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk0_data_once_unchanged expected=1          observed=1
+PASS read_corrupt_blk0_data_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_read_blk1_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk1_crc_once_unchanged expected=1          observed=1
+PASS read_corrupt_blk1_crc_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_read_tail_data_unchanged    expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_tail_data_once_unchanged expected=1          observed=1
+PASS read_corrupt_tail_data_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_ctl_head_byte_src_unchanged expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_head_byte_src_once_unchanged expected=1          observed=1
+PASS ctl_corrupt_head_byte_src_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_ctl_blk0_crc_unchanged      expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_blk0_crc_once_unchanged expected=1          observed=1
+PASS ctl_corrupt_blk0_crc_once_unchanged_byte_identical expected=True       observed=True
+PASS oracle_ctl_tail_crc_unchanged      expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_tail_crc_once_unchanged expected=1          observed=1
+PASS ctl_corrupt_tail_crc_once_unchanged_byte_identical expected=True       observed=True
+SUMMARY {'total': 729, 'passed': 729, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

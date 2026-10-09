@@ -1,0 +1,58 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "1ee5a8ee8a355ea9145cc19e5ae3052582ecd873ab2407f7b86c89fdaf6fa9d1",
+    "case4_pad58b_carve28_30.conf": "b9dc9e139c2ee75649ad1edb251641f26a08ac56ce675823132ced2cb31a17f2",
+    "manifest.json": "736dbc8eff1be6aa9f7a5c8d7eee2794163ac6f861bc6f443593bbea42391b5c",
+    "pipe/case4_pad58b_carve28_30.bfa": "cffa53b3a2f1ef5bb963714f81e5b1c53fbd9ab81c3621495a7b50a86799457b",
+    "pipe/context.json": "930ce279c129ba311360b2936d568052c68686ab2893616ee24d04830e244fa3",
+    "pipe/tofino.bin": "dfc4f68e40f2af355846a79bba804988e83d2d19b970ecf7dbd4ed775f1a156b"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/pad58b_carve28_30_01/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/evidence/pad58b_carve28_30_01/source/case4_pad58b_carve28_30.p4"
+  ],
+  "compile_log_sha256": "7ccdf3d29fe215fb90b49e5f8f4b0344420690fdab0a4e0dea5f74e4e8af8052",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 6.443,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 7,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "eb15153f1bcb5defba6dad9bb2dfda2bfe9bea47140821ff21be606dfef99673",
+      "pipe/logs/phv.json": "e00b060e2b74845b76f0bbd8c947b5a3de3bed6f59079d095957d9443b2e7196",
+      "pipe/logs/phv_allocation_0.log": "0e86427b184dc1cd74b936edf7579dec597dcf9e5265db851a1e765c40ab62f3",
+      "pipe/logs/phv_allocation_history_0.log": "9a890ad6904640080b951ed2312a8445dbb42bdb928766f72c23f37b70e334ea",
+      "pipe/logs/phv_allocation_summary_0.log": "a04e916f91cb4e13c544039c813d1ea3202bbd09219a044bd019463e614df30d",
+      "pipe/logs/table_dependency_graph.log": "5d9a631e0f64a848994735ba35ecb56d4173a9448afcd8af5df32cd3b6e1abf6",
+      "pipe/logs/table_dependency_summary.log": "3976638c52f5275492647e3adecfede62213ab314d9bed82b07c1260d1808a12",
+      "pipe/logs/table_summary.log": "cc721b1560b20dcca15ec406cae61c19e68f106a431f1527c4845f3e83b62c57"
+    },
+    "stages": {
+      "egress": 8,
+      "ingress": 1
+    },
+    "stateful_tables": [],
+    "tables_by_type": {
+      "action": 3,
+      "condition": 22,
+      "match": 33
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/case4_pad58b_carve28_30.p4",
+  "source_files": {
+    "case4_pad58b_carve28_30.p4": "0e05b5df00433324e34a0dba20bf5fe630d1c66ff324b8b0799b2577457f82d8"
+  },
+  "source_sha256": "0e05b5df00433324e34a0dba20bf5fe630d1c66ff324b8b0799b2577457f82d8",
+  "timeout_seconds": 300
+}
