@@ -1,0 +1,57 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_pad58b_wire
+Binding with p4_name case4_pad58b_wire successful!!
+Received case4_pad58b_wire on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS oracle_read_grows_9                expected=9          observed=9
+PASS oracle_ctl_grows_21                expected=21         observed=21
+PASS read_valid_padded                  expected=1          observed=1
+PASS read_valid_padded_byte_identical   expected=True       observed=True
+PASS ctl_valid_padded                   expected=1          observed=1
+PASS ctl_valid_padded_byte_identical    expected=True       observed=True
+PASS oracle_read_head_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_head_crc_passthrough  expected=1          observed=1
+PASS read_corrupt_head_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_head_byte_dst_unchanged expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_head_byte_dst_passthrough expected=1          observed=1
+PASS read_corrupt_head_byte_dst_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_blk0_data_unchanged    expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk0_data_passthrough expected=1          observed=1
+PASS read_corrupt_blk0_data_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_blk0_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk0_crc_passthrough  expected=1          observed=1
+PASS read_corrupt_blk0_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_blk1_data_unchanged    expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk1_data_passthrough expected=1          observed=1
+PASS read_corrupt_blk1_data_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_blk1_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_blk1_crc_passthrough  expected=1          observed=1
+PASS read_corrupt_blk1_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_tail_data_unchanged    expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_tail_data_passthrough expected=1          observed=1
+PASS read_corrupt_tail_data_passthrough_byte_identical expected=True       observed=True
+PASS oracle_read_tail_crc_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS read_corrupt_tail_crc_passthrough  expected=1          observed=1
+PASS read_corrupt_tail_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_head_crc_unchanged      expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_head_crc_passthrough   expected=1          observed=1
+PASS ctl_corrupt_head_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_head_byte_src_unchanged expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_head_byte_src_passthrough expected=1          observed=1
+PASS ctl_corrupt_head_byte_src_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_blk0_data_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_blk0_data_passthrough  expected=1          observed=1
+PASS ctl_corrupt_blk0_data_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_blk0_crc_unchanged      expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_blk0_crc_passthrough   expected=1          observed=1
+PASS ctl_corrupt_blk0_crc_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_tail_data_unchanged     expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_tail_data_passthrough  expected=1          observed=1
+PASS ctl_corrupt_tail_data_passthrough_byte_identical expected=True       observed=True
+PASS oracle_ctl_tail_crc_unchanged      expected=(True, 0)  observed=(True, 0)
+PASS ctl_corrupt_tail_crc_passthrough   expected=1          observed=1
+PASS ctl_corrupt_tail_crc_passthrough_byte_identical expected=True       observed=True
+SUMMARY {'total': 49, 'passed': 49, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

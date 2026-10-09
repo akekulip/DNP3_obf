@@ -1,0 +1,16 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_pad58b_wire
+Binding with p4_name case4_pad58b_wire successful!!
+Received case4_pad58b_wire on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS oracle_read_grows_9                expected=9          observed=9
+PASS oracle_ctl_grows_21                expected=21         observed=21
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/model_drive_pad58b_wire.py", line 87, in <module>
+    run('read_valid_padded', read_native, read_img)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/model_drive_pad58b_wire.py", line 81, in run
+    rep.add(name, 1, len(got), sent=sent, expected=want, received=[g.hex() for g in got])
+TypeError: add() got multiple values for argument 'expected'
+driver exit code 1
+hugepages free after run: HugePages_Free: 196
