@@ -1,0 +1,934 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+case4_endpoint is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+Case4 exact transformer vectors accepted through production master and
+outstation
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:53
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:56: PASSED:
+  REQUIRE( byteLen(select)==20 )
+with expansion:
+  20 == 20
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:56: PASSED:
+  REQUIRE( select==nativeSelect )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:57: PASSED:
+  REQUIRE( pad(select)==transformedSelect )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00
+  C9 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00
+  C9 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:59: PASSED:
+  REQUIRE( byteLen(pad(select))==38 )
+with expansion:
+  38 == 38
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:59: PASSED:
+  REQUIRE( byteLen(echo)==40 )
+with expansion:
+  40 == 40
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:60: PASSED:
+  REQUIRE( echo == "C0 81 80 00 " + objects(pad(select)) )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:62: PASSED:
+  REQUIRE( operate.substr(3,2)=="04" )
+with expansion:
+  "04" == "04"
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:62: PASSED:
+  REQUIRE( objects(select)==objects(operate) )
+with expansion:
+  "0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:64: PASSED:
+  REQUIRE( byteLen(opEcho)==40 )
+with expansion:
+  40 == 40
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:64: PASSED:
+  REQUIRE( opEcho == "C1 81 80 00 " + objects(pad(operate)) )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:65: PASSED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:66: PASSED:
+  REQUIRE( q.PopOnlyEqualValue(TaskCompletion::SUCCESS,CommandPointResult(0,1,CommandPointState::SUCCESS,CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:67: PASSED:
+  REQUIRE( e.handler->operates(1)==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:67: PASSED:
+  REQUIRE( e.handler->operates(201)==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:68: PASSED:
+  REQUIRE( e.handler->physicalActuations==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:68: PASSED:
+  REQUIRE( e.handler->inertActuations==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:69: PASSED:
+  REQUIRE( e.handler->operates(200)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:71: PASSED:
+  REQUIRE( e.Send(pad(operate))==opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:71: PASSED:
+  REQUIRE( e.handler->operates(1)==1 )
+with expansion:
+  1 == 1
+
+SUCCESS native_select=C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+padded_select=C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+select_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+native_operate=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+operate_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 06 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+-------------------------------------------------------------------------------
+Case4 real SELECT failure emits no OPERATE and next transaction recovers
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:75
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:79: PASSED:
+  REQUIRE( deliver(m,echo).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:79: PASSED:
+  REQUIRE( q.values.size()==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:80: PASSED:
+  REQUIRE( q.values.front().results.size()==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:81: PASSED:
+  REQUIRE( q.values.front().results.front().status==CommandStatus::HARDWARE_ERROR )
+with expansion:
+  6 == 6
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:82: PASSED:
+  REQUIRE( e.handler->operates(1)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:82: PASSED:
+  REQUIRE( e.handler->operates(201)==0 )
+with expansion:
+  0 == 0
+
+REAL_SELECT_FAIL echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 06 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 no_operate=true
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C2 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:86: PASSED:
+  REQUIRE( !operate.empty() )
+with expansion:
+  true
+
+DELIVER echo=C2 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:86: PASSED:
+  REQUIRE( deliver(m,e.Send(pad(operate))).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:87: PASSED:
+  REQUIRE( q.PopOnlyEqualValue(TaskCompletion::SUCCESS,CommandPointResult(0,1,CommandPointState::SUCCESS,CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:88: PASSED:
+  REQUIRE( e.handler->operates(1)==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:88: PASSED:
+  REQUIRE( e.handler->operates(201)==1 )
+with expansion:
+  1 == 1
+
+-------------------------------------------------------------------------------
+Case4 decoy SELECT failure cannot produce successful SBO at endpoint
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:91
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:95: PASSED:
+  REQUIRE( echo.substr(echo.size()-2)=="06" )
+with expansion:
+  "06" == "06"
+
+DELIVER echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 06 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:98: PASSED:
+  REQUIRE( !operate.empty() )
+with expansion:
+  true
+
+DELIVER echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 02 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 02 next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:99: PASSED:
+  REQUIRE( deliver(m,opEcho).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:99: PASSED:
+  REQUIRE( e.handler->operates(1)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:99: PASSED:
+  REQUIRE( e.handler->operates(201)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:100: PASSED:
+  REQUIRE( q.values.size()==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:100: PASSED:
+  REQUIRE( q.values.front().results.front().status==CommandStatus::NO_SELECT )
+with expansion:
+  2 == 2
+
+DECOY_SELECT_FAIL select_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 06
+operate_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 02 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 02
+master_ignored_trailing_failure=true endpoint_callbacks=0
+DELIVER echo=C2 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=C3 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:104: PASSED:
+  REQUIRE( !operate.empty() )
+with expansion:
+  true
+
+DELIVER echo=C3 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 C9 00 01 01 64 00 00 00 64 00 00 00 00 next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:104: PASSED:
+  REQUIRE( deliver(m,e.Send(pad(operate))).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:105: PASSED:
+  REQUIRE( q.PopOnlyEqualValue(TaskCompletion::SUCCESS,CommandPointResult(0,1,CommandPointState::SUCCESS,CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+-------------------------------------------------------------------------------
+Case4 transformed link CRCs independently checked by production implementation
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:108
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:110: PASSED:
+  REQUIRE( bytes.length()==55 )
+with expansion:
+  55 == 55
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:110: PASSED:
+  REQUIRE( CRC::IsCorrectCRC(bytes,8) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:112: PASSED:
+  REQUIRE( CRC::IsCorrectCRC(bytes+i,n) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:112: PASSED:
+  REQUIRE( CRC::IsCorrectCRC(bytes+i,n) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:112: PASSED:
+  REQUIRE( CRC::IsCorrectCRC(bytes+i,n) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4.cpp:113: PASSED:
+  REQUIRE( i==bytes.length() )
+with expansion:
+  55 == 55
+
+-------------------------------------------------------------------------------
+Case4 pad58b filler objects match the sizes SELECTED_PATTERN.md specifies
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:91
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:92: PASSED:
+  REQUIRE( byteLen(readFillerObject) == 9 )
+with expansion:
+  9 == 9
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:93: PASSED:
+  REQUIRE( byteLen(controlFillerObject) == 19 )
+with expansion:
+  19 == 19
+
+-------------------------------------------------------------------------------
+Case4 pad58b control: production master handling of a padded SELECT/OPERATE
+                      echo
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:96
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:99: PASSED:
+  REQUIRE( byteLen(select)==20 )
+with expansion:
+  20 == 20
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:103: PASSED:
+  REQUIRE( byteLen(echo)==22 )
+with expansion:
+  22 == 22
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:105: PASSED:
+  REQUIRE( byteLen(padded)==41 )
+with expansion:
+  41 == 41
+
+DELIVER_P58B echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 29 03 28 02 00 2D 01 00 00 20 41 00 2E 01 00 00 A0 41 00 next=C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+PAD58B_CONTROL_SELECT native_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+padded_echo=C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 29 03 28 02 00 2D 01 00 00 20 41 00 2E 01 00 00 A0 41 00
+master_emitted_operate=1 task_results=0
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:113: PASSED:
+  REQUIRE( operate.substr(3,2)=="04" )
+with expansion:
+  "04" == "04"
+
+DELIVER_P58B echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 29 03 28 02 00 2D 01 00 00 20 41 00 2E 01 00 00 A0 41 00 next=
+PAD58B_CONTROL_OPERATE native_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+padded_echo=C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 29 03 28 02 00 2D 01 00 00 20 41 00 2E 01 00 00 A0 41 00
+next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:123: PASSED:
+  REQUIRE( next.empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:124: PASSED:
+  REQUIRE( q.PopOnlyEqualValue(TaskCompletion::SUCCESS, CommandPointResult(0,1,CommandPointState::SUCCESS,CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+PAD58B_CONTROL_ENDPOINT operates_point1=1 physicalActuations=1
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:136: PASSED:
+  REQUIRE( e.handler->operates(1)==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:137: PASSED:
+  REQUIRE( e.handler->physicalActuations==1 )
+with expansion:
+  1 == 1
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:138: PASSED:
+  REQUIRE( e.handler->selects(201)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:139: PASSED:
+  REQUIRE( e.handler->operates(201)==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:140: PASSED:
+  REQUIRE( e.handler->unconfiguredSelectRejects==0 )
+with expansion:
+  0 == 0
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:141: PASSED:
+  REQUIRE( e.handler->unconfiguredOperateRejects==0 )
+with expansion:
+  0 == 0
+
+DELIVER_P58B echo=C2 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 next=C3 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:146: PASSED:
+  REQUIRE( !operate2.empty() )
+with expansion:
+  true
+
+DELIVER_P58B echo=C3 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 next=
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:146: PASSED:
+  REQUIRE( deliver(m,e.Send(operate2)).empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:147: PASSED:
+  REQUIRE( q.PopOnlyEqualValue(TaskCompletion::SUCCESS,CommandPointResult(0,1,CommandPointState::SUCCESS,CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:153: PASSED:
+  REQUIRE( e.handler->operates(1)==2 )
+with expansion:
+  2 == 2
+
+-------------------------------------------------------------------------------
+Case4 pad58b read: production master handling of a padded 23-point READ
+                   response
+-------------------------------------------------------------------------------
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:156
+...............................................................................
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:161: PASSED:
+  REQUIRE( !request.empty() )
+with expansion:
+  true
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:167: PASSED:
+  REQUIRE( response.find(readHeader23) != std::string::npos )
+with expansion:
+  12
+  !=
+  18446744073709551615 (0xffffffffffffffff)
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:168: PASSED:
+  REQUIRE( byteLen(response)==32 )
+with expansion:
+  32 == 32
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:170: PASSED:
+  REQUIRE( byteLen(padded)==41 )
+with expansion:
+  41 == 41
+
+PAD58B_READ request=C0 01 0A 02 01 00 00 16 00
+native_response=C0 81 80 00 0A 02 00 00 16 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81
+padded_response=C0 81 80 00 0A 02 00 00 16 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 29 01 06 29 02 06 29 03 06
+points_received_after_padded=23
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:178: PASSED:
+  REQUIRE( received_after_padded == 23 )
+with expansion:
+  23 == 23
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:179: PASSED:
+  REQUIRE( m.meas->binaryOutputStatusSOE.size() == 23 )
+with expansion:
+  23 == 23
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:182: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:183: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+PAD58B_READ_RECOVERY total_received=23
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:199: PASSED:
+  REQUIRE( m.meas->TotalReceived() == 23 )
+with expansion:
+  23 == 23
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:200: PASSED:
+  REQUIRE( m.meas->binaryOutputStatusSOE.size() == 23 )
+with expansion:
+  23 == 23
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:203: PASSED:
+  REQUIRE( it != m.meas->binaryOutputStatusSOE.end() )
+with expansion:
+  {?} != {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:204: PASSED:
+  REQUIRE( it->second.meas == BinaryOutputStatus(((i % 2) == 0), Flags(0x01)) )
+with expansion:
+  {?} == {?}
+
+/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/pad58b_evidence_work/source/cpp/tests/unit/TestCase4Pad58B.cpp:206: PASSED:
+  REQUIRE( e.handler->operates(1)==0 )
+with expansion:
+  0 == 0
+
+===============================================================================
+All tests passed (165 assertions in 7 test cases)
+
