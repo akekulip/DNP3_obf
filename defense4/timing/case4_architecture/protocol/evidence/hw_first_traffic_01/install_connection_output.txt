@@ -1,0 +1,19 @@
+$ ssh decps@10.10.54.81
+$ cd /tmp && SDE_INSTALL=/home/decps/Downloads/bf-sde-9.13.2/install python3 install_connection.py \
+    --master-ip 192.168.10.1 --master-port 54321 --master-dev-port 9 \
+    --outstation-ip 192.168.10.7 --outstation-port 20000 --outstation-dev-port 64 --slot 0
+
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_response_path
+Binding with p4_name case4_response_path successful!!
+Received case4_response_path on GetForwarding on client 115, device 0
+ADD Egress.conn {'hdr.ip.dst': 3232238081, 'hdr.ip.src': 3232238087, 'hdr.tcp.dport': 54321, 'hdr.tcp.sport': 20000} Egress.fwd_conn {'enable': 1, 'idx': 0}
+ADD Egress.conn {'hdr.ip.dst': 3232238087, 'hdr.ip.src': 3232238081, 'hdr.tcp.dport': 20000, 'hdr.tcp.sport': 54321} Egress.rev_conn {'idx': 0}
+ADD Egress.odd_ip_t {'hdr.ip.dst': 3232238081, 'hdr.ip.src': 3232238087} Egress.odd_conn {'idx': 0}
+ADD Egress.odd_ip_t {'hdr.ip.dst': 3232238087, 'hdr.ip.src': 3232238081} Egress.odd_conn {'idx': 0}
+ADD Ingress.forwarding {'ig.ingress_port': 64} Ingress.route {'port': 9}
+ADD Ingress.forwarding {'ig.ingress_port': 9} Ingress.route {'port': 64}
+installed 6 rows for slot 0
+
+# 3232238081 = 192.168.10.1 (Vision, master), 3232238087 = 192.168.10.7 (SEL-751, outstation)

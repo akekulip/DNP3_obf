@@ -1,0 +1,35 @@
+Port counters reset when a new P4 program is loaded (cold start), so "before" (the baseline
+program, running continuously for days) and "after" (case4_response_path, fresh since ~18:50 UTC)
+are not a delta across one test -- "after" is the new program's full cumulative traffic since load,
+which includes the restore_ports.py port bring-up plus this one DNP3 exchange. The point of this
+comparison is that both states show healthy links (zero FCS errors, zero buffer drops) before and
+after the program swap, not a before/after count of one specific exchange.
+
+=== dev_port 9 (master, Vision), baseline program's accumulated counters just before the swap ===
+FramesReceivedOK=8986 FramesTransmittedOK=54068 OctetsReceived=780558 OctetsTransmittedTotal=22360084
+FramesReceivedwithFCSError=0 FramesDroppedBufferFull=0
+
+=== dev_port 9 (master, Vision), case4_response_path's counters after loading + this traffic ===
+FramesReceivedOK=66 FramesTransmittedOK=11 OctetsReceived=5225 OctetsTransmittedTotal=3152
+FramesReceivedwithFCSError=0 FramesDroppedBufferFull=0
+
+=== dev_port 64 (relay, SEL-751 leg), baseline program's accumulated counters just before the swap ===
+FramesReceivedOK=45110 FramesTransmittedOK=8986 OctetsReceived=21583142 OctetsTransmittedTotal=780558
+FramesReceivedwithFCSError=0 FramesDroppedBufferFull=0
+
+=== dev_port 64 (relay, SEL-751 leg), case4_response_path's counters after loading + this traffic ===
+FramesReceivedOK=148 FramesTransmittedOK=8 OctetsReceived=68342 OctetsTransmittedTotal=597
+FramesReceivedwithFCSError=0 FramesDroppedBufferFull=0
+
+Zero FCS errors and zero buffer drops on both ports, both before and after the program swap --
+clean physical links throughout.
+
+=== Egress table hit counters after this traffic (nonzero entries from tbl_dbg_counter) ===
+pipe.Egress.classify_fwd   TBL_HIT  19
+pipe.Egress.classify_rev   TBL_HIT  0    (no reverse/ACK traffic took the padding-eligible path,
+                                          consistent with this exchange being native-passthrough)
+pipe.Egress.conn           TBL_HIT  11
+pipe.Egress.count_t        TBL_HIT  19
+
+This confirms the newly-loaded program's own classification/connection-lookup logic actually
+processed this real traffic -- it did not bypass the mechanism's control-plane-installed tables.

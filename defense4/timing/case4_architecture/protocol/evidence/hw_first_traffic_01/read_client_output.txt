@@ -1,0 +1,17 @@
+$ ssh decps@10.10.54.19   # Vision, the real DNP3 master host
+$ cd /tmp && python3 dnp3_read_client.py --local-ip 192.168.10.1 --local-port 54321 \
+    --remote-ip 192.168.10.7 --remote-port 20000 --master-addr 1 --outstation-addr 0 \
+    --connect-timeout 8 --read-timeout 5
+
+bound local socket to 192.168.10.1:54321 (requested 192.168.10.1:54321)
+connected 192.168.10.1:54321 -> 192.168.10.7:20000
+sent Class 0 READ request: 18 bytes, hex=05640bc4000001002aecc0c0013c0106ff50
+received 134 total byte(s), 1 complete DNP3 link frame(s), 0 leftover byte(s)
+  frame 0: 134 bytes, control=0x44, dest=1, source=0, crc_ok=True, hex=05647344010000001a59c0c0818000010200000f8101010101010b08010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d040000140700010005000c000c000400742b05003c001f00010020001500200000007dd000000000080000000000000000008006
+PASS: fixed-source-port Class 0 READ request/response exchange completed, all CRCs valid
+
+# master addr=1, outstation addr=0 (this rig's documented fixed link addresses, per
+# defense4/timing/implementation/harness/dnp3_wire.py). The real outstation's response is 134
+# bytes - well outside the [58]/49-byte padding-eligible shape, so it correctly took the
+# native-passthrough path (see STATUS.md). CRC validation (rrc.dnp3_frame_ok) passed on the
+# full response, confirming it arrived uncorrupted end to end.
