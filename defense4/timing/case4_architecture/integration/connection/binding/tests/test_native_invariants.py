@@ -123,7 +123,9 @@ class GuardMiss(unittest.TestCase):
     def test_relabelled_private_event_is_aborted_not_forwarded_with_envelope(self):
         import struct
         raw = vectors.packet(24, 101, 901, payload=vectors.native_select())
-        envelope = struct.pack('>IIIHH', 17, 1, 0x40001, 0x0107, 0)      # kind 7 claimed on a SELECT packet
+        # kind 7 claimed on a SELECT packet. A genuine kind-7 envelope carries the 4-byte pass-0 t0 word
+        # (N->T OPERATE handoff, 2026-10-09), so the forgery carries one too, as for READ kinds 9..11.
+        envelope = struct.pack('>IIIHHI', 17, 1, 0x40001, 0x0107, 0, 0x34567800)
         pipe = ReadPipeline().start(0x40001, 101, 901, work=(1, 1))
         out = pipe.inject(68, envelope + raw)
         assert_invariants(self, pipe, out, raw)

@@ -31,6 +31,7 @@ NEW = HERE / 'native_binding.p4'
 HEAD = 'if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){'
 PRIVATE = ('envelope', 'work_generation', 'expected_cell', 'event')
 OUT_PORT = 7
+STAMP = 0x123456789a     # ig.global_tstamp of every pass (D11: the OPERATE's pass-0 t0q)
 BANKS = ('pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports', 'pair_real_object_real_on',
          'pair_real_off_native_start', 'pair_native_end_server_start',
          'pair_frozen_decoy_object_frozen_decoy_on')
@@ -78,7 +79,8 @@ class Tracing(ExtSource):
 class Engine:
     def __init__(self, new_text=None):
         self.old = Tracing(stubbed(ORACLE.read_text(), True), HERE)
-        self.new = Tracing(stubbed(new_text or NEW.read_text(), False), HERE)
+        # The harness models the parser timestamp as ig.global_tstamp (read_support.ReadPipeline does the same).
+        self.new = Tracing(stubbed((new_text or NEW.read_text()).replace('p.global_tstamp', 'ig.global_tstamp'), False), HERE)
         self.old.hits, self.new.hits = set(), set()
         self.coverage = {'old': set(), 'new': set()}
 
@@ -88,6 +90,7 @@ class Engine:
         src.reset_registers()
         src.valid = dict(case['valid'])
         src.env.update(case['env'])
+        src.env['ig.global_tstamp'] = STAMP
         for name, value in case['cells'].items():
             src.cells[name][0] = copy.deepcopy(value)
 
@@ -239,6 +242,28 @@ class Engine:
                 for key in PRIVATE:expected['valid'][key]=False
                 expected['fields']['md.drop_ctl']=1
             if expected == b:return None,b
+        # D11 (2026-10-09, N->T OPERATE handoff): an OPERATE carries its pass-0 t0q (stage 0 first_operate
+        # validates t0) and its genuine terminal (stage 3, kind 7, owner and epoch current) goes to T on 325
+        # as tev kind 12 instead of being stripped to the front panel. Nothing else may differ.
+        if label['stage'] == 0 and label['pk'] == 7 and b['valid'].get('t0') and a['cells'] == b['cells']:
+            expected = copy.deepcopy(a)
+            expected['valid']['t0'] = True
+            expected['fields']['hdr.t0.t0q'] = STAMP & 0xffffff00
+            if expected == b:
+                return None, b
+        if (label['stage'] == 3 and label['kind'] == 7 and a['cells'] == b['cells']
+                and b['fields'].get('tm.ucast_egress_port') == 325):
+            expected = copy.deepcopy(a)
+            for key in PRIVATE:
+                expected['valid'][key] = True
+            expected['fields'].update({key: value for key, value in cb['env'].items()
+                                       if key.startswith('hdr.') and key.split('.')[1] in PRIVATE})
+            expected['fields']['hdr.expected_cell.expected_cell'] = cb['env'].get('hdr.t0.t0q', 0)
+            expected['fields']['hdr.event.event'] = 0x0c00
+            expected['fields']['tm.ucast_egress_port'] = 325
+            expected['fields']['m.emit_loop'] = 0
+            if expected == b:
+                return None, b
         return diff, a
 
     def drive_epoch(self, case):

@@ -38,6 +38,11 @@ INTENTIONAL DIFFERENCES (everything else must be identical)
       review): the same busy-drop policy also covers a racing SYN or SYNACK (packet kind 1, 2), which
       previously fell through busy_t's default action and passed natively; covered by
       test_step3_catchall.Busy.test_busy_record_drops_and_counts_syn_and_synack.
+  D11 N->T OPERATE handoff (2026-10-09): a stage-0 OPERATE (packet kind 7) that first_operate admits
+      also validates the private t0 header with its quantized pass-0 timestamp, and the genuine kind-7
+      terminal (stage 3, owner and epoch current) is handed to T on port 325 as tev kind 12 (event 0x0c00,
+      t0q in the expected_cell word) instead of being stripped to the front panel. Covered end to end by
+      read/tests/test_n_operate_handoff.py.
   D5  m.expected_work_phase is assigned once at the top of apply instead of directly before
       work.apply; m.stage is never written after parsing, so the value is identical.
 """

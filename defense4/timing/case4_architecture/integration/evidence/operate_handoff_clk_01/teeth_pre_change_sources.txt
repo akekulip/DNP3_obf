@@ -1,0 +1,12 @@
+# new tests run against the PRE-change n.p4 and native_binding.p4 (git HEAD versions)
+249178e88d4b85bfc842cb60dd9daf52924107e2cf754f30f1abec8e6c1edde1  core/ordinary/n.p4
+1262990bd11c534674d563ed66189399c5305bb50599ae82bf52b2d4cb82cf8a  connection/binding/native_binding.p4
+PASSED read/tests/test_n_operate_handoff.py::J_NOperateArm::test_n_p4_alone_does_not_reach_operate_today
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_copy_arriving_while_the_original_is_in_n_meets_the_busy_pin
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_late_operate_copy_never_reaches_t
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_policy_off_t_relays_n_operate_once_unheld
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_retransmitted_operate_is_refused_by_n_and_t_releases_once
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_select_then_operate_hands_only_the_operate_to_t_once
+FAILED read/tests/test_n_operate_handoff.py::J_NRealisticOperate::test_t_alone_releases_a_late_copy_that_bypasses_n
+FAILED read/tests/test_n_operate_handoff.py::J_NOperateArm::test_n_p4_operate_arm_matches_native_binding_from_real_n_state
+7 failed, 1 passed in 0.68s

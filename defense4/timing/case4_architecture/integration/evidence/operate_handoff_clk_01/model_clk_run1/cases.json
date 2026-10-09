@@ -1,0 +1,178 @@
+{
+ "cases": [
+  {
+   "enable": {
+    "196": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "257": "ok",
+    "324": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "325": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "64": "ok",
+    "68": "REFUSED: Error(s): \t* At index 0: INVALID_ARGUMENT, 'Table Add failed table:$PORT Invalid arguments' ",
+    "9": "ok"
+   },
+   "expected": "recorded",
+   "name": "setup/ports_and_paths",
+   "observed": "recorded",
+   "ok": true
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/same0",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000
+    ],
+    "per_hop_min": [
+     2500000
+    ],
+    "ports_ok": true,
+    "total_max": 11250000,
+    "total_median": 8750000.0,
+    "total_min": 2500000
+   }
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/x02",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000
+    ],
+    "per_hop_min": [
+     3750000
+    ],
+    "ports_ok": true,
+    "total_max": 11250000,
+    "total_median": 8750000.0,
+    "total_min": 3750000
+   }
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/same2",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000
+    ],
+    "per_hop_min": [
+     3750000
+    ],
+    "ports_ok": true,
+    "total_max": 11250000,
+    "total_median": 7500000.0,
+    "total_min": 3750000
+   }
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/x20",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000
+    ],
+    "per_hop_min": [
+     2500000
+    ],
+    "ports_ok": true,
+    "total_max": 11250000,
+    "total_median": 7500000.0,
+    "total_min": 2500000
+   }
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/nlike",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000,
+     11250000,
+     6250000,
+     10000000
+    ],
+    "per_hop_min": [
+     3750000,
+     5000000,
+     5000000,
+     2500000
+    ],
+    "ports_ok": true,
+    "total_max": 35000000,
+    "total_median": 26250000.0,
+    "total_min": 20000000
+   }
+  },
+  {
+   "expected": "all 40 stamped",
+   "name": "path/x01",
+   "observed": "all 40 stamped",
+   "ok": true,
+   "summary": {
+    "n": 40,
+    "negative_steps": 0,
+    "of": 40,
+    "per_hop_max": [
+     11250000
+    ],
+    "per_hop_min": [
+     3750000
+    ],
+    "ports_ok": true,
+    "total_max": 11250000,
+    "total_median": 7500000.0,
+    "total_min": 3750000
+   }
+  },
+  {
+   "expected": "recorded",
+   "name": "model/time_scale",
+   "observed": "recorded",
+   "ok": true,
+   "scale": [
+    {
+     "tstamp_delta": 1536250000,
+     "wall_delta_ns": 1228019714
+    },
+    {
+     "tstamp_delta": 1531250000,
+     "wall_delta_ns": 1224054574
+    },
+    {
+     "tstamp_delta": 1536250000,
+     "wall_delta_ns": 1223923683
+    }
+   ]
+  }
+ ],
+ "meta": {},
+ "program": "clk_xpipe_probe",
+ "summary": {
+  "failed": [],
+  "passed": 8,
+  "total": 8
+ }
+}

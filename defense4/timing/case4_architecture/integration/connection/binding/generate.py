@@ -96,7 +96,8 @@ def generate():
     # The private envelope carries original operation, never a supplied CRC bit.
     marker=text.index(' state envelope_event{');end=text.index('\n',marker)
     line=text[marker:end]
-    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (5,6,7,8))+''.join(f'16w0x{s:02x}{k:02x}:read_t0;' for s in (1,2,3) for k in (9,10,11))+''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (0x10,0x0c))+'default:accept;')
+    # OPERATE (kind 7) carries its pass-0 t0q like READ: read_terminal_t hands it to T as tev kind 12.
+    line=line.replace('default:accept;', ''.join(f'16w0x{s:02x}{k:02x}:{"read_t0" if k==7 else "eth"};' for s in (1,2,3) for k in (5,6,7,8))+''.join(f'16w0x{s:02x}{k:02x}:read_t0;' for s in (1,2,3) for k in (9,10,11))+''.join(f'16w0x{s:02x}{k:02x}:eth;' for s in (1,2,3) for k in (0x10,0x0c))+'default:accept;')
     text=text[:marker]+line+text[end:]
     network_start=text.index(' table network{');network_end=text.index('\n action syn_shape',network_start)
     network=text[network_start:network_end]
@@ -200,7 +201,7 @@ action terminal_abort(){hdr.envelope.setInvalid();hdr.work_generation.setInvalid
 action emit_reset(){hdr.event.event=8w4++m.direction;hdr.expected_cell.expected_cell=32w0;tm.ucast_egress_port=READ_HANDOFF_PORT;m.emit_loop=8w0;}
 table reset_boundary{key={m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_reset;terminal_abort;}size=1;const entries={(8w1,32w0,32w0):emit_reset();}const default_action=terminal_abort();}
 action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_term_bump.execute(4w0);}
-table read_terminal_t{key={m.kind:ternary;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=6;const entries={(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
+table read_terminal_t{key={m.kind:ternary;m.owner_diff:exact;m.epoch_diff:exact;}actions={emit_tev;emit_replay;terminal_strip;terminal_abort;}size=7;const entries={(8w7,32w0,32w0):emit_tev(16w0x0c00);(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
 '''
     # Exposed counters (read by the controller; a WorkRecord reset does not clear them). A register belongs to
     # one table, so there is one array per counting table: count_first (first_event), count_busy (busy_t),
@@ -354,7 +355,7 @@ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;NoAction;}size=48
     first=first[:at]+'''(8w5,8w1,8w0,32w0x40000&&&32w0xffff0000):first_select();(8w5,8w1,8w0,32w0x50000&&&32w0xffff0000):first_select();(8w6,8w1,8w1,32w0x90000&&&32w0xffff0000):first_response();(8w7,8w1,8w1,32w0xa0000&&&32w0xffff0000):first_operate();'''+''.join('(8w4,8w1,8w0,32w'+hex(phase<<16)+'&&&32w0xffff0000):first_close();' for phase in range(8,16))+forward+'(8w4,_,_,_):close_forward();'+READ_FIRST+first[at:]
     text=text[:marker]+'''action first_select(){hdr.event.event=16w0x0105;}
 action first_response(){hdr.event.event=16w0x0106;}
-action first_operate(){hdr.event.event=16w0x0107;}
+action first_operate(){hdr.event.event=16w0x0107;hdr.t0.setValid();hdr.t0.t0q=p.global_tstamp[31:8]++8w0;}
  action forward_original(){hdr.event.event=16w0x0108;}
  action first_response_op(){hdr.event.event=16w0x0110;}
  action first_replay(){hdr.event.event=16w0x010c;}

@@ -52,7 +52,7 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
  state ready_ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w95):ready_ip_flags;default:accept;}}
  state captured_event{transition select(hdr.event.event){16w0x0105:captured_decoy;16w0x0205:captured_decoy;16w0x0305:captured_decoy;16w0x01ff:captured_decoy;16w0x02ff:captured_decoy;16w0x03ff:captured_decoy;16w0x05ff:captured_decoy;default:accept;}}
  state captured_decoy{pkt.extract(hdr.captured);transition eth;}
- state envelope_event{transition select(hdr.event.event){16w0x0101:eth;16w0x0102:eth;16w0x0103:eth;16w0x0104:eth;16w0x01ff:eth;16w0x0201:eth;16w0x0202:eth;16w0x0203:eth;16w0x02ff:eth;16w0x0301:eth;16w0x0302:eth;16w0x0303:eth;16w0x03ff:eth;16w0x0106:eth;16w0x0107:eth;16w0x0108:eth;16w0x0206:eth;16w0x0207:eth;16w0x0208:eth;16w0x0306:eth;16w0x0307:eth;16w0x0308:eth;16w0x0109:read_t0;16w0x010a:read_t0;16w0x010b:read_t0;16w0x0209:read_t0;16w0x020a:read_t0;16w0x020b:read_t0;16w0x0309:read_t0;16w0x030a:read_t0;16w0x030b:read_t0;16w0x0110:eth;16w0x010c:eth;16w0x0210:eth;16w0x020c:eth;16w0x0310:eth;16w0x030c:eth;default:accept;}}
+ state envelope_event{transition select(hdr.event.event){16w0x0101:eth;16w0x0102:eth;16w0x0103:eth;16w0x0104:eth;16w0x01ff:eth;16w0x0201:eth;16w0x0202:eth;16w0x0203:eth;16w0x02ff:eth;16w0x0301:eth;16w0x0302:eth;16w0x0303:eth;16w0x03ff:eth;16w0x0106:eth;16w0x0107:read_t0;16w0x0108:eth;16w0x0206:eth;16w0x0207:read_t0;16w0x0208:eth;16w0x0306:eth;16w0x0307:read_t0;16w0x0308:eth;16w0x0109:read_t0;16w0x010a:read_t0;16w0x010b:read_t0;16w0x0209:read_t0;16w0x020a:read_t0;16w0x020b:read_t0;16w0x0309:read_t0;16w0x030a:read_t0;16w0x030b:read_t0;16w0x0110:eth;16w0x010c:eth;16w0x0210:eth;16w0x020c:eth;16w0x0310:eth;16w0x030c:eth;default:accept;}}
  state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}
  state ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w40):ip_flags;(4w4,4w5,8w6,16w44):ip_flags;(4w4,4w5,8w6,16w75):native_ip_flags;(4w4,4w5,8w6,16w97):response_ip_flags;(4w4,4w5,8w6,16w60):read_ip_flags;(4w4,4w5,8w6,16w89):read_response_ip_flags;(4w4,4w5,8w6,16w41):replay_ip_flags;default:accept;}}
  state ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):tcp;(13w0,3w2):tcp;default:accept;}}
@@ -241,7 +241,7 @@ action publish_response_op(){m.expected=hdr.expected_cell.expected_cell;m.desire
  action first_close(){hdr.event.event=16w0x0104;hdr.work_generation.generation=hdr.envelope.epoch;}
 action first_select(){hdr.event.event=16w0x0105;hdr.event.reserved=16w1;hdr.captured.setValid();hdr.captured.index=m.decoy_index;hdr.captured.code=m.decoy_code;hdr.captured.repeat=m.decoy_repeat;hdr.captured.on=m.decoy_on;hdr.captured.off=m.decoy_off;}
 action first_response(){hdr.event.event=16w0x0106;}
-action first_operate(){hdr.event.event=16w0x0107;}
+action first_operate(){hdr.event.event=16w0x0107;hdr.t0.setValid();hdr.t0.t0q=p.global_tstamp[31:8]++8w0;}
  action forward_original(){hdr.event.event=16w0x0108;}
  action first_response_op(){hdr.event.event=16w0x0110;}
  action first_replay(){hdr.event.event=16w0x010c;}
@@ -358,7 +358,9 @@ table reset_boundary{key={m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact
 action emit_replay(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;count_term_bump.execute(4w0);}
 action emit_select(){tm.ucast_egress_port=STEP3_M_PORT;m.emit_loop=8w0;}
 action emit_local_abort(){hdr.expected_cell.expected_cell=hdr.envelope.epoch;hdr.event.event=16w0x05ff;tm.ucast_egress_port=RETURN_PORT;tm.bypass_egress=1w1;m.emit_loop=8w1;}
-table read_terminal_t{key={m.kind:ternary;m.owner_diff:ternary;m.epoch_diff:ternary;}actions={emit_tev;emit_replay;emit_select;emit_local_abort;terminal_strip;terminal_abort;}size=8;const entries={(8w5,32w0,32w0):emit_select();(8w5,_,32w0):emit_local_abort();(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
+// OPERATE (N kind 7) goes to T as tev kind 12 (read_queue_timing.p4 KIND_OPERATE) with its pass-0 t0q, like READ;
+// T holds it for op_j and releases it to the relay. N forwards no native copy.
+table read_terminal_t{key={m.kind:ternary;m.owner_diff:ternary;m.epoch_diff:ternary;}actions={emit_tev;emit_replay;emit_select;emit_local_abort;terminal_strip;terminal_abort;}size=9;const entries={(8w5,32w0,32w0):emit_select();(8w5,_,32w0):emit_local_abort();(8w7,32w0,32w0):emit_tev(16w0x0c00);(8w9,32w0,32w0):emit_tev(16w0x0900);(8w10,32w0,32w0):emit_tev(16w0x0a00);(8w11,32w0,32w0):emit_tev(16w0x0b00);(8w12,32w0,32w0):emit_replay();(8w255,32w0,32w0):terminal_abort();(_,32w0,32w0):terminal_strip();}const default_action=terminal_abort();}
 action busy_drop(){md.drop_ctl=3w1;count_busy_bump.execute(4w0);}
 action busy_pass(){count_busy_bump.execute(4w1);}
 table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=6;const entries={8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}

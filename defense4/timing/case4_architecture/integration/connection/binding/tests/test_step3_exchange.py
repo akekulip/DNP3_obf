@@ -67,7 +67,13 @@ class Exchange(unittest.TestCase):
         assert_invariants(self, pipe, out, frame)
         self.assertFalse(out.dropped, out.drop_reason)
         self.assertEqual(out.passes, passes)
-        self.assertEqual(out.emitted, [(2 if port == rs.IN_CLIENT else 1, frame)], 'native frame forwarded unchanged')
+        if owner_after == OWNER['operate']:
+            # An admitted OPERATE goes to T (2026-10-09 N->T OPERATE handoff), tev kind 12 + original, never natively.
+            self.assertEqual([p for p, _ in out.emitted], [rs.handoff_port()])
+            self.assertEqual(out.emitted[0][1][16:], frame, 'original unchanged behind the tev')
+            self.assertEqual(out.emitted[0][1][12], 12, 'tev kind = T KIND_OPERATE')
+        else:
+            self.assertEqual(out.emitted, [(2 if port == rs.IN_CLIENT else 1, frame)], 'native frame forwarded unchanged')
         state = pipe.state()
         self.assertEqual(state['owner'], owner_after)
         self.assertEqual(state['work']['phase'], 4)

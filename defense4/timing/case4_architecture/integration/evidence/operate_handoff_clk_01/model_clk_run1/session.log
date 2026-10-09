@@ -1,0 +1,23 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name clk_xpipe_probe
+Binding with p4_name clk_xpipe_probe successful!!
+Received clk_xpipe_probe on GetForwarding on client 1, device 0
+PASS setup/ports_and_paths              expected=recorded   observed=recorded
+PASS path/same0                         expected=all 40 stamped observed=all 40 stamped
+  same0  {"n": 40, "of": 40, "ports_ok": true, "total_min": 2500000, "total_median": 8750000.0, "total_max": 11250000, "per_hop_min": [2500000], "per_hop_max": [11250000], "negative_steps": 0}
+PASS path/x02                           expected=all 40 stamped observed=all 40 stamped
+  x02    {"n": 40, "of": 40, "ports_ok": true, "total_min": 3750000, "total_median": 8750000.0, "total_max": 11250000, "per_hop_min": [3750000], "per_hop_max": [11250000], "negative_steps": 0}
+PASS path/same2                         expected=all 40 stamped observed=all 40 stamped
+  same2  {"n": 40, "of": 40, "ports_ok": true, "total_min": 3750000, "total_median": 7500000.0, "total_max": 11250000, "per_hop_min": [3750000], "per_hop_max": [11250000], "negative_steps": 0}
+PASS path/x20                           expected=all 40 stamped observed=all 40 stamped
+  x20    {"n": 40, "of": 40, "ports_ok": true, "total_min": 2500000, "total_median": 7500000.0, "total_max": 11250000, "per_hop_min": [2500000], "per_hop_max": [11250000], "negative_steps": 0}
+PASS path/nlike                         expected=all 40 stamped observed=all 40 stamped
+  nlike  {"n": 40, "of": 40, "ports_ok": true, "total_min": 20000000, "total_median": 26250000.0, "total_max": 35000000, "per_hop_min": [3750000, 5000000, 5000000, 2500000], "per_hop_max": [11250000, 11250000, 6250000, 10000000], "negative_steps": 0}
+PASS path/x01                           expected=all 40 stamped observed=all 40 stamped
+  x01    {"n": 40, "of": 40, "ports_ok": true, "total_min": 3750000, "total_median": 7500000.0, "total_max": 11250000, "per_hop_min": [3750000], "per_hop_max": [11250000], "negative_steps": 0}
+PASS model/time_scale                   expected=recorded   observed=recorded
+  time scale [{'tstamp_delta': 1536250000, 'wall_delta_ns': 1228019714}, {'tstamp_delta': 1531250000, 'wall_delta_ns': 1224054574}, {'tstamp_delta': 1536250000, 'wall_delta_ns': 1223923683}]
+SUMMARY {'total': 8, 'passed': 8, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196
