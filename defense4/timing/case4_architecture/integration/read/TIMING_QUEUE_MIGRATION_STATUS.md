@@ -519,12 +519,14 @@ Builds and runs:
 - Model: 70/70 (the model still has four pipes, so this is necessary, not sufficient).
 - Suites: 201 / 85 / 27 / 10.
 
-**Provenance correction for 2cb6ecf9d.** That commit's `core/response_only/make_e.py` and `e_response_only.p4`
-also contain the efficiency workstream's then-uncommitted edit group 4 (outgoing CRCs without the hash/render
-chain: `dl.crc ^ 0x3b2f / 0x131a`). It was on disk when the files were staged. The verified builds `_17`
-(70/70) and `_18` predate it (they still have `render_dl_crc_t` and no XOR). So 2cb6ecf9d's generators do NOT
-reproduce `_18`, contrary to its message and index. The first build of the committed `make_e.py` is
-`two_pipe_01`: exit 0 on both SDKs, 70/70 on the model, with the CRC edits included.
+**Provenance of the CRC edits (corrects 979b38fd1's message and an earlier version of this paragraph).**
+The claim that 2cb6ecf9d already contained edit group 4 is wrong. Checked against git: 2cb6ecf9d's
+`make_e.py` and `e_response_only.p4` contain no `0x3b2f`, and its own `make_e.generate()`, run from a clean
+`git archive` of that commit, reproduces its committed `e_response_only.p4` byte for byte (sha256
+`0a32f97a8d5310ab...`). 2cb6ecf9d is therefore exactly `_18`, as its message says. Edit group 4 first appears
+in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emitted bytes). The error came
+from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
+two-pipe build of 17161e70b's `make_e.py`.
 
 **Pre-hardware blocker (not fixed).** T separates mirror clones from generator tokens by port
 (`ingress_port == PKTGEN_RETURN` means `parse_clone`; everything else goes to the timer path). On this switch,

@@ -41,11 +41,18 @@ not timing.
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
 
-**Provenance correction for 2cb6ecf9d.** That commit's `core/response_only/make_e.py` and `e_response_only.p4`
-also contain the efficiency workstream's then-uncommitted edit group 4 (outgoing CRCs without the hash/render
-chain: `dl.crc ^ 0x3b2f / 0x131a`). It was on disk when the files were staged. The verified builds `_17`
-(70/70) and `_18` predate it (they still have `render_dl_crc_t` and no XOR). So 2cb6ecf9d's generators do NOT
-reproduce `_18`, contrary to its message and index. The first build of the committed `make_e.py` is
-`two_pipe_01`: exit 0 on both SDKs, 70/70 on the model, with the CRC edits included.
+**Provenance of the CRC edits (corrects an earlier note here and in 979b38fd1's message).** 979b38fd1's
+message and an earlier version of this paragraph said 2cb6ecf9d already contained the efficiency
+workstream's edit group 4. That is wrong, checked against git: 2cb6ecf9d's `make_e.py` and
+`e_response_only.p4` contain no `0x3b2f`, and 2cb6ecf9d's own `make_e.generate()`, run from a clean
+`git archive` of that commit, reproduces its committed `e_response_only.p4` byte for byte (sha256
+`0a32f97a8d5310ab...`). Edit group 4 first appears in 17161e70b (make_e.py +49/-2), built and verified as
+`_19` (70/70, all three checksum cases valid from emitted bytes). The likely source of the error: at
+relocation time HEAD was already 17161e70b, so HEAD's generators did differ from `_17`/`_18` — but because of
+17161e70b, not 2cb6ecf9d. `two_pipe_01` is the first two-pipe build of that same `make_e.py`.
+
+**`_19` evidence restored.** The relocation build briefly composed into `response_only_19/` and overwrote
+three of its files (`compile_local.stdout`, `compile_switch_9132.stdout`, `source/response_only.inputs.json`).
+All three were already committed in 17161e70b and have been restored from git; nothing was lost.
 
 The narrative, numbers and open items are in `read/TIMING_QUEUE_MIGRATION_STATUS.md`.
