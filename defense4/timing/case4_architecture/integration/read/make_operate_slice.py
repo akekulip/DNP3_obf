@@ -83,7 +83,7 @@ def build(capture_hb=False):
     apply_at = ingress.index('\n    apply {')
     body, apply = ingress[sig_end:apply_at], ingress[apply_at:]
     pieces = [decl(body, n) for n in DECLS]
-    pktgen = branch(apply, 'if (ig_intr_md.ingress_port == PKTGEN_RETURN) {')
+    pktgen = branch(apply, 'if (hdr.clone.isValid()) {')   # the clone branch, selected by content (CLONE_MARKER)
     operate = branch(apply, 'if (hdr.tev.kind == KIND_OPERATE && md.enabled != 0) {\n                md.op_gen = op_gen_bump')
     hb = branch(apply, 'if (ig_intr_md.ingress_port == HB_RETURN) {')
     copied = [pktgen, operate] + ([] if capture_hb else [hb])

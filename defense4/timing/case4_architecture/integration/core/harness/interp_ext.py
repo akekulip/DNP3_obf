@@ -173,6 +173,8 @@ class ExtSource(PacketSource):
             return Path(include_dir, match[1]).read_text()
         text = re.sub(r'^\s*#include\s+"([^"]+)"', include, text, flags=re.M)
         text = re.sub(r'^\s*#(?:ifndef|define|endif).*$', '', text, flags=re.M)
+        # pkt.lookahead<bit<N>>() -> pkt.lookahead_N(): the expression parser has no generic call syntax
+        text = re.sub(r'pkt\.lookahead\s*<\s*bit\s*<\s*(\d+)\s*>\s*>\s*\(\s*\)', r'pkt.lookahead_\1()', text)
         text = normalize(text)
         PacketSource.__init__(self, text)
         meta = block(self.text, 'struct meta_t')
@@ -541,6 +543,13 @@ class ExtSource(PacketSource):
         return ('val', first)
 
     def pkt_call(self, method, args):
+        if method.startswith('lookahead_'):            # the next N bits at the cursor, not consumed
+            width = int(method.split('_')[1])
+            size = (width + 7) // 8
+            if self.cursor + size > len(self.raw):
+                raise ParserError('truncated lookahead')
+            value = int.from_bytes(self.raw[self.cursor:self.cursor + size], 'big') >> (size * 8 - width)
+            return value, width
         if method == 'extract':
             header = args[0][1]
             if header in ('ig', 'eg'):

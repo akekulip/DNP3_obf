@@ -19,6 +19,11 @@
 // control plane binds to PKTGEN_RETURN ($mirror.cfg). The session id travels in metadata because
 // bf-p4c rejects a constant session selector (defense4_rrc_bor_unified12.p4, same pattern).
 const bit<3> MIRROR_TYPE_CLONE = 1;
+// Clone vs generator token on PKTGEN_RETURN, told apart by CONTENT (Defense 2's method), not by port: on this
+// switch the generator's tokens arrive on the pipe's local 68 (app_cfg.pipe_local_source_port = 68), which is
+// PKTGEN_RETURN. A Tofino-1 timer header's first byte is pad(3)=0 | pipe(2) | app(3) <= 0x1F; every clone tag
+// starts with CLONE_MARKER, matched EXACTLY on all 8 bits (Defense 2: a 0x1F mask aliased 0xE1 to app 1).
+const bit<8> CLONE_MARKER = 0xE1;
 const MirrorId_t CLONE_SESSION_ID = 10w7;
 
 // Ladder roles (queue_sim.py ROLE dict): 11 ACK blocker, 12 response blocker, 13 OPERATE
@@ -98,7 +103,7 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
             T_IN : parse_tev;
             HELD_RETURN : parse_ladder;
             HB_RETURN : parse_ladder;
-            PKTGEN_RETURN : parse_clone;
+            PKTGEN_RETURN : clone_or_token;
             default : parse_timer;
         }
     }
@@ -129,6 +134,12 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
     // mirrored). Only an OPERATE-admission clone (tev.kind 12) is used for anything; a
     // request-admission clone (kind 9, READ's ACK/response blockers never need this) is parsed the
     // same way and then simply dropped in the apply block.
+    state clone_or_token {
+        transition select(pkt.lookahead<bit<8>>()) {
+            CLONE_MARKER : parse_clone;
+            default : parse_timer;
+        }
+    }
     state parse_clone {
         pkt.extract(hdr.clone); pkt.extract(hdr.tev);
         transition select(hdr.tev.kind, hdr.tev.reserved) {
@@ -212,7 +223,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         // encoding is a follow-up, not needed for this evidence). Not an add: once the Mirror emit
         // made clone_tag live, bf-p4c split op_gen over two 16-bit containers and rejected the
         // carrying add (2 PHV sources + a constant); a bitwise OR splits per container.
-        ig_dprsr_md.mirror_type = 1; md.clone_tag = md.op_gen | 32w0x10000;
+        ig_dprsr_md.mirror_type = 1; md.clone_tag = md.op_gen | 32w0xE1010000;   // CLONE_MARKER in the top byte
         md.clone_ses = CLONE_SESSION_ID;
     }
     action admit_operate_held() {
@@ -289,7 +300,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         ig_tm_md.bypass_egress = 0;
         md.outcome_code = OUT_NONE;
         params.apply(); clock.apply();
-        if (ig_intr_md.ingress_port == PKTGEN_RETURN) {
+        if (hdr.clone.isValid()) {   // a clone by content, not by arrival port (a token on 196 is not one)
             if (hdr.tev.kind == KIND_OPERATE && md.enabled != 0) { admit_operate_held(); }
             else { drop_clone(); }
         }

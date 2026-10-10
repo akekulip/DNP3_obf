@@ -1,0 +1,41 @@
+{
+ "cases": [
+  {
+   "expected": {
+    "OUT_TOKEN_STALE": 3,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "three_tokens_on_196_reach_the_token_verdict",
+   "observed": {
+    "OUT_TOKEN_STALE": 3,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": 0,
+    "64": 0,
+    "196": 0
+   },
+   "name": "nothing_emitted",
+   "observed": {
+    "9": 0,
+    "64": 0,
+    "196": 0
+   },
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "08923e445cdd92962cc820fb707c7a9e5e41a0f330ababbaf50247801c48fa24",
+  "physical": false,
+  "scope": "generator tokens injected on PKTGEN_RETURN (196): handled as tokens, not clones"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 2,
+  "total": 2
+ }
+}

@@ -528,7 +528,37 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
-**Pre-hardware blocker (not fixed).** T separates mirror clones from generator tokens by port
+**Clone vs generator token, now told apart by content (closes the blocker below; `route_ab_01/
+clone_marker_t_01`, `clone_marker_composite_01`).** Two things in T keyed on the port, and both are now content
+checks. Every clone tag starts with `CLONE_MARKER` 0xE1:
+- read clone `16w0xE100 ++ new_gen[15:0]`;
+- OPERATE clone `op_gen | 0xE1010000`.
+
+Only the tag's low 16 bits are consumed (`ladder.generation`), so nothing downstream changes.
+- **Parser:** on `PKTGEN_RETURN`, `select(pkt.lookahead<bit<8>>())` with an exact 8-bit match. 0xE1 goes to
+  `parse_clone`; anything else goes to `parse_timer`. A Tofino-1 timer header's first byte is pad(3)=0 |
+  pipe(2) | app(3), at most 0x1F; the exact full-byte match avoids Defense 2's 0x1F-mask aliasing.
+- **Apply:** the clone branch is `hdr.clone.isValid()`, not `ingress_port == PKTGEN_RETURN`. The token
+  branch is `hdr.timer.isValid()`, not `ingress_port == 0`. The second was a further silicon bug: the old
+  branch assumed the model's pktgen port 0, so a token on 196 would have been unmatched even once parsed
+  correctly. The source-level test found it.
+
+Evidence:
+- Tests (`M_CloneOrTokenByContent`): a pipe-1 timer token on 196 reaches the token verdict exactly as on
+  port 0; an OPERATE clone carries 0xE1, is admitted and is released once; an unmarked clone-shaped frame on
+  196 is not a clone.
+- Teeth, in memory: by-port parsing fails the token test and the unmarked-frame test; port-0 token routing
+  fails the token test; unmarked tags fail the clone test.
+- The interpreter gained `pkt.lookahead<bit<N>>()`.
+- Model: `model_tok196` (`model_drive_pktgen_port.py`, three tokens injected on 196 through a veth, since
+  the model's own generator reports port 0): OUT_TOKEN_STALE +3, unmatched +0, nothing emitted. The same
+  driver on the previous build (`two_pipe_01/model_tok196_teeth`): OUT_TOKEN_STALE +0, so it fails.
+- Composite `model_01`: 70/70.
+- Builds: T standalone 11/0 (critical path 9); composite pipe 0 12/11, pipe 1 11/0. Exit 0 on 9.13.1 and
+  9.13.2.
+- Suites: 204 / 85 / 27 / 10.
+
+**Pre-hardware blocker (CLOSED by the change above; kept for the record).** T separated mirror clones from generator tokens by port
 (`ingress_port == PKTGEN_RETURN` means `parse_clone`; everything else goes to the timer path). On this switch,
 generated tokens arrive on the pipe's local 68 once `app_cfg.pipe_local_source_port = 68` is set, which was
 required in Defense 2 on 9.13.2. That is the same port as `PKTGEN_RETURN` (196), so tokens would be parsed as

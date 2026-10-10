@@ -38,6 +38,8 @@ not timing.
 | response_only_18 | 0 / 0 | 12/11 | `_17` plus a corrected comment in E (pins not honored). Normalized assembly identical to `_17` on all three pipes. Committed in 2cb6ecf9d; superseded by two_pipe_01 (3-pipe placement cannot load on the 2-pipe chip). |
 | response_only_19 | 0 / 0 | 12/11 | `_18` plus make_e edit group 4 (E only, source diff = those lines): outgoing link CRC by XOR in the pad action, tail CRCs hashed early from native fields; 4 E tables and 1 hash unit fewer, PHV 196 -> 193 (8b 59 -> 55, 16b 73 -> 74, 32b 64), same on 9.13.2. Model `model_01`: 70/70, every emitted frame byte-identical to `_17/model_03`; `efficiency_01/verify_wire.py` valid in all three deparser cases. |
 | two_pipe_01 | 0 / 0 | 12/11 (T: p1 11/0) | `Switch(p0, p1)`: T moved to pipe 1 (the switch has 2 pipes; `_18` placed T in pipe 2 and cannot load). conf pipe_scope p0 [0,2], p1 [1,3] (bf-p4c/SDE 2-pipe form; acceptance on the chip unverified). Model `model_01`: 70/70. |
+| clone_marker_composite_01 | 0 / 0 | 12/11 (T: p1 11/0) | T tells clone from generator token by content (CLONE_MARKER 0xE1, exact lookahead; branches on `hdr.clone/timer.isValid()`). Model `model_01` 70/70; `model_tok196` 2/2 (tokens injected on 196 reach the token verdict). Teeth: same driver on two_pipe_01 fails (`two_pipe_01/model_tok196_teeth`). |
+| clone_marker_t_01 | 0 / 0 | T 11/0 | T standalone after the clone marker; critical path 9. |
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
 

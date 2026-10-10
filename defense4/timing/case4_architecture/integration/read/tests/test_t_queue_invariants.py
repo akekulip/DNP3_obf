@@ -815,6 +815,60 @@ class L_QualifiedCloseForwarded(unittest.TestCase):
         self.assertEqual(default.emitted, [])
 
 
+from queue_sim import PORTS  # noqa: E402  (ports.p4, via whole_program)
+
+
+class M_CloneOrTokenByContent(unittest.TestCase):
+    """On this switch the generator's tokens arrive on the pipe's local 68 (pipe_local_source_port = 68), which
+    is PKTGEN_RETURN (196), where T's mirror clones also arrive. T must tell them apart by content: every clone
+    tag starts with CLONE_MARKER 0xE1 (exact 8-bit match); a timer header's first byte is <= 0x1F."""
+
+    @staticmethod
+    def token_bytes(gen, packet_id, profile=1, pipe=1):
+        # pktgen timer header as Tofino-1 delivers it from T's pipe 1: pad(3)=0 | pipe(2) | app(3), pad, batch, packet
+        return bytes([pipe << 3 | profile]) + bytes([profile]) + struct.pack('!HH', gen, packet_id) + bytes(10)
+
+    def stale_token_run(self, port):
+        second = T0 + CAP + 1_000_000
+        sim = QueueSim()
+        sim.read(T0)
+        sim.read(second)
+        if port is not None:
+            sim.at(second + 30_000, port, self.token_bytes(gen=1, packet_id=0))
+        sim.run(T0 + 2 * CAP + 4_000_000)
+        finished(self, sim)
+        return sim
+
+    def test_a_generator_token_on_pktgen_return_is_handled_as_a_token(self):
+        clean = out(self.stale_token_run(None), 'OUT_TOKEN_STALE')
+        on_196 = out(self.stale_token_run(PORTS['PKTGEN_RETURN']), 'OUT_TOKEN_STALE')
+        on_0 = out(self.stale_token_run(0), 'OUT_TOKEN_STALE')    # the model's own pktgen ingress port
+        self.assertEqual((on_196 - clean, on_0 - clean), (1, 1), 'reaches the token verdict on 196 as on 0')
+
+    def test_a_clone_on_pktgen_return_is_marked_and_handled_as_a_clone(self):
+        sim = QueueSim()
+        clones = []
+        at = sim.at
+        sim.at = lambda time, port, raw, kind='ingress': (clones.append(raw) if port == PORTS['PKTGEN_RETURN']
+                                                          else None, at(time, port, raw, kind))[1]
+        sim.operate(T0)
+        sim.run(T0 + OP_J + 4_000_000)
+        finished(self, sim)
+        self.assertTrue(clones, 'the OPERATE admission produced a clone')
+        self.assertEqual({c[0] for c in clones}, {0xE1}, 'every clone tag starts with CLONE_MARKER')
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1, 'the clone was admitted as a clone and released')
+
+    def test_an_unmarked_frame_on_pktgen_return_is_not_taken_for_a_clone(self):
+        """A frame shaped like a pre-marker clone (tag 0x0001xxxx + a kind-12 tev + the OPERATE) is not a clone:
+        no held OPERATE, no release."""
+        sim = QueueSim()
+        unmarked = struct.pack('!I', 0x00010001) + struct.pack('!IIIBBH', 1, 0, 0, 12, 0, 0) + OP_FRAME
+        sim.at(T0, PORTS['PKTGEN_RETURN'], unmarked)
+        sim.run(T0 + OP_J + 4_000_000)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0)
+        self.assertEqual(sim.emissions(OP_FRAME), [])
+
+
 class K_ResetValues(unittest.TestCase):
     """Registers whose reset value must NOT be 0 (control-plane rule, TIMING_QUEUE_MIGRATION_STATUS.md).
     Each holds a generation or epoch that is compared for equality with a live one, and 0 is a live READ
