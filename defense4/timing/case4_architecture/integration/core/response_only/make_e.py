@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Derive role E (pipe 0 egress) for the response-only target from protocol/case4_response_path.p4.
 
-The committed file is left untouched. Three asserted edit groups.
+The committed file is left untouched. Four asserted edit groups.
 
 1. Per the execution document ("Preferred initial ACK placement"): the egress parser dispatches early on
 the egress intrinsic egress_port and parses the mapper's headers only for
@@ -33,6 +33,20 @@ c496. Zeroing the absent headers late cost a 13th stage on both gresses (respons
 instead splits the deparser update into three mutually exclusive cases -- no padding, READ padding (rtp),
 control padding (ctp1+ctp2) -- each summing only the padding header that is present, so an absent one's
 containers are never read. Each padding header is an even number of bytes: later fields keep their parity.
+4. Outgoing CRCs without the post-padding hash/render chain. Padding is granted only on a commit/replay
+verdict that already required every native link CRC to be valid, so:
+  * link header: only the length byte changes (READ 0x26 -> 0x2f, CONTROL 0x1c -> 0x2f) and the CRC is affine,
+    so the new wire-order CRC is the native one XOR 0x3b2f / 0x131a (efficiency_01/verify_dl_xor.py: 0
+    mismatches in 200,000 random headers each, against both repository CRC codecs). hash_dl, crc_dl_t and
+    render_dl_crc_t are gone.
+  * tails: the padded tail CRC depends only on native fields and the fixed filler, so it is hashed early from
+    hdr.rtn / hdr.ctn and the pad action writes it; render_read_crc_t and render_ctl_crc_t are gone. Each 72-bit
+    filler is written 8w ++ 64w: bf-p4c 9.13.1 rejects a hash-input constant wider than 64 bits.
+  Both padding headers are still fully written by their pad action, so the PIN_NOTE invariant below holds.
+  evidence/route_ab_01/response_only_19 (vs _18, both SDKs): stages unchanged (p0 12/11, critical path 11);
+  PHV 196 -> 193 containers (8b 59 -> 55, 16b 73 -> 74, 32b 64 -> 64); E tables 35 -> 31; hash-dist units
+  27 -> 26. Model 70/70 with every emitted frame byte-identical to _17/model_03, and efficiency_01/verify_wire.py
+  recomputes valid IPv4/TCP/DNP3 checksums from the emitted bytes in all three deparser cases.
   python3 make_e.py [out.p4]     (default: e_response_only.p4 next to this script)
 """
 import hashlib
@@ -102,9 +116,42 @@ PIN_NOTE_NEW = ("     shares their containers, hence the @pa_no_overlay pins bel
                 "     present padding header shares is fully overwritten by that header before the deparser runs.\n")
 
 
+CRC_EDITS = (
+    # link header: XOR the validated native CRC with the length-byte delta, inside the pad actions
+    ("hdr.dl.len=8w0x2f;hdr.ip.len=hdr.ip.len+16w9;m.len_delta=16w9;}",
+     "hdr.dl.len=8w0x2f;hdr.dl.crc=hdr.dl.crc^16w0x3b2f;hdr.ip.len=hdr.ip.len+16w9;m.len_delta=16w9;}"),
+    ("hdr.dl.len=8w0x2f;hdr.ip.len=hdr.ip.len+16w21;m.len_delta=16w21;}",
+     "hdr.dl.len=8w0x2f;hdr.dl.crc=hdr.dl.crc^16w0x131a;hdr.ip.len=hdr.ip.len+16w21;m.len_delta=16w21;}"),
+    ("    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_dl;\n"
+     "    action crc_dl(){m.dlcrc=hash_dl.get({hdr.dl.start,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}\n"
+     "    table crc_dl_t{actions={crc_dl;}size=1;const default_action=crc_dl();}\n", ""),
+    ("    action render_dl_crc(){hdr.dl.crc=m.dlcrc[7:0]++m.dlcrc[15:8];}\n"
+     "    table render_dl_crc_t{actions={render_dl_crc;}size=1;const default_action=render_dl_crc();}\n", ""),
+    ("            crc_dl_t.apply(); render_dl_crc_t.apply();\n", ""),
+    ("bit<16> dlcrc; bit<16> rtcrc;", "bit<16> rtcrc;"),
+    # tails: hash native fields + the fixed filler early; the pad action renders the byte-swapped result
+    ("    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.rtp.data_last,hdr.rtp.filler});}",
+     "    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.rtn.data_last,8w0x29,64w0x0106290206290306});}"),
+    ("    action crc_ctl_tail1(){m.ctcrc1=hash_ctl_tail1.get({hdr.ctp1.on_lo,hdr.ctp1.off,hdr.ctp1.status,hdr.ctp1.filler_a});}",
+     "    action crc_ctl_tail1(){m.ctcrc1=hash_ctl_tail1.get({hdr.ctn.on_lo,hdr.ctn.off,hdr.ctn.status,8w0x29,64w0x032802002d010000});}"),
+    ("    action render_read_crc(){hdr.rtp.crc2=m.rtcrc[7:0]++m.rtcrc[15:8];}\n"
+     "    table render_read_crc_t{actions={render_read_crc;}size=1;const default_action=render_read_crc();}\n", ""),
+    ("    action render_ctl_crc(){hdr.ctp1.crc1=m.ctcrc1[7:0]++m.ctcrc1[15:8];}\n"
+     "    table render_ctl_crc_t{actions={render_ctl_crc;}size=1;const default_action=render_ctl_crc();}\n", ""),
+    ("hdr.rtp.filler=72w0x290106290206290306;",
+     "hdr.rtp.filler=72w0x290106290206290306;hdr.rtp.crc2=m.rtcrc[7:0]++m.rtcrc[15:8];"),
+    ("hdr.ctp1.filler_a=72w0x29032802002d010000;",
+     "hdr.ctp1.filler_a=72w0x29032802002d010000;hdr.ctp1.crc1=m.ctcrc1[7:0]++m.ctcrc1[15:8];"),
+    ("            if (hdr.rtp.isValid()) { crc_read_tail_t.apply(); render_read_crc_t.apply(); }\n"
+     "            if (hdr.ctp1.isValid()) { crc_ctl_tail1_t.apply(); render_ctl_crc_t.apply(); }\n", ""),
+    ("in_rb1_t.apply(); in_rt_t.apply(); }", "in_rb1_t.apply(); in_rt_t.apply(); crc_read_tail_t.apply(); }"),
+    ("in_cb0_t.apply(); in_ct_t.apply(); }", "in_cb0_t.apply(); in_ct_t.apply(); crc_ctl_tail1_t.apply(); }"),
+)
+
+
 def generate():
     text = SOURCE.read_text()
-    for old, new in ((OLD, NEW), (CONN_OLD, CONN_NEW), (PIN_NOTE_OLD, PIN_NOTE_NEW)):
+    for old, new in ((OLD, NEW), (CONN_OLD, CONN_NEW), (PIN_NOTE_OLD, PIN_NOTE_NEW)) + CRC_EDITS:
         assert text.count(old) == 1, ('edit target not found exactly once', old[:60])
         text = text.replace(old, new)
     text = split_checksum(text)

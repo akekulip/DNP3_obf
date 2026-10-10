@@ -78,7 +78,7 @@ struct meta_t {
     bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;
     bit<8>  result; bit<1> changed; bit<1> pad; bit<8> wide;
     /* padder verdict and CRC scratch (case4_pad58b_wire.p4) */
-    bit<16> dlcrc; bit<16> rtcrc; bit<16> ctcrc1;
+    bit<16> rtcrc; bit<16> ctcrc1;
     bit<1> read_shape; bit<1> ctl_shape;
     bit<16> in_dl; bit<16> in_rb0; bit<16> in_rb1; bit<16> in_rt; bit<16> in_cb0; bit<16> in_ct;
     bit<1> badh; bit<1> rbad0; bit<1> rbad1; bit<1> rbadt; bit<1> cbad0; bit<1> cbadt;
@@ -451,25 +451,16 @@ control Egress(inout headers_t hdr, inout meta_t m, in egress_intrinsic_metadata
     /* The native tail is zeroed as it is invalidated: the TCP checksum list names it, and the result must
        not depend on whether the target skips invalid headers. (bf-p4c also inserts hidden
        egress_reset_invalidated_checksum_fields tables that do the same; this does not rely on them.) */
-    action read_eligible(){hdr.rtp.setValid();hdr.rtp.data_last=hdr.rtn.data_last;hdr.rtp.filler=72w0x290106290206290306;hdr.rtn.data_last=0;hdr.rtn.crc2=0;hdr.rtn.setInvalid();hdr.dl.len=8w0x2f;hdr.ip.len=hdr.ip.len+16w9;m.len_delta=16w9;}
+    action read_eligible(){hdr.rtp.setValid();hdr.rtp.data_last=hdr.rtn.data_last;hdr.rtp.filler=72w0x290106290206290306;hdr.rtp.crc2=m.rtcrc[7:0]++m.rtcrc[15:8];hdr.rtn.data_last=0;hdr.rtn.crc2=0;hdr.rtn.setInvalid();hdr.dl.len=8w0x2f;hdr.dl.crc=hdr.dl.crc^16w0x3b2f;hdr.ip.len=hdr.ip.len+16w9;m.len_delta=16w9;}
     table read_pad_t{actions={read_eligible;}size=1;const default_action=read_eligible();}
-    action ctl_eligible(){hdr.ctp1.setValid();hdr.ctp1.on_lo=hdr.ctn.on_lo;hdr.ctp1.off=hdr.ctn.off;hdr.ctp1.status=hdr.ctn.status;hdr.ctp1.filler_a=72w0x29032802002d010000;hdr.ctp2.setValid();hdr.ctp2.filler_b=80w0x2041002e010000a04100;hdr.ctp2.crc2=16w0xf995;hdr.ctn.on_lo=0;hdr.ctn.off=0;hdr.ctn.status=0;hdr.ctn.crc1=0;hdr.ctn.setInvalid();hdr.dl.len=8w0x2f;hdr.ip.len=hdr.ip.len+16w21;m.len_delta=16w21;}
+    action ctl_eligible(){hdr.ctp1.setValid();hdr.ctp1.on_lo=hdr.ctn.on_lo;hdr.ctp1.off=hdr.ctn.off;hdr.ctp1.status=hdr.ctn.status;hdr.ctp1.filler_a=72w0x29032802002d010000;hdr.ctp1.crc1=m.ctcrc1[7:0]++m.ctcrc1[15:8];hdr.ctp2.setValid();hdr.ctp2.filler_b=80w0x2041002e010000a04100;hdr.ctp2.crc2=16w0xf995;hdr.ctn.on_lo=0;hdr.ctn.off=0;hdr.ctn.status=0;hdr.ctn.crc1=0;hdr.ctn.setInvalid();hdr.dl.len=8w0x2f;hdr.dl.crc=hdr.dl.crc^16w0x131a;hdr.ip.len=hdr.ip.len+16w21;m.len_delta=16w21;}
     table ctl_pad_t{actions={ctl_eligible;}size=1;const default_action=ctl_eligible();}
-    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_dl;
-    action crc_dl(){m.dlcrc=hash_dl.get({hdr.dl.start,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}
-    table crc_dl_t{actions={crc_dl;}size=1;const default_action=crc_dl();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_tail;
-    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.rtp.data_last,hdr.rtp.filler});}
+    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.rtn.data_last,8w0x29,64w0x0106290206290306});}
     table crc_read_tail_t{actions={crc_read_tail;}size=1;const default_action=crc_read_tail();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_ctl_tail1;
-    action crc_ctl_tail1(){m.ctcrc1=hash_ctl_tail1.get({hdr.ctp1.on_lo,hdr.ctp1.off,hdr.ctp1.status,hdr.ctp1.filler_a});}
+    action crc_ctl_tail1(){m.ctcrc1=hash_ctl_tail1.get({hdr.ctn.on_lo,hdr.ctn.off,hdr.ctn.status,8w0x29,64w0x032802002d010000});}
     table crc_ctl_tail1_t{actions={crc_ctl_tail1;}size=1;const default_action=crc_ctl_tail1();}
-    action render_dl_crc(){hdr.dl.crc=m.dlcrc[7:0]++m.dlcrc[15:8];}
-    table render_dl_crc_t{actions={render_dl_crc;}size=1;const default_action=render_dl_crc();}
-    action render_read_crc(){hdr.rtp.crc2=m.rtcrc[7:0]++m.rtcrc[15:8];}
-    table render_read_crc_t{actions={render_read_crc;}size=1;const default_action=render_read_crc();}
-    action render_ctl_crc(){hdr.ctp1.crc1=m.ctcrc1[7:0]++m.ctcrc1[15:8];}
-    table render_ctl_crc_t{actions={render_ctl_crc;}size=1;const default_action=render_ctl_crc();}
 
 
     /* ============ reverse: monotone inverse on both window edges (spec section 6) ============ */
@@ -528,8 +519,8 @@ control Egress(inout headers_t hdr, inout meta_t m, in egress_intrinsic_metadata
         else if (m.ip_odd == 1) { odd_ip_t.apply(); }
         shape_t.apply();
         if (hdr.dl.isValid()) { in_dl_t.apply(); }
-        if (hdr.rb0.isValid()) { read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); }
-        if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); }
+        if (hdr.rb0.isValid()) { read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); crc_read_tail_t.apply(); }
+        if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); crc_ctl_tail1_t.apply(); }
         /* padder native-CRC verdict */
         if (hdr.dl.crc != (m.in_dl[7:0] ++ m.in_dl[15:8])) { m.badh = 1; }
         if (hdr.rb0.crc0 != (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { m.rbad0 = 1; }
@@ -553,9 +544,6 @@ control Egress(inout headers_t hdr, inout meta_t m, in egress_intrinsic_metadata
         /* pad only on commit or replay; the verdict that allowed either also fixes the profile */
         if (m.pad == 1) {
             if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }
-            crc_dl_t.apply(); render_dl_crc_t.apply();
-            if (hdr.rtp.isValid()) { crc_read_tail_t.apply(); render_read_crc_t.apply(); }
-            if (hdr.ctp1.isValid()) { crc_ctl_tail1_t.apply(); render_ctl_crc_t.apply(); }
         } else if (m.dir == 2 && m.shape == SH_ACK && m.mode == 1) {   // exclusive with padding
             rev_prep_t.apply(); classify_rev.apply();
             if (m.wide == 1) { window_t.apply(); }

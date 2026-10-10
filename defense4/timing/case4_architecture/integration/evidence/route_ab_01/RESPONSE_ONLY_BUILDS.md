@@ -34,6 +34,7 @@ not timing.
 | response_only_16 | 0 / 0 | 12/11 | T forwards qualified closes. Model `model_01`: device add failed, `tin_verdict` 15 entries vs `size = 14`, which bf-p4c accepted silently. |
 | response_only_17 | 0 / 0 | 12/11 | `size = 15`. Model `model_01` 61/70 (replies 50 ms after injection overlapped N's busy record; late response outside capture). `model_02` 67/70 (commit vs fallback swapped: model clock cannot rank them). **`model_03`: 70/70.** |
 | response_only_18 | 0 / 0 | 12/11 | `_17` plus a corrected comment in E (pins not honored). Normalized assembly identical to `_17` on all three pipes. **Committed program.** |
+| response_only_19 | 0 / 0 | 12/11 | `_18` plus make_e edit group 4 (E only, source diff = those lines): outgoing link CRC by XOR in the pad action, tail CRCs hashed early from native fields; 4 E tables and 1 hash unit fewer, PHV 196 -> 193 (8b 59 -> 55, 16b 73 -> 74, 32b 64), same on 9.13.2. Model `model_01`: 70/70, every emitted frame byte-identical to `_17/model_03`; `efficiency_01/verify_wire.py` valid in all three deparser cases. |
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
 
