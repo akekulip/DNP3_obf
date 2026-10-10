@@ -1,0 +1,42 @@
+{
+ "cases": [
+  {
+   "expected": "completed",
+   "name": "execution",
+   "observed": "error",
+   "ok": false
+  }
+ ],
+ "error": "BfruntimeReadWriteRpcException: Error(s):\n\t* At index 0: ALREADY_EXISTS, 'Table Add failed table:p0.r_Egress.odd_ip_t Already exists'\n",
+ "meta": {
+  "driver_sha256": "14282c1e43d92fca2213d99be61e26c81ac85a6e3985ddc457d80ff92d41613f",
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 1,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "70": "BfruntimeReadWriteRpcException: Error(s):",
+   "324": "BfruntimeReadWriteRpcException: Error(s):",
+   "325": "BfruntimeReadWriteRpcException: Error(s):",
+   "326": "BfruntimeReadWriteRpcException: Error(s):",
+   "327": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "scope": "response-only composite: real N + E + T; document vector; forged tuple; READ x2 after SBO; second connection in slot 1; reset; reconnect refusal"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "execution"
+  ],
+  "passed": 0,
+  "total": 1
+ },
+ "traceback": "Traceback (most recent call last):\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 388, in _write\n    return self.stub.Write(req, metadata=metadata)\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/grpc/_channel.py\", line 1161, in __call__\n    return _end_unary_response_blocking(state, call, False, None)\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/grpc/_channel.py\", line 1004, in _end_unary_response_blocking\n    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable\ngrpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNKNOWN\n\tdetails = \"Write Error Status\"\n\tdebug_error_string = \"UNKNOWN:Error received from peer  {grpc_message:\"Write Error Status\", grpc_status:2, created_time:\"2026-10-10T09:06:51.596492951-04:00\"}\"\n>\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py\", line 106, in main\n    m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 96, in add\n    t.entry_add(self.target if pipe is None else gc.Target(device_id=0, pipe_id=pipe), [self._key(t, keys, priority)], [d])\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 1968, in entry_add\n    resp = self.reader_writer_interface._write(self._entry_write_req_make(req, key_list,\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 390, in _write\n    raise BfruntimeReadWriteRpcException(e)\nbfrt_grpc.client.BfruntimeReadWriteRpcException: Error(s):\n\t* At index 0: ALREADY_EXISTS, 'Table Add failed table:p0.r_Egress.odd_ip_t Already exists'\n\n"
+}

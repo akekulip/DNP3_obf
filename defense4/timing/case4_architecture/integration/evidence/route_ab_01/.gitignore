@@ -13,3 +13,7 @@
 **/events.json
 **/graphs/
 **/logs/placement_clustering*
+
+# raw compiler output trees stay local (kept on disk, reproducible from source/ + manifest.json). From each,
+# only out/*/logs/table_summary.log and pa.results.log are committed, added explicitly (git add -f).
+**/out/

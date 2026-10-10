@@ -1,0 +1,22 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name composed_t_response
+Binding with p4_name composed_t_response successful!!
+Received composed_t_response on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS master_SYN                         expected=frame      observed=frame
+PASS master_SYN_outcome                 expected={12: 1}    observed={12: 1}
+PASS outstation_SYNACK_arms_mapping     expected=frame      observed=frame
+PASS outstation_SYNACK_arms_mapping_outcome expected={13: 1}    observed={13: 1}
+PASS master_handshake_ACK               expected=frame      observed=frame
+PASS master_handshake_ACK_outcome       expected={9: 1}     observed={9: 1}
+PASS oracle_says_response_commits_and_pads expected=('commit', True, True) observed=('commit', True, True)
+PASS request_relayed_through_T_then_reverse_mapped expected=1          observed=1
+PASS T_released_ack_then_response_on_master_port expected=2          observed=2
+PASS T_released_ACK_mapped_byte_exact   expected=True       observed=True
+PASS T_released_response_PADDED_byte_exact expected=True       observed=True
+PASS pipe0_egress_outcomes_once_per_release expected={9: 1, 2: 1, 1: 1} observed={1: 1, 2: 1, 9: 1}
+PASS T_held_and_committed               expected={'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'held_laps': True} observed={'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'held_laps': True}
+SUMMARY {'total': 14, 'passed': 14, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

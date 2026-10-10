@@ -1,0 +1,528 @@
++---------------------------------------------------------------------+
+|  Log file: pa.results.log                                           |
+|  Compiler version: 9.13.1                                           |
+|  Created on: Fri Oct  9 20:15:41 2026                               |
+|  Run ID: 0c9cef5c3bbf4e0a                                           |
++---------------------------------------------------------------------+
+
+Allocation state: Final Allocation
+------------------------------------------------------------------------------
+|       PHV Group        | Containers Used |   Bits Used   | Bits Available |
+| (container bit widths) |     (% used)    |    (% used)   |                |
+------------------------------------------------------------------------------
+|         0 (32)         |   16 (100.00%)  |  508 (99.22%) |      512       |
+|         1 (32)         |   16 (100.00%)  | 512 (100.00%) |      512       |
+|         2 (32)         |   16 (100.00%)  | 512 (100.00%) |      512       |
+|         3 (32)         |   16 (100.00%)  | 512 (100.00%) |      512       |
+|    Total for 32 bit    |   64 (100.00%)  | 2044 (99.80%) |      2048      |
+|                        |                 |               |                |
+|         4 (8)          |   16 (100.00%)  |  123 (96.09%) |      128       |
+|         5 (8)          |   16 (100.00%)  | 128 (100.00%) |      128       |
+|         6 (8)          |   16 (100.00%)  | 128 (100.00%) |      128       |
+|         7 (8)          |   16 (100.00%)  |  125 (97.66%) |      128       |
+|    Total for 8 bit     |   64 (100.00%)  |  504 (98.44%) |      512       |
+|                        |                 |               |                |
+|         8 (16)         |   16 (100.00%)  |  236 (92.19%) |      256       |
+|         9 (16)         |   16 (100.00%)  |  253 (98.83%) |      256       |
+|        10 (16)         |   16 (100.00%)  | 256 (100.00%) |      256       |
+|        11 (16)         |   16 (100.00%)  | 256 (100.00%) |      256       |
+|        12 (16)         |   16 (100.00%)  |  255 (99.61%) |      256       |
+|        13 (16)         |   16 (100.00%)  | 256 (100.00%) |      256       |
+|    Total for 16 bit    |   96 (100.00%)  | 1512 (98.44%) |      1536      |
+|                        |                 |               |                |
+|       14 (32) T        |    9 (56.25%)   |  288 (56.25%) |      512       |
+|       15 (32) T        |    4 (25.00%)   |  128 (25.00%) |      512       |
+|    Total for 32 bit    |   13 (40.62%)   |  416 (40.62%) |      1024      |
+|                        |                 |               |                |
+|        16 (8) T        |    5 (31.25%)   |  40 (31.25%)  |      128       |
+|        17 (8) T        |    4 (25.00%)   |  32 (25.00%)  |      128       |
+|    Total for 8 bit     |    9 (28.12%)   |  72 (28.12%)  |      256       |
+|                        |                 |               |                |
+|       18 (16) T        |   16 (100.00%)  | 256 (100.00%) |      256       |
+|       19 (16) T        |    6 (37.50%)   |  96 (37.50%)  |      256       |
+|       20 (16) T        |    0 (0.00%)    |   0 (0.00%)   |      256       |
+|    Total for 16 bit    |   22 (45.83%)   |  352 (45.83%) |      768       |
+|                        |                 |               |                |
+|       MAU total        |  224 (100.00%)  | 4060 (99.12%) |      4096      |
+|     Tagalong total     |   44 (39.29%)   |  840 (41.02%) |      2048      |
+|     Overall total      |   268 (79.76%)  | 4900 (79.75%) |      6144      |
+------------------------------------------------------------------------------
+
+--------------------------------------------
+PHV Allocation
+--------------------------------------------
+
+Allocations in Group 0 32 bits
+  32-bit PHV 0 (ingress): phv0[31:0] = ig_intr_md_from_prsr.global_tstamp[31:0]
+  32-bit PHV 1 (ingress): phv1[31:0] = m.observed[31:0]
+  32-bit PHV 2 (ingress): phv2[31:0] = hdr.t0.t0q[31:0]
+  32-bit PHV 3 (ingress): phv3[31:0] = hdr.expected_cell.expected_cell[31:0]
+  32-bit PHV 4 (ingress): phv4[31:0] = m.desired[31:0]
+  32-bit PHV 5 (ingress): phv5[31:0] = m.expected[31:0]
+  32-bit PHV 6 (ingress): phv6[31:24] = m.generation[31:24]
+  32-bit PHV 6 (ingress): phv6[19:4] = m.epoch[31:16]
+  32-bit PHV 6 (ingress): phv6[3:3] = ig_intr_md_for_tm.bypass_egress[0:0]
+  32-bit PHV 6 (ingress): phv6[2:0] = ig_intr_md_for_dprsr.drop_ctl[2:0]
+  32-bit PHV 7 (ingress): phv7[31:16] = m.work_phase[23:8]
+  32-bit PHV 7 (ingress): phv7[15:0] = m.epoch[15:0]
+  32-bit PHV 8 (ingress): phv8[31:24] = m.work_phase[31:24]
+  32-bit PHV 8 (ingress): phv8[23:0] = m.generation[23:0]
+  32-bit PHV 9 (ingress): phv9[31:0] = hdr.work_generation.generation[31:0]
+  32-bit PHV 10 (ingress): phv10[31:0] = hdr.envelope.epoch[31:0]
+  32-bit PHV 11 (ingress): phv11[31:0] = hdr.ip.dst[31:0]
+  32-bit PHV 12 (ingress): phv12[31:0] = hdr.ip.src[31:0]
+  32-bit PHV 13 (ingress): phv13[31:0] = m.compare_real_tcp_src[31:0]
+  32-bit PHV 14 (ingress): phv14[31:0] = m.compare_real_tcp_dst[31:0]
+  32-bit PHV 15 (ingress): phv15[31:16] = hdr.first.w0[15:0]
+  32-bit PHV 15 (ingress): phv15[31:24] = hdr.rd_req.func[7:0]
+  32-bit PHV 15 (ingress): phv15[23:16] = hdr.rd_req.group[7:0]
+  32-bit PHV 15 (ingress): phv15[15:0] = hdr.first.w1[31:16]
+  32-bit PHV 15 (ingress): phv15[15:8] = hdr.rd_req.variation[7:0]
+  32-bit PHV 15 (ingress): phv15[7:0] = hdr.rd_req.qualifier[7:0]
+  >> 16 in ingress and 0 in egress
+
+Allocations in Group 1 32 bits
+  32-bit PHV 16 (egress): phv16[31:0] = m.front_ret[31:0]
+  32-bit PHV 16 (egress): phv16[31:0] = m.r[31:0]
+  32-bit PHV 16 (egress): phv16[31:0] = $tmp91[31:0]
+  32-bit PHV 17 (egress): phv17[31:0] = m.q[31:0]
+  32-bit PHV 17 (egress): phv17[31:0] = $tmp92[31:0]
+  32-bit PHV 18 (egress): phv18[31:0] = hdr.tcp.seq[31:0]
+  32-bit PHV 19 (egress): phv19[31:0] = m.p[31:0]
+  32-bit PHV 20 (egress): phv20[31:0] = m.pm[31:0]
+  32-bit PHV 21 (egress): phv21[31:0] = m.leff[31:0]
+  32-bit PHV 22 (egress): phv22[31:0] = m.t[31:0]
+  32-bit PHV 23 (egress): phv23[31:0] = m.y[31:0]
+  32-bit PHV 24 (egress): phv24[31:0] = m.z[31:0]
+  32-bit PHV 25 (egress): phv25[31:0] = hdr.tcp.ack[31:0]
+  32-bit PHV 26 (egress): phv26[31:0] = m.ina[31:0]
+  32-bit PHV 26 (egress): phv26[31:0] = hdr.ctp2.filler_b[31:0]
+  32-bit PHV 27 (egress): phv27[31:0] = m.s_end[31:0]
+  32-bit PHV 28 (egress): phv28[31:0] = m.ack_inv[31:0]
+  32-bit PHV 29 (egress): phv29[31:0] = m.qx[31:0]
+  32-bit PHV 30 (egress): phv30[31:26] = m.tcp_odd[5:0]
+  32-bit PHV 30 (egress): phv30[25:25] = m.cbadt[0:0]
+  32-bit PHV 30 (egress): phv30[24:17] = m.ip_odd[7:0]
+  32-bit PHV 30 (egress): phv30[16:16] = m.rbad1[0:0]
+  32-bit PHV 30 (egress): phv30[15:0] = m.len_delta[15:0]
+  32-bit PHV 31 (egress): phv31[31:24] = hdr.dl.len[7:0]
+  32-bit PHV 31 (egress): phv31[23:16] = hdr.dl.ctrl[7:0]
+  32-bit PHV 31 (egress): phv31[15:0] = hdr.dl.dst[15:0]
+  >> 0 in ingress and 16 in egress
+
+Allocations in Group 2 32 bits
+  32-bit PHV 32 (ingress): phv32[31:0] = hdr.tcp.seq[31:0]
+  32-bit PHV 33 (ingress): phv33[31:0] = hdr.tcp.ack[31:0]
+  32-bit PHV 34 (ingress): phv34[31:0] = m.client[31:0]
+  32-bit PHV 35 (ingress): phv35[31:0] = m.server[31:0]
+  32-bit PHV 36 (ingress): phv36[31:0] = m.ack_native[31:0]
+  32-bit PHV 36 (ingress): phv36[7:0] = m.network_valid[7:0]
+  32-bit PHV 37 (ingress): phv37[31:0] = m.compare_native_start[31:0]
+  32-bit PHV 38 (ingress): phv38[31:0] = m.compare_native_end[31:0]
+  32-bit PHV 39 (ingress): phv39[31:0] = m.compare_server_start[31:0]
+  32-bit PHV 40 (ingress): phv40[31:0] = m.new_seq[31:0]
+  32-bit PHV 40 (ingress): phv40[15:8] = m.normalize[7:0]
+  32-bit PHV 40 (ingress): phv40[7:0] = m.port_valid[7:0]
+  32-bit PHV 41 (ingress): phv41[31:0] = m.server_diff[31:0]
+  32-bit PHV 42 (ingress): phv42[31:0] = m.client_diff[31:0]
+  32-bit PHV 43 (egress): phv43[31:0] = hdr.ctn.off[31:0]
+  32-bit PHV 44 (egress): phv44[31:0] = hdr.ctp1.off[31:0]
+  32-bit PHV 45 (egress): phv45[31:24] = hdr.rb0.g_start[7:0]
+  32-bit PHV 45 (egress): phv45[23:16] = hdr.rb0.g_stop[7:0]
+  32-bit PHV 45 (egress): phv45[15:0] = hdr.rb0.data_mid[47:32]
+  32-bit PHV 46 (egress): phv46[31:24] = hdr.rb0.func[7:0]
+  32-bit PHV 46 (egress): phv46[23:8] = hdr.rb0.iin[15:0]
+  32-bit PHV 46 (egress): phv46[7:0] = hdr.rb0.g_group[7:0]
+  32-bit PHV 47 (egress): phv47[31:16] = hdr.cb0.index[15:0]
+  32-bit PHV 47 (egress): phv47[15:8] = hdr.cb0.crob_code[7:0]
+  32-bit PHV 47 (egress): phv47[7:0] = hdr.cb0.crob_count[7:0]
+  >> 11 in ingress and 5 in egress
+
+Allocations in Group 3 32 bits
+  32-bit PHV 48 (egress): phv48[31:24] = hdr.cb0.g_var[7:0]
+  32-bit PHV 48 (egress): phv48[23:16] = hdr.cb0.g_qual[7:0]
+  32-bit PHV 48 (egress): phv48[15:0] = hdr.cb0.g_count[15:0]
+  32-bit PHV 49 (egress): phv49[31:24] = hdr.cb0.func[7:0]
+  32-bit PHV 49 (egress): phv49[23:8] = hdr.cb0.iin[15:0]
+  32-bit PHV 49 (egress): phv49[7:0] = hdr.cb0.g_group[7:0]
+  32-bit PHV 50 (egress): phv50[31:16] = hdr.tcp.sport[15:0]
+  32-bit PHV 50 (egress): phv50[15:0] = hdr.tcp.dport[15:0]
+  32-bit PHV 51 (ingress): phv51[31:0] = m.decoy_off[31:0]
+  32-bit PHV 52 (ingress): phv52[31:16] = hdr.tcp.sport[15:0]
+  32-bit PHV 52 (ingress): phv52[15:0] = hdr.tcp.dport[15:0]
+  32-bit PHV 53 (ingress): phv53[31:0] = m.compare_real_tcp_ports[31:0]
+  32-bit PHV 54 (ingress): phv54[31:0] = hdr.response_tail.w1[31:0]
+  32-bit PHV 55 (ingress): phv55[31:0] = m.compare_frozen_decoy_off[31:0]
+  32-bit PHV 55 (ingress): phv55[7:0] = m.badh[7:0]
+  32-bit PHV 56 (ingress): phv56[31:0] = hdr.response_tail.w0[31:0]
+  32-bit PHV 57 (ingress): phv57[31:0] = m.compare_frozen_decoy_on[31:0]
+  32-bit PHV 58 (ingress): phv58[31:0] = m.decoy_on[31:0]
+  32-bit PHV 59 (ingress): phv59[31:0] = hdr.second.w2[31:0]
+  32-bit PHV 60 (egress): phv60[31:0] = hdr.ip.dst[31:0]
+  32-bit PHV 61 (egress): phv61[31:0] = hdr.ip.src[31:0]
+  32-bit PHV 62 (egress): phv62[31:0] = hdr.rb0.data_mid[31:0]
+  32-bit PHV 63 (egress): phv63[31:0] = hdr.rb1.data[31:0]
+  >> 9 in ingress and 7 in egress
+
+Allocations in Group 4 8 bits
+  8-bit PHV 64 (ingress): phv64[2:0] = ig_intr_md_for_dprsr.mirror_type[2:0]
+  8-bit PHV 65 (ingress): phv65[7:0] = hdr.tail.status[7:0]
+  8-bit PHV 65 (ingress): phv65[7:0] = hdr.response_tail.w2[7:0]
+  8-bit PHV 65 (ingress): phv65[7:0] = hdr.rd_req.crc[7:0]
+  8-bit PHV 65 (ingress): phv65[7:0] = hdr.rd_tail.value[7:0]
+  8-bit PHV 66 (ingress): phv66[7:0] = hdr.first.crc[7:0]
+  8-bit PHV 66 (ingress): phv66[7:0] = hdr.rd_req.crc[15:8]
+  8-bit PHV 67 (ingress): phv67[7:0] = m.bcrc[15:8]
+  8-bit PHV 68 (ingress): phv68[7:0] = hdr.first.crc[15:8]
+  8-bit PHV 68 (ingress): phv68[7:0] = hdr.rd_req.tp[7:0]
+  8-bit PHV 69 (ingress): phv69[7:0] = m.bcrc[7:0]
+  8-bit PHV 70 (ingress): phv70[7:0] = hdr.dl.crc[7:0]
+  8-bit PHV 71 (ingress): phv71[7:0] = m.hcrc[15:8]
+  8-bit PHV 72 (ingress): phv72[7:0] = hdr.dl.crc[15:8]
+  8-bit PHV 73 (ingress): phv73[7:0] = m.hcrc[7:0]
+  8-bit PHV 74 (ingress): phv74[7:0] = hdr.second.crc[7:0]
+  8-bit PHV 75 (ingress): phv75[7:0] = m.crc1[15:8]
+  8-bit PHV 75 (ingress): phv75[7:0] = m.parsed[7:0]
+  8-bit PHV 76 (ingress): phv76[7:0] = hdr.second.crc[15:8]
+  8-bit PHV 77 (ingress): phv77[7:0] = m.crc1[7:0]
+  8-bit PHV 78 (ingress): phv78[7:0] = hdr.ip.ttl[7:0]
+  8-bit PHV 79 (ingress): phv79[7:0] = hdr.first.w0[31:24]
+  >> 16 in ingress and 0 in egress
+
+Allocations in Group 5 8 bits
+  8-bit PHV 80 (egress): phv80[7:0] = hdr.ctn.status[7:0]
+  8-bit PHV 81 (egress): phv81[7:0] = m.in_cb0[15:8]
+  8-bit PHV 81 (egress): phv81[7:0] = hdr.ctp1.status[7:0]
+  8-bit PHV 82 (egress): phv82[7:0] = hdr.rtn.data_last[7:0]
+  8-bit PHV 83 (egress): phv83[7:0] = m.in_cb0[7:0]
+  8-bit PHV 83 (egress): phv83[7:0] = hdr.rtp.data_last[7:0]
+  8-bit PHV 84 (egress): phv84[7:0] = m.in_rb0[7:0]
+  8-bit PHV 84 (egress): phv84[7:0] = hdr.ctp1.filler_a[71:64]
+  8-bit PHV 85 (egress): phv85[7:0] = m.in_rb0[15:8]
+  8-bit PHV 85 (egress): phv85[7:0] = hdr.rtp.filler[71:64]
+  8-bit PHV 86 (egress): phv86[7:0] = hdr.cb0.crc0[7:0]
+  8-bit PHV 87 (egress): phv87[7:0] = hdr.cb0.crc0[15:8]
+  8-bit PHV 88 (egress): phv88[7:0] = hdr.tcp.flags[7:0]
+  8-bit PHV 89 (egress): phv89[7:0] = hdr.rb0.crc0[15:8]
+  8-bit PHV 90 (egress): phv90[7:0] = hdr.rb0.crc0[7:0]
+  8-bit PHV 91 (egress): phv91[7:0] = hdr.rb1.crc1[15:8]
+  8-bit PHV 92 (egress): phv92[7:0] = m.ctcrc1[15:8]
+  8-bit PHV 92 (egress): phv92[7:0] = m.in_rb1[7:0]
+  8-bit PHV 93 (egress): phv93[7:0] = hdr.rb1.crc1[7:0]
+  8-bit PHV 94 (egress): phv94[7:0] = m.in_rb1[15:8]
+  8-bit PHV 94 (egress): phv94[7:0] = hdr.ctp1.crc1[7:0]
+  8-bit PHV 95 (egress): phv95[7:0] = m.dir[7:0]
+  >> 0 in ingress and 16 in egress
+
+Allocations in Group 6 8 bits
+  8-bit PHV 96 (ingress): phv96[7:0] = hdr.tail.crc[15:8]
+  8-bit PHV 96 (ingress): phv96[7:0] = hdr.response_tail.crc[15:8]
+  8-bit PHV 96 (ingress): phv96[7:0] = hdr.rd_req.app[7:0]
+  8-bit PHV 96 (ingress): phv96[7:0] = hdr.rd_tail.crc[15:8]
+  8-bit PHV 97 (ingress): phv97[7:0] = m.tcrc[7:0]
+  8-bit PHV 97 (ingress): phv97[3:0] = m.compare_read_app[3:0]
+  8-bit PHV 98 (ingress): phv98[7:0] = hdr.tail.crc[7:0]
+  8-bit PHV 98 (ingress): phv98[7:0] = hdr.response_tail.crc[7:0]
+  8-bit PHV 98 (ingress): phv98[7:0] = hdr.rd_tail.crc[7:0]
+  8-bit PHV 99 (ingress): phv99[7:0] = m.tcrc[15:8]
+  8-bit PHV 100 (ingress): phv100[7:0] = hdr.first.w0[23:16]
+  8-bit PHV 101 (ingress): phv101[7:0] = m.compare_application[7:0]
+  8-bit PHV 102 (egress): phv102[7:0] = m.enable[7:0]
+  8-bit PHV 102 (egress): phv102[7:0] = m.ctcrc1[7:0]
+  8-bit PHV 103 (ingress): phv103[7:0] = m.expected_work_phase[15:8]
+  8-bit PHV 104 (egress): phv104[7:0] = hdr.ctp1.crc1[15:8]
+  8-bit PHV 105 (ingress): phv105[7:0] = m.diff_real_tcp_dst[15:8]
+  8-bit PHV 106 (ingress): phv106[7:0] = m.owner_diff[7:0]
+  8-bit PHV 107 (ingress): phv107[7:0] = m.owner_diff[15:8]
+  8-bit PHV 108 (ingress): phv108[7:0] = m.kind[7:0]
+  8-bit PHV 109 (ingress): phv109[7:0] = m.matched[7:0]
+  8-bit PHV 110 (ingress): phv110[7:0] = m.sequence_valid[7:0]
+  8-bit PHV 111 (ingress): phv111[7:0] = m.bad1[7:0]
+  >> 14 in ingress and 2 in egress
+
+Allocations in Group 7 8 bits
+  8-bit PHV 112 (ingress): phv112[7:0] = m.profile[7:0]
+  8-bit PHV 113 (ingress): phv113[7:0] = m.enabled[7:0]
+  8-bit PHV 114 (egress): phv114[5:5] = m.ctl_shape[0:0]
+  8-bit PHV 114 (egress): phv114[4:4] = hdr.tcp.checksum.$deparse_updated_csum_0[0:0]
+  8-bit PHV 114 (egress): phv114[3:3] = hdr.tcp.checksum.$deparse_original_csum[0:0]
+  8-bit PHV 114 (egress): phv114[2:2] = m.cbad0[0:0]
+  8-bit PHV 114 (egress): phv114[1:1] = m.pad[0:0]
+  8-bit PHV 114 (egress): phv114[0:0] = m.rbad0[0:0]
+  8-bit PHV 115 (egress): phv115[6:6] = hdr.ip.checksum.$deparse_updated_csum_0[0:0]
+  8-bit PHV 115 (egress): phv115[5:5] = hdr.ip.checksum.$deparse_original_csum[0:0]
+  8-bit PHV 115 (egress): phv115[4:2] = eg_intr_md_for_dprsr.drop_ctl[2:0]
+  8-bit PHV 115 (egress): phv115[1:1] = m.changed[0:0]
+  8-bit PHV 115 (egress): phv115[0:0] = m.rbadt[0:0]
+  8-bit PHV 116 (ingress): phv116[7:0] = m.compare_application[15:8]
+  8-bit PHV 117 (ingress): phv117[7:0] = m.compare_application[23:16]
+  8-bit PHV 118 (ingress): phv118[7:0] = m.compare_application[31:24]
+  8-bit PHV 119 (egress): phv119[7:6] = m.tcp_odd[7:6]
+  8-bit PHV 119 (egress): phv119[5:5] = hdr.ctn.$parsed[0:0]
+  8-bit PHV 119 (egress): phv119[4:4] = hdr.rtn.$parsed[0:0]
+  8-bit PHV 119 (egress): phv119[3:0] = hdr.min_parse_depth_padding_0.$stkvalid[3:0]
+  8-bit PHV 120 (ingress): phv120[7:0] = m.owner_op[7:0]
+  8-bit PHV 121 (ingress): phv121[7:0] = m.badb[7:0]
+  8-bit PHV 122 (ingress): phv122[7:0] = m.badt[7:0]
+  8-bit PHV 123 (egress): phv123[7:0] = m.result[7:0]
+  8-bit PHV 124 (egress): phv124[7:0] = m.mode[7:0]
+  8-bit PHV 125 (egress): phv125[7:0] = m.grant[7:0]
+  8-bit PHV 126 (ingress): phv126[7:0] = m.response[7:0]
+  8-bit PHV 127 (ingress): phv127[7:0] = m.return_abort[7:0]
+  >> 10 in ingress and 6 in egress
+
+Allocations in Group 8 16 bits
+  16-bit PHV 128 (ingress): phv128[15:0] = hdr.event.event[15:0]
+  16-bit PHV 129 (ingress): phv129[15:8] = m.go[7:0]
+  16-bit PHV 129 (ingress): phv129[7:0] = m.direction[7:0]
+  16-bit PHV 130 (ingress): phv130[8:0] = ig_intr_md_for_tm.ucast_egress_port[8:0]
+  16-bit PHV 131 (ingress): phv131[8:0] = ig_intr_md.ingress_port[8:0]
+  16-bit PHV 131 (ingress): phv131[8:0] = m.output_port[8:0]
+  16-bit PHV 132 (ingress): phv132[9:0] = $tmp4[9:0]
+  16-bit PHV 133 (ingress): phv133[15:0] = hdr.tail.off[15:0]
+  16-bit PHV 133 (ingress): phv133[15:0] = hdr.second.w1[15:0]
+  16-bit PHV 133 (ingress): phv133[15:8] = hdr.rd_req.first[7:0]
+  16-bit PHV 133 (ingress): phv133[7:0] = hdr.rd_req.last[7:0]
+  16-bit PHV 134 (ingress): phv134[15:0] = hdr.tail.off[31:16]
+  16-bit PHV 134 (ingress): phv134[15:0] = hdr.second.w1[31:16]
+  16-bit PHV 135 (ingress): phv135[15:0] = m.compare_real_off[15:0]
+  16-bit PHV 136 (ingress): phv136[15:0] = hdr.second.w0[15:0]
+  16-bit PHV 137 (ingress): phv137[15:0] = m.compare_real_off[31:16]
+  16-bit PHV 138 (ingress): phv138[15:0] = hdr.first.w1[15:0]
+  16-bit PHV 139 (ingress): phv139[15:8] = hdr.dl.len[7:0]
+  16-bit PHV 139 (ingress): phv139[7:0] = hdr.dl.ctrl[7:0]
+  16-bit PHV 140 (ingress): phv140[15:0] = hdr.second.w3[15:0]
+  16-bit PHV 141 (ingress): phv141[15:8] = m.decoy_repeat[7:0]
+  16-bit PHV 141 (ingress): phv141[7:0] = m.compare_frozen_decoy_object[7:0]
+  16-bit PHV 142 (ingress): phv142[15:8] = m.compare_frozen_decoy_object[15:8]
+  16-bit PHV 142 (ingress): phv142[7:0] = m.decoy_code[7:0]
+  16-bit PHV 142 (ingress): phv142[0:0] = m.ip_error[0:0]
+  16-bit PHV 143 (ingress): phv143[15:12] = hdr.tcp.offset[3:0]
+  16-bit PHV 143 (ingress): phv143[11:8] = hdr.tcp.reserved[3:0]
+  16-bit PHV 143 (ingress): phv143[7:0] = hdr.tcp.flags[7:0]
+  >> 16 in ingress and 0 in egress
+
+Allocations in Group 9 16 bits
+  16-bit PHV 144 (egress): phv144[15:0] = hdr.ip.len[15:0]
+  16-bit PHV 145 (egress): phv145[12:9] = m.idx[3:0]
+  16-bit PHV 145 (egress): phv145[8:0] = eg_intr_md.egress_port[8:0]
+  16-bit PHV 146 (egress): phv146[15:8] = m.in_dl[7:0]
+  16-bit PHV 146 (egress): phv146[15:0] = hdr.ctp1.filler_a[15:0]
+  16-bit PHV 146 (egress): phv146[7:0] = m.in_dl[15:8]
+  16-bit PHV 147 (egress): phv147[15:0] = hdr.ctp1.filler_a[31:16]
+  16-bit PHV 148 (egress): phv148[15:0] = hdr.dl.src[15:0]
+  16-bit PHV 149 (egress): phv149[15:0] = hdr.cb0.on_hi[15:0]
+  16-bit PHV 150 (egress): phv150[15:0] = hdr.tcp.window[15:0]
+  16-bit PHV 151 (egress): phv151[15:8] = hdr.mss.kind[7:0]
+  16-bit PHV 151 (egress): phv151[7:0] = hdr.mss.len[7:0]
+  16-bit PHV 152 (egress): phv152[15:0] = hdr.rb1.data[47:32]
+  16-bit PHV 153 (egress): phv153[15:0] = hdr.rb1.data[63:48]
+  16-bit PHV 154 (egress): phv154[15:0] = hdr.rb1.data[79:64]
+  16-bit PHV 155 (egress): phv155[15:0] = hdr.rb1.data[95:80]
+  16-bit PHV 156 (egress): phv156[15:0] = hdr.rb1.data[111:96]
+  16-bit PHV 157 (egress): phv157[15:0] = hdr.rb1.data[127:112]
+  16-bit PHV 158 (egress): phv158[15:0] = m.dlcrc[15:0]
+  16-bit PHV 158 (egress): phv158[7:0] = m.wide[7:0]
+  16-bit PHV 159 (egress): phv159[15:0] = hdr.dl.crc[15:0]
+  >> 0 in ingress and 16 in egress
+
+Allocations in Group 10 16 bits
+  16-bit PHV 160 (ingress): phv160[15:0] = hdr.first.w2[15:0]
+  16-bit PHV 161 (ingress): phv161[15:0] = hdr.first.w3[31:16]
+  16-bit PHV 162 (ingress): phv162[15:0] = hdr.first.w3[15:0]
+  16-bit PHV 163 (ingress): phv163[15:0] = hdr.first.w2[31:16]
+  16-bit PHV 164 (ingress): phv164[15:0] = hdr.second.w0[31:16]
+  16-bit PHV 165 (ingress): phv165[15:0] = m.compare_real_object[31:16]
+  16-bit PHV 166 (ingress): phv166[15:0] = m.compare_real_object[15:0]
+  16-bit PHV 167 (ingress): phv167[15:0] = m.compare_real_on[15:0]
+  16-bit PHV 168 (ingress): phv168[15:0] = m.compare_real_on[31:16]
+  16-bit PHV 169 (ingress): phv169[15:0] = hdr.dl.src[15:0]
+  16-bit PHV 170 (ingress): phv170[15:0] = hdr.dl.dst[15:0]
+  16-bit PHV 171 (ingress): phv171[15:0] = m.compare_real_links[31:16]
+  16-bit PHV 172 (ingress): phv172[15:0] = m.link_src[15:0]
+  16-bit PHV 172 (ingress): phv172[15:0] = m.compare_read_app[19:4]
+  16-bit PHV 172 (ingress): phv172[15:0] = m.tcp_sum[15:0]
+  16-bit PHV 173 (ingress): phv173[15:0] = m.compare_real_links[15:0]
+  16-bit PHV 174 (ingress): phv174[15:0] = m.link_dst[15:0]
+  16-bit PHV 174 (ingress): phv174[11:0] = m.compare_read_app[31:20]
+  16-bit PHV 175 (ingress): phv175[15:0] = hdr.tcp.urgent[15:0]
+  >> 16 in ingress and 0 in egress
+
+Allocations in Group 11 16 bits
+  16-bit PHV 176 (egress): phv176[15:8] = m.in_ct[7:0]
+  16-bit PHV 176 (egress): phv176[15:0] = hdr.rtp.filler[15:0]
+  16-bit PHV 176 (egress): phv176[7:0] = m.in_ct[15:8]
+  16-bit PHV 177 (egress): phv177[15:8] = m.in_rt[7:0]
+  16-bit PHV 177 (egress): phv177[15:0] = hdr.rtp.filler[31:16]
+  16-bit PHV 177 (egress): phv177[7:0] = m.in_rt[15:8]
+  16-bit PHV 178 (egress): phv178[15:0] = hdr.rtp.filler[47:32]
+  16-bit PHV 179 (egress): phv179[15:0] = hdr.rtp.filler[63:48]
+  16-bit PHV 180 (egress): phv180[15:0] = hdr.ctp2.filler_b[47:32]
+  16-bit PHV 181 (egress): phv181[15:0] = hdr.ctp2.filler_b[63:48]
+  16-bit PHV 182 (egress): phv182[15:0] = hdr.ctn.crc1[15:0]
+  16-bit PHV 183 (egress): phv183[15:0] = hdr.rtn.crc2[15:0]
+  16-bit PHV 184 (egress): phv184[15:0] = hdr.ctn.on_lo[15:0]
+  16-bit PHV 185 (egress): phv185[15:0] = hdr.ctp1.on_lo[15:0]
+  16-bit PHV 186 (egress): phv186[15:0] = m.rtcrc[15:0]
+  16-bit PHV 187 (egress): phv187[15:0] = hdr.rtp.crc2[15:0]
+  16-bit PHV 188 (egress): phv188[15:8] = hdr.rb0.g_var[7:0]
+  16-bit PHV 188 (egress): phv188[7:0] = hdr.rb0.g_qual[7:0]
+  16-bit PHV 189 (egress): phv189[15:8] = hdr.rb0.tpctrl[7:0]
+  16-bit PHV 189 (egress): phv189[7:0] = hdr.rb0.appctrl[7:0]
+  16-bit PHV 190 (egress): phv190[15:0] = hdr.ctp1.filler_a[47:32]
+  16-bit PHV 191 (egress): phv191[15:0] = hdr.ctp1.filler_a[63:48]
+  >> 0 in ingress and 16 in egress
+
+Allocations in Group 12 16 bits
+  16-bit PHV 192 (egress): phv192[15:8] = hdr.cb0.tpctrl[7:0]
+  16-bit PHV 192 (egress): phv192[7:0] = hdr.cb0.appctrl[7:0]
+  16-bit PHV 193 (egress): phv193[15:0] = hdr.dl.start[15:0]
+  16-bit PHV 194 (egress): phv194[15:0] = hdr.ctp2.crc2[15:0]
+  16-bit PHV 195 (egress): phv195[15:0] = hdr.ctp2.filler_b[79:64]
+  16-bit PHV 196 (egress): phv196[14:14] = m.read_shape[0:0]
+  16-bit PHV 196 (egress): phv196[13:13] = m.badh[0:0]
+  16-bit PHV 196 (egress): phv196[12:12] = hdr.ctp2.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[11:11] = hdr.ctp1.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[10:10] = hdr.rtp.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[9:9] = hdr.mss.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[8:8] = hdr.ctn.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[7:7] = hdr.cb0.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[6:6] = hdr.rtn.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[5:5] = hdr.rb1.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[4:4] = hdr.rb0.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[3:3] = hdr.dl.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[2:2] = hdr.tcp.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[1:1] = hdr.ip.$valid[0:0]
+  16-bit PHV 196 (egress): phv196[0:0] = hdr.eth.$valid[0:0]
+  16-bit PHV 197 (ingress): phv197[15:0] = m.expected_work_phase[31:16]
+  16-bit PHV 198 (ingress): phv198[15:0] = m.diff_real_tcp_dst[31:16]
+  16-bit PHV 199 (ingress): phv199[15:0] = m.diff_real_links[15:0]
+  16-bit PHV 200 (ingress): phv200[15:0] = hdr.event.reserved[15:0]
+  16-bit PHV 201 (ingress): phv201[15:0] = hdr.dl.magic[15:0]
+  16-bit PHV 202 (ingress): phv202[15:0] = hdr.second.w3[31:16]
+  16-bit PHV 203 (ingress): phv203[15:0] = m.compare_frozen_decoy_object[31:16]
+  16-bit PHV 204 (ingress): phv204[15:0] = m.decoy_index[15:0]
+  16-bit PHV 205 (ingress): phv205[15:15] = hdr.t0.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[14:14] = hdr.rd_tail.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[13:13] = hdr.rd_req.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[12:12] = hdr.response_tail.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[11:11] = hdr.second.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[10:10] = hdr.tail.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[9:9] = hdr.first.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[8:8] = hdr.dl.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[7:7] = hdr.mss.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[6:6] = hdr.tcp.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[5:5] = hdr.ip.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[4:4] = hdr.eth.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[3:3] = hdr.event.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[2:2] = hdr.expected_cell.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[1:1] = hdr.work_generation.$valid[0:0]
+  16-bit PHV 205 (ingress): phv205[0:0] = hdr.envelope.$valid[0:0]
+  16-bit PHV 206 (ingress): phv206[15:8] = m.diff_real_tcp_dst[7:0]
+  16-bit PHV 206 (ingress): phv206[7:0] = m.stage[7:0]
+  16-bit PHV 207 (ingress): phv207[15:8] = m.work_phase[7:0]
+  16-bit PHV 207 (ingress): phv207[7:0] = m.expected_work_phase[7:0]
+  >> 11 in ingress and 5 in egress
+
+Allocations in Group 13 16 bits
+  16-bit PHV 208 (ingress): phv208[15:0] = m.diff_real_links[31:16]
+  16-bit PHV 209 (ingress): phv209[15:0] = m.diff_real_object[15:0]
+  16-bit PHV 210 (ingress): phv210[15:0] = m.diff_real_object[31:16]
+  16-bit PHV 211 (ingress): phv211[15:0] = m.diff_frozen_decoy_off[15:0]
+  16-bit PHV 212 (ingress): phv212[15:0] = m.diff_frozen_decoy_off[31:16]
+  16-bit PHV 213 (ingress): phv213[15:0] = m.diff_real_off[15:0]
+  16-bit PHV 214 (ingress): phv214[15:0] = m.diff_real_off[31:16]
+  16-bit PHV 215 (ingress): phv215[15:0] = m.diff_native_end[15:0]
+  16-bit PHV 216 (ingress): phv216[15:0] = m.diff_native_end[31:16]
+  16-bit PHV 217 (ingress): phv217[15:0] = m.diff_application[15:0]
+  16-bit PHV 218 (ingress): phv218[15:0] = m.diff_application[31:16]
+  16-bit PHV 219 (ingress): phv219[15:0] = m.diff_frozen_decoy_object[15:0]
+  16-bit PHV 220 (ingress): phv220[15:0] = m.diff_frozen_decoy_object[31:16]
+  16-bit PHV 221 (ingress): phv221[15:0] = m.epoch_diff[15:0]
+  16-bit PHV 222 (ingress): phv222[15:0] = m.epoch_diff[31:16]
+  16-bit PHV 223 (ingress): phv223[15:0] = m.owner_diff[31:16]
+  >> 16 in ingress and 0 in egress
+
+Allocations in Group 14 32 bits (tagalong)
+  32-bit PHV 256 (egress): phv256[31:0] = hdr.min_parse_depth_padding_0[1].packet_payload[31:0] (tagalong capable)
+  32-bit PHV 257 (egress): phv257[31:0] = hdr.min_parse_depth_padding_0[3].packet_payload[63:32] (tagalong capable)
+  32-bit PHV 258 (egress): phv258[31:0] = hdr.min_parse_depth_padding_0[1].packet_payload[63:32] (tagalong capable)
+  32-bit PHV 259 (egress): phv259[31:0] = hdr.min_parse_depth_padding_0[2].packet_payload[31:0] (tagalong capable)
+  32-bit PHV 260 (ingress): phv260[31:28] = hdr.ip.version[3:0] (tagalong capable)
+  32-bit PHV 260 (ingress): phv260[27:24] = hdr.ip.ihl[3:0] (tagalong capable)
+  32-bit PHV 260 (ingress): phv260[23:16] = hdr.ip.tos[7:0] (tagalong capable)
+  32-bit PHV 260 (ingress): phv260[15:0] = hdr.ip.len[15:0] (tagalong capable)
+  32-bit PHV 261 (ingress): phv261[31:16] = hdr.ip.id[15:0] (tagalong capable)
+  32-bit PHV 261 (ingress): phv261[15:13] = hdr.ip.flags[2:0] (tagalong capable)
+  32-bit PHV 261 (ingress): phv261[12:0] = hdr.ip.frag[12:0] (tagalong capable)
+  32-bit PHV 262 (ingress): phv262[31:24] = hdr.mss.kind[7:0] (tagalong capable)
+  32-bit PHV 262 (ingress): phv262[23:16] = hdr.mss.len[7:0] (tagalong capable)
+  32-bit PHV 262 (ingress): phv262[15:0] = hdr.mss.value[15:0] (tagalong capable)
+  32-bit PHV 263 (ingress): phv263[31:0] = hdr.eth.src[31:0] (tagalong capable)
+  32-bit PHV 268 (ingress): phv268[31:0] = hdr.eth.dst[31:0] (tagalong capable)
+  >> 5 in ingress and 4 in egress
+
+Allocations in Group 15 32 bits (tagalong)
+  32-bit PHV 272 (egress): phv272[31:29] = hdr.ip.flags[2:0] (tagalong capable)
+  32-bit PHV 272 (egress): phv272[28:16] = hdr.ip.frag[12:0] (tagalong capable)
+  32-bit PHV 272 (egress): phv272[15:8] = hdr.ip.ttl[7:0] (tagalong capable)
+  32-bit PHV 272 (egress): phv272[7:0] = hdr.ip.proto[7:0] (tagalong capable)
+  32-bit PHV 273 (egress): phv273[31:0] = hdr.eth.src[31:0] (tagalong capable)
+  32-bit PHV 274 (egress): phv274[31:0] = hdr.eth.dst[31:0] (tagalong capable)
+  32-bit PHV 275 (egress): phv275[31:0] = hdr.min_parse_depth_padding_0[0].packet_payload[31:0] (tagalong capable)
+  >> 0 in ingress and 4 in egress
+
+Allocations in Group 16 8 bits (tagalong)
+  8-bit PHV 288 (egress): phv288[7:0] = hdr.eth.dst[39:32] (tagalong capable)
+  8-bit PHV 289 (egress): phv289[7:0] = hdr.eth.dst[47:40] (tagalong capable)
+  8-bit PHV 290 (egress): phv290[7:0] = hdr.ip.checksum[7:0] (tagalong capable)
+  8-bit PHV 291 (egress): phv291[7:0] = hdr.ip.checksum[15:8] (tagalong capable)
+  8-bit PHV 292 (ingress): phv292[7:0] = hdr.ip.proto[7:0] (tagalong capable)
+  >> 1 in ingress and 4 in egress
+
+Allocations in Group 17 8 bits (tagalong)
+  8-bit PHV 304 (egress): phv304[7:4] = hdr.tcp.offset[3:0] (tagalong capable)
+  8-bit PHV 304 (egress): phv304[7:0] = hdr.min_parse_depth_padding_0[0].packet_payload[87:80] (tagalong capable)
+  8-bit PHV 304 (egress): phv304[3:0] = hdr.tcp.reserved[3:0] (tagalong capable)
+  8-bit PHV 305 (egress): phv305[7:0] = hdr.min_parse_depth_padding_0[1].packet_payload[87:80] (tagalong capable)
+  8-bit PHV 306 (egress): phv306[7:0] = hdr.min_parse_depth_padding_0[2].packet_payload[87:80] (tagalong capable)
+  8-bit PHV 307 (egress): phv307[7:0] = hdr.min_parse_depth_padding_0[3].packet_payload[87:80] (tagalong capable)
+  >> 0 in ingress and 4 in egress
+
+Allocations in Group 18 16 bits (tagalong)
+  16-bit PHV 320 (egress): phv320[15:0] = hdr.tcp.urgent[15:0] (tagalong capable)
+  16-bit PHV 320 (egress): phv320[15:0] = hdr.min_parse_depth_padding_0[2].packet_payload[47:32] (tagalong capable)
+  16-bit PHV 321 (egress): phv321[15:0] = hdr.tcp.checksum[15:0] (tagalong capable)
+  16-bit PHV 321 (egress): phv321[15:0] = hdr.min_parse_depth_padding_0[2].packet_payload[63:48] (tagalong capable)
+  16-bit PHV 322 (egress): phv322[15:0] = hdr.min_parse_depth_padding_0[3].packet_payload[15:0] (tagalong capable)
+  16-bit PHV 323 (egress): phv323[15:0] = hdr.min_parse_depth_padding_0[3].packet_payload[31:16] (tagalong capable)
+  16-bit PHV 324 (egress): phv324[15:12] = hdr.ip.version[3:0] (tagalong capable)
+  16-bit PHV 324 (egress): phv324[11:8] = hdr.ip.ihl[3:0] (tagalong capable)
+  16-bit PHV 324 (egress): phv324[7:0] = hdr.ip.tos[7:0] (tagalong capable)
+  16-bit PHV 325 (egress): phv325[15:0] = hdr.eth.type[15:0] (tagalong capable)
+  16-bit PHV 326 (ingress): phv326[15:0] = hdr.eth.src[47:32] (tagalong capable)
+  16-bit PHV 327 (ingress): phv327[15:0] = hdr.tcp.checksum[15:0] (tagalong capable)
+  16-bit PHV 328 (ingress): phv328[15:0] = hdr.eth.dst[47:32] (tagalong capable)
+  16-bit PHV 329 (ingress): phv329[15:0] = ig_intr_md_from_prsr.global_tstamp[47:32] (tagalong capable)
+  16-bit PHV 330 (ingress): phv330[15:0] = hdr.tcp.window[15:0] (tagalong capable)
+  16-bit PHV 331 (ingress): phv331[15:0] = hdr.ip.checksum[15:0] (tagalong capable)
+  16-bit PHV 332 (egress): phv332[15:0] = hdr.ip.id[15:0] (tagalong capable)
+  16-bit PHV 333 (egress): phv333[15:0] = hdr.min_parse_depth_padding_0[0].packet_payload[79:64] (tagalong capable)
+  16-bit PHV 334 (egress): phv334[15:0] = m.r_residual[15:0] (tagalong capable)
+  16-bit PHV 335 (egress): phv335[15:0] = hdr.min_parse_depth_padding_0[2].packet_payload[79:64] (tagalong capable)
+  >> 6 in ingress and 10 in egress
+
+Allocations in Group 19 16 bits (tagalong)
+  16-bit PHV 336 (egress): phv336[15:0] = hdr.min_parse_depth_padding_0[3].packet_payload[79:64] (tagalong capable)
+  16-bit PHV 338 (ingress): phv338[15:0] = hdr.eth.type[15:0] (tagalong capable)
+  16-bit PHV 344 (egress): phv344[15:0] = hdr.mss.mss[15:0] (tagalong capable)
+  16-bit PHV 344 (egress): phv344[15:0] = hdr.min_parse_depth_padding_0[1].packet_payload[79:64] (tagalong capable)
+  16-bit PHV 347 (egress): phv347[15:0] = hdr.min_parse_depth_padding_0[0].packet_payload[47:32] (tagalong capable)
+  16-bit PHV 348 (egress): phv348[15:0] = hdr.min_parse_depth_padding_0[0].packet_payload[63:48] (tagalong capable)
+  16-bit PHV 349 (egress): phv349[15:0] = hdr.eth.src[47:32] (tagalong capable)
+  >> 1 in ingress and 5 in egress
+
+
+Final POV layout (ingress):
+
+Final POV layout (egress):

@@ -1,0 +1,78 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS master_SYN                         expected=frame      observed=frame
+PASS master_SYN_E_outcomes              expected={12: 1, 0: 1} observed={0: 1, 12: 1}
+PASS master_SYN_N_owner_phase           expected=2          observed=2
+PASS outstation_SYNACK_arms_mapping     expected=frame      observed=frame
+PASS outstation_SYNACK_arms_mapping_E_outcomes expected={13: 1}    observed={13: 1}
+PASS outstation_SYNACK_arms_mapping_N_owner_phase expected=4          observed=4
+PASS master_handshake_ACK               expected=frame      observed=frame
+PASS master_handshake_ACK_E_outcomes    expected={9: 1, 0: 1} observed={0: 1, 9: 1}
+PASS master_handshake_ACK_N_owner_phase expected=5          observed=5
+PASS SELECT_native_through_lap          expected=frame      observed=frame
+PASS SELECT_native_through_lap_E_outcomes expected={9: 1, 0: 1} observed={0: 1, 9: 1}
+PASS SELECT_native_through_lap_N_owner_phase expected=9          observed=9
+PASS oracle_response1_commits_and_pads  expected=('commit', 21, 58) observed=('commit', 21, 58)
+PASS response1_padded_to_master         expected=frame      observed=frame
+PASS response1_padded_to_master_E_outcomes expected={1: 1}     observed={1: 1}
+PASS response1_padded_to_master_N_owner_phase expected=10         observed=10
+PASS oracle_maps_master_959_to_938      expected=('translate', 938) observed=('translate', 938)
+PASS OPERATE_mapped_admitted_held_by_T_then_released expected=frame      observed=frame
+PASS OPERATE_mapped_admitted_held_by_T_then_released_E_outcomes expected={9: 1, 0: 1} observed={0: 1, 9: 1}
+PASS OPERATE_mapped_admitted_held_by_T_then_released_N_owner_phase expected=12         observed=12
+PASS T_released_the_OPERATE_once_after_holding expected={'OUT_OP_RELEASE': 1, 'held': True} observed={'OUT_OP_RELEASE': 1, 'held': True}
+PASS oracle_response2_commits_at_959    expected=('commit', 959) observed=('commit', 959)
+PASS response2_padded_to_master         expected=frame      observed=frame
+PASS response2_padded_to_master_E_outcomes expected={1: 1}     observed={1: 1}
+PASS response2_padded_to_master_N_owner_phase expected=5          observed=5
+PASS forged_tuple_touches_no_E_state    expected={'mode': {'r_Egress.mode.f1': [1], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [975], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [58], 'r_Egress.acct.lo': [1017], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [975], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [938], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [1017], 'action_name': None, 'is_default_entry': False}} observed={'mode': {'r_Egress.mode.f1': [1], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [975], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [58], 'r_Egress.acct.lo': [1017], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [975], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [938], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [1017], 'action_name': None, 'is_default_entry': False}}
+PASS forged_tuple_no_E_mapping_outcome  expected=set()      observed=set()
+PASS forged_tuple_N_state_unchanged     expected={'owner': 327681, 'epoch': 1, 'read_app': 0} observed={'owner': 327681, 'epoch': 1, 'read_app': 0}
+PASS forged_tuple_never_reaches_master  expected=0          observed=0
+PASS READ1_after_SBO_oracle_maps_master_ack expected=('translate', 975) observed=('translate', 975)
+PASS READ1_after_SBO_oracle_response_commits_and_pads expected=('commit', 9, 58) observed=('commit', 9, 58)
+PASS READ1_after_SBO_request_mapped_relayed_once expected=frame      observed=frame
+PASS READ1_after_SBO_ack_then_PADDED_response_to_master expected=frames     observed=frames
+PASS READ1_after_SBO_E_outcomes         expected={9: 1, 0: 1, 2: 1, 1: 1} observed={0: 1, 1: 1, 2: 1, 9: 1}
+FAIL READ1_after_SBO_T_commit_and_release expected={'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1} observed={'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0}
+PASS READ1_after_SBO_N_idle_after       expected=5          observed=5
+PASS READ1_N_read_app_is_its_sequence   expected=0          observed=0
+PASS B_SYN                              expected=frame      observed=frame
+PASS B_SYN_E_outcomes                   expected={12: 1, 0: 1} observed={0: 1, 12: 1}
+PASS B_SYNACK_arms_slot1                expected=frame      observed=frame
+PASS B_SYNACK_arms_slot1_E_outcomes     expected={13: 1}    observed={13: 1}
+PASS B_ACK                              expected=frame      observed=frame
+PASS B_ACK_E_outcomes                   expected={9: 1, 0: 1} observed={0: 1, 9: 1}
+PASS B_SELECT                           expected=frame      observed=frame
+PASS B_SELECT_E_outcomes                expected={9: 1, 0: 1} observed={0: 1, 9: 1}
+PASS B_response_padded_by_slot1         expected=frame      observed=frame
+PASS B_response_padded_by_slot1_E_outcomes expected={1: 1}     observed={1: 1}
+PASS B_left_slot0_state_unchanged       expected={'mode': {'r_Egress.mode.f1': [1], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [1024], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [58], 'r_Egress.acct.lo': [1075], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [1024], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [975], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [1075], 'action_name': None, 'is_default_entry': False}} observed={'mode': {'r_Egress.mode.f1': [1], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [1024], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [58], 'r_Egress.acct.lo': [1075], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [1024], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [975], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [1075], 'action_name': None, 'is_default_entry': False}}
+PASS B_left_N_state_unchanged           expected={'owner': 327681, 'epoch': 1, 'read_app': 0} observed={'owner': 327681, 'epoch': 1, 'read_app': 0}
+PASS B_slot1_mapped                     expected=(1, 438)   observed=(1, 438)
+PASS READ2_enlarged_ack_oracle_maps_master_ack expected=('translate', 1024) observed=('translate', 1024)
+PASS READ2_enlarged_ack_oracle_response_commits_and_pads expected=('commit', 9, 58) observed=('commit', 9, 58)
+PASS READ2_enlarged_ack_request_mapped_relayed_once expected=frame      observed=frame
+PASS READ2_enlarged_ack_ack_then_PADDED_response_to_master expected=frames     observed=frames
+PASS READ2_enlarged_ack_E_outcomes      expected={9: 1, 0: 1, 2: 1, 1: 1} observed={0: 1, 1: 1, 2: 1, 9: 1}
+FAIL READ2_enlarged_ack_T_commit_and_release expected={'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1} observed={'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0}
+PASS READ2_enlarged_ack_N_idle_after    expected=5          observed=5
+PASS READ2_N_read_app_is_its_sequence   expected=1          observed=1
+PASS READ3_late_outstation_reply_oracle_maps_master_ack expected=('translate', 1073) observed=('translate', 1073)
+PASS READ3_late_outstation_reply_oracle_response_commits_and_pads expected=('commit', 9, 58) observed=('commit', 9, 58)
+PASS READ3_late_outstation_reply_request_mapped_relayed_once expected=frame      observed=frame
+FAIL READ3_late_outstation_reply_ack_then_PADDED_response_to_master expected=frames     observed=mismatch
+FAIL READ3_late_outstation_reply_E_outcomes expected={9: 1, 0: 1, 2: 1, 1: 1} observed={0: 1, 2: 1, 9: 1}
+FAIL READ3_late_outstation_reply_T_fallback_releases expected={'OUT_ACK_FALLBACK': 1, 'OUT_RESP_FALLBACK': 1} observed={'OUT_ACK_FALLBACK': 1, 'OUT_RESP_FALLBACK': 0}
+PASS READ3_late_outstation_reply_N_idle_after expected=5          observed=5
+PASS READ3_N_read_app_is_its_sequence   expected=2          observed=2
+FAIL RESET_genuine_master_RST_mapped_closed_forwarded_once expected=frame      observed=mismatch
+FAIL RESET_genuine_master_RST_mapped_closed_forwarded_once_E_outcomes expected={9: 1, 0: 1} observed={2: 1, 9: 1}
+FAIL RESET_genuine_master_RST_mapped_closed_forwarded_once_N_owner_phase expected=7          observed=5
+FAIL RECONNECT_refused_by_N_until_a_rearm_exists expected=(0, 0, 7)  observed=(0, 0, 5)
+SUMMARY {'total': 70, 'passed': 61, 'failed': ['READ1_after_SBO_T_commit_and_release', 'READ2_enlarged_ack_T_commit_and_release', 'READ3_late_outstation_reply_ack_then_PADDED_response_to_master', 'READ3_late_outstation_reply_E_outcomes', 'READ3_late_outstation_reply_T_fallback_releases', 'RESET_genuine_master_RST_mapped_closed_forwarded_once', 'RESET_genuine_master_RST_mapped_closed_forwarded_once_E_outcomes', 'RESET_genuine_master_RST_mapped_closed_forwarded_once_N_owner_phase', 'RECONNECT_refused_by_N_until_a_rearm_exists']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

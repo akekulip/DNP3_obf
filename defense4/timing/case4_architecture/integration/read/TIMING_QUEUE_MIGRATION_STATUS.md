@@ -102,6 +102,502 @@ Every step is behavior-preserving at the source level, and the full suite passed
 **Fit headroom.** 11 of 12 ingress stages, with egress unused. Any addition on the ingress critical path
 must be checked against that one spare stage.
 
+**Composition with the B' response path: a proof of concept for the T-to-response-path join only
+(`route_ab_01/compose_t_response_01`).** It is NOT evidence that the full system fits or works. See
+"What it does not show", which incorporates an adversarial review (2026-10-09) and this session's
+read-only checks.
+
+Per `STEP3_DESIGN.md` option C, T runs in pipe 2's ingress. The front-panel ports, including FORWARD 9 and
+RELAY 64, are all in pipe 0, so the response path's egress belongs in pipe 0's egress.
+`read/compose_t_response.py` builds one multi-pipe program with `Switch(p0, p1, p2)`:
+- p0 is the committed `protocol/case4_response_path.p4` pipeline. Its 1-stage forwarding ingress is a
+  stand-in for N.
+- p1 is a drop-only stand-in for M.
+- p2 is T unchanged.
+
+What it shows:
+- **Compile.** It compiles on 9.13.1 and 9.13.2 (compile-only) with identical per-pipe results: p0 1 / 12
+  stages, critical path 11; p2 11 / 0, critical path 9.
+- **No metadata crosses.** T emits only the original Ethernet frame on every release and flush path
+  (confirmed by the review on all paths), and the response path's egress parser starts at Ethernet.
+- **T's holds and clones stay in pipe 2.** They use ports 326, 327 and 324 and run pipe 2's empty egress.
+- **Model run `model_join_02`, 6 of 6.** The pipe-0 egress pass count rose by exactly the number of frames
+  T released.
+- **Model run `model_padded_01`, 14 of 14** (driver `read/model_drive_t_padded_flow.py`). With the
+  connection armed in pipe 0's egress, a READ ran through T. T's released response left pipe 0 padded,
+  byte-exact to the software oracle (`case4_response_mapper` with the pad58b codec), with exactly one
+  pipe-0 egress outcome per released frame.
+
+What it does not show (open):
+1. **N's real traffic never reaches pipe 0's egress.** N's `route()` and every handoff action set
+   `tm.bypass_egress = 1` (`installed_nf_05/source/nf.p4`). The padded run worked only because the stand-in
+   forwarding stub leaves `bypass_egress` at 0. The handshake that arms the mapper went through the stub.
+   With real N it would skip egress, the mapping would never be armed, and even T's released response
+   would not be padded. A real N change is needed: clear `bypass_egress` on N's forwards to 9 and 64.
+2. **PHV in pipe 0 is over budget, by measurement.** Counted from `installed_nf_05`'s
+   `phv_allocation_summary_0.log`, 32-bit containers holding ingress fields: 48; egress fields (the final
+   emitter): 14; 62 of 64 in total, matching `SELECTED_PATTERN.md` gate 4's "2 free". The response path's
+   egress needs about 19 more 32-bit containers. That is about 67 / 64 if the emitter is retired, and
+   about 81 / 64 if it stays (the review estimated about 84). Either way this is a real resource problem.
+3. **Stages in pipe 0's egress.** The emitter's 4 stages plus the response path's 12 is 16 against 12 in
+   the worst case. The two handle disjoint packets (the emitter only takes its prefixed port-2 traffic),
+   so an `egress_port`-branched merge might fit, but that is a dedicated compile effort, not a small change.
+4. **The M stand-in drops real traffic.** Real N sends SELECT, replay and reverse traffic to pipe 1
+   (`activate_select`, `emit_replay`, `reverse_to_m`). The stub drops all of it, which would break SBO.
+   Whether B' retires M (with N re-routed) or gives M a real interface into pipe 0's egress is an open
+   design decision.
+5. **The OPERATE legs are synthetic relative to the installed N.** The tests inject T's kind-12 OPERATE tev
+   directly. The installed N (`nf.p4`, `n.p4`) hands only kinds 9, 10 and 11 to T; its internal kind 12 is
+   replay (`emit_replay`). Only `connection/binding/native_binding.p4` maps N's OPERATE (internal kind 7)
+   to T's kind-12 tev (`emit_tev(16w0x0c00)`; see `read/tests/test_n_operate_handoff.py`).
+6. **OPEN: N's handling of a retransmitted response after T released the original.** This is separate
+   from the review's original claim, which the source does not support: T drops a duplicate response only
+   while the original is still held. After release, `resp_done == cur_gen` forwards a retransmitted
+   response unchanged (`test_duplicate_response_is_suppressed_only_while_the_original_is_held`), so T does
+   not block the mapper's replay path. What is unknown is N's part:
+   - if N hands the outstation's retransmission to T, it reaches pipe 0's egress and the mapper replays
+     the committed image;
+   - if N forwards it natively with `bypass_egress = 1`, it skips the mapper, and a response lost after the
+     switch has no recovery path through the mapper.
+
+   This must be traced in N's source before the composition can claim loss recovery.
+7. **Semantic gap, documented and not fixed.**
+   - **Flushes look like releases.** T gives the mapper no signal that a frame is a stale or policy-off
+     flush rather than a timed release, so a flushed response is committed and padded exactly like a
+     released one.
+
+**M's role: a bounded investigation (read-only, 2026-10-09).** Recommendation: retire M, the E cache and
+the final emitter for the response-only B' profile.
+
+All four N-to-M paths in `installed_nf_05/source/nf.p4` serve the old request-side padding design:
+- `emit_select` sends the master's SELECT (kind 5) to port 196;
+- `activate_select` sends SELECT readiness (event 0x0714);
+- `emit_replay` sends replay (kind 12);
+- `reverse_to_m` sends master-side segments of packet kinds 3 and 6 to port 199.
+
+Evidence for that:
+- M's own header reads "ordinary SELECT M prepare: actual N28 handoff, full native35 validation, captured
+  decoy construction". M appends a decoy CROB to the native 35-byte SELECT (55-byte padded payload), E caches
+  that image, and the final emitter (`f_captured_decoy_h`) sends it.
+- `reverse_to_m` translates sequence numbers only because the request stream got longer.
+- B' leaves requests native, pads only responses in the response path's egress, and does its own
+  response-side sequence and ACK translation there.
+- SELECT-to-OPERATE state is N's, not M's: `connection/binding/native_binding.p4` reaches the
+  OPERATE-admitting owner state with a native SELECT and hands OPERATE to T (`test_n_operate_handoff.py`).
+- `native_binding.p4` already has no `emit_select`, `activate_select` or `reverse_to_m`; only `emit_replay`
+  still points at M.
+
+Retiring them also frees N's ingress state for the protected SELECT (ready/activation/completion and
+cached-owner handling) and its PHV. That is the resource pipe 0 is short of (item 2).
+
+**The `bypass_egress` fix is NOT independent of this decision.** N's `route()` (`nf.p4`, `n.p4` and
+`native_binding.p4` alike) sets `bypass_egress = 1`. Clearing it while the final emitter occupies pipe 0's
+egress would drop all of N's forwarding: the emitter's parser rejects every packet not bound for port 2
+(`select(eg.egress_port){9w2: emit_reference; default: reject;}`), `m.parsed` stays 0, and its `apply` calls
+`deny()`. So the fix has to land together with retiring the emitter, or with giving it a pass-through
+branch. It has not been made.
+
+Rough scope of the re-routing, if M is retired:
+- start N from `native_binding.p4`'s routing (native SELECT, OPERATE to T);
+- remove `emit_replay` and the protected-SELECT ready/activation/completion paths and their state;
+- clear `bypass_egress` on forwards to 9 and 64;
+- pipe 0 = that N plus the response path's egress; pipe 2 = T.
+
+Then compile it with real N and read the pipe-0 PHV and stage report.
+
+**Approved and done (2026-10-09): response-only N and the first real pipe-0 compile
+(`route_ab_01/response_only_01`).**
+
+*N.* `core/response_only/make_n.py` derives `n_response_only.p4` from `native_binding.p4`, which is left
+untouched. Each edit is asserted to match once:
+- `route()` no longer sets `bypass_egress`. Every remaining `bypass_egress = 1` targets N's recirculation
+  port 68, so the mapper sees each packet only on its final pass.
+- The one-byte "replay_byte" segment is no longer classified as kind 12; it is forwarded natively.
+- `STEP3_M_PORT`, `emit_replay` and its terminal row are removed, so N has no path into pipe 1.
+
+*Composition.* `core/response_only/compose.py` builds:
+- p0 = that N's ingress + the response path's egress;
+- p1 = drop-only (M retired);
+- p2 = T.
+
+*Results.*
+- **Standalone:** current `native_binding.p4` (`66e0be760966`) and the derived N (`3935e1a8e8ef`) each
+  compile at 12 ingress / 0 egress, critical path 11. N alone fills pipe 0's ingress exactly. The response
+  path alone is 1 / 12.
+- **Joined:** the composite **fails PHV allocation** on both 9.13.1 and the switch's 9.13.2, identically:
+  4 field slices unallocated (`ingress::m.packet_kind`, `ingress::m.work_op`, `egress::m.has_mss`,
+  `egress::m.shape`, all 8-bit).
+- **Container use in pipe 0:** every normal container is used. 8-bit 64 / 64 (ingress 40, egress 24);
+  16-bit 96 / 96 (59, 37); 32-bit 64 / 64 (36, 26, plus 2 unattributed).
+- **Stages:** both gresses fill exactly 12 each when alone. The joined placement attempts reached 13–14
+  ingress and 11–16 egress under PHV pressure, so stages will need re-checking once PHV fits.
+
+**Most promising reclaim, not yet attempted:** the request-padding residue still inside N. Two registers
+(`frozen_decoy_off`, `frozen_decoy_object`), their store and compare actions for SELECT, OPERATE and
+responses, and about 250 bits of metadata (`decoy_*`, `compare_frozen_decoy_*`, `diff_frozen_decoy_*`). In
+the retired design these froze the appended decoy CROB so the OPERATE matched the SELECT. With native
+requests there is no decoy, but the state sits inside N's SELECT-before-OPERATE comparison. It needs a
+producer/consumer map before anything is removed.
+
+**Producer/consumer map of N's decoy state (read-only, 2026-10-09): it is NOT simply dead, and N's
+whole SELECT-before-OPERATE association assumes the retired request insertion.** Not removed.
+
+*The decoy chain:*
+- **Producer:** the control-plane action `data_connection.configure(index, code, repeat, on, off)` sets
+  `m.decoy_*`.
+- **On SELECT:** `compare_select_inputs` copies those values, and `frozen_decoy_object_t` /
+  `frozen_decoy_off_t` store them.
+- **On OPERATE:** `compare_operate_inputs` compares the same configured constants, which is a tautology.
+- **On the response:** `compare_response_inputs` takes the response's own bytes (`hdr.second.w3`,
+  `hdr.response_tail.w0/w1`), where the outstation echoes the decoy CROB of a padded SELECT, and compares
+  them with the stored values.
+- **Consumer:** the only reader is `object_match`, which requires both differences to be 0.
+
+*Request-insertion offsets elsewhere in N* (`native_binding.p4`, carried into `n_response_only.p4`):
+- SELECT: `native_end = seq + 55`, a native 35-byte SELECT plus the 20-byte inserted decoy.
+- Response: `native_start = ack - 55` (the server ACKs the padded SELECT); the response is a 57-byte frame
+  carrying the echo; `compare_server_start` for the OPERATE is `ack - 57`.
+- OPERATE: positions `seq + 20` .. `seq + 75`.
+- `sequence_guard`: `seq_ok_second` accepts the client advancing by exactly 20.
+- N's own exchange test (`connection/binding/tests/test_step3_exchange.py`) says so: "after one insertion
+  the server acknowledges native + 20, after two native + 40".
+
+*Why this matters under B'.* The SELECT stays 35 bytes, so the server ACKs `seq + 35`, and responses carry no
+decoy echo. Responses are padded only later, in pipe 0's egress, so the master's OPERATE reaches N with ACK
+numbers in the padded response space, which N's ingress cannot translate. Removing the decoy state would
+probably let pipe 0 compile, but N would still never admit an OPERATE, so it would not yield a working
+system.
+
+**Decision needed:** re-specify N's SELECT/OPERATE association for B'. Then rework N to it (which removes the
+decoy state as a side effect), recompile pipe 0, and model-run the real composite. Something like:
+- SELECT native, ACKed at `seq + 35`;
+- the response checked in native (outstation-side) space at N's ingress;
+- the OPERATE's ACK interpreted in the master's padded space, with the per-class padding delta, which is
+  fixed for B' (CONTROL +19, READ +9).
+
+The coordinator resolved this differently: N never sees padded coordinates. The decision is recorded below.
+
+**Done (2026-10-10): N_ACK_RETURN loop, native-coordinate N, review fixes C1–C3 and W1–W2 (with W2's two
+residual loop paths), an E checksum defect found and fixed, and the full composite passes on the local
+model, 29 of 29 (`route_ab_01/response_only_10`).** Nothing is committed. Nothing was loaded on the switch;
+9.13.2 was used compile-only. The model run is functional only: not hardware, not timing.
+
+*N's binding, corrected at its generator.* `connection/binding/generate.py` gains
+`generate(profile='response_only')`. The default `generate()` is unchanged: its output is still
+byte-identical to the committed `native_binding.p4`, and the binding suite is unchanged at 85 passed. The
+profile applies asserted single-match edits:
+- the 37-byte native response (`rtail_h`, IP length 77); the second/response_tail headers are dropped;
+- native offsets: SELECT end `seq + 35`; response `native_start = ack - 35`; OPERATE compare
+  `server_start = ack - 37`; `next_response = seq + 37`; `ack_native = ack`;
+- the `seq_ok_second` (+20) row is removed;
+- the frozen-decoy registers, tables, the 12 `compare_frozen_decoy` assignments and `object_match`'s two
+  decoy key columns are removed, as is the now-unused `hash_second`;
+- **`response_profile` keeps the CROB-status requirement as `hdr.rtail.status == 0` (review C1).** The
+  legacy key `second.w1[15:0] == 0x000c` was the real status byte plus the decoy group byte. A first version
+  of the profile dropped it, so a SELECT the outstation refused still advanced N, and N then admitted the
+  OPERATE.
+
+*N_ACK_RETURN* (`core/response_only/make_n.py`, edit groups 4, 6 and 7):
+- **Every master-side IPv4 TCP packet takes the lap (review C2).** `ports` is keyed
+  `(ig.ingress_port, hdr.ip.isValid(), hdr.ip.proto)`. The master port's row `(9, valid, 6)` calls
+  `normalize_ack`. A first version keyed on `hdr.tcp.isValid()` and the ACK bit, but N's parser extracts
+  TCP only at the IP lengths it binds (40/44/75/77/60/89/41). Any other master segment (an unparsed length,
+  IP options, a fragment) then skipped the reverse mapper and reached the outstation with a padded-space
+  ACK.
+- `normalize_ack` leaves `m.port_valid` at 0, so none of N's state tables run on that pass. E's egress
+  parser handles any IPv4 TCP segment, including odd ones (`ip_odd`, `tcp_odd`, dropped through `odd_ip_t`
+  once mapped).
+- The packet re-enters N on port 70, whose row is a plain `route`. A routed segment N does not bind is
+  forwarded natively, as before.
+- **No recirculation loop, enforced in the P4 (review W2 and the follow-up review's two residual paths).**
+  One gateway at the head of the chain, before `connection` can rewrite `tm.ucast_egress_port`, drops:
+  - any packet that arrived on 70 or 68 whose `ports` row sends it to 70. That covers a `normalize_ack` row
+    on 70 and a mistaken `route(70)` row on 68 or 70; the latter takes a route row, so the first version
+    (which keyed on `m.port_valid == 0`) let it loop at line rate.
+  - an envelope on 68 that parsed with `m.stage == 0` (epoch or generation 0, reachable only if N's 32-bit
+    `allocate` counter saturates), which otherwise skipped the chain and routed back to 68 forever.
+
+  It reads the `ports` row's target only. `cp.check_no_loop` refuses any `ports` or `connection` row that
+  targets 70 (except the master's `normalize_ack`), a `RETURN_PORT` row that leaves 68, and `normalize_ack`
+  on a recirculation port. No table is added.
+- **Direction requires port provenance (review C3, N side).** `connection` gains `ig.ingress_port`, so a
+  direction is granted only on a packet's first pass:
+  - forward (master → outstation) only on port 70, where every master packet re-enters;
+  - reverse only on the outstation's port.
+
+  N's later passes arrive on `RETURN_PORT` 68 and look the direction up again. Each direction therefore
+  also has a 68 row (size 2 → 4). Port 68 is reached only by N's own recirculation, which starts only after
+  a first pass that matched with provenance.
+
+  A response forged on the master link re-enters on 70 with no direction. N does not admit it, and it is
+  never sent to the master.
+- **Explicit priority (review W1).** `ports` is now a TCAM table. `core/response_only/cp.py` gives every
+  ternary row an explicit `$MATCH_PRIORITY`, where the lowest value wins: SDE 9.13.1
+  `p4-examples/p4_16_programs/tna_ternary_match/test.py`, `findHit()`. The normalize row is 1, plain routes
+  are 100. The interpreter now picks the lowest priority among matching ternary rows, and it refuses a
+  ternary row that has no priority.
+- The bfrt.json of the compiled build has exactly these key names. `ports`: `ig.ingress_port`,
+  `hdr.ip.$valid`, `hdr.ip.proto`, `$MATCH_PRIORITY`. `connection`: the 4-tuple plus `ig.ingress_port`.
+- **Port 70 (pipe 0, local 70) is not confirmed (gate G-PORTS); see W4 below.**
+
+*E* (`core/response_only/make_e.py`). The input is `protocol/case4_response_path.p4`, unmodified: commit
+`f2315093`, file sha256 `d10e67d2f687…`. Three asserted edit groups:
+1. The egress parser dispatches on egress intrinsic `egress_port`. It parses at 9 (master departure:
+   forward mapper and padding) and at 70 (reverse mapper, once), and stays `accept` elsewhere.
+2. **`conn` gains `eg.egress_port` (review C3, E side).** `cp.e_conn_rows` installs `fwd_conn` only at
+   the master's port and `rev_conn` only at port 70. A packet carrying the outstation's 4-tuple on the
+   normalization pass misses `conn` and touches no mapper state. It can no longer run the forward mapper at
+   egress 70 and again on its final departure.
+
+3. **The TCP checksum sums only the padding header that is present (found by the model run).** See the
+   next paragraph.
+
+No egress stage is added. The response path's own `Ingress.forwarding` rows are not used, because N routes
+pipe 0.
+
+*The E checksum defect: silent, compile-clean, found only on the model.* E updates the TCP checksum
+incrementally, and its one update list includes every padding header (`rtp`, `ctp1`, `ctp2`). Tofino-1's
+deparser sums those containers whether or not the header is valid, so they must hold zero when the header
+is absent. E relied on `@pa_no_overlay` pins for that.
+
+With N's ingress beside E in pipe 0 (32-bit containers at 64 of 64), bf-p4c 9.13 ignored those pins
+silently. In the final allocation (`pa.results.log`), seven of those containers also held live metadata, for
+example `m.ina`, which equals the arriving ACK, with `hdr.ctp2.filler_b[31:0]` in W26. E's own
+`@pa_solitary` bits shared a container too.
+
+The effect on the model (`response_only_07/model_03`): every reverse-translated ACK left E with its TCP
+checksum short by exactly the ACK value (`c111` instead of `c496`). The SELECT was hit the same way, and real
+N then refused it (wrong checksum), so nothing after the handshake worked. The earlier composite
+(`compose_t_response_01`) had no such sharing, which is why its run was byte-exact.
+
+Two candidate fixes did not work:
+- Adding metadata-side pins, pipe-qualified or as `@pa_solitary` (`response_only_08`, `pin_probe/`),
+  changed nothing.
+- Zeroing absent headers late cost a 13th stage on both gresses (`response_only_09`).
+
+What closed it: three mutually exclusive, single-term deparser updates. bf-p4c rejects `&&` in a deparser
+condition.
+- `m.changed == 1`: no padding; the list has no padding header.
+- `hdr.rtp.isValid()`: READ padding; the list includes `rtp` only.
+- `hdr.ctp1.isValid()`: control padding; the list includes `ctp1` and `ctp2` only.
+
+Commit and replay (`m.pad = 1`) no longer set `m.changed`, so the three conditions cannot both fire;
+`pad = 1` always validates exactly one of `rtp` or `ctp1`. Each padding header is an even number of bytes, so
+dropping one keeps every later field's parity. In the compiled build the no-padding unit has no shared
+containers. The remaining shares are in the unit whose padding header is present, where the container holds
+the header value written after the metadata's last use.
+
+*Why the ACK test lives in the `ports` table, and why N has one CRC table.* A first version used a separate
+`if` and table after `ports`, and the composite needed 13 ingress stages (`response_only_03`). That is a
+placement problem, not depth: the critical path is 11. Ingress and egress share each stage's logical-table
+IDs, input crossbar and hash units. N alone fills ingress stage 1, and the response path's egress puts nine
+CRC and profile tables in the same stage. Folding the test into `ports` was not enough on its own
+(`response_only_04`: `input_head_t could not fit within the input crossbar`).
+
+What closed it: N computed the same two CRCs in five tables.
+- `rd_head_crc` and `input_head` hash identical link-header fields.
+- `rd_first_crc`, `response_crc0` and `input_body` hash identical first-block bits; `input_body`'s byte
+  slices concatenate back to `{w0,w1,w2,w3}`.
+
+One table `crc_t`, keyed on `m.packet_kind`, replaces all five. It is applied once, after `connection`.
+
+*Compile (`response_only_10`, source sha256 `55c8e4216ebc…`).* Exit 0 on local 9.13.1 and on the switch's
+9.13.2, with identical results:
+
+| pipe | contents | ingress / egress stages | critical path |
+|---|---|---|---|
+| p0 | N + response-path egress | 12 / 11 | 11 |
+| p1 | drop stub | 1 / 0 | 1 |
+| p2 | T | 11 / 0 | 9 |
+
+Pipe 0 PHV: 32-bit 64 / 64 (100%), 16-bit 73 / 96, 8-bit 59 / 64. It fits, but the 32-bit containers have no
+margin and ingress has no spare stage. Any 32-bit metadata added to pipe 0 will likely fail allocation.
+Unchanged from `response_only_05`/`_06`/`_07`, before the checksum fix. bf-p4c places four egress deparser
+checksum units: one for IP, three for TCP.
+
+*Tests (source-level interpreter only; not the compiler, model or hardware).*
+`core/response_only/tests/test_response_only_binding.py`, 26 passed. Every test installs port-bound
+`connection` rows from `cp.py`, so C3's provenance binding is exercised by the whole suite. It covers:
+- the execution document's vector: SELECT 101 → 136; response 901 (37 B, ACK 136) → server 938; OPERATE
+  136 (ACK 938) handed to T as tev kind 12 → 171; response 938 (ACK 171) → idle, server 975;
+- refusal of the legacy offsets (ACK 156, 958, 959; the 57-byte response);
+- the OPERATE application-sequence check;
+- bad link-header and first-block CRCs, which guards the `crc_t` merge;
+- C1: a response with status 1, 2, 4 or 0x7f leaves N in select, and the next OPERATE is not handed to T;
+- C2: a master segment of an unparsed IP length, and a master SYN, take the lap; non-TCP does not; after the
+  lap an unparsed segment is forwarded natively;
+- C3: the outstation's response re-entering on 70 gets no direction and never reaches the master, while the
+  same bytes from the outstation port are admitted;
+- C3, E side: the derived E keys `conn` on `eg.egress_port`, and `cp.e_conn_rows` puts `fwd_conn` at the
+  master's port and `rev_conn` at 70 (text and rows only; E is not run by the interpreter);
+- W1: the rows installed in reverse order behave identically; a ternary row without a priority is rejected;
+- W2: a `(70, valid, 6) → normalize_ack` row at the highest priority leads to a drop, not a loop;
+- W2 residual 1: a mistaken `(70, *, *) → route(70)` row drops the packet on its first pass, for both a
+  bound SELECT and an unparsed segment;
+- W2 residual 2: an epoch-0 envelope on 68 is dropped on its first pass;
+- `cp.check_no_loop` refuses rows that target 70, `normalize_ack` on 70, and a 68 row leaving 68;
+- W1, tightened: a row on a table with ternary keys needs a priority even with plain-integer terms;
+- E edit 3: three TCP updates; each padding header appears only in its own update; commit and replay no
+  longer set `m.changed`.
+
+Teeth, run on scratch copies of the program text or rows:
+- each of C1, C2, C3 and W2's tests fails when its fix is removed:
+  - C1: status key wildcarded;
+  - C2: key back on TCP validity;
+  - C3: a reverse row added at 70;
+  - W2 and its residuals: either half of the head-of-chain guard removed;
+- N built from the legacy profile fails 5 of the original 9 tests;
+- emptying `crc_t` fails 6 of 7 exchange tests.
+
+Harness changes (`core/harness/interp_ext.py`, `driver.py`):
+- `isValid()` is supported in expressions and keys.
+- Ternary runtime rows with explicit priority, as above.
+- The driver wildcards key columns a derived program adds (at the lowest priority). With no extra columns it
+  installs exactly as before.
+
+Suites: `read/tests` + `core/harness/tests` 195 passed; `connection/binding/tests` 85 passed;
+`protocol/tests/test_response_path_cp.py` 10 passed.
+
+*Model run of the full composite (`response_only_10/model_02`, driver
+`core/response_only/model_drive_composite.py`, copied into the run directory): 29 of 29.* Real N, E and T
+on the local Tofino-1 model; functional only. Every rule comes from `cp.py` and is installed through BF
+Runtime (`Model.add`, real `$MATCH_PRIORITY` on N's TCAM `ports`). Every frame is predicted byte for byte
+by the software mapper and padder oracles. The scenario is the execution document's vector, sent by the
+endpoints themselves:
+- handshake: SYN takes the lap (N phase 2); the SYN-ACK arms E (phase 4); the ACK is reverse-mapped (phase
+  5, idle). The source-level interpreter gives the same phases;
+- SELECT through the lap → phase 9 → outstation, byte-exact;
+- response 901+37 → E commits and pads 37 → 58 → master, byte-exact (phase 10);
+- the master's OPERATE carrying ACK 959 (padded space): E maps it to 938 at egress 70, N admits it (phase
+  12) and hands it to T; T holds it (held laps observed) and releases it once (`OUT_OP_RELEASE` +1) to the
+  outstation with ACK 938, byte-exact, about 1.3 s round trip on the model;
+- response 938+37 → padded at master SEQ 959 (the document's master-side 1017 end), N back to idle;
+- forged: a response carrying the OUTSTATION's 4-tuple, injected on the MASTER port. Traced in the model
+  log: `ports` hit → `normalize_ack` → egress 70, where E's `conn` **misses** (no mapper action, outcome
+  0 only) → recirculated → `ports` route on 70 → N `connection` **miss**, `guard` miss (no direction, no
+  work) → out on 64. The frame left on the outstation port byte-identical to what was injected (91 bytes),
+  and nothing reached the master. E's six registers and N's owner and epoch were unchanged. Its
+  destination is the master's address, so the outstation will not accept it.
+
+Teeth for the model test (`response_only_10/teeth_c3_no_egress_port`, scratch generator and driver in the
+directory): the same composite with E's `conn` NOT bound to `egress_port` fails exactly the two forged-tuple
+checks (E's forward mapper ran at egress 70, outcome 2, and E's state changed). The other 27 still pass.
+
+Two setup lessons from the earlier model attempts:
+- `MODEL_INT_PORT_LOOP` puts the front ports 9 and 64 into loopback, so every departure re-entered
+  (`response_only_07/model_01`, `_02`). Pipe-local recirculation on 68 and 70 works without it.
+- `response_only_07/model_03` exposed the E checksum defect described above.
+
+*Documented, not fixed (review W3).* **The normalization pass is not state-free in E.** E's reverse mapper
+(`acct_rev`) writes `acct.hi = lo - ack` for any ACK on a mapped 4-tuple. It does this at egress 70,
+*before* N's ingress has checked the packet's IP/TCP checksums, TTL or DNP3 CRCs, and E's parser does not
+verify checksums. A forged master-side ACK on a mapped connection can therefore steer E's next `acct_try`
+grant even though N would later refuse the packet. What is state-free is N's side of that pass.
+
+*Closed (review W4): port 70.* Confirmed by the coordinator on the physical switch, 2026-10-10: pipe-local
+ports 68, 69, 70 and 71 are each a separate, independently enabled, dedicated internal recirculation port, not
+lanes of one shared interface. make_n.py and cp.py now say so.
+
+**Later on 2026-10-10: follow-up review, T close fix, composition acceptance. Composite
+`route_ab_01/response_only_17` passes 70 of 70 on the local model; `_18` is the same program with corrected
+comments (normalized assembly identical on all three pipes) and is what is committed.**
+
+*Loop guards, now three, all in the P4:*
+- head of chain: a packet from 68 or 70 whose `ports` row targets 70, or an epoch-0 envelope on 68, drops;
+- `guard` table entry (make_n edit 8): `guard` gains the key `m.output_port`, and its first const entry
+  drops any packet whose `connection` row names 70 (`forward_flow` / `reverse_flow` set the egress port from
+  that value and `close_forward` copies it back). Implemented as a table entry because every gateway form
+  cost a 13th ingress stage: `_11` tail guard (critical path 12), `_12` separate `if` after `connection`,
+  `_13`/`_14` first arm of the `m.go` chain (stage-1 crossbar saturated; any new gateway reshuffles PHV and
+  pushes `crc_t` out). `_15` onward: 12/11.
+- `cp.check_no_loop` for rows. Test `test_a_connection_rewrite_to_n_ack_return_cannot_loop`; removing the
+  entry fails exactly that test.
+
+*T regression fixed (my Route B rewrite).* `read_queue_timing.p4` dropped every RESET event (`drop_tin`), so
+N's qualified close never reached either endpoint (found on the model: the master's RST reached neither
+side). The hardware-tested `read_timing.p4` forwarded it once by direction. `tin_verdict` now keys on
+`hdr.tev.stage`:
+- stage 1 (client close) goes to the relay;
+- stage 2 (server close) goes to the master;
+- stage 0 (synthetic reset, no original) is dropped as before.
+
+These rows apply whatever `md.enabled` is. The generation bump and quarantine still run. `size` went 14 → 15:
+bf-p4c compiled 15 const entries into `size = 14` without complaint, and the driver then failed at device add
+(`_16/model_01`, "Not enough space"). New source-level tests (`L_QualifiedCloseForwarded`):
+- a genuine master RST reaches the relay once;
+- a genuine outstation FIN reaches the master once;
+- a synthetic reset reaches neither, as a separate case.
+
+Teeth: removing the stage rows fails exactly the two genuine-close tests; forwarding stage 0 fails exactly
+the synthetic test. T standalone (`t_close_fix_02`): exit 0 on 9.13.1 and 9.13.2, 11/0, critical path 9.
+
+*Late outstation traffic.* A new deterministic test,
+`test_replies_arriving_after_the_readiness_window_are_delivered_once_each_promptly`, covers an ACK and a
+response that both arrive after READINESS. Each is released once, in order, within one service lap of its
+own arrival: the ACK by commit, the response by fallback.
+
+*Composite model run (`_17/model_03`, 70 of 70).* Real N, E and T; rows from `cp.py`, including N's new
+`read_connection` rows (`cp.n_read_rows`). Every frame was checked byte for byte against the oracles. After
+the document's SELECT/OPERATE exchange:
+- **Mixed READ/SBO on one connection, with enlarged ACKs.** READ1 carries master ACK 1017 (mapped to 975);
+  READ2 carries 1075 (mapped to 1024). Each request was relayed once through T. The ACK and response came
+  back to the master, the response padded 49 → 58 and byte-exact. This is the first model run of E's READ
+  checksum unit (`tcp_read`). N's `read_app` follows each request's sequence.
+- **Late outstation.** READ3, where the outstation answers 2 s after receiving the request, delivers the same
+  frames once each.
+- **Two independent connection slots.** N binds one connection by design. Connection B (master 10.0.0.3:
+  E's `odd_ip_t` keys the host pair, so two slots cannot share one; the first attempt hit `ALREADY_EXISTS`)
+  crosses N natively and is mapped by E slot 1. Its response was padded byte-exact, while slot 0's registers
+  and N's state did not change.
+- **Reset.** The master's genuine RST|ACK was mapped, closed N (phase 7) and reached the outstation exactly
+  once.
+- **Reconnect.** See *Pending* below.
+- **The T check on the model is "released once each", not commit vs fallback.** On the model those two
+  timing verdicts swapped between runs: on-time READs fell back and the late READ committed (`_17` model_01
+  and model_02). The model's `global_tstamp` is coarse and N's multi-pass latency is large on the model, so
+  it cannot rank them; the paths are asserted in deterministic time by `read/tests`.
+- Also from `_17` model_01: sending the outstation's ACK 50 ms after injecting the request overlapped N's
+  busy work record on the slow model, and the ACK bypassed T. The driver now sends the replies after the
+  request is observed at the outstation.
+
+*Suites:* `read/tests` + `core/harness/tests` 199; `connection/binding/tests` 85; `core/response_only/tests`
+27; `protocol/tests/test_response_path_cp.py` 10. All pass.
+
+*The `@pa_no_overlay` / `@pa_solitary` pins are NOT honored by the compiler in this composite.* The
+protocol source's comment says the pins keep absent headers' containers clean. In the response-only build
+they do not: `pa.results.log` shows live metadata in pinned padding-header containers. The current builds
+are safe only because make_e edit 3 sums each padding header solely when it is present, and every container a
+present padding header shares is fully overwritten by that header before the deparser runs. That is correct
+for this code shape but is not a structural guarantee. A future edit that leaves part of a present padding
+header unwritten would reopen the defect. The derived E now carries this note; the protocol source is left
+unmodified. Cosmetic: compose's role prefixer also renames identifier-like words inside comments
+(`r_containers`).
+
+*Open follow-ups (documented, not fixed):*
+- `cp.check_no_loop` does not reject an external port's `route(68)` row. An external frame could then
+  enter N's envelope parser on 68 as if it were N's own recirculation.
+- Coverage gap (review item 3): the legacy binding suites still wildcard `connection`'s port column.
+- W3 above (E state written on the lap before N validates the packet).
+- The post-release retransmission open item.
+
+*Pending, separate commit: reconnect after reset.* N has no rearm from phase 7, so a fresh SYN on the same
+4-tuple is refused (the model records the refusal). The rearm mechanism is the next, separate effort, per
+Philip's spec:
+- retire the old connection;
+- invalidate its transaction and timing associations, and keep stale OPERATEs, work returns and tokens away
+  from the new connection;
+- admit a fresh handshake with a new epoch once the drain conditions hold;
+- re-initialize the mapper before padding resumes;
+- never treat a retransmitted SYN as permission to reset;
+- no per-packet controller intervention, and no register presets as the implementation.
+
+*Pre-hardware checklist (remaining):*
+- Nothing other than N's own recirculation may ever arrive on 68 or 70: no pipe-0 packet-generator app, no
+  mirror session, no T `keep_blocking(port)` value. Both the loop guards and C3's port-68 direction rows
+  assume this.
+- A real BF Runtime installer for the physical switch. `cp.py` produces the rows; only the model driver
+  installs them today.
+
 ### Earlier on 2026-10-09 (superseded by the above)
 
 **Whole-file compile** of `read_queue_timing.p4`, sha256 `323c5bc56bfa…`: exit 2 on both local 9.13.1

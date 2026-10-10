@@ -1,0 +1,75 @@
+{
+ "cases": [
+  {
+   "expected": {},
+   "name": "ports_enabled",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": 2,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000003e8000007d050101000bcc80000",
+    "001122334455aabbccddeeff0800a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2000000000000"
+   ],
+   "name": "port9_released_frames_byte_identical_in_order",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 2,
+   "frames": [
+    "001122334455aabbccddeeff0800a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0000000000000",
+    "001122334455aabbccddeeff0800c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0000000000000"
+   ],
+   "name": "port64_released_frames_byte_identical_in_order",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "pipe0_egress_passes_equal_T_releases",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_OP_RELEASE": 1,
+    "OUT_RESP_DUP_DROP": 1,
+    "OUT_RESP_RELEASE": 1
+   },
+   "name": "T_decisions",
+   "observed": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_OP_RELEASE": 1,
+    "OUT_RESP_DUP_DROP": 1,
+    "OUT_RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "> 0 laps, none counted in pipe 0",
+   "name": "T_hold_laps_never_reach_pipe0_egress",
+   "observed": 18,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 1,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  }
+ },
+ "program": "composed_t_response",
+ "summary": {
+  "failed": [],
+  "passed": 6,
+  "total": 6
+ }
+}

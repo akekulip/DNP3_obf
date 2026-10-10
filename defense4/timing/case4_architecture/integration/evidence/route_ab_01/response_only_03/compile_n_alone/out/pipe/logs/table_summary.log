@@ -1,0 +1,268 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 13
+  Number of stages for ingress table allocation: 13
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 11
+Invoking table placement without container conflicts because first round of table placement required 13 stages.
+Number of tables allocated: 76
++-------+-----------------+-----------------------------------+
+| Stage | Min / Max Stage |            Table Name             |
++-------+-----------------+-----------------------------------+
+|   0   |    [ 0, 1 ]     |           Ingress.ports           |
+|   0   |    [ 0, 1 ]     |          Ingress.network          |
+|   0   |    [ 0, 2 ]     |     tbl_n_response_only341_0      |
+|   0   |    [ 0, 2 ]     |      tbl_n_response_only341       |
+|   1   |    [ -, - ]     |         tbl_normalize_ack         |
+|   1   |    [ -, - ]     |        Ingress.connection         |
+|   1   |    [ -, - ]     |       Ingress.input_head_t        |
+|   1   |    [ -, - ]     |      Ingress.read_connection      |
+|   1   |    [ 1, 3 ]     |         Ingress.rd_head_t         |
+|   1   |    [ 1, 3 ]     |     Ingress.rd_request_crc_t      |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_first_crc_t       |
+|   1   |    [ 1, 3 ]     |       Ingress.rd_tail_crc_t       |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_second_crc_t      |
+|   1   |    [ 1, 4 ]     |   Ingress.read_response_profile   |
+|   1   |    [ 1, 4 ]     |   Ingress.read_request_profile    |
+|   1   |    [ 1, 4 ]     |      Ingress.data_connection      |
+|   1   |    [ 1, 4 ]     |     Ingress.response_profile      |
+|   1   |    [ 1, 4 ]     |          Ingress.profile          |
+|   1   |    [ 1, 4 ]     |              cond-52              |
+|   1   |   [ 1, 11 ]     |            tbl_deny_1             |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crct_t      |
+|   2   |    [ 1, 3 ]     |       Ingress.input_tail_t        |
+|   2   |    [ 1, 3 ]     |       Ingress.input_body_t        |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crc0_t      |
+|   2   |    [ 2, 4 ]     |     tbl_n_response_only359_1      |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only359       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only358       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only349       |
+|   2   |    [ 1, 4 ]     |              cond-45              |
+|   3   |    [ 2, 4 ]     |     tbl_n_response_only359_0      |
+|   3   |    [ 2, 3 ]     |      tbl_n_response_only356       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only352       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only351       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only350       |
+|   4   |    [ 3, 4 ]     |      tbl_n_response_only357       |
+|   5   |    [ 4, 5 ]     |           Ingress.guard           |
+|   6   |    [ -, - ]     |       Ingress.work.dispatch       |
+|   6   |    [ 5, 7 ]     |        Ingress.next_seq_t         |
+|   6   |    [ 5, 8 ]     |       Ingress.read_input_t        |
+|   6   |    [ 5, 8 ]     |       Ingress.ack_native_t        |
+|   6   |    [ 5, 8 ]     |              cond-58              |
+|   6   |   [ 5, 11 ]     |            tbl_deny_0             |
+|   7   |    [ 5, 8 ]     | Ingress.compare_response_inputs_t |
+|   7   |    [ 5, 8 ]     |  Ingress.compare_select_inputs_t  |
+|   7   |    [ 5, 8 ]     | Ingress.compare_operate_inputs_t  |
+|   7   |    [ 6, 7 ]     |          Ingress.epoch_t          |
+|   8   |    [ 7, 8 ]     |       Ingress.owner_command       |
+|   8   |    [ 7, 8 ]     |         Ingress.server_t          |
+|   8   |    [ 7, 8 ]     |         Ingress.client_t          |
+|   8   |    [ 7, 9 ]     |        Ingress.read_app_t         |
+|   8   |    [ 7, 9 ]     |       Ingress.application_t       |
+|   9   |    [ 7, 9 ]     |       Ingress.native_end_t        |
+|   9   |    [ 7, 9 ]     |       Ingress.real_object_t       |
+|   9   |    [ 7, 9 ]     |      Ingress.real_tcp_dst_t       |
+|   9   |    [ 7, 9 ]     |       Ingress.real_links_t        |
+|  10   |    [ 7, 9 ]*    |        Ingress.real_off_t         |
+|  10   |    [ 8, 9 ]*    |          Ingress.owner_t          |
+|  10   |    [ 8, 9 ]*    |       Ingress.sequence_diff       |
+|  11   |   [ 9, 10 ]*    |      Ingress.sequence_guard       |
+|  11   |    [ -, - ]     |              cond-62              |
+|  11   |   [ 9, 10 ]*    |       Ingress.object_match        |
+|  11   |    [ -, - ]     |      Ingress.reset_boundary       |
+|  11   |    [ -, - ]     |              cond-67              |
+|  11   |   [ 9, 10 ]*    |              cond-68              |
+|  11   |   [ 9, 10 ]*    |              cond-69              |
+|  11   |   [ 9, 10 ]*    |              cond-70              |
+|  11   |   [ 9, 10 ]*    |          Ingress.carry_t          |
+|  11   |   [ 9, 10 ]*    |          Ingress.abort_t          |
+|  11   |    [ -, - ]     |              cond-64              |
+|  11   |    [ -, - ]     |              cond-64              |
+|  11   |   [ 9, 10 ]*    |        Ingress.snapshot_t         |
+|  11   |   [ 9, 11 ]     |          Ingress.busy_t           |
+|  11   |   [ 9, 11 ]     |      Ingress.read_terminal_t      |
+|  11   |   [ 9, 11 ]     |             tbl_deny              |
+|  12   |   [ 10, 11 ]*   |        Ingress.first_event        |
+|  12   |   [ 10, 11 ]*   |       Ingress.next_stage_t        |
++-------+-----------------+-----------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 76
++-------+-----------------+-----------------------------------+
+| Stage | Min / Max Stage |            Table Name             |
++-------+-----------------+-----------------------------------+
+|   0   |    [ 0, 1 ]     |           Ingress.ports           |
+|   0   |    [ 0, 1 ]     |          Ingress.network          |
+|   0   |    [ 0, 2 ]     |     tbl_n_response_only341_0      |
+|   0   |    [ 0, 2 ]     |      tbl_n_response_only341       |
+|   1   |    [ -, - ]     |         tbl_normalize_ack         |
+|   1   |    [ -, - ]     |        Ingress.connection         |
+|   1   |    [ -, - ]     |       Ingress.input_head_t        |
+|   1   |    [ -, - ]     |      Ingress.read_connection      |
+|   1   |    [ 1, 3 ]     |         Ingress.rd_head_t         |
+|   1   |    [ 1, 3 ]     |     Ingress.rd_request_crc_t      |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_first_crc_t       |
+|   1   |    [ 1, 3 ]     |       Ingress.rd_tail_crc_t       |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_second_crc_t      |
+|   1   |    [ 1, 4 ]     |   Ingress.read_response_profile   |
+|   1   |    [ 1, 4 ]     |   Ingress.read_request_profile    |
+|   1   |    [ 1, 4 ]     |      Ingress.data_connection      |
+|   1   |    [ 1, 4 ]     |     Ingress.response_profile      |
+|   1   |    [ 1, 4 ]     |          Ingress.profile          |
+|   1   |    [ 1, 4 ]     |              cond-52              |
+|   1   |   [ 1, 11 ]     |            tbl_deny_1             |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crct_t      |
+|   2   |    [ 1, 3 ]     |       Ingress.input_tail_t        |
+|   2   |    [ 1, 3 ]     |       Ingress.input_body_t        |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crc0_t      |
+|   2   |    [ 2, 4 ]     |     tbl_n_response_only359_1      |
+|   2   |    [ 2, 4 ]     |     tbl_n_response_only359_0      |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only359       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only358       |
+|   2   |    [ 2, 3 ]     |      tbl_n_response_only356       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only349       |
+|   2   |    [ 1, 4 ]     |              cond-45              |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only352       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only351       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only350       |
+|   3   |    [ 3, 4 ]     |      tbl_n_response_only357       |
+|   4   |    [ 4, 5 ]     |           Ingress.guard           |
+|   5   |    [ -, - ]     |       Ingress.work.dispatch       |
+|   5   |    [ 5, 7 ]     |        Ingress.next_seq_t         |
+|   5   |    [ 5, 8 ]     |       Ingress.read_input_t        |
+|   5   |    [ 5, 8 ]     |       Ingress.ack_native_t        |
+|   5   |    [ 5, 8 ]     |              cond-58              |
+|   5   |    [ 5, 8 ]     | Ingress.compare_response_inputs_t |
+|   5   |    [ 5, 8 ]     |  Ingress.compare_select_inputs_t  |
+|   5   |    [ 5, 8 ]     | Ingress.compare_operate_inputs_t  |
+|   5   |   [ 5, 11 ]     |            tbl_deny_0             |
+|   6   |    [ 6, 7 ]     |          Ingress.epoch_t          |
+|   7   |    [ 7, 8 ]     |       Ingress.owner_command       |
+|   7   |    [ 7, 8 ]     |         Ingress.server_t          |
+|   7   |    [ 7, 8 ]     |         Ingress.client_t          |
+|   7   |    [ 7, 9 ]     |        Ingress.read_app_t         |
+|   7   |    [ 7, 9 ]     |       Ingress.application_t       |
+|   8   |    [ 7, 9 ]     |       Ingress.native_end_t        |
+|   8   |    [ 7, 9 ]     |        Ingress.real_off_t         |
+|   8   |    [ 7, 9 ]     |       Ingress.real_object_t       |
+|   8   |    [ 7, 9 ]     |      Ingress.real_tcp_dst_t       |
+|   9   |    [ 7, 9 ]     |       Ingress.real_links_t        |
+|   9   |    [ 8, 9 ]     |          Ingress.owner_t          |
+|   9   |    [ 8, 9 ]     |       Ingress.sequence_diff       |
+|  10   |   [ 9, 10 ]     |      Ingress.sequence_guard       |
+|  10   |    [ -, - ]     |              cond-62              |
+|  10   |   [ 9, 10 ]     |       Ingress.object_match        |
+|  10   |    [ -, - ]     |      Ingress.reset_boundary       |
+|  10   |    [ -, - ]     |              cond-67              |
+|  10   |   [ 9, 10 ]     |              cond-68              |
+|  10   |   [ 9, 10 ]     |              cond-69              |
+|  10   |   [ 9, 10 ]     |              cond-70              |
+|  10   |   [ 9, 10 ]     |          Ingress.carry_t          |
+|  10   |   [ 9, 10 ]     |          Ingress.abort_t          |
+|  10   |    [ -, - ]     |              cond-64              |
+|  10   |    [ -, - ]     |              cond-64              |
+|  10   |   [ 9, 10 ]     |        Ingress.snapshot_t         |
+|  10   |   [ 9, 11 ]     |          Ingress.busy_t           |
+|  10   |   [ 9, 11 ]     |      Ingress.read_terminal_t      |
+|  10   |   [ 9, 11 ]     |             tbl_deny              |
+|  11   |   [ 10, 11 ]    |        Ingress.first_event        |
+|  11   |   [ 10, 11 ]    |       Ingress.next_stage_t        |
++-------+-----------------+-----------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 76
++-------+-----------------+-----------------------------------+
+| Stage | Min / Max Stage |            Table Name             |
++-------+-----------------+-----------------------------------+
+|   0   |    [ 0, 1 ]     |           Ingress.ports           |
+|   0   |    [ 0, 1 ]     |          Ingress.network          |
+|   0   |    [ 0, 2 ]     |     tbl_n_response_only341_0      |
+|   0   |    [ 0, 2 ]     |      tbl_n_response_only341       |
+|   1   |    [ -, - ]     |         tbl_normalize_ack         |
+|   1   |    [ -, - ]     |        Ingress.connection         |
+|   1   |    [ -, - ]     |       Ingress.input_head_t        |
+|   1   |    [ -, - ]     |      Ingress.read_connection      |
+|   1   |    [ 1, 3 ]     |         Ingress.rd_head_t         |
+|   1   |    [ 1, 3 ]     |     Ingress.rd_request_crc_t      |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_first_crc_t       |
+|   1   |    [ 1, 3 ]     |       Ingress.rd_tail_crc_t       |
+|   1   |    [ 1, 3 ]     |      Ingress.rd_second_crc_t      |
+|   1   |    [ 1, 4 ]     |   Ingress.read_response_profile   |
+|   1   |    [ 1, 4 ]     |   Ingress.read_request_profile    |
+|   1   |    [ 1, 4 ]     |      Ingress.data_connection      |
+|   1   |    [ 1, 4 ]     |     Ingress.response_profile      |
+|   1   |    [ 1, 4 ]     |          Ingress.profile          |
+|   1   |    [ 1, 4 ]     |              cond-52              |
+|   1   |   [ 1, 11 ]     |            tbl_deny_1             |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crct_t      |
+|   2   |    [ 1, 3 ]     |       Ingress.input_tail_t        |
+|   2   |    [ 1, 3 ]     |       Ingress.input_body_t        |
+|   2   |    [ 1, 3 ]     |      Ingress.response_crc0_t      |
+|   2   |    [ 2, 4 ]     |     tbl_n_response_only359_1      |
+|   2   |    [ 2, 4 ]     |     tbl_n_response_only359_0      |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only359       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only358       |
+|   2   |    [ 2, 3 ]     |      tbl_n_response_only356       |
+|   2   |    [ 2, 4 ]     |      tbl_n_response_only349       |
+|   2   |    [ 1, 4 ]     |              cond-45              |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only352       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only351       |
+|   3   |    [ 2, 4 ]     |      tbl_n_response_only350       |
+|   3   |    [ 3, 4 ]     |      tbl_n_response_only357       |
+|   4   |    [ 4, 5 ]     |           Ingress.guard           |
+|   5   |    [ -, - ]     |       Ingress.work.dispatch       |
+|   5   |    [ 5, 7 ]     |        Ingress.next_seq_t         |
+|   5   |    [ 5, 8 ]     |       Ingress.read_input_t        |
+|   5   |    [ 5, 8 ]     |       Ingress.ack_native_t        |
+|   5   |    [ 5, 8 ]     |              cond-58              |
+|   5   |    [ 5, 8 ]     | Ingress.compare_response_inputs_t |
+|   5   |    [ 5, 8 ]     |  Ingress.compare_select_inputs_t  |
+|   5   |    [ 5, 8 ]     | Ingress.compare_operate_inputs_t  |
+|   5   |   [ 5, 11 ]     |            tbl_deny_0             |
+|   6   |    [ 6, 7 ]     |          Ingress.epoch_t          |
+|   7   |    [ 7, 8 ]     |       Ingress.owner_command       |
+|   7   |    [ 7, 8 ]     |         Ingress.server_t          |
+|   7   |    [ 7, 8 ]     |         Ingress.client_t          |
+|   7   |    [ 7, 9 ]     |        Ingress.read_app_t         |
+|   7   |    [ 7, 9 ]     |       Ingress.application_t       |
+|   8   |    [ 7, 9 ]     |       Ingress.native_end_t        |
+|   8   |    [ 7, 9 ]     |        Ingress.real_off_t         |
+|   8   |    [ 7, 9 ]     |       Ingress.real_object_t       |
+|   8   |    [ 7, 9 ]     |      Ingress.real_tcp_dst_t       |
+|   9   |    [ 7, 9 ]     |       Ingress.real_links_t        |
+|   9   |    [ 8, 9 ]     |          Ingress.owner_t          |
+|   9   |    [ 8, 9 ]     |       Ingress.sequence_diff       |
+|  10   |   [ 9, 10 ]     |      Ingress.sequence_guard       |
+|  10   |    [ -, - ]     |              cond-62              |
+|  10   |   [ 9, 10 ]     |       Ingress.object_match        |
+|  10   |    [ -, - ]     |      Ingress.reset_boundary       |
+|  10   |    [ -, - ]     |              cond-67              |
+|  10   |   [ 9, 10 ]     |              cond-68              |
+|  10   |   [ 9, 10 ]     |              cond-69              |
+|  10   |   [ 9, 10 ]     |              cond-70              |
+|  10   |   [ 9, 10 ]     |          Ingress.carry_t          |
+|  10   |   [ 9, 10 ]     |          Ingress.abort_t          |
+|  10   |    [ -, - ]     |              cond-64              |
+|  10   |    [ -, - ]     |              cond-64              |
+|  10   |   [ 9, 10 ]     |        Ingress.snapshot_t         |
+|  10   |   [ 9, 11 ]     |          Ingress.busy_t           |
+|  10   |   [ 9, 11 ]     |      Ingress.read_terminal_t      |
+|  10   |   [ 9, 11 ]     |             tbl_deny              |
+|  11   |   [ 10, 11 ]    |        Ingress.first_event        |
+|  11   |   [ 10, 11 ]    |       Ingress.next_stage_t        |
++-------+-----------------+-----------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

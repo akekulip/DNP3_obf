@@ -1,0 +1,35 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+FAIL master_SYN                         expected=frame      observed=mismatch
+FAIL master_SYN_E_outcomes              expected={12: 1}    observed={0: 62, 12: 31}
+FAIL outstation_SYNACK_arms_mapping     expected=frame      observed=mismatch
+FAIL outstation_SYNACK_arms_mapping_E_outcomes expected={13: 1}    observed={0: 62, 12: 31}
+FAIL master_handshake_ACK               expected=frame      observed=mismatch
+FAIL master_handshake_ACK_E_outcomes    expected={9: 1}     observed={0: 2, 12: 2}
+FAIL master_handshake_ACK_N_owner_phase expected=4          observed=2
+FAIL SELECT_native_through_lap          expected=frame      observed=mismatch
+FAIL SELECT_native_through_lap_E_outcomes expected={9: 1}     observed={12: 1}
+FAIL SELECT_native_through_lap_N_owner_phase expected=9          observed=2
+PASS oracle_response1_commits_and_pads  expected=('commit', 21, 58) observed=('commit', 21, 58)
+FAIL response1_padded_to_master         expected=frame      observed=mismatch
+FAIL response1_padded_to_master_E_outcomes expected={1: 1}     observed={}
+FAIL response1_padded_to_master_N_owner_phase expected=10         observed=2
+PASS oracle_maps_master_959_to_938      expected=('translate', 938) observed=('translate', 938)
+FAIL OPERATE_mapped_admitted_held_by_T_then_released expected=frame      observed=mismatch
+FAIL OPERATE_mapped_admitted_held_by_T_then_released_E_outcomes expected={9: 1}     observed={12: 1}
+FAIL OPERATE_mapped_admitted_held_by_T_then_released_N_owner_phase expected=12         observed=2
+FAIL T_released_the_OPERATE_once_after_holding expected={'OUT_OP_RELEASE': 1, 'held': True} observed={'OUT_OP_RELEASE': 0, 'held': False}
+PASS oracle_response2_commits_at_959    expected=('commit', 959) observed=('commit', 959)
+FAIL response2_padded_to_master         expected=frame      observed=mismatch
+FAIL response2_padded_to_master_E_outcomes expected={1: 1}     observed={}
+FAIL response2_padded_to_master_N_owner_phase expected=5          observed=2
+PASS forged_tuple_touches_no_E_state    expected={'mode': {'r_Egress.mode.f1': [0], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [0], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [4294966337], 'r_Egress.acct.lo': [0], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [0], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [0], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [0], 'action_name': None, 'is_default_entry': False}} observed={'mode': {'r_Egress.mode.f1': [0], 'action_name': None, 'is_default_entry': False}, 'front': {'r_Egress.front.f1': [0], 'action_name': None, 'is_default_entry': False}, 'acct': {'r_Egress.acct.hi': [4294966337], 'r_Egress.acct.lo': [0], 'action_name': None, 'is_default_entry': False}, 'img_end': {'r_Egress.img_end.f1': [0], 'action_name': None, 'is_default_entry': False}, 'img_start': {'r_Egress.img_start.f1': [0], 'action_name': None, 'is_default_entry': False}, 'img_wend': {'r_Egress.img_wend.f1': [0], 'action_name': None, 'is_default_entry': False}}
+PASS forged_tuple_no_E_mapping_outcome  expected=set()      observed=set()
+PASS forged_tuple_N_state_unchanged     expected={'owner': 131073, 'epoch': 1} observed={'owner': 131073, 'epoch': 1}
+PASS forged_tuple_never_reaches_master  expected=0          observed=0
+SUMMARY {'total': 27, 'passed': 7, 'failed': ['master_SYN', 'master_SYN_E_outcomes', 'outstation_SYNACK_arms_mapping', 'outstation_SYNACK_arms_mapping_E_outcomes', 'master_handshake_ACK', 'master_handshake_ACK_E_outcomes', 'master_handshake_ACK_N_owner_phase', 'SELECT_native_through_lap', 'SELECT_native_through_lap_E_outcomes', 'SELECT_native_through_lap_N_owner_phase', 'response1_padded_to_master', 'response1_padded_to_master_E_outcomes', 'response1_padded_to_master_N_owner_phase', 'OPERATE_mapped_admitted_held_by_T_then_released', 'OPERATE_mapped_admitted_held_by_T_then_released_E_outcomes', 'OPERATE_mapped_admitted_held_by_T_then_released_N_owner_phase', 'T_released_the_OPERATE_once_after_holding', 'response2_padded_to_master', 'response2_padded_to_master_E_outcomes', 'response2_padded_to_master_N_owner_phase']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

@@ -1,0 +1,559 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "d6ca679228a251ba3dc19a7bfe4e5f2d32e12f34777d0a1ca18932cf2a4f58ea",
+    "manifest.json": "7012960eae5fde1f3dc3738548a98f72e829a09600d33e164cfe45cfbbd809d0",
+    "p0/context.json": "8341234a4d9dfddb0363e145890595c8888b3c4c4d52a8b0f1c660f332450db4",
+    "p0/response_only.bfa": "6d9d0b119c3bf200186582856afbe7ae6d3d294a272b4eb0a1c961f325eb150f",
+    "p0/tofino.bin": "8771b87355d202c2fe2b590ebd526f25ae054880432fdfddd1349ba3e74904db",
+    "p1/context.json": "3e7276171aa2528cd9146e7a1aaf94e128af6441f292f8bf91b7242ce3b1d09f",
+    "p1/response_only.bfa": "e6afaaa20323208db97c40ecceb1e76bc89f356ace0f7147b74a8213c6081185",
+    "p1/tofino.bin": "0489525ac62ee74ae2a5be51156ef756a694abd256e16736e689d533562da914",
+    "p2/context.json": "3d8465243d051c8132cc14cdf714f4fc6895acf2b4cd458f454d85f928b0a9e6",
+    "p2/response_only.bfa": "fe1658860c69b7fad17b9884ab73819b4c204cf9a36af387c7d47d275ceb8170",
+    "p2/tofino.bin": "9c09e6876beeedefe94fd96ac1362708058feacb53975fcca8d7757654f10d57",
+    "response_only.conf": "6d58536bb0abefdb0796a5278ed19dd8c9f44961af63a26e182c33f584ba61cc"
+  },
+  "command": [
+    "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/response_only_06/compile_local/out",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/response_only_06/compile_local/source/response_only.p4"
+  ],
+  "compile_log_sha256": "24aab66163db66976e0140b946242f507ab07f65bfa7c920610ee3ee78c87e4b",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+  "compiler_sha256": "e75d059fb5bba9cdf2bdda9a8430e31a997077e27dd3f156e5de34e38339ff41",
+  "elapsed_seconds": 58.378,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 11,
+    "pipes": {
+      "p0": {
+        "critical_path": 11,
+        "report_sha256": {
+          "p0/logs/mau.resources.log": "6aafd80904fd258e58e4efb1a46e0df5cfc8bc8b03a6155bc011b5953998639b",
+          "p0/logs/phv.json": "025b69f0995d630aadd68b0ec1a176ab9e70f2ff89fc656d107a3e2a7e4f7269",
+          "p0/logs/phv_allocation_0.log": "a5e3bdbb35a0507daf3216fc2f3524f6d749d6ea9dbb592a0f27728c20b0f7bb",
+          "p0/logs/phv_allocation_3.log": "652ac0ce92bf81422d1f6e5c017dea0c05f0c5de2dbc5ac94f6b6902d2feeb36",
+          "p0/logs/phv_allocation_history_0.log": "a6df27c7177e111cf40c5f6a2af99af3a6a1faf75b02830bc8371d50f82f6232",
+          "p0/logs/phv_allocation_history_3.log": "7e0508d3f73e4b5b7fd30396dbf7c03e5da092f3033a02e731bc3ce738383fd9",
+          "p0/logs/phv_allocation_summary_0.log": "ebd7bb38a236225e7b89cef008a9bded9588ef82ae6e1d2943a560a8f23bf09d",
+          "p0/logs/phv_allocation_summary_3.log": "73bcc63436f571200b950657e09fc3908ac80fe8929e81439db2cf3e8f5e4941",
+          "p0/logs/table_dependency_graph.log": "ffef47a10ae4dbb3fb9283332e1760316ebaad30010292e2ed5442b95fe51272",
+          "p0/logs/table_dependency_summary.log": "98639fdb50c3e048372dabdc7dad9519933dd34d606b62c664d5b1126e336a36",
+          "p0/logs/table_summary.log": "a3caa6145a9b5636c89f68dd9f4bdf73106d0aafd659247817320398eae2fa51"
+        },
+        "stages": {
+          "egress": 11,
+          "ingress": 12
+        },
+        "stateful_tables": [
+          {
+            "direction": "egress",
+            "name": "r_Egress.mode",
+            "size": 16
+          },
+          {
+            "direction": "egress",
+            "name": "r_Egress.front",
+            "size": 16
+          },
+          {
+            "direction": "egress",
+            "name": "r_Egress.acct",
+            "size": 16
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.counter",
+            "size": 1
+          },
+          {
+            "direction": "egress",
+            "name": "r_Egress.img_start",
+            "size": 16
+          },
+          {
+            "direction": "egress",
+            "name": "r_Egress.img_end",
+            "size": 16
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.work.work",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.epoch",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.server",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.client",
+            "size": 1
+          },
+          {
+            "direction": "egress",
+            "name": "r_Egress.img_wend",
+            "size": 16
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.read_app",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.owner",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.application",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.pair_native_end_server_start",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.pair_real_off_native_start",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.pair_real_object_real_on",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.pair_real_tcp_dst_real_tcp_ports",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.pair_real_links_real_tcp_src",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.count_busy",
+            "size": 4
+          },
+          {
+            "direction": "ingress",
+            "name": "n_Ingress.count_first",
+            "size": 4
+          }
+        ],
+        "tables_by_type": {
+          "action": 7,
+          "condition": 69,
+          "match": 108,
+          "stateful": 21,
+          "statistics": 1
+        }
+      },
+      "p1": {
+        "critical_path": 1,
+        "report_sha256": {
+          "p1/logs/mau.resources.log": "e9c8878cdedd7b291468d7c5ae7f9db77061cac515b007dbae1b7771bf077f43",
+          "p1/logs/phv.json": "1e9a595637c25d7414714345795cb38f86bfce9e72740a3fb4e3f12a3bf41e43",
+          "p1/logs/phv_allocation_5.log": "03f808d8e33ca9f4c4a8cbe18f8c2ae263beb683a579e1708d0d65036d7abdd7",
+          "p1/logs/phv_allocation_history_5.log": "b388a9fc035549ff06487a8925019bc20176e05cfb1fc2b1d7d39b19358f291a",
+          "p1/logs/phv_allocation_summary_5.log": "45b25328d04daa5803beb7d1ae3943c8b598b2f328ff697f6754c5265a28ca1c",
+          "p1/logs/table_dependency_graph.log": "c5f73092e47e856b80cd44d42d48d87c8ad47b28864d8f3a868bb0a3350b50c7",
+          "p1/logs/table_dependency_summary.log": "21d235368bd8fe425ef8d3889bcffe2f30da857ab3de3a2aa06e748bdee176c2",
+          "p1/logs/table_summary.log": "d9af4accea3f1e55131f548180735a5537f70a34386443cc80381c2fd05f4f1e"
+        },
+        "stages": {
+          "egress": 0,
+          "ingress": 1
+        },
+        "stateful_tables": [],
+        "tables_by_type": {
+          "match": 2
+        }
+      },
+      "p2": {
+        "critical_path": 9,
+        "report_sha256": {
+          "p2/logs/mau.resources.log": "caebac04c406849e9f34310decc6e844cee8acbf65955e92401a2ebd5bb32f87",
+          "p2/logs/phv.json": "8bdf4d0c8a455a975b5af55d8b1fe723d37256c3e66ef6c9d9a0e78f5b8a1abd",
+          "p2/logs/phv_allocation_7.log": "559587fa7b0a99175d9ad372f3ca935d43c55264e306ff96c5ee06bfd3174b5e",
+          "p2/logs/phv_allocation_history_7.log": "e3881e092ce05ab0fe8075cf1b06783676c57e2cbe1a25e0fe92f208fd9d5db1",
+          "p2/logs/phv_allocation_summary_7.log": "ec8c8151b489e9c3442f74b24ed7466a7b074fcc43143b76a37a673e3b0055c3",
+          "p2/logs/table_dependency_graph.log": "a5a345b0834d12358f6f3b83ad057494befa5a54b5681a1e118aa3a7d61fe0af",
+          "p2/logs/table_dependency_summary.log": "258262c7f7fd0a182b022448147cde104a5538675c14755b3ce25fa0d7dd8ba3",
+          "p2/logs/table_summary.log": "8c35d97b27a5c9de5689d7f684aa3a4aa346189bb5a372bdce7885d2bb7850f0"
+        },
+        "stages": {
+          "egress": 0,
+          "ingress": 11
+        },
+        "stateful_tables": [
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.quarantine_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.gen_alloc_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.t0_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.cur_epoch_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.op_gen_alloc_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.op_t0_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.child_seen2_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.child_seen1_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.child_seen0_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.ack_done_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.ack_commit_gen_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.ack_commit_at_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.op_done_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.resp_done_reg",
+            "size": 1
+          },
+          {
+            "direction": "ingress",
+            "name": "t_Ingress.outcomes",
+            "size": 16
+          }
+        ],
+        "tables_by_type": {
+          "action": 5,
+          "condition": 21,
+          "match": 54,
+          "stateful": 15
+        }
+      }
+    },
+    "report_sha256": {
+      "p0/logs/mau.resources.log": "6aafd80904fd258e58e4efb1a46e0df5cfc8bc8b03a6155bc011b5953998639b",
+      "p0/logs/phv.json": "025b69f0995d630aadd68b0ec1a176ab9e70f2ff89fc656d107a3e2a7e4f7269",
+      "p0/logs/phv_allocation_0.log": "a5e3bdbb35a0507daf3216fc2f3524f6d749d6ea9dbb592a0f27728c20b0f7bb",
+      "p0/logs/phv_allocation_3.log": "652ac0ce92bf81422d1f6e5c017dea0c05f0c5de2dbc5ac94f6b6902d2feeb36",
+      "p0/logs/phv_allocation_history_0.log": "a6df27c7177e111cf40c5f6a2af99af3a6a1faf75b02830bc8371d50f82f6232",
+      "p0/logs/phv_allocation_history_3.log": "7e0508d3f73e4b5b7fd30396dbf7c03e5da092f3033a02e731bc3ce738383fd9",
+      "p0/logs/phv_allocation_summary_0.log": "ebd7bb38a236225e7b89cef008a9bded9588ef82ae6e1d2943a560a8f23bf09d",
+      "p0/logs/phv_allocation_summary_3.log": "73bcc63436f571200b950657e09fc3908ac80fe8929e81439db2cf3e8f5e4941",
+      "p0/logs/table_dependency_graph.log": "ffef47a10ae4dbb3fb9283332e1760316ebaad30010292e2ed5442b95fe51272",
+      "p0/logs/table_dependency_summary.log": "98639fdb50c3e048372dabdc7dad9519933dd34d606b62c664d5b1126e336a36",
+      "p0/logs/table_summary.log": "a3caa6145a9b5636c89f68dd9f4bdf73106d0aafd659247817320398eae2fa51",
+      "p1/logs/mau.resources.log": "e9c8878cdedd7b291468d7c5ae7f9db77061cac515b007dbae1b7771bf077f43",
+      "p1/logs/phv.json": "1e9a595637c25d7414714345795cb38f86bfce9e72740a3fb4e3f12a3bf41e43",
+      "p1/logs/phv_allocation_5.log": "03f808d8e33ca9f4c4a8cbe18f8c2ae263beb683a579e1708d0d65036d7abdd7",
+      "p1/logs/phv_allocation_history_5.log": "b388a9fc035549ff06487a8925019bc20176e05cfb1fc2b1d7d39b19358f291a",
+      "p1/logs/phv_allocation_summary_5.log": "45b25328d04daa5803beb7d1ae3943c8b598b2f328ff697f6754c5265a28ca1c",
+      "p1/logs/table_dependency_graph.log": "c5f73092e47e856b80cd44d42d48d87c8ad47b28864d8f3a868bb0a3350b50c7",
+      "p1/logs/table_dependency_summary.log": "21d235368bd8fe425ef8d3889bcffe2f30da857ab3de3a2aa06e748bdee176c2",
+      "p1/logs/table_summary.log": "d9af4accea3f1e55131f548180735a5537f70a34386443cc80381c2fd05f4f1e",
+      "p2/logs/mau.resources.log": "caebac04c406849e9f34310decc6e844cee8acbf65955e92401a2ebd5bb32f87",
+      "p2/logs/phv.json": "8bdf4d0c8a455a975b5af55d8b1fe723d37256c3e66ef6c9d9a0e78f5b8a1abd",
+      "p2/logs/phv_allocation_7.log": "559587fa7b0a99175d9ad372f3ca935d43c55264e306ff96c5ee06bfd3174b5e",
+      "p2/logs/phv_allocation_history_7.log": "e3881e092ce05ab0fe8075cf1b06783676c57e2cbe1a25e0fe92f208fd9d5db1",
+      "p2/logs/phv_allocation_summary_7.log": "ec8c8151b489e9c3442f74b24ed7466a7b074fcc43143b76a37a673e3b0055c3",
+      "p2/logs/table_dependency_graph.log": "a5a345b0834d12358f6f3b83ad057494befa5a54b5681a1e118aa3a7d61fe0af",
+      "p2/logs/table_dependency_summary.log": "258262c7f7fd0a182b022448147cde104a5538675c14755b3ce25fa0d7dd8ba3",
+      "p2/logs/table_summary.log": "8c35d97b27a5c9de5689d7f684aa3a4aa346189bb5a372bdce7885d2bb7850f0"
+    },
+    "stages": {
+      "egress": 11,
+      "ingress": 12
+    },
+    "stateful_tables": [
+      {
+        "direction": "egress",
+        "name": "r_Egress.mode",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "r_Egress.front",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "r_Egress.acct",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.counter",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "r_Egress.img_start",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "egress",
+        "name": "r_Egress.img_end",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.work.work",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.epoch",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.server",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.client",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "egress",
+        "name": "r_Egress.img_wend",
+        "pipeline": "p0",
+        "size": 16
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.read_app",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.owner",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.application",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.pair_native_end_server_start",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.pair_real_off_native_start",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.pair_real_object_real_on",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.pair_real_tcp_dst_real_tcp_ports",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.pair_real_links_real_tcp_src",
+        "pipeline": "p0",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.count_busy",
+        "pipeline": "p0",
+        "size": 4
+      },
+      {
+        "direction": "ingress",
+        "name": "n_Ingress.count_first",
+        "pipeline": "p0",
+        "size": 4
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.quarantine_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.gen_alloc_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.t0_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.cur_epoch_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.op_gen_alloc_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.op_t0_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.child_seen2_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.child_seen1_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.child_seen0_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.ack_done_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.ack_commit_gen_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.ack_commit_at_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.op_done_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.resp_done_reg",
+        "pipeline": "p2",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "t_Ingress.outcomes",
+        "pipeline": "p2",
+        "size": 16
+      }
+    ],
+    "tables_by_type": {
+      "action": 12,
+      "condition": 90,
+      "match": 164,
+      "stateful": 36,
+      "statistics": 1
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/route_ab_01/response_only_06/source/response_only.p4",
+  "source_files": {
+    "response_only.p4": "455a767d60b7d1acb0673b9442765121ef3690908a494c8bd60fa1298a4956e3"
+  },
+  "source_sha256": "455a767d60b7d1acb0673b9442765121ef3690908a494c8bd60fa1298a4956e3",
+  "timeout_seconds": 600
+}

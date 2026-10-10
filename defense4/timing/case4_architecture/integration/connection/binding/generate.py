@@ -33,7 +33,7 @@ def drop_line(text,prefix):
     return '\n'.join(lines)
 
 
-def generate():
+def generate(profile='legacy'):
     handshake=(ARCH/'integration/handshake.p4').read_text()
     selected=(CONNECTION/'selected.p4').read_text()
     text=handshake.replace('#include "connection/work_record.p4"','#include "work_record.p4"')
@@ -427,6 +427,83 @@ action first_operate(){hdr.event.event=16w0x0107;hdr.t0.setValid();hdr.t0.t0q=p.
 '''+text[stop:]
     text=once(text,'Pipeline(IgParser(),Ingress(),IgDeparser(),EgParser(),Egress(),EgDeparser()) pipe;Switch(pipe) main;',
         '#ifndef NATIVE_BINDING_NO_MAIN\nPipeline(IgParser(),Ingress(),IgDeparser(),EgParser(),Egress(),EgDeparser()) pipe;Switch(pipe) main;\n#endif')
+    if profile=='response_only':
+        return response_only(text)
+    assert profile=='legacy',profile
+    return text
+
+
+def response_only(text):
+    """The response-only B' binding (execution document, "Correct the response-only binding at its generator").
+
+    Requests stay native and N never sees padded coordinates (master ACKs are normalized through N_ACK_RETURN
+    before N's ingress parses them; core/response_only/make_n.py), so the legacy request insertion is removed:
+    no +20/+40 in stored ends or response ACKs, no 57-byte decoy-echo response, no frozen-decoy banks. The
+    native SELECT/OPERATE response is 37 bytes: link header, one 16-byte block + CRC (unchanged from the legacy
+    first block), then a 7-byte block (CROB on-low, off, status) + CRC. Test vector, native coordinates:
+    SELECT 101+35 -> 136; response 901+37 ACK 136 -> 938; OPERATE 136+35 ACK 938 -> 171; response 938+37
+    ACK 171 -> 975. The default profile ('legacy') is byte-identical to the committed native_binding.p4."""
+    # 37-byte native response: parse it on IP length 77 into one 7-byte tail block.
+    text=once(text,'header response_tail_h{bit<32> w0;bit<32> w1;bit<8> w2;bit<16> crc;}',
+        'header response_tail_h{bit<32> w0;bit<32> w1;bit<8> w2;bit<16> crc;}\nheader rtail_h{bit<16> on_lo;bit<32> off;bit<8> status;bit<16> crc;}')
+    text=once(text,'response_tail_h response_tail;','response_tail_h response_tail;rtail_h rtail;')
+    text=once(text,'(4w4,4w5,8w6,16w97):response_ip_flags;','(4w4,4w5,8w6,16w77):response_ip_flags;')
+    text=once(text,' state response_block{pkt.extract(hdr.first);tc.subtract(hdr.first);transition response_second;}',
+        ' state response_block{pkt.extract(hdr.first);tc.subtract(hdr.first);transition rtail37;}\n'
+        ' state rtail37{pkt.extract(hdr.rtail);tc.subtract(hdr.rtail);m.response=8w1;m.packet_kind=8w6;transition finish;}')
+    text=drop_line(text,'state response_second{')
+    text=drop_line(text,'state response_tail{')
+    # Profile: same first block, link length 28 (5 + 23 user bytes), no decoy-echo columns.
+    # The legacy key second.w1[15:0] == 0x000c was the real CROB status (0x00) plus the decoy group byte; the
+    # native tail keeps the status requirement as rtail.status == 0, so a refused SELECT never advances N.
+    text=once(text,'hdr.first.w2[31:16]:exact;hdr.second.w1[15:0]:exact;hdr.second.w2:exact;hdr.response_tail.w2:exact;}',
+        'hdr.first.w2[31:16]:exact;hdr.rtail.status:exact;}')
+    text=once(text,'(16w0x0564,8w46,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100,32w0x000c0128,16w0x0100,16w0x000c,32w0x01280100,8w0):eligible();',
+        '(16w0x0564,8w28,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100,32w0x000c0128,16w0x0100,8w0):eligible();')
+    # CRCs: first block as before, then the 7-byte tail; no second 16-byte block on a response.
+    text=once(text,'m.tcrc=hash_response_tail.get({hdr.response_tail.w0,hdr.response_tail.w1,hdr.response_tail.w2});',
+        'm.tcrc=hash_response_tail.get({hdr.rtail.on_lo,hdr.rtail.off,hdr.rtail.status});')
+    text=once(text,'if(m.response==8w1){response_crc0_t.apply();response_crc1_t.apply();response_crct_t.apply();}',
+        'if(m.response==8w1){response_crc0_t.apply();response_crct_t.apply();}')
+    text=once(text,'if(m.response==8w1){if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}if(hdr.response_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}',
+        'if(m.response==8w1){if(hdr.rtail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}')
+    text=drop_line(text,'action response_crc1(){')
+    text=drop_line(text,'table response_crc1_t{')
+    text=drop_line(text,'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_second;')  # only response_crc1 used it
+    # Response compare: native CROB on/off from the tail block; ACK of the native 35-byte request.
+    text=once(text,'m.compare_real_on=(bit<32>)(hdr.first.w3[15:0]++hdr.second.w0[31:16]);m.compare_real_off=(bit<32>)(hdr.second.w0[15:0]++hdr.second.w1[31:16]);m.compare_native_start=(bit<32>)(hdr.tcp.ack-32w55);',
+        'm.compare_real_on=(bit<32>)(hdr.first.w3[15:0]++hdr.rtail.on_lo);m.compare_real_off=(bit<32>)(hdr.rtail.off);m.compare_native_start=(bit<32>)(hdr.tcp.ack-32w35);')
+    # Stored and compared positions without the legacy insertion.
+    text=once(text,'m.compare_native_end=hdr.tcp.seq+32w55;','m.compare_native_end=hdr.tcp.seq+32w35;')
+    text=once(text,'m.compare_native_start=(bit<32>)(hdr.tcp.seq-32w35);m.compare_native_end=(bit<32>)(hdr.tcp.seq+32w20);m.compare_server_start=(bit<32>)(hdr.tcp.ack-32w57);',
+        'm.compare_native_start=(bit<32>)(hdr.tcp.seq-32w35);m.compare_native_end=(bit<32>)(hdr.tcp.seq);m.compare_server_start=(bit<32>)(hdr.tcp.ack-32w37);')
+    text=once(text,'m.compare_native_start=(bit<32>)(hdr.tcp.seq+32w20);m.compare_native_end=(bit<32>)(hdr.tcp.seq+32w75);m.compare_server_start=(bit<32>)(hdr.tcp.ack);',
+        'm.compare_native_start=(bit<32>)(hdr.tcp.seq);m.compare_native_end=(bit<32>)(hdr.tcp.seq+32w35);m.compare_server_start=(bit<32>)(hdr.tcp.ack);')
+    text=once(text,'action next_response(){m.new_seq=hdr.tcp.seq+32w57;}','action next_response(){m.new_seq=hdr.tcp.seq+32w37;}')
+    text=once(text,'action ack_native(){m.ack_native=hdr.tcp.ack-32w20;}','action ack_native(){m.ack_native=hdr.tcp.ack;}')
+    # Both responses now have client difference 0; the second is told apart by its owner phase alone.
+    text=once(text,'(32w0,32w0):seq_ok();(32w20,32w0):seq_ok_second();','(32w0,32w0):seq_ok();')
+    text=once(text,'actions={seq_ok;seq_ok_second;seq_resent;seq_replay;NoAction;}size=4;','actions={seq_ok;seq_resent;seq_replay;NoAction;}size=3;')
+    text=drop_line(text,'action seq_ok_second(){')
+    text=once(text,'(8w6,8w2,8w1,32w0xc0000&&&32w0xffff0000):first_response_op();','(8w6,8w1,8w1,32w0xc0000&&&32w0xffff0000):first_response_op();')
+    # No frozen-decoy banks: their only consumer is object_match, and with native requests there is no decoy.
+    for name in ('frozen_decoy_off','pair_frozen_decoy_object_frozen_decoy_on'):
+        text=drop_line(text,'Register<'+('bit<32>' if name=='frozen_decoy_off' else 'object_pair_t')+',bit<1>>(1,'+('0' if name=='frozen_decoy_off' else '{0,0}')+') '+name+';')
+    for prefix in ('RegisterAction<bit<32>,bit<1>,bit<32>>(frozen_decoy_off) write_frozen_decoy_off',
+                   'RegisterAction<bit<32>,bit<1>,bit<32>>(frozen_decoy_off) read_op_frozen_decoy_off',
+                   'action compare_rsp_frozen_decoy_off()','action compare_frozen_decoy_off()','action store_frozen_decoy_off()',
+                   'table frozen_decoy_off_t{',
+                   'RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_frozen_decoy_object_frozen_decoy_on) write_frozen_decoy_object',
+                   'RegisterAction<object_pair_t,bit<1>,bit<32>>(pair_frozen_decoy_object_frozen_decoy_on) read_frozen_decoy_object',
+                   'action store_frozen_decoy_object()','action compare_frozen_decoy_object()','table frozen_decoy_object_t{'):
+        text=drop_line(text,prefix)
+    text=once(text,'application_t.apply();frozen_decoy_object_t.apply();frozen_decoy_off_t.apply();','application_t.apply();')
+    import re as _re
+    text,n=_re.subn(r'm\.compare_frozen_decoy_(object|on|off)=[^;]*;','',text)
+    assert n==12,n   # three fields in each of the response, OPERATE, OPERATE-store and SELECT compare actions
+    text=once(text,'m.diff_application:exact;m.diff_frozen_decoy_object:exact;m.diff_frozen_decoy_off:exact;}','m.diff_application:exact;}')
+    text,n=_re.subn(r'(\(8w[01](?:,32w(?:0|4294967295|15)){6}),32w0,32w0\):matched\(\);',r'\1):matched();',text)
+    assert n==3,n
     return text
 
 

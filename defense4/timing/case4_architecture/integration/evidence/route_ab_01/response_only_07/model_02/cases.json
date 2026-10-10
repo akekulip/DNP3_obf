@@ -1,0 +1,816 @@
+{
+ "cases": [
+  {
+   "expected": "frame",
+   "name": "master_SYN",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": {
+    "12": 1
+   },
+   "name": "master_SYN_E_outcomes",
+   "observed": {
+    "0": 62,
+    "12": 31
+   },
+   "ok": false
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_SYNACK_arms_mapping",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": {
+    "13": 1
+   },
+   "name": "outstation_SYNACK_arms_mapping_E_outcomes",
+   "observed": {
+    "0": 62,
+    "12": 31
+   },
+   "ok": false
+  },
+  {
+   "expected": "frame",
+   "name": "master_handshake_ACK",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "master_handshake_ACK_E_outcomes",
+   "observed": {
+    "0": 2,
+    "12": 2
+   },
+   "ok": false
+  },
+  {
+   "epoch": 1,
+   "expected": 4,
+   "name": "master_handshake_ACK_N_owner_phase",
+   "observed": 2,
+   "ok": false,
+   "owner": "0x20001"
+  },
+  {
+   "expected": "frame",
+   "name": "SELECT_native_through_lap",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "SELECT_native_through_lap_E_outcomes",
+   "observed": {
+    "12": 1
+   },
+   "ok": false
+  },
+  {
+   "epoch": 1,
+   "expected": 9,
+   "name": "SELECT_native_through_lap_N_owner_phase",
+   "observed": 2,
+   "ok": false,
+   "owner": "0x20001"
+  },
+  {
+   "expected": [
+    "commit",
+    21,
+    58
+   ],
+   "name": "oracle_response1_commits_and_pads",
+   "observed": [
+    "commit",
+    21,
+    58
+   ],
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "response1_padded_to_master",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003850000008850181000d817000005642f4401000a00652cc0c08100000c01280100010001016400dc0b0000640000000029032802002d010000ce4a2041002e010000a04100f995"
+  },
+  {
+   "expected": {
+    "1": 1
+   },
+   "name": "response1_padded_to_master_E_outcomes",
+   "observed": {},
+   "ok": false
+  },
+  {
+   "epoch": 1,
+   "expected": 10,
+   "name": "response1_padded_to_master_N_owner_phase",
+   "observed": 2,
+   "ok": false,
+   "owner": "0x20001"
+  },
+  {
+   "expected": [
+    "translate",
+    938
+   ],
+   "name": "oracle_maps_master_959_to_938",
+   "observed": [
+    "translate",
+    938
+   ],
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "OPERATE_mapped_admitted_held_by_T_then_released",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000088000003aa501810009259000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "OPERATE_mapped_admitted_held_by_T_then_released_E_outcomes",
+   "observed": {
+    "12": 1
+   },
+   "ok": false
+  },
+  {
+   "epoch": 1,
+   "expected": 12,
+   "name": "OPERATE_mapped_admitted_held_by_T_then_released_N_owner_phase",
+   "observed": 2,
+   "ok": false,
+   "owner": "0x20001"
+  },
+  {
+   "expected": {
+    "OUT_OP_RELEASE": 1,
+    "held": true
+   },
+   "name": "T_released_the_OPERATE_once_after_holding",
+   "observed": {
+    "OUT_OP_RELEASE": 0,
+    "held": false
+   },
+   "ok": false,
+   "t_delta": {}
+  },
+  {
+   "expected": [
+    "commit",
+    959
+   ],
+   "name": "oracle_response2_commits_at_959",
+   "observed": [
+    "commit",
+    959
+   ],
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "response2_padded_to_master",
+   "observed": "mismatch",
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003bf000000ab50181000ef5f000005642f4401000a00652cc0c18100000c01280100010001016400c4650000640000000029032802002d010000ce4a2041002e010000a04100f995"
+  },
+  {
+   "expected": {
+    "1": 1
+   },
+   "name": "response2_padded_to_master_E_outcomes",
+   "observed": {},
+   "ok": false
+  },
+  {
+   "epoch": 1,
+   "expected": 5,
+   "name": "response2_padded_to_master_N_owner_phase",
+   "observed": 2,
+   "ok": false,
+   "owner": "0x20001"
+  },
+  {
+   "expected": {
+    "acct": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.acct.hi": [
+      4294966337
+     ],
+     "r_Egress.acct.lo": [
+      0
+     ]
+    },
+    "front": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.front.f1": [
+      0
+     ]
+    },
+    "img_end": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_end.f1": [
+      0
+     ]
+    },
+    "img_start": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_start.f1": [
+      0
+     ]
+    },
+    "img_wend": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_wend.f1": [
+      0
+     ]
+    },
+    "mode": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.mode.f1": [
+      0
+     ]
+    }
+   },
+   "name": "forged_tuple_touches_no_E_state",
+   "observed": {
+    "acct": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.acct.hi": [
+      4294966337
+     ],
+     "r_Egress.acct.lo": [
+      0
+     ]
+    },
+    "front": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.front.f1": [
+      0
+     ]
+    },
+    "img_end": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_end.f1": [
+      0
+     ]
+    },
+    "img_start": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_start.f1": [
+      0
+     ]
+    },
+    "img_wend": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.img_wend.f1": [
+      0
+     ]
+    },
+    "mode": {
+     "action_name": null,
+     "is_default_entry": false,
+     "r_Egress.mode.f1": [
+      0
+     ]
+    }
+   },
+   "ok": true
+  },
+  {
+   "expected": "set()",
+   "name": "forged_tuple_no_E_mapping_outcome",
+   "observed": "set()",
+   "ok": true,
+   "outcome_delta": {
+    "0": 2
+   }
+  },
+  {
+   "expected": {
+    "epoch": 1,
+    "owner": 131073
+   },
+   "name": "forged_tuple_N_state_unchanged",
+   "observed": {
+    "epoch": 1,
+    "owner": 131073
+   },
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "forged_tuple_never_reaches_master",
+   "observed": 0,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": []
+   }
+  }
+ ],
+ "meta": {
+  "driver_sha256": "513df7f50118b0c7f57ceac8912277dbdd8391c17dea89af9d533e378fda87d4",
+  "operate_round_trip_s": 3.12,
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 1,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "70": "BfruntimeReadWriteRpcException: Error(s):",
+   "324": "BfruntimeReadWriteRpcException: Error(s):",
+   "325": "BfruntimeReadWriteRpcException: Error(s):",
+   "326": "BfruntimeReadWriteRpcException: Error(s):",
+   "327": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "rows": [
+   [
+    "Ingress.ports",
+    [
+     [
+      "ig.ingress_port",
+      9
+     ],
+     [
+      "hdr.ip.$valid",
+      [
+       1,
+       1
+      ]
+     ],
+     [
+      "hdr.ip.proto",
+      [
+       6,
+       255
+      ]
+     ]
+    ],
+    "Ingress.normalize_ack",
+    [],
+    1
+   ],
+   [
+    "Ingress.ports",
+    [
+     [
+      "ig.ingress_port",
+      9
+     ],
+     [
+      "hdr.ip.$valid",
+      [
+       0,
+       0
+      ]
+     ],
+     [
+      "hdr.ip.proto",
+      [
+       0,
+       0
+      ]
+     ]
+    ],
+    "Ingress.route",
+    [
+     [
+      "port",
+      64
+     ]
+    ],
+    100
+   ],
+   [
+    "Ingress.ports",
+    [
+     [
+      "ig.ingress_port",
+      64
+     ],
+     [
+      "hdr.ip.$valid",
+      [
+       0,
+       0
+      ]
+     ],
+     [
+      "hdr.ip.proto",
+      [
+       0,
+       0
+      ]
+     ]
+    ],
+    "Ingress.route",
+    [
+     [
+      "port",
+      9
+     ]
+    ],
+    100
+   ],
+   [
+    "Ingress.ports",
+    [
+     [
+      "ig.ingress_port",
+      70
+     ],
+     [
+      "hdr.ip.$valid",
+      [
+       0,
+       0
+      ]
+     ],
+     [
+      "hdr.ip.proto",
+      [
+       0,
+       0
+      ]
+     ]
+    ],
+    "Ingress.route",
+    [
+     [
+      "port",
+      64
+     ]
+    ],
+    100
+   ],
+   [
+    "Ingress.ports",
+    [
+     [
+      "ig.ingress_port",
+      68
+     ],
+     [
+      "hdr.ip.$valid",
+      [
+       0,
+       0
+      ]
+     ],
+     [
+      "hdr.ip.proto",
+      [
+       0,
+       0
+      ]
+     ]
+    ],
+    "Ingress.route",
+    [
+     [
+      "port",
+      68
+     ]
+    ],
+    100
+   ],
+   [
+    "Ingress.connection",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ],
+     [
+      "hdr.tcp.sport",
+      30001
+     ],
+     [
+      "hdr.tcp.dport",
+      20000
+     ],
+     [
+      "ig.ingress_port",
+      70
+     ]
+    ],
+    "Ingress.forward_flow",
+    [
+     [
+      "port",
+      64
+     ]
+    ],
+    null
+   ],
+   [
+    "Ingress.connection",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ],
+     [
+      "hdr.tcp.sport",
+      30001
+     ],
+     [
+      "hdr.tcp.dport",
+      20000
+     ],
+     [
+      "ig.ingress_port",
+      68
+     ]
+    ],
+    "Ingress.forward_flow",
+    [
+     [
+      "port",
+      64
+     ]
+    ],
+    null
+   ],
+   [
+    "Ingress.connection",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ],
+     [
+      "hdr.tcp.sport",
+      20000
+     ],
+     [
+      "hdr.tcp.dport",
+      30001
+     ],
+     [
+      "ig.ingress_port",
+      64
+     ]
+    ],
+    "Ingress.reverse_flow",
+    [
+     [
+      "port",
+      9
+     ]
+    ],
+    null
+   ],
+   [
+    "Ingress.connection",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ],
+     [
+      "hdr.tcp.sport",
+      20000
+     ],
+     [
+      "hdr.tcp.dport",
+      30001
+     ],
+     [
+      "ig.ingress_port",
+      68
+     ]
+    ],
+    "Ingress.reverse_flow",
+    [
+     [
+      "port",
+      9
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.conn",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ],
+     [
+      "hdr.tcp.sport",
+      20000
+     ],
+     [
+      "hdr.tcp.dport",
+      30001
+     ],
+     [
+      "eg.egress_port",
+      9
+     ]
+    ],
+    "Egress.fwd_conn",
+    [
+     [
+      "enable",
+      1
+     ],
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.conn",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ],
+     [
+      "hdr.tcp.sport",
+      30001
+     ],
+     [
+      "hdr.tcp.dport",
+      20000
+     ],
+     [
+      "eg.egress_port",
+      70
+     ]
+    ],
+    "Egress.rev_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.odd_ip_t",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ]
+    ],
+    "Egress.odd_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.odd_ip_t",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ]
+    ],
+    "Egress.odd_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ]
+  ],
+  "scope": "response-only composite: real N + E + T on the model; document vector; forged tuple"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "master_SYN",
+   "master_SYN_E_outcomes",
+   "outstation_SYNACK_arms_mapping",
+   "outstation_SYNACK_arms_mapping_E_outcomes",
+   "master_handshake_ACK",
+   "master_handshake_ACK_E_outcomes",
+   "master_handshake_ACK_N_owner_phase",
+   "SELECT_native_through_lap",
+   "SELECT_native_through_lap_E_outcomes",
+   "SELECT_native_through_lap_N_owner_phase",
+   "response1_padded_to_master",
+   "response1_padded_to_master_E_outcomes",
+   "response1_padded_to_master_N_owner_phase",
+   "OPERATE_mapped_admitted_held_by_T_then_released",
+   "OPERATE_mapped_admitted_held_by_T_then_released_E_outcomes",
+   "OPERATE_mapped_admitted_held_by_T_then_released_N_owner_phase",
+   "T_released_the_OPERATE_once_after_holding",
+   "response2_padded_to_master",
+   "response2_padded_to_master_E_outcomes",
+   "response2_padded_to_master_N_owner_phase"
+  ],
+  "passed": 7,
+  "total": 27
+ }
+}

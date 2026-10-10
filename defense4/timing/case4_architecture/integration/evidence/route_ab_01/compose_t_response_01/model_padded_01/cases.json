@@ -1,0 +1,167 @@
+{
+ "cases": [
+  {
+   "expected": {},
+   "name": "ports_enabled",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "master_SYN",
+   "observed": "frame",
+   "ok": true,
+   "received": [
+    "0a00000000020a0000000001080045000028123440004006149a0a0000020a0000019c404e2000001b57000000005002200076280000000000000000"
+   ]
+  },
+  {
+   "expected": {
+    "12": 1
+   },
+   "name": "master_SYN_outcome",
+   "observed": {
+    "12": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_SYNACK_arms_mapping",
+   "observed": "frame",
+   "ok": true,
+   "received": [
+    "0a00000000020a000000000108004500002c12344000400614960a0000010a0000024e209c401000000000001b58601220004e5b0000020405b40000"
+   ]
+  },
+  {
+   "expected": {
+    "13": 1
+   },
+   "name": "outstation_SYNACK_arms_mapping_outcome",
+   "observed": {
+    "13": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "master_handshake_ACK",
+   "observed": "frame",
+   "ok": true,
+   "received": [
+    "0a00000000020a0000000001080045000028123440004006149a0a0000020a0000019c404e2000001b58100000015010200066180000000000000000"
+   ]
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "master_handshake_ACK_outcome",
+   "observed": {
+    "9": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": [
+    "commit",
+    true,
+    true
+   ],
+   "frame_len": 49,
+   "image_len": 58,
+   "name": "oracle_says_response_commits_and_pads",
+   "observed": [
+    "commit",
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "request_relayed_through_T_then_reverse_mapped",
+   "observed": 1,
+   "ok": true,
+   "received": [
+    "0a00000000020a000000000108004500003c12344000400614860a0000020a0000019c404e2000001b58100000015018200065fc00000000000000000000000000000000000000000000"
+   ],
+   "want": "0a00000000020a000000000108004500003c12344000400614860a0000020a0000019c404e2000001b58100000015018200065fc00000000000000000000000000000000000000000000"
+  },
+  {
+   "expected": 2,
+   "name": "T_released_ack_then_response_on_master_port",
+   "observed": 2,
+   "ok": true,
+   "received": [
+    "0a00000000020a0000000001080045000028123440004006149a0a0000010a0000024e209c401000000100001b6c5010100076040000",
+    "0a00000000020a000000000108004500006212344000400614600a0000010a0000024e209c401000000100001b6c501810002d75000005642fc40a000100406dc0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef"
+   ]
+  },
+  {
+   "expected": true,
+   "name": "T_released_ACK_mapped_byte_exact",
+   "observed": true,
+   "ok": true,
+   "want": "0a00000000020a0000000001080045000028123440004006149a0a0000010a0000024e209c401000000100001b6c5010100076040000"
+  },
+  {
+   "expected": true,
+   "name": "T_released_response_PADDED_byte_exact",
+   "observed": true,
+   "ok": true,
+   "sent_len": 103,
+   "want": "0a00000000020a000000000108004500006212344000400614600a0000010a0000024e209c401000000100001b6c501810002d75000005642fc40a000100406dc0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef",
+   "want_len": 112
+  },
+  {
+   "expected": {
+    "1": 1,
+    "2": 1,
+    "9": 1
+   },
+   "name": "pipe0_egress_outcomes_once_per_release",
+   "observed": {
+    "1": 1,
+    "2": 1,
+    "9": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_RESP_RELEASE": 1,
+    "held_laps": true
+   },
+   "laps": 7,
+   "name": "T_held_and_committed",
+   "observed": {
+    "OUT_ACK_COMMIT": 1,
+    "OUT_RESP_RELEASE": 1,
+    "held_laps": true
+   },
+   "ok": true
+  }
+ ],
+ "meta": {
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 1,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "scope": "T-held READ through the composed program; B' padding on T's released response"
+ },
+ "program": "composed_t_response",
+ "summary": {
+  "failed": [],
+  "passed": 14,
+  "total": 14
+ }
+}

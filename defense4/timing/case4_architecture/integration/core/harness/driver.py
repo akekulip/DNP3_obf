@@ -23,11 +23,22 @@ class Config:
 
     def install(self, src):
         for ingress, egress in self.ports.items():
-            src.install('ports', (ingress,), 'route', (egress,))
+            _install(src, 'ports', (ingress,), 'route', (egress,))
         for *tuple4, direction, port in self.flows:
-            src.install('connection', tuple4, direction + '_flow', (port,))
+            _install(src, 'connection', tuple4, direction + '_flow', (port,))
         for *tuple4, index, code, repeat, on, off in self.data_connections:
             src.install('data_connection', tuple4, 'configure', (index, code, repeat, on, off))
+
+
+def _install(src, table, keys, action, args):
+    """Install a row; key columns a derived program added beyond `keys` (the response-only N's ternary
+    ports keys, its connection ingress_port) are wildcarded at the lowest priority. With no extra columns
+    the row is installed exactly as before."""
+    extra = len(src.controls['Ingress'].tables[table]['keys']) - len(keys)
+    if extra:
+        src.install(table, tuple(keys) + ((0, 0),) * extra, action, args, priority=1 << 20)
+    else:
+        src.install(table, keys, action, args)
 
 
 class Outcome:

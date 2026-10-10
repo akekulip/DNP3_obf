@@ -1,0 +1,28 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name composed_t_response
+Binding with p4_name composed_t_response successful!!
+Received composed_t_response on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/model_drive_t_response_join.py", line 118, in <module>
+    main()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/model_drive_t_response_join.py", line 66, in main
+    m.set_default('p2.t_Ingress.params', 'p2.t_Ingress.set_params', PARAMS)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 100, in set_default
+    t.default_entry_set(self.target, t.make_data([gc.DataTuple(k, v) for k, v in (data or {}).items()], action))
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1942, in make_data
+    return _Data(self, data_field_list_in, action_name, get)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1478, in __init__
+    _Data._verify_size_and_set(obj, action_name, field_in)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1531, in _verify_size_and_set
+    f_size, _ = obj.info.data_field_size_get(field_in.name, action_name)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/info_parse.py", line 300, in data_field_size_get
+    return self._data_field_metadata_get("size", field_name, action_name)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/info_parse.py", line 254, in _data_field_metadata_get
+    fields = self._data_field_get(field_name, action_name)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/info_parse.py", line 239, in _data_field_get
+    self.action_dict[self.action_dict_allname[action_name]].data_dict,
+KeyError: 'p2.t_Ingress.set_params'
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

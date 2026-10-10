@@ -1,0 +1,14 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name composed_t_response
+Binding with p4_name composed_t_response successful!!
+Received composed_t_response on GetForwarding on client 1, device 0
+PASS ports_enabled                      expected={}         observed={}
+PASS port9_released_frames_byte_identical_in_order expected=2          observed=2
+PASS port64_released_frames_byte_identical_in_order expected=2          observed=2
+PASS pipe0_egress_passes_equal_T_releases expected=4          observed=4
+PASS T_decisions                        expected={'OUT_RESP_DUP_DROP': 1, 'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'OUT_OP_RELEASE': 1} observed={'OUT_RESP_DUP_DROP': 1, 'OUT_ACK_COMMIT': 1, 'OUT_RESP_RELEASE': 1, 'OUT_OP_RELEASE': 1}
+PASS T_hold_laps_never_reach_pipe0_egress expected=> 0 laps, none counted in pipe 0 observed=18
+SUMMARY {'total': 6, 'passed': 6, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

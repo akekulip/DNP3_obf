@@ -231,8 +231,14 @@ class ExtSource(PacketSource):
         self.valid, self.events, self.invalid_reads = {}, [], set()
         self.frame = Frame(self.controls['Ingress'], '')
 
-    def install(self, table, keys, action, args=()):
-        self.controls['Ingress'].tables[table]['runtime'].append((tuple(keys), action, list(args)))
+    def install(self, table, keys, action, args=(), priority=None):
+        """priority: as BF Runtime $MATCH_PRIORITY, the LOWEST value wins among matching runtime rows. A row
+        on a table with any ternary/range/lpm key, or with any (value, mask) term, must carry one (as the
+        hardware requires); rows on all-exact tables keep priority None."""
+        kinds = {kind for _, kind in self.controls['Ingress'].tables[table]['keys']}
+        if priority is None and (kinds & {'ternary', 'range', 'lpm'} or any(isinstance(k, tuple) for k in keys)):
+            raise ValueError('ternary runtime row on %s needs an explicit priority' % table)
+        self.controls['Ingress'].tables[table]['runtime'].append((tuple(keys), action, list(args), priority))
 
     # ---- expressions ----------------------------------------------------------------------
     def lookup(self, name):
@@ -342,6 +348,8 @@ class ExtSource(PacketSource):
         if method in ('setValid', 'setInvalid'):
             self.valid[owner.split('.')[1]] = method == 'setValid'
             return 0, None
+        if method == 'isValid' and owner.startswith('hdr.') and not args:
+            return int(bool(self.valid.get(owner.split('.')[1]))), 1
         if method == 'execute' and owner in ctrl.ras:
             return self.execute(owner, self.ev(args[0])[0]), None
         if method == 'get' and owner in ctrl.hashes:
@@ -451,9 +459,16 @@ class ExtSource(PacketSource):
         for terms, action, args in table['entries']:
             if all(self.match(term, key) for term, (key, _) in zip(terms, keys)):
                 return self.hit(name, action, args, 'const', keys)
-        for values, action, args in table['runtime']:
-            if tuple(k for k, _ in keys) == values:
-                return self.hit(name, action, args, 'runtime', keys)
+        # A runtime key term is an int (exact) or a (value, mask) pair (ternary). Among matching rows the lowest
+        # explicit priority wins (BF Runtime $MATCH_PRIORITY); install order never decides between ternary rows.
+        hits = [(priority, values, action, args) for values, action, args, priority in table['runtime']
+                if len(values) == len(keys) and all(
+                    (k & v[1]) == (v[0] & v[1]) if isinstance(v, tuple) else k == v
+                    for (k, _), v in zip(keys, values))]
+        if hits:
+            exact = [h for h in hits if h[0] is None]
+            _, _, action, args = exact[0] if exact else min(hits, key=lambda h: h[0])
+            return self.hit(name, action, args, 'runtime', keys)
         action, args = table['default']
         return self.hit(name, action, args, 'default', keys)
 

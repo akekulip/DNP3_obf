@@ -308,6 +308,24 @@ class F_BoundedFallback(unittest.TestCase):
         self.assertLessEqual(rsp[0], q(T0) + CAP)
         self.assertEqual((out(sim, 'OUT_RESP_RELEASE'), out(sim, 'OUT_RESP_FALLBACK')), (0, 1))
 
+    def test_replies_arriving_after_the_readiness_window_are_delivered_once_each_promptly(self):
+        """A genuinely late outstation: ACK and response both arrive after READINESS. Each is released exactly
+        once, in order, to the master, within one service lap of its own arrival (no extra hold): the ACK as
+        a commit (its deadline has already passed), the response as a fallback. Deterministic source-level
+        time; the local model's clock cannot rank these paths (route_ab_01/response_only_17 model_01 vs 02)."""
+        ack_off, rsp_off = READINESS + 1_000_000, READINESS + 1_050_000
+        sim = QueueSim()
+        sim.read(T0, ack_off=ack_off, rsp_off=rsp_off)
+        sim.run(T0 + 3 * CAP + 10_000_000)
+        finished(self, sim)
+        ack, rsp = sim.emissions(ACK_FRAME, FORWARD), sim.emissions(RSP_FRAME, FORWARD)
+        self.assertEqual((len(ack), len(rsp)), (1, 1))
+        self.assertLess(ack[0], rsp[0])
+        self.assertLessEqual(ack[0] - (T0 + ack_off), 100_000, 'released promptly, not held for another window')
+        self.assertLessEqual(rsp[0] - (T0 + rsp_off), 100_000)
+        self.assertEqual((out(sim, 'OUT_ACK_COMMIT'), out(sim, 'OUT_ACK_FALLBACK')), (1, 0))
+        self.assertEqual((out(sim, 'OUT_RESP_RELEASE'), out(sim, 'OUT_RESP_FALLBACK')), (0, 1))
+
     def test_lost_blocker_service_is_bounded_and_marked(self):
         sim = QueueSim()
         sim.lose = lambda time, port, qid, raw: qid in (7, 5)       # every blocker token lost
@@ -751,6 +769,50 @@ class J_GenerationScopedReset(unittest.TestCase):
         self.assertEqual(sim.cell('ack_commit_at_reg'), q(acks[1]))
         self.assertEqual((out(sim, 'OUT_OP_RELEASE'), out(sim, 'OUT_RESP_RELEASE')), (1, 1))
 
+
+
+class L_QualifiedCloseForwarded(unittest.TestCase):
+    """N hands a close it qualified (RST / FIN on the bound connection) to T as tev kind 4 with the original
+    behind it and stage = direction (1 client, 2 server). T must forward that original exactly once -- client
+    close to the relay, server close to the master -- as read_timing.p4 did, and still quarantine the epoch.
+    Stage 0 is a synthetic reset with no original and is dropped. (Found by the response-only composite model
+    run, route_ab_01/response_only_15/model_02: the master's RST reached neither endpoint.)"""
+
+    def frames(self):
+        """Genuine endpoint teardown segments, as N forwards them behind the tev (vectors.packet)."""
+        v = n_support().vectors
+        return {'master_rst': v.packet(0x14, 1020, 2000),                  # RST|ACK from the master
+                'outstation_fin': v.packet(0x11, 2000, 1020, reverse=True)}  # FIN|ACK from the outstation
+
+    def run_close(self, stage, frame):
+        sim = QueueSim()
+        sim.reset(T0, stage=stage, frame=frame)
+        sim.run(T0 + 1_000_000)
+        return sim
+
+    def test_genuine_master_rst_reaches_the_outstation_once(self):
+        frame = self.frames()['master_rst']
+        sim = self.run_close(1, frame)
+        self.assertEqual(len(sim.emissions(frame, RELAY)), 1)
+        self.assertEqual(sim.emissions(frame, FORWARD), [])
+        self.assertEqual(sim.cell('quarantine_reg'), 1, 'the epoch is still quarantined')
+
+    def test_genuine_outstation_fin_reaches_the_master_once(self):
+        frame = self.frames()['outstation_fin']
+        sim = self.run_close(2, frame)
+        self.assertEqual(len(sim.emissions(frame, FORWARD)), 1)
+        self.assertEqual(sim.emissions(frame, RELAY), [])
+        self.assertEqual(sim.cell('quarantine_reg'), 1)
+
+    def test_synthetic_reset_reaches_neither_endpoint(self):
+        """Stage 0: a control-plane/synthetic reset, not an endpoint teardown. Same quarantine, no output -- a
+        separate case from the genuine closes above, with a frame that would be forwarded at stage 1 or 2."""
+        frame = self.frames()['master_rst']
+        sim = self.run_close(0, frame)
+        self.assertEqual(sim.emissions(frame), [])
+        self.assertEqual(sim.cell('quarantine_reg'), 1)
+        default = self.run_close(0, None)          # QueueSim's own synthetic reset frame
+        self.assertEqual(default.emitted, [])
 
 
 class K_ResetValues(unittest.TestCase):

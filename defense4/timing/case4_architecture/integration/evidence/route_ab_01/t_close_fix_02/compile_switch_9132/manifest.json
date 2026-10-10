@@ -1,0 +1,139 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "da5435c1c2e1e8778ce888308c208e009622c6913c2d40dafffc2c940799da9e",
+    "manifest.json": "53ca7deb90d7ba3a8d3fdd9146f361d7ca9795758559033b4ed025dfa6d3bb55",
+    "pipe/context.json": "52920374861cbee44bffe35e5643ba8e8c12581c9fdcd55502b4ddbaeb1ac03d",
+    "pipe/read_queue_timing.bfa": "eb9fb83b6a5269b4d23284a89bcb0c28e5150897e380687458d391923f2f4e35",
+    "pipe/tofino.bin": "f77a6193a3836bfa250d6c86f426a4f59cb011ab3a168a79e7be4c1875ce659e",
+    "read_queue_timing.conf": "085b5230262830b920a44e8deafa09f7dc88c2345ac0437d81a9ee53053a6023"
+  },
+  "command": [
+    "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/tmp/case4_compile_yd7aibcz/evidence/out",
+    "/tmp/case4_compile_yd7aibcz/evidence/source/read_queue_timing.p4"
+  ],
+  "compile_log_sha256": "31dcb8aaca386b40ed248a957d55cb3b7817c5f1123aa89a2c05db892671e6bb",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "compiler_host": "decps@10.10.54.81",
+  "compiler_path": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+  "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14",
+  "elapsed_seconds": 24.821,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "remote_source": "/tmp/case4_compile_yd7aibcz/inputs/read_queue_timing.p4",
+  "resources": {
+    "critical_path": 9,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "4b541acc4ce15c91e94bdc2dbdb546762cc91c952fd57ba5da220cee97ff2890",
+      "pipe/logs/phv.json": "c2c1c6bd490cf3ebd82b2f7fcb9d53d89c7cf3fba6be6ae8e0f1013e95a58700",
+      "pipe/logs/phv_allocation_0.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+      "pipe/logs/phv_allocation_history_0.log": "a45c8b7ce6ba5b416b8ceaf17cc664fe5ad7b6a4600a708134704aae6017cfbb",
+      "pipe/logs/phv_allocation_summary_0.log": "305c607d7558bcb9b920df193cdfd09b68aa7815aee8f6d87a1dc86be6e6a8f4",
+      "pipe/logs/table_dependency_graph.log": "a50376ba881bbe747c966a6ca3f799263cb952370625641f6ab865ba747868da",
+      "pipe/logs/table_dependency_summary.log": "f93f3dc405fba9f30580db55069ce993048c108d01678651f1bd661a1d0c86fd",
+      "pipe/logs/table_summary.log": "8f2d22c7b309c72d191a6bd424f2d3886197278270a81b384b27cae6f6e50506"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 11
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.quarantine_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.gen_alloc_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.t0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.cur_epoch_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_gen_alloc_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_t0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen2_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen1_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_commit_gen_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_commit_at_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.resp_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.outcomes",
+        "size": 16
+      }
+    ],
+    "tables_by_type": {
+      "action": 5,
+      "condition": 21,
+      "match": 54,
+      "stateful": 15
+    }
+  },
+  "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/read/read_queue_timing.p4",
+  "source_files": {
+    "ports.p4": "17295a0654f7efa638efb68e0bb6c583f1636f11f6bda4b41ab5d16ff9e07c91",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "read_queue_timing.p4": "619364558c6c762ee3b2eb0b600857ceb94e655b56e959e484bd284fd858d125"
+  },
+  "source_sha256": "619364558c6c762ee3b2eb0b600857ceb94e655b56e959e484bd284fd858d125",
+  "timeout_seconds": 300
+}
