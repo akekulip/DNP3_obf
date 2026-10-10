@@ -8,8 +8,7 @@
 // Port 9 is accepted as an injection alias of T_IN (front port, always injectable on the model).
 #include <core.p4>
 #include <tna.p4>
-#include "ports.p4"
-const PortId_t PKTGEN_RETURN = 9w324;
+#include "ports.p4"   /* PKTGEN_RETURN now comes from ports.p4 (two-pipe layout, 196); was a local 9w324 */
 const PortId_t PROBE_IN = 9w9;
 const PortId_t PROBE_OUT = 9w1;
 typedef bit<3> mirror_type_t;

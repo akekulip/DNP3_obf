@@ -1,5 +1,7 @@
 # Response-only composite: build and model-run index (2026-10-09 / 10)
 
+Note: `response_only_19` and `response_only_2*` are another workstream's builds, not this index's.
+
 Program: N (pipe 0 ingress, `core/response_only/make_n.py`) + E, the B' response path (pipe 0 egress,
 `make_e.py` from the unmodified `protocol/case4_response_path.p4`) + T (pipe 2, `read/read_queue_timing.p4`),
 composed by `core/response_only/compose.py`. Every directory has:
@@ -33,9 +35,17 @@ not timing.
 | response_only_15 | 0 / - | 12/11 | Guard as a `guard` table entry (make_n edit 8): fits. Model `model_01`: driver error, E `odd_ip_t` host-pair conflict for slot 1. `model_02`: 62/66 (READ timing artifact; T dropped closes). |
 | response_only_16 | 0 / 0 | 12/11 | T forwards qualified closes. Model `model_01`: device add failed, `tin_verdict` 15 entries vs `size = 14`, which bf-p4c accepted silently. |
 | response_only_17 | 0 / 0 | 12/11 | `size = 15`. Model `model_01` 61/70 (replies 50 ms after injection overlapped N's busy record; late response outside capture). `model_02` 67/70 (commit vs fallback swapped: model clock cannot rank them). **`model_03`: 70/70.** |
-| response_only_18 | 0 / 0 | 12/11 | `_17` plus a corrected comment in E (pins not honored). Normalized assembly identical to `_17` on all three pipes. **Committed program.** |
+| response_only_18 | 0 / 0 | 12/11 | `_17` plus a corrected comment in E (pins not honored). Normalized assembly identical to `_17` on all three pipes. Committed in 2cb6ecf9d; superseded by two_pipe_01 (3-pipe placement cannot load on the 2-pipe chip). |
 | response_only_19 | 0 / 0 | 12/11 | `_18` plus make_e edit group 4 (E only, source diff = those lines): outgoing link CRC by XOR in the pad action, tail CRCs hashed early from native fields; 4 E tables and 1 hash unit fewer, PHV 196 -> 193 (8b 59 -> 55, 16b 73 -> 74, 32b 64), same on 9.13.2. Model `model_01`: 70/70, every emitted frame byte-identical to `_17/model_03`; `efficiency_01/verify_wire.py` valid in all three deparser cases. |
+| two_pipe_01 | 0 / 0 | 12/11 (T: p1 11/0) | `Switch(p0, p1)`: T moved to pipe 1 (the switch has 2 pipes; `_18` placed T in pipe 2 and cannot load). conf pipe_scope p0 [0,2], p1 [1,3] (bf-p4c/SDE 2-pipe form; acceptance on the chip unverified). Model `model_01`: 70/70. |
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
+
+**Provenance correction for 2cb6ecf9d.** That commit's `core/response_only/make_e.py` and `e_response_only.p4`
+also contain the efficiency workstream's then-uncommitted edit group 4 (outgoing CRCs without the hash/render
+chain: `dl.crc ^ 0x3b2f / 0x131a`). It was on disk when the files were staged. The verified builds `_17`
+(70/70) and `_18` predate it (they still have `render_dl_crc_t` and no XOR). So 2cb6ecf9d's generators do NOT
+reproduce `_18`, contrary to its message and index. The first build of the committed `make_e.py` is
+`two_pipe_01`: exit 0 on both SDKs, 70/70 on the model, with the CRC edits included.
 
 The narrative, numbers and open items are in `read/TIMING_QUEUE_MIGRATION_STATUS.md`.

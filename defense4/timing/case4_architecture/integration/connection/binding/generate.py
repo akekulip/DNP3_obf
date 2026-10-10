@@ -443,6 +443,10 @@ def response_only(text):
     first block), then a 7-byte block (CROB on-low, off, status) + CRC. Test vector, native coordinates:
     SELECT 101+35 -> 136; response 901+37 ACK 136 -> 938; OPERATE 136+35 ACK 938 -> 171; response 938+37
     ACK 171 -> 975. The default profile ('legacy') is byte-identical to the committed native_binding.p4."""
+    # Two-pipe chip (read/ports.p4): T is pipe 1, so N hands READ/OPERATE events to T's T_IN = 197 (pipe 1
+    # local 69), read from the single port source; the legacy profile keeps the old 3-pipe 325.
+    t_in=int(re.search(r'const\s+PortId_t\s+T_IN\s*=\s*9w(\d+)',(ARCH/'integration/read/ports.p4').read_text())[1])
+    text=once(text,'const PortId_t READ_HANDOFF_PORT=9w325;','const PortId_t READ_HANDOFF_PORT=9w%d;'%t_in)
     # 37-byte native response: parse it on IP length 77 into one 7-byte tail block.
     text=once(text,'header response_tail_h{bit<32> w0;bit<32> w1;bit<8> w2;bit<16> crc;}',
         'header response_tail_h{bit<32> w0;bit<32> w1;bit<8> w2;bit<16> crc;}\nheader rtail_h{bit<16> on_lo;bit<32> off;bit<8> status;bit<16> crc;}')

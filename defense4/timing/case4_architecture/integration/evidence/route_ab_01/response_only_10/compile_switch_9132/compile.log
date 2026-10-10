@@ -1,0 +1,84 @@
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(161): [--Wwarn=unused] warning: count_term_bump: unused instance
+RegisterAction<bit<32>,bit<4>,bit<32>>(count_term) count_term_bump={void apply(inout bit<32> v,out bit<32> r){if((int<32>)v!=-1){v=v+32w1;}r=v;}};
+                                                   ^^^^^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(175): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(179): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(206): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(254): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(1247): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(103): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'n_IgParser' terminates
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                                 ^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(103)
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(610): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'r_EgParser' terminates
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                                   ^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(610)
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(1190): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 't_IngressParser' terminates
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+                                                                           ^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(1190)
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+       ^^^^^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(1995): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 't_EmptyEgressParser' terminates
+parser t_EmptyEgressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+                                                                               ^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(1995)
+parser t_EmptyEgressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+       ^^^^^^^^^^^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(187): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(684): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(187): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+/tmp/case4_compile_DrhuiVRg/evidence/source/response_only.p4(684): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[15:8]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[7:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[31:24]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[23:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[15:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[7:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[31:24]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[15:0]" with "hdr.first.w1".
+
+0 errors, 41 warnings generated.
+

@@ -81,7 +81,7 @@ class NativeExchange(unittest.TestCase):
         self.assertFalse(out.dropped, out.drop_reason)
         self.assertEqual(out.passes, 4)
         if owner_after == OWNER['operate']:
-            self.assertEqual([p for p, _ in out.emitted], [rs.handoff_port()], 'admitted OPERATE goes to T')
+            self.assertEqual([p for p, _ in out.emitted], [rs.handoff_port(TEXT)], 'admitted OPERATE goes to T')
             self.assertEqual(out.emitted[0][1][16:], frame)
             self.assertEqual(out.emitted[0][1][12], 12, 'tev kind = T KIND_OPERATE')
         else:
@@ -161,7 +161,7 @@ class NativeExchange(unittest.TestCase):
             pipe.inject(rs.IN_SERVER, refused)
             self.assertEqual(pipe.state()['owner'], OWNER['select'], status)
             out = pipe.inject(rs.IN_CLIENT, operate_packet())
-            self.assertNotIn(rs.handoff_port(), [p for p, _ in out.emitted], status)
+            self.assertNotIn(rs.handoff_port(TEXT), [p for p, _ in out.emitted], status)
 
     def test_legacy_57_byte_response_is_not_a_bound_response(self):
         pipe = fresh()

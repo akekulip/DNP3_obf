@@ -13,9 +13,8 @@
 #include <core.p4>
 #include <tna.p4>
 #include "ports.p4"
-// New port, local to this file only (not added to ports.p4): where the mirror clone of a
-// request admission recirculates (pipe 2 local 68; queue_sim.py PKTGEN_PORT = 324).
-const PortId_t PKTGEN_RETURN = 9w324;
+// PKTGEN_RETURN (ports.p4, two-pipe layout: pipe 1 local 68 = 196) is where the mirror clone of a request
+// admission recirculates.
 // The clone itself (F1): mirror_type 1 requests it; IngressDeparser emits it to the mirror session the
 // control plane binds to PKTGEN_RETURN ($mirror.cfg). The session id travels in metadata because
 // bf-p4c rejects a constant session selector (defense4_rrc_bor_unified12.p4, same pattern).

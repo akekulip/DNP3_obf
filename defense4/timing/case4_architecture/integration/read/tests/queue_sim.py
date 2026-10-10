@@ -9,7 +9,7 @@ test, not a property of the target:
   port `loop_ns` later. This is the strict-priority ladder the control plane must configure
   (qid == priority); the simulator does not prove the switch is configured that way.
 * Mirror + packet generator: a pass that sets `mirror_type == 1` produces (a) the clone, which
-  recirculates into ingress on the generator port (device 324) and (b) `2 * k` generated tokens
+  recirculates into ingress on PKTGEN_RETURN (ports.p4) and (b) `2 * k` generated tokens
   (recirc-pattern app; key = the low 24 bits of the 4-byte clone tag, packet_id 0..2k-1) that reach
   ingress with ingress_port 0 behind the 6-byte generator header, as the model delivers them
   (model_28 RESULT (d)).
@@ -33,7 +33,7 @@ SOURCE = Path(os.environ.get('T_QUEUE_SOURCE', READ / 'read_queue_timing.p4'))
 PORTS = w.PORTS
 LADDER, OP_LADDER = PORTS['HELD_RETURN'], PORTS['HB_RETURN']
 FORWARD, RELAY = PORTS['FORWARD_PORT'], PORTS['RELAY_PORT']
-PKTGEN_PORT = 324                     # pipe 2 local 68: where the clone recirculates (ports.p4 comment)
+PKTGEN_PORT = PORTS['PKTGEN_RETURN']  # where the mirror clone recirculates (ports.p4; two-pipe layout: 196)
 
 
 def q(ns):

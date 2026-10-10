@@ -494,6 +494,46 @@ Two setup lessons from the earlier model attempts:
 verify checksums. A forged master-side ACK on a mapped connection can therefore steer E's next `acct_try`
 grant even though N would later refuse the packet. What is state-free is N's side of that pass.
 
+**Later on 2026-10-10: T moved to pipe 1 (`route_ab_01/two_pipe_01`).** The switch has two physical pipes.
+The coordinator confirmed this two ways: a `Switch(p0,p1,p2,p3)` probe failed with "Pipeline p2 cannot be
+assigned to device 0 pipe 2, only 2 pipe(s) available", and BFRT `$PORT` shows 68-71 and 196-199 present but
+324-327 absent. 2cb6ecf9d's `Switch(p0, p1, p2)`, with T in pipe 2, therefore cannot load on this chip; every
+model run before this used tofino-model's four-pipe default.
+
+Now the program is `Switch(p0, p1)`: N + E in pipe 0, T in pipe 1.
+- `read/ports.p4` is the two-pipe single source: `PKTGEN_RETURN` 196 (moved here from
+  `read_queue_timing.p4`), `T_IN` 197, `HB_RETURN` 198, `HELD_RETURN` 199, `PKTGEN_PIPE` 1.
+- The retired M constants `N_TO_M` / `T_TO_M` are removed, so no stale M route can land on T's input.
+- N's `READ_HANDOFF_PORT` = 197 is set at the generator's `response_only` profile, read from `ports.p4`. The
+  legacy profile, and the byte-pinned `native_binding.p4`, keep the old three-pipe 325.
+- The derived slices were regenerated, and `mirror_probe.p4` takes the port from `ports.p4`.
+- Port tests were adapted to the two-pipe layout with the same intent; the legacy N↔M agreement is now
+  checked directly between `native_binding.p4` and the ordinary M.
+
+Builds and runs:
+- 9.13.1 and 9.13.2: exit 0, pipe 0 12/11, pipe 1 11/0, source `00fb7b98…`.
+- **The conf's `pipe_scope` is p0 [0, 2], p1 [1, 3], not [0] / [1].** bf-p4c places a two-pipeline program
+  that way, and the SDE's own 32Q two-pipe example (`tna_32q_2pipe`, `multipipe_custom_bfrt.conf`) uses the
+  same scopes. It has not been loaded on the chip: whether the driver accepts it there, or the conf must be
+  edited to [0] / [1] at deployment, is unverified.
+- Model: 70/70 (the model still has four pipes, so this is necessary, not sufficient).
+- Suites: 201 / 85 / 27 / 10.
+
+**Provenance correction for 2cb6ecf9d.** That commit's `core/response_only/make_e.py` and `e_response_only.p4`
+also contain the efficiency workstream's then-uncommitted edit group 4 (outgoing CRCs without the hash/render
+chain: `dl.crc ^ 0x3b2f / 0x131a`). It was on disk when the files were staged. The verified builds `_17`
+(70/70) and `_18` predate it (they still have `render_dl_crc_t` and no XOR). So 2cb6ecf9d's generators do NOT
+reproduce `_18`, contrary to its message and index. The first build of the committed `make_e.py` is
+`two_pipe_01`: exit 0 on both SDKs, 70/70 on the model, with the CRC edits included.
+
+**Pre-hardware blocker (not fixed).** T separates mirror clones from generator tokens by port
+(`ingress_port == PKTGEN_RETURN` means `parse_clone`; everything else goes to the timer path). On this switch,
+generated tokens arrive on the pipe's local 68 once `app_cfg.pipe_local_source_port = 68` is set, which was
+required in Defense 2 on 9.13.2. That is the same port as `PKTGEN_RETURN` (196), so tokens would be parsed as
+clones. Proposed fix, a T design change: tell them apart by content, as Defense 2 did (clone marker byte, a
+value_set with an exact `0xFF` mask). The alternative, generating tokens on a different local port, depends
+on unverified pktgen source-port freedom.
+
 *Closed (review W4): port 70.* Confirmed by the coordinator on the physical switch, 2026-10-10: pipe-local
 ports 68, 69, 70 and 71 are each a separate, independently enabled, dedicated internal recirculation port, not
 lanes of one shared interface. make_n.py and cp.py now say so.

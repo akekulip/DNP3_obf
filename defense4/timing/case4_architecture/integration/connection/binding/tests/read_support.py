@@ -23,8 +23,9 @@ IN_CLIENT, IN_SERVER = vectors.IN_CLIENT, vectors.IN_SERVER
 T0_BASE, T0_STEP = 0x123456789a, 0x1000
 
 
-def handoff_port():
-    return int(re.search(r'const\s+PortId_t\s+READ_HANDOFF_PORT\s*=\s*9w(\d+)', SOURCE.read_text())[1])
+def handoff_port(text=None):
+    """READ_HANDOFF_PORT of the given program text (default: native_binding.p4, the legacy three-pipe 325)."""
+    return int(re.search(r'const\s+PortId_t\s+READ_HANDOFF_PORT\s*=\s*9w(\d+)', text or SOURCE.read_text())[1])
 
 
 def request_frame(app=0xc0, dst=0x0000, src=0x0100):
@@ -106,7 +107,7 @@ def assert_invariants(case, pipe, outcome, original, max_passes=6, handoff_ok=Tr
     """Absolute properties that hold for every packet, independent of any oracle."""
     case.assertNotIn('recirculation limit', outcome.drop_reason or '')
     case.assertLessEqual(outcome.passes, max_passes)
-    handoff = handoff_port()
+    handoff = handoff_port(getattr(getattr(pipe, 'src', None), 'text', None))   # program under test (pipe may be None)
     for port, data in outcome.emitted:
         if port == handoff and handoff_ok:
             case.assertEqual(data[16:], original, 'handoff carries the original unchanged behind the tev')

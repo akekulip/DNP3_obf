@@ -27,7 +27,8 @@ class Task1Safety(unittest.TestCase):
                     self.assertEqual(data[16:],raw)
                     self.assertEqual(pipe.state()['work']['phase'],4)
                     sim=w.Sim((read/'read_timing.p4').read_text(),read)
-                    sim.at(1000,port,data);sim.run(1000)
+                    # legacy N hands off to its three-pipe 325; the T under test listens on T_IN (ports.p4)
+                    sim.at(1000,w.PORTS['T_IN'],data);sim.run(1000)
                     self.assertEqual(sim.cell('quarantined_epoch'),17)
                     self.assertEqual(sim.emitted,[(1000,w.PORTS['FORWARD_PORT'] if reverse else w.PORTS['RELAY_PORT'],raw)])
 

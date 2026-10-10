@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Compose T (read_queue_timing.p4) and the B' response path (protocol/case4_response_path.p4) into one
+"""HISTORICAL (three-pipe layout, model only): places T in pipe 2, which cannot load on the two-pipe switch, and
+T's ports (read/ports.p4) are now pipe-1 ports. The live composite is core/response_only/compose.py.
+
+Compose T (read_queue_timing.p4) and the B' response path (protocol/case4_response_path.p4) into one
 multi-pipe Tofino-1 program, per STEP3_DESIGN.md option C: T in pipe 2, the response path's egress in
 pipe 0 (every front-panel port, including FORWARD 9 and RELAY 64, is in pipe 0).
 
