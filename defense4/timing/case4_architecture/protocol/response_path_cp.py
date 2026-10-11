@@ -80,6 +80,8 @@ def _conn_rows(slot, o, m, pad_enable):
 
 
 def _forwarding_rows(o, m):
+    if o.dev_port == m.dev_port:   # both endpoints behind one port (VEPA): one reflecting row, not two copies
+        return [_row('Ingress.forwarding', {'ig.ingress_port': o.dev_port}, 'Ingress.route', {'port': o.dev_port})]
     return [_row('Ingress.forwarding', {'ig.ingress_port': o.dev_port}, 'Ingress.route', {'port': m.dev_port}),
             _row('Ingress.forwarding', {'ig.ingress_port': m.dev_port}, 'Ingress.route', {'port': o.dev_port})]
 

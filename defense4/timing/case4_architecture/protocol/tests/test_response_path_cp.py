@@ -106,6 +106,17 @@ class Registry(unittest.TestCase):
         self.reg.remove(1, self.sw.delete, closed=True)
         self.assertEqual(self.sw.tables, {})
 
+    def test_endpoints_sharing_one_port_get_one_forwarding_row(self):
+        # Two software endpoints in VEPA namespaces on Vision's one test NIC: both are dev_port 9, and the
+        # switch reflects 9 -> 9. Direction comes from the 4-tuple in Egress.conn, not from the port.
+        o, m = cp.Endpoint('192.168.10.62', 20000, 9), cp.Endpoint('192.168.10.61', 54400, 9)
+        rows = self.install(0, o=o, m=m)
+        fwd = [(r.key_dict['ig.ingress_port'], r.data_dict['port']) for r in rows if r.table == 'Ingress.forwarding']
+        self.assertEqual(fwd, [(9, 9)])
+        self.assertEqual(len(self.sw.tables), 5)
+        self.reg.remove(0, self.sw.delete, closed=True)
+        self.assertEqual(self.sw.tables, {})
+
     def test_bounds(self):
         with self.assertRaises(ValueError):
             cp.pipe_of(512)
