@@ -52,6 +52,9 @@ def parse(argv):
     for k, v in tc.T_PARAM_DEFAULTS.items():
         ap.add_argument('--t-' + k.replace('_', '-'), dest='t_' + k, type=int, default=v)
     ap.add_argument('--k', type=int, default=2, help='2*k generator tokens per trigger (queue_sim default k=2)')
+    for role in ('ack', 'resp', 'op'):
+        ap.add_argument('--shape-%s-pps' % role, type=int, default=0, dest='shape_%s' % role,
+                        help='pace the %s hold queue to this many packets/sec (0 = unshaped, baseline)' % role.upper())
     ap.add_argument('--enable-pktgen', action='store_true', help='enable the two apps last, after clean readback')
     ap.add_argument('--fixed-schema-dir', default=os.environ.get('SDE_INSTALL', '/home/decps/Downloads/bf-sde-9.13.2/install')
                     + '/share/bf_rt_shared')
@@ -109,7 +112,8 @@ def plan(a, ports):
     e_rows = [r for r in ne if r['table'].startswith('p0.r_')]
     n_conn = [r for r in ne if r['table'] == 'p0.n_Ingress.connection']
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
-    return (tc.loopback_ops(ports) + tc.queue_ops(ports) + tc.pktgen_ops(a.k, ports)
+    shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
+    return (tc.loopback_ops(ports) + tc.queue_ops(ports, shape) + tc.pktgen_ops(a.k, ports)
             + [tc.mirror_op(ports), tc.params_op(params(a))] + e_rows + n_rest + n_conn)
 
 
@@ -237,7 +241,7 @@ def apply(ops, a, ports):
 
     def step(op, verify_op=None):
         try:
-            if op['kind'] == 'queue':
+            if op['kind'] in ('queue', 'queue_shaping'):
                 pg_id, pgq, _cfg = sw.resolve_queue(op['dev_port'], op['qid'], op['pipe'])
                 op['key'] = [('pg_id', pg_id, None), ('pg_queue', pgq, None)]
             undo = sw.write(op)

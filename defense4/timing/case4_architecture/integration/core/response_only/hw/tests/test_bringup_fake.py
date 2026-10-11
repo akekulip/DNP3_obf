@@ -75,6 +75,78 @@ class Base(unittest.TestCase):
     def buffer(self):
         return bytes(next(iter(fake.STATE[BUF].e.values()))['buffer'])
 
+    def writes(self, table):
+        """{(pg_id, pg_queue): data dict} for each entry_mod WRITTEN to a TM queue table (reads excluded: the
+        fake, like the driver, materializes an entry on read, so STATE alone cannot tell a write from a read)."""
+        out = {}
+        for c in fake.LOG:
+            if c[0] == 'mod' and c[1] == table:
+                out[tuple(v for _, v, _ in c[2])] = dict(c[3][0])
+        return out
+
+    def hold_pgq(self, role_qid):
+        """(pg_id, pg_queue) the installer resolves for a hold queue on the build's ladder port."""
+        role = {6: 'held_return', 4: 'held_return', 2: 'hb_return'}[role_qid]
+        port = off.PORTS[role]
+        return port % 128 // 4, (port % 4) * 8 + role_qid          # mirrors the fake's tf1.tm.port.cfg map
+
+
+class Shaping(Base):
+    def test_unset_rates_leave_the_hold_queues_unshaped(self):
+        rc, out = run(bc.main, self.argv())
+        self.assertEqual(rc, 0, out[-500:])
+        self.assertEqual(self.writes('tf1.tm.queue.sched_shaping'), {})          # no shaping row written at all
+        for data in self.writes('tf1.tm.queue.sched_cfg').values():
+            self.assertFalse(data['max_rate_enable'])                            # every sched_cfg write unshaped
+
+    def test_a_configured_ack_rate_writes_enable_and_the_shaping_row_only_for_qid6(self):
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        self.assertEqual(rc, 0, out[-500:])
+        shp = self.writes('tf1.tm.queue.sched_shaping')
+        self.assertEqual(set(shp), {self.hold_pgq(6)})                           # ONLY the ACK hold queue is shaped
+        row = shp[self.hold_pgq(6)]
+        self.assertEqual((row['unit'], row['max_rate'], row['max_burst_size']), ('PPS', 1000, 1))
+        cfg = self.writes('tf1.tm.queue.sched_cfg')
+        self.assertTrue(cfg[self.hold_pgq(6)]['max_rate_enable'])                # ACK hold enabled
+        self.assertFalse(cfg[self.hold_pgq(4)]['max_rate_enable'])               # RESP hold untouched
+        blk7 = (off.PORTS['held_return'] % 128 // 4, (off.PORTS['held_return'] % 4) * 8 + 7)
+        self.assertNotIn(blk7, shp)                                              # blocker queue 7 is never shaped
+        self.assertFalse(cfg[blk7]['max_rate_enable'])
+
+    def test_all_three_roles_shape_their_own_hold_queue(self):
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000', '--shape-resp-pps', '500', '--shape-op-pps', '200'))
+        self.assertEqual(rc, 0, out[-500:])
+        shp = self.writes('tf1.tm.queue.sched_shaping')
+        self.assertEqual({k: shp[k]['max_rate'] for k in shp},
+                         {self.hold_pgq(6): 1000, self.hold_pgq(4): 500, self.hold_pgq(2): 200})
+        self.assertEqual(len(shp), 3)                                            # exactly the three hold queues
+
+    def test_the_run_records_the_pacing_applied(self):
+        from switch import Switch
+        run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        import readback
+        snap = readback.snapshot(Switch('response_only', 140), off.PORTS)
+        self.assertEqual(snap['shaping']['ACK_HOLD']['max_rate'], 1000)
+        self.assertEqual(snap['shaping']['ACK_HOLD']['unit'], 'PPS')
+        self.assertTrue(snap['shaping']['ACK_HOLD']['max_rate_enable'])
+        self.assertFalse(snap['shaping']['RESP_HOLD']['max_rate_enable'])
+
+    def test_a_shaping_readback_mismatch_fails_closed(self):
+        import switch as sw_mod
+        orig = sw_mod.Switch.write
+
+        def bad_write(self, op):               # silently drop the shaping max_rate so readback disagrees
+            if op.get('table') == 'tf1.tm.queue.sched_shaping':
+                op = dict(op, data=[(n, (v + 1 if n == 'max_rate' else v)) for n, v in op['data']])
+                r = orig(self, op)
+                return r
+            return orig(self, op)
+        sw_mod.Switch.write = bad_write
+        self.addCleanup(setattr, sw_mod.Switch, 'write', orig)
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        self.assertEqual(rc, 2)
+        self.assertIn('readback mismatch', out)
+
 
 class Apply(Base):
     def test_full_apply_with_enable_installs_everything_and_reads_it_back(self):

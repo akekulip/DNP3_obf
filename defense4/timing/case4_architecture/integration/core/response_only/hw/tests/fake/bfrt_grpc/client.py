@@ -93,6 +93,8 @@ class Table:
                         egress_qid_queues=[(port % 4) * 8 + i for i in range(8)])
         if n == 'tf1.tm.queue.sched_cfg':
             return dict(min_rate_enable=False, max_rate_enable=True, max_priority='0', scheduling_enable=True)
+        if n == 'tf1.tm.queue.sched_shaping':   # pre-existing per-queue row, unshaped until the installer writes it
+            return dict(unit='BPS', provisioning='UPPER', min_rate=0, min_burst_size=0, max_rate=0, max_burst_size=0)
         if n == 'tf1.tm.counter.queue':
             return dict(watermark_cells=0, drop_count_packets=0)
         if n == 'tf1.pktgen.port_cfg':

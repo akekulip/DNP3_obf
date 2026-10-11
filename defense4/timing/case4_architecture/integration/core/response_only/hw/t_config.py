@@ -73,13 +73,34 @@ def mirror_op(ports):
                                         ('$max_pkt_len', MIRROR_MAX_PKT_LEN)])
 
 
-def queue_ops(ports):
+# The hold queue (not the blocker queue) of each role, by the LADDER label suffix. Shaping these paces the
+# held-original recirculation poll (residency_diag_01 finding); the blocker queues 7/5/3 stay unshaped.
+HOLD_LABELS = {'ACK_HOLD': 'ack', 'RESP_HOLD': 'resp', 'OP_HOLD': 'op'}
+SHAPE_UNIT = 'PPS'           # max_rate is packets/sec; one held-original lap per 1/max_rate second
+SHAPE_BURST = 1             # max_burst_size 1: no burst of laps
+
+
+def queue_ops(ports, shape_pps=None):
     """Key (pg_id, pg_queue) is resolved on the switch from the port's own tf1.tm.port.cfg entry; the target
-    pipe is the port's pipe."""
-    return [dict(kind='queue', table='tf1.tm.queue.sched_cfg', pipe=pipe_of(port), dev_port=port, qid=qid, label=label,
-                 data=[('min_rate_enable', False), ('max_rate_enable', False),
-                       ('max_priority', str(qid)), ('scheduling_enable', True)])
-            for port, qid, label in queue_plan(ports)]
+    pipe is the port's pipe.
+
+    shape_pps: optional {role -> pps} for the hold queues ('ack'/'resp'/'op'). A role with a positive rate
+    gets max_rate_enable=True in sched_cfg and a tf1.tm.queue.sched_shaping row (unit PPS, max_rate=pps,
+    max_burst_size 1). A role absent or 0 is left exactly as the baseline (max_rate_enable False, no shaping
+    write), so sbo_admission_01 behaviour is unchanged unless the operator passes a rate."""
+    shape_pps = shape_pps or {}
+    ops = []
+    for port, qid, label in queue_plan(ports):
+        role = HOLD_LABELS.get(label)
+        rate = int(shape_pps.get(role, 0) or 0) if role else 0
+        ops.append(dict(kind='queue', table='tf1.tm.queue.sched_cfg', pipe=pipe_of(port), dev_port=port, qid=qid,
+                        label=label, data=[('min_rate_enable', False), ('max_rate_enable', rate > 0),
+                                           ('max_priority', str(qid)), ('scheduling_enable', True)]))
+        if rate > 0:
+            ops.append(dict(kind='queue_shaping', table='tf1.tm.queue.sched_shaping', pipe=pipe_of(port),
+                            dev_port=port, qid=qid, label='%s@%dpps' % (label, rate),
+                            data=[('unit', SHAPE_UNIT), ('max_rate', rate), ('max_burst_size', SHAPE_BURST)]))
+    return ops
 
 
 def pktgen_ops(k, ports):

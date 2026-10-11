@@ -31,7 +31,7 @@ def _actions(t):
 def _check_one(op, t, errs):
     where = '%s (%s)' % (op['table'], op.get('label') or op['kind'])
     keys = {k['name']: k for k in t.get('key', [])}
-    if op['kind'] != 'queue' and op['kind'] != 'default':
+    if op['kind'] not in ('queue', 'queue_shaping', 'default'):
         given = [k[0] for k in op['key']] + (['$MATCH_PRIORITY'] if op.get('priority') is not None else [])
         if sorted(given) != sorted(keys):
             errs.append('%s: key fields %s, table has %s' % (where, sorted(given), sorted(keys)))
@@ -45,7 +45,7 @@ def _check_one(op, t, errs):
             w = _width(k)
             if w and isinstance(value, int) and value >= 1 << w:
                 errs.append('%s: %s=%d exceeds %d bits' % (where, name, value, w))
-    if op['kind'] == 'queue' and sorted(keys) != ['pg_id', 'pg_queue']:
+    if op['kind'] in ('queue', 'queue_shaping') and sorted(keys) != ['pg_id', 'pg_queue']:
         errs.append('%s: queue key is %s' % (where, sorted(keys)))
     fields = {d['singleton']['name']: d['singleton'] for d in t.get('data', []) if 'singleton' in d}
     acts = _actions(t)
@@ -99,6 +99,8 @@ def check_registers(names, tables):
 # Tables only READ (readback.py, switch.resolve_queue, snapshot_counters.py): table -> (key names, data names).
 READ_ONLY = {'tf1.tm.port.cfg': (['dev_port'], ['pg_id', 'port_queues_count', 'ingress_qid_map', 'egress_qid_queues']),
              'tf1.tm.counter.queue': (['pg_id', 'pg_queue'], ['watermark_cells', 'drop_count_packets']),
+             'tf1.tm.queue.sched_cfg': (['pg_id', 'pg_queue'], ['max_rate_enable']),
+             'tf1.tm.queue.sched_shaping': (['pg_id', 'pg_queue'], ['unit', 'max_rate', 'max_burst_size']),
              '$PORT_STAT': (['$DEV_PORT'], []),
              '$PORT': (['$DEV_PORT'], ['$PORT_ENABLE', '$PORT_UP', '$MEDIA_TYPE', '$LOOPBACK_MODE'])}
 

@@ -87,11 +87,20 @@ def snapshot(sw, ports):
     for name, app_id, _pattern in tc.PKTGEN_APPS:
         got = sw.get('tf1.pktgen.app_cfg', gen_pipe, [('app_id', app_id, None)]) or {}
         snap['pktgen'][name] = {k: got.get(k) for k in COUNTER_FIELDS + ('app_enable',)}
+    snap['shaping'] = {}
     for port, qid, label in tc.queue_plan(ports):
         pipe = tc.pipe_of(port)
         pg_id, pgq, _cfg = sw.resolve_queue(port, qid, pipe)
-        got = sw.get('tf1.tm.counter.queue', pipe, [('pg_id', pg_id, None), ('pg_queue', pgq, None)]) or {}
+        key = [('pg_id', pg_id, None), ('pg_queue', pgq, None)]
+        got = sw.get('tf1.tm.counter.queue', pipe, key) or {}
         snap['queues'][label] = dict(dev_port=port, qid=qid, pg_id=pg_id, pg_queue=pgq,
                                      watermark_cells=got.get('watermark_cells'),
                                      drop_count_packets=got.get('drop_count_packets'))
+        # Record the exact pacing applied to the three hold queues: sched_cfg max_rate_enable and the
+        # sched_shaping row (unit, max_rate, max_burst_size). Blocker queues read unshaped (max_rate_enable 0).
+        cfg = sw.get('tf1.tm.queue.sched_cfg', pipe, key) or {}
+        shp = sw.get('tf1.tm.queue.sched_shaping', pipe, key) or {}
+        snap['shaping'][label] = dict(dev_port=port, qid=qid, max_rate_enable=cfg.get('max_rate_enable'),
+                                      unit=shp.get('unit'), max_rate=shp.get('max_rate'),
+                                      max_burst_size=shp.get('max_burst_size'))
     return snap
