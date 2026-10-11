@@ -4,7 +4,14 @@
   vision_run.py setup            clean TCP profile in ns_vepa_a / ns_vepa_b, disable-source-pruning on
   vision_run.py restore          sysctls back to 1/1/1 and 32768 60999, disable-source-pruning off
   vision_run.py state            print the NIC flag and the namespace sysctls
-  vision_run.py run LABEL --master-port P --reads N [--connect-must-fail]
+  vision_run.py casea on --delay-ms D | casea off
+                                 make the outstation side present a separate ACK followed by a late response,
+                                 as the SEL-751 does: a quickack route in ns_vepa_b (immediate ACKs) and a netem
+                                 delay of D ms on mvB applied only to the outstation's DNP3 response segments
+                                 (IP total length 89 or 77). This emulates relay processing time; say so in
+                                 any result that uses it. Without it the OpenDNP3 outstation answers in about
+                                 0.3 ms with the ACK on the response, so there is no separate ACK to time.
+  vision_run.py run LABEL --master-port P --reads N [--range 8|16] [--gap-ms G] [--connect-must-fail]
 
 `run` starts the OpenDNP3 outstation in ns_vepa_b (192.168.10.62:20000) and the master in ns_vepa_a
 (192.168.10.61, source port pinned to P through that namespace's ip_local_port_range), does N READs
@@ -42,7 +49,7 @@ def state():
     lines = [' '.join(next(l for l in flags if 'source-pruning' in l).split())]
     for ns in (NS_M, NS_O):
         lines.append(ns + ' ' + ' | '.join(nsx(ns, 'sysctl', *PROFILE, 'net.ipv4.ip_local_port_range').stdout.split('\n')).strip(' |'))
-    return '\n'.join(lines)
+    return '\n'.join(lines) + '\n' + casea_state()
 
 
 def pruning(value):
@@ -50,6 +57,31 @@ def pruning(value):
     if r.returncode:
         sys.exit('ethtool failed: ' + r.stderr)
     time.sleep(8)          # the i40e PF resets on this change; wait for the link
+
+
+def casea(on, delay_ms):
+    nsx(NS_O, 'tc', 'qdisc', 'del', 'dev', 'mvB', 'root')
+    route = ['ip', 'route', 'replace', '192.168.10.0/24', 'dev', 'mvB', 'src', IP_O]
+    if not on:
+        r = nsx(NS_O, *route)
+    else:
+        r = nsx(NS_O, *route, 'quickack', '1')
+        cmds = [['tc', 'qdisc', 'add', 'dev', 'mvB', 'root', 'handle', '1:', 'prio', 'bands', '3', 'priomap'] + ['0'] * 16,
+                ['tc', 'qdisc', 'add', 'dev', 'mvB', 'parent', '1:2', 'handle', '20:', 'netem', 'delay', '%dms' % delay_ms, 'limit', '1000']]
+        for total_len in (89, 77):       # 49-byte READ response, 37-byte SELECT/OPERATE response
+            cmds.append(['tc', 'filter', 'add', 'dev', 'mvB', 'parent', '1:', 'protocol', 'ip', 'u32', 'match', 'ip', 'protocol', '6', '0xff',
+                         'match', 'u16', '0x%04x' % total_len, '0xffff', 'at', '2', 'flowid', '1:2'])
+        for c in cmds:
+            r = nsx(NS_O, *c)
+            if r.returncode:
+                break
+    if r.returncode:
+        sys.exit('casea failed: ' + r.stderr)
+
+
+def casea_state():
+    return ('route: ' + nsx(NS_O, 'ip', 'route', 'show', '192.168.10.0/24').stdout.strip() + '\n' +
+            'qdisc: ' + ' | '.join(nsx(NS_O, 'tc', 'qdisc', 'show', 'dev', 'mvB').stdout.strip().splitlines()))
 
 
 def profile(value, port_range):
@@ -60,10 +92,13 @@ def profile(value, port_range):
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument('mode', choices=('setup', 'restore', 'state', 'run'))
+ap.add_argument('mode', choices=('setup', 'restore', 'state', 'casea', 'run'))
 ap.add_argument('label', nargs='?')
 ap.add_argument('--master-port', type=int)
 ap.add_argument('--reads', type=int, default=10)
+ap.add_argument('--range', type=int, choices=(8, 16), default=16)
+ap.add_argument('--gap-ms', type=int, default=0)
+ap.add_argument('--delay-ms', type=int, default=25)
 ap.add_argument('--connect-must-fail', action='store_true')
 a = ap.parse_args()
 
@@ -71,7 +106,12 @@ if a.mode == 'setup':
     profile('0', DEFAULT_RANGE)
     if 'source-pruning : on' not in state():
         pruning('on')
+if a.mode == 'casea':
+    if a.label not in ('on', 'off'):
+        sys.exit('casea on|off')
+    casea(a.label == 'on', a.delay_ms)
 if a.mode == 'restore':
+    casea(False, 0)
     profile('1', DEFAULT_RANGE)
     if 'source-pruning : off' not in state():
         pruning('off')
@@ -97,13 +137,14 @@ caps = [subprocess.Popen(['tcpdump', '-i', PARENT, '-Q', d, '-s0', '-U', '-n', '
 time.sleep(1.5)
 env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB]
 stop = os.path.join(run_dir, 'stop')
-ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env + [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + a.reads // 5)],
+ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env + [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + a.reads // 5 + a.reads * (a.gap_ms + 60) // 1000)],
                        stdout=subprocess.PIPE, text=True)
 ready = ost.stdout.readline().strip()
-result = {'label': a.label, 'master_port': a.master_port, 'reads': a.reads, 'outstation_ready': ready == 'READY'}
+result = {'label': a.label, 'master_port': a.master_port, 'reads': a.reads, 'range': a.range, 'gap_ms': a.gap_ms, 'outstation_ready': ready == 'READY'}
 if ready == 'READY':
     t0 = time.time()
-    mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, timeout=a.reads * 4 + 30)
+    mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, str(a.range), str(a.gap_ms),
+              timeout=a.reads * 4 + 30 + a.reads * a.gap_ms // 1000)
     result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
     open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
     time.sleep(1.0)

@@ -40,12 +40,15 @@ def counters():
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument('mode', choices=('deploy', 'setup', 'restore', 'run'))
+ap.add_argument('mode', choices=('deploy', 'setup', 'restore', 'casea', 'run'))
 ap.add_argument('label', nargs='?')
 ap.add_argument('--master-port', type=int)
 ap.add_argument('--reads', type=int, default=10)
 ap.add_argument('--enable', type=int, choices=(0, 1), default=1)
 ap.add_argument('--no-forwarding', action='store_true')
+ap.add_argument('--range', type=int, choices=(8, 16), default=16)
+ap.add_argument('--gap-ms', type=int, default=0)
+ap.add_argument('--delay-ms', type=int, default=25)
 ap.add_argument('--out')
 a = ap.parse_args()
 
@@ -55,6 +58,9 @@ if a.mode == 'deploy':
     subprocess.run(['scp', '-q'] + files + ['%s:%s/' % (SWITCH, SW_DIR)], check=True)
     subprocess.run(['scp', '-q', os.path.join(HERE, 'vision_run.py'), '%s:%s/' % (VISION, V_RUN)], check=True)
     print(ssh(SWITCH, 'sha256sum %s/*.py' % SW_DIR).stdout + ssh(VISION, 'sha256sum %s/vision_run.py' % V_RUN).stdout)
+    sys.exit(0)
+if a.mode == 'casea':            # run.py casea on|off [--delay-ms D]: see vision_run.py
+    print(ssh(VISION, 'sudo python3 %s/vision_run.py casea %s --delay-ms %d' % (V_RUN, a.label, a.delay_ms)).stdout)
     sys.exit(0)
 if a.mode in ('setup', 'restore'):
     print(ssh(VISION, 'sudo python3 %s/vision_run.py %s' % (V_RUN, a.mode)).stdout)
@@ -69,8 +75,8 @@ os.makedirs(dest)
 slot = last_json(ssh(SWITCH, 'python3 %s/switch_slot.py vepa --master-port %d --enable %d%s' %
                      (SW_DIR, a.master_port, a.enable, ' --no-forwarding' if a.no_forwarding else '')).stdout)
 before = counters()
-v = ssh(VISION, 'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d%s' %
-        (V_RUN, a.label, a.master_port, a.reads, ' --connect-must-fail' if a.no_forwarding else ''), check=False)
+v = ssh(VISION, 'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d%s' %
+        (V_RUN, a.label, a.master_port, a.reads, a.range, a.gap_ms, ' --connect-must-fail' if a.no_forwarding else ''), check=False)
 after = counters()
 subprocess.run(['scp', '-q', '%s:%s/runs/%s/*' % (VISION, V_RUN, a.label), dest + '/'], check=True)
 for stale in ('stop', 'stop.master'):
@@ -80,6 +86,8 @@ json.dump({'slot': slot, 'before': before, 'after': after}, open(os.path.join(de
 wire = subprocess.run([PY, os.path.join(HERE, 'wire_check.py'), os.path.join(dest, 'out.pcap'), os.path.join(dest, 'in.pcap')],
                       capture_output=True, text=True)
 open(os.path.join(dest, 'wire.json'), 'w').write(wire.stdout if wire.returncode == 0 else json.dumps({'error': wire.stderr[-800:]}))
+subprocess.run([PY, os.path.join(HERE, 'clrt_check.py'), os.path.join(dest, 'out.pcap'), os.path.join(dest, 'in.pcap'),
+                '--json', os.path.join(dest, 'timing.json')], capture_output=True, text=True)
 
 
 def reg(snap, name, field=None):

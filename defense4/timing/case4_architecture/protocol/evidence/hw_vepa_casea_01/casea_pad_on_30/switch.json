@@ -1,0 +1,192 @@
+{
+ "slot": {
+  "which": "vepa",
+  "master_port": 54405,
+  "enable": 1,
+  "no_forwarding": false,
+  "Egress.conn": [
+   {
+    "key": {
+     "hdr.ip.dst": 3232238141,
+     "hdr.ip.src": 3232238142,
+     "hdr.tcp.dport": 54405,
+     "hdr.tcp.sport": 20000
+    },
+    "data": {
+     "enable": 1,
+     "idx": 0,
+     "action_name": "Egress.fwd_conn"
+    }
+   },
+   {
+    "key": {
+     "hdr.ip.dst": 3232238142,
+     "hdr.ip.src": 3232238141,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.sport": 54405
+    },
+    "data": {
+     "idx": 0,
+     "action_name": "Egress.rev_conn"
+    }
+   }
+  ],
+  "Egress.odd_ip_t": [
+   {
+    "key": {
+     "hdr.ip.dst": 3232238141,
+     "hdr.ip.src": 3232238142
+    },
+    "data": {
+     "idx": 0,
+     "action_name": "Egress.odd_conn"
+    }
+   },
+   {
+    "key": {
+     "hdr.ip.dst": 3232238142,
+     "hdr.ip.src": 3232238141
+    },
+    "data": {
+     "idx": 0,
+     "action_name": "Egress.odd_conn"
+    }
+   }
+  ],
+  "Ingress.forwarding": [
+   {
+    "key": {
+     "ig.ingress_port": 9
+    },
+    "data": {
+     "port": 9,
+     "action_name": "Ingress.route"
+    }
+   }
+  ]
+ },
+ "before": {
+  "outcome": {
+   "0": 177,
+   "1": 326,
+   "2": 48,
+   "9": 386,
+   "12": 6,
+   "13": 6
+  },
+  "regs": {
+   "mode": {
+    "Egress.mode.f1": [
+     1,
+     0
+    ]
+   },
+   "front": {
+    "Egress.front.f1": [
+     463108309,
+     0
+    ]
+   },
+   "acct": {
+    "Egress.acct.hi": [
+     0,
+     0
+    ],
+    "Egress.acct.lo": [
+     463108441,
+     0
+    ]
+   },
+   "img_end": {
+    "Egress.img_end.f1": [
+     463108308,
+     0
+    ]
+   },
+   "img_start": {
+    "Egress.img_start.f1": [
+     463108271,
+     0
+    ]
+   },
+   "img_wend": {
+    "Egress.img_wend.f1": [
+     463108440,
+     0
+    ]
+   }
+  },
+  "ports": {
+   "9": {
+    "rx": 892,
+    "tx": 915
+   },
+   "64": {
+    "rx": 278,
+    "tx": 34
+   }
+  }
+ },
+ "after": {
+  "outcome": {
+   "0": 177,
+   "1": 358,
+   "2": 82,
+   "9": 452,
+   "12": 7,
+   "13": 7
+  },
+  "regs": {
+   "mode": {
+    "Egress.mode.f1": [
+     1,
+     0
+    ]
+   },
+   "front": {
+    "Egress.front.f1": [
+     3533804765,
+     0
+    ]
+   },
+   "acct": {
+    "Egress.acct.hi": [
+     0,
+     0
+    ],
+    "Egress.acct.lo": [
+     3533805077,
+     0
+    ]
+   },
+   "img_end": {
+    "Egress.img_end.f1": [
+     3533804764,
+     0
+    ]
+   },
+   "img_start": {
+    "Egress.img_start.f1": [
+     3533804727,
+     0
+    ]
+   },
+   "img_wend": {
+    "Egress.img_wend.f1": [
+     3533805076,
+     0
+    ]
+   }
+  },
+  "ports": {
+   "9": {
+    "rx": 1026,
+    "tx": 1049
+   },
+   "64": {
+    "rx": 279,
+    "tx": 34
+   }
+  }
+ }
+}

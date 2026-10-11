@@ -1,0 +1,5 @@
+disable-source-pruning : on
+ns_vepa_a net.ipv4.tcp_timestamps = 0 | net.ipv4.tcp_sack = 0 | net.ipv4.tcp_window_scaling = 0 | net.ipv4.ip_local_port_range = 54405	54405
+ns_vepa_b net.ipv4.tcp_timestamps = 0 | net.ipv4.tcp_sack = 0 | net.ipv4.tcp_window_scaling = 0 | net.ipv4.ip_local_port_range = 32768	60999
+route: 192.168.10.0/24 dev mvB scope link src 192.168.10.62 quickack 1
+qdisc: qdisc prio 1: root refcnt 2 bands 3 priomap 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | qdisc netem 20: parent 1:2 limit 1000 delay 25ms
