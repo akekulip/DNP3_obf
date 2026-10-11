@@ -1,0 +1,52 @@
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(25): [--Wwarn=unused] warning: 'SH_NONE' is unused
+const bit<8> SH_NONE = 0; const bit<8> SH_SYNACK_OK = 1; const bit<8> SH_SYN = 2; const bit<8> SH...
+             ^^^^^^^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(140): [--Wwarn=uninitialized-out-param] warning: out parameter 'm' may be uninitialized when 'IgParser' terminates
+...r IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ig) {
+                                                           ^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(140)
+parser IgParser(packet_in pkt, out headers_t hdr, out meta_t m, out ingress_intrinsic_metadata_t ...
+       ^^^^^^^^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(156): [--Wwarn=uninitialized-out-param] warning: out parameter 'm' may be uninitialized when 'EgParser' terminates
+...er EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                            ^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(156)
+parser EgParser(packet_in pkt, out headers_t hdr, out meta_t m, out egress_intrinsic_metadata_t e...
+       ^^^^^^^^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(229): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+/home/user/DNP3_obf/defense4/timing/case4_architecture/protocol/case4_response_path.p4(229): warning: Expected single call to get for hash instance 'Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 7 warnings generated.
+
+resp/pipe/case4_response_path.bfa:1541: warning: duplicate hash group 0, will merge with
+resp/pipe/case4_response_path.bfa:1536: warning: previous definition here
+resp/pipe/case4_response_path.bfa:1997: warning: duplicate hash group 0, will merge with
+resp/pipe/case4_response_path.bfa:1991: warning: previous definition here
+resp/pipe/case4_response_path.bfa:2341: warning: duplicate hash group 0, will merge with
+resp/pipe/case4_response_path.bfa:2335: warning: previous definition here
+resp/pipe/case4_response_path.bfa:2387: warning: duplicate hash group 0, will merge with
+resp/pipe/case4_response_path.bfa:2379: warning: previous definition here
+resp/pipe/case4_response_path.bfa:4881: warning: duplicate hash group 1, will merge with
+resp/pipe/case4_response_path.bfa:4876: warning: previous definition here
+resp/pipe/case4_response_path.bfa:5003: warning: duplicate hash group 0, will merge with
+resp/pipe/case4_response_path.bfa:4995: warning: previous definition here
+resp/pipe/case4_response_path.bfa:2044: warning: Input xbar hash group 0 mergeable conflict in stage 1
+resp/pipe/case4_response_path.bfa:1851: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:2044: warning: Input xbar hash group 0 mergeable conflict in stage 1
+resp/pipe/case4_response_path.bfa:1997: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:2203: warning: Input xbar hash group 1 mergeable conflict in stage 1
+resp/pipe/case4_response_path.bfa:2082: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:2387: warning: Input xbar hash group 0 mergeable conflict in stage 2
+resp/pipe/case4_response_path.bfa:2341: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:2436: warning: Input xbar hash group 0 mergeable conflict in stage 2
+resp/pipe/case4_response_path.bfa:2341: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:2436: warning: Input xbar hash group 0 mergeable conflict in stage 2
+resp/pipe/case4_response_path.bfa:2387: warning: conflicting hash group definition here
+resp/pipe/case4_response_path.bfa:4881: warning: Input xbar hash group 1 mergeable conflict in stage 9
+resp/pipe/case4_response_path.bfa:4779: warning: conflicting hash group definition here

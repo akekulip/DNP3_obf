@@ -166,8 +166,9 @@ def guard_refuses_n_ack_return(text):
 #    the response-only tail and second-block checks: hash_response_tail, hash_rd_second, hash_rd_tail and
 #    their three tables. Consequence: a response whose tail or second block is corrupt is admitted by N (and
 #    timed by T) instead of being refused, and leaves at its native size because E refuses to pad it; the
-#    master's DNP3 link layer discards it either way. Not compiled here (no bf-p4c in the authoring
-#    environment): the stage, hash-unit and crossbar effect is for the next build to measure.
+#    master's DNP3 link layer discards it either way. Measured with the open-source bf-p4c 9.13.4
+#    (simplify/evidence/opensource_9134_01): pipe 0 stays 12 / 11 (no stage saved); tables 115 -> 109,
+#    hash-distribution units 26 -> 23, PHV containers 193 -> 185. The default build reproduces _19's 193 / 26.
 RESPONSE_TAIL_CRC_EDITS = (
     ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_response_tail;\n"
      "action response_crct(){m.tcrc=hash_response_tail.get({hdr.rtail.on_lo,hdr.rtail.off,hdr.rtail.status});}\n"

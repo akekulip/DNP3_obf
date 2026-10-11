@@ -1,16 +1,16 @@
 # Simplification track (2026-10-11)
 
-Offline work toward a smaller, working size+timing target. **Nothing here has been compiled, run on
-the Tofino model, or loaded on the switch.** The authoring environment had no `bf-p4c` (licensed
-SDE) and no open-source P4 frontend. Every P4 change is source-level and tested in Python only.
-The first step on a machine with SDE 9.13.2 is the build listed under "Next steps".
+Offline work toward a smaller, working size+timing target. **Nothing here has run on the Tofino model
+or been loaded on the switch.** The P4 was compiled with the open-source Tofino compiler (bf-p4c
+9.13.4, p4lang/p4c `ff507048`, built from source in the cloud session); see "Compile results". That is
+not the switch's SDE 9.13.2, so the 9.13.2 build under "Next steps" is still required before loading.
 
 ## What is here
 
 | Path | What it is | Verified by |
 |---|---|---|
 | `tools/syn_option_audit.py` | Reads captures (read-only) and reports the TCP options on every SYN and SYN-ACK, per host, and whether the response-path mapper would arm | Run over 200 retained captures; result in `evidence/syn_options_relay_rig.json` |
-| `single_pipe/make_single_pipe.py` | Composes ONE pipeline: the seven-stage timing ingress (`stage_reduction/src/defense4_timing.p4`, `U_BOR`) + role E egress (`make_e.py`, from the hardware-run `protocol/case4_response_path.p4`), with edits S1 (reverse pass on the relay port) and S2 (SYN option scrub) | `single_pipe/tests` (17 tests) |
+| `single_pipe/make_single_pipe.py` | Composes ONE pipeline: the seven-stage timing ingress (`stage_reduction/src/defense4_timing.p4`, `U_BOR`) + role E egress (`make_e.py`, from the hardware-run `protocol/case4_response_path.p4`), with edits S1 (reverse pass on the relay port) and S2 (SYN option scrub) | `single_pipe/tests` (17 tests); compiled, see "Compile results" |
 | `single_pipe/single_pipe.p4` | Generated output; a test pins it to the generator | same |
 | `single_pipe/cp_single_pipe.py` | Egress control-plane rows: forward rows at the master port (9), reverse rows at the relay port (64) | same |
 
@@ -18,12 +18,34 @@ Changes made elsewhere for this track:
 
 | Path | Change | Default behavior |
 |---|---|---|
-| `integration/core/response_only/make_n.py`, `compose.py` | Edit 9, opt-in (`--no-response-tail-crc`, `--no-n-response-tail-crc`): N drops the response tail and second-block CRC checks that E repeats. 3 of N's 7 CRC hash units and 3 tables | Unchanged: default N output is byte-identical to `n_response_only.p4`, and the default composite hashes to `90eab15b…`, the source of the last compiled build (`shared_port_01`) |
+| `integration/core/response_only/make_n.py`, `compose.py` | Edit 9, opt-in (`--no-response-tail-crc`, `--no-n-response-tail-crc`): N drops the response tail and second-block CRC checks that E repeats. Measured: no stage saved; 6 tables, 3 hash units and 8 PHV containers fewer in pipe 0 | Unchanged: default N output is byte-identical to `n_response_only.p4`, and the default composite hashes to `90eab15b…`, the source of the last compiled build (`shared_port_01`) |
 | `integration/controller/t_register_reset.py` | Reset plan for T's registers, derived from the P4 declarations; restores the five `0xffffffff` registers instead of clearing them | New module, new tests |
 | `stage_reduction/control/reservoir_sizing.py` | Blocker-reservoir sizing from port speed and measured loop latency | New module, new tests |
 | `stage_reduction/control/defense4_timing_setup.py` | `--bor-loopback-speed {25G,10G}` for dp10 | Unchanged: default 25G; `dry-run` output identical |
 | Seven Case 4 documents | Dated two-pipe correction banner; the history below each banner is untouched | n/a |
 | `audit_current/verification_20260929/README.md` | Finding B1 (TCP timestamps on the relay rig) | n/a |
+
+## Compile results (open-source bf-p4c 9.13.4)
+
+Evidence: `evidence/opensource_9134_01/` (compile logs, final table and PHV summaries, `manifest.json`
+with compiler binary hashes; no SDK binaries). The compiler was first checked against three builds
+whose results are already recorded on 9.13.1 / 9.13.2:
+
+| Build | Recorded (SDE 9.13.1 / 9.13.2) | Open-source 9.13.4 |
+|---|---|---|
+| Seven-stage timing (`-DU_BOR`) | 7 / 0 | 7 / 0, critical path 7 |
+| Response path (`case4_response_path.p4`) | 1 / 12, critical path 11 | 1 / 12, critical path 11 |
+| Two-pipe composite (default) | p0 12 / 11, p1 11 / 0; PHV 193; 26 hash units | identical |
+
+Results for this track:
+
+| Build | Ingress / egress | Critical path | Other |
+|---|---|---|---|
+| **Single-pipe candidate** | **10 / 12** | 11 | Exit 0, `tofino.bin` assembled. Fifth egress checksum unit (SYN scrub) accepted. PHV 158 / 224 containers (32-bit 57 / 64), final attempt. Warning kinds are the same as the two separate programs. |
+| Composite with `make_n` edit 9 | p0 12 / 11, p1 11 / 0 | 11 / 9 | No stage saved. Tables 115 -> 109, hash-distribution units 26 -> 23, PHV 193 -> 185. |
+
+The single-pipe ingress rises from 7 to 10 stages beside a full egress: a stage's table IDs, crossbar
+and hash units are shared by both gresses. Two ingress stages remain spare.
 
 ## Findings that drove it
 
@@ -59,11 +81,8 @@ Changes made elsewhere for this track:
 - **Arithmetic:** `SynScrubArithmetic` applies the parser-residual / deparser-update formula to a
   real master SYN from `campaign_v2/s01`. The result equals a full recomputation. That capture was
   taken on the master before transmit offload, so the test first restores the on-wire checksum.
-- **Risks the build must settle:**
-  - whether Tofino-1's egress deparser accepts a fifth checksum unit;
-  - whether `syn_scrub_t` fits E's stage 1, whose table IDs and crossbar are crowded.
-
-  If the fifth unit is refused, the fallback is to scrub in the timing ingress, which has spare
+- **Fit:** the 9.13.4 build accepted the fifth checksum unit and placed `syn_scrub_t`; 9.13.2 must
+  confirm. If 9.13.2 refuses the unit, the fallback is to scrub in the timing ingress, which has spare
   stages and its own deparser.
 
 ## Not implemented, and why
@@ -79,11 +98,10 @@ Changes made elsewhere for this track:
 
 ## Next steps (in order; hardware steps need Philip's recorded authorization)
 
-1. Compile `single_pipe/single_pipe.p4` into a new evidence directory, locally and then with the
-   switch's SDE 9.13.2 through `installed_sdk_build.py`:
+1. Compile `single_pipe/single_pipe.p4` with the switch's SDE 9.13.2 (compile-only, through
+   `installed_sdk_build.py`) and locally with 9.13.1:
    `python3 build.py simplify/single_pipe/single_pipe.p4 simplify/evidence/single_pipe_01`.
-   `U_BOR` is defined in the file, so no `-D` is needed. Record stages, PHV and deparser checksum
-   units. Expected: at most 8 ingress / 12 egress, if the fifth checksum unit is accepted.
+   `U_BOR` is defined in the file. Compare with the 9.13.4 result (10 / 12, PHV 158).
 2. Run the local Tofino model with the existing drivers: the padding drivers for E, the timing
    driver for ingress, then both together on one READ and one SELECT/OPERATE.
 3. On the switch: compare a master SYN before and after the scrub, and confirm the SEL-751's

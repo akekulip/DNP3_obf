@@ -1,0 +1,212 @@
+comp_full.p4(161): [--Wwarn=unused] warning: 'count_term_bump' is unused
+...ion<bit<32>,bit<4>,bit<32>>(count_term) count_term_bump={void apply(inout bit<32> v,out bit<32...
+                                           ^^^^^^^^^^^^^^^
+comp_full.p4(175): [--Wwarn=unused] warning: table 'syn_shapes' is unused
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact...
+       ^^^^^^^^^^
+comp_full.p4(179): [--Wwarn=unused] warning: table 'short_shapes' is unused
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+comp_full.p4(206): [--Wwarn=unused] warning: table 'available_t' is unused
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32...
+       ^^^^^^^^^^^
+comp_full.p4(254): [--Wwarn=unused] warning: table 'epoch_guard' is unused
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w...
+       ^^^^^^^^^^^
+comp_full.p4(452): [--Wwarn=unused] warning: parser 'n_EgParser' is unused
+parser n_EgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out egress_intrinsic_metadata_...
+       ^^^^^^^^^^
+comp_full.p4(453): [--Wwarn=unused] warning: control 'n_Egress' is unused
+control n_Egress(inout n_headers_t hdr,inout n_meta_t m,in egress_intrinsic_metadata_t eg,in egre...
+        ^^^^^^^^
+comp_full.p4(454): [--Wwarn=unused] warning: control 'n_EgDeparser' is unused
+control n_EgDeparser(packet_out pkt,inout n_headers_t hdr,in n_meta_t m,in egress_intrinsic_metad...
+        ^^^^^^^^^^^^
+comp_full.p4(484): [--Wwarn=unused] warning: 'r_SH_NONE' is unused
+const bit<8> r_SH_NONE = 0; const bit<8> r_SH_SYNACK_OK = 1; const bit<8> r_SH_SYN = 2; const bit...
+             ^^^^^^^^^
+comp_full.p4(599): [--Wwarn=unused] warning: parser 'r_IgParser' is unused
+parser r_IgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out ingress_intrinsic_metad...
+       ^^^^^^^^^^
+comp_full.p4(602): [--Wwarn=unused] warning: control 'r_Ingress' is unused
+control r_Ingress(inout r_headers_t hdr, inout r_meta_t m, in ingress_intrinsic_metadata_t ig,
+        ^^^^^^^^^
+comp_full.p4(610): [--Wwarn=unused] warning: control 'r_IgDeparser' is unused
+control r_IgDeparser(packet_out pkt, inout r_headers_t hdr, in r_meta_t m, in ingress_intrinsic_m...
+        ^^^^^^^^^^^^
+comp_full.p4(1103): [--Wwarn=unused] warning: 't_N_RETURN' is unused
+const PortId_t t_N_RETURN = 9w68; // peer pipe 0 local 68: N's own recirculation
+               ^^^^^^^^^^
+comp_full.p4(1270): [--Wwarn=unused] warning: 'cap' is unused
+    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                                                             ^^^
+comp_full.p4(175): [--Winfo=removed] info: removing table 'syn_shapes'
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact...
+       ^^^^^^^^^^
+comp_full.p4(179): [--Winfo=removed] info: removing table 'short_shapes'
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+comp_full.p4(206): [--Winfo=removed] info: removing table 'available_t'
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32...
+       ^^^^^^^^^^^
+comp_full.p4(254): [--Winfo=removed] info: removing table 'epoch_guard'
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w...
+       ^^^^^^^^^^^
+comp_full.p4(452): [--Winfo=removed] info: removing parser 'n_EgParser'
+parser n_EgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out egress_intrinsic_metadata_...
+       ^^^^^^^^^^
+comp_full.p4(453): [--Winfo=removed] info: removing control 'n_Egress'
+control n_Egress(inout n_headers_t hdr,inout n_meta_t m,in egress_intrinsic_metadata_t eg,in egre...
+        ^^^^^^^^
+comp_full.p4(454): [--Winfo=removed] info: removing control 'n_EgDeparser'
+control n_EgDeparser(packet_out pkt,inout n_headers_t hdr,in n_meta_t m,in egress_intrinsic_metad...
+        ^^^^^^^^^^^^
+comp_full.p4(599): [--Winfo=removed] info: removing parser 'r_IgParser'
+parser r_IgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out ingress_intrinsic_metad...
+       ^^^^^^^^^^
+comp_full.p4(602): [--Winfo=removed] info: removing control 'r_Ingress'
+control r_Ingress(inout r_headers_t hdr, inout r_meta_t m, in ingress_intrinsic_metadata_t ig,
+        ^^^^^^^^^
+comp_full.p4(610): [--Winfo=removed] info: removing control 'r_IgDeparser'
+control r_IgDeparser(packet_out pkt, inout r_headers_t hdr, in r_meta_t m, in ingress_intrinsic_m...
+        ^^^^^^^^^^^^
+comp_full.p4(103): [--Wwarn=uninitialized-out-param] warning: out parameter 'm' may be uninitialized when 'n_IgParser' terminates
+...n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                             ^
+comp_full.p4(103)
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata...
+       ^^^^^^^^^^
+comp_full.p4(615): [--Wwarn=uninitialized-out-param] warning: out parameter 'm' may be uninitialized when 'r_EgParser' terminates
+...gParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                            ^
+comp_full.p4(615)
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metada...
+       ^^^^^^^^^^
+comp_full.p4(1194): [--Wwarn=uninitialized-out-param] warning: out parameter 'md' may be uninitialized when 't_IngressParser' terminates
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+                                                                           ^^
+comp_full.p4(1194)
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+       ^^^^^^^^^^^^^^^
+comp_full.p4(2029): [--Wwarn=uninitialized-out-param] warning: out parameter 'md' may be uninitialized when 't_EmptyEgressParser' terminates
+parser t_EmptyEgressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+                                                                               ^^
+comp_full.p4(2029)
+parser t_EmptyEgressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+       ^^^^^^^^^^^^^^^^^^^
+comp_full.p4(187): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+comp_full.p4(689): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+comp_full.p4(187): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+comp_full.p4(689): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w0[15:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.response_profile: Table key name not supported. Replacing "hdr.first.w2[31:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[15:8]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[7:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[31:24]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[23:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w0[7:0]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[31:24]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.profile: Table key name not supported. Replacing "hdr.first.w1[15:0]" with "hdr.first.w1".
+
+0 errors, 47 warnings generated.
+
+comp_full/p0/comp_full.bfa:4439: warning: duplicate hash group 1, will merge with
+comp_full/p0/comp_full.bfa:4433: warning: previous definition here
+comp_full/p0/comp_full.bfa:4445: warning: duplicate hash group 1, will merge with
+comp_full/p0/comp_full.bfa:4439: warning: previous definition here
+comp_full/p0/comp_full.bfa:12500: warning: duplicate hash group 0, will merge with
+comp_full/p0/comp_full.bfa:12494: warning: previous definition here
+comp_full/p0/comp_full.bfa:12653: warning: duplicate hash group 1, will merge with
+comp_full/p0/comp_full.bfa:12648: warning: previous definition here
+comp_full/p0/comp_full.bfa:13179: warning: duplicate hash group 0, will merge with
+comp_full/p0/comp_full.bfa:13173: warning: previous definition here
+comp_full/p0/comp_full.bfa:13233: warning: duplicate hash group 0, will merge with
+comp_full/p0/comp_full.bfa:13225: warning: previous definition here
+comp_full/p0/comp_full.bfa:13395: warning: duplicate hash group 1, will merge with
+comp_full/p0/comp_full.bfa:13389: warning: previous definition here
+comp_full/p0/comp_full.bfa:15942: warning: duplicate hash group 1, will merge with
+comp_full/p0/comp_full.bfa:15937: warning: previous definition here
+comp_full/p0/comp_full.bfa:12537: warning: Input xbar hash group 0 mergeable conflict in stage 0
+comp_full/p0/comp_full.bfa:12500: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:12575: warning: Input xbar hash group 0 mergeable conflict in stage 0
+comp_full/p0/comp_full.bfa:12500: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:12575: warning: Input xbar hash group 0 mergeable conflict in stage 0
+comp_full/p0/comp_full.bfa:12537: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:4456: warning: Input xbar hash group 2 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:4370: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:4456: warning: Input xbar hash group 2 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:4425: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:13233: warning: Input xbar hash group 0 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:13179: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:13354: warning: Input xbar hash group 0 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:13179: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:13354: warning: Input xbar hash group 0 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:13233: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:13395: warning: Input xbar hash group 1 mergeable conflict in stage 1
+comp_full/p0/comp_full.bfa:4445: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:5077: warning: Input xbar hash group 0 mergeable conflict in stage 2
+comp_full/p0/comp_full.bfa:4915: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:5283: warning: Input xbar hash group 1 mergeable conflict in stage 2
+comp_full/p0/comp_full.bfa:4953: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:5330: warning: Input xbar hash group 1 mergeable conflict in stage 2
+comp_full/p0/comp_full.bfa:4953: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:5330: warning: Input xbar hash group 1 mergeable conflict in stage 2
+comp_full/p0/comp_full.bfa:5283: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:13551: warning: Input xbar hash group 0 mergeable conflict in stage 2
+comp_full/p0/comp_full.bfa:4915: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:10789: warning: Input xbar hash group 1 mergeable conflict in stage 9
+comp_full/p0/comp_full.bfa:10633: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:11160: warning: Input xbar hash group 0 mergeable conflict in stage 10
+comp_full/p0/comp_full.bfa:11054: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:16360: warning: Input xbar hash group 2 mergeable conflict in stage 10
+comp_full/p0/comp_full.bfa:11299: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:16438: warning: Input xbar hash group 2 mergeable conflict in stage 10
+comp_full/p0/comp_full.bfa:11299: warning: conflicting hash group definition here
+comp_full/p0/comp_full.bfa:4421: warning: exact hashtable 5 does not exist in table crc_t_0
+comp_full/p0/comp_full.bfa:5348: warning: Conflicting instruction slot usage for non-exlusive table input_tail_t_0 action n_Ingress.input_tail
+comp_full/p0/comp_full.bfa:5310: warning: and table response_crct_t_0 action n_Ingress.response_crct
+comp_full/p0/comp_full.bfa:11295: warning: exact hashtable 7 does not exist in table busy_t_0
+comp_full/p0/comp_full.bfa:16355: warning: exact hashtable 5 does not exist in table egresshdr.ip.checksum_encode_update_condition_2
+comp_full/p0/comp_full.bfa:16431: warning: exact hashtable 5 does not exist in table egresshdr.tcp.checksum_encode_update_condition_3
+comp_full/p0/comp_full.bfa:4421: warning: exact hashtable 5 does not exist in table crc_t_0
+comp_full/p0/comp_full.bfa:11295: warning: exact hashtable 7 does not exist in table busy_t_0
+comp_full/p0/comp_full.bfa:16355: warning: exact hashtable 5 does not exist in table egresshdr.ip.checksum_encode_update_condition_2
+comp_full/p0/comp_full.bfa:16431: warning: exact hashtable 5 does not exist in table egresshdr.tcp.checksum_encode_update_condition_3
+comp_full/p1/comp_full.bfa:1448: warning: Action bus byte 36 set in table tbl_comp_full1976$tind and table tbl_comp_full1967$tind
+comp_full/p1/comp_full.bfa:1448: warning: Action bus byte 38 set in table tbl_comp_full1976$tind and table tbl_comp_full1967$tind
+comp_full/p1/comp_full.bfa:1522: warning: Action bus byte 36 set in table tbl_comp_full2003$tind and table tbl_comp_full1967$tind
+comp_full/p1/comp_full.bfa:1522: warning: Action bus byte 38 set in table tbl_comp_full2003$tind and table tbl_comp_full1967$tind
+comp_full/p1/comp_full.bfa:1887: warning: Action bus byte 104 set in table tbl_read_seen2$tind and table tbl_comp_full1964$tind
+comp_full/p1/comp_full.bfa:1908: warning: Action bus byte 112 set in table tbl_read_seen1$tind and table tbl_comp_full1963$tind
+comp_full/p1/comp_full.bfa:1929: warning: Action bus byte 32 set in table tbl_read_seen0$tind and table tbl_comp_full1962$tind
+comp_full/p1/comp_full.bfa:1929: warning: Action bus byte 34 set in table tbl_read_seen0$tind and table tbl_comp_full1962$tind
+comp_full/p1/comp_full.bfa:2476: warning: Action bus byte 96 set in table tbl_try_ack_done$tind and table tbl_read_ack_done$tind
+comp_full/p1/comp_full.bfa:2655: warning: Action bus byte 96 set in table tbl_read_commit_gen_0$tind and table tbl_read_commit_gen$tind
+comp_full/p1/comp_full.bfa:2715: warning: Action bus byte 104 set in table tbl_read_gap_delta$tind and table tbl_read_gap_delta_0$tind
+comp_full/p1/comp_full.bfa:2882: warning: Action bus byte 96 set in table tbl_try_op_done$tind and table tbl_read_op_done$tind
+comp_full/p1/comp_full.bfa:3479: warning: Action bus byte 96 set in table tbl_read_resp_done_0$tind and table tbl_read_resp_done$tind
+comp_full/p1/comp_full.bfa:3500: warning: Action bus byte 96 set in table tbl_try_resp_done$tind and table tbl_read_resp_done$tind
