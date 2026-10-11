@@ -3,6 +3,7 @@ import importlib.util
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import unittest
 
@@ -20,6 +21,19 @@ def allocation(ingress, egress=0):
             "Number of tables allocated: 76\n")
 
 
+# The retained evidence was compiled from commit 16050715 (sha256 d2306158...). The working source is the
+# comment-only cleanup of bfc00616, so its bytes differ; what must match is the code. CODE_SHA256 is the hash of
+# 16050715's source with comments removed and whitespace collapsed (code_text below), computed from git history.
+EVIDENCE_SOURCE_SHA256 = "d2306158f59e69c622654b0577e4518e5be7a69eb927f80c3727f07f8c553090"
+CODE_SHA256 = "188c7ab29398d834710fcfc193b82d37caebd39d245baa4a7510f192f834ce2a"
+
+
+def code_text(text):
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    text = re.sub(r"//[^\n]*", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
 class TestBuildEvidence(unittest.TestCase):
     def test_compiled_schema_and_manifest_belong_to_current_source(self):
         root = Path(__file__).resolve().parents[1]
@@ -30,8 +44,13 @@ class TestBuildEvidence(unittest.TestCase):
             if path.exists() for data in (json.loads(path.read_text()),)
             if "source_sha256" in data and "artifact_sha256" in data), None)
         self.assertIsNotNone(evidence, f"No build evidence manifest for {schema}")
-        self.assertEqual(hashlib.sha256((root / "src/defense4_timing.p4").read_bytes()).hexdigest(),
-                         evidence["source_sha256"])
+        source = (root / "src/defense4_timing.p4").read_bytes()
+        if hashlib.sha256(source).hexdigest() != evidence["source_sha256"]:
+            # a fresh build (DNP3_BFRT_JSON) of the current bytes passes above; the retained evidence must
+            # be the 16050715 build and the current source must carry the same code
+            self.assertEqual(evidence["source_sha256"], EVIDENCE_SOURCE_SHA256)
+            self.assertEqual(hashlib.sha256(code_text(source.decode()).encode()).hexdigest(), CODE_SHA256,
+                             "src/defense4_timing.p4 differs from the evidence build in more than comments")
         self.assertEqual(hashlib.sha256(schema.read_bytes()).hexdigest(),
                          evidence["artifact_sha256"]["bfrt.json"])
 
