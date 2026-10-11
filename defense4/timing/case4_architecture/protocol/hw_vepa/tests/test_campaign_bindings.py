@@ -109,30 +109,54 @@ class Profile(unittest.TestCase):
     def test_k_is_the_production_value(self):
         self.assertEqual(self.cfg['service']['k'], 2)
 
-    def test_all_shaping_fields_exist_and_default_off(self):
+    def test_default_preset_is_unshaped_with_every_rate_off(self):
         sh = self.cfg['shaping']
-        for group in ('hold_pps', 'block_pps'):
-            self.assertEqual(sh[group], {'ack': 0, 'resp': 0, 'op': 0})
-        self.assertIsNone(sh['block_burst'])
+        self.assertEqual(sh['preset'], 'unshaped')
+        eff = cp.resolve_shaping(self.cfg)
+        self.assertEqual(eff['hold_pps'], {'ack': 0, 'resp': 0, 'op': 0})
+        self.assertEqual(eff['block_pps'], {'ack': 0, 'resp': 0, 'op': 0})
+        self.assertIsNone(eff['block_burst'])
 
-    def test_negative_shaping_rate_is_rejected(self):
+    def test_named_candidate_presets_use_exact_ladder_rates(self):
+        pre = self.cfg['shaping']['presets']
+        for name, rate in (('shape_3723', 3723), ('shape_14892', 14892), ('shape_59570', 59570), ('slow_232', 232)):
+            eff = cp.resolve_shaping(self.cfg, name)
+            self.assertEqual(eff['hold_pps'], {'ack': rate, 'resp': rate, 'op': rate}, name)
+            self.assertEqual(eff['block_pps'], {'ack': rate, 'resp': rate, 'op': rate}, name)
+        self.assertEqual(cp.resolve_shaping(self.cfg, 'shape_3723')['block_burst'], 64)
+        for name, p in pre.items():
+            for g in ('hold_pps', 'block_pps'):
+                self.assertTrue(all(v in cp.LADDER for v in p[g].values()), name)
+
+    def test_off_ladder_rate_is_rejected(self):
         bad = copy.deepcopy(self.cfg)
-        bad['shaping']['hold_pps']['ack'] = -1
+        bad['shaping']['presets']['shape_3723']['hold_pps']['ack'] = 3000     # the shaper realizes 3723
         with self.assertRaises(ValueError):
             cp.validate_profile(bad)
 
-    def test_installer_args_carry_every_shaping_flag(self):
-        cfg = copy.deepcopy(self.cfg)
-        cfg['shaping']['hold_pps']['resp'] = 300
-        cfg['shaping']['block_pps']['op'] = 40
-        cfg['shaping']['block_burst'] = 96
-        a = cp.shaping_args(cfg)
-        for flag in ('--shape-ack-pps 0', '--shape-resp-pps 300', '--shape-op-pps 0', '--shape-ack-blk-pps 0',
-                     '--shape-resp-blk-pps 0', '--shape-op-blk-pps 40', '--block-burst 96'):
+    def test_unknown_preset_is_rejected(self):
+        bad = copy.deepcopy(self.cfg)
+        bad['shaping']['preset'] = 'fast'
+        with self.assertRaises(ValueError):
+            cp.validate_profile(bad)
+        with self.assertRaises(ValueError):
+            cp.resolve_shaping(self.cfg, 'fast')
+
+    def test_installer_args_carry_every_shaping_flag_of_the_preset(self):
+        a = cp.shaping_args(self.cfg, preset='shape_3723')
+        for flag in ('--shape-ack-pps 3723', '--shape-resp-pps 3723', '--shape-op-pps 3723',
+                     '--shape-ack-blk-pps 3723', '--shape-resp-blk-pps 3723', '--shape-op-blk-pps 3723',
+                     '--block-burst 64'):
             self.assertIn(flag, a)
 
-    def test_block_burst_omitted_when_null(self):
-        self.assertNotIn('--block-burst', cp.shaping_args(self.cfg))
+    def test_unshaped_args_are_explicit_zeros_and_no_burst(self):
+        a = cp.shaping_args(self.cfg)
+        self.assertIn('--shape-ack-pps 0', a)
+        self.assertIn('--shape-op-blk-pps 0', a)
+        self.assertNotIn('--block-burst', a)
+
+    def test_snapshot_args_never_carry_block_burst(self):
+        self.assertNotIn('--block-burst', cp.shaping_args(self.cfg, burst=False, preset='shape_3723'))
 
     def test_fixture_jitter_is_rejected_because_vision_run_cannot_apply_it(self):
         bad = copy.deepcopy(self.cfg)

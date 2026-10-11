@@ -58,6 +58,7 @@ REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'ti
             'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production')
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
 ROLES = ('ack', 'resp', 'op')
+LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)
 HEX64 = re.compile(r'[0-9a-f]{64}')
 HEX40 = re.compile(r'[0-9a-f]{40}')
 
@@ -108,17 +109,19 @@ def validate_profile(cfg):
     if cfg['service']['k'] < 1:
         raise ValueError('service.k must be >= 1 (installer --k is 2*k tokens)')
     sh = cfg['shaping']
-    for group in ('hold_pps', 'block_pps'):
-        for r in ROLES:
-            v = sh[group].get(r)
-            if not isinstance(v, int) or isinstance(v, bool) or v < 0:
-                raise ValueError('shaping.%s.%s must be an integer >= 0 (0 = unshaped), got %r' % (group, r, v))
-    bb = sh.get('block_burst')
-    if bb is not None and (not isinstance(bb, int) or isinstance(bb, bool) or bb < 1):
-        raise ValueError('shaping.block_burst must be null (installer default) or an integer >= 1')
-    if cfg['hosts'].get('vision_run_dir') != vr.HOME:
-        raise ValueError('hosts.vision_run_dir must equal vision_run.HOME (%s): the endpoint runner uses its own '
-                         'constant' % vr.HOME)
+    if sh.get('preset') not in sh.get('presets', {}):
+        raise ValueError('shaping.preset %r is not one of %s' % (sh.get('preset'), sorted(sh.get('presets', {}))))
+    for name, p in sh['presets'].items():
+        for group in ('hold_pps', 'block_pps'):
+            for r in ROLES:
+                v = p[group].get(r)
+                if not isinstance(v, int) or isinstance(v, bool) or v not in LADDER:
+                    raise ValueError('shaping preset %s: %s.%s=%r is not an exact shaper ladder value %s (0 = off)'
+                                     % (name, group, r, v, LADDER))
+        bb = p.get('block_burst')
+        if bb is not None and (not isinstance(bb, int) or isinstance(bb, bool) or bb < 1):
+            raise ValueError('shaping preset %s: block_burst must be null (installer default) or an integer >= 1'
+                             % name)
     if cfg.get('trial_mode') not in ('per_trial_cold', 'one_connection'):
         raise ValueError("trial_mode must be 'per_trial_cold' or 'one_connection', got %r" % cfg.get('trial_mode'))
     pr = cfg['traffic'].get('master_port_range', {})
@@ -129,13 +132,24 @@ def validate_profile(cfg):
         raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
 
 
-def shaping_args(cfg, burst=True):
+def resolve_shaping(cfg, preset=None):
+    """The effective requested shaping: {'preset', 'hold_pps', 'block_pps', 'block_burst'}."""
+    sh = cfg['shaping']
+    name = preset or sh['preset']
+    if name not in sh['presets']:
+        raise ValueError('unknown shaping preset %r; the config defines %s' % (name, sorted(sh['presets'])))
+    p = sh['presets'][name]
+    return {'preset': name, 'hold_pps': dict(p['hold_pps']), 'block_pps': dict(p['block_pps']),
+            'block_burst': p.get('block_burst')}
+
+
+def shaping_args(cfg, burst=True, preset=None):
     """The installer/snapshot shaping flags, always explicit so a run's requested rates are never implicit.
     burst=False for snapshot_counters.py, which records the requested rates but has no --block-burst."""
-    sh = cfg['shaping']
+    sh = resolve_shaping(cfg, preset)
     parts = ['--shape-%s-pps %d' % (r, sh['hold_pps'][r]) for r in ROLES]
     parts += ['--shape-%s-blk-pps %d' % (r, sh['block_pps'][r]) for r in ROLES]
-    if burst and sh.get('block_burst') is not None:
+    if burst and sh['block_burst'] is not None:
         parts.append('--block-burst %d' % sh['block_burst'])
     return ' '.join(parts)
 
@@ -569,7 +583,7 @@ class Campaign:
         c = self.cfg
         self.record['effective'] = {
             'timing_params_ns': c['timing_params_ns'], 'k': c['service']['k'],
-            'shaping_requested': c['shaping'], 'fixture': c['fixture'], 'trials': c['trials'],
+            'shaping_requested': resolve_shaping(c), 'fixture': c['fixture'], 'trials': c['trials'],
             'traffic': c['traffic'], 'ports_map': c['ports_map'], 'endpoints': c['endpoints']}
         self.record['builds'] = getattr(self, 'bound', None)
         self.record['time'] = time.time()
@@ -582,10 +596,14 @@ def main(argv=None):
     ap.add_argument('--config', default=os.path.join(HERE, 'campaign.json'))
     ap.add_argument('--arms', help='comma-separated arm names to run (default: all arms in the config)')
     ap.add_argument('--run-id', default=None)
+    ap.add_argument('--preset', help='shaping preset from campaign.json (default: shaping.preset)')
     ap.add_argument('--apply', action='store_true', help='required for run: actually execute on hardware')
     ap.add_argument('--dry-run', action='store_true', help='run: print the commands instead (same as plan)')
     a = ap.parse_args(argv)
     cfg = load_config(a.config)
+    if a.preset:
+        cfg['shaping']['preset'] = a.preset
+        validate_profile(cfg)
     for w in warnings(cfg):
         sys.stderr.write('WARNING: %s\n' % w)
     if a.mode == 'validate':

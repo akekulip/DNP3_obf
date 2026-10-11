@@ -101,7 +101,7 @@ class Base(unittest.TestCase):
         (Path(self.tmp) / 'b').mkdir(exist_ok=True)
         self.cfg['evidence_dir'] = str(Path(self.tmp) / 'ev')
         self.cfg['trials']['trials_per_arm'] = 1
-        self.cfg['shaping']['hold_pps']['ack'] = 300
+        self.cfg['shaping']['preset'] = 'shape_3723'
 
     def campaign(self, runner, arms=('size_only', 'combined'), flags=None, cfg=None):
         return cp.Campaign(cfg or self.cfg, runner, 'c1', arms=list(arms),
@@ -148,11 +148,11 @@ class Sequence(Base):
         r = FakeRunner()
         self.campaign(r).execute()
         apply_cmd = r.calls[[i for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]][0]][1]
-        for s in ('--k 2', '--shape-ack-pps 300', '--shape-op-blk-pps 0', '--t-readiness 30000000', '--enable-pktgen',
+        for s in ('--k 2', '--shape-ack-pps 3723', '--shape-op-blk-pps 3723', '--block-burst 64', '--t-readiness 30000000', '--enable-pktgen',
                   'DEFENSE4_HW_AUTHORIZED=1', '--expect bfrt.json='):
             self.assertIn(s, apply_cmd)
         snap = r.calls[r.cmds('snapshot_counters.py')[0]][1]
-        self.assertIn('--shape-ack-pps 300', snap)
+        self.assertIn('--shape-ack-pps 3723', snap)
         run = r.calls[r.cmds('vision_run.py run')[0]][1]
         self.assertIn('--range 8', run)
 
@@ -162,7 +162,8 @@ class Sequence(Base):
         rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
         self.assertTrue(rec['ok'])
         self.assertEqual(rec['effective']['k'], 2)
-        self.assertEqual(rec['effective']['shaping_requested']['hold_pps']['ack'], 300)
+        self.assertEqual(rec['effective']['shaping_requested']['preset'], 'shape_3723')
+        self.assertEqual(rec['effective']['shaping_requested']['hold_pps']['ack'], 3723)
         self.assertEqual(rec['arms'][0]['achieved_shaping']['ACK_HOLD']['achieved_pps'], 281)
         self.assertEqual(set(rec['builds']['sbo_admission_01']), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
         self.assertEqual(rec['endpoint_observed']['binary_sha256'], H64)
@@ -428,6 +429,17 @@ class DryRun(Base):
         self.assertIn('--pad-enable', out)
         self.assertNotIn('--pad-enable 0', out)
 
+    def test_preset_option_selects_the_shaping_in_the_planned_commands(self):
+        rc, out = self.render(['plan', '--config', self.cfgfile(), '--arms', 'combined', '--run-id', 'c1',
+                               '--preset', 'shape_59570'])
+        self.assertEqual(rc, 0)
+        self.assertIn('--shape-resp-blk-pps 59570', out)
+        self.assertIn('--block-burst 64', out)
+
+    def test_unknown_preset_option_is_refused(self):
+        with self.assertRaises(ValueError):
+            self.render(['plan', '--config', self.cfgfile(), '--preset', 'nope'])
+
     def test_run_still_needs_apply_and_authorization(self):
         with self.assertRaises(SystemExit):
             cp.main(['run', '--config', self.cfgfile()])
@@ -444,8 +456,7 @@ class EmittedFlagsExist(Base):
         return set(re.findall(r'''add_argument\(\s*["'](--[a-z0-9-]+)''', Path(script).read_text()))
 
     def test_flags_passed_to_reviewed_scripts_are_real(self):
-        self.cfg['shaping']['block_pps']['resp'] = 40
-        self.cfg['shaping']['block_burst'] = 96
+        self.cfg['shaping']['preset'] = 'shape_14892'
         r = FakeRunner()
         self.campaign(r, arms=('off', 'combined'), flags=('--pad-enable',)).execute()
         known = {

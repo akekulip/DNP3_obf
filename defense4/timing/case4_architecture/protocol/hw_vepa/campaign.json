@@ -100,10 +100,15 @@
   },
   "service": {"k": 2, "note": "installer --k is 2*k tokens per trigger; production k=2 (installer default)"},
   "shaping": {
-    "hold_pps":  {"ack": 0, "resp": 0, "op": 0},
-    "block_pps": {"ack": 0, "resp": 0, "op": 0},
-    "block_burst": null,
-    "note": "0 = unshaped. block_burst null = installer default (t_config.BLOCK_BURST). The lead sets chosen rates here."
+    "preset": "unshaped",
+    "presets": {
+      "unshaped":    {"hold_pps": {"ack": 0, "resp": 0, "op": 0}, "block_pps": {"ack": 0, "resp": 0, "op": 0}, "block_burst": null},
+      "shape_3723":  {"hold_pps": {"ack": 3723, "resp": 3723, "op": 3723}, "block_pps": {"ack": 3723, "resp": 3723, "op": 3723}, "block_burst": 64},
+      "shape_14892": {"hold_pps": {"ack": 14892, "resp": 14892, "op": 14892}, "block_pps": {"ack": 14892, "resp": 14892, "op": 14892}, "block_burst": 64},
+      "shape_59570": {"hold_pps": {"ack": 59570, "resp": 59570, "op": 59570}, "block_pps": {"ack": 59570, "resp": 59570, "op": 59570}, "block_burst": 64},
+      "slow_232":    {"hold_pps": {"ack": 232, "resp": 232, "op": 232}, "block_pps": {"ack": 232, "resp": 232, "op": 232}, "block_burst": 64}
+    },
+    "note": "Pick one with `preset` (or --preset). All rates are exact TM-shaper ladder values (the shaper realizes only 58/232/930/3723/14892/59570/238281 PPS; 0 = unshaped); any other value is rejected. shape_* shape the hold AND blocker queues together (measured 2026-10-11, evidence/p2_blocker_occupancy_01/STATUS.md: CLRT stays at the 0.8 ms target with unshaped precision and total passes drop 168-364x); slow_232 is a comparison preset only. block_burst null = installer default. Default stays unshaped until the lead chooses."
   },
   "fixture": {"delay_ms": 25, "jitter_ms": 0, "casea": true,
               "note": "jitter is not implemented by vision_run.py; any non-zero value is rejected"},
