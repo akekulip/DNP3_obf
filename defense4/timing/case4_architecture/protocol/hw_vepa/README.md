@@ -6,18 +6,31 @@ through the Tofino, with both endpoints behind dev_port 9. First used for the pa
 
 | file | where it runs | what it does |
 |---|---|---|
-| `run.py` | workstation | one run end to end: slot rows, counters before, endpoints, counters after, copy, wire check |
-| `vision_run.py` | Vision, `sudo python3` | namespace TCP profile, NIC flag, endpoints, direction-split captures |
+| `campaign.py` | workstation | the single four-arm campaign entry point: reads `campaign.json` and ties the hw/ composite installer, endpoint runner, snapshots, verification, extraction and restoration into one runbook |
+| `run.py` | workstation | one standalone (pure-E) run end to end: slot rows, counters before, endpoints, counters after, copy, wire + clrt check; fails the run on an endpoint/extractor/checksum/extraction error |
+| `vision_run.py` | Vision, `sudo python3` | namespace TCP profile (checked), NIC flag, endpoints, direction-split captures with capture-ready confirmation, try/finally cleanup and tcpdump drop stats |
 | `switch_slot.py` | switch | clears and installs slot 0 (`vepa` tuple or the rig's `relay` slot) |
 | `switch_counters.py` | switch | outcome counter, slot-0 mapper registers, dev 9/64 port counters (read-only) |
-| `wire_check.py` | workstation, scapy | independent check of lengths, DNP3 CRCs, checksums, seq/ack translation |
+| `wire_check.py` | workstation, stdlib | independent pairing by tuple/incarnation/sequence; lengths, DNP3 CRCs, checksums, translation |
+| `clrt_check.py` | workstation, stdlib | per-exchange timing by tuple/incarnation/app-sequence association; integer-microsecond intervals |
+| `campaign.json` | — | the one config: endpoints, ports/map, build hashes, feature bits, timing/K, fixture, trials, schedule, loss, seeds |
+| `PINNING.md`, `requirements.txt` | — | the OpenDNP3 commit and Python/host-tool pins |
 
 ```bash
+# the whole campaign (reads campaign.json; see its _notes before running)
+python3 hw_vepa/campaign.py validate      # check the config
+python3 hw_vepa/campaign.py plan          # the full ordered runbook, no undocumented manual step
+DEFENSE4_HW_AUTHORIZED=1 python3 hw_vepa/campaign.py run --apply   # execute it (hardware; gated)
+
+# or a single standalone pure-E run
 python3 hw_vepa/run.py deploy
 python3 hw_vepa/run.py setup          # clean TCP profile in the namespaces, disable-source-pruning on
 python3 hw_vepa/run.py run NAME --master-port 54410 --reads 10 --out evidence/<dir>
 python3 hw_vepa/run.py restore        # sysctls and NIC flag back, relay slot reinstalled
 ```
+
+`wire_check.py` and `clrt_check.py` no longer need scapy (built-in pcap reader, checksum and DNP3 CRC), so
+`python3 -m pytest hw_vepa/tests` runs on a fresh clone with no install step.
 
 Facts the runner depends on:
 - **Source pruning.** Vision's i40e NIC drops reflected frames whose source MAC is its own unless
