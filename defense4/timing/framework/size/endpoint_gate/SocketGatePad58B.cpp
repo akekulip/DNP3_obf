@@ -121,14 +121,23 @@ static bool matchesSeed(const ScanResult& scan) {
 }
 
 int main(int argc, char** argv) {
-    // argv: role host port stop-file [read-count]
+    // argv: outstation host port stop-file [lifetime-seconds=15]
+    //      master     host port stop-file [read-count=3] [local-adapter=""]
+    // host is the outstation's bind address (0.0.0.0 = any) or the master's target.
+    // local-adapter is the master's own source address; empty lets the kernel pick
+    // by route, which is required to reach a non-loopback outstation.
+    // Start the outstation (wait for READY) before the master: the master makes
+    // one connect attempt within 5 s and its next retry is 60 s away.
     if (argc < 5 || !std::getenv("CASE4_PAD58B_SOCKET_GATE")) return 64;
     const std::string role = argv[1], host = argv[2];
     const uint16_t port = static_cast<uint16_t>(std::atoi(argv[3]));
     const std::string stop = argv[4];
     const int reads = argc > 5 ? std::atoi(argv[5]) : 3;
+    const int lifetime_s = argc > 5 ? std::atoi(argv[5]) : 15;
+    const std::string adapter = argc > 6 ? argv[6] : "";
     DNP3Manager manager(1); auto listener = std::make_shared<Listener>();
     if (role == "outstation") {
+        if (lifetime_s <= 0) return 64;
         auto handler = std::make_shared<Handler>();
         auto channel = manager.AddTCPServer("gate", levels::NOTHING, ServerAcceptMode::CloseExisting, IPEndpoint(host, port), listener);
         DatabaseConfig db;
@@ -142,7 +151,7 @@ int main(int argc, char** argv) {
         for (uint16_t i = 0; i < 23; ++i) builder.Update(BinaryOutputStatus((i % 2) == 0, Flags(0x01)), i);
         station->Apply(builder.Build());
         station->Enable(); std::cout<<"READY\n"<<std::flush;
-        const auto end = Clock::now() + std::chrono::seconds(15);
+        const auto end = Clock::now() + std::chrono::seconds(lifetime_s);
         while (Clock::now() < end && !std::ifstream(stop).good()) std::this_thread::sleep_for(std::chrono::milliseconds(5));
         manager.Shutdown();
         std::cout << "{\"select_real\":" << handler->gate.selects(1) << ",\"select_decoy\":" << handler->gate.selects(201)
@@ -153,7 +162,7 @@ int main(int argc, char** argv) {
     }
     if (role != "master") return 64;
     auto retry = ChannelRetry(TimeDuration::Seconds(60), TimeDuration::Seconds(60), TimeDuration::Seconds(60));
-    auto channel = manager.AddTCPClient("gate", levels::NOTHING, retry, {IPEndpoint(host, port)}, "127.0.0.1", listener);
+    auto channel = manager.AddTCPClient("gate", levels::NOTHING, retry, {IPEndpoint(host, port)}, adapter, listener);
     MasterStackConfig config;
     config.master.disableUnsolOnStartup = false; config.master.startupIntegrityClassMask = ClassField::None();
     config.master.unsolClassMask = ClassField::None(); config.master.ignoreRestartIIN = true;
