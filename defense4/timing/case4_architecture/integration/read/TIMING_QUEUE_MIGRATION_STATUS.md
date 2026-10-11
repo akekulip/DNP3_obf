@@ -528,6 +528,34 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**OPERATE generation safety across 0xFFFF -> 0x10000 (tests only; no P4 change was needed).**
+
+Every OPERATE generation comparison, traced:
+
+| comparison | width |
+|---|---|
+| ladder vs `op_gen` (`op_lgen_diff`) | 16 bits |
+| generator token batch vs `op_gen` (`op_tok_diff`) | 16 bits |
+| clone-tag low 16 → ladder generation (`admit_operate_held`) | 16 bits |
+| `op_done_reg` vs `op_gen` (`op_done_read`, `op_done_try`) | 32 bits |
+
+A 16-bit alias needs an item delayed by exactly 65,536 generations, while held items and tokens live for
+milliseconds. The only long-lived state, `op_done_reg`, compares 32 bits, and it must: with its load-time value
+0, a counter reaching 0x10000 after 65,535 RESET bumps would read as "already done" under a 16-bit compare.
+
+Tests (`O_OperateGenerationBoundary`), all at the boundary:
+- OPERATE at 0xFFFF then RESET: flushed once, not released, blockers stale.
+- OPERATE at 0xFFFF superseded by one at 0x10000: the first flushed once, the second released once.
+- A real delayed clone `e101ffff` replayed at 0x10000, and at 0x10001 after a RESET: flushed once, never
+  released.
+- A delayed app-1 token with batch 0xFFFF at 0x10000: stale, no blocker seeded.
+- `op_done` = 0 and = 1 at the 0x10000 alias: released once.
+
+Teeth, in memory:
+- no ladder generation check fails three tests;
+- no token generation check fails one;
+- `op_done` narrowed to 16 bits fails two.
+
 **OPERATE clone tag built by construction (`route_ab_01/op_tag_t_02`, `op_tag_composite_02`).**
 `md.clone_tag = 16w0xE101 ++ md.op_gen[15:0]` replaces `op_gen | 0xE1010000`. Bits 31:16 are now exactly
 0xE101 whatever op_gen is, which matters for two readers:

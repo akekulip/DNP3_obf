@@ -918,6 +918,97 @@ class N_CloneMarkerAcrossGenerationRollover(unittest.TestCase):
                 self.assertEqual({c[0] for c in clones}, {0xE1})
 
 
+class O_OperateGenerationBoundary(unittest.TestCase):
+    """The clone tag, the ladder and the generator token carry 16 generation bits; op_gen / op_done compare 32.
+    Across 0xFFFF -> 0x10000 (low 16 = 0) every superseded or delayed OPERATE item must be flushed or dropped
+    as stale: never released as current, never released twice. Comparisons: op_lgen_diff (ladder ^ op_gen, 16
+    bit), op_tok_diff (token batch ^ op_gen, 16 bit), clone-tag low 16 -> ladder, op_done ^ op_gen (32 bit).
+    A 16-bit alias needs an item delayed by exactly 65,536 generations; held items and tokens live for
+    milliseconds, and the only long-lived state, op_done_reg, compares 32 bits."""
+
+    OP_B = OP_FRAME[:-1] + b'\x77'
+
+    @staticmethod
+    def at_generation(alloc):
+        sim = QueueSim()
+        sim.src.cells[('', 'op_gen_alloc_reg')][0] = alloc
+        return sim
+
+    def assert_flushed_once(self, sim, frame=OP_FRAME):
+        self.assertEqual(len(sim.emissions(frame, RELAY)), 1, 'reaches the relay exactly once')
+        self.assertEqual(out(sim, 'OUT_HELD_STALE_FLUSH'), 1)
+
+    def clone_from_generation_ffff(self):
+        sim = self.at_generation(0xFFFE)
+        clones = []
+        at = sim.at
+        sim.at = lambda time, port, raw, kind='ingress': (clones.append(raw) if port == PORTS['PKTGEN_RETURN']
+                                                          else None, at(time, port, raw, kind))[1]
+        sim.operate(T0)
+        sim.run(T0 + OP_J + 4_000_000)
+        self.assertEqual(len(clones), 1)
+        self.assertEqual(clones[0][:4], b'\xe1\x01\xff\xff')
+        return clones[0]
+
+    def test_operate_at_ffff_superseded_by_reset_to_10000_is_flushed_not_released(self):
+        sim = self.at_generation(0xFFFE)
+        sim.operate(T0)
+        sim.reset(T0 + 20_000)
+        sim.run(T0 + 3_000_000)
+        finished(self, sim)
+        self.assertEqual(sim.cell('op_gen_alloc_reg'), 0x10000)
+        self.assert_flushed_once(sim)
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0)
+        self.assertGreater(out(sim, 'OUT_TOKEN_STALE'), 0, 'its 0xFFFF blockers die stale at 0x10000')
+
+    def test_operate_at_ffff_superseded_by_operate_at_10000(self):
+        sim = self.at_generation(0xFFFE)
+        sim.operate(T0)
+        sim.operate(T0 + 1_000, frame=self.OP_B)
+        sim.run(T0 + OP_J + 4_000_000)
+        finished(self, sim)
+        self.assert_flushed_once(sim)                                   # A (0xFFFF): stale flush
+        self.assertEqual(len(sim.emissions(self.OP_B, RELAY)), 1)        # B (0x10000): released once
+        self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
+
+    def test_delayed_clone_from_ffff_at_10000_and_after_a_reset_is_not_released(self):
+        clone = self.clone_from_generation_ffff()
+        for reset in (False, True):
+            with self.subTest(reset_bump_to_10001=reset):
+                sim = self.at_generation(0x10000)
+                if reset:
+                    sim.reset(T0 - 50_000)
+                sim.at(T0, PORTS['PKTGEN_RETURN'], clone)
+                sim.run(T0 + OP_J + 4_000_000)
+                finished(self, sim)
+                self.assertEqual(sim.cell('op_gen_alloc_reg'), 0x10001 if reset else 0x10000)
+                self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 0, 'never released as current')
+                self.assert_flushed_once(sim)
+
+    def test_delayed_operate_token_from_ffff_at_10000_dies_stale(self):
+        sim = self.at_generation(0x10000)
+        token = bytes([1 << 3 | 1, 1]) + struct.pack('!HH', 0xFFFF, 0) + bytes(10)    # app 1 = OPERATE domain
+        sim.at(T0, PORTS['PKTGEN_RETURN'], token)
+        sim.run(T0 + 1_000_000)
+        finished(self, sim)
+        self.assertEqual(out(sim, 'OUT_TOKEN_STALE'), 1)
+        self.assertEqual(sim.enqueued, [], 'no OPERATE blocker seeded')
+
+    def test_op_done_compares_32_bits_across_the_16_bit_alias(self):
+        """op_done_reg = 0 is its load-time value (no OPERATE ever committed); after 65,535 RESET bumps the next
+        OPERATE gets 0x10000, whose low 16 bits are 0. A 16-bit op_done comparison would read it as already
+        done and never release it; the 32-bit one releases it once. Also with op_done = 1 (a committed one)."""
+        for done in (0, 1):
+            with self.subTest(op_done=done):
+                sim = self.at_generation(0xFFFF)
+                sim.src.cells[('', 'op_done_reg')][0] = done
+                sim.operate(T0)
+                sim.run(T0 + OP_J + 4_000_000)
+                finished(self, sim)
+                self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
+                self.assertEqual(len(sim.emissions(OP_FRAME, RELAY)), 1)
+
+
 class K_ResetValues(unittest.TestCase):
     """Registers whose reset value must NOT be 0 (control-plane rule, TIMING_QUEUE_MIGRATION_STATUS.md).
     Each holds a generation or epoch that is compared for equality with a live one, and 0 is a live READ
