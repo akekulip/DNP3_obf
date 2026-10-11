@@ -869,6 +869,55 @@ class M_CloneOrTokenByContent(unittest.TestCase):
         self.assertEqual(sim.emissions(OP_FRAME), [])
 
 
+class N_CloneMarkerAcrossGenerationRollover(unittest.TestCase):
+    """The OPERATE clone tag's bits 31:16 must be exactly 0xE101 at every op_gen: the parser matches the 0xE1
+    marker byte exactly, and the packet generator's OPERATE trigger pattern is 0xE101xxxx / mask 0xFFFF0000.
+    `op_gen | 0xE1010000` corrupted bits 31:16 from op_gen = 0x20000 and the marker byte from 0x2000000."""
+
+    OP_GENS = (0xFFFF, 0x10000, 0x20000, 0xFFFFFF, 0x1000000, 0x2000000, 0xFFFFFFFF)
+
+    @staticmethod
+    def operate_at(op_gen, done=0):
+        """One OPERATE admitted with generation op_gen (the allocator is preloaded to op_gen - 1)."""
+        sim = QueueSim()
+        sim.src.cells[('', 'op_gen_alloc_reg')][0] = (op_gen - 1) & 0xFFFFFFFF
+        sim.src.cells[('', 'op_done_reg')][0] = done
+        clones = []
+        at = sim.at
+        sim.at = lambda time, port, raw, kind='ingress': (clones.append(raw) if port == PORTS['PKTGEN_RETURN']
+                                                          else None, at(time, port, raw, kind))[1]
+        sim.operate(T0)
+        sim.run(T0 + OP_J + 4_000_000)
+        return sim, clones
+
+    def test_operate_clone_tag_top_half_is_exactly_e101_and_released_once(self):
+        for op_gen in self.OP_GENS:
+            with self.subTest(op_gen=hex(op_gen)):
+                sim, clones = self.operate_at(op_gen)
+                finished(self, sim)
+                self.assertTrue(clones)
+                self.assertEqual({c[0] for c in clones}, {0xE1}, 'marker byte')
+                self.assertEqual({c[:2] for c in clones}, {b'\xe1\x01'}, 'pktgen trigger pattern 0xE101xxxx')
+                self.assertEqual({struct.unpack('!I', c[:4])[0] & 0xFFFF for c in clones}, {op_gen & 0xFFFF})
+                self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
+                self.assertEqual(len(sim.emissions(OP_FRAME)), 1)
+
+    def test_read_clone_keeps_its_marker_at_any_generation(self):
+        for alloc in (0x0000FFFF, 0x01FFFFFF, 0xFFFFFFF0):
+            with self.subTest(read_generation=hex(alloc)):
+                sim = QueueSim()
+                sim.src.cells[('', 'gen_alloc_reg')][0] = alloc
+                clones = []
+                at = sim.at
+                sim.at = lambda time, port, raw, kind='ingress': (clones.append(raw) if port == PORTS['PKTGEN_RETURN']
+                                                                  else None, at(time, port, raw, kind))[1]
+                sim.read(T0)
+                sim.run(T0 + CAP + 4_000_000)
+                finished(self, sim)
+                self.assertTrue(clones)
+                self.assertEqual({c[0] for c in clones}, {0xE1})
+
+
 class K_ResetValues(unittest.TestCase):
     """Registers whose reset value must NOT be 0 (control-plane rule, TIMING_QUEUE_MIGRATION_STATUS.md).
     Each holds a generation or epoch that is compared for equality with a live one, and 0 is a live READ

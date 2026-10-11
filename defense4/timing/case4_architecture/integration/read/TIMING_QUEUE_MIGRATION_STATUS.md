@@ -528,6 +528,23 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**OPERATE clone tag built by construction (`route_ab_01/op_tag_t_02`, `op_tag_composite_02`).**
+`md.clone_tag = 16w0xE101 ++ md.op_gen[15:0]` replaces `op_gen | 0xE1010000`. Bits 31:16 are now exactly
+0xE101 whatever op_gen is, which matters for two readers:
+- the parser's exact 0xE1 marker match;
+- the generator's OPERATE trigger pattern, 0xE101xxxx with mask 0xFFFF0000.
+
+The OR corrupted the pattern from op_gen = 0x20000 (bit 17; 0x10000 coincides with the 0x01 half) and the
+marker from 0x2000000. op_gen keeps its 32-bit lifetime; no allocator wrap, which the reviewer showed would
+reuse generations against op_done_reg.
+
+Evidence:
+- Tests at op_gen 0xFFFF, 0x10000, 0x20000, 0xFFFFFF, 0x1000000, 0x2000000 and 0xFFFFFFFF: top half 0xE101,
+  low half = op_gen[15:0], released exactly once.
+- Teeth: the OR form fails at 0x20000, 0xFFFFFF, 0x2000000 and 0xFFFFFFFF.
+- Builds exit 0 on both SDKs: T 11/0 (critical path 9); composite 12/11 + 11/0.
+- Model 70/70. Suites 206 / 85 / 27. Generation safety across 0xFFFF -> 0x10000 is the separate next step.
+
 **Clone vs generator token, now told apart by content (closes the blocker below; `route_ab_01/
 clone_marker_t_01`, `clone_marker_composite_01`).** Two things in T keyed on the port, and both are now content
 checks. Every clone tag starts with `CLONE_MARKER` 0xE1:

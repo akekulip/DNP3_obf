@@ -217,13 +217,13 @@ control Ingress(inout header_t hdr, inout metadata_t md,
         hdr.ladder.role = ROLE_OP_BLK; hdr.ladder.child = 0;
         hdr.ladder.generation = (bit<16>)md.op_gen; hdr.ladder.budget = md.budget_cap;
         ig_tm_md.ucast_egress_port = HB_RETURN; ig_tm_md.qid = 3;
-        // A single Tofino action stage supports one ALU op per field; a mask-then-OR is two, so
-        // this relies on one plain OR instead (op_gen is expected well under 0x10000 in any one
-        // generation-counter lifetime exercised here -- an actual wraparound-safe generation-tag
-        // encoding is a follow-up, not needed for this evidence). Not an add: once the Mirror emit
-        // made clone_tag live, bf-p4c split op_gen over two 16-bit containers and rejected the
-        // carrying add (2 PHV sources + a constant); a bitwise OR splits per container.
-        ig_dprsr_md.mirror_type = 1; md.clone_tag = md.op_gen | 32w0xE1010000;   // CLONE_MARKER in the top byte
+        // The tag is a constant top half 0xE101 (CLONE_MARKER 0xE1, then 0x01) and op_gen's low 16 bits; only
+        // the low 16 are read back (admit_operate_held's ladder generation). Bits 31:16 must be exactly 0xE101
+        // whatever op_gen is: the parser matches the marker byte exactly, and the packet generator's OPERATE
+        // trigger pattern is 0xE101xxxx with mask 0xFFFF0000 (unified12 / Defense 2 pktgen config). The old
+        // `op_gen | 0xE1010000` corrupted bits 31:16 from op_gen = 0x20000 (pattern) and the marker byte from
+        // 0x2000000. op_gen keeps its 32-bit lifetime. Same form as admit_request's read-clone tag.
+        ig_dprsr_md.mirror_type = 1; md.clone_tag = 16w0xE101 ++ md.op_gen[15:0];   // CLONE_MARKER in the top byte
         md.clone_ses = CLONE_SESSION_ID;
     }
     action admit_operate_held() {
