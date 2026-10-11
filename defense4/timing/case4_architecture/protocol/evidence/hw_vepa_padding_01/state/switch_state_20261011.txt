@@ -1,0 +1,22 @@
+conf: /home/decps/Philip_repo/logs/bringup_20261005/case4_response_path_conf.json
+e36ac1006ef2625abe4e082e55ca01ccdbfe8057c2260daf58e8d43dfa1cf5d8  /home/decps/Philip_repo/logs/bringup_20261005/case4_response_path_conf.json
+program case4_response_path
+pipeline pipe scope [0, 1, 2, 3]
+c7b61f6e0b2d35a5128085cfc7eb5c5bc6ec21e1107213f94f542c21ea6f15a1 /home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/bfrt.json
+cb8b5ff482ee377819abd5642fff48e25e7a39b0e16f50923e5ec7474c8b2f2d /home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/pipe/tofino.bin
+5f961d77ab7c55c587454b69cffdfb637dc29105a21e0431b95b9757be2deeac /home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/pipe/context.json
+Sun Oct 11 00:52:09 2026 /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/Philip_repo/logs/bringup_20261005/
+=== pipe.Egress.conn ===
+ key={'hdr.ip.dst': {'value': 3232238141}, 'hdr.ip.src': {'value': 3232238142}, 'hdr.tcp.dport': {'value': 54400}, 'hdr.tcp.sport': {'value': 20000}} data={'enable': 0, 'idx': 0, 'action_name': 'Egress.fwd_conn', 'is_default_entry': False}
+ key={'hdr.ip.dst': {'value': 3232238142}, 'hdr.ip.src': {'value': 3232238141}, 'hdr.tcp.dport': {'value': 20000}, 'hdr.tcp.sport': {'value': 54400}} data={'idx': 0, 'action_name': 'Egress.rev_conn', 'is_default_entry': False}
+=== pipe.Egress.odd_ip_t ===
+ key={'hdr.ip.dst': {'value': 3232238141}, 'hdr.ip.src': {'value': 3232238142}} data={'idx': 0, 'action_name': 'Egress.odd_conn', 'is_default_entry': False}
+ key={'hdr.ip.dst': {'value': 3232238142}, 'hdr.ip.src': {'value': 3232238141}} data={'idx': 0, 'action_name': 'Egress.odd_conn', 'is_default_entry': False}
+=== pipe.Ingress.forwarding ===
+ key={'ig.ingress_port': {'value': 9}} data={'port': 9, 'action_name': 'Ingress.route', 'is_default_entry': False}
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_response_path
+Binding with p4_name case4_response_path successful!!
+Received case4_response_path on GetForwarding on client 124, device 0
+{"outcome": {"0": 109, "1": 314, "2": 18, "9": 338, "12": 3, "13": 3}, "regs": {"mode": {"Egress.mode.f1": [1, 0]}, "front": {"Egress.front.f1": [1117665241, 0]}, "acct": {"Egress.acct.hi": [0, 0], "Egress.acct.lo": [1117665241, 0]}, "img_end": {"Egress.img_end.f1": [1117664676, 0]}, "img_start": {"Egress.img_start.f1": [1117664618, 0]}, "img_wend": {"Egress.img_wend.f1": [1117664676, 0]}}, "ports": {"9": {"rx": 763, "tx": 768}, "64": {"rx": 192, "tx": 17}}}

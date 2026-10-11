@@ -1,0 +1,38 @@
+Sun Oct 11 01:10:45 AM UTC 2026
+6.8.0-146-generic
+driver: i40e
+version: 6.8.0-146-generic
+firmware-version: 8.15 0x800096ca 20.0.17
+expansion-rom-version: 
+Private flags for enp59s0f0np0:
+MFP                    : off
+total-port-shutdown    : off
+LinkPolling            : off
+flow-director-atr      : on
+veb-stats              : off
+hw-atr-eviction        : off
+link-down-on-close     : off
+legacy-rx              : off
+disable-source-pruning : on
+disable-fw-lldp        : off
+rs-fec                 : on
+base-r-fec             : on
+vf-vlan-pruning        : off
+vf-true-promisc-support: off
+enp59s0f0np0     UP             10.0.1.1/24 192.168.10.1/24 fe80::3efd:feff:fecc:5dc0/64 
+ns_vepa_a net.ipv4.tcp_timestamps = 0 | net.ipv4.tcp_sack = 0 | net.ipv4.tcp_window_scaling = 0 | net.ipv4.ip_local_port_range = 54400	54400
+ns_vepa_b net.ipv4.tcp_timestamps = 0 | net.ipv4.tcp_sack = 0 | net.ipv4.tcp_window_scaling = 0 | net.ipv4.ip_local_port_range = 32768	60999
+ns_vepa_a mvA@if2          UP             d2:9d:1d:1c:f4:dd <BROADCAST,MULTICAST,UP,LOWER_UP>
+ns_vepa_a mvA@if2          UP             192.168.10.61/24 fe80::d09d:1dff:fe1c:f4dd/64
+ns_vepa_a 192.168.10.62 dev mvA lladdr ee:df:16:18:b0:a5 PERMANENT
+ns_vepa_b mvB@if2          UP             ee:df:16:18:b0:a5 <BROADCAST,MULTICAST,UP,LOWER_UP>
+ns_vepa_b mvB@if2          UP             192.168.10.62/24 fe80::ecdf:16ff:fe18:b0a5/64
+ns_vepa_b 192.168.10.61 dev mvB lladdr d2:9d:1d:1c:f4:dd PERMANENT
+12: mvA@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether d2:9d:1d:1c:f4:dd brd ff:ff:ff:ff:ff:ff link-netnsid 0 promiscuity 0  allmulti 0 minmtu 68 maxmtu 9702 
+    macvlan mode vepa bcqueuelen 1000 usedbcqueuelen 1000 addrgenmode eui64 numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 65536 tso_max_segs 65535 gro_max_size 65536 
+
+1a0af013944343232a68a8172aa4b1068bf39c42b70da8c9880ce1632812256e  /home/decps/pad58b_20261011/case4_socket_gate_pad58b
+79e1f6959c9e0091ba5c566c64077970897e63667fb0a5132dd7e051be9fe0e8  /home/decps/pad58b_20261011/lib/libopendnp3.so
+-rw-r--r-- 1 tcpdump tcpdump 24 Oct 11 01:00 /tmp/pad_policyoff10_in.pcap
+-rw-r--r-- 1 tcpdump tcpdump 24 Oct 11 01:00 /tmp/pad_policyoff10_out.pcap
