@@ -1,0 +1,319 @@
+{
+ "cases": [
+  {
+   "expected": "frame",
+   "name": "master_SYN_options_scrubbed_on_relay_port",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100068560000020405b401010101010101010101010101010101"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100068560000020405b401010101010101010101010101010101"
+  },
+  {
+   "expected": {
+    "12": 1
+   },
+   "name": "master_SYN_options_scrubbed_on_relay_port_outcomes",
+   "observed": {
+    "12": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_SYNACK_arms_mapper",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": {
+    "13": 1
+   },
+   "name": "outstation_SYNACK_arms_mapper_outcomes",
+   "observed": {
+    "13": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "master_handshake_ACK_reverse_mapped",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "master_handshake_ACK_reverse_mapped_outcomes",
+   "observed": {
+    "9": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "READ_request_reverse_mapped",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "READ_request_reverse_mapped_outcomes",
+   "observed": {
+    "9": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_ACK_forwarded",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000"
+  },
+  {
+   "expected": {
+    "2": 1
+   },
+   "name": "outstation_ACK_forwarded_outcomes",
+   "observed": {
+    "2": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": [
+    "commit",
+    9,
+    58
+   ],
+   "name": "oracle_READ_response_commits_and_pads",
+   "observed": [
+    "commit",
+    9,
+    58
+   ],
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "READ_response_padded_to_master",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003850000007950181000b288000005642f44010000001458c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003850000007950181000b288000005642f44010000001458c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef"
+  },
+  {
+   "expected": {
+    "1": 1
+   },
+   "name": "READ_response_padded_to_master_outcomes",
+   "observed": {
+    "1": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": [
+    "translate",
+    950
+   ],
+   "name": "oracle_master_ACK_maps_back",
+   "observed": [
+    "translate",
+    950
+   ],
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "master_ACK_of_image_mapped_back",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000079000003b650101000c4510000000000000000"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000079000003b650101000c4510000"
+  },
+  {
+   "expected": {
+    "9": 1
+   },
+   "name": "master_ACK_of_image_mapped_back_outcomes",
+   "observed": {
+    "9": 1
+   },
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "841b5f707764fe11f82f704e09375adb7bcbf58218a29c9ed735765ed0f0fa1e",
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "rows": [
+   [
+    "Egress.conn",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ],
+     [
+      "hdr.tcp.sport",
+      20000
+     ],
+     [
+      "hdr.tcp.dport",
+      30001
+     ],
+     [
+      "eg.egress_port",
+      9
+     ]
+    ],
+    "Egress.fwd_conn",
+    [
+     [
+      "enable",
+      1
+     ],
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.conn",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ],
+     [
+      "hdr.tcp.sport",
+      30001
+     ],
+     [
+      "hdr.tcp.dport",
+      20000
+     ],
+     [
+      "eg.egress_port",
+      64
+     ]
+    ],
+    "Egress.rev_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.odd_ip_t",
+    [
+     [
+      "hdr.ip.src",
+      167772162
+     ],
+     [
+      "hdr.ip.dst",
+      167772161
+     ]
+    ],
+    "Egress.odd_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ],
+   [
+    "Egress.odd_ip_t",
+    [
+     [
+      "hdr.ip.src",
+      167772161
+     ],
+     [
+      "hdr.ip.dst",
+      167772162
+     ]
+    ],
+    "Egress.odd_conn",
+    [
+     [
+      "idx",
+      0
+     ]
+    ],
+    null
+   ]
+  ],
+  "scope": "single-pipe candidate, phase P: SYN scrub, mapper arming, READ padded through the timing ingress"
+ },
+ "program": "single_pipe",
+ "summary": {
+  "failed": [],
+  "passed": 16,
+  "total": 16
+ }
+}

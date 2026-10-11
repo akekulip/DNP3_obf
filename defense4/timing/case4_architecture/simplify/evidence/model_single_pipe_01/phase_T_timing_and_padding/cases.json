@@ -1,0 +1,146 @@
+{
+ "cases": [
+  {
+   "expected": "pass or only the dead read_len readback",
+   "failures": [
+    "[FAIL] tbl_params read_len - got=0 want=18"
+   ],
+   "n_warn": 1,
+   "name": "timing_setup_configure_all",
+   "observed": "only dead read_len",
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "pktgen_enabled_after_setup",
+   "observed": 0,
+   "ok": true,
+   "readback": [
+    "  [ok] pktgen 3K_read_select pattern_value - got=3774939136 want=3774939136",
+    "  [ok] pktgen 3K_read_select pattern_mask - got=4294901760 want=4294901760",
+    "  [ok] pktgen 3K_read_select packets_per_batch_cfg - got=191 want=191",
+    "  [ok] pktgen 3K_read_select increment_source_port==False - got=False want=False",
+    "  [ok] pktgen 3K_read_select app_enable - got=True want=True",
+    "  [ok] value_set pgen_recirc programmed - byte=0x02 mask=0xFF"
+   ]
+  },
+  {
+   "expected": "frame",
+   "name": "master_SYN_scrubbed",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100068560000020405b401010101010101010101010101010101"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100068560000020405b401010101010101010101010101010101"
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_SYNACK_arms",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": "frame",
+   "name": "master_ACK",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": "frame",
+   "name": "READ_request_to_relay",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "64": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ],
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": 0,
+   "immediate": [],
+   "name": "ACK_not_forwarded_immediately",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "ACK_released_to_master",
+   "observed": true,
+   "ok": true,
+   "received": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000",
+    "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003850000007950181000b288000005642f44010000001458c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef"
+   ],
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000"
+  },
+  {
+   "expected": true,
+   "name": "response_released_padded_to_58",
+   "observed": true,
+   "ok": true,
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003850000007950181000b288000005642f44010000001458c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef"
+  },
+  {
+   "expected": [
+    "ack",
+    "resp"
+   ],
+   "name": "ACK_before_response",
+   "observed": [
+    "ack",
+    "resp"
+   ],
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "nothing_leaked_toward_relay",
+   "observed": 0,
+   "ok": true,
+   "received": []
+  }
+ ],
+ "meta": {
+  "driver_sha256": "cbca69a1e815998a81fe9b18178be944f20dad42d792f9648c8b12ebc1fccf66",
+  "loopback_frames_echoed": {
+   "8": 387,
+   "10": 0
+  },
+  "model_default_ports_removed": [
+   8,
+   9,
+   10,
+   64
+  ],
+  "physical": false,
+  "read_hold_wall_s": 5.374,
+  "scope": "single-pipe candidate, phase T: timing D4 configured, READ held and released, response padded"
+ },
+ "program": "single_pipe",
+ "summary": {
+  "failed": [],
+  "passed": 11,
+  "total": 11
+ }
+}

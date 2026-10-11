@@ -1,0 +1,62 @@
+{
+ "program": "single_pipe",
+ "source": "case4_architecture/simplify/single_pipe/single_pipe.p4",
+ "source_sha256": "15b6f1e7a68baae7cff10a9c8554b72ac6ac19b3218a24ec7f4df94e45eca8ba",
+ "edits": "S1 S2 S3 S4 S5",
+ "compiler": "open-source bf-p4c 9.13.4 (p4lang/p4c ff507048), see ../opensource_9134_01",
+ "stages": {
+  "ingress": 10,
+  "egress": 11
+ },
+ "tofino_bin_sha256": "ee8989670ed8659b2882bba1bc553898c9e695138268b15bafb37b619c5d2693",
+ "bfrt_json_sha256": "ea23befe89ee743a6a7d0996db1a92b46b11d56ddd9d60bc3cbb7f709dcbe494",
+ "model": {
+  "open_p4studio_commit": "36838d82a59b0334d9368d6401c4ed6bd5fee214",
+  "tofino_model": "prebuilt pkgsrc/tofino-model/bin/tofino-model.x86_64.bin",
+  "tofino_model_sha256": "3a02a1f07cffffdc9b3e88e2fb94257d0217e35836c881f8a1c95ad654c64d09",
+  "bf_switchd_sha256": "e2d07097db3520ee0dc41ef152e4d9dccbc88683d089faa29233085a277db0f6",
+  "sde_build": "cmake -G \"Unix Makefiles\" -DTOFINO=ON -DGRPC=ON -DBFRT=ON -DTHRIFT-*=OFF -DKERNEL-MODULES=OFF -DSWITCH=OFF -DBF-DIAGS=OFF -DBUILD_MODEL=OFF -DTCMALLOC=OFF -DBF-PYTHON=OFF; pkgsrc/p4-compilers/CMakeLists.txt replaced by a stub in the scratch clone (compiler built separately)",
+  "launcher": "integration/core/launch_model.sh (unshare -Urnp --fork --kill-child; pagemap shim), 256 hugepages reserved",
+  "ports": [
+   8,
+   9,
+   10,
+   64,
+   68
+  ]
+ },
+ "results": {
+  "phase_P": {
+   "failed": [],
+   "passed": 16,
+   "total": 16
+  },
+  "phase_T": {
+   "failed": [],
+   "passed": 11,
+   "total": 11
+  }
+ },
+ "phase_T_meta": {
+  "loopback_frames_echoed": {
+   "8": 387,
+   "10": 0
+  },
+  "model_default_ports_removed": [
+   8,
+   9,
+   10,
+   64
+  ],
+  "physical": false,
+  "read_hold_wall_s": 5.374,
+  "scope": "single-pipe candidate, phase T: timing D4 configured, READ held and released, response padded"
+ },
+ "limits": [
+  "tofino-model is functional only: its clock is not wall time; hold durations are not timing evidence",
+  "dp8/dp10 MAC-near loopback emulated by the driver (frames emitted on the port written back into it); hardware loops them in the MAC",
+  "tbl_params read_len reads back 0 under 9.13.4 (dead parameter); the driver enabled pktgen only because that was the sole failing setup check",
+  "model default $PORT entries removed before setup (the setup expects a cold switch)",
+  "bf-p4c 9.13.4 and this open-source SDE, not the switch SDE 9.13.2"
+ ]
+}
