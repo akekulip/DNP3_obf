@@ -52,6 +52,9 @@ header ethernet_t { bit<48> dst; bit<48> src; bit<16> type; }
 struct header_t { pktgen_timer_header_t timer; clone_hdr_t clone; tev_t tev; ladder_t ladder; ethernet_t eth; }
 
 struct metadata_t {
+    // 1 when the parser saw a generator token of the expected format (pipe PKTGEN_PIPE, app 0 or 1) on a
+    // generator port; the only way into the token branch.
+    bit<8> token_ok;
     // da/readiness/gap/op_j are config action-data (set_params); cap is accepted (the test always
     // passes it) but not stored -- nothing in this design uses it as a deadline.
     bit<32> da; bit<32> readiness; bit<32> gap; bit<32> op_j; bit<32> budget_cap; bit<32> enabled;
@@ -99,12 +102,16 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
                      out ingress_intrinsic_metadata_t ig_intr_md) {
     state start {
         pkt.extract(ig_intr_md); pkt.advance(PORT_METADATA_SIZE);
+        md.token_ok = 0;
         transition select(ig_intr_md.ingress_port) {
             T_IN : parse_tev;
             HELD_RETURN : parse_ladder;
             HB_RETURN : parse_ladder;
             PKTGEN_RETURN : clone_or_token;
-            default : parse_timer;
+            MODEL_PKTGEN_IN : parse_timer;   // the model's generator; on silicon tokens come in on PKTGEN_RETURN
+            // Any other pipe-1 ingress (front-panel 164-191 included) parses nothing and is dropped explicitly
+            // in the apply block: no frame from a front-panel port can enter the token or clone path.
+            default : accept;
         }
     }
     state parse_tev {
@@ -145,10 +152,19 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
         transition select(hdr.tev.kind, hdr.tev.reserved) {
             (9, 0) : opaque_ethernet;
             (12, 0) : opaque_ethernet;
-            default : reject;
+            default : accept;   // an unexpected kind is dropped by drop_clone in the apply block (no reliance on reject)
         }
     }
-    state parse_timer { pkt.extract(hdr.timer); transition accept; }
+    state parse_timer {
+        pkt.extract(hdr.timer);
+        // Only the expected generator format is a token: T's pipe and its two apps (0 READ, 1 OPERATE).
+        transition select(hdr.timer.pipe_id, hdr.timer.app_id) {
+            (PKTGEN_PIPE, 0) : token_format_ok;
+            (PKTGEN_PIPE, 1) : token_format_ok;
+            default : accept;
+        }
+    }
+    state token_format_ok { md.token_ok = 1; transition accept; }
     state opaque_ethernet { pkt.extract(hdr.eth); transition accept; }
 }
 

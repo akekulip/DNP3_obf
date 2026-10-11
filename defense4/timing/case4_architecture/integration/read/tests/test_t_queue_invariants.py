@@ -815,7 +815,7 @@ class L_QualifiedCloseForwarded(unittest.TestCase):
         self.assertEqual(default.emitted, [])
 
 
-from queue_sim import PORTS  # noqa: E402  (ports.p4, via whole_program)
+from queue_sim import PKTGEN_PIPE, PORTS  # noqa: E402  (ports.p4, via whole_program)
 
 
 class M_CloneOrTokenByContent(unittest.TestCase):
@@ -1007,6 +1007,64 @@ class O_OperateGenerationBoundary(unittest.TestCase):
                 finished(self, sim)
                 self.assertEqual(out(sim, 'OUT_OP_RELEASE'), 1)
                 self.assertEqual(len(sim.emissions(OP_FRAME, RELAY)), 1)
+
+
+class P_ForeignIngressIsInert(unittest.TestCase):
+    """Only PKTGEN_RETURN (and the model's generator port 0) may carry tokens, only in the expected format
+    (pipe PKTGEN_PIPE, app 0/1), and only PKTGEN_RETURN may carry clones (exact 0xE1 marker). Any other pipe-1
+    ingress -- front-panel 164-191 are enabled on the switch -- is dropped explicitly and must change nothing:
+    no blocker seeded, no register, no counter, no emission. Each case is compared with the same run without
+    the foreign frame, with live READ and OPERATE state at the time it arrives."""
+
+    FRONT = (164, 177, 191)
+
+    def scenario(self, injections):
+        sim = QueueSim()
+        sim.read(T0)
+        sim.operate(T0 + 10_000)
+        for port, raw in injections:
+            sim.at(T0 + 40_000, port, raw)
+        sim.run(T0 + CAP + OP_J + 4_000_000)
+        return sim
+
+    @staticmethod
+    def snapshot(sim):
+        cells = {k: list(v) for k, v in sim.src.cells.items()}
+        return cells, list(sim.enqueued), [(p, raw) for _, p, raw in sim.emitted]
+
+    def assert_inert(self, injections):
+        clean, dirty = self.scenario([]), self.scenario(injections)
+        finished(self, dirty)
+        c_cells, c_enq, c_out = self.snapshot(clean)
+        d_cells, d_enq, d_out = self.snapshot(dirty)
+        for key in c_cells:
+            self.assertEqual(d_cells[key], c_cells[key], 'register/counter %s changed' % (key,))
+        self.assertEqual(len(d_enq), len(c_enq), 'a foreign frame seeded a blocker')
+        self.assertEqual(d_out, c_out, 'emissions differ')
+        for _, raw in injections:
+            self.assertNotIn(raw, [r for _, r in d_out], 'a foreign frame was forwarded')
+
+    @staticmethod
+    def frames():
+        timer_like = bytes([PKTGEN_PIPE << 3 | 1, 1]) + struct.pack('!HH', 1, 0) + bytes(54)   # current op gen 1
+        read_timer_like = bytes([PKTGEN_PIPE << 3 | 0, 0]) + struct.pack('!HH', 1, 0) + bytes(54)
+        marked = struct.pack('!I', 0xE1010001) + struct.pack('!IIIBBH', 1, 0, 0, 12, 0, 0) + OP_FRAME
+        return {'ordinary': REQ_FRAME[:-1] + bytes([REQ_FRAME[-1] ^ 0xFF]), 'timer_like': timer_like, 'read_timer_like': read_timer_like,
+                'starts_0xE1': marked}
+
+    def test_front_panel_traffic_changes_nothing(self):
+        for port in self.FRONT:
+            for name, raw in self.frames().items():
+                with self.subTest(port=port, frame=name):
+                    self.assert_inert([(port, raw)])
+
+    def test_wrong_format_token_on_the_generator_port_changes_nothing(self):
+        wrong_pipe = bytes([2 << 3 | 1, 1]) + struct.pack('!HH', 1, 0) + bytes(10)
+        wrong_app = bytes([PKTGEN_PIPE << 3 | 3, 3]) + struct.pack('!HH', 1, 0) + bytes(10)
+        for name, raw in (('wrong_pipe', wrong_pipe), ('wrong_app', wrong_app)):
+            for port in (PORTS['PKTGEN_RETURN'], PORTS['MODEL_PKTGEN_IN']):
+                with self.subTest(frame=name, port=port):
+                    self.assert_inert([(port, raw)])
 
 
 class K_ResetValues(unittest.TestCase):

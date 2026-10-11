@@ -33,6 +33,7 @@ SOURCE = Path(os.environ.get('T_QUEUE_SOURCE', READ / 'read_queue_timing.p4'))
 PORTS = w.PORTS
 LADDER, OP_LADDER = PORTS['HELD_RETURN'], PORTS['HB_RETURN']
 FORWARD, RELAY = PORTS['FORWARD_PORT'], PORTS['RELAY_PORT']
+PKTGEN_PIPE = int(__import__('re').search(r'const\s+bit<2>\s+PKTGEN_PIPE\s*=\s*(\d+)', (w.READ / 'ports.p4').read_text())[1])
 PKTGEN_PORT = PORTS['PKTGEN_RETURN']  # where the mirror clone recirculates (ports.p4; two-pipe layout: 196)
 
 
@@ -122,7 +123,7 @@ class QueueSim:
 
     def token(self, time, gen, packet_id, profile=1):
         """A generator token exactly as the generator would deliver it (stale-token injection)."""
-        self.at(time, 0, bytes([2 << 3 | profile]) + bytes([profile]) + struct.pack('!HH', gen, packet_id) + bytes(10))
+        self.at(time, 0, bytes([PKTGEN_PIPE << 3 | profile]) + bytes([profile]) + struct.pack('!HH', gen, packet_id) + bytes(10))
 
     def read(self, base, ack_off=50_000, rsp_off=100_000, epoch=1):
         self.request(base, epoch)
@@ -167,7 +168,7 @@ class QueueSim:
         if src.env.get('md.mirror_type', 0) == 1:
             tag = src.env.get('m.clone_tag', 0)
             self.at(time + self.pktgen_ns // 2, PKTGEN_PORT, struct.pack('!I', tag) + raw)
-            pipe_app = 2 << 3 | ((tag >> 16) & 0x7)
+            pipe_app = PKTGEN_PIPE << 3 | ((tag >> 16) & 0x7)
             for packet_id in range(2 * self.k):
                 generated = bytes([pipe_app]) + struct.pack('!I', tag & 0xffffff)[1:] + struct.pack('!H', packet_id)
                 self.at(time + self.pktgen_ns + 100 * packet_id, 0, generated + bytes(10))

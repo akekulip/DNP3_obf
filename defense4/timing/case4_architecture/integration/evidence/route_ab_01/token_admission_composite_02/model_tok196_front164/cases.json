@@ -1,0 +1,93 @@
+{
+ "cases": [
+  {
+   "expected": {
+    "OUT_TOKEN_STALE": 2,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "two_tokens_on_196_reach_the_token_verdict",
+   "observed": {
+    "OUT_TOKEN_STALE": 2,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "name": "nothing_emitted",
+   "observed": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "OUT_TOKEN_STALE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "name": "wrong_format_token_counts_nothing",
+   "observed": {
+    "OUT_TOKEN_STALE": 0,
+    "OUT_UNMATCHED": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "name": "wrong_format_token_not_emitted",
+   "observed": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": {},
+   "name": "front_panel_frames_change_no_T_outcome_counter",
+   "observed": {},
+   "ok": true
+  },
+  {
+   "expected": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "name": "front_panel_frames_not_emitted",
+   "observed": {
+    "9": 0,
+    "64": 0,
+    "164": 0,
+    "196": 0
+   },
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "7d6464d0d8f912df517c3844d8310b0b62e3bdebb64f97b70746f192bae1b5a3",
+  "physical": false,
+  "scope": "generator tokens injected on PKTGEN_RETURN (196): handled as tokens, not clones"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 6,
+  "total": 6
+ }
+}

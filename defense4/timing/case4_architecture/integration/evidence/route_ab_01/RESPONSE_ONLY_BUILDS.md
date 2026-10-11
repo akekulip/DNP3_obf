@@ -40,6 +40,9 @@ not timing.
 | two_pipe_01 | 0 / 0 | 12/11 (T: p1 11/0) | `Switch(p0, p1)`: T moved to pipe 1 (the switch has 2 pipes; `_18` placed T in pipe 2 and cannot load). conf pipe_scope p0 [0,2], p1 [1,3] (bf-p4c/SDE 2-pipe form; acceptance on the chip unverified). Model `model_01`: 70/70. |
 | clone_marker_composite_01 | 0 / 0 | 12/11 (T: p1 11/0) | T tells clone from generator token by content (CLONE_MARKER 0xE1, exact lookahead; branches on `hdr.clone/timer.isValid()`). Model `model_01` 70/70; `model_tok196` 2/2 (tokens injected on 196 reach the token verdict). Teeth: same driver on two_pipe_01 fails (`two_pipe_01/model_tok196_teeth`). |
 | clone_marker_t_01 | 0 / 0 | T 11/0 | T standalone after the clone marker; critical path 9. |
+| op_tag_composite_02 / op_tag_t_02 | 0 / 0 | 12/11 (T 11/0) | OPERATE clone tag `0xE101 ++ op_gen[15:0]`. Model 70/70. |
+| token_admission_composite_01 / _t_01 | 3 / 3 (T: 0 / 0) | - | Composite: `t_reject: declaration not found`; compose's role prefixer read the comment "parser reject" as a declaration. |
+| token_admission_composite_02 / _t_02 | 0 / 0 | 12/11 (T 11/0) | Tokens only from 196 (or model port 0) in generator format; clones only by 0xE1; other pipe-1 ingress dropped uncounted. Model `model_01` 70/70; `model_tok196_front164` 6/6. |
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
 

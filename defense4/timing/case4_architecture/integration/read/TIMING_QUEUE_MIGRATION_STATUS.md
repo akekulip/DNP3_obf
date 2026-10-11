@@ -528,6 +528,33 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**Token and clone admission qualified by port AND format (`route_ab_01/token_admission_t_02`,
+`token_admission_composite_02`).** The independent review found that the parser default was `parse_timer`
+and the token branch keyed on `hdr.timer.isValid()`. Every frame on any pipe-1 front-panel port (164-191 are
+enabled on the switch) therefore entered `token_verdict`. Now:
+- **Parser:** `parse_timer` is reached only from `PKTGEN_RETURN` (196, after the marker check) and from
+  `MODEL_PKTGEN_IN` (port 0, the ingress_port the model gives generator packets; a pipe-0 port, so it never
+  reaches pipe 1 on silicon). `md.token_ok` is set only for the expected format: pipe `PKTGEN_PIPE`, app 0
+  (READ) or 1 (OPERATE). Every other port parses nothing.
+- **Apply:** the token branch requires `md.token_ok == 1`. Clones are admitted only by the exact 0xE1 marker
+  on 196; an unexpected clone kind reaches `drop_clone`, not a parser `reject`. The final `else` is
+  `drop_foreign()`: an explicit drop with nothing counted. The prologue's defaults only read.
+- **Tests** (`P_ForeignIngressIsInert`): each case is compared with the same run without the foreign frame,
+  with live READ and OPERATE state. On ports 164, 177 and 191: an ordinary frame, frames shaped as current
+  READ and OPERATE timer headers, and a frame starting with 0xE1. On the generator ports: a wrong-pipe and a
+  wrong-app token. Every register cell, counter, enqueue and emission is identical.
+- **Teeth:** parser default back to `parse_timer`; no format check; the old `isValid` branch; a counting
+  final else. Each fails.
+- **Model** (`model_tok196_front164`): tokens with apps 0 and 1 on 196 are counted stale (+2); an app-3
+  token counts nothing; three foreign frames on 164 change no T outcome counter; nothing is emitted. 6/6.
+  Composite `model_01`: 70/70.
+- **Builds**, exit 0 on both SDKs: T 11/0 (critical path 9); composite 12/11 + 11/0.
+- `token_admission_*_01` are the first attempt: T compiled, but the composite failed with `t_reject:
+  declaration not found`, because compose's role prefixer read the comment words "parser reject" as a
+  declaration. The comment was reworded.
+- **Still on parser `reject`, out of this change's scope:** `parse_tev` (T_IN) and `parse_ladder`
+  (HELD/HB_RETURN) default to `reject` for unexpected kinds or roles on T's own internal ports.
+
 **OPERATE generation safety across 0xFFFF -> 0x10000 (tests only; no P4 change was needed).**
 
 Every OPERATE generation comparison, traced:

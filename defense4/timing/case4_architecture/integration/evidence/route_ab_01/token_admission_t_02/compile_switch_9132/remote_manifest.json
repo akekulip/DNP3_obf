@@ -1,0 +1,137 @@
+{
+  "artifact_sha256": {
+    "bfrt.json": "63707b400c8926f73ed4decfbae10f02abb20998557bce7e0c8bac69819aebd9",
+    "manifest.json": "4c5370587c8c4299972deba7f72c1d8b1b080d5d513ac3f930da295c2bf067e6",
+    "pipe/context.json": "8397a7102f553cc89c89e0933be5f55c9a19595d3ff8c355244fa836168aa902",
+    "pipe/read_queue_timing.bfa": "194c9f71108edb0f70eb8ebd6b177b5d7d305589ab78a5cb4f36416f0515dbcb",
+    "pipe/tofino.bin": "8722e2e2aab8ba5013878333adbd446bf600b53c8ab13b7ccac7db5f327dcb77",
+    "read_queue_timing.conf": "bb37863766a58a281344280ce2b33e5d83e0450f147ad524920309a19eae6b3a"
+  },
+  "command": [
+    "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/tmp/case4_compile_QWYZyc9B/evidence/out",
+    "/tmp/case4_compile_QWYZyc9B/evidence/source/read_queue_timing.p4"
+  ],
+  "compile_log_sha256": "309a953caeb439db157509332a21648170382e4ac9e0b796a413073bbc7b7b89",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "compiler_path": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+  "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14",
+  "elapsed_seconds": 24.91,
+  "exit_code": 0,
+  "full_target": false,
+  "milestone": "primitive_compiled",
+  "resources": {
+    "critical_path": 9,
+    "report_sha256": {
+      "pipe/logs/mau.resources.log": "5c44de0cb583f85c70998e1bd295cce1df1dadda6609c2d7613cc06bc63a123d",
+      "pipe/logs/phv.json": "b441bcd735a4b24e76b387021beceafcd9b3caa6706e7667715b87e3c8cd0f54",
+      "pipe/logs/phv_allocation_0.log": "fb320e9c4f97fcaeacad2678e833340f572d38a8f6bd5b654e4d5a60e53e9d54",
+      "pipe/logs/phv_allocation_history_0.log": "2932ea9a890b8269a2e7b463aa2dc50569071ac2d8c88a85353b1df79bb3424a",
+      "pipe/logs/phv_allocation_summary_0.log": "fd5cc303c644f309ec495bc8b36aba9d97f3d0d0b7d3b4d052b8d1f455dbd1d1",
+      "pipe/logs/table_dependency_graph.log": "a72a22eb6bcd834cf24a3e25fd6ee58118044bbdc7e13711f42bdb747433ddc2",
+      "pipe/logs/table_dependency_summary.log": "71b98adadc7baa9a47f71b785a6241c712b5881ab1d7cc7f7231871febe60151",
+      "pipe/logs/table_summary.log": "519890bfc64bbc5ccb1c43d9690bb8d7b6980930c03e136032ad46d4b49d6570"
+    },
+    "stages": {
+      "egress": 0,
+      "ingress": 11
+    },
+    "stateful_tables": [
+      {
+        "direction": "ingress",
+        "name": "Ingress.quarantine_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.gen_alloc_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.t0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.cur_epoch_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_gen_alloc_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_t0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen2_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen1_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.child_seen0_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_commit_gen_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.ack_commit_at_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.op_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.resp_done_reg",
+        "size": 1
+      },
+      {
+        "direction": "ingress",
+        "name": "Ingress.outcomes",
+        "size": 16
+      }
+    ],
+    "tables_by_type": {
+      "action": 5,
+      "condition": 21,
+      "match": 54,
+      "stateful": 15
+    }
+  },
+  "source": "/tmp/case4_compile_QWYZyc9B/inputs/read_queue_timing.p4",
+  "source_files": {
+    "ports.p4": "adc0125f1db406bbde0629797e397a7fcb6b569ccc0e77b90b097e521283e33a",
+    "probe_shell.p4": "e76fb20bc38f6222e11ac8f9b7a76c1ce02587181773223f8a6f2fbb712f910e",
+    "read_queue_timing.p4": "705f4bb015af41f24d48f913f381b17697a712a1c6aa402e34e730da592a4490"
+  },
+  "source_sha256": "705f4bb015af41f24d48f913f381b17697a712a1c6aa402e34e730da592a4490",
+  "timeout_seconds": 300
+}
