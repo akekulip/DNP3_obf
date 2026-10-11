@@ -111,7 +111,10 @@ class Table:
                 if fixed is None:
                     raise error('NOT_FOUND', 'Object not found')
                 self.e[k] = fixed
-            yield Data(self.e[k]), k
+            got = self.e[k]
+            if self.name.endswith('n_Ingress.data_connection'):   # measured on the switch: these read 0
+                got = dict(got, index=0, code=0, repeat=0, on=0, off=0)
+            yield Data(got), k
 
     def entry_add(self, tgt, keys, datas):
         self.adds += 1

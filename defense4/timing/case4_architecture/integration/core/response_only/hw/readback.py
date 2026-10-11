@@ -27,7 +27,9 @@ def _norm(name, value):
 # Action parameters the P4 accepts but never assigns, so the compiler stores nothing and hardware reads 0.
 # Measured on the switch 2026-10-11: T's set_params(cap) read 0 before and after writing 16000000
 # (read_queue_timing.p4: "cap is accepted ... but not stored -- nothing in this design uses it as a deadline").
-NOT_STORED = {('p1.t_Ingress.params', 'cap')}
+# Same on N's data_connection: configure() only sets m.enabled; the five decoy fields it also assigns are never
+# read in the response-only N, so they are not stored either (second stop of the same kind, same day).
+NOT_STORED = {('p1.t_Ingress.params', 'cap')} | {('p0.n_Ingress.data_connection', f) for f in ('index', 'code', 'repeat', 'on', 'off')}
 
 
 def verify(sw, op):
