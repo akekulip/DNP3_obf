@@ -83,11 +83,13 @@ TUPLE_B = (MASTER_B.ip_int, vectors.SERVER, vectors.CLIENT_PORT, vectors.SERVER_
 MSS = 1460
 
 
-def native_response37(app, fc, status=0):
+def native_response37(app, fc, status=0, iin1=0):
+    """The 37-byte native SELECT/OPERATE response. iin1 is the IIN1 indication byte (0x90 = NEED_TIME +
+    DEVICE_RESTART is what the real outstation sends; the default 0x00 keeps the earlier callers unchanged)."""
     _head, user = codec.decode_frame(vectors.native_select(app, fc))
     objects = bytearray(user[3:])
     objects[17] = status
-    return codec.build_frame(bytes.fromhex('05641c4401000a00'), user[:2] + bytes((0x81, 0, 0)) + bytes(objects))
+    return codec.build_frame(bytes.fromhex('05641c4401000a00'), user[:2] + bytes((0x81, iin1, 0)) + bytes(objects))
 
 
 class Reflector(threading.Thread):

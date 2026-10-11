@@ -134,6 +134,29 @@ EDITS = [
     #    port from action data AFTER the head guard ran (close_forward copies the same m.output_port back on
     #    the final pass). Those are the only runtime-valued writers besides ports.route, which the head guard
     #    covers. Implemented as a guard-table entry (guard_refuses_n_ack_return below), not a gateway.
+    # 9. Defect E: a native command (SELECT/OPERATE, IP length 75) reaches native_tcp. The clean request has
+    #    TCP flags 0x10 (ACK) or 0x18 (PSH+ACK); any other flag combination on a command-sized frame -- a late
+    #    OPERATE retransmission with FIN+PSH+ACK (0x19) was the case on silicon -- fell to `default:accept`,
+    #    was parsed no further, and was forwarded natively around the mechanism (no T handoff, no SBO advance),
+    #    so a protected command bypassed and produced a failed OPERATE response (combined_silicon_02). This is
+    #    the response-only build's deliberate, simplest handling: EXPLICITLY REJECT a command-bearing FIN/RST
+    #    (any non-{0x10,0x18}) form -- drop it before the lap, so no rejected command reaches the outstation, a
+    #    callback, or T. native_tcp only sees IP-length-75 (command) frames, so unrelated non-command traffic
+    #    (different IP length) never reaches here and its native passthrough is unaffected. FIN's extra
+    #    sequence-space byte and the closing state do not matter because the form is dropped, not reparsed.
+    ("(4w5,4w0,16w0,8w24):native_dl;default:accept;",
+     "(4w5,4w0,16w0,8w24):native_dl;"
+     "(4w5,4w0,16w0,8w0x01&&&8w0x01):native_command_reject;"   # any FIN-bearing command form
+     "(4w5,4w0,16w0,8w0x04&&&8w0x04):native_command_reject;"   # any RST-bearing command form
+     "default:accept;"),
+    (" state native_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition native_block;}",
+     " state native_command_reject{m.packet_kind=8w13;transition finish;}\n"
+     " state native_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition native_block;}"),
+    # the drop runs right after ports/network (before the lap and before any admission), on edit 7's output
+    ("  ports.apply();network.apply();\n  if((ig.ingress_port==RETURN_PORT&&m.stage==8w0)||",
+     "  ports.apply();network.apply();\n"
+     "  if(m.packet_kind==8w13){deny();}   /* command-bearing FIN/RST: rejected, never bypasses the mechanism */\n"
+     "  else if((ig.ingress_port==RETURN_PORT&&m.stage==8w0)||"),
 ]
 
 
