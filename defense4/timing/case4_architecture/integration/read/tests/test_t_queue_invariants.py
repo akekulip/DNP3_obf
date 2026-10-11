@@ -156,6 +156,21 @@ class D_SeparateGates(unittest.TestCase):
         self.assertGreaterEqual(relay[0], q(T0 + 20_000) + OP_J)
         self.assertEqual(out(mixed, 'OUT_OP_RELEASE'), 1)
 
+    def test_operate_blocker_keeps_the_ethernet_header_so_offset_12_13_is_the_ethertype(self):
+        """The fix for combined_silicon_01: hold_operate no longer strips the Ethernet header, so the direct
+        OPERATE blocker that laps on HB_RETURN (a front-panel MAC-loopback port on the switch) has the
+        original's ethertype at wire offset 12-13 (ladder 8 bytes + eth dst 6 + ...), not the IP id. The held
+        OPERATE always kept the header; the blocker now matches it."""
+        sim = QueueSim()
+        sim.operate(T0)
+        sim.run(T0 + OP_J + 1_000_000)
+        blockers = [raw for _t, p, qid, raw in sim.enqueued if raw[0] == 13 and raw[8:8 + len(OP_FRAME)] == OP_FRAME]
+        self.assertTrue(blockers, 'the direct OPERATE blocker now carries the whole original after its ladder')
+        for raw in blockers:
+            wire = raw[8:]                       # what leaves on HB_RETURN after the ladder header
+            self.assertEqual(wire[12:14], OP_FRAME[12:14], 'offset 12-13 is the ethertype octets')
+            self.assertGreaterEqual(int.from_bytes(wire[12:14], "big"), 0x0600, 'a value the MAC reads as an ethertype')
+
     @staticmethod
     def _release_then_inject_same_generation_copy():
         """One OPERATE released normally, then a second held-OPERATE ladder record carrying the SAME

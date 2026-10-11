@@ -528,6 +528,18 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**OPERATE blocker keeps the Ethernet header; MAC-loopback offset-12-13 audit (2026-10-11, `route_ab_01/operate_header_01`).**
+The first combined silicon run (`combined_silicon_01`) released every READ by fallback and lost the OPERATE:
+with the hardware port map the blockers and held frames cross front-panel MAC loopback, and the MAC drops a
+frame whose bytes 12-13 are not an ethertype (>= 0x0600). `hold_operate` stripped the Ethernet header, so the
+direct OPERATE blocker put the IP identification field there. Fix: remove the `hdr.eth.setInvalid()` so the
+blocker keeps the header (offset 12-13 = the original's ethertype octets, as on every held frame). Stages and
+PHV unchanged. Model: default 70/70, shared 57/57, hw-map OPERATE 60/60 (the direct blocker on 181 is now
+`0d...001122334455`, offset 12-13 = 0x4455; was `0d...4500...0001`, the IP id), real profile 36/36. The audit
+of every MAC-loopback frame (`operate_header_01/RESULT.md`) leaves two risks open, to be decided by the
+coordinator: the generator-seeded blockers carry 0x0000 at offset 12-13 (control-plane buffer fix, the cause
+of the fallback-only releases) and the RESET event on 180 carries 0x04xx (coordinated N/T kind change).
+
 **N admits the real timestamped TCP profile (2026-10-11, `route_ab_01/ts_profile_01`).** make_n edit 9,
 parser only. It admits the exact lengths and offsets Vision's kernel uses against the SEL-751: SYN 60/10,
 SYN-ACK 64/11, offset-8 ACK/FIN 52, READ 72 and 101, with an exact NOP NOP Timestamp prefix. The parse then

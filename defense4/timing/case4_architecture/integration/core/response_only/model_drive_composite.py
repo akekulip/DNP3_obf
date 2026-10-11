@@ -424,6 +424,20 @@ def main():
             rep.record['meta']['loopback_frames'] = seen
             rep.add('every_front_panel_loop_port_carried_frames', sorted(seen),
                     sorted(p for p, v in seen.items() if v['frames'] > 0), **seen)
+            # The OPERATE-header fix (combined_silicon_01): on HB_RETURN (181) the direct OPERATE blocker and the
+            # held OPERATE are role 13 / 16. With the fix they keep the Ethernet header, so after the 8-byte
+            # ladder the frame continues with eth (byte 8 is the first dst-MAC octet) and wire offset 12-13 is the
+            # original's ethertype octets, >= 0x0600. Before the fix the direct blocker had the IP header there
+            # (byte 8 == 0x45), putting the IP id at 12-13, which the switch MAC dropped. Checked from the
+            # reflected frame samples (one per length), which the real MAC-loopback would have filtered.
+            hb = seen.get(str(PM.hb_return), {}).get('first_16_bytes_by_length', {})
+            op_samples = [bytes.fromhex(h) for h in hb.values() if bytes.fromhex(h)[0] in (13, 16)]
+            ip_after_ladder = [s.hex() for s in op_samples if len(s) > 8 and s[8] == 0x45]
+            ok_ethertype = [s for s in op_samples if len(s) >= 14 and s[8] != 0x45 and int.from_bytes(s[12:14], 'big') >= 0x0600]
+            rep.add('operate_blocker_on_181_keeps_eth_no_ip_after_ladder', [], ip_after_ladder)
+            rep.add('operate_blocker_on_181_has_ethertype_at_offset_12_13',
+                    True, bool(op_samples) and not ip_after_ladder and bool(ok_ethertype),
+                    op_frames=[s[:14].hex() for s in op_samples])
         ok = True
     except BaseException as error:
         rep.record['error'] = type(error).__name__ + ': ' + str(error)

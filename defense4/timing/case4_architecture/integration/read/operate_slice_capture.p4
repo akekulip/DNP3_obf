@@ -228,7 +228,14 @@ control Ingress(inout header_t hdr, inout metadata_t md,
     }
     action passthrough_tev_relay() { hdr.tev.setInvalid(); ig_tm_md.ucast_egress_port = RELAY_PORT; }
     action hold_operate() {
-        hdr.tev.setInvalid(); hdr.eth.setInvalid();
+        // Keep the Ethernet header. This direct blocker laps on HB_RETURN, a front-panel port in MAC
+        // loopback on the switch (hardware port map). With eth stripped, offset 12-13 fell on the IP
+        // identification field, an arbitrary value the MAC read as an 802.3 length (or 0x8808 control) and
+        // dropped, so the OPERATE ladder never established and the OPERATE was lost (combined_silicon_01).
+        // With eth kept, offset 12-13 is the original's ethertype octets, as on every held frame, which lap.
+        // The blocker only holds qid3; parse_ladder accepts role 13 and ignores what follows, and the real
+        // OPERATE is released from the mirror clone (admit_operate_held), not from this frame.
+        hdr.tev.setInvalid();
         hdr.ladder.setValid();
         hdr.ladder.role = ROLE_OP_BLK; hdr.ladder.child = 0;
         hdr.ladder.generation = (bit<16>)md.op_gen; hdr.ladder.budget = md.budget_cap;
