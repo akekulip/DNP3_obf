@@ -35,7 +35,8 @@ PORT_VISION = 9       # dp9 master side
 BRINGUP_PORTS = [PORT_L, PORT_BOR_L, PORT_VISION, PORT_RELAY, PORT_PGEN]
 CLONE_SESSION_ID = 7  # $mirror.cfg -> dp68 (arm_clone / cmt_op_hold / cmt_fwd_clone)
 RELAY_DST_PORT = 20000
-K = 64                # reservoir depth per queue (packet_id sub-range width)
+K = 64                # reservoir depth per queue (packet_id sub-range width); see reservoir_sizing.py
+BOR_LOOPBACK_SPEEDS = {"25G": "BF_SPEED_25G", "10G": "BF_SPEED_10G"}   # --bor-loopback-speed (dp10)
 TICK = 256            # ns per tick; A/R/D low byte must be 0 (multiple of 256)
 
 # ►► BOR SCHEDULING FIX: TWO independent strict-priority ladders on TWO loopback ports (qid ==
@@ -638,7 +639,7 @@ def hw_config_bor_loopback(bi, tdev, a, out, chk):
         pass
     try:
         port_tbl.entry_add(tdev, lk, [port_tbl.make_data([
-            gc.DataTuple("$SPEED", str_val="BF_SPEED_25G"),
+            gc.DataTuple("$SPEED", str_val=BOR_LOOPBACK_SPEEDS[a.bor_loopback_speed]),
             gc.DataTuple("$FEC", str_val="BF_FEC_TYP_NONE"),
             gc.DataTuple("$AUTO_NEGOTIATION", str_val="PM_AN_FORCE_DISABLE"),
             gc.DataTuple("$LOOPBACK_MODE", str_val="BF_LPBK_MAC_NEAR"),
@@ -650,7 +651,8 @@ def hw_config_bor_loopback(bi, tdev, a, out, chk):
         chk.fail("dp%d BOR loopback readback" % a.port_bor_l, err)
         return
     chk.expect("dp%d loopback mode MAC_NEAR" % a.port_bor_l, got.get("$LOOPBACK_MODE"), "BF_LPBK_MAC_NEAR")
-    chk.expect("dp%d speed 25G" % a.port_bor_l, got.get("$SPEED"), "BF_SPEED_25G")
+    chk.expect("dp%d speed %s" % (a.port_bor_l, a.bor_loopback_speed), got.get("$SPEED"),
+               BOR_LOOPBACK_SPEEDS[a.bor_loopback_speed])
     chk.expect("dp%d enabled" % a.port_bor_l, got.get("$PORT_ENABLE"), True)
     # the REAL port-group mapping for dp10 (resolve_pg) must succeed so the BOR ladder can be placed.
     pg_id, pg_nr = d3.resolve_pg(bi, gc.Target(device_id=0, pipe_id=PIPE), a.port_bor_l, chk, {})
@@ -1057,6 +1059,10 @@ def build_argparser():
     # pktgen / mirror
     p.add_argument("--port-l", type=int, default=PORT_L)
     p.add_argument("--port-bor-l", type=int, default=PORT_BOR_L)  # 2nd loopback (BOR OPERATE domain)
+    # dp10 only (dp8 comes up through the frozen d3.config_ports at 25G). 10G makes each OP-reservoir token
+    # occupy the wire 2.5x longer: fewer token passes per hold. Size K with reservoir_sizing.py from a
+    # MEASURED loop latency first; 10G beside the 25G channels of the same quad is unverified on this switch.
+    p.add_argument("--bor-loopback-speed", choices=sorted(BOR_LOOPBACK_SPEEDS), default="25G")
     p.add_argument("--port-pgen", type=int, default=PORT_PGEN)
     # data-plane ports for the cold-load bring-up (d3.config_ports needs these on the namespace)
     p.add_argument("--port-vision", type=int, default=PORT_VISION)
