@@ -1,0 +1,450 @@
+{
+  "schema_version": "3.0.1",
+  "target": "tofino",
+  "build_date": "Sat Oct 10 10:36:31 2026",
+  "compiler_version": "9.13.1 (e558d01)",
+  "compilation_succeeded": true,
+  "compilation_time": "3.5431482791900635",
+  "run_id": "7923294a1f1b4725",
+  "target_data": {
+    "architecture": "tna",
+    "architectureConfig": {
+      "name": "16q",
+      "pipes": [
+        {
+          "pipe": 0,
+          "ingress": {
+            "pipeName": "Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 2,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 3,
+                "pipeName": "Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "Egress",
+            "nextControl": []
+          }
+        },
+        {
+          "pipe": 1,
+          "ingress": {
+            "pipeName": "Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 2,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 3,
+                "pipeName": "Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "Egress",
+            "nextControl": [
+              {
+                "pipe": 1,
+                "pipeName": "Ingress"
+              }
+            ]
+          }
+        },
+        {
+          "pipe": 2,
+          "ingress": {
+            "pipeName": "Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 2,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 3,
+                "pipeName": "Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "Egress",
+            "nextControl": [
+              {
+                "pipe": 2,
+                "pipeName": "Ingress"
+              }
+            ]
+          }
+        },
+        {
+          "pipe": 3,
+          "ingress": {
+            "pipeName": "Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 2,
+                "pipeName": "Egress"
+              },
+              {
+                "pipe": 3,
+                "pipeName": "Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "Egress",
+            "nextControl": [
+              {
+                "pipe": 3,
+                "pipeName": "Ingress"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "conf_file": "xpipe_reflect_probe.conf"
+  },
+  "programs": [
+    {
+      "program_name": "xpipe_reflect_probe.p4",
+      "p4_version": "p4-16",
+      "event_log_file": "events.json",
+      "frontend_ir_log_file": "frontend-ir.json",
+      "source_files": {
+        "src_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/xpipe",
+        "src_map": "source.json",
+        "includes": [],
+        "defines": []
+      },
+      "pipes": [
+        {
+          "pipe_id": 0,
+          "pipe_name": "p0",
+          "files": {
+            "context": {
+              "path": "p0/context.json"
+            },
+            "resources": [
+              {
+                "path": "p0/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p1/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p2/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p3/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p0/graphs/program_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/placement_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/power_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              },
+              {
+                "path": "p0/graphs/Ingress.dot",
+                "gress": "ingress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/Egress.dot",
+                "gress": "egress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/table_dep_graph_placement_0.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p0/logs/flexible_packing.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/parser.characterize.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/parser.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/phv.json",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_history_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_summary_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/power.json",
+                "log_type": "power"
+              },
+              {
+                "path": "p0/logs/pragmas.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/table_dependency_graph.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_dependency_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_placement_1.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p0/logs/metrics.json"
+            }
+          }
+        },
+        {
+          "pipe_id": 1,
+          "pipe_name": "p1",
+          "files": {
+            "context": {
+              "path": "p1/context.json"
+            },
+            "resources": [
+              {
+                "path": "p0/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p1/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p2/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p3/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p1/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p1/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p1/logs/metrics.json"
+            }
+          }
+        },
+        {
+          "pipe_id": 2,
+          "pipe_name": "p2",
+          "files": {
+            "context": {
+              "path": "p2/context.json"
+            },
+            "resources": [
+              {
+                "path": "p0/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p1/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p2/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p3/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p2/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p2/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p2/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p2/logs/metrics.json"
+            }
+          }
+        },
+        {
+          "pipe_id": 3,
+          "pipe_name": "p3",
+          "files": {
+            "context": {
+              "path": "p3/context.json"
+            },
+            "resources": [
+              {
+                "path": "p0/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p1/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p2/logs/resources.json",
+                "type": "resources"
+              },
+              {
+                "path": "p3/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p3/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p3/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p3/logs/metrics.json"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -o /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/vepa_reflect_01/compile_local xpipe_reflect_probe.p4"
+}
