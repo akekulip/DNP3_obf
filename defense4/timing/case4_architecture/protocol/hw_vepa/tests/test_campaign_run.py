@@ -131,21 +131,18 @@ class Sequence(Base):
         r = FakeRunner()
         self.campaign(r).execute()
         for arm in ('size_only', 'combined'):
-            before = [i for i in r.cmds('c1_%s_before.json' % arm)]
-            after = [i for i in r.cmds('c1_%s_after.json' % arm)]
+            before = [i for i in r.runs('c1_%s_t0_before.json' % arm)]
+            after = [i for i in r.runs('c1_%s_t0_after.json' % arm)]
             run = [i for i in r.cmds('vision_run.py run c1_%s_t0' % arm)]
             self.assertTrue(before and after and run, arm)
             self.assertLess(before[0], run[0])
             self.assertLess(run[0], after[0])
 
-    def test_T_bit_per_arm_and_one_install_for_a_shared_group(self):
+    def test_T_bit_per_arm(self):
         r = FakeRunner()
         self.campaign(r).execute()
         sets = [r.calls[i][1] for i in r.cmds('set_enabled.py')]
         self.assertEqual([('--enabled 0' in c, '--enabled 1' in c) for c in sets], [(True, False), (False, True)])
-        applies = [i for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]]
-        self.assertEqual(len(applies), 1)           # size_only + combined share (build, padding=1): one install
-        self.assertEqual(len(r.swaps()), 2)   # one composite launch + the production restore
 
     def test_shaping_k_range_and_timing_reach_the_installer_and_the_snapshots(self):
         r = FakeRunner()
@@ -169,6 +166,78 @@ class Sequence(Base):
         self.assertEqual(rec['arms'][0]['achieved_shaping']['ACK_HOLD']['achieved_pps'], 281)
         self.assertEqual(set(rec['builds']['sbo_admission_01']), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
         self.assertEqual(rec['endpoint_observed']['binary_sha256'], H64)
+
+
+def master_ports(r):
+    """[(install port, traffic port)] per bring-up, in order."""
+    ins = [int(re.search(r'--master-port (\d+)', r.calls[i][1]).group(1))
+           for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]]
+    run = [int(re.search(r'--master-port (\d+)', r.calls[i][1]).group(1)) for i in r.cmds('vision_run.py run')]
+    return ins, run
+
+
+class TrialMode(Base):
+    """N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s, so a second
+    connection on an installed tuple cannot work: every connection gets its own cold bring-up on a NEW port."""
+    def setUp(self):
+        super().setUp()
+        self.cfg['trials']['trials_per_arm'] = 3
+        self.cfg['traffic']['master_port_range'] = {'first': 54500, 'last': 54599}
+
+    def test_default_mode_is_per_trial_cold(self):
+        self.assertEqual(json.load(open(HERE.parent / 'campaign.json'))['trial_mode'], 'per_trial_cold')
+
+    def test_every_trial_is_its_own_cold_bring_up_with_a_new_port(self):
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r).execute(), 0)
+        ins, run = master_ports(r)
+        self.assertEqual(len(run), 6)                                 # 2 arms x 3 trials
+        self.assertEqual(ins, run)                                    # the traffic uses the port that was installed
+        self.assertEqual(ins, list(range(54500, 54506)))              # distinct, incrementing from the range start
+        composite_swaps = [i for i in r.swaps() if 'launch_composite.sh' in r.calls[i][1]]
+        self.assertEqual(len(composite_swaps), 6)
+        self.assertEqual(len([i for i in r.runs('bringup_teardown.py')]), 6)
+        for need in ('restore_ports.py response_only', 'snapshot_counters.py', 'set_enabled.py'):
+            self.assertEqual(len(r.runs(need)) >= 6, True, need)
+
+    def test_each_bring_up_runs_in_order_swap_ports_install_traffic_teardown(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('combined',)).execute()
+        seq = ['launch_composite.sh', 'restore_ports.py response_only', '--apply --enable-pktgen', 'set_enabled.py',
+               '_before.json', 'vision_run.py run', '_after.json', 'bringup_teardown.py']
+        for k in range(3):
+            lo = [i for i in r.swaps() if 'launch_composite.sh' in r.calls[i][1]][k]
+            pos = lo
+            for needle in seq[1:]:
+                hits = [i for i in r.runs(needle) if i > pos]
+                self.assertTrue(hits, 'bring-up %d missing %r' % (k, needle))
+                pos = hits[0]
+
+    def test_port_range_exhaustion_is_refused_before_any_command(self):
+        self.cfg['traffic']['master_port_range'] = {'first': 54500, 'last': 54502}
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r).execute(), 1)
+        self.assertEqual(r.calls, [])
+
+    def test_one_connection_mode_is_one_bring_up_per_arm_with_all_reads(self):
+        self.cfg['trial_mode'] = 'one_connection'
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r).execute(), 0)
+        ins, run = master_ports(r)
+        self.assertEqual(ins, [54500, 54501])
+        runs = [r.calls[i][1] for i in r.cmds('vision_run.py run')]
+        self.assertEqual(len(runs), 2)
+        self.assertTrue(all('--reads %d' % (3 * self.cfg['trials']['reads_per_trial']) in c for c in runs))
+
+    def test_bad_trial_mode_or_range_is_rejected(self):
+        bad = copy.deepcopy(self.cfg)
+        bad['trial_mode'] = 'sometimes'
+        with self.assertRaises(ValueError):
+            cp.validate_profile(bad)
+        bad = copy.deepcopy(self.cfg)
+        bad['traffic']['master_port_range'] = {'first': 54600, 'last': 54500}
+        with self.assertRaises(ValueError):
+            cp.validate_profile(bad)
 
 
 class RestoreTarget(Base):

@@ -33,6 +33,15 @@ python3 hw_vepa/run.py restore        # sysctls and NIC flag back, relay slot re
 `wire_check.py` and `clrt_check.py` no longer need scapy (built-in pcap reader, checksum and DNP3 CRC), so
 `python3 -m pytest hw_vepa/tests` runs on a fresh clone with no install step.
 
+Campaign bring-ups. N does not re-arm after a connection and a closed tuple stays in TIME-WAIT for 60 s, so a
+second connection on an installed tuple cannot work. `campaign.json` `trial_mode` is therefore either
+`per_trial_cold` (default: every trial of every arm is its own cold bring-up -- swap, restore ports, install, T,
+snapshot, run, snapshot, teardown -- on a NEW master port from `traffic.master_port_range`, incrementing per
+trial, even for arms that share a build) or `one_connection` (one bring-up and one connection per arm carrying
+`reads_per_trial x trials_per_arm` READs). After the last bring-up the run restores the state it observed before
+starting: the configured production program, a port snapshot taken at the start, the relay slot, Vision, then a
+ping.
+
 Facts the runner depends on:
 - **Source pruning.** Vision's i40e NIC drops reflected frames whose source MAC is its own unless
   `disable-source-pruning` is on. Changing the flag resets the NIC's PF; the link returns in a few seconds.
