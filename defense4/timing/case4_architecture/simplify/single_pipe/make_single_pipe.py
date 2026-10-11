@@ -284,8 +284,19 @@ def egress_text(master_port=MASTER_PORT, relay_port=RELAY_PORT):
     return text
 
 
+# ---------------------------------------------------------------- edit S5: define the early hold_ok read
+# tbl_select_deadlines, tbl_state_decode and tbl_resp_deadline key on meta.hold_ok at level 3, but tbl_hold_ok
+# writes it only later in the same pass (after the BOR register chain); the parser never initialized it, so
+# those three tables read undefined metadata (the stage_reduction README's retained defect). On hardware the
+# OPERATE lane used the read lane's own offsets (2026-09-18 tail sweep; CLAIMS_AND_LIMITATIONS.md), which is
+# what hold_ok == 0 selects. S5 zeroes hold_ok in the parser start state, so that measured behaviour is now the
+# defined one. Selecting the OPERATE A/R deadlines instead would change claimed behaviour and is not done here.
+S5_OLD = "        meta.is_pktgen       = 8w0;\n"
+S5_NEW = S5_OLD + "        meta.hold_ok         = 8w0;   /* single-pipe edit S5: read at level 3 before tbl_hold_ok */\n"
+
+
 def ingress_text():
-    text = TIMING_SRC.read_text()
+    text = replace_once(TIMING_SRC.read_text(), S5_OLD, S5_NEW)
     # the build passes -DU_BOR (stage_reduction/build.py); make the composed file self-contained
     return '#define U_BOR 1\n' + text
 

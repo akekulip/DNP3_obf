@@ -142,3 +142,24 @@ class GeneratedSource(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class HoldOkDefined(unittest.TestCase):
+    """Edit S5: the three level-3 readers of meta.hold_ok see 0 on every pass, not undefined metadata."""
+
+    def test_parser_zeroes_hold_ok_before_any_transition(self):
+        src, _ = msp.generate()
+        start = src.index('    state start {', src.index('parser d_IgParser'))
+        block = src[start:src.index('transition', start)]
+        self.assertIn('meta.hold_ok         = 8w0;', block)
+
+    def test_frozen_timing_source_is_unchanged(self):
+        self.assertNotIn('meta.hold_ok         = 8w0;', msp.TIMING_SRC.read_text())
+
+    def test_early_readers_still_key_on_hold_ok(self):
+        # S5 defines the value; it does not remove the keys, so tbl_hold_ok's later write is still what
+        # tbl_decide_fresh / tbl_decide_deq see.
+        code = msp.COMMENTS.sub(' ', msp.generate()[0])
+        for table in ('tbl_select_deadlines', 'tbl_state_decode', 'tbl_resp_deadline'):
+            decl = code[code.index('table %s' % table):]
+            self.assertIn('meta.hold_ok', decl[:decl.index('actions')], table)

@@ -831,6 +831,7 @@ parser d_IgParser(packet_in pkt,
         meta.gen_in          = 8w0;
         meta.dequeued        = 8w0;
         meta.is_pktgen       = 8w0;
+        meta.hold_ok         = 8w0;   /* single-pipe edit S5: read at level 3 before tbl_hold_ok */
 #ifdef D3_SYNTH_EVENTS
         meta.is_synth        = 8w0;
 #endif
