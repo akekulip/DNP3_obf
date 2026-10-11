@@ -13,6 +13,7 @@ import bfrt_grpc.client as gc  # noqa: E402
 # Text the driver puts in a missing-entry error. UNVERIFIED on this SDE: any other error is raised, so a wrong
 # guess here fails closed (an absent entry would be reported as an error, never an error as absent).
 NOT_FOUND = ('not found', 'not_found', 'object not found', 'does not exist')
+UNSUPPORTED = ('unimplemented', 'not supported')
 
 
 def oneline(e):
@@ -25,6 +26,7 @@ class Switch:
         self.iface = gc.ClientInterface(grpc, client_id=client_id, device_id=0)
         self.iface.bind_pipeline_config(program)
         self.bi = self.iface.bfrt_info_get(program)
+        self.sw_read = set()   # tables whose readback came from software state (see get)
 
     def close(self):
         for name in ('tear_down_stream', '_tear_down_stream'):
@@ -59,16 +61,28 @@ class Switch:
         return t.make_data(items, action) if action else t.make_data(items)
 
     def get(self, table, pipe, key, priority=None):
-        """entry_get one key from hardware -> dict; None only when the driver says the entry does not exist."""
+        """entry_get one key -> dict; None only when the driver says the entry does not exist.
+
+        Reads hardware. Some fixed tables refuse that: on this switch (SDE 9.13.2, measured 2026-10-11)
+        tf1.pktgen.port_cfg answers a hardware read with UNIMPLEMENTED "Entry not found ... Operation not
+        supported" while its software-state read works. For such a table the read falls back to software
+        state, and the table is listed in `sw_read` so the caller can say the readback was not from hardware.
+        An "unsupported" error is never taken as "absent"."""
         t = self.table(table)
-        try:
-            for d, _k in t.entry_get(self.target(pipe), [self.key(t, key, priority)], {'from_hw': True}):
-                return self.as_dict(d)
-        except Exception as e:
-            if any(s in str(e).lower() for s in NOT_FOUND):
-                return None
-            raise RuntimeError('entry_get %s %s: %s' % (table, key, oneline(e)))
-        raise RuntimeError('entry_get %s %s: empty read without a not-found error' % (table, key))
+        for from_hw in (True, False):
+            try:
+                for d, _k in t.entry_get(self.target(pipe), [self.key(t, key, priority)], {'from_hw': from_hw}):
+                    if not from_hw:
+                        self.sw_read.add(table)
+                    return self.as_dict(d)
+            except Exception as e:
+                text = str(e).lower()
+                if from_hw and any(s in text for s in UNSUPPORTED):
+                    continue
+                if any(s in text for s in NOT_FOUND) and not any(s in text for s in UNSUPPORTED):
+                    return None
+                raise RuntimeError('entry_get %s %s: %s' % (table, key, oneline(e)))
+            raise RuntimeError('entry_get %s %s: empty read without a not-found error' % (table, key))
 
     @staticmethod
     def as_dict(d):

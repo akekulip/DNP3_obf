@@ -28,6 +28,8 @@ def error(code, text):
     return Exception("Error(s):\n\t* At index 0: %s, '%s'\n" % (code, text))
 
 
+NO_HW_READ_PORT_CFG = True   # the real switch's behaviour; a test can switch it off
+
 class KeyTuple:
     def __init__(self, name, value=None, mask=None):
         self.t = (name, value, mask)
@@ -96,6 +98,9 @@ class Table:
             return
         if EMPTY_READ == self.name:
             return
+        if self.name == 'tf1.pktgen.port_cfg' and (flags or {}).get('from_hw') and NO_HW_READ_PORT_CFG:
+            # measured on the switch, SDE 9.13.2, 2026-10-11: this table has no hardware read
+            raise error('UNIMPLEMENTED', "Entry not found in table:tf1.pktgen.port_cfg Operation not supported")
         for k in keys:
             if self.name.endswith('.outcomes'):
                 self.reads += 1

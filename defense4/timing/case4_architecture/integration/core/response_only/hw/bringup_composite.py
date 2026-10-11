@@ -244,6 +244,8 @@ def apply(ops, a):
             bad = [str(e)]
         if bad:
             stop('T registers moved during bring-up (was the master quiet?): %s' % bad)
+        if sw.sw_read:
+            print('NOTE: read back from software state, not hardware (no hardware read on this SDE): %s' % ', '.join(sorted(sw.sw_read)))
         print('INSTALLED %d writes; manifest %s; pktgen %s' % (len(done), manifest,
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
         print('counters', json.dumps(readback.snapshot(sw), indent=1))
