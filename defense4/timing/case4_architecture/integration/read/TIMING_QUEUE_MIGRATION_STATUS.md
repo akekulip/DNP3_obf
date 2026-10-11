@@ -1,5 +1,11 @@
 # T's queue-resident timing role: source-level complete; whole file compiles for Tofino-1 (11/0 stages)
 
+> **Pipe correction (2026-10-11).** The switch (`ufispace`, Tofino-1) has **two** pipes, not four: a
+> `Switch(p0, p1, p2, p3)` load failed with "only 2 pipe(s) available", and BFRT shows ports 324-327 absent
+> (commit `979b38fd`). Every earlier model run used tofino-model's four-pipe default, so it could not show this.
+> Current placement: N + E in pipe 0, T in pipe 1, M retired (`integration/core/response_only/`). The simpler
+> single-pipe candidate is in `simplify/`. Text below that places a role in pipe 2 or 3 is historical.
+
 Status of `read_queue_timing.p4`, the blocker-queue-based replacement for T's heartbeat/recirculation
 design (`read_timing.p4`), per `INTEGRATION_CONTRACT.md` §5's hard constraint that real ACKs/responses
 stay queue-resident and only blocker tokens circulate.

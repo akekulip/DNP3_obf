@@ -1,5 +1,11 @@
 # Case 4 timing+size integration contract
 
+> **Pipe correction (2026-10-11).** The switch (`ufispace`, Tofino-1) has **two** pipes, not four: a
+> `Switch(p0, p1, p2, p3)` load failed with "only 2 pipe(s) available", and BFRT shows ports 324-327 absent
+> (commit `979b38fd`). Every earlier model run used tofino-model's four-pipe default, so it could not show this.
+> Current placement: N + E in pipe 0, T in pipe 1, M retired (`integration/core/response_only/`). The simpler
+> single-pipe candidate is in `simplify/`. Text below that places a role in pipe 2 or 3 is historical.
+
 One decision record for the combined timing-and-size obfuscation work requested in
 `DNP3_Timing_Size_Integration_Prompt.md` (2026-10-08, audited HEAD `85c9f8cbfdd047c511997a988c5209df65eb3684`).
 Every later phase and every agent dispatched into this work reads this file first instead of re-deriving the
