@@ -42,3 +42,13 @@ folding the shaper into production.
 
 Evidence per block: master/outstation/result JSON, both pcaps, before/after switch snapshots incl the `shaping`
 and `diag` blocks. Rig restored to baseline after the sweep.
+
+## Production-build confirmation (plan step 3.5)
+
+The shaper is control-plane, so the production build sbo_admission_01 (bfrt ee998605) + --shape-ack/resp/op-pps
+200 is the production configuration. One T-on 5 ms run (prod_shape/, master port 54461): OUT_HELD_REWAIT **58**
+total (vs 71,310 unshaped on the same build at the milestone), OUT_ACK_COMMIT=10, OUT_RESP_RELEASE=10,
+OUT_OP_RELEASE=1, zero fallback; master success, 10/10 READs match, one real SELECT + one real OPERATE, zero
+decoy; 12 responses returned at 58 bytes; achieved pacing 232 PPS per hold queue. The three gate properties hold
+on the production build with the shaper. Fold `--shape-*-pps 200` into the production bring-up for all subsequent
+runs.
