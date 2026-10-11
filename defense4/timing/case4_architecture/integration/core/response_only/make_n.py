@@ -48,10 +48,12 @@ against a frozen oracle); this script applies the numbered edit groups below, ea
     reverse_flow set the egress port from that value, close_forward copies it back), as the first arm of
     the existing chain after guard.apply(): every bound packet passes that gateway on every pass. cp.py also asserts that no ports or connection row it
     produces sends anything to N_ACK_RETURN except the master's normalize_ack row. No table is added.
-    N_ACK_RETURN = 70 (pipe 0, local 70): local 68-71 recirculate into the same pipe's ingress on the model
-    (evidence/model_28/PORTS_PROPOSAL.md); 68 is N's RETURN_PORT; nothing in the repository uses pipe-0
-    69-71. Confirmed on the physical switch by the coordinator, 2026-10-10: local 68, 69, 70 and 71 are each a
-    separate, independently enabled, dedicated internal recirculation port (not lanes of one interface).
+    N_ACK_RETURN = 70 (pipe 0, local 70) is the MODEL's port: local 68-71 recirculate into the same pipe's
+    ingress on the model (evidence/model_28/PORTS_PROPOSAL.md); 68 is N's RETURN_PORT. On the switch 70 does
+    NOT recirculate (measured 2026-10-11, evidence/recirc_ports_01/STATUS.md: only 68 does; the 2026-10-10
+    note that 69-71 were confirmed came from $PORT entries, not traffic). The port is a build parameter:
+    compose.py --n-ack-return=N rewrites this one declaration (48, a front-panel port in MAC loopback, on the
+    switch) and E's dispatch, and cp.py's rows take the same value (port_map.py). Every use below is by name.
 
   python3 make_n.py [out.p4]     (default: n_response_only.p4 next to this script)
 """

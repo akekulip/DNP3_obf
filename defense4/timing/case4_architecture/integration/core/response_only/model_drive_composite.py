@@ -18,12 +18,22 @@ fed in the order frames leave the switch.
 
   integration/core/launch_model.sh -p <compile out/> -o <new dir> -P "9 64" \
       -d integration/core/response_only/model_drive_composite.py
+
+PORT_MAP=<build>.inputs.json: run a build composed with other ports (compose.py --relay-port ... --held-return).
+The driver and cp.py's rows then use that build's own map (port_map.load). Looping ports that are front-panel
+ports (the hardware map: 48, 180, 181, 182) need a veth each (-P "9 48 180 181 182"): the model transmits on a
+port in $LOOPBACK_MODE BF_LPBK_MAC_NEAR instead of looping it (loopback_ports_01/model_hw_01, 14/57), so the
+driver reflects every frame the model sends on those ports straight back into the same port, byte for byte.
+Unlike a MAC it neither pads nor drops a short frame; it records the shortest frame seen on each port.
+LOOPBACK_MODE=<mode> additionally sets $LOOPBACK_MODE on them (the probe that showed the model ignores it).
 """
 import hashlib
 import json
 import os
+import socket
 import struct
 import sys
+import threading
 import time
 import traceback
 from pathlib import Path
@@ -38,18 +48,25 @@ import case4_pad58b as b  # noqa: E402
 import case4_padding as codec  # noqa: E402
 import case4_response_mapper as rm  # noqa: E402
 import cp  # noqa: E402
+import port_map  # noqa: E402
 import queue_sim as qs  # noqa: E402
 import response_path_cp as rp  # noqa: E402
 import vectors  # noqa: E402
 sys.path.insert(0, str(INTEG / 'connection' / 'binding' / 'tests'))
 import read_support as rs  # noqa: E402  (READ request / response / ACK frames, as the binding tests use)
 
-MASTER_PORT, OUTST_PORT, N_ACK_RETURN, T_IN, PKTGEN_RETURN, SID = 9, 64, 70, 197, 196, 7   # read/ports.p4, two-pipe
+MASTER_PORT, PKTGEN_RETURN, SID = 9, port_map.PKTGEN_RETURN, 7   # read/ports.p4, two-pipe
 # SHARED_PORT=1: both endpoints on ONE switch port (the reflected hardware setup, 9 -> 9). Needs the build
 # composed with --relay-port=9 (T's outstation-side release port) and is launched with -P "9".
-SHARED = os.environ.get('SHARED_PORT') == '1'
-if SHARED:
-    OUTST_PORT = MASTER_PORT
+PM = port_map.load(os.environ['PORT_MAP']) if os.environ.get('PORT_MAP') else port_map.DEFAULT
+if os.environ.get('SHARED_PORT') == '1':
+    if os.environ.get('PORT_MAP') and PM.relay_port != MASTER_PORT:
+        raise SystemExit('SHARED_PORT=1 but %s has relay_port %d' % (os.environ['PORT_MAP'], PM.relay_port))
+    PM = PM._replace(relay_port=MASTER_PORT)
+OUTST_PORT, N_ACK_RETURN, T_IN = PM.relay_port, PM.n_ack_return, PM.t_in
+SHARED = OUTST_PORT == MASTER_PORT
+LOOP_PORTS = [port_map.RETURN_PORT, N_ACK_RETURN, PKTGEN_RETURN, T_IN, PM.hb_return, PM.held_return]
+FRONT_LOOPS = [p for p in LOOP_PORTS if p % 128 < 64]      # front-panel: loop only in MAC loopback
 CTL_POINTS = [b.AnalogFloatPoint(301, 10.0, 0), b.AnalogFloatPoint(302, 20.0, 0)]   # E's ctl_eligible constant
 PARAMS = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000, gap=50_000_000, op_j=200_000_000,
               budget=240_000, enabled=1)
@@ -73,6 +90,33 @@ def native_response37(app, fc, status=0):
     return codec.build_frame(bytes.fromhex('05641c4401000a00'), user[:2] + bytes((0x81, 0, 0)) + bytes(objects))
 
 
+class Reflector(threading.Thread):
+    """Stand-in for a front-panel port in MAC loopback: every frame the model transmits on dev_port comes
+    straight back in on it, unchanged. Counts the frames and keeps the shortest and longest length."""
+
+    def __init__(self, port):
+        super().__init__(daemon=True)
+        self.port, self.frames, self.shortest, self.longest, self.first = port, 0, None, 0, {}
+        self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+        self.sock.bind(('veth%d' % (2 * port + 1), 0))
+
+    def run(self):
+        while True:
+            frame, addr = self.sock.recvfrom(65535)
+            if addr[2] == socket.PACKET_OUTGOING:      # our own reflection, seen again on the way out
+                continue
+            self.frames += 1
+            self.longest = max(self.longest, len(frame))
+            if self.shortest is None or len(frame) < self.shortest:
+                self.shortest = len(frame)
+            self.first.setdefault(len(frame), frame[:16].hex())
+            self.sock.send(frame)
+
+    def summary(self):
+        return dict(frames=self.frames, shortest=self.shortest, longest=self.longest,
+                    first_16_bytes_by_length={str(k): v for k, v in sorted(self.first.items())})
+
+
 def scalar(regs):
     """First value of a register_read() dict (pipe 0 for a per-pipe list)."""
     v = next(iter(regs.values()))
@@ -89,13 +133,18 @@ def main():
     try:
         m = Model(ports=[], enable=False)
         m.enable_ports(sorted({MASTER_PORT, OUTST_PORT}))
-        m.enable_ports([68, N_ACK_RETURN, PKTGEN_RETURN, T_IN, 198, 199])   # refusals recorded, not fatal
+        m.enable_ports([p for p in LOOP_PORTS if p not in FRONT_LOOPS])   # refusals recorded, not fatal
+        m.enable_ports(FRONT_LOOPS, loopback=os.environ.get('LOOPBACK_MODE'))
+        reflectors = [Reflector(p) for p in FRONT_LOOPS]
+        for r in reflectors:
+            r.start()
         time.sleep(2.0)
         rep.record['meta']['port_enable_errors'] = m.port_errors
+        rep.record['meta']['port_map'] = dict(PM._asdict(), front_panel_loopback=FRONT_LOOPS)
         # ---- configuration: every row from cp.py ------------------------------------------------
         installed = []
-        for table, key, action, data, priority in (cp.n_ports_rows(MASTER_PORT, OUTST_PORT, MASTER.ip_int, OUTSTATION.ip_int) +
-                                                   cp.n_connection_rows(OUTSTATION, MASTER)):
+        for table, key, action, data, priority in (cp.n_ports_rows(MASTER_PORT, OUTST_PORT, MASTER.ip_int, OUTSTATION.ip_int, n_ack_return=N_ACK_RETURN) +
+                                                   cp.n_connection_rows(OUTSTATION, MASTER, n_ack_return=N_ACK_RETURN)):
             m.add('p0.n_' + table, dict(key), 'n_' + action, dict(data), priority)
             installed.append((table, key, action, data, priority))
         dc = dict(zip(('index', 'code', 'repeat', 'on', 'off'), vectors.decoy_config()))
@@ -108,8 +157,8 @@ def main():
         for table, key, action, data, priority in cp.n_read_rows(OUTSTATION, MASTER):
             m.add('p0.n_' + table, dict(key), 'n_' + action, dict(data), priority)
             installed.append((table, key, action, data, priority))
-        for table, key, action, data, priority in (cp.e_conn_rows(0, OUTSTATION, MASTER) +
-                                                   ([] if SHARED else cp.e_conn_rows(1, OUTSTATION, MASTER_B))):
+        for table, key, action, data, priority in (cp.e_conn_rows(0, OUTSTATION, MASTER, n_ack_return=N_ACK_RETURN) +
+                                                   ([] if SHARED else cp.e_conn_rows(1, OUTSTATION, MASTER_B, n_ack_return=N_ACK_RETURN))):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
             installed.append((table, key, action, data, priority))
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', PARAMS)
@@ -370,6 +419,11 @@ def main():
         got = m.exchange(MASTER_PORT, vectors.packet(2, 5000, 0, mss=MSS), ports, timeout=2.0, quiet=0.5)
         rep.add('RECONNECT_refused_by_N_until_a_rearm_exists', (0, 0, 0x7),
                 (len(got[MASTER_PORT]), len(got[OUTST_PORT]), n_state()['owner'] >> 16))
+        if reflectors:   # the hardware map: every front-panel looping port must have carried frames
+            seen = {str(r.port): r.summary() for r in reflectors}
+            rep.record['meta']['loopback_frames'] = seen
+            rep.add('every_front_panel_loop_port_carried_frames', sorted(seen),
+                    sorted(p for p, v in seen.items() if v['frames'] > 0), **seen)
         ok = True
     except BaseException as error:
         rep.record['error'] = type(error).__name__ + ': ' + str(error)

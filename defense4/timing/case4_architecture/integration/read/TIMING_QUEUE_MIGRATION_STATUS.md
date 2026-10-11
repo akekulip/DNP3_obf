@@ -528,6 +528,23 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**Looping ports are build parameters (2026-10-11, `route_ab_01/loopback_ports_01`).** On the switch only
+pipe-local 68 recirculates (`evidence/recirc_ports_01/STATUS.md`), so 70, 197, 198 and 199 cannot be used
+there. `core/response_only/port_map.py` now holds the five ports (`relay_port`, `n_ack_return`, `t_in`,
+`hb_return`, `held_return`) with the model's values as defaults; `compose.py` takes them as flags and rewrites
+N's two declarations, E's egress-port dispatch and T's declarations, and writes the map into
+`<out>.inputs.json`; `cp.py`'s builders take `n_ack_return=` and the model driver loads the build's own map
+(`PORT_MAP=`). Default output is unchanged byte for byte. The hardware map (9, 48, 180, 181, 182) compiles on
+both SDKs with the placement and PHV of the shared-port build, and runs 58/58 on the model with the four
+ports reflected by the driver; the model itself does not loop a port in MAC loopback. No internal frame is
+under 64 bytes on the wire provided the generator buffer stays at 52 bytes or more (it is 60). Not verified
+on silicon: whether the MAC passes frames that start with an internal header instead of an Ethernet header;
+the direct OPERATE blocker puts the IP identification field where the MAC reads a type. The analysis, the
+check to run and the one-line fix if it fails are in `loopback_ports_01/RESULT.md`. The comment in
+`read/ports.p4` that 68-71 were confirmed on the switch is wrong and was left in place, because the file is
+inlined into every build and editing it changes the source hash of builds already compiled; correct it with
+the next change to T.
+
 **Both endpoints on one switch port (`route_ab_01/shared_port_01`).** For the first hardware run the master
 and the outstation are both on dev_port 9, reflected 9 → 9.
 - **N `ports`** gains `hdr.ip.src` as a fourth, ternary key. `cp.n_ports_rows(master_dev, outstation_dev,

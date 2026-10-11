@@ -58,14 +58,16 @@ class Model:
             time.sleep(settle)
 
     # ---- ports -------------------------------------------------------------------------------
-    def enable_ports(self, ports, speed='BF_SPEED_10G'):
+    def enable_ports(self, ports, speed='BF_SPEED_10G', loopback=None):
+        """loopback: a $LOOPBACK_MODE value (e.g. 'BF_LPBK_MAC_NEAR') for front-panel ports that must loop."""
         t = self.table('$PORT', raw=True)
         for p in ports:
             try:
-                t.entry_add(self.target, [t.make_key([gc.KeyTuple('$DEV_PORT', p)])],
-                            [t.make_data([gc.DataTuple('$SPEED', str_val=speed),
-                                          gc.DataTuple('$FEC', str_val='BF_FEC_TYP_NONE'),
-                                          gc.DataTuple('$PORT_ENABLE', bool_val=True)])])
+                fields = [gc.DataTuple('$SPEED', str_val=speed), gc.DataTuple('$FEC', str_val='BF_FEC_TYP_NONE'),
+                          gc.DataTuple('$PORT_ENABLE', bool_val=True)]
+                if loopback:
+                    fields.append(gc.DataTuple('$LOOPBACK_MODE', str_val=loopback))
+                t.entry_add(self.target, [t.make_key([gc.KeyTuple('$DEV_PORT', p)])], [t.make_data(fields)])
             except Exception as exc:  # recorded, not hidden: some ports (68) may be refused
                 self.port_errors[p] = '%s: %s' % (type(exc).__name__, str(exc).splitlines()[0][:160])
 
