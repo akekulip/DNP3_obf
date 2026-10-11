@@ -114,10 +114,15 @@ class RunGating(unittest.TestCase):
             cp.main(['run', '--config', str(CONFIG), '--apply'])
 
     def test_run_refuses_on_unbound_identity_even_when_authorized(self):
+        cfg = json.load(open(CONFIG))
+        cfg['endpoint']['binary_sha256'] = None
+        fd, path = tempfile.mkstemp(suffix='.json')
+        os.write(fd, json.dumps(cfg).encode())
+        os.close(fd)
         os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
         try:
             with self.assertRaises(SystemExit) as e:
-                cp.main(['run', '--config', str(CONFIG), '--apply'])
+                cp.main(['run', '--config', path, '--apply'])
             self.assertIn('not pinned', str(e.exception))
         finally:
             os.environ.pop('DEFENSE4_HW_AUTHORIZED', None)

@@ -20,8 +20,8 @@
     "refuses an existing manifest and a re-install on a dirtied daemon is unrehearsed.",
     "BINDING. Each build's `hashes` are checked three ways before anything runs: config == the build's compile",
     "manifest.json artifact_sha256 == the files under out_dir. A null slot is filled from the manifest; a",
-    "placeholder or malformed value is an error. endpoint.binary_sha256 / lib_sha256 cannot be derived offline:",
-    "TODO pin them (command in the `endpoint._pin_with` field) before `run`; validate fails until they are set.",
+    "placeholder or malformed value is an error. endpoint.binary_sha256 / lib_sha256 cannot be derived offline;",
+    "they are pinned below and `run` re-checks them on Vision (command in `endpoint._pin_with`).",
     "SHAPING. All hold-queue and blocker-queue rates default to 0 (unshaped, the production baseline). Set the",
     "chosen rates here; the requested values are passed to the installer and to snapshot_counters, and the",
     "ACHIEVED (hardware-quantized) rates read back in each snapshot are copied into campaign_run.json.",
@@ -47,8 +47,9 @@
   },
   "endpoint": {
     "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
-    "binary_sha256": null,
-    "lib_sha256": null,
+    "binary_sha256": "f66ad08cce45407483c505edf4547c3d222d9ac3b959f3ba9540281f3c793097",
+    "lib_sha256": "6c7a6892d5b9fddb0c09a5ae1d63067f17034b4edf93f8f295f4c4bb32a6d23d",
+    "_pinned": "binary = the 8-bit-range gate master built from source commit 3d6869c04; lib/ holds only libopendnp3.so (sha 79e1f695...)",
     "_pin_with": "ssh decps@10.10.54.19 'cd /home/decps/pad58b_20261011 && sha256sum case4_socket_gate_pad58b && (cd lib && find . -type f | sort | xargs sha256sum | sha256sum)'",
     "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/"
   },
