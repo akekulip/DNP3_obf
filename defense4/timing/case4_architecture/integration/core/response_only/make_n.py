@@ -53,7 +53,7 @@ against a frozen oracle); this script applies the numbered edit groups below, ea
     69-71. Confirmed on the physical switch by the coordinator, 2026-10-10: local 68, 69, 70 and 71 are each a
     separate, independently enabled, dedicated internal recirculation port (not lanes of one interface).
 
-  python3 make_n.py [out.p4]     (default: n_response_only.p4 next to this script)
+  python3 make_n.py [out.p4] [--no-response-tail-crc]     (default: n_response_only.p4 next to this script)
 """
 import hashlib
 import sys
@@ -159,9 +159,42 @@ def guard_refuses_n_ack_return(text):
     return text[:i] + action + seg + text[j:]
 
 
-def generate():
+# 9. OPTIONAL (generate(response_tail_crc=False); default off, so n_response_only.p4 is unchanged): drop N's
+#    response CRC checks that E repeats. Pipe 0 egress (make_e.py) recomputes every native CRC of a READ
+#    (dl, rb0, rb1, rtn) and CONTROL (dl, cb0, ctn) response, and pads only when all of them match. N keeps the
+#    link-header and first-block checks it shares with requests (crc_t, keyed on packet kind only), and drops
+#    the response-only tail and second-block checks: hash_response_tail, hash_rd_second, hash_rd_tail and
+#    their three tables. Consequence: a response whose tail or second block is corrupt is admitted by N (and
+#    timed by T) instead of being refused, and leaves at its native size because E refuses to pad it; the
+#    master's DNP3 link layer discards it either way. Not compiled here (no bf-p4c in the authoring
+#    environment): the stage, hash-unit and crossbar effect is for the next build to measure.
+RESPONSE_TAIL_CRC_EDITS = (
+    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_response_tail;\n"
+     "action response_crct(){m.tcrc=hash_response_tail.get({hdr.rtail.on_lo,hdr.rtail.off,hdr.rtail.status});}\n"
+     "table response_crct_t{actions={response_crct;}size=1;const default_action=response_crct();}\n", ""),
+    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;\n"
+     "action rd_second_crc(){m.crc1=hash_rd_second.get({hdr.second.w0,hdr.second.w1,hdr.second.w2,hdr.second.w3});}\n"
+     "table rd_second_crc_t{actions={rd_second_crc;}size=1;const default_action=rd_second_crc();}\n", ""),
+    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;\n"
+     "action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value});}\n"
+     "table rd_tail_crc_t{actions={rd_tail_crc;}size=1;const default_action=rd_tail_crc();}\n", ""),
+    ("    if(m.response==8w1){response_crct_t.apply();}else{input_tail_t.apply();}",
+     "    if(m.response!=8w1){input_tail_t.apply();}   /* edit 9: E checks the response tail */"),
+    ("    if(m.response==8w1){if(hdr.rtail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}\n"
+     "    else{if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}",
+     "    if(m.response!=8w1){if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}"),
+    ("else{read_response_profile.apply();rd_second_crc_t.apply();rd_tail_crc_t.apply();}",
+     "else{read_response_profile.apply();}   /* edit 9: E checks the second block and tail */"),
+    ("else{if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}"
+     "if(hdr.rd_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}",
+     "else{if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}}"),
+)
+
+
+def generate(response_tail_crc=True):
     text = binding_generate.generate(profile='response_only')
-    for old, new in EDITS:
+    edits = EDITS if response_tail_crc else EDITS + list(RESPONSE_TAIL_CRC_EDITS)
+    for old, new in edits:
         n = text.count(old)
         assert n == 1, (n, old[:80])
         text = text.replace(old, new)
@@ -174,6 +207,7 @@ def generate():
 
 
 if __name__ == '__main__':
-    out = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / 'n_response_only.p4'
-    out.write_text(generate())
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    out = Path(args[0]) if args else HERE / 'n_response_only.p4'
+    out.write_text(generate(response_tail_crc='--no-response-tail-crc' not in sys.argv))
     print('wrote', out)

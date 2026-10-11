@@ -15,7 +15,8 @@ Role prefixes n_, r_, t_ as in core/ordinary/compose.py; nothing else is changed
 1-stage forwarding ingress is not used (N routes), so p0's ingress is N's and its egress is the response
 path's. N and E are regenerated from their real inputs, which inputs.json hashes.
 
-  python3 compose.py <out.p4> [--relay-port=N]     (N: T's outstation-side release port; default 64)
+  python3 compose.py <out.p4> [--relay-port=N] [--no-n-response-tail-crc]
+      (N: T's outstation-side release port; default 64. The second flag: make_n.py edit 9)
 """
 import hashlib
 import re
@@ -36,12 +37,13 @@ BINDING = INTEG / 'connection' / 'binding'
 RELAY_DECL = re.compile(r'(const\s+PortId_t\s+RELAY_PORT\s*=\s*9w)(\d+)(\s*;)')
 
 
-def generate(relay_port=None):
+def generate(relay_port=None, n_response_tail_crc=True):
     """relay_port: the device port T releases toward the OUTSTATION (requests, OPERATEs, client closes).
     Default: read/ports.p4's RELAY_PORT (64). When both endpoints share one switch port (the reflected
     hardware setup, master and outstation both on 9) pass that port: T's RELAY_PORT is a compile-time
-    constant, and with 64 those frames would leave on a port the outstation is not on."""
-    n_text = make_n.generate()
+    constant, and with 64 those frames would leave on a port the outstation is not on.
+    n_response_tail_crc=False applies make_n edit 9 (E alone checks response tail/second-block CRCs)."""
+    n_text = make_n.generate(response_tail_crc=n_response_tail_crc)
     n_text = n_text.split('#ifndef NATIVE_BINDING_NO_MAIN')[0]
     n_text = ct.strip_main(ct.inline(n_text, BINDING))
     n_out, n_names = ct.role(n_text, 'n')
@@ -62,6 +64,7 @@ def generate(relay_port=None):
              HERE / 'make_n.py', HERE / 'make_e.py']
     meta = dict(inputs={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
                 relay_port=relay_port,
+                **({} if n_response_tail_crc else {'n_response_tail_crc': False}),
                 source_sha256=hashlib.sha256(source.encode()).hexdigest(),
                 renamed=dict(n=len(n_names), r=len(r_names), t=len(t_names)),
                 collisions_before_prefixing=sorted((set(n_names) & set(r_names)) | (set(n_names) & set(t_names))
@@ -70,10 +73,10 @@ def generate(relay_port=None):
 
 
 if __name__ == '__main__':
-    args = [a for a in sys.argv[1:] if not a.startswith('--relay-port=')]
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
     relay = [int(a.split('=')[1]) for a in sys.argv[1:] if a.startswith('--relay-port=')]
     out = Path(args[0])
-    src, meta = generate(relay[0] if relay else None)
+    src, meta = generate(relay[0] if relay else None, n_response_tail_crc='--no-n-response-tail-crc' not in sys.argv)
     out.write_text(src)
     out.with_suffix('.inputs.json').write_text(json.dumps(meta, indent=2) + '\n')
     print('wrote', out, meta['renamed'], 'collisions before prefixing:', meta['collisions_before_prefixing'])
