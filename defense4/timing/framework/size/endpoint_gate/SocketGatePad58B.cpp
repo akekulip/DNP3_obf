@@ -27,6 +27,7 @@
 #include <opendnp3/channel/IChannelListener.h>
 #include <opendnp3/logging/LogLevels.h>
 #include <opendnp3/master/DefaultMasterApplication.h>
+#include <opendnp3/master/HeaderTypes.h>
 #include <opendnp3/master/ICommandTaskResult.h>
 #include <opendnp3/master/ISOEHandler.h>
 #include <opendnp3/outstation/DatabaseConfig.h>
@@ -122,10 +123,13 @@ static bool matchesSeed(const ScanResult& scan) {
 
 int main(int argc, char** argv) {
     // argv: outstation host port stop-file [lifetime-seconds=15]
-    //      master     host port stop-file [read-count=3] [local-adapter=""]
+    //      master     host port stop-file [read-count=3] [local-adapter=""] [read-range=16|8] [gap-ms=0]
     // host is the outstation's bind address (0.0.0.0 = any) or the master's target.
     // local-adapter is the master's own source address; empty lets the kernel pick
     // by route, which is required to reach a non-loopback outstation.
+    // read-range 8 sends the READ with the one-octet start/stop qualifier (a 20-byte request, the form
+    // the SEL-751 harness sends) instead of ScanRange's two-octet one (22 bytes); gap-ms pauses after
+    // each READ.
     // Start the outstation (wait for READY) before the master: the master makes
     // one connect attempt within 5 s and its next retry is 60 s away.
     if (argc < 5 || !std::getenv("CASE4_PAD58B_SOCKET_GATE")) return 64;
@@ -135,6 +139,9 @@ int main(int argc, char** argv) {
     const int reads = argc > 5 ? std::atoi(argv[5]) : 3;
     const int lifetime_s = argc > 5 ? std::atoi(argv[5]) : 15;
     const std::string adapter = argc > 6 ? argv[6] : "";
+    const int range_bits = argc > 7 ? std::atoi(argv[7]) : 16;
+    const int gap_ms = argc > 8 ? std::atoi(argv[8]) : 0;
+    if ((range_bits != 16 && range_bits != 8) || gap_ms < 0) return 64;
     DNP3Manager manager(1); auto listener = std::make_shared<Listener>();
     if (role == "outstation") {
         if (lifetime_s <= 0) return 64;
@@ -176,10 +183,12 @@ int main(int argc, char** argv) {
     if (!listener->open) { manager.Shutdown(); return 2; }
     for (int i = 0; i < reads; ++i) {
         const size_t before = soe->scans.size();
-        master->ScanRange(GroupVariationID(10, 2), 0, 22, soe);
+        if (range_bits == 8) master->Scan({Header::Range8(10, 2, 0, 22)}, soe);
+        else master->ScanRange(GroupVariationID(10, 2), 0, 22, soe);
         const auto deadline = Clock::now() + std::chrono::seconds(3);
         while (soe->scans.size() <= before && Clock::now() < deadline) std::this_thread::sleep_for(std::chrono::milliseconds(2));
         std::this_thread::sleep_for(std::chrono::milliseconds(25)); // let EndFragment land
+        if (gap_ms) std::this_thread::sleep_for(std::chrono::milliseconds(gap_ms));
     }
     std::atomic<bool> done{false}, success{false}; const auto issued = now_ns(); long long completed = 0;
     master->SelectAndOperate(ControlRelayOutputBlock(OperationType::PULSE_ON, TripCloseCode::NUL, false, 1, 100, 100), 1,
