@@ -21,6 +21,7 @@ blockers, but nothing is held, so the loop ports only carry the OPERATE's forwar
 import hashlib
 import json
 import os
+import struct
 import sys
 import time
 import traceback
@@ -57,6 +58,44 @@ E_CODES = {'commit': 1, 'translate': 2, 'native': 12, 'arm_map': 13, 'rev_transl
 TO_OUTSTATION = 0
 MSS = 1460
 REAL_IIN1 = 0x90
+
+
+def close_vector(m, rep, sw, ports, step):
+    """The close-path vector from residency_shape_01/prod_shape (CLOSE=1). Runs after the T-off SELECT/OPERATE, so
+    the mapper oracle `sw` holds the native and padded frontiers of the outstation stream."""
+    # ---- clean close: the prod_shape defect. The outstation emits its FIN at its NATIVE next-seq, but the
+    # master has advanced to the PADDED frontier (every response grew by its padding). E must translate the
+    # server FIN's seq by the accumulated growth, exactly as it translates response DATA; a FIN consumes one
+    # sequence number (leff = 1). The client FIN's ACK is at the padded frontier and must reverse-map to the
+    # native frontier. A FIN forwarded in native coordinates lands behind the master's frontier and is
+    # ignored, so the connection never closes (wire_check exits 1).
+    native_front = sw.img_end          # outstation's native next-seq after the OPERATE response
+    padded_front = sw.img_wend         # the frontier the master has ACKed
+    client_seq = 136 + 35              # master's next seq after the OPERATE request
+    cfin = vectors.packet(17, client_seq, padded_front)                      # client FIN+ACK (ack = padded)
+    want_cfin_ack = sw.reverse(padded_front, 4096).ack                       # reverse-map -> native
+    step('client_FIN_reverse_mapped_to_outstation', MASTER_PORT, cfin, OUTST_PORT,
+         vectors.packet(17, client_seq, want_cfin_ack), 0x7)
+    rfin = sw.forward(native_front, 0, fin=True)                             # oracle: translated server-FIN seq
+    m.drain(ports)
+    got = m.exchange(OUTST_PORT, vectors.packet(17, native_front, client_seq + 1, reverse=True), ports, timeout=2.0, quiet=0.5)
+    returned = got[MASTER_PORT]
+    seq_ret = struct.unpack('!I', returned[0][38:42])[0] if returned else None
+    rep.add('server_FIN_seq_translated_to_padded_frontier', rfin.seq, seq_ret,
+            native_frontier=native_front, padded_frontier=padded_front,
+            received={p: [g.hex() for g in got[p]] for p in ports})
+    rep.add('server_FIN_not_left_in_native_coordinates', True, seq_ret != native_front)
+    # The master's ACK of the server FIN: FIN consumes one sequence number, so the master acknowledges
+    # padded_front + 1 (the ACK it sends once the FIN arrives at the padded frontier). It must reach the
+    # outstation reverse-mapped to native_front + 1, so the outstation's FIN is acknowledged and it stops
+    # retransmitting (prod_shape: the outstation sent its FIN three times).
+    last = vectors.packet(16, client_seq + 1, (rfin.seq + 1) & 0xffffffff)
+    want_last = vectors.packet(16, client_seq + 1, sw.reverse((rfin.seq + 1) & 0xffffffff, 4096).ack)
+    m.drain(ports)
+    got = m.exchange(MASTER_PORT, last, ports, timeout=2.0, quiet=0.5)
+    good = len(got[OUTST_PORT]) == 1 and same_frame(got[OUTST_PORT][0], want_last, last)
+    rep.add('final_ACK_of_server_FIN_reverse_mapped_to_outstation', 'frame', 'frame' if good else 'mismatch', ok=good,
+            want_ack=(native_front + 1) & 0xffffffff, received={p: [g.hex() for g in got[p]] for p in ports})
 
 
 def main():
@@ -168,6 +207,13 @@ def main():
         got = m.exchange(MASTER_PORT, vectors.packet(25, 136, 959, payload=vectors.native_select(1, 4)), ports, timeout=2.0, quiet=0.5)
         rep.add('fin_operate_retransmission_not_delivered', [], [p for p in ports if got[p]],
                 received={p: [g.hex() for g in got[p]] for p in ports})
+
+        # CLOSE=1 runs the close-path vector below (residency_shape_01/prod_shape). It is RED on the current
+        # program (route_ab_01/close_defect_01) and is meant to turn green with the close-path fix; without the
+        # flag the scenario is the T-off READ+SBO milestone check it was (18 checks).
+        if os.environ.get('CLOSE') == '1':
+            close_vector(m, rep, sw, ports, step)
+
 
         if reflectors:
             rep.record['meta']['loopback_frames'] = {str(r.port): r.summary() for r in reflectors}

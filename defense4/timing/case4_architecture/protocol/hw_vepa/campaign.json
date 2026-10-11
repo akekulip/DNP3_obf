@@ -27,7 +27,7 @@
     "ACHIEVED (hardware-quantized) rates read back in each snapshot are copied into campaign_run.json.",
     "K. The installer's --k is 2*k generator tokens per trigger; production uses --k 2 (installer default and",
     "hw/t_config.py pktgen_ops, count = 2*k); it is NOT 32.",
-    "Timing: readiness/cap sit above the fixture delay (25 ms) so the delayed child response arrives before the",
+    "Timing: readiness/cap sit above the fixture delay (5 ms) so the delayed child response arrives before the",
     "readiness deadline and the normal commit/release path is observable (audit defect D)."
   ],
   "program": "response_only",
@@ -110,8 +110,13 @@
     },
     "note": "Pick one with `preset` (or --preset). All rates are exact TM-shaper ladder values (the shaper realizes only 58/232/930/3723/14892/59570/238281 PPS; 0 = unshaped); any other value is rejected. shape_* shape the hold AND blocker queues together (measured 2026-10-11, evidence/p2_blocker_occupancy_01/STATUS.md: CLRT stays at the 0.8 ms target with unshaped precision and total passes drop 168-364x); slow_232 is a comparison preset only. block_burst null = installer default. Default stays unshaped until the lead chooses."
   },
-  "fixture": {"delay_ms": 25, "jitter_ms": 0, "casea": true,
-              "note": "jitter is not implemented by vision_run.py; any non-zero value is rejected"},
+  "fixture": {
+    "modes": ["separate_ack", "piggyback"],
+    "delay_ms": 5,
+    "jitter_ms": 0,
+    "readiness_margin_ms": 5,
+    "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
   "trials": {"reads_per_trial": 20, "trials_per_arm": 3},
   "trial_mode": "per_trial_cold",
   "traffic": {"master_port_range": {"first": 54500, "last": 54599}, "range": 8, "gap_ms": 0,

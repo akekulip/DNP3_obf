@@ -101,10 +101,11 @@ class Base(unittest.TestCase):
         (Path(self.tmp) / 'b').mkdir(exist_ok=True)
         self.cfg['evidence_dir'] = str(Path(self.tmp) / 'ev')
         self.cfg['trials']['trials_per_arm'] = 1
+        self.cfg['fixture']['modes'] = ['separate_ack']          # tests that care about both say so
         self.cfg['shaping']['preset'] = 'shape_3723'
 
-    def campaign(self, runner, arms=('size_only', 'combined'), flags=None, cfg=None):
-        return cp.Campaign(cfg or self.cfg, runner, 'c1', arms=list(arms),
+    def campaign(self, runner, arms=('size_only', 'combined'), flags=None, cfg=None, fixtures=None):
+        return cp.Campaign(cfg or self.cfg, runner, 'c1', arms=list(arms), fixtures=fixtures,
                            installer_flags=(lambda f: bool(flags and f in flags)))
 
 
@@ -131,9 +132,9 @@ class Sequence(Base):
         r = FakeRunner()
         self.campaign(r).execute()
         for arm in ('size_only', 'combined'):
-            before = [i for i in r.runs('c1_%s_t0_before.json' % arm)]
-            after = [i for i in r.runs('c1_%s_t0_after.json' % arm)]
-            run = [i for i in r.cmds('vision_run.py run c1_%s_t0' % arm)]
+            before = [i for i in r.runs('c1_separate_ack_%s_t0_before.json' % arm)]
+            after = [i for i in r.runs('c1_separate_ack_%s_t0_after.json' % arm)]
+            run = [i for i in r.cmds('vision_run.py run c1_separate_ack_%s_t0' % arm)]
             self.assertTrue(before and after and run, arm)
             self.assertLess(before[0], run[0])
             self.assertLess(run[0], after[0])
@@ -239,6 +240,73 @@ class TrialMode(Base):
         bad['traffic']['master_port_range'] = {'first': 54600, 'last': 54500}
         with self.assertRaises(ValueError):
             cp.validate_profile(bad)
+
+
+class FixtureDimension(Base):
+    """separate_ack (casea on, configurable delay) and piggyback (casea off) are separate workloads, reported
+    separately: each fixture block sets its own fixture, then runs every arm."""
+    def setUp(self):
+        super().setUp()
+        self.cfg['fixture']['modes'] = ['separate_ack', 'piggyback']
+
+    def test_shipped_defaults(self):
+        fx = json.load(open(HERE.parent / 'campaign.json'))['fixture']
+        self.assertEqual(fx['modes'], ['separate_ack', 'piggyback'])
+        self.assertEqual(fx['delay_ms'], 5)
+
+    def test_each_fixture_block_sets_its_fixture_before_its_own_traffic(self):
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r, arms=('combined',)).execute(), 0)
+        on = r.runs('vision_run.py casea on --delay-ms 5')
+        off = r.runs('vision_run.py casea off')
+        sep = r.cmds('vision_run.py run c1_separate_ack_combined_t0')
+        pig = r.cmds('vision_run.py run c1_piggyback_combined_t0')
+        self.assertTrue(on and off and sep and pig)
+        self.assertTrue(on[0] < sep[0] < off[0] < pig[0], (on, sep, off, pig))
+
+    def test_ports_are_distinct_across_fixtures(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('size_only', 'combined')).execute()
+        ins, run = master_ports(r)
+        self.assertEqual(len(ins), 4)
+        self.assertEqual(ins, run)
+        self.assertEqual(len(set(ins)), 4)
+
+    def test_results_are_recorded_separately_per_fixture(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('combined',)).execute()
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        self.assertEqual([(a['fixture'], a['arm']) for a in rec['arms']],
+                         [('separate_ack', 'combined'), ('piggyback', 'combined')])
+        self.assertEqual([t['fixture'] for a in rec['arms'] for t in a['trials']], ['separate_ack', 'piggyback'])
+        self.assertEqual(rec['effective']['fixture']['delay_ms'], 5)
+        self.assertTrue((Path(self.tmp) / 'ev' / 'c1' / 'piggyback' / 'combined').is_dir())
+
+    def test_fixtures_option_selects_a_subset(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('combined',), fixtures=['piggyback']).execute()
+        self.assertFalse(r.cmds('vision_run.py casea on'))
+        self.assertEqual(len(r.cmds('vision_run.py run')), 1)
+
+    def test_unknown_fixture_is_rejected(self):
+        bad = copy.deepcopy(self.cfg)
+        bad['fixture']['modes'] = ['separate_ack', 'jittered']
+        with self.assertRaises(ValueError):
+            cp.validate_profile(bad)
+        with self.assertRaises(ValueError):
+            self.campaign(FakeRunner(), fixtures=['nope'])
+
+    def test_readiness_must_exceed_delay_plus_margin(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['fixture']['delay_ms'] = 28                      # 28 + 5 margin >= 30 ms readiness
+        self.assertTrue(any('readiness deadline' in w for w in cp.warnings(cfg)))
+        cfg['fixture']['modes'] = ['piggyback']              # no delay is applied, so nothing to warn about
+        self.assertFalse(any('readiness deadline' in w for w in cp.warnings(cfg)))
+
+    def test_vision_is_restored_with_the_fixture_off_at_the_end(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('combined',)).execute()
+        self.assertGreater(r.runs('vision_run.py restore')[-1], r.cmds('vision_run.py run')[-1])
 
 
 class RestoreTarget(Base):
@@ -403,7 +471,7 @@ class DryRun(Base):
         rc, out = self.render(['plan', '--config', self.cfgfile(), '--arms', 'combined', '--run-id', 'c1'])
         self.assertEqual(rc, 0)
         for s in ('switch_swap.sh', 'restore_ports.py response_only', 'bringup_composite.py', '--enabled 1',
-                  'snapshot_counters.py', 'vision_run.py run c1_combined_t0', 'wire_check.py', 'clrt_check.py',
+                  'snapshot_counters.py', 'vision_run.py run c1_separate_ack_combined_t0', 'wire_check.py', 'clrt_check.py',
                   'bringup_teardown.py', 'vision_run.py restore', self.cfg['production']['launch_script']):
             self.assertIn(s, out)
 

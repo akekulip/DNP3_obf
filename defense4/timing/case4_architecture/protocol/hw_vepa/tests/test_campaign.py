@@ -73,21 +73,21 @@ class PlanContent(unittest.TestCase):
 
     def test_every_trial_has_its_own_install(self):
         applies = [c for c in self.cmds if 'bringup_composite.py' in c and '--apply' in c]
-        self.assertEqual(len(applies), 4 * self.cfg['trials']['trials_per_arm'])   # one cold bring-up per trial
+        self.assertEqual(len(applies), 4 * self.cfg['trials']['trials_per_arm'] * len(self.cfg['fixture']['modes']))
         for c in applies:
             self.assertIn('--expect bfrt.json=', c)
             self.assertIn('--enable-pktgen', c)
 
     def test_sets_T_once_per_bring_up_with_the_right_bit(self):
         sets = [c for c in self.cmds if 'set_enabled.py' in c]
-        n = 2 * self.cfg['trials']['trials_per_arm']                 # two arms have T=1, two T=0
+        n = 2 * self.cfg['trials']['trials_per_arm'] * len(self.cfg['fixture']['modes'])   # two arms T=1, two T=0
         self.assertEqual(len(sets), 2 * n)
         self.assertEqual(sum('--enabled 1' in c for c in sets), n)
         self.assertEqual(sum('--enabled 0' in c for c in sets), n)
 
     def test_each_trial_runs_endpoint_then_both_extractors(self):
         runs = [c for c in self.cmds if 'vision_run.py run' in c]
-        self.assertEqual(len(runs), 4 * self.cfg['trials']['trials_per_arm'])
+        self.assertEqual(len(runs), 4 * self.cfg['trials']['trials_per_arm'] * len(self.cfg['fixture']['modes']))
         self.assertTrue(all('--reads %d' % self.cfg['trials']['reads_per_trial'] in c for c in runs))
         self.assertEqual(len([c for c in self.cmds if 'wire_check.py' in c]), len(runs))
         self.assertEqual(len([c for c in self.cmds if 'clrt_check.py' in c]), len(runs))

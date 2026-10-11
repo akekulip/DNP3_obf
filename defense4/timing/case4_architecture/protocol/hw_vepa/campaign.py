@@ -12,22 +12,25 @@ and executes none, so the reviewed command list is exactly what `run` emits. Not
 
 `run --apply` (requires DEFENSE4_HW_AUTHORIZED=1) does, in order:
   1. refuses unless every build's hashes equal its compile manifest.json and the files on disk, the endpoint
-     binary/lib identity is pinned, and every requested arm's feature bits are expressible by the installer;
-  2. Vision: deploys vision_run.py, verifies its sha256 and the endpoint binary/lib sha256 against the pins,
-     sets the namespace TCP profile and NIC flag, switches on the separate-ACK fixture;
-  3. per install group (arms sharing a build and padding value): rsyncs the build and the installer source to
-     the switch, checks the PCI vendor, makes the conf, cold-swaps bf_switchd to the composite
-     (switch_swap.sh), replays the front-panel ports (restore_ports.py), dry-runs then applies the composite
-     installer (bringup_composite.py, with K, timing and every shaping rate from the config);
-  4. per arm: set_enabled.py for T, a before snapshot (snapshot_counters.py), the trials (vision_run.py run,
-     scp, wire_check.py, clrt_check.py, gated by run.evaluate), an after snapshot, snapshots copied back;
-  5. per group: bringup_teardown.py;
-  6. in a finally block, whatever happened: Vision casea off and profile restore, teardown of any install
-     still standing, cold swap back to the production launch script and restore_ports.py for production.
+     binary/lib identity is pinned, the master-port range covers every connection, and the installer accepts
+     every requested arm's feature bits;
+  2. Vision (read-only identity): deploys vision_run.py and verifies its sha256 and the endpoint binary/lib
+     sha256 against the pins;
+  3. switch (read-only): copies the tools and builds, reads the running program from ps and REFUSES unless it is
+     the configured production program, and snapshots its $PORT table for every later replay;
+  4. Vision: namespace TCP profile and NIC flag;
+  5. for each fixture (separate_ack = casea on, piggyback = casea off), for each arm, for each trial (one
+     connection per arm in trial_mode one_connection) a COLD bring-up on a NEW master port from
+     traffic.master_port_range: switch_swap.sh, restore_ports.py, bringup_composite.py dry-run then apply
+     (K, timing, shaping preset, --pad-enable), set_enabled.py for T, before snapshot, vision_run.py run, scp,
+     wire_check.py, clrt_check.py (gated by run.evaluate), after snapshot copied back, bringup_teardown.py;
+  6. in a finally block, whatever happened: tear down any install still standing, cold-swap to the production
+     launch script, restore_ports.py on the pre-run snapshot, reinstall the relay slot, Vision restore, then a
+     ping that must succeed.
 The first failed step or trial stops the campaign (fail-fast); the restore still runs; the exit status is
-nonzero if any step, trial or restore step failed. campaign_run.json records the effective parameters, the
-bound hashes, the observed endpoint identity, per-trial verdicts and the ACHIEVED (hardware-quantized)
-shaping rates read back in each after-snapshot.
+nonzero if any step, trial or restore step failed. campaign_run.json records the effective parameters (preset,
+fixture, K, timing), the bound hashes, the observed endpoint identity and pre-run program, per-trial verdicts
+and the ACHIEVED (hardware-quantized) shaping rates read back in each after-snapshot.
 
 T on/off is a live toggle on one install. Padding on/off is the E conn policy row written at install time
 (see campaign.json _notes); the installer flag that writes it is outstanding, so padding-off arms are refused
@@ -58,6 +61,7 @@ REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'ti
             'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production')
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
 ROLES = ('ack', 'resp', 'op')
+FIXTURES = ('separate_ack', 'piggyback')
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)
 HEX64 = re.compile(r'[0-9a-f]{64}')
 HEX40 = re.compile(r'[0-9a-f]{40}')
@@ -128,6 +132,11 @@ def validate_profile(cfg):
     if not (isinstance(pr.get('first'), int) and isinstance(pr.get('last'), int)
             and 1024 <= pr['first'] <= pr['last'] <= 65535):
         raise ValueError('traffic.master_port_range needs integer first <= last within 1024..65535, got %r' % pr)
+    modes = cfg['fixture'].get('modes')
+    if not modes or any(m not in FIXTURES for m in modes) or len(set(modes)) != len(modes):
+        raise ValueError('fixture.modes must be a non-empty list of distinct values from %s, got %r' % (FIXTURES, modes))
+    if 'separate_ack' in modes and not cfg['fixture'].get('delay_ms', 0) > 0:
+        raise ValueError('fixture.delay_ms must be > 0 for the separate_ack fixture')
     if cfg['fixture'].get('jitter_ms', 0) != 0:
         raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
 
@@ -211,11 +220,14 @@ def bind_builds(cfg):
 def warnings(cfg):
     """Non-fatal advisories that encode known traps (returned, not raised)."""
     w = []
-    fixture_ns = int(cfg['fixture']['delay_ms'] * 1_000_000)
-    if fixture_ns >= cfg['timing_params_ns']['readiness']:
-        w.append('fixture delay %d ms >= T readiness %d ns: the child response arrives after the readiness '
-                 'deadline, so the normal commit/release path cannot be observed (defect D). Lower the '
-                 'fixture delay or raise readiness.' % (cfg['fixture']['delay_ms'], cfg['timing_params_ns']['readiness']))
+    fx = cfg['fixture']
+    if 'separate_ack' in fx.get('modes', FIXTURES):
+        need_ns = int((fx['delay_ms'] + fx.get('readiness_margin_ms', 0)) * 1_000_000)
+        if need_ns >= cfg['timing_params_ns']['readiness']:
+            w.append('fixture delay %s ms + %s ms margin >= T readiness %d ns: the child response arrives after the '
+                     'readiness deadline (or too close to it), so the normal commit/release path cannot be '
+                     'observed (defect D). Lower the fixture delay or raise readiness.'
+                     % (fx['delay_ms'], fx.get('readiness_margin_ms', 0), cfg['timing_params_ns']['readiness']))
     return w
 
 
@@ -264,7 +276,7 @@ def q(x):
 
 
 class Campaign:
-    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print):
+    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
         self.installer_has = installer_flags or (lambda flag: default_installer_flags(flag))
         names = [a['name'] for a in cfg['arms']]
@@ -273,6 +285,11 @@ class Campaign:
         if unknown:
             raise ValueError('unknown arm(s) %s; the config defines %s' % (unknown, names))
         self.arms = [a for a in cfg['arms'] if a['name'] in want]
+        modes = cfg['fixture']['modes']
+        self.fixtures = fixtures or list(modes)
+        bad = [f for f in self.fixtures if f not in modes]
+        if bad:
+            raise ValueError('unknown or unconfigured fixture(s) %s; fixture.modes is %s' % (bad, modes))
         self.R = cfg['hosts']['switch_remote_dir']
         self.V = vr.HOME
         self.prerun = '%s/snap/%s_prerun.json' % (self.R, run_id)
@@ -284,11 +301,11 @@ class Campaign:
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
     def units(self):
-        """[(arm, index, reads)]: one cold bring-up and one connection each. per_trial_cold: every trial of
-        every arm; one_connection: one per arm carrying all of that arm's READs."""
+        """[(fixture, arm, index, reads)]: one cold bring-up and one connection each, fixture-major.
+        per_trial_cold: every trial of every arm; one_connection: one per arm carrying all of its READs."""
         t, one = self.cfg['trials'], self.cfg['trial_mode'] == 'one_connection'
-        return [(arm, i, t['reads_per_trial'] * (t['trials_per_arm'] if one else 1))
-                for arm in self.arms for i in range(1 if one else t['trials_per_arm'])]
+        return [(fx, arm, i, t['reads_per_trial'] * (t['trials_per_arm'] if one else 1))
+                for fx in self.fixtures for arm in self.arms for i in range(1 if one else t['trials_per_arm'])]
 
     def ports(self):
         pr = self.cfg['traffic']['master_port_range']
@@ -352,8 +369,12 @@ class Campaign:
             self.vision_identity()
             self.switch_toolkit()
             self.vision_setup()
-            for (arm, i, reads), port in zip(self.units(), self.ports()):
-                self.run_unit(arm, i, reads, port)
+            current = None
+            for (fx, arm, i, reads), port in zip(self.units(), self.ports()):
+                if fx != current:
+                    self.set_fixture(fx)
+                    current = fx
+                self.run_unit(fx, arm, i, reads, port)
         except (StepFailed, ValueError, OSError) as e:
             failed = True
             self.record['failure'] = str(e)
@@ -423,10 +444,15 @@ class Campaign:
         self.vision_touched = True
         self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)',
                   'sudo python3 %s/vision_run.py setup' % V)
-        fx = self.cfg['fixture']
-        if fx.get('casea'):
-            self.step('vision', 'separate-ACK + delayed-response fixture on (emulated relay)',
-                      'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (V, fx['delay_ms']))
+
+    def set_fixture(self, fixture):
+        """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
+        if fixture == 'separate_ack':
+            self.step('vision', 'fixture separate_ack: casea on, response delayed %d ms' % self.cfg['fixture']['delay_ms'],
+                      'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (self.V, self.cfg['fixture']['delay_ms']))
+        else:
+            self.step('vision', 'fixture piggyback: casea off (ACK rides on the response)',
+                      'sudo python3 %s/vision_run.py casea off' % self.V)
 
     def check_hash(self, result, want, what):
         if self.rn.dry:
@@ -435,28 +461,28 @@ class Campaign:
         if got != want:
             raise StepFailed('%s: sha256 %s does not match the pinned %s' % (what, got, want))
 
-    def arm_record(self, arm):
+    def arm_record(self, fixture, arm):
         for rec in self.record['arms']:
-            if rec['arm'] == arm['name']:
+            if rec['arm'] == arm['name'] and rec['fixture'] == fixture:
                 return rec
-        rec = {'arm': arm['name'], 'T': arm['T'], 'padding': arm['padding'], 'build': arm['build'], 'trials': [],
+        rec = {'fixture': fixture, 'arm': arm['name'], 'T': arm['T'], 'padding': arm['padding'], 'build': arm['build'], 'trials': [],
                'achieved_shaping': None}
         self.record['arms'].append(rec)
         return rec
 
-    def run_unit(self, arm, i, reads, port):
+    def run_unit(self, fixture, arm, i, reads, port):
         """One cold bring-up and one connection: swap, ports, install, T, snapshot, traffic, snapshot, teardown."""
         c, R, host = self.cfg, self.R, self.cfg['hosts']['switch']
         aux, build, tr = R + '/aux', arm['build'], c['traffic']
         b = c['builds'][build]
         n, out_remote = arm['name'], '%s/out_%s' % (R, build)
-        label = '%s_%s_t%d' % (self.run_id, n, i)
+        label = '%s_%s_%s_t%d' % (self.run_id, fixture, n, i)
         conf = '%s/response_only_hw_%s.conf' % (R, label)
         manifest, log = '%s/bringup_manifest_%s.json' % (R, label), '%s/switchd_%s.log' % (R, label)
-        rec = self.arm_record(arm)
-        trial = {'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': []}
+        rec = self.arm_record(fixture, arm)
+        trial = {'fixture': fixture, 'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': []}
         rec['trials'].append(trial)
-        dest = os.path.join(self.root, n, label)
+        dest = os.path.join(self.root, fixture, n, label)
         self.step('switch', '%s: PCI vendor must be Barefoot/Intel (0x1d1c)' % label,
                   'test "$(cat /sys/bus/pci/devices/%s/vendor)" = 0x1d1c' % b['pcie'])
         self.step('switch', '%s: make the bf_switchd conf for this build' % label,
@@ -472,7 +498,7 @@ class Campaign:
         self.standing.append(manifest)
         self.step('switch', '%s: composite install apply (loopback first, apps enabled last)' % label,
                   self.hw_env(comp + ' --apply --enable-pktgen --manifest-out %s' % manifest))
-        self.record['bringups'].append({'label': label, 'arm': n, 'trial': i, 'master_port': port,
+        self.record['bringups'].append({'label': label, 'fixture': fixture, 'arm': n, 'trial': i, 'master_port': port,
                                         'padding': arm['padding'], 'T': arm['T'], 'manifest': manifest})
         self.step('switch', '%s: select T (0=Timing OFF, 1=Obfuscated)' % label, self.hw_env(self.switch_cmd(
             'set_enabled.py', '--manifest %s --enabled %d' % (manifest, arm['T']))))
@@ -596,6 +622,7 @@ def main(argv=None):
     ap.add_argument('--config', default=os.path.join(HERE, 'campaign.json'))
     ap.add_argument('--arms', help='comma-separated arm names to run (default: all arms in the config)')
     ap.add_argument('--run-id', default=None)
+    ap.add_argument('--fixtures', help='comma-separated fixtures to run (default: fixture.modes)')
     ap.add_argument('--preset', help='shaping preset from campaign.json (default: shaping.preset)')
     ap.add_argument('--apply', action='store_true', help='required for run: actually execute on hardware')
     ap.add_argument('--dry-run', action='store_true', help='run: print the commands instead (same as plan)')
@@ -618,8 +645,9 @@ def main(argv=None):
         return 0
     run_id = a.run_id or time.strftime('c%Y%m%dT%H%M%S')
     arms = a.arms.split(',') if a.arms else None
+    fixtures = a.fixtures.split(',') if a.fixtures else None
     if a.mode == 'plan' or a.dry_run:
-        return Campaign(cfg, DryRunner(), run_id, arms).execute()
+        return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures).execute()
     if not a.apply:
         sys.exit('run needs --apply to execute on hardware; use `plan` (or --dry-run) to see the commands first')
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
@@ -627,7 +655,7 @@ def main(argv=None):
     bad = check_bindings(cfg)
     if bad:
         sys.exit('refusing to run, unbound identity: %s' % '; '.join(bad))
-    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms).execute()
+    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms, fixtures=fixtures).execute()
 
 
 if __name__ == '__main__':
