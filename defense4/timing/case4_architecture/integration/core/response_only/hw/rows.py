@@ -37,7 +37,7 @@ def _uses(rows, port):
                for _t, key, _a, data, _p in rows)
 
 
-def build(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100):
+def build(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100, pad_enable=True):
     """Every N/E row the model driver installs for connection A, with these endpoints and the BUILD's ports.
 
     N's ACK lap port goes to every cp.py builder as n_ack_return= (cp.py's interface since port_map.py).
@@ -56,7 +56,9 @@ def build(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100):
             ('hdr.tcp.sport', outstation.port), ('hdr.tcp.dport', master.port))
     dc = tuple((k, decoy[k]) for k in ('index', 'code', 'repeat', 'on', 'off'))
     n_rows += [('Ingress.data_connection', k, 'Ingress.configure', dc, None) for k in (fwd4, rev4)]
-    e_rows = cp.e_conn_rows(0, outstation, master, n_ack_return=ack)
+    # pad_enable -> the Egress.conn fwd_conn row's `enable`: 0 keeps the mapper armed and translating but
+    # grows nothing (the policy-off control); 1 pads (the default, unchanged).
+    e_rows = cp.e_conn_rows(0, outstation, master, pad_enable=bool(pad_enable), n_ack_return=ack)
     cp.check_no_loop(n_rows + e_rows, n_ack_return=ack)          # the control-plane loop guard, over every row
     default = cp.N_ACK_RETURN
     stale = default not in (ack, master.dev_port, outstation.dev_port, cp.RETURN_PORT) and _uses(n_rows + e_rows, default)

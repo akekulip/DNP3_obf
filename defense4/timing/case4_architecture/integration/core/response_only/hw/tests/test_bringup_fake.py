@@ -382,6 +382,50 @@ class SetEnabled(Base):
         self.assertEqual(len(fake.LOG), calls)
 
 
+class PadEnable(Base):
+    def fwd_rows(self):
+        """Installed E fwd_conn rows: {key: data} read from the fake switch after bring-up."""
+        t = fake.STATE.get('p0.r_Egress.conn', fake.Table('x'))
+        return [e for e in t.e.values() if e.get('action_name') == 'r_Egress.fwd_conn']
+
+    def test_default_pads_enable_1(self):
+        rc, out = run(bc.main, self.argv())
+        self.assertEqual(rc, 0, out[-500:])
+        self.assertEqual([r['enable'] for r in self.fwd_rows()], [1])
+        self.assertIn('pad_enable=1', out)
+
+    def test_pad_enable_0_writes_enable_0_and_keeps_the_mapper_rows(self):
+        rc, out = run(bc.main, self.argv('--pad-enable', '0'))
+        self.assertEqual(rc, 0, out[-500:])
+        self.assertEqual([r['enable'] for r in self.fwd_rows()], [0])            # policy off: no growth
+        rev = [e for e in fake.STATE['p0.r_Egress.conn'].e.values() if e.get('action_name') == 'r_Egress.rev_conn']
+        self.assertEqual(len(rev), 1)                                           # mapper still armed/translating
+        self.assertEqual(len(fake.STATE['p0.r_Egress.odd_ip_t'].e), 2)
+        self.assertIn('INSTALLED', out)
+        self.assertIn('pad_enable=0', out)
+        fwd = [op for op in self.installed() if op.get('action') == 'r_Egress.fwd_conn']
+        self.assertEqual(dict(fwd[0]['data'])['enable'], 0)                     # manifest records what was written
+
+    def test_a_wrong_enable_on_readback_fails_closed(self):
+        import switch as sw_mod
+        orig = sw_mod.Switch.write
+
+        def flip(self, op):                       # the switch stores the opposite enable
+            if op.get('action') == 'r_Egress.fwd_conn':
+                op = dict(op, data=[(n, (1 - v if n == 'enable' else v)) for n, v in op['data']])
+            return orig(self, op)
+        sw_mod.Switch.write = flip
+        self.addCleanup(setattr, sw_mod.Switch, 'write', orig)
+        rc, out = run(bc.main, self.argv('--pad-enable', '0'))
+        self.assertEqual(rc, 2)
+        self.assertIn('readback mismatch', out)
+        self.assertIn('enable', out)
+
+    def test_pad_enable_rejects_other_values(self):
+        with self.assertRaises(SystemExit):
+            bc.parse(['--build-out', 'x', '--master-port', '1', '--pad-enable', '2'])
+
+
 class LoopPortStats(Base):
     def test_snapshot_reports_packets_and_bytes_per_loop_port_from_the_build(self):
         from switch import Switch

@@ -51,6 +51,9 @@ def parse(argv):
     ap.add_argument('--read-src', type=lambda s: int(s, 0), default=0x0100)
     for k, v in tc.T_PARAM_DEFAULTS.items():
         ap.add_argument('--t-' + k.replace('_', '-'), dest='t_' + k, type=int, default=v)
+    ap.add_argument('--pad-enable', type=int, choices=(0, 1), default=1,
+                    help='E padding policy on the fwd_conn row: 1 pads (default), 0 = policy-off control '
+                         '(mapper armed and translating, no growth)')
     ap.add_argument('--k', type=int, default=2, help='2*k generator tokens per trigger (queue_sim default k=2)')
     for role in ('ack', 'resp', 'op'):
         ap.add_argument('--shape-%s-pps' % role, type=int, default=0, dest='shape_%s' % role,
@@ -112,7 +115,7 @@ def plan(a, ports):
     and E is in place."""
     master, relay = rows.endpoints(a.master_ip, a.master_port, a.master_dev, a.relay_ip, a.relay_port, a.relay_dev)
     decoy = {k: getattr(a, 'crob_' + k) for k in rows.VECTOR_DECOY}
-    ne = rows.build(master, relay, decoy, ports, a.read_dst, a.read_src)
+    ne = rows.build(master, relay, decoy, ports, a.read_dst, a.read_src, pad_enable=a.pad_enable)
     e_rows = [r for r in ne if r['table'].startswith('p0.r_')]
     n_conn = [r for r in ne if r['table'] == 'p0.n_Ingress.connection']
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
@@ -290,7 +293,8 @@ def apply(ops, a, ports):
             stop('T registers moved during bring-up (was the master quiet?): %s' % bad)
         if sw.sw_read:
             print('NOTE: read back from software state, not hardware (no hardware read on this SDE): %s' % ', '.join(sorted(sw.sw_read)))
-        print('INSTALLED %d writes; manifest %s; pktgen %s' % (len(done), manifest,
+        print('INSTALLED %d writes; manifest %s; pad_enable=%d; T enabled=%d; pktgen %s' % (len(done), manifest,
+                                                                 a.pad_enable, a.t_enabled,
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
         shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
         block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
@@ -309,7 +313,8 @@ def main(argv=None):
         print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
         return 1
     ops = plan(a, ports)
-    print('PLAN: %d writes (+%d pktgen enables, last, only with --enable-pktgen)' % (len(ops), len(tc.PKTGEN_APPS)))
+    print('PLAN: %d writes (+%d pktgen enables, last, only with --enable-pktgen) | pad_enable=%d | T enabled=%d'
+          % (len(ops), len(tc.PKTGEN_APPS), a.pad_enable, a.t_enabled))
     for op in ops:
         print('    ', show(op))
     names = offline(ops, a, ports)
