@@ -99,7 +99,8 @@ def check_registers(names, tables):
 # Tables only READ (readback.py, switch.resolve_queue, snapshot_counters.py): table -> (key names, data names).
 READ_ONLY = {'tf1.tm.port.cfg': (['dev_port'], ['pg_id', 'port_queues_count', 'ingress_qid_map', 'egress_qid_queues']),
              'tf1.tm.counter.queue': (['pg_id', 'pg_queue'], ['watermark_cells', 'drop_count_packets']),
-             '$PORT_STAT': (['$DEV_PORT'], [])}
+             '$PORT_STAT': (['$DEV_PORT'], []),
+             '$PORT': (['$DEV_PORT'], ['$PORT_ENABLE', '$PORT_UP', '$MEDIA_TYPE', '$LOOPBACK_MODE'])}
 
 
 def check_reads(tables, extra_fixed=()):

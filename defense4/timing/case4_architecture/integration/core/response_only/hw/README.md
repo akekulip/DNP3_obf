@@ -1,60 +1,87 @@
 # Hardware bring-up of the response-only composite (N + E in pipe 0, T in pipe 1)
 
-Prepared offline on 2026-10-10. Nothing here has run against the switch. `switch.py`, `--apply` and the
-teardown are exercised only against `tests/fake/bfrt_grpc`, an in-memory client. That tests our logic and
-the client-side behaviour read from the SDE 9.13.1 `bfrt_grpc/client.py`; it says nothing about silicon.
+The installer ran on the switch on 2026-10-11 against `shared_port_01/shared_compile_switch_9132` and
+reached `INSTALLED` (31 writes read back); the teardown read back 31 of 32. That build then failed on its
+first connection, because the ports it loops through do not recirculate (see below). Everything added since
+(ports read from the build, the loopback step, `set_enabled.py`, the default-app teardown rule) has run
+only against `tests/fake/bfrt_grpc`, an in-memory client. That tests our logic, not the switch.
 
-## Which build
+## Which build, and where the ports come from
 
-Load a composite whose N `ports` table is keyed on `hdr.ip.src`: that is what the current `cp.py` emits,
-and the name check refuses any other build. On 2026-10-10 the two that match are under
-`evidence/route_ab_01/shared_port_01/`:
+**Only pipe-local port 68 recirculates on this switch** (dev 68 and 196; measured,
+`evidence/recirc_ports_01/STATUS.md`). Dev 69-71 and 197-199 have `$PORT` entries, but frames sent there
+never return and a loopback write does not take. Every other looping port must be a free front-panel port in
+MAC loopback: the plan is `N_ACK_RETURN` 48, `T_IN` 180, `HB_RETURN` 181, `HELD_RETURN` 182.
 
-| build | T's compiled relay port | use with |
-|---|---|---|
-| `distinct_compile_switch_9132/out` | 64 | master on dev 9, outstation on dev 64 |
-| `shared_compile_switch_9132/out` | 9 | both endpoints on dev 9 |
+The installer holds no port numbers. It reads every port from the build, `out/response_only.p4pp` (bf-p4c
+writes it next to `bfrt.json`): `n_N_ACK_RETURN`, `n_RETURN_PORT`, `n_READ_HANDOFF_PORT`, `t_T_IN`,
+`t_HB_RETURN`, `t_HELD_RETURN`, `t_PKTGEN_RETURN`, `t_FORWARD_PORT`, `t_RELAY_PORT`, the clone session id and
+the two ports E's egress parser dispatches on. Those values drive the loopback writes, the TM queue rows,
+the generator and mirror ports, and the `n_ack_return=` argument of every `cp.py` builder. A build is
+refused offline when:
 
-T's forward and relay ports are compile-time constants, not table entries. `bringup_composite.py` reads them
-from `out/response_only.p4pp` (bf-p4c writes it next to `bfrt.json`) and refuses a build whose ports are not
-`--master-dev` / `--relay-dev`. Older builds are unusable for a second reason as well:
-`clone_marker_composite_01` has the OR clone tag fixed by `ebe33beca`, and `op_tag_composite_02` predates
-the `hdr.ip.src` key (its provenance record is `op_tag_composite_02/source/response_only.inputs.json`).
+- its forward / relay ports are not `--master-dev` / `--relay-dev`;
+- N's handoff port is not T's input, or E does not dispatch on N's ACK lap port and the master's port;
+- a looping port is 9, 10, 11, 64 or an endpoint port;
+- a looping port is a pipe-local 69-71 (so every build up to `shared_port_01` is refused);
+- its N `ports` table lacks the `hdr.ip.src` key the current `cp.py` emits.
 
 **Hashes are not written here.** `make_conf.py` prints the sha256 of `bfrt.json`, both `context.json` and
-both `tofino.bin` for the build it is given. Pass the three it prints for `bfrt.json`, `p0/tofino.bin` and
-`p1/tofino.bin` to `bringup_composite.py --expect`. They must equal the build's `manifest.json`
-(`artifact_sha256`) on the workstation.
+both `tofino.bin` for the build it is given. Pass the three for `bfrt.json`, `p0/tofino.bin` and
+`p1/tofino.bin` to `--expect`. They must equal the build's `manifest.json` on the workstation.
 
 ## Files
 
 | file | does |
 |---|---|
-| `make_conf.py` | bf_switchd conf from `out/`: pipe_scope `[0]`/`[1]`, absolute remote paths, PCIe `0000:04:00.0`. Fails if `--pcie` disagrees or `/sys/bus/pci/devices/<addr>/vendor` is not `0x1d1c` (`--offline` skips that read and prints the command) |
-| `rows.py` | N and E rows for slot 0, from `cp.py` only, `check_no_loop` over every row |
-| `t_config.py` | T params (range- and order-checked), mirror session 7 → 196, TM strict-priority ladder, pipe-1 packet generator |
-| `check_names.py` | offline check of every table, key, match type, width, action, data field, register, duplicate key and table size against `bfrt.json` plus the SDE shared schemas |
+| `make_conf.py` | bf_switchd conf from `out/`: pipe_scope `[0]`/`[1]`, absolute remote paths, PCIe `0000:04:00.0`. Fails if `--pcie` disagrees or `/sys/bus/pci/devices/<addr>/vendor` is not `0x1d1c` (`--offline` skips that read) |
+| `build_ports.py` | reads every port from `out/response_only.p4pp` and checks them |
+| `rows.py` | N and E rows for slot 0, from `cp.py` only, with the build's lap port |
+| `t_config.py` | loopback, strict-priority ladder, packet generator, mirror, T params |
+| `check_names.py` | offline check of every table, key, match type, width, action, data field, register, duplicate key and table size |
 | `switch.py` | the only gRPC module |
 | `readback.py` | readback of every write, T register reset values, counter snapshot |
 | `bringup_composite.py` | dry-run by default; `--apply` is fail-closed |
+| `set_enabled.py` | changes only T's `enabled` on a live install, for alternating Timing OFF / Obfuscated blocks |
 | `bringup_teardown.py` | generator off, T off, wait for the flush to settle, then undo in reverse with readback |
-| `snapshot_counters.py` | JSON of T outcomes, generator counters, queue watermark/drops, `$PORT_STAT`. Read-only, but it binds a BF Runtime client, so it needs `DEFENSE4_HW_AUTHORIZED=1` like the others |
-| `tests/` | 29 tests: name-check faults, refusals, and `apply()` / `switch.py` / teardown against the fake client |
+| `snapshot_counters.py` | JSON of T outcomes, generator counters, queue watermark/drops on the build's ladder ports, `$PORT_STAT` |
+| `tests/` | 47 tests: name-check faults, refusals, and `apply()` / `switch.py` / teardown / `set_enabled` against the fake client |
+
+Every script that binds a BF Runtime client needs `DEFENSE4_HW_AUTHORIZED=1`.
+
+## What the installer writes to `$PORT`, and what it never touches
+
+It makes exactly one kind of `$PORT` write: `$LOOPBACK_MODE = BF_LPBK_MAC_NEAR` on each front-panel looping
+port the build names, by `entry_mod` on the existing entry (the write that worked on this switch on
+2026-10-11, `evidence/recirc_ports_01/recirc_probe.py`; the frozen
+`defense4_rrc_bor_unified12_setup.py:hw_config_bor_loopback` is the older precedent). The teardown writes
+`BF_LPBK_NONE` back and reads it.
+
+It never writes speed, FEC, auto-negotiation, enable, or any other `$PORT` field. It never creates or
+deletes a `$PORT` entry. It never touches dev 9, 10, 11, 64, an endpoint port, or a port whose link was up.
+Bringing ports up is `restore_ports.py`'s job.
+
+Before the first write, each port to be looped must have a `$PORT` entry, be enabled, have link down
+(a port with link up may be someone's connection), not already be in loopback, and have an empty cage
+(media UNKNOWN) unless `--allow-loopback-port <dev>` names it. After the write the mode is read back and
+`$PORT_UP` must become True within `--loopback-wait` (default 10 s; it took under 3 s on the switch).
+Loopback is volatile: a cold restart clears it, so every bring-up sets it.
 
 ## Run order on the switch host
 
 **The master must stay quiet (no SYN, no traffic on the connection) from the launch until
-`bringup_composite.py` prints `INSTALLED`.** Writes go in the order queues, generator (apps disabled),
-mirror, T params, E rows, N rows, with N's `connection` rows last. The T register check runs before the
-first write and again just before `INSTALLED`.
+`bringup_composite.py` prints `INSTALLED`.** Writes go in the order loopback, queues, generator (apps
+disabled), mirror, T params, E rows, N rows, with N's `connection` rows last. The T register check runs
+before the first write and again just before `INSTALLED`.
 
 ```bash
 # 0. on the workstation: copy the build and the scripts, keeping the relative layout cp.py needs
 R=/home/decps/Philip_repo/dnp3-defense4/<build name>
-E=integration/evidence/route_ab_01/shared_port_01/<distinct|shared>_compile_switch_9132
+E=integration/evidence/route_ab_01/<build>/<...>compile_switch_9132
 cd defense4/timing/case4_architecture
 rsync -a $E/out/ decps@<switch>:$R/out/
-rsync -aR integration/core/response_only/cp.py integration/core/response_only/hw protocol/response_path_cp.py decps@<switch>:$R/src/
+rsync -aR integration/core/response_only/cp.py integration/core/response_only/port_map.py \
+  integration/core/response_only/hw protocol/response_path_cp.py decps@<switch>:$R/src/
 # 1. on the switch: PCI check and conf; note the three sha256 lines it prints
 cat /sys/bus/pci/devices/0000:04:00.0/vendor          # must print 0x1d1c
 python3 $R/src/integration/core/response_only/hw/make_conf.py $R/out --remote-dir $R/out --pcie 0000:04:00.0 -o $R/response_only_hw.conf
@@ -65,17 +92,21 @@ export SDE=/home/decps/Downloads/bf-sde-9.13.2 SDE_INSTALL=$SDE/install LD_LIBRA
 sudo -E setsid nohup bash -c "tail -f /dev/null | $SDE_INSTALL/bin/bf_switchd --install-dir $SDE_INSTALL \
   --conf-file $R/response_only_hw.conf --init-mode=cold --status-port 7777" > $R/switchd.log 2>&1 < /dev/null &
 #    wait for :50052; grep -E 'device_add failed|cannot be assigned' $R/switchd.log must be empty
-# 3. ports: replay $PORT from the snapshot
+# 3. ports: replay $PORT from the snapshot (this is what enables the front-panel entries, the free cages too)
 python3 framework/control/restore_ports.py response_only live_snapshot_20261006.json.gz --apply --wait 35
-# 4. dry-run on the switch (uses the switch's own 9.13.2 shared schemas by default)
+# 4. dry-run on the switch: prints the ports read from the build and which of them it will loop
 cd $R/src/integration/core/response_only/hw
 X="--build-out $R/out --expect bfrt.json=<sha> --expect p0/tofino.bin=<sha> --expect p1/tofino.bin=<sha>"
 python3 bringup_composite.py $X <endpoint arguments>
-# 5. apply; add --enable-pktgen to enable the two apps last, after every readback passed
-DEFENSE4_HW_AUTHORIZED=1 python3 bringup_composite.py $X <endpoint arguments> --apply
-DEFENSE4_HW_AUTHORIZED=1 python3 snapshot_counters.py -o before.json
-# 6. teardown
-DEFENSE4_HW_AUTHORIZED=1 python3 bringup_teardown.py --manifest bringup_manifest.json --apply
+# 5. apply: loopback first, then everything else; --enable-pktgen enables the two apps last
+export DEFENSE4_HW_AUTHORIZED=1
+python3 bringup_composite.py $X <endpoint arguments> --apply --enable-pktgen
+python3 snapshot_counters.py --build-out $R/out -o before.json
+# 6. alternate timing blocks on the live install (only T's `enabled` changes; read back each time)
+python3 set_enabled.py --manifest bringup_manifest.json --enabled 0     # Timing OFF
+python3 set_enabled.py --manifest bringup_manifest.json --enabled 1     # Obfuscated
+# 7. teardown (also takes the loopback off)
+python3 bringup_teardown.py --manifest bringup_manifest.json --apply
 #    production restore = cold restart with bringup_20261005/launch.sh + restore_ports.py (rehearsed 2026-10-06)
 ```
 
@@ -83,110 +114,110 @@ Endpoint arguments are plain values and nothing assumes the two dev ports differ
 `--master-ip --master-port --master-dev --relay-ip --relay-port --relay-dev --read-dst --read-src
 --crob-index --crob-code --crob-repeat --crob-on --crob-off`.
 
-- **SEL-751 run (distinct build):** `--master-port <fixed port>` alone (defaults 192.168.10.1 dev 9,
-  192.168.10.7:20000 dev 64, link addresses outstation 0 / master 1).
-- **First run, software endpoints sharing dev 9 (shared build):** `--master-ip 192.168.10.61 --master-port
+- **SEL-751 run (build with relay port 64):** `--master-port <fixed port>` alone (defaults 192.168.10.1
+  dev 9, 192.168.10.7:20000 dev 64, link addresses outstation 0 / master 1).
+- **Software endpoints sharing dev 9 (build with relay port 9):** `--master-ip 192.168.10.61 --master-port
   <port> --master-dev 9 --relay-ip 192.168.10.62 --relay-port 20000 --relay-dev 9 --read-dst 0x0a00
-  --read-src 0x0100`. `--read-dst` / `--read-src` are the DNP3 link destination and source of a request as
-  the P4 compares them, in wire byte order: outstation 10 is `0a 00` = 0x0a00, master 1 is `01 00` = 0x0100.
+  --read-src 0x0100`. `--read-dst` / `--read-src` are the DNP3 link destination and source of a request in
+  wire byte order: outstation 10 is `0a 00` = 0x0a00, master 1 is `01 00` = 0x0100.
 - **CROB.** The gate's SELECT carries index 1, PULSE_ON (code 1), count 1, on 100 ms, off 100 ms. The
-  `--crob-*` arguments are not that object. They are the `data_connection` values the model driver installs
-  from `vectors.decoy_config()`: the inert decoy object (`vectors.DECOY`, index 201, code 1, count 1, on 0,
-  off 0), in wire byte order, so index 201 is 0xC900 = 51456. See open question 5.
+  `--crob-*` arguments are not that object: they are the `data_connection` values the model driver installs
+  from `vectors.decoy_config()` (the inert decoy, index 201 = 0xC900 in wire order). The response-only N
+  never reads them, so the hardware stores nothing and they read back 0 (measured 2026-10-11).
 
 ### What `--apply` refuses
 
-Before any gRPC call: a file whose sha256 differs from `--expect`; a build compiled for other ports; T
-params out of range or not `da < readiness <= cap`; any name-check error; an existing `--manifest-out` file
-(it records an install, so tear that down or move it first); and a running daemon that is not exactly one
-`bf_switchd` whose `--conf-file` names the files under `--build-out` as program `response_only`.
+Before any gRPC call: a file whose sha256 differs from `--expect`; a build refused by the port checks above;
+T params out of range or not `da < readiness <= cap`; any name-check error; an existing `--manifest-out`
+file; and a running daemon that is not exactly one `bf_switchd` whose `--conf-file` names the files under
+`--build-out` as program `response_only`.
 
-After connecting, before the first write: a target P4 table that is not empty, mirror session 7 present, a T
-register off its reset value. No manifest is created if nothing was written.
+After connecting, before the first write: a loopback pre-check failure, a target P4 table that is not empty,
+the mirror session present, a T register off its reset value. No manifest is created if nothing was written.
 
 During writes it stops at the first failure: a pre-read with no value for a field about to be overwritten, a
-write error (the whole gRPC message is printed), a readback mismatch, or a recirculation port that does not
-report an identity-mapped queue for the qid. Each write is recorded in the manifest as soon as it succeeds.
-
-**First contact with the generator tables.** Bring-up reads `tf1.pktgen.port_cfg`, `pkt_buffer` and
-`app_cfg` before writing them, so the teardown can put the old values back. That pre-read has no silicon
-precedent. An app that was never configured may answer with an error, and bring-up will then stop at the
-first generator write (nothing but the six queue priorities written, all recorded). If that happens, the
-error text printed is the evidence needed to decide how to treat an unconfigured app.
+write error (the whole gRPC message is printed), a readback mismatch, a looped port whose link does not come
+up, or a port that does not report an identity-mapped queue for the qid. Each write is recorded in the
+manifest as soon as it succeeds.
 
 ### What the teardown does and does not put back
 
 Generator apps are disabled, T is switched off (`enabled=0`), and no row is deleted until
-`OUT_HELD_OFF_FLUSH` and `OUT_TOKEN_OFF` hold still. Then every write is undone in reverse and read back.
-An app that held another trigger type before bring-up cannot be restored from the manifest: it is left
-disabled as `trigger_recirc_pattern`, reported as `NOT restored`, and the exit code is 1. A restore with no
-recorded value is refused and reported the same way.
+`OUT_HELD_OFF_FLUSH` and `OUT_TOKEN_OFF` hold still. Then every write is undone in reverse and read back;
+loopback comes off last.
 
-## Offline result (2026-10-10)
+A generator app whose state before bring-up was the SDE default (disabled, `trigger_timer_one_shot`) is left
+disabled and reported as `left disabled (default was a disabled one-shot)`; that is exit 0. Its trigger type
+stays `trigger_recirc_pattern` with our pattern: the old type is not rewritten. An app that held any other
+trigger type, or was enabled, is left disabled, reported as `NOT restored`, and makes the exit code 1. A
+restore with no recorded value is refused and reported the same way.
 
-- Dry-run, distinct build with SEL endpoints, and shared build with both endpoints on dev 9: build identity
-  OK, compiled ports match, 29 writes plus 2 generator enables,
-  `PASS: every table, key, action, data field and register validated`, exit 0.
-- `op_tag_composite_02` with the current `cp.py`: refused, five `ports` rows carry `hdr.ip.src`, which that
-  table lacks.
-- Tests: 29 pass against each of the two builds. Reverting each of 12 fixes in a scratch copy made the
-  matching test fail.
+## Offline result (2026-10-11)
+
+- Tests: 47 pass. Reverting each of 12 of the new behaviours in a scratch copy made a matching test fail.
+- Dry-run against `route_ab_01/loopback_ports_01/shared_compile_local/out` (the local SDE 9.13.1 compile of
+  the loopback-port build; its 9.13.2 switch compile had not finished) with both endpoints on dev 9: ports
+  read as N_ACK_RETURN 48, T_IN 180, HB_RETURN 181, HELD_RETURN 182, RETURN_PORT 68, PKTGEN_RETURN 196;
+  33 writes (4 loopback first) plus 2 generator enables; name check PASS; exit 0. The 47 tests also pass
+  with `HW_BUILD` pointed at it. The build to load is the 9.13.2 one, with its own hashes.
+- Without `HW_BUILD` the tests take the newest switch-compiled composite under `evidence/route_ab_01` that
+  passes the port checks. Until one exists they fall back to a **synthetic** build: `shared_port_01`'s real
+  `bfrt.json` and binaries with only the port constants in a copy of its `p4pp` rewritten to 48 / 180 / 181
+  / 182. That exercises the installer and is not a build to load; the test run says which it used.
+- `shared_port_01` itself is now refused offline: four looping ports are pipe-local 69-71.
 
 ```bash
 python3 -m unittest discover -s integration/core/response_only/hw/tests -v
 HW_BUILD=<dir holding manifest.json and out/> FIXED_SCHEMA_DIR=<bf_rt_shared> python3 -m unittest discover -s …/hw/tests
 ```
 
-Without `HW_BUILD` the tests take the newest switch-compiled composite under `evidence/route_ab_01` whose
-`ports` table has `hdr.ip.src`, build their expected hashes from its `manifest.json`, and skip with a
-message if none exists. The fixed-table check uses the SDE 9.13.1 schemas here; step 4 repeats it on the
-switch against 9.13.2.
+The fixed-table name check uses the SDE 9.13.1 schemas here; step 4 repeats it on the switch against 9.13.2.
 
 ## Model vs hardware state
 
 | state | model (`model_drive_composite.py`) | this bring-up | why |
 |---|---|---|---|
-| N `ports` 5, `connection` 4, `read_connection` 2 | same shapes | same shapes, real endpoints | from `cp.py` |
-| N `data_connection` 2 | `configure` with `vectors.decoy_config()` | same values by default, `--crob-*` to change | open question 5 |
-| E `conn` / `odd_ip_t` | slot 0 + slot 1 (8 rows) | slot 0 only (4 rows) | slot 1 was a slot-isolation test with a second master |
-| T `params` default | model-clock values (da 50 ms …) | P4 defaults (da 2 ms, readiness 12 ms, cap 16 ms, gap 0.8 ms, op_j 2.4 ms, budget 240000, enabled 1), all on the CLI | silicon clock; `--t-enabled 0` is the Timing OFF arm |
-| mirror sid 7 → 196 | no `$max_pkt_len` | `$max_pkt_len` 2048 | the OPERATE clone carries the whole original (4 B tag + 16 B tev + frame ≤ 1514 B) |
-| `$PORT` for 68, 70, 196–199 | add attempted, all refused, still 70/70 | not written | the model needed no `$PORT` entry for recirculation ports |
-| TM `max_priority` 199: 7>6>5>4, 198: 3>2 | none | written and read back | the model never exercised strict priority |
-| generator on 196 (apps 1 and 2) | none | written disabled, enabled last with `--enable-pktgen` | the model has no generator for T; held originals re-wait every lap |
-| T registers at reset values | not checked | asserted before the first write and again before `INSTALLED` | `TIMING_QUEUE_MIGRATION_STATUS.md` reset rule |
-| write order | N, data_connection, E, T params, mirror | queues, generator, mirror, T params, E, N, N `connection` last | no traffic runs during the model's install |
+| looping ports | pipe-local 68-71 all loop on the model | 68 and 196 only; the rest are front-panel ports in MAC loopback, written first | measured 2026-10-11 |
+| N `ports` 5, `connection` 4, `read_connection` 2 | same shapes | same shapes, real endpoints, the build's lap port | from `cp.py` |
+| N `data_connection` 2 | `configure` with `vectors.decoy_config()` | same values by default | never read by N; reads back 0 |
+| E `conn` / `odd_ip_t` | slot 0 + slot 1 (8 rows) | slot 0 only (4 rows) | slot 1 was a slot-isolation test |
+| T `params` default | model-clock values | P4 defaults, all on the CLI | silicon clock; `cap` is not stored and reads 0 |
+| mirror session → generator port | no `$max_pkt_len` | `$max_pkt_len` 2048 | the OPERATE clone carries the whole original |
+| `$PORT` | add attempted for the recirculation ports, all refused | only `$LOOPBACK_MODE` on the front-panel looping ports | see above |
+| TM `max_priority`, 7>6>5>4 on `HELD_RETURN`, 3>2 on `HB_RETURN` | none | written and read back | the model never exercised strict priority |
+| generator (apps 1 and 2) | none | written disabled, enabled last with `--enable-pktgen` | the model has no generator for T |
+| T registers at reset values | not checked | asserted before the first write and before `INSTALLED` | reset rule |
+| write order | N, data_connection, E, T params, mirror | loopback, queues, generator, mirror, T params, E, N, N `connection` last | no traffic runs during the model's install |
 
-The model figures above are from `clone_marker_composite_01/model_01` (70/70), the last model run I compared
-row by row. I have not compared against a model run of the `shared_port_01` builds.
+## Answered on the switch, 2026-10-11
+
+- Strict-priority writes on pipe-1 queues are accepted and read back. That was on recirculation ports 198 and
+  199, which turned out not to loop; the same writes on front-panel ports 181 and 182 are not yet run.
+- The pipe-1 generator configuration (port, buffer, two apps, enable) is accepted and read back.
+- `tf1.pktgen.port_cfg` and `tf1.pktgen.pkt_buffer` have no hardware read on SDE 9.13.2; `switch.get` falls
+  back to software state and bring-up prints which tables were read that way.
+- Parameters the P4 never reads are not stored and read 0: T's `cap`, N's five `data_connection` fields.
+- The `[0]`/`[1]` pipe scopes and PCIe `0000:04:00.0` loaded this composite.
 
 ## Open questions
 
-1. **PCIe prefix and pipe scopes.** `0000:04:00.0` comes from the 2026-09-17 conf that loaded; the vendor
-   read in step 1 confirms it on the day. The `[0]`/`[1]` scopes have loaded only for a probe, never for
-   this composite.
-2. **Strict priority on recirculation ports.** The `sched_cfg` idiom was proven on front-panel loopback ports
-   (dp8, dp10), not on pipe-local 198/199. The queue is taken from the port's own `egress_qid_queues[qid]`
-   with `ingress_qid_map[qid] == qid` required. That reading of the two fields is mine from the schema, not
-   a silicon result; bring-up fails closed if either is absent or not identity.
-3. **Pipe-1 generator.** No silicon precedent, including for the pre-reads above. Read the app counters
-   after the first OPERATE and READ. The token buffer is 60 zero bytes; T parses only the 6-byte generator
-   header in front of it.
-4. **k.** The P4 needs only an even token count. The default k=2 (4 tokens per trigger) follows `queue_sim`.
-   Defense 2 measured a hold-continuity floor of K=44 and ran K=64 on a 25G loopback. The lap rate on
-   198/199 is unmeasured.
-5. **`data_connection` values.** Defaults are the model's inert decoy object (index 201). I have not traced
-   how the response-only N uses them against the gate's real CROB (index 1, PULSE_ON, count 1, 100/100 ms).
-6. **Fixed master port.** N and E match the exact 4-tuple, so the master must bind `--master-port`.
-7. **No N rearm after RESET.** After a close, N refuses the next SYN on that 4-tuple (model case
-   `RECONNECT_refused_by_N_until_a_rearm_exists`). A new session needs a fresh bring-up.
-8. **Missing-entry detection.** `switch.get` treats a driver error as "absent" only if its text contains
-   "not found" or "does not exist"; an empty read with no error is raised, not taken as absent. The wording
-   is unverified on SDE 9.13.2. A wrong guess fails closed.
-9. **Packet buffer readback.** The 9.13.1 client returns a repeated bytes field as None from `to_dict()` and
-   keeps the stream in `field_dict[name].val`; `switch.as_dict` reads that. Whether 9.13.2's client and the
-   driver return the buffer the same way is unverified. If the buffer still reads back empty, bring-up stops
-   at the buffer write with the pre-read error.
-10. **Teardown settle.** The defaults (`--quiet` 1 s, timeout 15 s) are not measured.
-11. **Daemon identity.** The check reads `ps` and the conf the daemon was started with. It cannot see a conf
-    file edited after launch.
+1. **Loopback step on silicon.** The loopback write itself worked by hand on 48, 180, 181, 182. The
+   installer's version (pre-checks, readback, wait for link, undo) has run only against the fake. Whether
+   `$MEDIA_TYPE` reads as a string containing `UNKNOWN` for an empty cage is taken from the SDE schema.
+2. **TM queues on front-panel ports.** The queue comes from the port's own `egress_qid_queues[qid]` with
+   `ingress_qid_map[qid] == qid` required, and the target pipe is the port's pipe. Nothing assumes
+   dev >= 196 or a pipe-local id. Not yet run on 181 / 182.
+3. **Do tokens and held frames actually circulate.** Counters after the first OPERATE and READ
+   (`snapshot_counters.py`) are the evidence. The lap rate on a 25G MAC loopback differs from a
+   recirculation port, and k=2 (4 tokens per trigger) follows `queue_sim`; Defense 2 measured a
+   hold-continuity floor of K=44 and ran K=64 on a 25G loopback.
+4. **Fixed master port.** N and E match the exact 4-tuple, so the master must bind `--master-port`.
+5. **No N rearm after RESET.** After a close, N refuses the next SYN on that 4-tuple. A new session needs a
+   fresh bring-up.
+6. **Missing-entry detection.** `switch.get` treats a driver error as "absent" only on the driver's
+   not-found text and never on an "unsupported" error; a wrong guess fails closed.
+7. **Teardown settle.** The defaults (`--quiet` 1 s, timeout 15 s) are not measured.
+8. **Daemon identity.** The check reads `ps` and the conf the daemon was started with. It cannot see a conf
+   file edited after launch.
+9. **`set_enabled.py` under traffic.** It rewrites the whole params default action with one changed value.
+   Whether a transaction in flight at that moment is released cleanly has not been tested.

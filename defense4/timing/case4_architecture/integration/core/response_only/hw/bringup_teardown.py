@@ -8,7 +8,10 @@ Order:
   4. every write undone in reverse (N connection rows first), each read back:
        delete         P4 rows, mirror session        -> must be absent
        default_reset  T params                       -> must equal the default read before bring-up
-       restore        TM sched_cfg, pktgen port_cfg, pkt_buffer, app_cfg -> must equal the values read before
+       restore        $PORT loopback (back to BF_LPBK_NONE), TM sched_cfg, pktgen port_cfg, pkt_buffer,
+                      app_cfg -> must equal the values read before. An app whose prior state was the SDE
+                      default (disabled one-shot) is left disabled; any other prior trigger type is reported
+                      as NOT restored (exit 1)
 This leaves the composite loaded but unconfigured. Going back to the production program is a cold restart:
 stop bf_switchd, relaunch ~/Philip_repo/logs/bringup_20261005/launch.sh, replay $PORT with restore_ports.py
 (rehearsed 2026-10-06, audit_current/framework_20261005/RESTORATION_REHEARSAL_20261006.md).
@@ -26,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import readback  # noqa: E402
 
 COUNTERS = ('trigger_counter', 'batch_counter', 'pkt_counter')
+SDE_DEFAULT_TRIGGER = 'trigger_timer_one_shot'
 OFF_FLUSH, TOKEN_OFF = 11, 12          # t_OUT_HELD_OFF_FLUSH, t_OUT_TOKEN_OFF (read_queue_timing.p4)
 
 
@@ -93,15 +97,21 @@ def undo(sw, op):
         before = dict(op.get('before') or {})
         prior_action = before.pop('action_name', None)
         back = [(n, v) for n, v in before.items() if n not in COUNTERS]
+        if op['kind'] == 'pktgen_app' and prior_action != op['action']:
+            # The app held another trigger type before; its fields are not all in the manifest, so it cannot be
+            # put back. Leave it disabled and read that back.
+            t.entry_mod(tgt, [sw.key(t, key)], [sw.data(t, [('app_enable', False)])])
+            if sw.must_get(op['table'], op['pipe'], key).get('app_enable') is not False:
+                return ['app_enable did not read back False']
+            if prior_action == SDE_DEFAULT_TRIGGER and before.get('app_enable') is False:
+                # The SDE's untouched default: a disabled one-shot timer never fires, and neither does a disabled
+                # recirc-pattern app. Disabled is the state it was in (measured on the switch, 2026-10-11).
+                return ['NOTE: left disabled (default was a disabled one-shot)']
+            return ['NOT restored: was %s (app_enable %r) before bring-up; left DISABLED as trigger_recirc_pattern '
+                    'with pattern 0x%08x' % (prior_action, before.get('app_enable'), dict(op['data'])['pattern_value'])]
         if not back or any(v is None for _n, v in back):
             return ['manifest has no pre-write value for %s; NOT restored, left as bring-up wrote it'
                     % sorted(n for n, v in before.items() if v is None)]
-        if op['kind'] == 'pktgen_app' and prior_action != op['action']:
-            # The app held another trigger type before; its fields are not all in the manifest, so it cannot be
-            # put back. Leave it disabled and say so: this is not an undo.
-            t.entry_mod(tgt, [sw.key(t, key)], [sw.data(t, [('app_enable', False)])])
-            return ['NOT restored: was %s before bring-up; left DISABLED as trigger_recirc_pattern with pattern '
-                    '0x%08x' % (prior_action, dict(op['data'])['pattern_value'])]
         if op['kind'] == 'pktgen_app':
             back = [(n, v) for n, v in back if n != 'app_enable'] + [('app_enable', False)]
         t.entry_mod(tgt, [sw.key(t, key)], [sw.data(t, back, op.get('action'))])
@@ -140,6 +150,9 @@ def main(argv=None):
                 bad = undo(sw, op)
             except Exception as e:          # keep going: report every step that could not be undone
                 bad = [' | '.join(l.strip() for l in str(e).splitlines() if l.strip())[:400]]
+            for note in [b for b in bad if b.startswith('NOTE: ')]:
+                print('%s %s: %s' % (op['table'], op.get('label') or '', note[6:]))
+            bad = [b for b in bad if not b.startswith('NOTE: ')]
             if bad:
                 failed.append('%s %s %s: %s' % (op['undo'], op['table'], op.get('label') or '', bad))
     finally:

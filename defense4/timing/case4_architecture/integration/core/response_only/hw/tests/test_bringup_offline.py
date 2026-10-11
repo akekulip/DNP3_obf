@@ -1,14 +1,25 @@
 """Offline tests of the hardware bring-up plan: no switch, no gRPC.
 
   python3 -m unittest discover -s integration/core/response_only/hw/tests -v
-Needs a compiled build (default: evidence/route_ab_01/op_tag_composite_02/compile_switch_9132) and an SDE
-shared-schema directory (default: /home/philip/bf-sde-9.13.1/install/share/bf_rt_shared; env FIXED_SCHEMA_DIR).
+
+Build under test, in this order:
+  1. HW_BUILD: a directory holding manifest.json and out/.
+  2. The newest switch-compiled composite under evidence/route_ab_01 that matches cp.py (N `ports` keyed on
+     hdr.ip.src) AND whose looping ports can loop on this switch (pipe-local 68, or a front-panel port).
+  3. If none exists yet: a SYNTHETIC build in a temporary directory, made from the newest composite that
+     matches cp.py by rewriting only the port constants in out/response_only.p4pp to the loopback-port plan
+     of evidence/recirc_ports_01/STATUS.md (N_ACK_RETURN 48, T_IN 180, HB_RETURN 181, HELD_RETURN 182).
+     bfrt.json and the binaries are the real ones. It exercises the installer; it is not a build to load.
+Shared schemas: FIXED_SCHEMA_DIR (default /home/philip/bf-sde-9.13.1/install/share/bf_rt_shared).
 """
 import copy
+import hashlib
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -16,9 +27,12 @@ HW = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HW))
 import bringup_composite as bc  # noqa: E402
 import bringup_teardown as bt  # noqa: E402
+import build_ports  # noqa: E402
 import t_config as tc  # noqa: E402
 
 FIXED = os.environ.get('FIXED_SCHEMA_DIR', '/home/philip/bf-sde-9.13.1/install/share/bf_rt_shared')
+DEAD_INTERNAL = (69, 70, 71, 197, 198, 199)      # `recirc` $PORT entries that do not recirculate (measured)
+LOOPBACK_PLAN = {'n_N_ACK_RETURN': 48, 'n_READ_HANDOFF_PORT': 180, 't_T_IN': 180, 't_HB_RETURN': 181, 't_HELD_RETURN': 182}
 
 
 def matches_cp(build):
@@ -31,27 +45,70 @@ def matches_cp(build):
     return 'hdr.ip.src' in keys and (build / 'manifest.json').is_file()
 
 
+def can_loop(build):
+    ports, errs = build_ports.read(build / 'out')
+    return not errs and not set(build_ports.loopback_ports(ports).values()) & set(DEAD_INTERNAL)
+
+
+def synthesize(source, tmp):
+    """Copy `source`'s out/ and rewrite the port constants of its p4pp to LOOPBACK_PLAN."""
+    out = Path(tmp) / 'out'
+    (out / 'p0').mkdir(parents=True)
+    (out / 'p1').mkdir()
+    for rel in ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'):
+        shutil.copy(str(source / 'out' / rel), str(out / rel))
+    text = (source / 'out/response_only.p4pp').read_text(errors='replace')
+    old_ack = re.search(r'const PortId_t n_N_ACK_RETURN\s*=\s*9w(\d+)', text).group(1)
+    for const, port in LOOPBACK_PLAN.items():
+        text, n = re.subn(r'(const PortId_t %s\s*=\s*9w)\d+' % const, r'\g<1>%d' % port, text)
+        assert n == 1, const
+    text, n = re.subn(r'(transition select\(eg\.egress_port\)\s*\{[^}]*?9w)%s(\s*:\s*eth;)' % old_ack,
+                      r'\g<1>%d\2' % LOOPBACK_PLAN['n_N_ACK_RETURN'], text)
+    assert n == 1, 'E dispatch'
+    (out / 'response_only.p4pp').write_text(text)
+    return Path(tmp)
+
+
 def find_build():
-    """HW_BUILD (a directory holding manifest.json and out/), else the newest switch-compiled composite under
-    evidence/route_ab_01 that matches cp.py, else None."""
+    """(build directory, is it synthetic)."""
     if os.environ.get('HW_BUILD'):
-        return Path(os.environ['HW_BUILD'])
-    found = [p.parent for p in (HW.parents[2] / 'evidence/route_ab_01').glob('*/*switch_9132/manifest.json')
-             if matches_cp(p.parent)]
-    return max(found, key=lambda p: (p / 'out/bfrt.json').stat().st_mtime) if found else None
+        return Path(os.environ['HW_BUILD']), False
+    found = sorted((p.parent for p in (HW.parents[2] / 'evidence/route_ab_01').glob('*/*switch_9132/manifest.json')
+                    if matches_cp(p.parent)), key=lambda p: (p / 'out/bfrt.json').stat().st_mtime)
+    real = [p for p in found if can_loop(p)]
+    if real:
+        return real[-1], False
+    if not found:
+        return None, False
+    global _TMP
+    _TMP = tempfile.TemporaryDirectory()
+    return synthesize(found[-1], _TMP.name), True
 
 
-BUILD = find_build()
+BUILD, SYNTHETIC = find_build()
 if BUILD is None or not Path(FIXED).is_dir():
     raise unittest.SkipTest('no composite build matching cp.py (ports keyed on hdr.ip.src) under evidence/route_ab_01, '
                             'or no shared schemas at %s; set HW_BUILD / FIXED_SCHEMA_DIR' % FIXED)
-SHA = json.loads((BUILD / 'manifest.json').read_text())['artifact_sha256']
-_ports = dict(re.findall(r'const PortId_t t_(FORWARD|RELAY)_PORT\s*=\s*9w(\d+)', (BUILD / 'out/response_only.p4pp').read_text()))
+SHA = {rel: hashlib.sha256((BUILD / 'out' / rel).read_bytes()).hexdigest() for rel in bc.REQUIRED_EXPECT}
+if not SYNTHETIC:
+    _manifest = json.loads((BUILD / 'manifest.json').read_text())['artifact_sha256']
+    assert all(_manifest[rel] == SHA[rel] for rel in SHA), 'build files differ from their manifest'
+PORTS, _errs = build_ports.read(BUILD / 'out')
+assert not _errs, _errs
 # Endpoints that fit the ports compiled into the build: one dev port for a shared-port build, two otherwise.
-ENDPOINTS = ['--master-port', '54321', '--master-dev', _ports['FORWARD'], '--relay-dev', _ports['RELAY']]
-if _ports['FORWARD'] == _ports['RELAY']:
+ENDPOINTS = ['--master-port', '54321', '--master-dev', str(PORTS['forward']), '--relay-dev', str(PORTS['relay'])]
+if PORTS['forward'] == PORTS['relay']:
     ENDPOINTS += ['--master-ip', '192.168.10.61', '--relay-ip', '192.168.10.62']
-print('build under test:', BUILD, '| endpoints', ' '.join(ENDPOINTS), file=sys.stderr)
+print('build under test:', 'SYNTHETIC loopback-port rewrite (no such build exists yet)' if SYNTHETIC else BUILD,
+      '| endpoints', ' '.join(ENDPOINTS), file=sys.stderr)
+
+
+def plan(a):
+    return bc.plan(a, PORTS)
+
+
+def offline(ops, a):
+    return bc.offline(ops, a, PORTS)
 
 
 def args(*extra, sha=None):
@@ -99,17 +156,17 @@ MUTATIONS = {
 class NameCheck(unittest.TestCase):
     def setUp(self):
         self.a = args()
-        self.ops = bc.plan(self.a)
+        self.ops = plan(self.a)
 
     def test_the_plan_validates_clean(self):
-        self.assertEqual(bc.offline(self.ops, self.a), [])
+        self.assertEqual(offline(self.ops, self.a), [])
 
     def test_each_single_fault_is_caught(self):
         for name, (match, mutate) in MUTATIONS.items():
             with self.subTest(name):
                 ops = copy.deepcopy(self.ops)
                 mutate(ops[first(ops, **match)])
-                self.assertTrue(bc.offline(ops, self.a), name + ' was not caught')
+                self.assertTrue(offline(ops, self.a), name + ' was not caught')
 
     def test_more_rows_than_the_table_holds_is_caught(self):
         ops = copy.deepcopy(self.ops)
@@ -118,11 +175,11 @@ class NameCheck(unittest.TestCase):
             extra = copy.deepcopy(row)
             extra['key'][1] = (row['key'][1][0], port, None)
             ops.append(extra)
-        self.assertTrue(any('size' in e for e in bc.offline(ops, self.a)))
+        self.assertTrue(any('size' in e for e in offline(ops, self.a)))
 
     def test_a_duplicate_key_is_caught(self):
         ops = self.ops + [copy.deepcopy(self.ops[first(self.ops, table=N_PORTS)])]
-        self.assertTrue(any('duplicate key' in e for e in bc.offline(ops, self.a)))
+        self.assertTrue(any('duplicate key' in e for e in offline(ops, self.a)))
 
 
 class Refusals(unittest.TestCase):
@@ -138,11 +195,46 @@ class Refusals(unittest.TestCase):
         self.assertTrue(any('required' in e for e in bc.identity(a)))
 
     def test_a_build_compiled_for_other_ports_is_refused(self):
-        compiled_relay = int(re.search(r't_RELAY_PORT\s*=\s*9w(\d+)', (BUILD / 'out/response_only.p4pp').read_text()).group(1))
-        ips = ('--master-ip', '192.168.10.61', '--relay-ip', '192.168.10.62')   # required when the dev ports are equal
-        self.assertEqual(bc.source_ports(args('--relay-dev', str(compiled_relay), *ips)), [])
-        other = 9 if compiled_relay != 9 else 64
-        self.assertTrue(any('t_RELAY_PORT' in e for e in bc.source_ports(args('--relay-dev', str(other), *ips))))
+        self.assertEqual(build_ports.check_endpoints(PORTS, PORTS['forward'], PORTS['relay']), [])
+        other = 9 if PORTS['relay'] != 9 else 64
+        self.assertTrue(any('t_RELAY_PORT' in e for e in build_ports.check_endpoints(PORTS, PORTS['forward'], other)))
+        self.assertTrue(any('t_FORWARD_PORT' in e for e in build_ports.check_endpoints(PORTS, 10, PORTS['relay'])))
+
+    def test_a_looping_port_that_is_a_port_in_use_is_refused(self):
+        for role in ('n_ack_return', 't_in', 'hb_return', 'held_return'):
+            for port in (9, 10, 11, 64):
+                with self.subTest(role=role, port=port):
+                    errs = build_ports.check_endpoints(dict(PORTS, **{role: port}), PORTS['forward'], PORTS['relay'])
+                    self.assertTrue(any('must never be put in loopback' in e for e in errs), errs)
+
+    def test_a_build_looping_through_a_dead_recirc_entry_is_refused(self):
+        for port in (70, 197, 198, 199):
+            with self.subTest(port=port):
+                role = 'n_ack_return' if port < 128 else 'hb_return'
+                errs = build_ports.check_endpoints(dict(PORTS, **{role: port}), PORTS['forward'], PORTS['relay'])
+                self.assertTrue(any('do not recirculate' in e for e in errs), errs)
+
+    def test_an_inconsistent_or_unreadable_build_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(build_ports.read(tmp)[1])                                  # no p4pp at all
+            text = (BUILD / 'out/response_only.p4pp').read_text(errors='replace')
+            for bad in (re.sub(r'(const PortId_t t_T_IN\s*=\s*9w)\d+', r'\g<1>181', text),          # N and T disagree
+                        re.sub(r'const PortId_t t_HELD_RETURN[^\n]*\n', '', text),                 # constant missing
+                        re.sub(r'(const PortId_t t_PKTGEN_RETURN\s*=\s*9w)\d+', r'\g<1>180', text)):  # generator off 68
+                (Path(tmp) / 'response_only.p4pp').write_text(bad)
+                self.assertTrue(build_ports.read(tmp)[1])
+
+    def test_rows_use_the_ports_of_the_build_not_cp_constants(self):
+        ops = plan(args())
+        ack, ret = PORTS['n_ack_return'], PORTS['return_port']
+        ingress = {k[1] for op in ops if op['table'] == N_PORTS for k in op['key'] if k[0] == 'ig.ingress_port'}
+        self.assertTrue({ack, ret} <= ingress)
+        rev = [op for op in ops if op.get('action') == 'r_Egress.rev_conn']
+        self.assertEqual([dict((k[0], k[1]) for k in op['key'])['eg.egress_port'] for op in rev], [ack])
+        default = bc.rows.cp.N_ACK_RETURN
+        if default != ack:                                        # the model's lap port appears nowhere
+            self.assertFalse(bc.rows._uses([(op['table'], [(k[0], k[1]) for k in op.get('key', [])], op.get('action'),
+                                             op['data'], None) for op in ops if op['kind'] == 'p4'], default))
 
     def test_a_shared_port_without_addresses_is_refused(self):
         with self.assertRaises(SystemExit):
@@ -169,15 +261,15 @@ class Refusals(unittest.TestCase):
     def test_both_endpoints_on_one_dev_port_plan_and_validate(self):
         a = args('--master-ip', '192.168.10.61', '--master-dev', '9', '--relay-ip', '192.168.10.62', '--relay-dev', '9',
                  '--read-dst', '0x0a00', '--read-src', '0x0100')
-        ops = bc.plan(a)
-        self.assertEqual(bc.offline(ops, a), [])
+        ops = plan(a)
+        self.assertEqual(offline(ops, a), [])
         ports = [op for op in ops if op['table'] == N_PORTS]
         self.assertIn(('hdr.ip.src', 0xc0a80a3d, 0xffffffff), ports[0]['key'])     # master row keyed on its address
 
 
 class Order(unittest.TestCase):
     def test_T_state_first_E_next_N_connection_rows_last(self):
-        ops = bc.plan(args())
+        ops = [op for op in plan(args()) if op['kind'] != 'loopback']
         kinds = [('n_conn' if op['table'] == N_CONN else 'n' if op['table'].startswith('p0.n_') else
                   'e' if op['table'].startswith('p0.r_') else 't') for op in ops]
         self.assertEqual(kinds, sorted(kinds, key=['t', 'e', 'n', 'n_conn'].index))
@@ -185,24 +277,26 @@ class Order(unittest.TestCase):
 
     def test_enable_is_written_without_an_action_and_the_full_app_is_reverified(self):
         import readback
-        for op in tc.enable_ops():
+        for op in tc.enable_ops(PORTS):
             self.assertIsNone(op['action'])
             self.assertEqual(op['data'], [('app_enable', True)])
-        app = tc.pktgen_ops(2)[2]
+        app = tc.pktgen_ops(2, PORTS)[2]
         full = dict(readback.enabled_app_op(app)['data'])
         self.assertTrue(full['app_enable'])
         self.assertEqual((full['pattern_value'], full['pattern_mask'], full['pipe_local_source_port'],
                           full['packets_per_batch_cfg']), (0xE1010000, 0xFFFF0000, 68, 3))
 
     def test_ladder_and_apps_match_T(self):
-        self.assertEqual({(p, q) for p, q, _ in tc.QUEUE_PLAN}, {(199, 7), (199, 6), (199, 5), (199, 4), (198, 3), (198, 2)})
+        held, hb = PORTS['held_return'], PORTS['hb_return']
+        self.assertEqual({(p, q) for p, q, _ in tc.queue_plan(PORTS)}, {(held, 7), (held, 6), (held, 5), (held, 4), (hb, 3), (hb, 2)})
+        self.assertEqual({op['pipe'] for op in tc.queue_ops(PORTS)}, {held // 128, hb // 128})   # the port's own pipe
         self.assertEqual({(n, i, hex(p)) for n, i, p in tc.PKTGEN_APPS}, {('OPERATE', 1, '0xe1010000'), ('READ', 2, '0xe1000000')})
 
 
 class Teardown(unittest.TestCase):
     def manifest(self, tmp):
         undo = {'p4': 'delete', 'mirror': 'delete', 'default': 'default_reset'}
-        ops = bc.plan(args()) + tc.enable_ops()
+        ops = plan(args()) + tc.enable_ops(PORTS)
         done = [dict(op, undo=undo.get(op['kind'], 'restore'), before={n: v for n, v in op['data']}) for op in ops]
         path = Path(tmp) / 'm.json'
         path.write_text(json.dumps(dict(program='response_only', installed=done), default=bc.encode))
@@ -214,7 +308,9 @@ class Teardown(unittest.TestCase):
             order = bt.steps(self.manifest(tmp)['installed'])
         self.assertEqual([op['undo'] for op in order[:3]], ['disable', 'disable', 't_off'])
         self.assertEqual([op['table'] for op in order[3:7]], [N_CONN] * 4)
-        self.assertEqual(order[-1]['kind'], 'queue')
+        loops = len(build_ports.loopback_ports(PORTS))
+        self.assertEqual([op['kind'] for op in order[len(order) - loops:]], ['loopback'] * loops)   # loopback comes off last
+        self.assertEqual([op['kind'] for op in plan(args())[:loops]], ['loopback'] * loops)        # and goes on first
 
     def test_the_packet_buffer_bytes_survive_the_manifest(self):
         import tempfile

@@ -15,13 +15,30 @@ PARAMS = dict(da=2000000, readiness=12000000, cap=16000000, gap=800000, op_j=240
 
 
 def reset():
-    global STATE, LOG, FAIL_ADD, PRIOR_BUFFER, PRIOR_APP_ACTION, OUTCOMES_MOVE, EMPTY_READ
+    global STATE, LOG, FAIL_ADD, PRIOR_BUFFER, PRIOR_APP_ACTION, OUTCOMES_MOVE, EMPTY_READ, PORTS, LINK_NEVER_UP
     STATE, LOG = {}, []
     FAIL_ADD = None                     # (table, nth add to that table) whose entry_add raises
     PRIOR_BUFFER = bytes(60)            # what pkt_buffer holds before bring-up
-    PRIOR_APP_ACTION = 'trigger_recirc_pattern'
+    PRIOR_APP_ACTION = 'trigger_timer_one_shot'   # the SDE default, as read on the switch 2026-10-11
+    PORTS = default_ports()             # $PORT entries, by dev_port
+    LINK_NEVER_UP = set()               # front-panel ports whose link stays down after a loopback write
     OUTCOMES_MOVE = False               # T's outcome counters never settle
     EMPTY_READ = None                   # table whose entry_get yields nothing and raises nothing
+
+
+INTERNAL_PORTS = (68, 69, 70, 71, 196, 197, 198, 199)
+
+
+def default_ports():
+    """$PORT as measured on the switch (evidence/recirc_ports_01/STATUS.md): 9, 10, 11, 64 in use and up; 8
+    cabled (copper) but down; the listed free cages enabled, down, media UNKNOWN; eight `recirc` entries."""
+    def entry(up, media):
+        return {'$PORT_ENABLE': True, '$PORT_UP': up, '$MEDIA_TYPE': media, '$LOOPBACK_MODE': 'BF_LPBK_NONE'}
+    ports = {p: entry(True, 'BF_MEDIA_TYPE_OPTICAL') for p in (9, 10, 11, 64)}
+    ports[8] = entry(False, 'BF_MEDIA_TYPE_COPPER')
+    ports.update({p: entry(False, 'BF_MEDIA_TYPE_UNKNOWN') for p in (16, 48, 49, 50, 51, 164, 172, 180, 181, 182, 183, 188, 189, 190, 191)})
+    ports.update({p: entry(True, 'BF_MEDIA_TYPE_UNKNOWN') for p in INTERNAL_PORTS})
+    return ports
 
 
 def error(code, text):
@@ -89,6 +106,8 @@ class Table:
                         **(dict(pattern_value=0, pattern_mask=0) if PRIOR_APP_ACTION == 'trigger_recirc_pattern' else {}))
         if n.endswith('_reg'):
             return {n[3:] + '.f1': [T_INIT[n.split('.')[-1]]]}
+        if n == '$PORT':
+            return PORTS.get(kd['$DEV_PORT'])           # the live entry itself: a mod below changes PORTS
         return None
 
     def entry_get(self, tgt, keys=None, flags=None):
@@ -128,6 +147,14 @@ class Table:
     def entry_mod(self, tgt, keys, datas):
         LOG.append(('mod', self.name, keys[0], datas[0]))
         list(self.entry_get(tgt, keys))
+        if self.name == '$PORT':
+            port = dict((n, v) for n, v, _ in keys[0])['$DEV_PORT']
+            mode = datas[0][0].get('$LOOPBACK_MODE')
+            if port in INTERNAL_PORTS or mode is None:
+                return                                   # measured: the write on a recirc entry does not take
+            self.e[keys[0]]['$LOOPBACK_MODE'] = mode
+            self.e[keys[0]]['$PORT_UP'] = mode == 'BF_LPBK_MAC_NEAR' and port not in LINK_NEVER_UP
+            return
         self.e[keys[0]].update({k: v for k, v in datas[0][0].items() if v is not None})
         if datas[0][1]:
             self.e[keys[0]]['action_name'] = datas[0][1]

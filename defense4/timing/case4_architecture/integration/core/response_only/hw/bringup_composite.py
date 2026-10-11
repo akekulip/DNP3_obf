@@ -2,7 +2,7 @@
 """Install the control-plane state of the composed response-only program (N + E in pipe 0, T in pipe 1) on the
 physical switch. Dry-run by default: checks the build's sha256s, prints every write, and validates every name
 against the compiled bfrt.json and the SDE shared schemas, with no gRPC. --apply (needs
-DEFENSE4_HW_AUTHORIZED=1) writes in order: queues, packet generator (apps disabled), mirror, T params, E rows,
+DEFENSE4_HW_AUTHORIZED=1) writes in order: MAC loopback of the build's front-panel looping ports, queues, packet generator (apps disabled), mirror, T params, E rows,
 N rows, N connection rows last. It reads every write back and stops at the first failure with a manifest of
 what was installed.
 
@@ -25,6 +25,7 @@ import check_names  # noqa: E402
 import readback  # noqa: E402
 import rows  # noqa: E402
 import t_config as tc  # noqa: E402
+import build_ports  # noqa: E402
 
 
 def oneline(e):
@@ -57,6 +58,9 @@ def parse(argv):
     ap.add_argument('--program', default='response_only')
     ap.add_argument('--client-id', type=int, default=120)
     ap.add_argument('--manifest-out', default='bringup_manifest.json')
+    ap.add_argument('--allow-loopback-port', type=int, action='append', default=[], metavar='DEV_PORT',
+                    help='accept this looping port although a module is plugged into its cage (media not UNKNOWN)')
+    ap.add_argument('--loopback-wait', type=float, default=10.0, help='seconds to wait for $PORT_UP after the loopback write')
     ap.add_argument('--apply', action='store_true')
     a = ap.parse_args(argv)
     if a.master_dev == a.relay_dev and not (a.master_ip and a.relay_ip):
@@ -78,44 +82,35 @@ def identity(a):
     return errs
 
 
-def source_ports(a):
-    """Errors unless the ports COMPILED into the build (out/response_only.p4pp, written by bf-p4c next to
-    bfrt.json) are the ones this plan uses. T's forward and relay ports are constants, not table entries: a
-    build composed for another port pair would release to the wrong port and bfrt.json cannot show it."""
-    path = Path(a.build_out) / 'response_only.p4pp'
-    if not path.is_file():
-        return ['%s is missing: cannot check the ports compiled into this build' % path]
-    text = path.read_text(errors='replace')
-    want = dict(t_FORWARD_PORT=a.master_dev, t_RELAY_PORT=a.relay_dev, t_PKTGEN_RETURN=tc.PKTGEN_RETURN,
-                t_HB_RETURN=tc.HB_RETURN, t_HELD_RETURN=tc.HELD_RETURN, n_N_ACK_RETURN=rows.cp.N_ACK_RETURN,
-                n_RETURN_PORT=rows.cp.RETURN_PORT)
-    errs = []
-    for name, value in sorted(want.items()):
-        found = re.findall(r'const PortId_t %s\s*=\s*9w(\d+)' % name, text)
-        if found != [str(value)]:
-            errs.append('build has %s = %s, this plan needs %d' % (name, found or 'no such constant', value))
-    sid = re.findall(r'const MirrorId_t t_CLONE_SESSION_ID\s*=\s*10w(\d+)', text)
-    if sid != [str(tc.CLONE_SESSION_ID)]:
-        errs.append('build has t_CLONE_SESSION_ID = %s, this plan writes session %d' % (sid, tc.CLONE_SESSION_ID))
-    print('COMPILED PORTS (%s): %s' % (path.name, 'match the plan' if not errs else 'MISMATCH'))
-    return errs
+def build_ports_for(a):
+    """(ports read from the build, errors): the build must be composed for --master-dev / --relay-dev."""
+    ports, errs = build_ports.read(a.build_out)
+    if not errs:
+        errs = build_ports.check_endpoints(ports, a.master_dev, a.relay_dev)
+    print('PORTS FROM THE BUILD (response_only.p4pp): %s' % (
+        ', '.join('%s=%s' % (k, ports[k]) for k in sorted(ports)) or 'unreadable'))
+    loops = build_ports.loopback_ports(ports) if not errs else {}
+    print('    front-panel ports this bring-up puts in MAC loopback: %s' % (
+        ', '.join('%s=%d' % kv for kv in sorted(loops.items(), key=lambda kv: kv[1])) or 'none'))
+    return ports, errs
 
 
 def params(a):
     return {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
 
 
-def plan(a):
-    """Write order: T-side state first, E next, N last with its connection rows at the very end, so no master
-    packet is bound by N before everything it hands to T and E is in place."""
+def plan(a, ports):
+    """Write order: loopback of the build's front-panel looping ports, then T-side state, E, and N last with
+    its connection rows at the very end, so no master packet is bound by N before everything it hands to T
+    and E is in place."""
     master, relay = rows.endpoints(a.master_ip, a.master_port, a.master_dev, a.relay_ip, a.relay_port, a.relay_dev)
     decoy = {k: getattr(a, 'crob_' + k) for k in rows.VECTOR_DECOY}
-    ne = rows.build(master, relay, decoy, a.read_dst, a.read_src)
+    ne = rows.build(master, relay, decoy, ports, a.read_dst, a.read_src)
     e_rows = [r for r in ne if r['table'].startswith('p0.r_')]
     n_conn = [r for r in ne if r['table'] == 'p0.n_Ingress.connection']
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
-    return (tc.queue_ops() + tc.pktgen_ops(a.k) + [tc.mirror_op(), tc.params_op(params(a))]
-            + e_rows + n_rest + n_conn)
+    return (tc.loopback_ops(ports) + tc.queue_ops(ports) + tc.pktgen_ops(a.k, ports)
+            + [tc.mirror_op(ports), tc.params_op(params(a))] + e_rows + n_rest + n_conn)
 
 
 def show(op):
@@ -128,9 +123,9 @@ def show(op):
                                                         op.get('action') or 'mod', data)
 
 
-def offline(ops, a):
+def offline(ops, a, ports):
     tables = check_names.load(Path(a.build_out) / 'bfrt.json', a.fixed_schema_dir)
-    errs = check_names.check(ops + tc.enable_ops(), tables)
+    errs = check_names.check(ops + tc.enable_ops(ports), tables)
     errs += check_names.check_registers(['p1.t_Ingress.' + r for r in readback.T_REGISTER_INIT], tables)
     errs += check_names.check_reads(tables)
     return errs
@@ -184,7 +179,42 @@ def daemon_identity(a):
     return errs
 
 
-def apply(ops, a):
+def loopback_precheck(sw, ops, allow):
+    """Read-only. Errors unless every port about to be looped has a $PORT entry, is enabled, has link DOWN
+    (a port with link up may be someone's connection) and an empty cage (media UNKNOWN) or is explicitly
+    allowed with --allow-loopback-port."""
+    errs = []
+    for op in ops:
+        port = op['key'][0][1]
+        got = sw.get('$PORT', op['pipe'], op['key'])
+        if got is None:
+            errs.append('dev_port %d (%s): no $PORT entry' % (port, op['label']))
+            continue
+        if got.get('$PORT_ENABLE') is not True:
+            errs.append('dev_port %d: $PORT_ENABLE is %r' % (port, got.get('$PORT_ENABLE')))
+        if got.get('$PORT_UP') is not False:
+            errs.append('dev_port %d: $PORT_UP is %r before bring-up; a port with link up is not ours to loop'
+                        % (port, got.get('$PORT_UP')))
+        if got.get('$LOOPBACK_MODE') != tc.LOOPBACK_OFF:
+            errs.append('dev_port %d: $LOOPBACK_MODE is already %r' % (port, got.get('$LOOPBACK_MODE')))
+        if 'UNKNOWN' not in str(got.get('$MEDIA_TYPE')).upper() and port not in allow:
+            errs.append('dev_port %d: media is %r (a module is plugged in); pass --allow-loopback-port %d to accept'
+                        % (port, got.get('$MEDIA_TYPE'), port))
+    return errs
+
+
+def wait_link_up(sw, op, seconds):
+    """True once the looped port reports $PORT_UP (it came up within 3 s on the switch, 2026-10-11)."""
+    end = time.time() + seconds
+    while True:
+        if (sw.get('$PORT', op['pipe'], op['key']) or {}).get('$PORT_UP') is True:
+            return True
+        if time.time() >= end:
+            return False
+        time.sleep(0.2)
+
+
+def apply(ops, a, ports):
     from switch import Switch
     sw = Switch(a.program, a.client_id)
     done, manifest = [], Path(a.manifest_out)
@@ -218,15 +248,20 @@ def apply(ops, a):
         bad = readback.verify(sw, verify_op or op)
         if bad:
             stop('readback mismatch after %s: %s' % (show(op), bad))
+        if op['kind'] == 'loopback' and not wait_link_up(sw, op, a.loopback_wait):
+            stop('%s: $PORT_UP did not become True within %.1f s of the loopback write' % (op['label'], a.loopback_wait))
         print('OK  ', show(op))
 
     try:
         try:
+            bad = loopback_precheck(sw, [op for op in ops if op['kind'] == 'loopback'], set(a.allow_loopback_port))
+            if bad:
+                stop('loopback pre-check: %s' % bad)
             for table in sorted({op['table'] for op in ops if op['kind'] == 'p4'}):
                 if sw.count(table, 0xffff) != 0:
                     stop('%s is not empty before bring-up' % table)
-            if sw.get('$mirror.cfg', 0xffff, [('$sid', tc.CLONE_SESSION_ID, None)]) is not None:
-                stop('mirror session %d already exists' % tc.CLONE_SESSION_ID)
+            if sw.get('$mirror.cfg', 0xffff, [('$sid', ports['clone_session'], None)]) is not None:
+                stop('mirror session %d already exists' % ports['clone_session'])
             bad = readback.register_errors(readback.registers(sw))
         except Exception as e:
             stop('pre-check failed: %s' % e)
@@ -236,7 +271,7 @@ def apply(ops, a):
             step(op)
         if a.enable_pktgen:
             apps = {o['label']: o for o in ops if o['kind'] == 'pktgen_app'}
-            for op in tc.enable_ops():
+            for op in tc.enable_ops(ports):
                 step(op, readback.enabled_app_op(apps[op['label']]))   # re-verify the whole app, not just the flag
         try:
             bad = readback.register_errors(readback.registers(sw))
@@ -248,7 +283,7 @@ def apply(ops, a):
             print('NOTE: read back from software state, not hardware (no hardware read on this SDE): %s' % ', '.join(sorted(sw.sw_read)))
         print('INSTALLED %d writes; manifest %s; pktgen %s' % (len(done), manifest,
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
-        print('counters', json.dumps(readback.snapshot(sw), indent=1))
+        print('counters', json.dumps(readback.snapshot(sw, ports), indent=1))
     finally:
         sw.close()
 
@@ -257,13 +292,16 @@ def main(argv=None):
     a = parse(argv)
     print('BUILD IDENTITY (%s):' % a.build_out)
     errs = identity(a)
-    errs += source_ports(a)
-    errs += tc.check_params(params(a))
-    ops = plan(a)
+    ports, port_errs = build_ports_for(a)
+    errs += port_errs + tc.check_params(params(a))
+    if port_errs:                # without the build's ports there is no plan to print or check
+        print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
+        return 1
+    ops = plan(a, ports)
     print('PLAN: %d writes (+%d pktgen enables, last, only with --enable-pktgen)' % (len(ops), len(tc.PKTGEN_APPS)))
     for op in ops:
         print('    ', show(op))
-    names = offline(ops, a)
+    names = offline(ops, a, ports)
     print('NAME CHECK against %s/bfrt.json and %s (shared schemas; the switch runs SDE 9.13.2):'
           % (a.build_out, a.fixed_schema_dir))
     print('    ' + ('\n    '.join(names) if names else 'PASS: every table, key, action, data field and register validated'))
@@ -293,7 +331,7 @@ def main(argv=None):
     if errs:
         print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
         return 1
-    apply(ops, a)
+    apply(ops, a, ports)
     return 0
 
 

@@ -32,10 +32,23 @@ def _convert(prefix, cp_rows):
     return out
 
 
-def build(master, outstation, decoy, read_dst=0x0000, read_src=0x0100):
-    """Every N/E row the model driver installs for connection A, with these endpoints."""
-    n_rows = (cp.n_ports_rows(master.dev_port, outstation.dev_port, master.ip_int, outstation.ip_int)
-              + cp.n_connection_rows(outstation, master)
+def _uses(rows, port):
+    return any(port in (v[0] if isinstance(v, tuple) else v for _f, v in key) or port in dict(data).values()
+               for _t, key, _a, data, _p in rows)
+
+
+def build(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100):
+    """Every N/E row the model driver installs for connection A, with these endpoints and the BUILD's ports.
+
+    N's ACK lap port goes to every cp.py builder as n_ack_return= (cp.py's interface since port_map.py).
+    RETURN_PORT is not a parameter of cp.py, so the build must use cp.py's. The rows are then checked to
+    really use the build's lap port, so a cp.py that stops honouring the argument fails here instead of
+    installing rows for another port."""
+    ack = ports['n_ack_return']
+    if ports['return_port'] != cp.RETURN_PORT:
+        raise ValueError("build's RETURN_PORT %d is not cp.py's %d" % (ports['return_port'], cp.RETURN_PORT))
+    n_rows = (cp.n_ports_rows(master.dev_port, outstation.dev_port, master.ip_int, outstation.ip_int, n_ack_return=ack)
+              + cp.n_connection_rows(outstation, master, n_ack_return=ack)
               + cp.n_read_rows(outstation, master, read_dst, read_src))
     fwd4 = (('hdr.ip.src', master.ip_int), ('hdr.ip.dst', outstation.ip_int),
             ('hdr.tcp.sport', master.port), ('hdr.tcp.dport', outstation.port))
@@ -43,6 +56,11 @@ def build(master, outstation, decoy, read_dst=0x0000, read_src=0x0100):
             ('hdr.tcp.sport', outstation.port), ('hdr.tcp.dport', master.port))
     dc = tuple((k, decoy[k]) for k in ('index', 'code', 'repeat', 'on', 'off'))
     n_rows += [('Ingress.data_connection', k, 'Ingress.configure', dc, None) for k in (fwd4, rev4)]
-    e_rows = cp.e_conn_rows(0, outstation, master)
-    cp.check_no_loop(n_rows + e_rows)          # the control-plane loop guard, over every row
+    e_rows = cp.e_conn_rows(0, outstation, master, n_ack_return=ack)
+    cp.check_no_loop(n_rows + e_rows, n_ack_return=ack)          # the control-plane loop guard, over every row
+    default = cp.N_ACK_RETURN
+    stale = default not in (ack, master.dev_port, outstation.dev_port, cp.RETURN_PORT) and _uses(n_rows + e_rows, default)
+    if stale or not _uses(n_rows, ack) or not _uses(e_rows, ack):
+        raise ValueError("cp.py's rows do not use the build's N_ACK_RETURN %d (default %d still used: %s): "
+                         'rows.py must follow cp.py' % (ack, default, stale))
     return _convert('n', n_rows) + _convert('r', e_rows)

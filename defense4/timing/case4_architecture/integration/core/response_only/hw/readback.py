@@ -79,15 +79,18 @@ def register_errors(regs):
             for r, (vals, init) in regs.items() if not vals or any(v != init for v in vals)]
 
 
-def snapshot(sw):
-    """Generator app counters and TM queue counters on 198/199 (watermark/drops; usage_cells is unreliable)."""
+def snapshot(sw, ports):
+    """Generator app counters and TM queue counters on T's two ladder ports (watermark/drops; usage_cells is
+    unreliable)."""
     snap = {'pktgen': {}, 'queues': {}}
+    gen_pipe = tc.pipe_of(ports['pktgen_return'])
     for name, app_id, _pattern in tc.PKTGEN_APPS:
-        got = sw.get('tf1.pktgen.app_cfg', tc.T_PIPE, [('app_id', app_id, None)]) or {}
+        got = sw.get('tf1.pktgen.app_cfg', gen_pipe, [('app_id', app_id, None)]) or {}
         snap['pktgen'][name] = {k: got.get(k) for k in COUNTER_FIELDS + ('app_enable',)}
-    for port, qid, label in tc.QUEUE_PLAN:
-        pg_id, pgq, _cfg = sw.resolve_queue(port, qid, tc.T_PIPE)
-        got = sw.get('tf1.tm.counter.queue', tc.T_PIPE, [('pg_id', pg_id, None), ('pg_queue', pgq, None)]) or {}
+    for port, qid, label in tc.queue_plan(ports):
+        pipe = tc.pipe_of(port)
+        pg_id, pgq, _cfg = sw.resolve_queue(port, qid, pipe)
+        got = sw.get('tf1.tm.counter.queue', pipe, [('pg_id', pg_id, None), ('pg_queue', pgq, None)]) or {}
         snap['queues'][label] = dict(dev_port=port, qid=qid, pg_id=pg_id, pg_queue=pgq,
                                      watermark_cells=got.get('watermark_cells'),
                                      drop_count_packets=got.get('drop_count_packets'))
