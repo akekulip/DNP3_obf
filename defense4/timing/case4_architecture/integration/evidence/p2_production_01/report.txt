@@ -1,0 +1,13 @@
+config           loop_pkts    loop_bytes  x_pkts | CLRTmd   sdPop  sdSmp  ACKmd   RTmd | correctness
+p_unshaped         2026007     148144122     1.0 |    809    16.7   16.9   5486   6295 | OK (commit=50 rel=50 op=1 fb=0 n=50)
+q_all3723            30370       2204288    66.7 |    811     5.3    5.4   5615   6426 | OK (commit=50 rel=50 op=1 fb=0 n=50)
+q_all14892           43295       3154949    46.8 |    823    14.3   14.4   5428   6257 | OK (commit=50 rel=50 op=1 fb=0 n=50)
+q_all59570           84416       6197338    24.0 |    825    14.3   14.4   5448   6270 | OK (commit=50 rel=50 op=1 fb=0 n=50)
+
+p_unshaped per-port (pkts,bytes): {'n_ack_return': (111, 7862), 't_in': (152, 15039), 'hb_return': (17972, 1467752), 'held_return': (2007772, 146653469)} | held_rewait(total)= 375561 | CLRT min/max/p95= 782 882 839 | RT p95= 6327
+q_all3723 per-port (pkts,bytes): {'n_ack_return': (111, 7862), 't_in': (152, 15039), 'hb_return': (83, 6759), 'held_return': (30024, 2174628)} | held_rewait(total)= 1341 | CLRT min/max/p95= 802 832 823 | RT p95= 6548
+   achieved: {'ACK_BLOCK': (3723, 64), 'ACK_HOLD': (3723, 1), 'RESP_BLOCK': (3723, 64), 'RESP_HOLD': (3723, 1), 'OP_BLOCK': (3723, 64), 'OP_HOLD': (3723, 1)}
+q_all14892 per-port (pkts,bytes): {'n_ack_return': (111, 7862), 't_in': (152, 15039), 'hb_return': (109, 9385), 'held_return': (42923, 3122663)} | held_rewait(total)= 4735 | CLRT min/max/p95= 797 850 847 | RT p95= 6324
+   achieved: {'ACK_BLOCK': (14892, 64), 'ACK_HOLD': (14892, 1), 'RESP_BLOCK': (14892, 64), 'RESP_HOLD': (14892, 1), 'OP_BLOCK': (14892, 64), 'OP_HOLD': (14892, 1)}
+q_all59570 per-port (pkts,bytes): {'n_ack_return': (111, 7862), 't_in': (152, 15039), 'hb_return': (410, 35291), 'held_return': (83743, 6139146)} | held_rewait(total)= 18289 | CLRT min/max/p95= 804 851 849 | RT p95= 6300
+   achieved: {'ACK_BLOCK': (59570, 64), 'ACK_HOLD': (59570, 1), 'RESP_BLOCK': (59570, 64), 'RESP_HOLD': (59570, 1), 'OP_BLOCK': (59570, 64), 'OP_HOLD': (59570, 1)}
