@@ -1,0 +1,85 @@
+{
+  "_notes": [
+    "Single config for the response-only four-arm hardware campaign; campaign.py is the entry point.",
+    "Feature bits: T is toggled live on one install (set_enabled.py); padding is a build property, so the",
+    "pad-on and pad-off arms select different builds. Fill each build's hashes from its manifest.json before",
+    "`campaign.py run` (it refuses on placeholder hashes).",
+    "Timing: readiness/cap are set above the fixture delay (25 ms) on purpose, so the delayed child response",
+    "arrives before the readiness deadline and the normal commit/release path is observable (audit defect D).",
+    "Hosts switch/vision and the Vision run directory come from run.py (VISION, V_RUN)."
+  ],
+  "program": "response_only",
+  "ports_snapshot": "live_snapshot_20261006.json.gz",
+  "evidence_dir": "integration/evidence/campaign_hw_vepa",
+  "hosts": {
+    "switch": "decps@10.10.54.81",
+    "vision": "decps@10.10.54.19",
+    "switch_remote_dir": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite"
+  },
+  "endpoints": {
+    "master_ip": "192.168.10.61",
+    "outstation_ip": "192.168.10.62",
+    "outstation_port": 20000,
+    "read_dst": 2560,
+    "read_src": 256,
+    "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "ports_map": {
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "master_dev": 9,
+    "relay_dev": 9,
+    "stat_ports": "9,64"
+  },
+  "builds": {
+    "padding_on": {
+      "out_dir": "integration/evidence/route_ab_01/<pad-on build>/compile_switch_9132/out",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "hashes": {
+        "bfrt.json": "<sha256 from manifest.json>",
+        "p0/tofino.bin": "<sha256 from manifest.json>",
+        "p1/tofino.bin": "<sha256 from manifest.json>",
+        "endpoint_binary": "<sha256 from manifest.json>",
+        "endpoint_lib": "<sha256 from manifest.json>"
+      }
+    },
+    "padding_off": {
+      "out_dir": "integration/evidence/route_ab_01/<pad-off control build>/compile_switch_9132/out",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "hashes": {
+        "bfrt.json": "<sha256 from manifest.json>",
+        "p0/tofino.bin": "<sha256 from manifest.json>",
+        "p1/tofino.bin": "<sha256 from manifest.json>",
+        "endpoint_binary": "<sha256 from manifest.json>",
+        "endpoint_lib": "<sha256 from manifest.json>"
+      }
+    }
+  },
+  "arms": [
+    {"name": "timing_off_pad_on",  "T": 0, "padding": 1, "build": "padding_on"},
+    {"name": "obfuscated_pad_on",  "T": 1, "padding": 1, "build": "padding_on"},
+    {"name": "timing_off_pad_off", "T": 0, "padding": 0, "build": "padding_off"},
+    {"name": "obfuscated_pad_off", "T": 1, "padding": 0, "build": "padding_off"}
+  ],
+  "timing_params_ns": {
+    "da": 2000000,
+    "readiness": 30000000,
+    "cap": 40000000,
+    "gap": 800000,
+    "op_j": 2400000
+  },
+  "service": {"k": 32, "tokens_per_trigger_note": "installer --k is 2*k tokens; k=32 -> 64 (reservoir K=64)"},
+  "fixture": {"delay_ms": 25, "jitter_ms": 0, "casea": true},
+  "trials": {"reads_per_trial": 20, "trials_per_arm": 3},
+  "traffic": {"master_port": 40000, "range": 16, "gap_ms": 0,
+              "master_port_note": "fixed per install (N keys on it); vision_run waits out the 60 s TIME-WAIT between trials"},
+  "loss": {"inject": false, "netem_loss_pct": 0.0},
+  "seeds": {"master_port_base": 40000, "rng_seed": 12345}
+}

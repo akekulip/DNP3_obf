@@ -48,12 +48,14 @@ against a frozen oracle); this script applies the numbered edit groups below, ea
     reverse_flow set the egress port from that value, close_forward copies it back), as the first arm of
     the existing chain after guard.apply(): every bound packet passes that gateway on every pass. cp.py also asserts that no ports or connection row it
     produces sends anything to N_ACK_RETURN except the master's normalize_ack row. No table is added.
-    N_ACK_RETURN = 70 (pipe 0, local 70): local 68-71 recirculate into the same pipe's ingress on the model
-    (evidence/model_28/PORTS_PROPOSAL.md); 68 is N's RETURN_PORT; nothing in the repository uses pipe-0
-    69-71. Confirmed on the physical switch by the coordinator, 2026-10-10: local 68, 69, 70 and 71 are each a
-    separate, independently enabled, dedicated internal recirculation port (not lanes of one interface).
+    N_ACK_RETURN = 70 (pipe 0, local 70) is the MODEL's port: local 68-71 recirculate into the same pipe's
+    ingress on the model (evidence/model_28/PORTS_PROPOSAL.md); 68 is N's RETURN_PORT. On the switch 70 does
+    NOT recirculate (measured 2026-10-11, evidence/recirc_ports_01/STATUS.md: only 68 does; the 2026-10-10
+    note that 69-71 were confirmed came from $PORT entries, not traffic). The port is a build parameter:
+    compose.py --n-ack-return=N rewrites this one declaration (48, a front-panel port in MAC loopback, on the
+    switch) and E's dispatch, and cp.py's rows take the same value (port_map.py). Every use below is by name.
 
-  python3 make_n.py [out.p4] [--no-response-tail-crc]     (default: n_response_only.p4 next to this script)
+  python3 make_n.py [out.p4]     (default: n_response_only.p4 next to this script)
 """
 import hashlib
 import sys
@@ -132,6 +134,29 @@ EDITS = [
     #    port from action data AFTER the head guard ran (close_forward copies the same m.output_port back on
     #    the final pass). Those are the only runtime-valued writers besides ports.route, which the head guard
     #    covers. Implemented as a guard-table entry (guard_refuses_n_ack_return below), not a gateway.
+    # 9. Defect E: a native command (SELECT/OPERATE, IP length 75) reaches native_tcp. The clean request has
+    #    TCP flags 0x10 (ACK) or 0x18 (PSH+ACK); any other flag combination on a command-sized frame -- a late
+    #    OPERATE retransmission with FIN+PSH+ACK (0x19) was the case on silicon -- fell to `default:accept`,
+    #    was parsed no further, and was forwarded natively around the mechanism (no T handoff, no SBO advance),
+    #    so a protected command bypassed and produced a failed OPERATE response (combined_silicon_02). This is
+    #    the response-only build's deliberate, simplest handling: EXPLICITLY REJECT a command-bearing FIN/RST
+    #    (any non-{0x10,0x18}) form -- drop it before the lap, so no rejected command reaches the outstation, a
+    #    callback, or T. native_tcp only sees IP-length-75 (command) frames, so unrelated non-command traffic
+    #    (different IP length) never reaches here and its native passthrough is unaffected. FIN's extra
+    #    sequence-space byte and the closing state do not matter because the form is dropped, not reparsed.
+    ("(4w5,4w0,16w0,8w24):native_dl;default:accept;",
+     "(4w5,4w0,16w0,8w24):native_dl;"
+     "(4w5,4w0,16w0,8w0x01&&&8w0x01):native_command_reject;"   # any FIN-bearing command form
+     "(4w5,4w0,16w0,8w0x04&&&8w0x04):native_command_reject;"   # any RST-bearing command form
+     "default:accept;"),
+    (" state native_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition native_block;}",
+     " state native_command_reject{m.packet_kind=8w13;transition finish;}\n"
+     " state native_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition native_block;}"),
+    # the drop runs right after ports/network (before the lap and before any admission), on edit 7's output
+    ("  ports.apply();network.apply();\n  if((ig.ingress_port==RETURN_PORT&&m.stage==8w0)||",
+     "  ports.apply();network.apply();\n"
+     "  if(m.packet_kind==8w13){deny();}   /* command-bearing FIN/RST: rejected, never bypasses the mechanism */\n"
+     "  else if((ig.ingress_port==RETURN_PORT&&m.stage==8w0)||"),
 ]
 
 
@@ -159,47 +184,79 @@ def guard_refuses_n_ack_return(text):
     return text[:i] + action + seg + text[j:]
 
 
-# 9. OPTIONAL (generate(response_tail_crc=False); default off, so n_response_only.p4 is unchanged): drop N's
-#    response CRC checks that E repeats. Pipe 0 egress (make_e.py) recomputes every native CRC of a READ
-#    (dl, rb0, rb1, rtn) and CONTROL (dl, cb0, ctn) response, and pads only when all of them match. N keeps the
-#    link-header and first-block checks it shares with requests (crc_t, keyed on packet kind only), and drops
-#    the response-only tail and second-block checks: hash_response_tail, hash_rd_second, hash_rd_tail and
-#    their three tables. Consequence: a response whose tail or second block is corrupt is admitted by N (and
-#    timed by T) instead of being refused, and leaves at its native size because E refuses to pad it; the
-#    master's DNP3 link layer discards it either way. Measured with the open-source bf-p4c 9.13.4
-#    (simplify/evidence/opensource_9134_01): pipe 0 stays 12 / 11 (no stage saved); tables 115 -> 109,
-#    hash-distribution units 26 -> 23, PHV containers 193 -> 185. The default build reproduces _19's 193 / 26.
-RESPONSE_TAIL_CRC_EDITS = (
-    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_response_tail;\n"
-     "action response_crct(){m.tcrc=hash_response_tail.get({hdr.rtail.on_lo,hdr.rtail.off,hdr.rtail.status});}\n"
-     "table response_crct_t{actions={response_crct;}size=1;const default_action=response_crct();}\n", ""),
-    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;\n"
-     "action rd_second_crc(){m.crc1=hash_rd_second.get({hdr.second.w0,hdr.second.w1,hdr.second.w2,hdr.second.w3});}\n"
-     "table rd_second_crc_t{actions={rd_second_crc;}size=1;const default_action=rd_second_crc();}\n", ""),
-    ("Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;\n"
-     "action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value});}\n"
-     "table rd_tail_crc_t{actions={rd_tail_crc;}size=1;const default_action=rd_tail_crc();}\n", ""),
-    ("    if(m.response==8w1){response_crct_t.apply();}else{input_tail_t.apply();}",
-     "    if(m.response!=8w1){input_tail_t.apply();}   /* edit 9: E checks the response tail */"),
-    ("    if(m.response==8w1){if(hdr.rtail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}\n"
-     "    else{if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}",
-     "    if(m.response!=8w1){if(hdr.tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}"),
-    ("else{read_response_profile.apply();rd_second_crc_t.apply();rd_tail_crc_t.apply();}",
-     "else{read_response_profile.apply();}   /* edit 9: E checks the second block and tail */"),
-    ("else{if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}if(hdr.second.crc!=(m.crc1[7:0]++m.crc1[15:8])){m.bad1=8w1;}"
-     "if(hdr.rd_tail.crc!=(m.tcrc[7:0]++m.tcrc[15:8])){m.badt=8w1;}}",
-     "else{if(hdr.first.crc!=(m.bcrc[7:0]++m.bcrc[15:8])){m.badb=8w1;}}"),
-)
+TS_BLOCK = '32w0x0101080a'      # NOP, NOP, Timestamp (kind 8, length 10): the 12-byte option block of an offset-8 segment
+IP4 = '(4w4,4w5,8w6,16w%d)'
+TS_EDITS = [
+    # the option bytes are carried as opaque headers after tcp (and after mss on the handshake), so the deparser
+    # re-emits them in place and the TCP checksum residual still covers every byte of the segment
+    ("header mss_h{bit<8> kind;bit<8> len;bit<16> value;}",
+     "header mss_h{bit<8> kind;bit<8> len;bit<16> value;}\n"
+     "header opt12_h{bit<32> a;bit<32> b;bit<32> c;}\nheader opt4_h{bit<32> v;}"),
+    ("tcp_h tcp;mss_h mss;", "tcp_h tcp;mss_h mss;opt12_h tso;opt4_h oa;opt4_h ob;"),
+    # exact IP lengths of the timestamped profile: 52 ACK / close, 64 SYN-ACK, 72 READ request, 101 READ response
+    (IP4 % 41 + ":replay_ip_flags;default:accept;}}",
+     IP4 % 41 + ":replay_ip_flags;" + IP4 % 52 + ":ts_ip_flags;" + IP4 % 64 + ":ts_synack_ip_flags;"
+     + IP4 % 72 + ":ts_read_ip_flags;" + IP4 % 101 + ":ts_read_response_ip_flags;default:accept;}}"),
+    # the timestamped SYN is 60 bytes of IP, the clean READ request's length: told apart by the TCP data offset
+    ("(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;default:accept;}}",
+     "(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;(4w10,4w0,16w0,8w2):ts_syn;default:accept;}}"),
+    (" state finish{m.tcp_sum=tc.get();",
+     " state ts_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_tcp;(13w0,3w2):ts_tcp;default:accept;}}\n"
+     " state ts_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags)"
+     "{(4w8,8w16):ts_ack;(4w8,8w17):ts_close;(4w8,8w20):ts_close;default:accept;}}\n"
+     " state ts_ack{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:ack;default:accept;}}\n"
+     " state ts_close{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:close;default:accept;}}\n"
+     " state ts_syn{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);"
+     "pkt.extract(hdr.oa);tc.subtract(hdr.oa);m.packet_kind=8w1;transition mss_check;}\n"
+     " state ts_synack_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_synack_tcp;(13w0,3w2):ts_synack_tcp;default:accept;}}\n"
+     " state ts_synack_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags)"
+     "{(4w11,8w18):ts_synack;default:accept;}}\n"
+     " state ts_synack{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);"
+     "pkt.extract(hdr.oa);tc.subtract(hdr.oa);pkt.extract(hdr.ob);tc.subtract(hdr.ob);m.packet_kind=8w2;transition mss_check;}\n"
+     " state ts_read_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_tcp;(13w0,3w2):ts_read_tcp;default:accept;}}\n"
+     " state ts_read_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags)"
+     "{(4w8,4w0,16w0,8w16):ts_read_opt;(4w8,4w0,16w0,8w24):ts_read_opt;default:accept;}}\n"
+     " state ts_read_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:read_dl;default:accept;}}\n"
+     " state ts_read_response_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_response_tcp;(13w0,3w2):ts_read_response_tcp;default:accept;}}\n"
+     " state ts_read_response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags)"
+     "{(4w8,4w0,16w0,8w16):ts_read_response_opt;(4w8,4w0,16w0,8w24):ts_read_response_opt;default:accept;}}\n"
+     " state ts_read_response_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:read_response_dl;default:accept;}}\n"
+     " state finish{m.tcp_sum=tc.get();" % dict(ts=TS_BLOCK)),
+]
 
 
-def generate(response_tail_crc=True):
+def admit_timestamped_profile(text):
+    """Edit 9: the real stack's TCP profile (timestamps, SACK-permitted, window scale), READ lane and handshake.
+    Measured on Vision against the SEL-751 (protocol/evidence/hw_range_read_01/native_ip_retest_20261010.pcap):
+    SYN data offset 10 / IP length 60, SYN-ACK 11 / 64, every later segment offset 8 with the 12-byte block
+    NOP NOP Timestamp: ACK and FIN 52, READ request 72, READ response 101. Before this edit N parsed none of
+    them (the SYN's length 60 is the clean READ request's, and read_tcp wants offset 5).
+
+    Parser only. Exact (IP length, data offset, flags) triples, no wildcard; the clean profile's states are
+    untouched. Offset 8: the block must begin 01 01 08 0a, is extracted and the existing ack / close / read_dl /
+    read_response_dl states continue, so the DNP3 headers, their CRC checks, the connection key and every
+    packet-length check are the same code as for the clean profile. Handshake: MSS is the first option in
+    both directions and keeps its check (mss_check, syn_shapes); the remaining 16 (SYN) or 20 (SYN-ACK) option
+    bytes are bounded by the exact offset and length and carried opaque. Every option byte is subtracted from
+    the checksum residual, so `network` still compares m.tcp_sum with 16w0xffeb: that constant is the folded
+    difference between hdr.ip.len (what the parser subtracts) and the TCP length (what the sender summed),
+    ~20 for ihl 5, and does not depend on the options. An RST|ACK at offset 8 / length 52 is admitted with the
+    FIN (same triple shape as the clean profile's close set); it is not in the capture."""
+    for old, new in TS_EDITS:
+        n = text.count(old)
+        assert n == 1, (n, old[:80])
+        text = text.replace(old, new)
+    return text
+
+
+def generate():
     text = binding_generate.generate(profile='response_only')
-    edits = EDITS if response_tail_crc else EDITS + list(RESPONSE_TAIL_CRC_EDITS)
-    for old, new in edits:
+    for old, new in EDITS:
         n = text.count(old)
         assert n == 1, (n, old[:80])
         text = text.replace(old, new)
     text = guard_refuses_n_ack_return(text)
+    text = admit_timestamped_profile(text)
     assert 'STEP3_M_PORT' not in text and 'emit_replay' not in text and 'bypass_egress=1w1' in text
     header = ('/* GENERATED by core/response_only/make_n.py from connection/binding/generate.py response_only (sha256 %s).\n'
               '   Response-only N for the B\' profile: no M, no request padding. Do not edit. */\n'
@@ -208,7 +265,6 @@ def generate(response_tail_crc=True):
 
 
 if __name__ == '__main__':
-    args = [a for a in sys.argv[1:] if not a.startswith('--')]
-    out = Path(args[0]) if args else HERE / 'n_response_only.p4'
-    out.write_text(generate(response_tail_crc='--no-response-tail-crc' not in sys.argv))
+    out = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / 'n_response_only.p4'
+    out.write_text(generate())
     print('wrote', out)

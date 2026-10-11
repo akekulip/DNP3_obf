@@ -534,6 +534,44 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**OPERATE blocker keeps the Ethernet header; MAC-loopback offset-12-13 audit (2026-10-11, `route_ab_01/operate_header_01`).**
+The first combined silicon run (`combined_silicon_01`) released every READ by fallback and lost the OPERATE:
+with the hardware port map the blockers and held frames cross front-panel MAC loopback, and the MAC drops a
+frame whose bytes 12-13 are not an ethertype (>= 0x0600). `hold_operate` stripped the Ethernet header, so the
+direct OPERATE blocker put the IP identification field there. Fix: remove the `hdr.eth.setInvalid()` so the
+blocker keeps the header (offset 12-13 = the original's ethertype octets, as on every held frame). Stages and
+PHV unchanged. Model: default 70/70, shared 57/57, hw-map OPERATE 60/60 (the direct blocker on 181 is now
+`0d...001122334455`, offset 12-13 = 0x4455; was `0d...4500...0001`, the IP id), real profile 36/36. The audit
+of every MAC-loopback frame (`operate_header_01/RESULT.md`) leaves two risks open, to be decided by the
+coordinator: the generator-seeded blockers carry 0x0000 at offset 12-13 (control-plane buffer fix, the cause
+of the fallback-only releases) and the RESET event on 180 carries 0x04xx (coordinated N/T kind change).
+
+**N admits the real timestamped TCP profile (2026-10-11, `route_ab_01/ts_profile_01`).** make_n edit 9,
+parser only. It admits the exact lengths and offsets Vision's kernel uses against the SEL-751: SYN 60/10,
+SYN-ACK 64/11, offset-8 ACK/FIN 52, READ 72 and 101, with an exact NOP NOP Timestamp prefix. The parse then
+continues into the clean profile's own DNP3 and CRC states, so connection identity, CRC and length checks are
+shared code; the checksum residual constant is unchanged. Tested with the capture's own bytes plus synthesized
+continuation READs. The capture was taken on the sender, so five master frames hold offload pseudo-sums;
+`real_profile.wire()` restores them. Hardware map: 12/11 + 11/0 on both SDKs, pipe 0 ingress PHV +6
+containers. Model: real profile 35/35 and 36/36; existing scenarios 70/70, 57/57, 58/58. E untouched.
+
+**Looping ports are build parameters (2026-10-11, `route_ab_01/loopback_ports_01`).** On the switch only
+pipe-local 68 recirculates (`evidence/recirc_ports_01/STATUS.md`), so 70, 197, 198 and 199 cannot be used
+there. `core/response_only/port_map.py` now holds the five ports (`relay_port`, `n_ack_return`, `t_in`,
+`hb_return`, `held_return`) with the model's values as defaults; `compose.py` takes them as flags and rewrites
+N's two declarations, E's egress-port dispatch and T's declarations, and writes the map into
+`<out>.inputs.json`; `cp.py`'s builders take `n_ack_return=` and the model driver loads the build's own map
+(`PORT_MAP=`). Default output is unchanged byte for byte. The hardware map (9, 48, 180, 181, 182) compiles on
+both SDKs with the placement and PHV of the shared-port build, and runs 58/58 on the model with the four
+ports reflected by the driver; the model itself does not loop a port in MAC loopback. No internal frame is
+under 64 bytes on the wire provided the generator buffer stays at 52 bytes or more (it is 60). Not verified
+on silicon: whether the MAC passes frames that start with an internal header instead of an Ethernet header;
+the direct OPERATE blocker puts the IP identification field where the MAC reads a type. The analysis, the
+check to run and the one-line fix if it fails are in `loopback_ports_01/RESULT.md`. The comment in
+`read/ports.p4` that 68-71 were confirmed on the switch is wrong and was left in place, because the file is
+inlined into every build and editing it changes the source hash of builds already compiled; correct it with
+the next change to T.
+
 **Both endpoints on one switch port (`route_ab_01/shared_port_01`).** For the first hardware run the master
 and the outstation are both on dev_port 9, reflected 9 → 9.
 - **N `ports`** gains `hdr.ip.src` as a fourth, ternary key. `cp.n_ports_rows(master_dev, outstation_dev,

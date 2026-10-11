@@ -198,10 +198,13 @@ class QueueSim:
         return [t for t, p, raw in self.emitted if raw == frame and (port is None or p == port)]
 
     def held_records(self, frame):
-        """(time, port, qid, role, gen) of every enqueue whose payload after the ladder header is `frame`."""
+        """(time, port, qid, role, gen) of every HELD enqueue (roles 14/15/16) whose payload after the ladder
+        header is `frame`. Blockers (11/12/13) are excluded: since hold_operate keeps the Ethernet header, the
+        direct OPERATE blocker now carries the whole original after its ladder too, and it is a blocker, not a
+        held record. Blockers are inspected with token_enqueues / token_passes."""
         found = []
         for time, port, qid, raw in self.enqueued:
-            if raw[LAD_BYTES:] == frame:
+            if raw[0] in (14, 15, 16) and raw[LAD_BYTES:] == frame:
                 role, child, gen = raw[0], raw[1], struct.unpack('!H', raw[2:4])[0]
                 found.append((time, port, qid, ROLE.get(role, role), gen, child))
         return found

@@ -463,7 +463,19 @@ def response_only(text):
     text=once(text,'hdr.first.w2[31:16]:exact;hdr.second.w1[15:0]:exact;hdr.second.w2:exact;hdr.response_tail.w2:exact;}',
         'hdr.first.w2[31:16]:exact;hdr.rtail.status:exact;}')
     text=once(text,'(16w0x0564,8w46,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100,32w0x000c0128,16w0x0100,16w0x000c,32w0x01280100,8w0):eligible();',
-        '(16w0x0564,8w28,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100,32w0x000c0128,16w0x0100,8w0):eligible();')
+        '(16w0x0564,8w28,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100&&&16w0xff6f,32w0x000c0128,16w0x0100,8w0):eligible();')
+    # Defect A: the real SELECT/OPERATE response carries the normal startup indications NEED_TIME (IIN1 0x10)
+    # and DEVICE_RESTART (IIN1 0x80); the outstation here sets IIN1 0x90. The func+IIN1 term was exact 0x8100,
+    # so a 0x90 response never matched eligible, the SELECT association never advanced, and the OPERATE was
+    # refused (combined_silicon_02). Make that one 16-bit term ternary and mask only those two bits
+    # (0xff6f leaves IIN1 bits 0x10 and 0x80 free): IIN1 in {00,10,80,90}. The func (0x81) stays exact, IIN2
+    # (hdr.first.w1 high byte) stays 0x00, and the echoed object, on/off times, native coordinate, link and
+    # block CRCs, TCP/IP checksum, tuple and provenance are all unchanged. A genuine CROB command failure is
+    # reported in rtail.status, which stays == 0 in the key, so a refused command still does not advance N --
+    # NEED_TIME and DEVICE_RESTART are normal indications, distinct from a command failure (OpenDNP3
+    # 4648fcb898456d1cb70b5baecc38cc256c859c2e). The match kind of the term changes exact -> ternary:
+    text=once(text,'hdr.first.w0[23:16]:ternary;hdr.first.w0[15:0]:exact;',
+        'hdr.first.w0[23:16]:ternary;hdr.first.w0[15:0]:ternary;')
     # CRCs: first block as before, then the 7-byte tail; no second 16-byte block on a response.
     text=once(text,'m.tcrc=hash_response_tail.get({hdr.response_tail.w0,hdr.response_tail.w1,hdr.response_tail.w2});',
         'm.tcrc=hash_response_tail.get({hdr.rtail.on_lo,hdr.rtail.off,hdr.rtail.status});')

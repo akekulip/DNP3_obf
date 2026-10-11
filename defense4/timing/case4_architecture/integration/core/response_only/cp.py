@@ -8,6 +8,10 @@ one, so correctness never depends on install order (review finding W1). Exact ro
 
 Table names are the unprefixed control names; the composed program prefixes them (p0.n_Ingress.ports,
 p0.r_Egress.conn). Source-level only: no BF Runtime client here.
+
+N's ACK lap port is a build parameter (compose.py --n-ack-return, port_map.py). Every builder here takes it
+as n_ack_return=; give it the build's own value, port_map.load(<build>.inputs.json).n_ack_return, so rows and
+build cannot disagree. Left out, it is this module's N_ACK_RETURN, the default build's port.
 """
 import sys
 from pathlib import Path
@@ -15,9 +19,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent.parent.parent / 'protocol'))
 import response_path_cp as rp  # noqa: E402
+sys.path.insert(0, str(HERE))
+import port_map  # noqa: E402
 
-N_ACK_RETURN = 70           # keep equal to make_n.py / make_e.py; dedicated recirculation port (switch-confirmed 2026-10-10)
-RETURN_PORT = 68
+N_ACK_RETURN = port_map.DEFAULT.n_ack_return   # the default (model) build's lap port; see n_ack_return= below
+RETURN_PORT = port_map.RETURN_PORT             # pipe 0's one recirculating internal port; not a parameter
 TCP = 6
 ANY = (0, 0)
 PRIO_NORMALIZE = 1          # wins over the plain route on the master port
@@ -25,7 +31,11 @@ PRIO_ENDPOINT = 10          # shared port: an address-qualified endpoint row, ab
 PRIO_ROUTE = 100
 
 
-def n_ports_rows(master_dev, outstation_dev, master_ip=None, outstation_ip=None):
+def _lap(n_ack_return):
+    return N_ACK_RETURN if n_ack_return is None else n_ack_return
+
+
+def n_ports_rows(master_dev, outstation_dev, master_ip=None, outstation_ip=None, n_ack_return=None):
     """Every master-side IPv4 TCP packet takes the N_ACK_RETURN lap; everything else routes plainly.
 
     Distinct dev ports: rows keyed by port, source address wildcarded (as before). EQUAL dev ports (both
@@ -35,6 +45,9 @@ def n_ports_rows(master_dev, outstation_dev, master_ip=None, outstation_ip=None)
     route and is forwarded port -> port without the lap."""
     def key(port, ip_valid=ANY, proto=ANY, src=ANY):
         return (('ig.ingress_port', port), ('hdr.ip.$valid', ip_valid), ('hdr.ip.proto', proto), ('hdr.ip.src', src))
+    lap = _lap(n_ack_return)
+    if lap in (master_dev, outstation_dev, RETURN_PORT):
+        raise ValueError('N_ACK_RETURN %d is an endpoint port or RETURN_PORT' % lap)
     shared = master_dev == outstation_dev
     if shared and (master_ip is None or outstation_ip is None or master_ip == outstation_ip):
         raise ValueError('both endpoints on dev_port %d: distinct master_ip and outstation_ip are required' % master_dev)
@@ -47,19 +60,22 @@ def n_ports_rows(master_dev, outstation_dev, master_ip=None, outstation_ip=None)
     else:
         rows += [('Ingress.ports', key(master_dev), 'Ingress.route', (('port', outstation_dev),), PRIO_ROUTE),
                  ('Ingress.ports', key(outstation_dev), 'Ingress.route', (('port', master_dev),), PRIO_ROUTE)]
-    rows += [('Ingress.ports', key(N_ACK_RETURN), 'Ingress.route', (('port', outstation_dev),), PRIO_ROUTE),
+    rows += [('Ingress.ports', key(lap), 'Ingress.route', (('port', outstation_dev),), PRIO_ROUTE),
              ('Ingress.ports', key(RETURN_PORT), 'Ingress.route', (('port', RETURN_PORT),), PRIO_ROUTE)]
-    return check_no_loop(rows)
+    return check_no_loop(rows, lap)
 
 
-def n_connection_rows(outstation, master, master_ingress=N_ACK_RETURN):
+def n_connection_rows(outstation, master, master_ingress=None, n_ack_return=None):
     """Direction is granted only with port provenance on a packet's FIRST pass: master->outstation only on
     N_ACK_RETURN (where every master packet re-enters after the lap), outstation->master only on the
     outstation's own port. N's later passes arrive on RETURN_PORT and look the direction up again, so both
     directions also have a RETURN_PORT row; RETURN_PORT is reached only by N's own recirculation, which
     starts only after a first pass that matched with provenance (no direction -> guard starts no work).
-    master_ingress is N_ACK_RETURN on the target; source-level tests that inject the master's packets as
-    already normalized pass the master's own port."""
+    master_ingress is N_ACK_RETURN on the target (the default); source-level tests that inject the master's
+    packets as already normalized pass the master's own port."""
+    lap = _lap(n_ack_return)
+    if master_ingress is None:
+        master_ingress = lap
     f4 = (('hdr.ip.src', master.ip_int), ('hdr.ip.dst', outstation.ip_int), ('hdr.tcp.sport', master.port),
           ('hdr.tcp.dport', outstation.port))
     r4 = (('hdr.ip.src', outstation.ip_int), ('hdr.ip.dst', master.ip_int), ('hdr.tcp.sport', outstation.port),
@@ -70,7 +86,7 @@ def n_connection_rows(outstation, master, master_ingress=N_ACK_RETURN):
         [('Ingress.connection', f4 + (('ig.ingress_port', port),)) + fwd + (None,)
          for port in (master_ingress, RETURN_PORT)] +
         [('Ingress.connection', r4 + (('ig.ingress_port', port),)) + rev + (None,)
-         for port in (outstation.dev_port, RETURN_PORT)])
+         for port in (outstation.dev_port, RETURN_PORT)], lap)
 
 
 def n_read_rows(outstation, master, request_dst=0x0000, request_src=0x0100):
@@ -85,7 +101,7 @@ def n_read_rows(outstation, master, request_dst=0x0000, request_src=0x0100):
         ('Ingress.read_connection', r4, 'Ingress.read_configure', (('dst', request_src), ('src', request_dst)), None)])
 
 
-def e_conn_rows(slot, outstation, master, pad_enable=True):
+def e_conn_rows(slot, outstation, master, pad_enable=True, n_ack_return=None):
     """response_path_cp's E rows with conn bound to egress_port: fwd_conn (outstation -> master, the
     response being padded) only at the master's port, rev_conn (master -> outstation, the ACK being
     reverse-mapped) only at N_ACK_RETURN. odd_ip_t is unchanged."""
@@ -93,7 +109,7 @@ def e_conn_rows(slot, outstation, master, pad_enable=True):
     for table, key, action, data in rp.connection_entries(slot, outstation, master, pad_enable):
         if table == 'Egress.conn':
             order = ('hdr.ip.src', 'hdr.ip.dst', 'hdr.tcp.sport', 'hdr.tcp.dport')
-            port = master.dev_port if action == 'Egress.fwd_conn' else N_ACK_RETURN
+            port = master.dev_port if action == 'Egress.fwd_conn' else _lap(n_ack_return)
             out.append((table, tuple((f, key[f]) for f in order) + (('eg.egress_port', port),), action,
                         tuple(sorted(data.items())), None))
         elif table == 'Egress.odd_ip_t':
@@ -103,18 +119,19 @@ def e_conn_rows(slot, outstation, master, pad_enable=True):
     return out
 
 
-def check_no_loop(rows):
+def check_no_loop(rows, n_ack_return=None):
     """Control-plane half of the loop guard (make_n.py edit group 7 is the P4 half): no N row may send a
     packet to N_ACK_RETURN except the master's normalize_ack row, and RETURN_PORT's route must stay on
     RETURN_PORT. Raises ValueError; called by every builder here."""
+    lap = _lap(n_ack_return)
     for table, key, action, data, _ in rows:
         target = dict(data).get('port')
-        if target == N_ACK_RETURN:
+        if target == lap:
             raise ValueError('%s %s targets N_ACK_RETURN' % (table, action))
         port = dict(key).get('ig.ingress_port')
         if table == 'Ingress.ports' and port == RETURN_PORT and target not in (None, RETURN_PORT):
             raise ValueError('RETURN_PORT row must route to RETURN_PORT, not %r' % target)
-        if action == 'Ingress.normalize_ack' and port in (N_ACK_RETURN, RETURN_PORT):
+        if action == 'Ingress.normalize_ack' and port in (lap, RETURN_PORT):
             raise ValueError('normalize_ack on a recirculation port')
     return rows
 

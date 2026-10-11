@@ -6,6 +6,33 @@ p4lang/p4c `ff507048`) and run on the open-source tofino-model and bf_switchd (o
 the cloud session; see "Compile results" and "Model results". That is not the switch's SDE 9.13.2, so the
 9.13.2 build under "Next steps" is still required before loading.
 
+## Lessons from main (merged 2026-10-11)
+
+While this track worked offline, the two-pipe composite ran on silicon (`integration/evidence/milestone_sbo_01`,
+`combined_silicon_01/02`). Three statements made during this track's review were wrong and are corrected here:
+
+- **"Pipe 0 is full; any addition to N or E will fail to compile."** Wrong. Main's `make_n.py` edit 9 added the
+  real timestamped TCP profile to N's parser (+6 PHV containers) and still fits at p0 12 / 11 on 9.13.1 and 9.13.2.
+- **"Timing and padding have never run together on the switch."** No longer true. On 2026-10-11 the composite
+  did READ + SELECT/OPERATE on the physical Tofino-1 with timing on: OUT_ACK_COMMIT 10, OUT_RESP_RELEASE 10,
+  OUT_OP_RELEASE 1, zero fallback, every eligible response 58 B with valid CRCs (software OpenDNP3 endpoints,
+  clean TCP profile, 5 ms response fixture).
+- **The real TCP profile.** Main admits the timestamped profile in N by parsing it (exact IP length, data offset,
+  flags and `01 01 08 0a` option prefix; option bytes enter the checksum residual) instead of rewriting the SYN.
+  E's mapper still arms only on an MSS-only SYN-ACK, so padding a real relay connection still needs E to accept
+  that profile or the SYN scrub (S2); the silicon milestone used the clean profile.
+
+What silicon taught that the model could not (main's commits, worth carrying into this track):
+- A frame that crosses a front-panel MAC loopback needs a valid ethertype at bytes 12-13; the MAC drops it
+  otherwise. Main fixed the OPERATE blocker (`421d78ac`) and seeded the generator buffer with 0x0800
+  (`f4272787`). The single-pipe candidate's loopback ports carry blockers too: audit them the same way before
+  hardware. The model run here emulated the loopback in software and could not see this.
+- The real outstation answers SELECT/OPERATE with IIN1 0x90 (NEED_TIME + DEVICE_RESTART); exact-match keys on
+  IIN refused it (defect A, `8efae400`).
+- The readiness deadline must exceed the outstation's response time, or every READ falls back (defect D).
+- Main's remaining issue: OUT_HELD_REWAIT 71,310 for 10 READs + 1 SBO, the residency overhead.
+  `stage_reduction/control/reservoir_sizing.py` is meant for that sizing once the loop latency is measured.
+
 ## What is here
 
 | Path | What it is | Verified by |
@@ -22,7 +49,7 @@ Changes made elsewhere for this track:
 
 | Path | Change | Default behavior |
 |---|---|---|
-| `integration/core/response_only/make_n.py`, `compose.py` | Edit 9, opt-in (`--no-response-tail-crc`, `--no-n-response-tail-crc`): N drops the response tail and second-block CRC checks that E repeats. Measured: no stage saved; 6 tables, 3 hash units and 8 PHV containers fewer in pipe 0 | Unchanged: default N output is byte-identical to `n_response_only.p4`, and the default composite hashes to `90eab15b…`, the source of the last compiled build (`shared_port_01`) |
+| `integration/core/response_only/make_n.py`, `compose.py` | **Retired at the merge with main (2026-10-11).** An opt-in edit dropping N's response tail CRC checks: measured, it saved no stage (6 tables, 3 hash units, 8 PHV containers). Main's own edit 9 (timestamped TCP profile) took that number; main's generator and composer are kept unchanged | n/a |
 | `integration/controller/t_register_reset.py` | Reset plan for T's registers, derived from the P4 declarations; restores the five `0xffffffff` registers instead of clearing them | New module, new tests |
 | `stage_reduction/control/reservoir_sizing.py` | Blocker-reservoir sizing from port speed and measured loop latency | New module, new tests |
 | `stage_reduction/control/defense4_timing_setup.py` | `--bor-loopback-speed {25G,10G}` for dp10 | Unchanged: default 25G; `dry-run` output identical |
@@ -48,7 +75,7 @@ Results for this track:
 |---|---|---|---|
 | Single-pipe candidate, S1+S2 (`opensource_9134_01`) | 10 / 12 | 11 | Exit 0, `tofino.bin` assembled. Fifth egress checksum unit (SYN scrub) accepted. PHV 158 / 224 containers (32-bit 57 / 64), final attempt. Warning kinds are the same as the two separate programs. |
 | **Single-pipe candidate, S1-S4 (`opensource_9134_02`)** | **10 / 11** | 10 | Egress stage cut (see "Stage cuts"). Tables 117 -> 113; PHV unchanged at 158 (32-bit 57 / 64). |
-| Composite with `make_n` edit 9 | p0 12 / 11, p1 11 / 0 | 11 / 9 | No stage saved. Tables 115 -> 109, hash-distribution units 26 -> 23, PHV 193 -> 185. |
+| Composite with the retired N CRC option | p0 12 / 11, p1 11 / 0 | 11 / 9 | No stage saved. Tables 115 -> 109, hash-distribution units 26 -> 23, PHV 193 -> 185. Option retired. |
 
 The single-pipe ingress rises from 7 to 10 stages beside the egress: a stage's 16 logical table IDs, 4
 stateful ALUs, crossbar and hash units are shared by both gresses, and the compiler gives the early slots
