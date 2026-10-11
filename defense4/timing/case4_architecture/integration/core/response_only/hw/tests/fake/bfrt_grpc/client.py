@@ -113,6 +113,11 @@ class Table:
                         **(dict(pattern_value=0, pattern_mask=0) if PRIOR_APP_ACTION == 'trigger_recirc_pattern' else {}))
         if n.endswith('_reg'):
             return {n[3:] + '.f1': [T_INIT[n.split('.')[-1]]]}
+        if n == '$PORT_STAT':   # deterministic per-port counters so a test can check the port -> role mapping
+            dp = kd['$DEV_PORT']
+            return {'$FramesTransmittedAll': 1000 + dp, '$FramesReceivedAll': 2000 + dp,
+                    '$OctetsTransmittedTotal': 64000 + dp, '$OctetsTransmittedwithouterror': 63000 + dp,
+                    '$OctetsReceived': 128000 + dp, '$OctetsReceivedinGoodFrames': 127000 + dp}
         if n == '$PORT':
             return PORTS.get(kd['$DEV_PORT'])           # the live entry itself: a mod below changes PORTS
         return None

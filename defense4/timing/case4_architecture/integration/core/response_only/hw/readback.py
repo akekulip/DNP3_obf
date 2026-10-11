@@ -2,6 +2,7 @@
 
 verify(sw, op) returns a list of mismatch strings (empty = the hardware holds exactly what was written).
 """
+import build_ports
 import t_config as tc
 
 # Register<bit<32>, bit<1>>(1, init) in read_queue_timing.p4. The five 0xffffffff ones are compared for
@@ -10,7 +11,11 @@ T_REGISTER_INIT = dict(cur_epoch_reg=0, quarantine_reg=0xffffffff, gen_alloc_reg
                        ack_commit_at_reg=0, ack_commit_gen_reg=0xffffffff, resp_done_reg=0,
                        child_seen0_reg=0xffffffff, child_seen1_reg=0xffffffff, child_seen2_reg=0xffffffff,
                        op_gen_alloc_reg=0, op_done_reg=0, op_t0_reg=0)
-COUNTER_FIELDS = ('trigger_counter', 'batch_counter', 'pkt_counter')   # live; never compared to the written 0
+COUNTER_FIELDS = ('trigger_counter', 'batch_counter', 'pkt_counter')
+# $PORT_STAT fields for total internal packets AND bytes on each loop port (names from bf_rt_port_tf1.json:
+# there is no $OctetsTransmittedAll -- the total is $OctetsTransmittedTotal, and "withouterror" is lower case).
+LOOP_PORT_STATS = ('$FramesTransmittedAll', '$FramesReceivedAll', '$OctetsTransmittedTotal',
+                   '$OctetsTransmittedwithouterror', '$OctetsReceived', '$OctetsReceivedinGoodFrames')   # live; never compared to the written 0
 
 
 def _norm(name, value):
@@ -108,7 +113,17 @@ def snapshot(sw, ports, requested_pps=None, requested_block_pps=None):
     comes from hardware."""
     requested_pps = requested_pps or {}
     requested_block_pps = requested_block_pps or {}
-    snap = {'pktgen': {}, 'queues': {}}
+    snap = {'pktgen': {}, 'queues': {}, 'loop_ports': {}}
+    # Total internal traffic per front-panel loop port (the build's N_ACK_RETURN / T_IN / HB_RETURN /
+    # HELD_RETURN, read from its port map): a before/after delta gives packets and bytes per ladder port.
+    # Read-only; a port whose stats cannot be read is recorded as None so the snapshot still completes.
+    for role, port in sorted(build_ports.loopback_ports(ports).items(), key=lambda kv: kv[1]):
+        try:
+            got = sw.get('$PORT_STAT', tc.ALL_PIPES, [('$DEV_PORT', port, None)]) or {}
+            stats = {f: got.get(f) for f in LOOP_PORT_STATS}
+        except Exception:
+            stats = {f: None for f in LOOP_PORT_STATS}
+        snap['loop_ports'][role] = dict(dev_port=port, **stats)
     gen_pipe = tc.pipe_of(ports['pktgen_return'])
     for name, app_id, _pattern in tc.PKTGEN_APPS:
         got = sw.get('tf1.pktgen.app_cfg', gen_pipe, [('app_id', app_id, None)]) or {}

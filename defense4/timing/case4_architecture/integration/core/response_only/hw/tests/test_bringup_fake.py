@@ -382,6 +382,31 @@ class SetEnabled(Base):
         self.assertEqual(len(fake.LOG), calls)
 
 
+class LoopPortStats(Base):
+    def test_snapshot_reports_packets_and_bytes_per_loop_port_from_the_build(self):
+        from switch import Switch
+        import readback
+        self.assertEqual(run(bc.main, self.argv())[0], 0)
+        snap = readback.snapshot(Switch('response_only', 142), off.PORTS)
+        loops = build_ports.loopback_ports(off.PORTS)               # from the build, not hard-coded
+        self.assertEqual({r: v['dev_port'] for r, v in snap['loop_ports'].items()}, loops)
+        for role, dp in loops.items():
+            got = snap['loop_ports'][role]
+            self.assertEqual((got['$FramesTransmittedAll'], got['$OctetsTransmittedTotal'], got['$FramesReceivedAll'],
+                              got['$OctetsReceived']), (1000 + dp, 64000 + dp, 2000 + dp, 128000 + dp))
+            self.assertEqual(got['$OctetsTransmittedwithouterror'], 63000 + dp)
+            self.assertEqual(got['$OctetsReceivedinGoodFrames'], 127000 + dp)
+
+    def test_an_unreadable_loop_port_is_recorded_as_none_not_fatal(self):
+        from switch import Switch
+        import readback
+        self.assertEqual(run(bc.main, self.argv())[0], 0)
+        fake.EMPTY_READ = '$PORT_STAT'                              # driver returns nothing: get() raises
+        snap = readback.snapshot(Switch('response_only', 143), off.PORTS)
+        self.assertTrue(snap['loop_ports'])
+        self.assertTrue(all(v['$FramesTransmittedAll'] is None for v in snap['loop_ports'].values()))
+
+
 class SwitchReads(Base):
     def test_absent_is_None_only_with_the_not_found_text(self):
         sw = switch.Switch('response_only', 1)

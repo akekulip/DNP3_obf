@@ -101,7 +101,9 @@ READ_ONLY = {'tf1.tm.port.cfg': (['dev_port'], ['pg_id', 'port_queues_count', 'i
              'tf1.tm.counter.queue': (['pg_id', 'pg_queue'], ['watermark_cells', 'drop_count_packets']),
              'tf1.tm.queue.sched_cfg': (['pg_id', 'pg_queue'], ['max_rate_enable']),
              'tf1.tm.queue.sched_shaping': (['pg_id', 'pg_queue'], ['unit', 'max_rate', 'max_burst_size']),
-             '$PORT_STAT': (['$DEV_PORT'], []),
+             '$PORT_STAT': (['$DEV_PORT'], ['$FramesTransmittedAll', '$FramesReceivedAll', '$OctetsTransmittedTotal',
+                                           '$OctetsTransmittedwithouterror', '$OctetsReceived',
+                                           '$OctetsReceivedinGoodFrames']),
              '$PORT': (['$DEV_PORT'], ['$PORT_ENABLE', '$PORT_UP', '$MEDIA_TYPE', '$LOOPBACK_MODE'])}
 
 
