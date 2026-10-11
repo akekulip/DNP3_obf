@@ -1,0 +1,652 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 17
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 17
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 117
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 2 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 2 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 3 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2856                   |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2897                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2898                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2899                   |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2965                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2971                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2981                   |
+|   1   |    [ 1, 2 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rt_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb1_t                    |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                r_Egress.crc_read_tail_t                 |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_ct_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_cb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 5 ]     |                   tbl_single_pipe2941                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2943                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2946                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2949                   |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2999                   |
+|   2   |    [ 0, 3 ]     |                r_Egress.crc_ctl_tail1_t                 |
+|   2   |    [ 0, 2 ]     |                    r_Egress.in_dl_t                     |
+|   2   |    [ 2, 3 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3811                   |
+|   2   |    [ 2, 4 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 5 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2997                   |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2998                   |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2910                   |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2903                   |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2904                   |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2907                   |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2908                   |
+|   3   |    [ 1, 3 ]     |                   tbl_single_pipe3810                   |
+|   3   |    [ 2, 6 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2905                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2862                   |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                   tbl_single_pipe2916                   |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   3   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 2, 6 ]     |                   tbl_single_pipe3017                   |
+|   3   |   [ 1, 10 ]     |                  r_Egress.syn_scrub_t                   |
+|   3   |   [ 0, 10 ]     |                   tbl_single_pipe2853                   |
+|   4   |    [ 1, 3 ]*    |                   tbl_single_pipe3809                   |
+|   4   |    [ 2, 6 ]     |                   tbl_single_pipe3019                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3022                   |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3114                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3101                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3102                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3103                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3104                   |
+|   4   |    [ 2, 7 ]     |                         cond-93                         |
+|   5   |    [ 1, 3 ]*    |                   tbl_single_pipe3808                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3043                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3047                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3053                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3069                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3064                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3066                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3105                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3106                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3113                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3116                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3117                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3118                   |
+|   5   |    [ 0, 9 ]     |                   tbl_single_pipe2865                   |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   6   |    [ 1, 3 ]*    |                   tbl_single_pipe3807                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3122                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3123                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3124                   |
+|   6   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   6   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   7   |    [ 1, 3 ]*    |                   tbl_single_pipe3806                   |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3084                   |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3090                   |
+|   7   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ 3, 4 ]*    |                     r_Egress.acct_t                     |
+|   8   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   9   |    [ 4, 5 ]*    |                  r_Egress.img_start_t                   |
+|   9   |    [ 4, 5 ]*    |                   r_Egress.img_end_t                    |
+|   9   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|  10   |    [ 5, 6 ]*    |                   r_Egress.fwd_prep_t                   |
+|  11   |    [ 6, 7 ]*    |                  r_Egress.classify_fwd                  |
+|  12   |    [ 7, 8 ]*    |                   r_Egress.img_wend_t                   |
+|  12   |    [ -, - ]     |                        cond-127                         |
+|  12   |   [ 7, 10 ]*    |                   r_Egress.read_pad_t                   |
+|  12   |   [ 7, 10 ]*    |                   r_Egress.ctl_pad_t                    |
+|  13   |    [ -, - ]     |                   r_Egress.rev_prep_t                   |
+|  14   |   [ 9, 10 ]*    |                  r_Egress.classify_rev                  |
+|  15   |   [ 10, 11 ]*   |                    r_Egress.window_t                    |
+|  15   |   [ 8, 11 ]*    |       egress_reset_invalidated_checksum_fields_1        |
+|  15   |   [ 8, 11 ]*    |       egress_reset_invalidated_checksum_fields_0        |
+|  15   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  15   |   [ 7, 11 ]*    | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  16   |   [ 10, 11 ]*   | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 12
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 117
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 2 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 2 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 3 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2856                   |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2897                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2898                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2899                   |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2965                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2971                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2981                   |
+|   1   |    [ 1, 2 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rt_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb1_t                    |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                r_Egress.crc_read_tail_t                 |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_ct_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_cb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 5 ]     |                   tbl_single_pipe2941                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2943                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2946                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2949                   |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2999                   |
+|   2   |    [ 0, 3 ]     |                r_Egress.crc_ctl_tail1_t                 |
+|   2   |    [ 0, 2 ]     |                    r_Egress.in_dl_t                     |
+|   2   |    [ 2, 3 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3811                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3810                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3809                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3808                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3807                   |
+|   2   |    [ 2, 4 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 5 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2997                   |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2998                   |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2910                   |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   3   |    [ 1, 3 ]     |                   tbl_single_pipe3806                   |
+|   3   |    [ 2, 6 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2903                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2904                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2907                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2908                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2905                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2862                   |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                   tbl_single_pipe2916                   |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   3   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 2, 6 ]     |                   tbl_single_pipe3017                   |
+|   3   |   [ 1, 10 ]     |                  r_Egress.syn_scrub_t                   |
+|   3   |   [ 0, 10 ]     |                   tbl_single_pipe2853                   |
+|   4   |    [ 3, 4 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 6 ]     |                   tbl_single_pipe3019                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3022                   |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3114                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3101                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3102                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3103                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3104                   |
+|   4   |    [ 2, 7 ]     |                         cond-93                         |
+|   5   |    [ 4, 5 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 5 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3043                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3047                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3053                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3069                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3064                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3066                   |
+|   5   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3105                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3106                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3113                   |
+|   5   |    [ 0, 9 ]     |                   tbl_single_pipe2865                   |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   6   |    [ 5, 6 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3122                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3123                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3124                   |
+|   6   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 3, 8 ]     |                   tbl_single_pipe3116                   |
+|   6   |    [ 3, 8 ]     |                   tbl_single_pipe3117                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3118                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   7   |    [ 6, 7 ]     |                  r_Egress.classify_fwd                  |
+|   7   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3084                   |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3090                   |
+|   8   |    [ 7, 8 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                        cond-127                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   8   |   [ 6, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   9   |    [ -, - ]     |                   r_Egress.rev_prep_t                   |
+|   9   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|  10   |   [ 9, 10 ]     |                  r_Egress.classify_rev                  |
+|  11   |   [ 10, 11 ]    |                    r_Egress.window_t                    |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  11   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  11   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  11   |   [ 10, 11 ]    | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 12
+Critical path length through the table dependency graph: 11
+Invoking table placement without container conflicts because previous round of table placement took 12 stages.
+Number of tables allocated: 117
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 2 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 2 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 3 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2856                   |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2897                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2898                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2899                   |
+|   0   |    [ 0, 6 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   0   |    [ 0, 6 ]     |                   tbl_single_pipe2910                   |
+|   0   |    [ 0, 6 ]     |                   tbl_single_pipe2862                   |
+|   0   |    [ 0, 6 ]     |                         cond-80                         |
+|   1   |    [ 1, 2 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rt_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb1_t                    |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                r_Egress.crc_read_tail_t                 |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_ct_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_cb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2941                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2943                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2965                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2946                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2971                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2949                   |
+|   2   |    [ 0, 3 ]     |                r_Egress.crc_ctl_tail1_t                 |
+|   2   |    [ 0, 2 ]     |                    r_Egress.in_dl_t                     |
+|   2   |    [ 2, 3 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3811                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3810                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3809                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3808                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3807                   |
+|   2   |    [ 2, 4 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 5 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2981                   |
+|   2   |    [ 1, 6 ]     |               d_Ingress.tbl_expected_ack                |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2999                   |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2903                   |
+|   3   |    [ 1, 3 ]     |                   tbl_single_pipe3806                   |
+|   3   |    [ 2, 6 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2904                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2907                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2908                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2905                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2997                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2998                   |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 7 ]     |                   tbl_single_pipe2916                   |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 0, 9 ]     |                   tbl_single_pipe2865                   |
+|   3   |   [ 1, 10 ]     |                  r_Egress.syn_scrub_t                   |
+|   3   |   [ 0, 10 ]     |                   tbl_single_pipe2853                   |
+|   4   |    [ 3, 4 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_resp_authorise               |
+|   4   |    [ 2, 7 ]     |                         cond-90                         |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3017                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3019                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3022                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3101                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3102                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3103                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3104                   |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3114                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3105                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3106                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3113                   |
+|   4   |    [ 2, 8 ]     |                         cond-93                         |
+|   5   |    [ 4, 5 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 5 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3043                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3047                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3053                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3069                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3064                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3066                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3116                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3117                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3118                   |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3122                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3123                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3124                   |
+|   6   |    [ 5, 6 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   6   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   6   |    [ 4, 9 ]     |                   tbl_single_pipe3084                   |
+|   6   |    [ 4, 9 ]     |                   tbl_single_pipe3090                   |
+|   7   |    [ 6, 7 ]     |                  r_Egress.classify_fwd                  |
+|   7   |   [ 5, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   7   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ 7, 8 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                        cond-127                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |   [ 6, 11 ]     |                  d_Ingress.tbl_commit                   |
+|   9   |    [ -, - ]     |                   r_Egress.rev_prep_t                   |
+|  10   |   [ 9, 10 ]     |                  r_Egress.classify_rev                  |
+|  11   |   [ 10, 11 ]    |                    r_Egress.window_t                    |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  11   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  11   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  11   |   [ 10, 11 ]    | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 4 time(s), state = NOCC_TRY2
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 12
+Critical path length through the table dependency graph: 11
+Invoking table placement without metadata initialization because container second conflict-free table placement required 12 stages.
+Number of tables allocated: 117
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 2 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 2 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 3 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2856                   |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2897                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2898                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2899                   |
+|   0   |    [ 0, 6 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   0   |    [ 0, 6 ]     |                   tbl_single_pipe2910                   |
+|   0   |    [ 0, 6 ]     |                   tbl_single_pipe2862                   |
+|   0   |    [ 0, 6 ]     |                         cond-80                         |
+|   1   |    [ 1, 2 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rt_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb1_t                    |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                r_Egress.crc_read_tail_t                 |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_ct_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_cb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2941                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2943                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2965                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2946                   |
+|   1   |    [ 0, 6 ]     |                   tbl_single_pipe2971                   |
+|   1   |    [ 1, 6 ]     |                   tbl_single_pipe2949                   |
+|   2   |    [ 0, 3 ]     |                r_Egress.crc_ctl_tail1_t                 |
+|   2   |    [ 0, 2 ]     |                    r_Egress.in_dl_t                     |
+|   2   |    [ 2, 3 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3811                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3810                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3809                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3808                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3807                   |
+|   2   |    [ 2, 4 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 5 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2981                   |
+|   2   |    [ 1, 6 ]     |               d_Ingress.tbl_expected_ack                |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2999                   |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                   tbl_single_pipe2903                   |
+|   3   |    [ 1, 3 ]     |                   tbl_single_pipe3806                   |
+|   3   |    [ 2, 6 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2904                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2907                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2908                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2905                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2997                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2998                   |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 7 ]     |                   tbl_single_pipe2916                   |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 0, 9 ]     |                   tbl_single_pipe2865                   |
+|   3   |   [ 1, 10 ]     |                  r_Egress.syn_scrub_t                   |
+|   3   |   [ 0, 10 ]     |                   tbl_single_pipe2853                   |
+|   4   |    [ 3, 4 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_resp_authorise               |
+|   4   |    [ 2, 7 ]     |                         cond-90                         |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3017                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3019                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3022                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3101                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3102                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3103                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3104                   |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3114                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3105                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3106                   |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3113                   |
+|   4   |    [ 2, 8 ]     |                         cond-93                         |
+|   5   |    [ 4, 5 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 5 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3043                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3047                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3053                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3069                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3064                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3066                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3116                   |
+|   5   |    [ 3, 8 ]     |                   tbl_single_pipe3117                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3118                   |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3122                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3123                   |
+|   5   |    [ 3, 9 ]     |                   tbl_single_pipe3124                   |
+|   6   |    [ 5, 6 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   6   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   6   |    [ 4, 9 ]     |                   tbl_single_pipe3084                   |
+|   6   |    [ 4, 9 ]     |                   tbl_single_pipe3090                   |
+|   7   |    [ 6, 7 ]     |                  r_Egress.classify_fwd                  |
+|   7   |   [ 5, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   7   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ 7, 8 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                        cond-127                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |   [ 6, 11 ]     |                  d_Ingress.tbl_commit                   |
+|   9   |    [ -, - ]     |                   r_Egress.rev_prep_t                   |
+|  10   |   [ 9, 10 ]     |                  r_Egress.classify_rev                  |
+|  11   |   [ 10, 11 ]    |                    r_Egress.window_t                    |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  11   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  11   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  11   |   [ 10, 11 ]    | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 5 time(s), state = REDO_PHV2
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 12
+Critical path length through the table dependency graph: 11
+Number of tables allocated: 117
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 1 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 2 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 2 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 3 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2856                   |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2897                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2898                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2899                   |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2965                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2971                   |
+|   0   |    [ 0, 5 ]     |                   tbl_single_pipe2981                   |
+|   1   |    [ 1, 2 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rt_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb1_t                    |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_rb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                r_Egress.crc_read_tail_t                 |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_ct_t                     |
+|   1   |    [ 0, 2 ]     |                    r_Egress.in_cb0_t                    |
+|   1   |    [ 0, 3 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 5 ]     |                   tbl_single_pipe2941                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2943                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2946                   |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2949                   |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                   tbl_single_pipe2999                   |
+|   2   |    [ 0, 3 ]     |                r_Egress.crc_ctl_tail1_t                 |
+|   2   |    [ 0, 2 ]     |                    r_Egress.in_dl_t                     |
+|   2   |    [ 2, 3 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3811                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3810                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3809                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3808                   |
+|   2   |    [ 1, 3 ]     |                   tbl_single_pipe3807                   |
+|   2   |    [ 2, 4 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 5 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2997                   |
+|   2   |    [ 1, 5 ]     |                   tbl_single_pipe2998                   |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 6 ]     |                   tbl_single_pipe2910                   |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   3   |    [ 1, 3 ]     |                   tbl_single_pipe3806                   |
+|   3   |    [ 2, 6 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2903                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2904                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2907                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2908                   |
+|   3   |    [ 1, 6 ]     |                   tbl_single_pipe2905                   |
+|   3   |    [ 0, 6 ]     |                   tbl_single_pipe2862                   |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                   tbl_single_pipe2916                   |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   3   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 2, 6 ]     |                   tbl_single_pipe3017                   |
+|   3   |   [ 1, 10 ]     |                  r_Egress.syn_scrub_t                   |
+|   3   |   [ 0, 10 ]     |                   tbl_single_pipe2853                   |
+|   4   |    [ 3, 4 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 6 ]     |                   tbl_single_pipe3019                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3022                   |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   4   |    [ 2, 8 ]     |                   tbl_single_pipe3114                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3101                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3102                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3103                   |
+|   4   |    [ 2, 7 ]     |                   tbl_single_pipe3104                   |
+|   4   |    [ 2, 7 ]     |                         cond-93                         |
+|   5   |    [ 4, 5 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 5 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3043                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3047                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3053                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3069                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3064                   |
+|   5   |    [ 3, 7 ]     |                   tbl_single_pipe3066                   |
+|   5   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3105                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3106                   |
+|   5   |    [ 2, 8 ]     |                   tbl_single_pipe3113                   |
+|   5   |    [ 0, 9 ]     |                   tbl_single_pipe2865                   |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   6   |    [ 5, 6 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3122                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3123                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3124                   |
+|   6   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 3, 8 ]     |                   tbl_single_pipe3116                   |
+|   6   |    [ 3, 8 ]     |                   tbl_single_pipe3117                   |
+|   6   |    [ 3, 9 ]     |                   tbl_single_pipe3118                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   7   |    [ 6, 7 ]     |                  r_Egress.classify_fwd                  |
+|   7   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3084                   |
+|   7   |    [ 5, 9 ]     |                   tbl_single_pipe3090                   |
+|   8   |    [ 7, 8 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                        cond-127                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   8   |   [ 6, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   9   |    [ -, - ]     |                   r_Egress.rev_prep_t                   |
+|   9   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|  10   |   [ 9, 10 ]     |                  r_Egress.classify_rev                  |
+|  11   |   [ 10, 11 ]    |                    r_Egress.window_t                    |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  11   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  11   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  11   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  11   |   [ 10, 11 ]    | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
