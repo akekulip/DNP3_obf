@@ -274,10 +274,22 @@ class DryRun(Base):
         b = self.render(['run', '--dry-run', '--config', self.cfgfile(), '--arms', 'combined', '--run-id', 'c1'])
         self.assertEqual(a, b)
 
-    def test_plan_flags_a_blocked_arm_instead_of_hiding_it(self):
+    def test_padding_off_arm_plans_with_the_installers_pad_enable_flag(self):
         rc, out = self.render(['plan', '--config', self.cfgfile(), '--arms', 'off', '--run-id', 'c1'])
+        self.assertEqual(rc, 0)
+        self.assertIn('--pad-enable 0', out)
+        self.assertNotIn('BLOCKED', out)         # the installer now has the flag, so nothing blocks the arm
+
+    def test_a_genuinely_blocked_arm_is_still_flagged_when_the_installer_lacks_the_flag(self):
+        real = cp.default_installer_flags
+        cp.default_installer_flags = lambda flag: False        # an installer source without --pad-enable
+        try:
+            rc, out = self.render(['plan', '--config', self.cfgfile(), '--arms', 'off', '--run-id', 'c1'])
+        finally:
+            cp.default_installer_flags = real
         self.assertIn('BLOCKED', out)
         self.assertIn('--pad-enable', out)
+        self.assertNotIn('--pad-enable 0', out)
 
     def test_run_still_needs_apply_and_authorization(self):
         with self.assertRaises(SystemExit):

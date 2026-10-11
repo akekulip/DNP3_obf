@@ -245,9 +245,9 @@ def q(x):
 
 
 class Campaign:
-    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=default_installer_flags, out=print):
+    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
-        self.installer_has = installer_flags
+        self.installer_has = installer_flags or (lambda flag: default_installer_flags(flag))
         names = [a['name'] for a in cfg['arms']]
         want = arms or names
         unknown = [n for n in want if n not in names]
