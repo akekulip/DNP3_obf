@@ -28,6 +28,9 @@ construction there and carries no information. An exchange with no covering resp
 (a failed exchange) and is reported in the completion counts, though latency statistics are taken only
 from the declared eligible subset: complete, non-piggyback, single-attempt exchanges.
 
+Standard deviation is reported under two explicit keys, `sd_population` (divide by n) and `sd_sample`
+(divide by n-1); there is no bare `sd`. The convention is also written into every report as `sd_convention`.
+
 DNP3 CRCs are verified on requests and responses. A checksum-offloaded master segment carries only a
 TCP pseudo-header placeholder, which is not corruption and does not affect the DNP3 CRC; returned frames
 are checksum-validated.
@@ -45,6 +48,8 @@ MASTER_IP = wc.MASTER_IP
 FUNC = {0: 'CONFIRM', 1: 'READ', 2: 'WRITE', 3: 'SELECT', 4: 'OPERATE', 5: 'DIRECT_OPERATE',
         0x81: 'RESPONSE', 0x82: 'UNSOLICITED'}
 RESPONSE_FUNCS = (0x81, 0x82)
+SD_CONVENTION = ('sd_population divides by n (statistics.pstdev); sd_sample divides by n-1 (statistics.stdev). '
+                 'Both are in the units of the statistic (microseconds); a single value reports 0.0 for both.')
 
 
 def after(a, b):
@@ -67,7 +72,8 @@ def stats(values):
     q = lambda p: v[min(len(v) - 1, int(round(p * (len(v) - 1))))]
     return {'n': len(v), 'min': v[0], 'median': int(statistics.median(v)), 'iqr': q(0.75) - q(0.25),
             'p95': q(0.95), 'p99': q(0.99), 'max': v[-1],
-            'sd': round(statistics.pstdev(v), 1) if len(v) > 1 else 0.0}
+            'sd_population': round(statistics.pstdev(v), 1) if len(v) > 1 else 0.0,
+            'sd_sample': round(statistics.stdev(v), 1) if len(v) > 1 else 0.0}
 
 
 def _master_requests(out_segs):
@@ -146,7 +152,8 @@ def summarize(rows):
 
 def analyze(out_path, in_path):
     rows = exchanges(out_path, in_path)
-    return {'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
+    return {'sd_convention': SD_CONVENTION,
+            'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
                     'timestamps are integer microseconds at the capture resolution',
             'summary': summarize(rows), 'exchanges': rows}
 

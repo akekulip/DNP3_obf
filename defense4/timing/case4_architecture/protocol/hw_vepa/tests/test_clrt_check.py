@@ -91,6 +91,25 @@ class ClrtCheck(unittest.TestCase):
         self.assertEqual(self.read['resp_crc_bad'], 0)
 
 
+class SdConvention(unittest.TestCase):
+    """The SD convention is explicit in the output: both population (divide by n) and sample (n-1) values are
+    reported under unambiguous keys, and the report names the convention. A bare `sd` key is ambiguous."""
+    def test_stats_reports_both_conventions_and_no_bare_sd(self):
+        s = cc.stats([2, 4, 4, 4, 5, 5, 7, 9])          # classic: population SD exactly 2.0
+        self.assertEqual(s['sd_population'], 2.0)
+        self.assertEqual(s['sd_sample'], 2.1)           # 2.138 at the report's 0.1 us rounding
+        self.assertNotIn('sd', s)
+
+    def test_single_value_has_zero_sd(self):
+        s = cc.stats([7])
+        self.assertEqual((s['sd_population'], s['sd_sample']), (0.0, 0.0))
+
+    def test_report_declares_the_convention(self):
+        rep = cc.analyze(*build(tempfile.mkdtemp()))
+        self.assertIn('population', rep['sd_convention'])
+        self.assertIn('sample', rep['sd_convention'])
+
+
 class CrcFailure(unittest.TestCase):
     def test_bad_response_crc_is_reported_and_exits_nonzero(self):
         tmp = tempfile.mkdtemp()
