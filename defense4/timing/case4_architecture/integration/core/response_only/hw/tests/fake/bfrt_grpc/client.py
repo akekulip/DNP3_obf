@@ -136,7 +136,10 @@ class Table:
         del self.e[keys[0]]
 
     def default_entry_get(self, tgt, flags=None):
-        yield Data(self.default), None
+        got = dict(self.default)
+        if 'cap' in got:      # measured on the switch: the P4 never assigns cap, so it always reads 0
+            got['cap'] = 0
+        yield Data(got), None
 
     def default_entry_set(self, tgt, data):
         LOG.append(('default_set', self.name, data))

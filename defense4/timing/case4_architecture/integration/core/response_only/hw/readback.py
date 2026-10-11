@@ -24,6 +24,12 @@ def _norm(name, value):
     return value
 
 
+# Action parameters the P4 accepts but never assigns, so the compiler stores nothing and hardware reads 0.
+# Measured on the switch 2026-10-11: T's set_params(cap) read 0 before and after writing 16000000
+# (read_queue_timing.p4: "cap is accepted ... but not stored -- nothing in this design uses it as a deadline").
+NOT_STORED = {('p1.t_Ingress.params', 'cap')}
+
+
 def verify(sw, op):
     where = '%s %s' % (op['table'], op.get('label') or [k[1] for k in op.get('key', [])])
     try:
@@ -41,7 +47,7 @@ def verify(sw, op):
         if name != op['action']:
             bad.append('%s: action %r on readback, wrote %s' % (where, name, op['action']))
     for name, want in op['data']:
-        if name in COUNTER_FIELDS:
+        if name in COUNTER_FIELDS or (op['table'], name) in NOT_STORED:
             continue
         have = got.get(name)
         if _norm(name, have) != _norm(name, want):
