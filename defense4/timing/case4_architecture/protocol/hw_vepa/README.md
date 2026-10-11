@@ -6,7 +6,8 @@ through the Tofino, with both endpoints behind dev_port 9. First used for the pa
 
 | file | where it runs | what it does |
 |---|---|---|
-| `campaign.py` | workstation | the single four-arm campaign entry point: reads `campaign.json` and ties the hw/ composite installer, endpoint runner, snapshots, verification, extraction and restoration into one runbook |
+| `campaign.py` | workstation | the single four-arm campaign entry point: reads `campaign.json`, binds build and endpoint identity, and orchestrates the hw/ composite installer, the Vision endpoint runner, per-arm snapshots, verification, extraction and restoration (`plan` prints the exact commands, `run --apply` executes them, restore is in a `finally`) |
+| `switch_swap.sh`, `launch_composite.sh` | switch | stop the running `bf_switchd` and cold-launch another program (composite or production), failing unless `:50052` is serving with no `device_add` error |
 | `run.py` | workstation | one standalone (pure-E) run end to end: slot rows, counters before, endpoints, counters after, copy, wire + clrt check; fails the run on an endpoint/extractor/checksum/extraction error |
 | `vision_run.py` | Vision, `sudo python3` | namespace TCP profile (checked), NIC flag, endpoints, direction-split captures with capture-ready confirmation, try/finally cleanup and tcpdump drop stats |
 | `switch_slot.py` | switch | clears and installs slot 0 (`vepa` tuple or the rig's `relay` slot) |
@@ -18,9 +19,9 @@ through the Tofino, with both endpoints behind dev_port 9. First used for the pa
 
 ```bash
 # the whole campaign (reads campaign.json; see its _notes before running)
-python3 hw_vepa/campaign.py validate      # check the config
-python3 hw_vepa/campaign.py plan          # the full ordered runbook, no undocumented manual step
-DEFENSE4_HW_AUTHORIZED=1 python3 hw_vepa/campaign.py run --apply   # execute it (hardware; gated)
+python3 hw_vepa/campaign.py validate      # structure + build/endpoint identity (nonzero while anything is unbound)
+python3 hw_vepa/campaign.py plan [--arms combined]   # the exact commands run would execute; executes none
+DEFENSE4_HW_AUTHORIZED=1 python3 hw_vepa/campaign.py run --apply [--arms size_only,combined]   # hardware; gated
 
 # or a single standalone pure-E run
 python3 hw_vepa/run.py deploy

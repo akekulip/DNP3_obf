@@ -1,7 +1,9 @@
 """campaign.py loads one config, validates it, expands the four arms over their builds, and renders a
 complete runbook that ties the hw/ composite installer to the endpoint runner, verification and
 restoration. Offline only; the hardware `run` path is not exercised."""
+import contextlib
 import copy
+import io
 import json
 import os
 import sys
@@ -60,40 +62,42 @@ class ConfigValidation(unittest.TestCase):
 
 
 class PlanContent(unittest.TestCase):
+    """`plan` is the orchestration over a DryRunner, so these read the exact commands `run` would emit."""
     def setUp(self):
         self.cfg = cp.load_config(str(CONFIG))
-        self.steps = cp.plan(self.cfg)
-        self.text = cp.render(self.steps)
+        self.dry = cp.DryRunner()
+        with contextlib.redirect_stdout(io.StringIO()):
+            cp.Campaign(self.cfg, self.dry, 'c1', installer_flags=lambda f: True).execute()
+        self.cmds = [c for _w, c in self.dry.calls]
+        self.text = '\n'.join(self.cmds)
 
-    def test_installs_each_build_once(self):
-        applies = [s for s in self.steps if 'bringup_composite.py' in s[2] and '--apply' in s[2]]
-        self.assertEqual(len(applies), 1)                       # one per build, not one per arm
-        for s in applies:
-            self.assertIn('--expect bfrt.json=', s[2])
-            self.assertIn('--enable-pktgen', s[2])
+    def test_installs_each_install_group_once(self):
+        applies = [c for c in self.cmds if 'bringup_composite.py' in c and '--apply' in c]
+        self.assertEqual(len(applies), 2)                       # (build, padding 0) and (build, padding 1), not per arm
+        for c in applies:
+            self.assertIn('--expect bfrt.json=', c)
+            self.assertIn('--enable-pktgen', c)
 
     def test_sets_T_once_per_arm_with_the_right_bit(self):
-        sets = [s[2] for s in self.steps if 'set_enabled.py' in s[2]]
+        sets = [c for c in self.cmds if 'set_enabled.py' in c]
         self.assertEqual(len(sets), 4)
         self.assertEqual(sum('--enabled 1' in c for c in sets), 2)
         self.assertEqual(sum('--enabled 0' in c for c in sets), 2)
 
     def test_each_trial_runs_endpoint_then_both_extractors(self):
-        runs = [s for s in self.steps if 'vision_run.py run' in s[2]]
+        runs = [c for c in self.cmds if 'vision_run.py run' in c]
         self.assertEqual(len(runs), 4 * self.cfg['trials']['trials_per_arm'])
-        self.assertTrue(all('--reads %d' % self.cfg['trials']['reads_per_trial'] in s[2] for s in runs))
-        self.assertEqual(len([s for s in self.steps if 'wire_check.py' in s[2]]), len(runs))
-        self.assertEqual(len([s for s in self.steps if 'clrt_check.py' in s[2]]), len(runs))
+        self.assertTrue(all('--reads %d' % self.cfg['trials']['reads_per_trial'] in c for c in runs))
+        self.assertEqual(len([c for c in self.cmds if 'wire_check.py' in c]), len(runs))
+        self.assertEqual(len([c for c in self.cmds if 'clrt_check.py' in c]), len(runs))
 
     def test_ties_in_snapshots_and_restoration(self):
-        self.assertIn('snapshot_counters.py', self.text)
-        self.assertIn('bringup_teardown.py', self.text)
-        self.assertIn('restore_ports.py', self.text)
-        self.assertIn('run.py deploy', self.text)
-        self.assertIn('run.py restore', self.text)
+        for s in ('snapshot_counters.py', 'bringup_teardown.py', 'restore_ports.py', 'vision_run.py setup',
+                  'vision_run.py restore', 'switch_swap.sh'):
+            self.assertIn(s, self.text)
 
-    def test_timing_parameters_from_config_appear_in_the_install(self):
-        comp = next(s[2] for s in self.steps if 'bringup_composite.py' in s[2])
+    def test_timing_parameters_and_k_from_config_appear_in_the_install(self):
+        comp = next(c for c in self.cmds if 'bringup_composite.py' in c)
         self.assertIn('--t-readiness %d' % self.cfg['timing_params_ns']['readiness'], comp)
         self.assertIn('--k %d' % self.cfg['service']['k'], comp)
 
