@@ -55,8 +55,7 @@ RESPONSE_ONLY = 'integration/core/response_only'
 Result = collections.namedtuple('Result', 'rc out err')
 ARCH = os.path.abspath(os.path.join(HERE, '..', '..'))      # case4_architecture: every config path is relative to it
 REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
-            'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production',
-            'ports_snapshot')
+            'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production')
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
 ROLES = ('ack', 'resp', 'op')
 HEX64 = re.compile(r'[0-9a-f]{64}')
@@ -256,6 +255,7 @@ class Campaign:
         self.arms = [a for a in cfg['arms'] if a['name'] in want]
         self.R = cfg['hosts']['switch_remote_dir']
         self.V = vr.HOME
+        self.prerun = '%s/snap/%s_prerun.json' % (self.R, run_id)
         self.root = os.path.join(path_of(cfg['evidence_dir']), run_id)
         self.record = {'run_id': run_id, 'ok': False, 'failure': None, 'arms': [], 'restore': [], 'groups': []}
         self.switch_touched = False
@@ -325,7 +325,9 @@ class Campaign:
             os.makedirs(self.root)
         failed = False
         try:
-            self.preflight_vision()
+            self.vision_identity()
+            self.switch_toolkit()
+            self.vision_setup()
             for build, padding, arms in self.groups():
                 self.run_group(build, padding, arms)
         except (StepFailed, ValueError, OSError) as e:
@@ -340,12 +342,11 @@ class Campaign:
             self.finish(dry)
         return 0 if self.record['ok'] else 1
 
-    def preflight_vision(self):
-        c, ep, V = self.cfg, self.cfg['endpoint'], self.V
-        host = c['hosts']['vision']
-        self.vision_touched = True
+    def vision_identity(self):
+        """Read-only identity checks on Vision (the only change is copying vision_run.py)."""
+        ep, V = self.cfg['endpoint'], self.V
         self.step('local', 'deploy vision_run.py to Vision',
-                  'scp -q %s %s:%s/' % (q(os.path.join(HERE, 'vision_run.py')), host, V))
+                  'scp -q %s %s:%s/' % (q(os.path.join(HERE, 'vision_run.py')), self.cfg['hosts']['vision'], V))
         r = self.step('vision', 'verify the deployed vision_run.py identity', 'sha256sum %s/vision_run.py' % V)
         self.check_hash(r, sha256_file(os.path.join(HERE, 'vision_run.py')), 'vision_run.py on Vision')
         r = self.step('vision', 'verify the endpoint binary identity', 'sha256sum %s' % vr.BIN)
@@ -355,9 +356,50 @@ class Campaign:
         self.check_hash(r, ep['lib_sha256'], 'endpoint lib %s' % vr.LIB)
         self.record['endpoint_observed'] = {'binary_sha256': ep['binary_sha256'], 'lib_sha256': ep['lib_sha256'],
                                             'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py'))}
+
+    def switch_toolkit(self):
+        """Copy the tools and builds to the switch, then observe (read-only) which program is running, refuse
+        unless it is the configured production program, and snapshot its $PORT table for every later replay."""
+        c, R, host = self.cfg, self.R, self.cfg['hosts']['switch']
+        aux = R + '/aux'
+        self.step('switch', 'make remote directories', 'mkdir -p %s %s/src %s/snap' % (aux, R, R))
+        fw = os.path.join(ARCH, '..', 'framework', 'control')
+        self.step('local', 'copy the switch tools (ports, snapshot, observe, relay slot, swap/launch)',
+                  'scp -q %s %s %s %s %s %s %s %s:%s/' % (
+                      q(os.path.join(fw, 'restore_ports.py')), q(os.path.join(fw, 'live_snapshot.py')),
+                      q(os.path.join(HERE, 'observe_program.py')), q(os.path.join(HERE, 'switch_slot.py')),
+                      q(os.path.join(HERE, '..', 'response_path_cp.py')), q(os.path.join(HERE, 'switch_swap.sh')),
+                      q(os.path.join(HERE, 'launch_composite.sh')), host, aux))
+        self.step('local', 'copy the installer source tree to the switch', 'rsync -aR --exclude __pycache__ '
+                  '%s/cp.py %s/port_map.py %s/hw protocol/response_path_cp.py %s:%s/src/'
+                  % (RESPONSE_ONLY, RESPONSE_ONLY, RESPONSE_ONLY, host, R), cwd=ARCH)
+        for build in sorted({a['build'] for a in self.arms}):
+            self.step('local', 'copy build %s out/ to the switch' % build, 'rsync -a %s/ %s:%s/'
+                      % (q(path_of(c['builds'][build]['out_dir'])), host, '%s/out_%s' % (R, build)))
+        prod = c['production']
+        r = self.step('switch', 'observe the running program (read-only, from ps)',
+                      'python3 %s/observe_program.py' % aux)
+        observed = prod['program']
+        if not self.rn.dry:
+            try:
+                observed = json.loads([l for l in r.out.splitlines() if l.startswith('{')][-1])['program']
+            except (IndexError, ValueError, KeyError):
+                raise StepFailed('cannot read the running program from observe_program.py: %s' % (r.out + r.err)[-300:])
+            self.record['pre_run_program'] = observed
+            if observed != prod['program']:
+                raise StepFailed('refusing: the switch is running program %r but the configured production program '
+                                 'is %r; nothing was changed' % (observed, prod['program']))
+        self.step('switch', 'snapshot the running program\'s $PORT table (read-only) for every later replay',
+                  'python3 %s/live_snapshot.py %s %s' % (aux, observed, self.prerun))
+        self.step('local', 'copy the pre-run snapshot back',
+                  'scp -q %s:%s %s/' % (host, self.prerun, q(self.root)), check=not self.rn.dry)
+
+    def vision_setup(self):
+        V = self.V
+        self.vision_touched = True
         self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)',
                   'sudo python3 %s/vision_run.py setup' % V)
-        fx = c['fixture']
+        fx = self.cfg['fixture']
         if fx.get('casea'):
             self.step('vision', 'separate-ACK + delayed-response fixture on (emulated relay)',
                       'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (V, fx['delay_ms']))
@@ -374,20 +416,9 @@ class Campaign:
         b, tag = c['builds'][build], '%s_pad%d' % (build, padding)
         out_remote, conf = '%s/out_%s' % (R, build), '%s/response_only_hw_%s.conf' % (R, tag)
         manifest, log = '%s/bringup_manifest_%s_%s.json' % (R, self.run_id, tag), '%s/switchd_%s_%s.log' % (R, self.run_id, tag)
-        aux, snapname = R + '/aux', os.path.basename(c['ports_snapshot'])
+        aux = R + '/aux'
         host = c['hosts']['switch']
         self.switch_touched = False
-        self.step('switch', 'make remote directories', 'mkdir -p %s %s/src %s/snap' % (aux, R, R))
-        self.step('local', 'copy the build out/ to the switch',
-                  'rsync -a %s/ %s:%s/' % (q(path_of(b['out_dir'])), host, out_remote))
-        self.step('local', 'copy the installer source tree to the switch', 'rsync -aR --exclude __pycache__ '
-                  '%s/cp.py %s/port_map.py %s/hw protocol/response_path_cp.py %s:%s/src/'
-                  % (RESPONSE_ONLY, RESPONSE_ONLY, RESPONSE_ONLY, host, R), cwd=ARCH)
-        self.step('local', 'copy restore_ports.py, the port snapshot and the swap/launch scripts',
-                  'scp -q %s %s %s %s %s:%s/' % (
-                      q(os.path.join(ARCH, '..', 'framework', 'control', 'restore_ports.py')),
-                      q(path_of(c['ports_snapshot'])), q(os.path.join(HERE, 'switch_swap.sh')),
-                      q(os.path.join(HERE, 'launch_composite.sh')), host, aux))
         self.step('switch', 'PCI vendor must be Barefoot/Intel (0x1d1c)',
                   'test "$(cat /sys/bus/pci/devices/%s/vendor)" = 0x1d1c' % b['pcie'])
         self.step('switch', 'make the bf_switchd conf for this build',
@@ -397,7 +428,7 @@ class Campaign:
         self.step('switch', 'cold-swap bf_switchd to the composite (stop, launch, wait for :50052, no device_add error)',
                   'bash %s/switch_swap.sh %s %s/launch_composite.sh %s %s' % (aux, log, aux, conf, b['sde']))
         self.step('switch', 'replay the front-panel $PORT entries from the live snapshot',
-                  'python3 %s/restore_ports.py %s %s/%s --apply --wait 35' % (aux, c['program'], aux, snapname))
+                  'python3 %s/restore_ports.py %s %s --apply --wait 35' % (aux, c['program'], self.prerun))
         comp = self.installer_cmd(build, padding, out_remote)
         self.step('switch', 'composite install dry-run (hash check, name check, ports it will loop)', comp)
         self.standing.append(manifest)
@@ -509,19 +540,24 @@ class Campaign:
                 ok = False
                 sys.stderr.write('RESTORE STEP FAILED: %s (rc %d) %s\n' % (label, r.rc, (r.err or r.out)[-300:]))
 
-        if self.vision_touched:
-            attempt('vision', 'Vision: fixture off, namespace profile and NIC flag restored',
-                    'sudo python3 %s/vision_run.py restore' % self.V)
         for manifest in list(self.standing):
             attempt('switch', 'teardown the composite still installed', self.hw_env(
                 self.switch_cmd('bringup_teardown.py', '--manifest %s --apply' % manifest)))
+        p, aux = c['production'], R + '/aux'
         if self.switch_touched:
-            p, aux = c['production'], R + '/aux'
-            attempt('switch', 'cold-swap bf_switchd back to the production launch script',
+            attempt('switch', 'cold-swap bf_switchd back to the observed production program',
                     'bash %s/switch_swap.sh %s/switchd_production_%s.log %s' % (aux, R, self.run_id, p['launch_script']))
-            attempt('switch', 'replay production $PORT entries',
-                    'python3 %s/restore_ports.py %s %s/%s --apply --wait 35'
-                    % (aux, p['program'], aux, os.path.basename(c['ports_snapshot'])))
+            attempt('switch', 'replay the pre-run $PORT snapshot on the production program',
+                    'python3 %s/restore_ports.py %s %s --apply --wait 35' % (aux, p['program'], self.prerun))
+            if p.get('relay_slot'):
+                attempt('switch', 'reinstall the relay slot', 'python3 %s/switch_slot.py relay' % aux)
+        if self.vision_touched:
+            attempt('vision', 'Vision: fixture off, namespace profile and NIC flag restored',
+                    'sudo python3 %s/vision_run.py restore' % self.V)
+        if self.vision_touched or self.switch_touched:
+            pg = p['ping']
+            attempt('vision', 'ping through the restored switch path',
+                    'ping -c %d -I %s %s' % (pg['count'], pg['src'], pg['dst']))
         return ok
 
     def finish(self, dry):

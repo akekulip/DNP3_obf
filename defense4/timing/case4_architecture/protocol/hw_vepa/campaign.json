@@ -28,11 +28,12 @@
     "readiness deadline and the normal commit/release path is observable (audit defect D)."
   ],
   "program": "response_only",
-  "ports_snapshot": "../framework/results/live_state_20261006/live_snapshot_20261006.json.gz",
   "production": {
-    "launch_script": "/home/decps/Philip_repo/logs/bringup_20261005/launch.sh",
-    "program": "defense4_rrc_bor_unified12",
-    "_note": "restoration rehearsed 2026-10-06 (audit_current/framework_20261005/RESTORATION_REHEARSAL_20261006.md)"
+    "program": "case4_response_path",
+    "launch_script": "/home/decps/Philip_repo/logs/bringup_20261005/launch_case4_response_path.sh",
+    "relay_slot": true,
+    "ping": {"src": "192.168.10.1", "dst": "192.168.10.7", "count": 2},
+    "_note": "The state observed before every run and restored many times on 2026-10-11. `run` reads the running program from ps before touching anything and refuses unless it equals `program`; the $PORT snapshot used for every port replay is TAKEN at the start of the run from that program (live_snapshot.py), never a stale file. Restore = cold swap to launch_script, restore_ports.py, switch_slot.py relay (if relay_slot), Vision restore, then the ping must succeed."
   },
   "evidence_dir": "integration/evidence/campaign_hw_vepa",
   "hosts": {

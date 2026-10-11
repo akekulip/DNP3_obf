@@ -29,7 +29,9 @@ GOOD_VISION = '{"ok": true, "master_rc": 0, "label": "x"}'
 class FakeRunner:
     dry = False
 
-    def __init__(self, wire_rc=0, clrt_rc=0, vision_out=GOOD_VISION, vision_rc=0, fail_on=None):
+    def __init__(self, wire_rc=0, clrt_rc=0, vision_out=GOOD_VISION, vision_rc=0, fail_on=None,
+                 observed='case4_response_path'):
+        self.observed = observed
         self.calls = []
         self.wire_rc, self.clrt_rc, self.vision_out, self.vision_rc = wire_rc, clrt_rc, vision_out, vision_rc
         self.fail_on = fail_on or []                      # substrings that make a command return rc 1
@@ -39,7 +41,9 @@ class FakeRunner:
         rc, out = 0, ''
         if any(s in cmd for s in self.fail_on):
             return runmod_result(1, '', 'forced failure')
-        if 'sha256sum' in cmd and where == 'vision':
+        if 'observe_program.py' in cmd:
+            out = json.dumps({'program': self.observed, 'conf': '/x/%s_conf.json' % self.observed}) + '\n'
+        elif 'sha256sum' in cmd and where == 'vision':
             if 'vision_run.py' in cmd:
                 out = '%s  vision_run.py\n' % cp.sha256_file(str(HERE.parent / 'vision_run.py'))
             else:
@@ -66,6 +70,11 @@ class FakeRunner:
 
     def cmds(self, needle):
         return [i for i, (_w, c) in enumerate(self.calls) if needle in c]
+
+    def runs(self, needle):
+        """Like cmds() but ignoring the scp/rsync lines that merely copy a script."""
+        return [i for i, (_w, c) in enumerate(self.calls)
+                if needle in c and not c.startswith(('scp', 'rsync'))]
 
     def swaps(self):
         """Indexes of the commands that actually stop/launch bf_switchd (not the scp that copies the script)."""
@@ -162,6 +171,65 @@ class Sequence(Base):
         self.assertEqual(rec['endpoint_observed']['binary_sha256'], H64)
 
 
+class RestoreTarget(Base):
+    """The state restored is the one observed before the run: program case4_response_path via its own launch
+    script, ports from a snapshot taken at the START of the campaign, the relay slot, Vision, then a ping."""
+    def test_configured_production_target(self):
+        p = self.cfg['production']
+        self.assertEqual(p['program'], 'case4_response_path')
+        self.assertTrue(p['launch_script'].endswith('/launch_case4_response_path.sh'))
+        self.assertNotIn('ports_snapshot', self.cfg)
+
+    def test_prerun_snapshot_is_taken_from_the_observed_program_before_any_swap(self):
+        r = FakeRunner()
+        self.campaign(r).execute()
+        obs, snap, swap = r.runs('observe_program.py')[0], r.runs('live_snapshot.py')[0], r.swaps()[0]
+        self.assertLess(obs, snap)
+        self.assertLess(snap, swap)
+        self.assertIn('live_snapshot.py case4_response_path', r.calls[snap][1])
+
+    def test_composite_and_production_ports_replay_the_prerun_snapshot_not_a_stale_file(self):
+        r = FakeRunner()
+        self.campaign(r).execute()
+        ports = [r.calls[i][1] for i in r.runs('restore_ports.py ')]
+        self.assertTrue(ports)
+        for c in ports:
+            self.assertIn('c1_prerun.json', c)
+            self.assertNotIn('20261006', c)
+        self.assertIn('restore_ports.py case4_response_path', ports[-1])
+
+    def test_restore_order_is_swap_ports_relay_vision_ping(self):
+        r = FakeRunner()
+        self.campaign(r).execute()
+        swap = r.swaps()[-1]
+        ports = r.runs('restore_ports.py case4_response_path')[-1]
+        relay = r.runs('switch_slot.py relay')[-1]
+        vis = r.runs('vision_run.py restore')[-1]
+        ping = r.cmds('ping -c 2 -I 192.168.10.1 192.168.10.7')[-1]
+        self.assertTrue(swap < ports < relay < vis < ping, (swap, ports, relay, vis, ping))
+        self.assertEqual(r.calls[ping][0], 'vision')
+        self.assertIn('launch_case4_response_path.sh', r.calls[swap][1])
+
+    def test_failed_ping_fails_the_run(self):
+        r = FakeRunner(fail_on=['ping -c 2'])
+        self.assertEqual(self.campaign(r).execute(), 1)
+
+    def test_run_records_the_observed_prerun_program(self):
+        r = FakeRunner()
+        self.campaign(r).execute()
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        self.assertEqual(rec['pre_run_program'], 'case4_response_path')
+
+    def test_wrong_program_running_refuses_before_anything_is_changed(self):
+        r = FakeRunner(observed='defense4_rrc_bor_unified12')
+        self.assertEqual(self.campaign(r).execute(), 1)
+        self.assertFalse(r.swaps())
+        self.assertFalse(r.runs('vision_run.py setup'))
+        self.assertFalse(r.runs('bringup_composite.py'))
+        self.assertFalse(r.runs('restore_ports.py '))       # nothing was changed, so nothing is "restored"
+        self.assertFalse(r.runs('switch_slot.py relay'))
+
+
 class Refusals(Base):
     def test_placeholder_hash_refuses_before_any_command(self):
         cfg = cfg_for(Path(self.tmp) / 'b2', '<sha256 from manifest.json>')
@@ -181,7 +249,7 @@ class Refusals(Base):
         r = FakeRunner()
         self.assertEqual(self.campaign(r).execute(), 1)
         self.assertFalse([c for w, c in r.calls if w == 'switch'])
-        self.assertTrue(r.cmds('vision_run.py restore'))          # the Vision setup that did happen is undone
+        self.assertFalse(r.cmds('vision_run.py setup'))           # identity is checked before Vision is changed
 
     def test_padding_off_arm_is_refused_while_the_installer_has_no_flag(self):
         r = FakeRunner()
