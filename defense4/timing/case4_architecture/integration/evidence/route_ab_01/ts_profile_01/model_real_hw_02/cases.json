@@ -1,0 +1,430 @@
+{
+ "cases": [
+  {
+   "expected": "ok",
+   "name": "SYN_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003c76d8400040062e8bc0a80a01c0a80a07d43a4e20e300001500000000a002fe88e8310000020405b40402080a52a36613045f096601030307"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003c76d8400040062e8bc0a80a01c0a80a07d43a4e20e300001500000000a002fe88e8310000020405b40402080a52a36613045f096601030307"
+  },
+  {
+   "expected": 2,
+   "name": "SYN_N_phase",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "SYNACK_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040002500004006e53ac0a80a07c0a80a014e20d43ad6117778e3000016b01221f003b00000020405b401030300010104020101080a045f6ae652a36613"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000040002500004006e53ac0a80a07c0a80a014e20d43ad6117778e3000016b01221f003b00000020405b401030300010104020101080a045f6ae652a36613"
+  },
+  {
+   "expected": 4,
+   "name": "SYNACK_N_phase",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "handshake_ACK_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003476d9400040062e92c0a80a01c0a80a07d43a4e20e3000016d6117779801001fe646c00000101080a52a36614045f6ae6"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003476d9400040062e92c0a80a01c0a80a07d43a4e20e3000016d6117779801001fe646c00000101080a52a36614045f6ae6"
+  },
+  {
+   "expected": 5,
+   "name": "handshake_ACK_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ1_request_relayed_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500004876da400040062e7dc0a80a01c0a80a07d43a4e20e3000016d6117779801801fe3e9300000101080a52a36614045f6ae605640dc400000100f387c0c0010a020000165a2c"
+    ]
+   }
+  },
+  {
+   "expected": "ok",
+   "name": "READ1_ack_then_response_to_master_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034002600004006e545c0a80a07c0a80a014e20d43ad6117779e300002a801021dc447a00000101080a045f6ae652a36614",
+     "3cfdfecc5dc00030a7024ca2080045000065002700004006e513c0a80a07c0a80a014e20d43ad6117779e300002a801821dc547400000101080a045f6b0452a3661405642644010000002f77c3c08180000a02000016010101010101babd01010101010101010101010101010101bbc301a1c9"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "ack": 1,
+    "response": 1
+   },
+   "name": "READ1_T_released_ack_once_and_response_once",
+   "observed": {
+    "ack": 1,
+    "response": 1
+   },
+   "ok": true,
+   "t_outcomes": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 1,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_FALLBACK": 1,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   }
+  },
+  {
+   "expected": 5,
+   "name": "READ1_N_idle_after",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ1_N_read_app",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ1_master_ACK_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003476db400040062e90c0a80a01c0a80a07d43a4e20e300002ad61177aa801001fe63ef00000101080a52a3662e045f6b04"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003476db400040062e90c0a80a01c0a80a07d43a4e20e300002ad61177aa801001fe63ef00000101080a52a3662e045f6b04"
+  },
+  {
+   "expected": 5,
+   "name": "READ1_master_ACK_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ2_request_relayed_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500004876dc400040062e7bc0a80a01c0a80a07d43a4e20e300002ad61177aa801801fe5c0500000101080a52a369fc045f6aff05640dc400000100f387c0c1010a020000163873"
+    ]
+   }
+  },
+  {
+   "expected": "ok",
+   "name": "READ2_ack_then_response_to_master_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034002800004006e543c0a80a07c0a80a014e20d43ad61177aae300003e801021dc3c6500000101080a045f6ece52a369fc",
+     "3cfdfecc5dc00030a7024ca2080045000065002900004006e511c0a80a07c0a80a014e20d43ad61177aae300003e801821dc644d00000101080a045f6ee752a369fc05642644010000002f77c3c18180000a02000016010101010101a2d301010101010101010101010101010101bbc301a1c9"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "ack": 1,
+    "response": 1
+   },
+   "name": "READ2_T_released_ack_once_and_response_once",
+   "observed": {
+    "ack": 1,
+    "response": 1
+   },
+   "ok": true,
+   "t_outcomes": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 1,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_FALLBACK": 1,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   }
+  },
+  {
+   "expected": 5,
+   "name": "READ2_N_idle_after",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "READ2_N_read_app",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ2_master_ACK_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003476dd400040062e8ec0a80a01c0a80a07d43a4e20e300003ed61177db801001fe5be000000101080a52a36a15045f6ee7"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003476dd400040062e8ec0a80a01c0a80a07d43a4e20e300003ed61177db801001fe5be000000101080a52a36a15045f6ee7"
+  },
+  {
+   "expected": 5,
+   "name": "READ2_master_ACK_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ3_request_relayed_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500004876de400040062e79c0a80a01c0a80a07d43a4e20e300003ed61177db801801feedcf00000101080a52a36de4045f6ee705640dc400000100f387c0c2010a020000169e92"
+    ]
+   }
+  },
+  {
+   "expected": "ok",
+   "name": "READ3_ack_then_response_to_master_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034002a00004006e541c0a80a07c0a80a014e20d43ad61177dbe3000052801021dc345000000101080a045f72b652a36de4",
+     "3cfdfecc5dc00030a7024ca2080045000065002b00004006e50fc0a80a07c0a80a014e20d43ad61177dbe3000052801821dc74a900000101080a045f72cf52a36de405642644010000002f77c3c28180000a020000160101010101018a6101010101010101010101010101010101bbc301a1c9"
+    ]
+   }
+  },
+  {
+   "expected": {
+    "ack": 1,
+    "response": 1
+   },
+   "name": "READ3_T_released_ack_once_and_response_once",
+   "observed": {
+    "ack": 1,
+    "response": 1
+   },
+   "ok": true,
+   "t_outcomes": {
+    "OUT_ACK_COMMIT": 0,
+    "OUT_ACK_FALLBACK": 1,
+    "OUT_REQ_BYPASS": 0,
+    "OUT_RESP_FALLBACK": 1,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_UNMATCHED": 0
+   }
+  },
+  {
+   "expected": 5,
+   "name": "READ3_N_idle_after",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": 2,
+   "name": "READ3_N_read_app",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "READ3_master_ACK_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003476df400040062e8cc0a80a01c0a80a07d43a4e20e3000052d611780c801001fe53cb00000101080a52a36dfd045f72cf"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003476df400040062e8cc0a80a01c0a80a07d43a4e20e3000052d611780c801001fe53cb00000101080a52a36dfd045f72cf"
+  },
+  {
+   "expected": 5,
+   "name": "READ3_master_ACK_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "master_FIN_forwarded_once_and_closes_N_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "0030a7024ca23cfdfecc5dc008004500003476dc400040062e8fc0a80a01c0a80a07d43a4e20e3000052d611780c801101fe4bed00000101080a52a37da5045f6b04"
+    ]
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003476dc400040062e8fc0a80a01c0a80a07d43a4e20e3000052d611780c801101fe4bed00000101080a52a37da5045f6b04"
+  },
+  {
+   "expected": 7,
+   "name": "master_FIN_forwarded_once_and_closes_N_N_phase",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "relay_ACK_of_FIN_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034002800004006e543c0a80a07c0a80a014e20d43ad611780ce3000053801021db14a000000101080a045f827452a37da5"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000034002800004006e543c0a80a07c0a80a014e20d43ad611780ce3000053801021db14a000000101080a045f827452a37da5"
+  },
+  {
+   "expected": 7,
+   "name": "relay_ACK_of_FIN_N_phase",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "relay_FIN_forwarded_byte_exact_once",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034002900004006e542c0a80a07c0a80a014e20d43ad611780ce3000053801921db149700000101080a045f827452a37da5"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000034002900004006e542c0a80a07c0a80a014e20d43ad611780ce3000053801921db149700000101080a045f827452a37da5"
+  },
+  {
+   "expected": 7,
+   "name": "relay_FIN_N_phase",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": "ok",
+   "name": "master_last_ACK_after_close_not_delivered",
+   "observed": "ok",
+   "ok": true,
+   "received": {
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc0080045000034000040004006a56bc0a80a01c0a80a07d43a4e20e3000053d611780d801001fe347900000101080a52a37da8045f8274"
+  },
+  {
+   "expected": 7,
+   "name": "master_last_ACK_after_close_N_phase",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": [
+    "180",
+    "182",
+    "48"
+   ],
+   "name": "READ_loop_ports_carried_frames_and_OPERATE_ladder_did_not",
+   "observed": [
+    "180",
+    "182",
+    "48"
+   ],
+   "ok": true
+  }
+ ],
+ "meta": {
+  "capture_sha256": "b6a7ffe2db8d1fd1a05b58396da078267e8bff164dfe0e50489901b2395910e8",
+  "driver_sha256": "7513ca0a0b2263805aa53afa8355ccd085392085f7518b2c2e3a526bbdbc4dec",
+  "loopback_frames": {
+   "180": {
+    "first_16_bytes_by_length": {
+     "102": "0000000100000004a6e61b0009000000",
+     "131": "0000000100000006c84707000b000000",
+     "82": "0000000100000005c1b88f000a000000"
+    },
+    "frames": 10,
+    "longest": 131,
+    "shortest": 82
+   },
+   "181": {
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "first_16_bytes_by_length": {
+     "123": "0f000001000000003cfdfecc5dc00030",
+     "74": "0e000001000000003cfdfecc5dc00030"
+    },
+    "frames": 6,
+    "longest": 123,
+    "shortest": 74
+   },
+   "48": {
+    "first_16_bytes_by_length": {
+     "66": "0030a7024ca23cfdfecc5dc008004500",
+     "74": "0030a7024ca23cfdfecc5dc008004500",
+     "86": "0030a7024ca23cfdfecc5dc008004500"
+    },
+    "frames": 10,
+    "longest": 86,
+    "shortest": 66
+   }
+  },
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 1,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "scope": "real timestamped TCP profile: captured handshake, 3 READs, captured close"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 36,
+  "total": 36
+ }
+}

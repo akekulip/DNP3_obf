@@ -30,11 +30,13 @@ header eth_h{bit<48> dst;bit<48> src;bit<16> type;}
 header ip_h{bit<4> version;bit<4> ihl;bit<8> tos;bit<16> len;bit<16> id;bit<3> flags;bit<13> frag;bit<8> ttl;bit<8> proto;bit<16> checksum;bit<32> src;bit<32> dst;}
 header tcp_h{bit<16> sport;bit<16> dport;bit<32> seq;bit<32> ack;bit<4> offset;bit<4> reserved;bit<8> flags;bit<16> window;bit<16> checksum;bit<16> urgent;}
 header mss_h{bit<8> kind;bit<8> len;bit<16> value;}
+header opt12_h{bit<32> a;bit<32> b;bit<32> c;}
+header opt4_h{bit<32> v;}
 header envelope_h{bit<32> epoch;}
 header work_generation_h{bit<32> generation;}
 header expected_cell_h{bit<32> expected_cell;}
 header event_h{bit<16> event;bit<16> reserved;}
-struct headers_t{envelope_h envelope;work_generation_h work_generation;expected_cell_h expected_cell;event_h event;t0_h t0;eth_h eth;ip_h ip;tcp_h tcp;mss_h mss;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;rtail_h rtail;read_req_h rd_req;read_tail_h rd_tail;replay_h rb;}
+struct headers_t{envelope_h envelope;work_generation_h work_generation;expected_cell_h expected_cell;event_h event;t0_h t0;eth_h eth;ip_h ip;tcp_h tcp;mss_h mss;opt12_h tso;opt4_h oa;opt4_h ob;dl_h dl;block_h first;block_h second;tail_h tail;response_tail_h response_tail;rtail_h rtail;read_req_h rd_req;read_tail_h rd_tail;replay_h rb;}
 struct meta_t{bit<8> cache_mode;bit<8> association_allowed;bit<8> response;bit<8> matched;bit<8> operate_qualified;bit<32> prefix_difference;bit<32> accepted_diff;bit<16> crc1;bit<8> bad1;bit<32> compare_real_links;bit<32> diff_real_links;bit<32> compare_real_tcp_src;bit<32> compare_real_tcp_dst;bit<32> diff_real_tcp_dst;bit<32> compare_real_tcp_ports;bit<32> compare_real_object;bit<32> diff_real_object;bit<32> compare_real_on;bit<32> compare_real_off;bit<32> diff_real_off;bit<32> compare_native_start;bit<32> compare_native_end;bit<32> diff_native_end;bit<32> compare_server_start;bit<32> compare_application;bit<32> diff_application;bit<32> compare_frozen_decoy_object;bit<32> diff_frozen_decoy_object;bit<32> compare_frozen_decoy_on;bit<32> compare_frozen_decoy_off;bit<32> diff_frozen_decoy_off;bit<32> context_generation;bit<32> native_end;bit<8> enabled;bit<8> profile;bit<8> changed;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<8> badh;bit<8> badb;bit<8> badt;bit<8> return_abort;bit<8> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<8> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;bit<8> parsed;bit<8> port_valid;bit<8> direction;bit<8> network_valid;bit<8> shape_valid;bit<8> packet_kind;bit<8> stage;bit<8> kind;bit<8> work_op;bit<8> owner_op;bit<8> sequence_valid;bit<8> epoch_valid;bit<8> emit_loop;PortId_t output_port;bool ip_error;bit<16> tcp_sum;bit<32> counter;bit<32> generation;bit<32> work_phase;bit<32> epoch;bit<32> client;bit<32> server;bit<32> new_seq;bit<32> client_diff;bit<32> server_diff;bit<32> epoch_diff;bit<32> expected;bit<32> desired;bit<32> observed;bit<32> owner_diff;}
 parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrinsic_metadata_t ig){
  Checksum() ic;Checksum() tc;
@@ -45,7 +47,7 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
  state envelope_reserved{transition select(hdr.event.reserved){16w0:envelope_event;default:accept;}}
  state envelope_event{transition select(hdr.event.event){16w0x0101:eth;16w0x0102:eth;16w0x0103:eth;16w0x0104:eth;16w0x01ff:eth;16w0x0201:eth;16w0x0202:eth;16w0x0203:eth;16w0x02ff:eth;16w0x0301:eth;16w0x0302:eth;16w0x0303:eth;16w0x03ff:eth;16w0x0105:eth;16w0x0106:eth;16w0x0107:read_t0;16w0x0108:eth;16w0x0205:eth;16w0x0206:eth;16w0x0207:read_t0;16w0x0208:eth;16w0x0305:eth;16w0x0306:eth;16w0x0307:read_t0;16w0x0308:eth;16w0x0109:read_t0;16w0x010a:read_t0;16w0x010b:read_t0;16w0x0209:read_t0;16w0x020a:read_t0;16w0x020b:read_t0;16w0x0309:read_t0;16w0x030a:read_t0;16w0x030b:read_t0;16w0x0110:eth;16w0x010c:eth;16w0x0210:eth;16w0x020c:eth;16w0x0310:eth;16w0x030c:eth;default:accept;}}
  state eth{pkt.extract(hdr.eth);transition select(hdr.eth.type){16w0x0800:ip;default:accept;}}
- state ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w40):ip_flags;(4w4,4w5,8w6,16w44):ip_flags;(4w4,4w5,8w6,16w75):native_ip_flags;(4w4,4w5,8w6,16w77):response_ip_flags;(4w4,4w5,8w6,16w60):read_ip_flags;(4w4,4w5,8w6,16w89):read_response_ip_flags;(4w4,4w5,8w6,16w41):replay_ip_flags;default:accept;}}
+ state ip{pkt.extract(hdr.ip);ic.add(hdr.ip);m.ip_error=ic.verify();tc.subtract({hdr.ip.src,hdr.ip.dst,8w0,hdr.ip.proto,hdr.ip.len});transition select(hdr.ip.version,hdr.ip.ihl,hdr.ip.proto,hdr.ip.len){(4w4,4w5,8w6,16w40):ip_flags;(4w4,4w5,8w6,16w44):ip_flags;(4w4,4w5,8w6,16w75):native_ip_flags;(4w4,4w5,8w6,16w77):response_ip_flags;(4w4,4w5,8w6,16w60):read_ip_flags;(4w4,4w5,8w6,16w89):read_response_ip_flags;(4w4,4w5,8w6,16w41):replay_ip_flags;(4w4,4w5,8w6,16w52):ts_ip_flags;(4w4,4w5,8w6,16w64):ts_synack_ip_flags;(4w4,4w5,8w6,16w72):ts_read_ip_flags;(4w4,4w5,8w6,16w101):ts_read_response_ip_flags;default:accept;}}
  state ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):tcp;(13w0,3w2):tcp;default:accept;}}
  state tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.ip.len,hdr.tcp.flags){(4w6,16w44,8w2):mss_syn;(4w6,16w44,8w18):mss_synack;(4w5,16w40,8w16):ack;(4w5,16w40,8w17):close;(4w5,16w40,8w20):close;(4w5,16w40,8w4):close;default:accept;}}
  state mss_syn{pkt.extract(hdr.mss);tc.subtract(hdr.mss);m.packet_kind=8w1;transition mss_check;}
@@ -60,7 +62,7 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
  state response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w5,4w0,16w0,8w16):response_dl;(4w5,4w0,16w0,8w24):response_dl;default:accept;}}
  state response_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition response_block;}
  state read_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):read_tcp;(13w0,3w2):read_tcp;default:accept;}}
- state read_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;default:accept;}}
+ state read_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;(4w10,4w0,16w0,8w2):ts_syn;default:accept;}}
  state read_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition read_request;}
  state read_response_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):read_response_tcp;(13w0,3w2):read_response_tcp;default:accept;}}
  state read_response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w5,4w0,16w0,8w16):read_response_dl;(4w5,4w0,16w0,8w24):read_response_dl;default:accept;}}
@@ -78,6 +80,20 @@ parser IgParser(packet_in pkt,out headers_t hdr,out meta_t m,out ingress_intrins
  state operate_finish{m.packet_kind=8w7;transition finish;}
  state response_block{pkt.extract(hdr.first);tc.subtract(hdr.first);transition rtail37;}
  state rtail37{pkt.extract(hdr.rtail);tc.subtract(hdr.rtail);m.response=8w1;m.packet_kind=8w6;transition finish;}
+ state ts_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_tcp;(13w0,3w2):ts_tcp;default:accept;}}
+ state ts_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags){(4w8,8w16):ts_ack;(4w8,8w17):ts_close;(4w8,8w20):ts_close;default:accept;}}
+ state ts_ack{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){32w0x0101080a:ack;default:accept;}}
+ state ts_close{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){32w0x0101080a:close;default:accept;}}
+ state ts_syn{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);pkt.extract(hdr.oa);tc.subtract(hdr.oa);m.packet_kind=8w1;transition mss_check;}
+ state ts_synack_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_synack_tcp;(13w0,3w2):ts_synack_tcp;default:accept;}}
+ state ts_synack_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags){(4w11,8w18):ts_synack;default:accept;}}
+ state ts_synack{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);pkt.extract(hdr.oa);tc.subtract(hdr.oa);pkt.extract(hdr.ob);tc.subtract(hdr.ob);m.packet_kind=8w2;transition mss_check;}
+ state ts_read_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_tcp;(13w0,3w2):ts_read_tcp;default:accept;}}
+ state ts_read_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w8,4w0,16w0,8w16):ts_read_opt;(4w8,4w0,16w0,8w24):ts_read_opt;default:accept;}}
+ state ts_read_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){32w0x0101080a:read_dl;default:accept;}}
+ state ts_read_response_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_response_tcp;(13w0,3w2):ts_read_response_tcp;default:accept;}}
+ state ts_read_response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags){(4w8,4w0,16w0,8w16):ts_read_response_opt;(4w8,4w0,16w0,8w24):ts_read_response_opt;default:accept;}}
+ state ts_read_response_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){32w0x0101080a:read_response_dl;default:accept;}}
  state finish{m.tcp_sum=tc.get();m.parsed=8w1;m.shape_valid=8w1;transition accept;}
 
 }

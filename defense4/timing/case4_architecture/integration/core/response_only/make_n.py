@@ -161,6 +161,71 @@ def guard_refuses_n_ack_return(text):
     return text[:i] + action + seg + text[j:]
 
 
+TS_BLOCK = '32w0x0101080a'      # NOP, NOP, Timestamp (kind 8, length 10): the 12-byte option block of an offset-8 segment
+IP4 = '(4w4,4w5,8w6,16w%d)'
+TS_EDITS = [
+    # the option bytes are carried as opaque headers after tcp (and after mss on the handshake), so the deparser
+    # re-emits them in place and the TCP checksum residual still covers every byte of the segment
+    ("header mss_h{bit<8> kind;bit<8> len;bit<16> value;}",
+     "header mss_h{bit<8> kind;bit<8> len;bit<16> value;}\n"
+     "header opt12_h{bit<32> a;bit<32> b;bit<32> c;}\nheader opt4_h{bit<32> v;}"),
+    ("tcp_h tcp;mss_h mss;", "tcp_h tcp;mss_h mss;opt12_h tso;opt4_h oa;opt4_h ob;"),
+    # exact IP lengths of the timestamped profile: 52 ACK / close, 64 SYN-ACK, 72 READ request, 101 READ response
+    (IP4 % 41 + ":replay_ip_flags;default:accept;}}",
+     IP4 % 41 + ":replay_ip_flags;" + IP4 % 52 + ":ts_ip_flags;" + IP4 % 64 + ":ts_synack_ip_flags;"
+     + IP4 % 72 + ":ts_read_ip_flags;" + IP4 % 101 + ":ts_read_response_ip_flags;default:accept;}}"),
+    # the timestamped SYN is 60 bytes of IP, the clean READ request's length: told apart by the TCP data offset
+    ("(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;default:accept;}}",
+     "(4w5,4w0,16w0,8w16):read_dl;(4w5,4w0,16w0,8w24):read_dl;(4w10,4w0,16w0,8w2):ts_syn;default:accept;}}"),
+    (" state finish{m.tcp_sum=tc.get();",
+     " state ts_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_tcp;(13w0,3w2):ts_tcp;default:accept;}}\n"
+     " state ts_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags)"
+     "{(4w8,8w16):ts_ack;(4w8,8w17):ts_close;(4w8,8w20):ts_close;default:accept;}}\n"
+     " state ts_ack{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:ack;default:accept;}}\n"
+     " state ts_close{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:close;default:accept;}}\n"
+     " state ts_syn{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);"
+     "pkt.extract(hdr.oa);tc.subtract(hdr.oa);m.packet_kind=8w1;transition mss_check;}\n"
+     " state ts_synack_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_synack_tcp;(13w0,3w2):ts_synack_tcp;default:accept;}}\n"
+     " state ts_synack_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags)"
+     "{(4w11,8w18):ts_synack;default:accept;}}\n"
+     " state ts_synack{pkt.extract(hdr.mss);tc.subtract(hdr.mss);pkt.extract(hdr.tso);tc.subtract(hdr.tso);"
+     "pkt.extract(hdr.oa);tc.subtract(hdr.oa);pkt.extract(hdr.ob);tc.subtract(hdr.ob);m.packet_kind=8w2;transition mss_check;}\n"
+     " state ts_read_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_tcp;(13w0,3w2):ts_read_tcp;default:accept;}}\n"
+     " state ts_read_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags)"
+     "{(4w8,4w0,16w0,8w16):ts_read_opt;(4w8,4w0,16w0,8w24):ts_read_opt;default:accept;}}\n"
+     " state ts_read_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:read_dl;default:accept;}}\n"
+     " state ts_read_response_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):ts_read_response_tcp;(13w0,3w2):ts_read_response_tcp;default:accept;}}\n"
+     " state ts_read_response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.reserved,hdr.tcp.urgent,hdr.tcp.flags)"
+     "{(4w8,4w0,16w0,8w16):ts_read_response_opt;(4w8,4w0,16w0,8w24):ts_read_response_opt;default:accept;}}\n"
+     " state ts_read_response_opt{pkt.extract(hdr.tso);tc.subtract(hdr.tso);transition select(hdr.tso.a){%(ts)s:read_response_dl;default:accept;}}\n"
+     " state finish{m.tcp_sum=tc.get();" % dict(ts=TS_BLOCK)),
+]
+
+
+def admit_timestamped_profile(text):
+    """Edit 9: the real stack's TCP profile (timestamps, SACK-permitted, window scale), READ lane and handshake.
+    Measured on Vision against the SEL-751 (protocol/evidence/hw_range_read_01/native_ip_retest_20261010.pcap):
+    SYN data offset 10 / IP length 60, SYN-ACK 11 / 64, every later segment offset 8 with the 12-byte block
+    NOP NOP Timestamp: ACK and FIN 52, READ request 72, READ response 101. Before this edit N parsed none of
+    them (the SYN's length 60 is the clean READ request's, and read_tcp wants offset 5).
+
+    Parser only. Exact (IP length, data offset, flags) triples, no wildcard; the clean profile's states are
+    untouched. Offset 8: the block must begin 01 01 08 0a, is extracted and the existing ack / close / read_dl /
+    read_response_dl states continue, so the DNP3 headers, their CRC checks, the connection key and every
+    packet-length check are the same code as for the clean profile. Handshake: MSS is the first option in
+    both directions and keeps its check (mss_check, syn_shapes); the remaining 16 (SYN) or 20 (SYN-ACK) option
+    bytes are bounded by the exact offset and length and carried opaque. Every option byte is subtracted from
+    the checksum residual, so `network` still compares m.tcp_sum with 16w0xffeb: that constant is the folded
+    difference between hdr.ip.len (what the parser subtracts) and the TCP length (what the sender summed),
+    ~20 for ihl 5, and does not depend on the options. An RST|ACK at offset 8 / length 52 is admitted with the
+    FIN (same triple shape as the clean profile's close set); it is not in the capture."""
+    for old, new in TS_EDITS:
+        n = text.count(old)
+        assert n == 1, (n, old[:80])
+        text = text.replace(old, new)
+    return text
+
+
 def generate():
     text = binding_generate.generate(profile='response_only')
     for old, new in EDITS:
@@ -168,6 +233,7 @@ def generate():
         assert n == 1, (n, old[:80])
         text = text.replace(old, new)
     text = guard_refuses_n_ack_return(text)
+    text = admit_timestamped_profile(text)
     assert 'STEP3_M_PORT' not in text and 'emit_replay' not in text and 'bypass_egress=1w1' in text
     header = ('/* GENERATED by core/response_only/make_n.py from connection/binding/generate.py response_only (sha256 %s).\n'
               '   Response-only N for the B\' profile: no M, no request padding. Do not edit. */\n'

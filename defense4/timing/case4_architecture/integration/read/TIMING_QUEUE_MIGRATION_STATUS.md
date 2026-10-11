@@ -528,6 +528,15 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**N admits the real timestamped TCP profile (2026-10-11, `route_ab_01/ts_profile_01`).** make_n edit 9,
+parser only. It admits the exact lengths and offsets Vision's kernel uses against the SEL-751: SYN 60/10,
+SYN-ACK 64/11, offset-8 ACK/FIN 52, READ 72 and 101, with an exact NOP NOP Timestamp prefix. The parse then
+continues into the clean profile's own DNP3 and CRC states, so connection identity, CRC and length checks are
+shared code; the checksum residual constant is unchanged. Tested with the capture's own bytes plus synthesized
+continuation READs. The capture was taken on the sender, so five master frames hold offload pseudo-sums;
+`real_profile.wire()` restores them. Hardware map: 12/11 + 11/0 on both SDKs, pipe 0 ingress PHV +6
+containers. Model: real profile 35/35 and 36/36; existing scenarios 70/70, 57/57, 58/58. E untouched.
+
 **Looping ports are build parameters (2026-10-11, `route_ab_01/loopback_ports_01`).** On the switch only
 pipe-local 68 recirculates (`evidence/recirc_ports_01/STATUS.md`), so 70, 197, 198 and 199 cannot be used
 there. `core/response_only/port_map.py` now holds the five ports (`relay_port`, `n_ack_return`, `t_in`,
