@@ -82,7 +82,8 @@ class Apply(Base):
         self.assertEqual(rc, 0, out[-600:])
         self.assertIn('INSTALLED %d writes' % (N_WRITES + 2), out)
         self.assertEqual(len(self.installed()), N_WRITES + 2)
-        self.assertEqual(self.buffer(), bytes(tc.TOKEN_LEN))                    # the 60 B buffer read back as bytes
+        self.assertEqual(self.buffer(), tc.token_buffer())                     # the buffer read back as bytes
+        self.assertEqual(self.buffer()[4:6], b'\x08\x00')                         # wire offset 12:13 not 0x0000 (combined_silicon_01)
         apps = self.apps()
         self.assertEqual({i: (a['app_enable'], a['pattern_value'], a['pattern_mask'], a['pipe_local_source_port'],
                               a['action_name']) for i, a in apps.items()},
@@ -288,7 +289,7 @@ class Teardown(Base):
     def test_everything_goes_back_including_a_nonzero_buffer(self):
         fake.PRIOR_BUFFER = b'\xaa' * 60
         self.assertEqual(run(bc.main, self.argv('--enable-pktgen'))[0], 0)
-        self.assertEqual(self.buffer(), bytes(60))
+        self.assertEqual(self.buffer(), tc.token_buffer())
         rc, out = self.teardown()
         self.assertEqual(rc, 0, out[-800:])
         self.assertEqual(self.buffer(), b'\xaa' * 60)                             # restored from the real pre-read
@@ -341,7 +342,7 @@ class Teardown(Base):
         rc, out = self.teardown()
         self.assertEqual(rc, 1)
         self.assertIn('no pre-write value', out)
-        self.assertEqual(self.buffer(), bytes(60))                               # untouched, and said so
+        self.assertEqual(self.buffer(), tc.token_buffer())                       # left as bring-up wrote it, and said so
 
 
 if __name__ == '__main__':

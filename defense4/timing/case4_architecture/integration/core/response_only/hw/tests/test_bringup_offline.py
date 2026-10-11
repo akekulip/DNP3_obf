@@ -286,6 +286,15 @@ class Order(unittest.TestCase):
         self.assertEqual((full['pattern_value'], full['pattern_mask'], full['pipe_local_source_port'],
                           full['packets_per_batch_cfg']), (0xE1010000, 0xFFFF0000, 68, 3))
 
+    def test_the_token_buffer_is_not_dropped_by_a_mac_loopback(self):
+        # Every seeded blocker is [8 B ladder][buffer], so buffer[4:6] is wire offset 12:13. A MAC reads a
+        # 0x0000 there as an 802.3 length and drops the frame (combined_silicon_01); it must be a real ethertype.
+        buf = tc.token_buffer()
+        self.assertEqual(len(buf), tc.TOKEN_LEN)
+        self.assertEqual(buf[4:6], b'\x08\x00')
+        self.assertEqual(bytes(tc.TOKEN_LEN)[4:6], b'\x00\x00')      # the old all-zero buffer was the bug
+        self.assertEqual(dict(tc.pktgen_ops(2, PORTS)[1]['data'])['buffer'], buf)
+
     def test_ladder_and_apps_match_T(self):
         held, hb = PORTS['held_return'], PORTS['hb_return']
         self.assertEqual({(p, q) for p, q, _ in tc.queue_plan(PORTS)}, {(held, 7), (held, 6), (held, 5), (held, 4), (hb, 3), (hb, 2)})
@@ -317,8 +326,9 @@ class Teardown(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             ops = self.manifest(tmp)['installed']
         buf = next(op for op in ops if op['kind'] == 'pktgen_buffer')
-        self.assertEqual(buf['before']['buffer'], bytes(tc.TOKEN_LEN))
-        self.assertEqual(dict(buf['data'])['buffer'], bytes(tc.TOKEN_LEN))
+        self.assertEqual(dict(buf['data'])['buffer'], tc.token_buffer())
+        self.assertEqual(dict(buf['data'])['buffer'][4:6], b'\x08\x00')          # not 0x0000 at wire offset 12:13
+        self.assertNotEqual(tc.token_buffer(), bytes(tc.TOKEN_LEN))               # an all-zero buffer (the bug) differs
 
 
 if __name__ == '__main__':

@@ -117,7 +117,7 @@ def show(op):
     key = op.get('key') or ([('dev_port', op['dev_port'], None), ('qid', op['qid'], None)] if 'qid' in op else [])
     key = ', '.join('%s=%s' % (n, hex(v) if isinstance(v, int) and v > 0xffff else v) + ('&&&%s' % hex(m) if m is not None else '')
                     for n, v, m in key)
-    data = ', '.join('%s=%s' % (n, '<%d zero bytes>' % len(v) if isinstance(v, bytes) else v) for n, v in op['data'])
+    data = ', '.join('%s=%s' % (n, '<%d bytes, [4:6]=%s>' % (len(v), v[4:6].hex()) if isinstance(v, bytes) else v) for n, v in op['data'])
     prio = '' if op.get('priority') is None else ' prio=%d' % op['priority']
     return '%-13s pipe=%-6s %-30s [%s]%s -> %s(%s)' % (op['kind'], hex(op['pipe']), op['table'], key, prio,
                                                         op.get('action') or 'mod', data)

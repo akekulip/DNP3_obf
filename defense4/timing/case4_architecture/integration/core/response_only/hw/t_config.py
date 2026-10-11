@@ -23,6 +23,17 @@ PKTGEN_APPS = (('OPERATE', 1, 0xE1010000), ('READ', 2, 0xE1000000))
 PKTGEN_MASK = 0xFFFF0000
 TOKEN_LEN = 60                                      # buffer after the 6 B header the generator prepends
 BUF_OFFSET = 0
+
+
+def token_buffer():
+    """The generator buffer: every seeded blocker frame is [8 B T ladder][this buffer], so buffer[4:6] lands
+    at wire offset 12:13. That offset must NOT be 0x0000: on silicon a front-panel MAC loopback reads a zero
+    there as an 802.3 length and drops the frame, which silently killed the commit path
+    (OUT_ACK_FALLBACK / OUT_RESP_FALLBACK = 10, evidence/combined_silicon_01). Set it to a valid ethertype,
+    0x0800. T reads nothing from the buffer, so no other byte matters."""
+    buf = bytearray(TOKEN_LEN)
+    buf[4:6] = b'\x08\x00'
+    return bytes(buf)
 LOOPBACK_ON, LOOPBACK_OFF = 'BF_LPBK_MAC_NEAR', 'BF_LPBK_NONE'
 
 
@@ -72,7 +83,7 @@ def pktgen_ops(k, ports):
                 data=[('pktgen_enable', True), ('recirculation_enable', True), ('pattern_matching_enable', True)]),
            dict(kind='pktgen_buffer', table='tf1.pktgen.pkt_buffer', pipe=pipe,
                 key=[('pkt_buffer_offset', BUF_OFFSET, None), ('pkt_buffer_size', TOKEN_LEN, None)],
-                data=[('buffer', bytes(TOKEN_LEN))])]
+                data=[('buffer', token_buffer())])]
     for name, app_id, pattern in PKTGEN_APPS:
         ops.append(dict(kind='pktgen_app', table='tf1.pktgen.app_cfg', pipe=pipe, label=name,
                         key=[('app_id', app_id, None)], action='trigger_recirc_pattern',
