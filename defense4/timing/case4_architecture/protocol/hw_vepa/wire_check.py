@@ -1,65 +1,325 @@
-"""Independent wire check for a software-endpoint run (scapy; does not reuse the mapper's code).
-Usage: pad_wire.py OUT.pcap IN.pcap   (OUT = -Q out on the parent: sent by endpoints; IN = -Q in: returned by the switch)
-For every DNP3-bearing segment: side, direction, payload length, every DNP3 block CRC, IP and TCP checksum recomputed.
-Pairs each returned segment with its sent original by (direction, order) and reports seq/ack translation."""
-import sys, json
-from scapy.all import rdpcap, IP, TCP
-M, O = '192.168.10.61', '192.168.10.62'
-def crc(data):
+#!/usr/bin/env python3
+"""Independent wire check for a software-endpoint run (self-contained; does not reuse the mapper's code).
+
+  wire_check.py OUT.pcap IN.pcap [--json FILE]
+
+OUT = `tcpdump -Q out` on the parent NIC (frames as the endpoints sent them); IN = `-Q in` (frames as
+the switch returned them). Both carry the same host NIC clock, so every interval below is a
+host-capture-point interval, not an isolated ASIC forwarding time.
+
+For every DNP3-bearing segment it recomputes each DNP3 block CRC and the IPv4/TCP checksums. It then
+pairs each returned segment with the sent segment it reflects. The switch reflection is 1:1 and
+order-preserving per (four-tuple, connection incarnation, direction), but it may translate TCP
+sequence/ack numbers non-affinely (response padding shifts every later sequence number) and pad the
+payload, so neither raw sequence nor payload bytes survive a reflection. The pairing therefore:
+
+  * groups segments by four-tuple, connection incarnation (each client SYN starts a new incarnation)
+    and direction;
+  * sorts each group by ISN-relative sequence, which both undoes capture reordering and makes the
+    order comparable across the translation;
+  * aligns the sent and returned orders by (flags, has-payload) with a longest-common-subsequence
+    match, so a lost reflection shows up as an unmatched sent segment, a re-reflected one as a
+    duplicate, and a spurious returned segment as unmatched returned.
+
+No latency sample is ever taken from an unmatched pair. A per-packet reference mapping records, for
+every returned segment, the sent segment index it was paired with (or null).
+
+Checksum-offload note: a frame the master's kernel handed to the NIC for checksum offload carries only
+the TCP pseudo-header sum in its checksum field, not the on-wire checksum. Those appear only in the
+SENT capture and are not wire corruption. Returned frames are validated; sent frames are classified as
+'offloaded' rather than 'bad'.
+"""
+import argparse
+import json
+import struct
+import sys
+from pathlib import Path
+
+MASTER_IP = '192.168.10.61'
+OUTSTATION_IP = '192.168.10.62'
+
+FIN, SYN, RST, PSH, ACK = 0x01, 0x02, 0x04, 0x08, 0x10
+
+
+# --- DNP3 and TCP/IP integrity (self-contained; DNP3 CRC polynomial 0xA6BC, reflected) ---
+
+def dnp3_crc(data):
     c = 0
     for b in data:
         c ^= b
         for _ in range(8):
             c = (c >> 1) ^ 0xA6BC if c & 1 else c >> 1
     return (~c) & 0xFFFF
-def dnp3_ok(p):
-    if len(p) < 10 or p[0:2] != b'\x05\x64': return False, 'no start'
-    if crc(p[0:8]) != int.from_bytes(p[8:10], 'little'): return False, 'header crc'
+
+
+def dnp3_ok(payload):
+    """(ok, reason) for a DNP3 link frame: start octets, header CRC and every data-block CRC."""
+    p = payload
+    if len(p) < 10 or p[0:2] != b'\x05\x64':
+        return False, 'no start'
+    if dnp3_crc(p[0:8]) != int.from_bytes(p[8:10], 'little'):
+        return False, 'header crc'
     i, n = 10, p[2] - 5
     while n > 0:
         k = min(16, n)
         blk, c = p[i:i + k], p[i + k:i + k + 2]
-        if len(c) < 2 or crc(blk) != int.from_bytes(c, 'little'): return False, 'block crc at %d' % i
-        i += k + 2; n -= k
-    return i == len(p), 'trailing' if i != len(p) else 'ok'
-def cks_ok(pkt):
-    ip, tcp = pkt[IP], pkt[TCP]
-    a, b = ip.chksum, tcp.chksum
-    re = IP(bytes(ip)); del re.chksum; del re[TCP].chksum; re = IP(bytes(re))
-    return re.chksum == a and re[TCP].chksum == b
-def segs(path):
-    out = []
-    for pkt in rdpcap(path):
-        if IP not in pkt or TCP not in pkt: continue
-        ip, t = pkt[IP], pkt[TCP]
-        d = 'M->O' if ip.src == M else 'O->M'
-        pl = bytes(t)[t.dataofs * 4: ip.len - ip.ihl * 4]   # IP length, not frame: excludes Ethernet min-frame padding
-        out.append({'t': float(pkt.time), 'dir': d, 'flags': str(t.flags), 'seq': t.seq, 'ack': t.ack, 'len': len(pl),
-                    'pl': pl, 'cks': cks_ok(pkt), 'dnp3': dnp3_ok(pl) if pl else None})
-    return out
-sent, ret = segs(sys.argv[1]), segs(sys.argv[2])
-rep = {'sent': len(sent), 'returned': len(ret), 'checksum_bad_returned': sum(not s['cks'] for s in ret),
-       'checksum_bad_sent': sum(not s['cks'] for s in sent)}
-for name, L in (('sent', sent), ('returned', ret)):
+        if len(c) < 2 or dnp3_crc(blk) != int.from_bytes(c, 'little'):
+            return False, 'block crc at %d' % i
+        i += k + 2
+        n -= k
+    return (i == len(p)), ('ok' if i == len(p) else 'trailing')
+
+
+def _sum16(data):
+    if len(data) % 2:
+        data = data + b'\0'
+    total = sum(struct.unpack('!%dH' % (len(data) // 2), data))
+    while total >> 16:
+        total = (total & 0xffff) + (total >> 16)
+    return ~total & 0xffff
+
+
+def ip_tcp_checksum(seg):
+    """(ip_ok, tcp_ok, tcp_offloaded) for one parsed segment dict."""
+    frame = seg['frame']
+    ihl = (frame[14] & 0x0f) * 4
+    ip = frame[14:14 + ihl]
+    have_ip = int.from_bytes(frame[24:26], 'big')
+    calc_ip = _sum16(ip[:10] + b'\0\0' + ip[12:])
+    total_len = int.from_bytes(frame[16:18], 'big')
+    segment = bytearray(frame[14 + ihl:14 + total_len])
+    have_tcp = int.from_bytes(segment[16:18], 'big')
+    segment[16:18] = b'\0\0'
+    pseudo = frame[26:34] + struct.pack('!BBH', 0, 6, len(segment))
+    calc_tcp = _sum16(pseudo + bytes(segment))
+    # A checksum-offloaded sender frame carries only the TCP pseudo-header sum (un-complemented) in the
+    # checksum field; that is a placeholder the NIC overwrites on the wire, not corruption.
+    pseudo_only = _sum16(pseudo) ^ 0xffff
+    offloaded = (have_tcp == pseudo_only)
+    return (have_ip == calc_ip), (have_tcp == calc_tcp), offloaded
+
+
+# --- classic pcap reader (microsecond or nanosecond; integer timestamps at file resolution) ---
+
+def read_pcap(path):
+    data = Path(path).read_bytes()
+    if len(data) < 24:
+        return [], 'us'
+    magic = data[:4]
+    if magic == b'\xd4\xc3\xb2\xa1':
+        endian, res = '<', 'us'
+    elif magic == b'\xa1\xb2\xc3\xd4':
+        endian, res = '>', 'us'
+    elif magic == b'\x4d\x3c\xb2\xa1':
+        endian, res = '<', 'ns'
+    elif magic == b'\xa1\xb2\x3c\x4d':
+        endian, res = '>', 'ns'
+    else:
+        raise ValueError('not a classic pcap: %r' % magic)
+    off, out = 24, []
+    while off + 16 <= len(data):
+        ts_s, ts_f, incl, _orig = struct.unpack(endian + 'IIII', data[off:off + 16])
+        frame = data[off + 16:off + 16 + incl]
+        if len(frame) < incl:
+            break
+        t_us = ts_s * 1_000_000 + (ts_f // 1000 if res == 'ns' else ts_f)
+        out.append((t_us, frame))
+        off += 16 + incl
+    return out, res
+
+
+def parse(path):
+    """IPv4/TCP segments as dicts with integer microsecond timestamps and an in-file index."""
+    frames, res = read_pcap(path)
+    segs = []
+    for idx, (t_us, frame) in enumerate(frames):
+        if len(frame) < 34 or frame[12:14] != b'\x08\x00':
+            continue
+        ihl = (frame[14] & 0x0f) * 4
+        if frame[14 + 9] != 6:              # IP protocol TCP
+            continue
+        total_len = int.from_bytes(frame[16:18], 'big')
+        tcp_off = 14 + ihl
+        dataofs = (frame[tcp_off + 12] >> 4) * 4
+        src = '.'.join(str(b) for b in frame[26:30])
+        dst = '.'.join(str(b) for b in frame[30:34])
+        sport = int.from_bytes(frame[tcp_off:tcp_off + 2], 'big')
+        dport = int.from_bytes(frame[tcp_off + 2:tcp_off + 4], 'big')
+        seq = int.from_bytes(frame[tcp_off + 4:tcp_off + 8], 'big')
+        ack = int.from_bytes(frame[tcp_off + 8:tcp_off + 12], 'big')
+        flags = frame[tcp_off + 13]
+        payload = frame[14 + ihl + dataofs:14 + total_len]
+        seg = {'index': idx, 't_us': t_us, 'src': src, 'dst': dst, 'sport': sport, 'dport': dport,
+               'seq': seq, 'ack': ack, 'flags': flags, 'len': len(payload), 'payload': payload,
+               'frame': frame}
+        seg['dir'] = 'M->O' if src == MASTER_IP else ('O->M' if src == OUTSTATION_IP else '%s->%s' % (src, dst))
+        seg['flow'] = tuple(sorted(((src, sport), (dst, dport))))
+        segs.append(seg)
+    return segs, res
+
+
+# --- connection incarnation and ISN-relative ordering ---
+
+def assign_incarnations(segs):
+    """A new incarnation per flow begins at each pure SYN (client open). Segments before the first SYN
+    of their flow get incarnation 0. The per-direction ISN of an incarnation is the seq of its SYN
+    (SYN or SYN-ACK). rel_seq is seq - ISN (modulo 2^32), which orders a direction's stream even across
+    a non-affine sequence translation."""
+    counter = {}
+    isn = {}
+    for s in sorted(segs, key=lambda s: (s['t_us'], s['index'])):
+        flow = s['flow']
+        if s['flags'] & SYN and not (s['flags'] & ACK):
+            counter[flow] = counter.get(flow, -1) + 1
+        s['inc'] = max(counter.get(flow, 0), 0)
+        if s['flags'] & SYN:
+            isn.setdefault((flow, s['inc'], s['dir']), s['seq'])
+    for s in segs:
+        base = isn.get((s['flow'], s['inc'], s['dir']))
+        s['isn_known'] = base is not None
+        s['rel_seq'] = (s['seq'] - base) & 0xffffffff if base is not None else s['seq']
+    return segs
+
+
+def _tag(s):
+    return (s['flags'], s['len'] > 0)
+
+
+def _lcs_align(a, b):
+    """Index pairs (i, j) of a longest common subsequence of tag(a[i]) == tag(b[j]), order-preserving."""
+    n, m = len(a), len(b)
+    dp = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n - 1, -1, -1):
+        for j in range(m - 1, -1, -1):
+            dp[i][j] = dp[i + 1][j + 1] + 1 if _tag(a[i]) == _tag(b[j]) else max(dp[i + 1][j], dp[i][j + 1])
+    pairs, i, j = [], 0, 0
+    while i < n and j < m:
+        if _tag(a[i]) == _tag(b[j]):
+            pairs.append((i, j))
+            i += 1
+            j += 1
+        elif dp[i + 1][j] >= dp[i][j + 1]:
+            i += 1
+        else:
+            j += 1
+    return pairs
+
+
+def match(sent, returned):
+    """Pair returned segments to the sent segments they reflect, per flow/incarnation/direction.
+
+    Returns a dict with matched pairs, the unmatched and duplicate categories, and a per-returned-packet
+    reference mapping (returned in-file index -> sent in-file index or None)."""
+    groups = {}
+    for role, segs in (('s', sent), ('r', returned)):
+        for s in segs:
+            groups.setdefault((s['flow'], s['inc'], s['dir']), {'s': [], 'r': []})[role].append(s)
+
+    matched, unmatched_sent, unmatched_returned, duplicate_returned = [], [], [], []
+    reordered = []
+    mapping = {}
+    for key, g in groups.items():
+        S = sorted(g['s'], key=lambda s: s['rel_seq'])
+        R_time = sorted(g['r'], key=lambda s: (s['t_us'], s['index']))
+        R = sorted(g['r'], key=lambda s: s['rel_seq'])
+        if [x['index'] for x in R_time] != [x['index'] for x in R]:
+            reordered += [x['index'] for x in R_time if R_time.index(x) != R.index(x)]
+        pairs = _lcs_align(S, R)
+        matched_s = {i for i, _ in pairs}
+        matched_r = {j for _, j in pairs}
+        for i, j in pairs:
+            s, r = S[i], R[j]
+            matched.append({'sent_index': s['index'], 'returned_index': r['index'], 'dir': s['dir'],
+                            'latency_us': r['t_us'] - s['t_us'], 'flags': s['flags'],
+                            'seq_delta': (r['seq'] - s['seq']) & 0xffffffff,
+                            'ack_delta': (r['ack'] - s['ack']) & 0xffffffff if s['flags'] & ACK else None,
+                            'sent_len': s['len'], 'returned_len': r['len'],
+                            'payload_identical': s['payload'] == r['payload']})
+            mapping[r['index']] = s['index']
+        for i, s in enumerate(S):
+            if i not in matched_s:
+                unmatched_sent.append({'sent_index': s['index'], 'dir': s['dir'], 'flags': s['flags'], 'len': s['len']})
+        # a duplicate re-reflection shares (rel_seq, flags, len) with a returned segment that already paired
+        matched_ret_sigs = {(R[j]['rel_seq'], R[j]['flags'], R[j]['len']) for _, j in pairs}
+        for j, r in enumerate(R):
+            if j in matched_r:
+                continue
+            mapping[r['index']] = None
+            rec = {'returned_index': r['index'], 'dir': r['dir'], 'flags': r['flags'], 'len': r['len']}
+            if (r['rel_seq'], r['flags'], r['len']) in matched_ret_sigs:
+                duplicate_returned.append(rec)
+            else:
+                unmatched_returned.append(rec)
+    return {'matched': matched, 'unmatched_sent': unmatched_sent, 'unmatched_returned': unmatched_returned,
+            'duplicate_returned': duplicate_returned, 'reordered_returned_indices': sorted(set(reordered)),
+            'reference_mapping': mapping}
+
+
+def analyze(out_path, in_path):
+    sent = assign_incarnations(parse(out_path)[0])
+    returned = assign_incarnations(parse(in_path)[0])
+    m = match(sent, returned)
+
+    def integrity(segs, validate):
+        bad_dnp3, bad_tcp, offloaded = [], [], []
+        for s in segs:
+            if s['len']:
+                ok, reason = dnp3_ok(s['payload'])
+                if not ok and s['payload'][:2] == b'\x05\x64':
+                    bad_dnp3.append({'index': s['index'], 'reason': reason})
+            ip_ok, tcp_ok, off = ip_tcp_checksum(s)
+            if not tcp_ok:
+                (offloaded if off else bad_tcp).append(s['index'])
+        return {'dnp3_crc_bad': bad_dnp3,
+                'tcp_checksum_bad': bad_tcp if validate else 'not validated (sender capture)',
+                'tcp_checksum_offloaded': offloaded}
+
+    rep = {'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
+                   'timestamps are integer microseconds at the capture resolution',
+           'sent': len(sent), 'returned': len(returned),
+           'sent_integrity': integrity(sent, validate=False),
+           'returned_integrity': integrity(returned, validate=True),
+           'matched': len(m['matched']), 'unmatched_sent': m['unmatched_sent'],
+           'unmatched_returned': m['unmatched_returned'], 'duplicate_returned': m['duplicate_returned'],
+           'reordered_returned_indices': m['reordered_returned_indices'],
+           'reference_mapping': m['reference_mapping']}
     for d in ('M->O', 'O->M'):
-        data = [s for s in L if s['dir'] == d and s['len']]
-        rep['%s %s payload lengths' % (name, d)] = sorted(set(s['len'] for s in data))
-        rep['%s %s count' % (name, d)] = len(data)
-        rep['%s %s dnp3 crc bad' % (name, d)] = [s['dnp3'] for s in data if not s['dnp3'][0]]
-# pair returned with sent per direction in order (the switch reflects every frame once)
-pairs = {}
-for d in ('M->O', 'O->M'):
-    a = [s for s in sent if s['dir'] == d]; b = [s for s in ret if s['dir'] == d]
-    pairs[d] = list(zip(a, b))
-    rep['%s sent vs returned frames' % d] = (len(a), len(b))
-    rep['%s flags sequence identical' % d] = [x['flags'] for x in a] == [y['flags'] for y in b]
-    rep['%s payload identical count' % d] = sum(x['pl'] == y['pl'] for x, y in pairs[d])
-    rep['%s seq delta set' % d] = sorted(set((y['seq'] - x['seq']) & 0xffffffff for x, y in pairs[d]))
-    rep['%s ack delta set' % d] = sorted(set((y['ack'] - x['ack']) & 0xffffffff for x, y in pairs[d] if 'A' in x['flags']))
-# the 58-byte images: what the master received vs what the outstation sent
-ex = [(x['len'], y['len'], x['pl'][10:13].hex(), y['pl'][10:13].hex()) for x, y in pairs['O->M'] if x['len']]
-rep['O->M (outstation sent len, master received len, sent tp/app/func, recv tp/app/func)'] = ex
-# switch latency per reflected frame (same NIC clock for both captures)
-lat = [ (y['t'] - x['t']) * 1e6 for d in pairs for x, y in pairs[d]]
-rep['reflect latency us min/median/max'] = (round(min(lat), 1), round(sorted(lat)[len(lat) // 2], 1), round(max(lat), 1)) if lat else None
-print(json.dumps(rep, indent=1, default=str))
+        s_d = [x for x in sent if x['dir'] == d and x['len']]
+        r_d = [x for x in returned if x['dir'] == d and x['len']]
+        rep['%s sent payload lengths' % d] = sorted(set(x['len'] for x in s_d))
+        rep['%s returned payload lengths' % d] = sorted(set(x['len'] for x in r_d))
+        md = [x for x in m['matched'] if x['dir'] == d]
+        rep['%s matched' % d] = len(md)
+        rep['%s seq delta set' % d] = sorted(set(x['seq_delta'] for x in md))
+        rep['%s ack delta set' % d] = sorted(set(x['ack_delta'] for x in md if x['ack_delta'] is not None))
+        rep['%s payload identical count' % d] = sum(x['payload_identical'] for x in md)
+    lat = [x['latency_us'] for x in m['matched']]
+    rep['reflect latency us min/median/max'] = (
+        [min(lat), sorted(lat)[len(lat) // 2], max(lat)] if lat else None)
+    # the padded images: outstation-sent vs master-received length and transport/app/func bytes
+    si = {x['index']: x for x in sent}
+    ex = []
+    for mm in m['matched']:
+        s = si[mm['sent_index']]
+        if s['dir'] == 'O->M' and s['len']:
+            ex.append({'sent_len': mm['sent_len'], 'returned_len': mm['returned_len'],
+                       'sent_tp_app_func': s['payload'][10:13].hex(),
+                       'returned_tp_app_func': (next((x for x in returned if x['index'] == mm['returned_index']))['payload'][10:13].hex())})
+    rep['O->M reflected images'] = ex
+    return rep
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('out_pcap')
+    ap.add_argument('in_pcap')
+    ap.add_argument('--json')
+    a = ap.parse_args()
+    report = analyze(a.out_pcap, a.in_pcap)
+    if a.json:
+        json.dump(report, open(a.json, 'w'), indent=1, default=str)
+    print(json.dumps(report, indent=1, default=str))
+    # a wire check that found a spurious returned segment or a bad returned checksum is a failure
+    bad = (report['returned_integrity']['tcp_checksum_bad'] or
+           report['returned_integrity']['dnp3_crc_bad'] or report['unmatched_returned'])
+    sys.exit(1 if bad else 0)
