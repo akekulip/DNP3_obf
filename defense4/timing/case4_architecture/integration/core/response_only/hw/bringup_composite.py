@@ -54,7 +54,11 @@ def parse(argv):
     ap.add_argument('--k', type=int, default=2, help='2*k generator tokens per trigger (queue_sim default k=2)')
     for role in ('ack', 'resp', 'op'):
         ap.add_argument('--shape-%s-pps' % role, type=int, default=0, dest='shape_%s' % role,
-                        help='pace the %s hold queue to this many packets/sec (0 = unshaped, baseline)' % role.upper())
+                        help='pace the %s HOLD queue (qid 6/4/2) to this many packets/sec (0 = unshaped)' % role.upper())
+        ap.add_argument('--shape-%s-blk-pps' % role, type=int, default=0, dest='block_%s' % role,
+                        help='pace the %s BLOCKER queue (qid 7/5/3) to this many packets/sec (0 = unshaped)' % role.upper())
+    ap.add_argument('--block-burst', type=int, default=tc.BLOCK_BURST,
+                    help='max_burst_size for a shaped blocker queue (>= live blocker count so it stays occupied)')
     ap.add_argument('--enable-pktgen', action='store_true', help='enable the two apps last, after clean readback')
     ap.add_argument('--fixed-schema-dir', default=os.environ.get('SDE_INSTALL', '/home/decps/Downloads/bf-sde-9.13.2/install')
                     + '/share/bf_rt_shared')
@@ -113,7 +117,8 @@ def plan(a, ports):
     n_conn = [r for r in ne if r['table'] == 'p0.n_Ingress.connection']
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
     shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
-    return (tc.loopback_ops(ports) + tc.queue_ops(ports, shape) + tc.pktgen_ops(a.k, ports)
+    block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
+    return (tc.loopback_ops(ports) + tc.queue_ops(ports, shape, block, a.block_burst) + tc.pktgen_ops(a.k, ports)
             + [tc.mirror_op(ports), tc.params_op(params(a))] + e_rows + n_rest + n_conn)
 
 
@@ -288,7 +293,8 @@ def apply(ops, a, ports):
         print('INSTALLED %d writes; manifest %s; pktgen %s' % (len(done), manifest,
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
         shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
-        print('counters', json.dumps(readback.snapshot(sw, ports, shape), indent=1))
+        block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
+        print('counters', json.dumps(readback.snapshot(sw, ports, shape, block), indent=1))
     finally:
         sw.close()
 

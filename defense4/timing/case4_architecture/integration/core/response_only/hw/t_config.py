@@ -75,31 +75,46 @@ def mirror_op(ports):
 
 # The hold queue (not the blocker queue) of each role, by the LADDER label suffix. Shaping these paces the
 # held-original recirculation poll (residency_diag_01 finding); the blocker queues 7/5/3 stay unshaped.
+# Every ladder queue is shapeable by its LADDER label. The HOLD queues (6/4/2) pace the held-original poll
+# (P1 fix); the BLOCKER queues (7/5/3) pace blocker re-circulation so the high-priority reservoir stays
+# backlogged across the recirc return gap (P2 occupancy hypothesis) -- a max_rate on qid 7 caps blocker
+# dequeues/sec yet keeps the queue non-empty when max_burst_size >= the live blocker count, so the hold queue
+# stays starved until the blockers withdraw at the deadline. Unset = baseline (unshaped), so sbo_admission_01
+# is unchanged unless the operator passes a rate.
 HOLD_LABELS = {'ACK_HOLD': 'ack', 'RESP_HOLD': 'resp', 'OP_HOLD': 'op'}
-SHAPE_UNIT = 'PPS'           # max_rate is packets/sec; one held-original lap per 1/max_rate second
-SHAPE_BURST = 1             # max_burst_size 1: no burst of laps
+BLOCK_LABELS = {'ACK_BLOCK': 'ack', 'RESP_BLOCK': 'resp', 'OP_BLOCK': 'op'}
+SHAPE_UNIT = 'PPS'           # max_rate is packets/sec; one served lap per 1/max_rate second
+HOLD_BURST = 1              # held original: no burst -- one poll per interval
+BLOCK_BURST = 64            # blocker reservoir: allow a burst up to the live blocker population so the queue
+                           # stays occupied (a burst of 1 would drain it between returns, defeating the hold)
 
 
-def queue_ops(ports, shape_pps=None):
+def queue_ops(ports, shape_pps=None, block_shape_pps=None, block_burst=BLOCK_BURST):
     """Key (pg_id, pg_queue) is resolved on the switch from the port's own tf1.tm.port.cfg entry; the target
     pipe is the port's pipe.
 
-    shape_pps: optional {role -> pps} for the hold queues ('ack'/'resp'/'op'). A role with a positive rate
-    gets max_rate_enable=True in sched_cfg and a tf1.tm.queue.sched_shaping row (unit PPS, max_rate=pps,
-    max_burst_size 1). A role absent or 0 is left exactly as the baseline (max_rate_enable False, no shaping
-    write), so sbo_admission_01 behaviour is unchanged unless the operator passes a rate."""
+    shape_pps / block_shape_pps: optional {role -> pps} ('ack'/'resp'/'op') for the HOLD queues and the
+    BLOCKER queues respectively. A queue with a positive rate gets max_rate_enable=True in sched_cfg and a
+    tf1.tm.queue.sched_shaping row (unit PPS, max_rate=pps, max_burst_size = 1 for a hold queue, block_burst
+    for a blocker queue). A queue with no rate is left exactly at the baseline (max_rate_enable False, no
+    shaping write)."""
     shape_pps = shape_pps or {}
+    block_shape_pps = block_shape_pps or {}
     ops = []
     for port, qid, label in queue_plan(ports):
-        role = HOLD_LABELS.get(label)
-        rate = int(shape_pps.get(role, 0) or 0) if role else 0
+        if label in HOLD_LABELS:
+            rate, burst = int(shape_pps.get(HOLD_LABELS[label], 0) or 0), HOLD_BURST
+        elif label in BLOCK_LABELS:
+            rate, burst = int(block_shape_pps.get(BLOCK_LABELS[label], 0) or 0), block_burst
+        else:
+            rate, burst = 0, HOLD_BURST
         ops.append(dict(kind='queue', table='tf1.tm.queue.sched_cfg', pipe=pipe_of(port), dev_port=port, qid=qid,
                         label=label, data=[('min_rate_enable', False), ('max_rate_enable', rate > 0),
                                            ('max_priority', str(qid)), ('scheduling_enable', True)]))
         if rate > 0:
             ops.append(dict(kind='queue_shaping', table='tf1.tm.queue.sched_shaping', pipe=pipe_of(port),
                             dev_port=port, qid=qid, label='%s@%dpps' % (label, rate),
-                            data=[('unit', SHAPE_UNIT), ('max_rate', rate), ('max_burst_size', SHAPE_BURST)]))
+                            data=[('unit', SHAPE_UNIT), ('max_rate', rate), ('max_burst_size', burst)]))
     return ops
 
 

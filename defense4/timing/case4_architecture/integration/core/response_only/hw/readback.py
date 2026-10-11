@@ -100,13 +100,14 @@ def register_errors(regs):
             for r, (vals, init) in regs.items() if not vals or any(v != init for v in vals)]
 
 
-def snapshot(sw, ports, requested_pps=None):
+def snapshot(sw, ports, requested_pps=None, requested_block_pps=None):
     """Generator app counters, TM queue counters, and the shaping actually applied to each hold queue.
 
     requested_pps: optional {role -> pps} ('ack'/'resp'/'op') so the snapshot records requested vs the
     hardware-quantized achieved rate. Unknown (standalone read) -> requested recorded as None; achieved always
     comes from hardware."""
     requested_pps = requested_pps or {}
+    requested_block_pps = requested_block_pps or {}
     snap = {'pktgen': {}, 'queues': {}}
     gen_pipe = tc.pipe_of(ports['pktgen_return'])
     for name, app_id, _pattern in tc.PKTGEN_APPS:
@@ -125,8 +126,12 @@ def snapshot(sw, ports, requested_pps=None):
         # sched_shaping row (unit, max_rate, max_burst_size). Blocker queues read unshaped (max_rate_enable 0).
         cfg = sw.get('tf1.tm.queue.sched_cfg', pipe, key) or {}
         shp = sw.get('tf1.tm.queue.sched_shaping', pipe, key) or {}
-        role = tc.HOLD_LABELS.get(label)
-        req = requested_pps.get(role) if role else None
+        if label in tc.HOLD_LABELS:
+            req = requested_pps.get(tc.HOLD_LABELS[label])
+        elif label in tc.BLOCK_LABELS:
+            req = requested_block_pps.get(tc.BLOCK_LABELS[label])
+        else:
+            req = None
         snap['shaping'][label] = dict(dev_port=port, qid=qid, max_rate_enable=cfg.get('max_rate_enable'),
                                       unit=shp.get('unit'), requested_pps=(req or None),
                                       achieved_pps=shp.get('max_rate'), max_burst_size=shp.get('max_burst_size'))

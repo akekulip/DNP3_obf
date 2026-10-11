@@ -151,6 +151,29 @@ class Shaping(Base):
                 self.assertEqual(rc, 2, out[-400:])
                 self.assertIn('max_rate', out)
 
+    def test_a_blocker_rate_shapes_qid7_not_the_hold_queue(self):
+        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '10000'))
+        self.assertEqual(rc, 0, out[-500:])
+        shp = self.writes('tf1.tm.queue.sched_shaping')
+        blk7 = (off.PORTS['held_return'] % 128 // 4, (off.PORTS['held_return'] % 4) * 8 + 7)
+        self.assertEqual(set(shp), {blk7})                                       # ONLY the ACK blocker queue
+        row = shp[blk7]
+        self.assertEqual((row['unit'], row['max_rate']), ('PPS', 10000))
+        self.assertEqual(row['max_burst_size'], 64)                              # blocker burst >= live population
+        cfg = self.writes('tf1.tm.queue.sched_cfg')
+        self.assertTrue(cfg[blk7]['max_rate_enable'])
+        self.assertFalse(cfg[self.hold_pgq(6)]['max_rate_enable'])               # ACK hold untouched
+
+    def test_within_tolerance_blocker_rate_records_requested_and_achieved(self):
+        from switch import Switch
+        import readback
+        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '10000'))
+        self.assertEqual(rc, 0, out[-500:])
+        snap = readback.snapshot(Switch('response_only', 141), off.PORTS, None, {'ack': 10000})
+        self.assertEqual(snap['shaping']['ACK_BLOCK']['requested_pps'], 10000)
+        self.assertEqual(snap['shaping']['ACK_BLOCK']['achieved_pps'], 9300)     # quantized 0.93
+        self.assertTrue(snap['shaping']['ACK_BLOCK']['max_rate_enable'])
+
     def test_a_within_tolerance_rate_passes(self):
         fake.SHAPE_QUANTIZE = lambda req: int(req * 0.80)                # 20% low: a coarse but plausible step
         rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
