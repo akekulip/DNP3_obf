@@ -146,7 +146,8 @@ class Refusals(unittest.TestCase):
 
     def test_a_shared_port_without_addresses_is_refused(self):
         with self.assertRaises(SystemExit):
-            args('--master-dev', '9', '--relay-dev', '9')
+            bc.parse(['--build-out', 'x', '--master-port', '54321', '--master-dev', '9', '--relay-dev', '9'])
+        self.assertEqual(bc.parse(['--build-out', 'x', '--master-port', '54321']).relay_ip, '192.168.10.7')
 
     def test_T_params_out_of_range_are_refused(self):
         good = dict(tc.T_PARAM_DEFAULTS)
