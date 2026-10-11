@@ -28,8 +28,10 @@ build hash in the config is still a placeholder, so a real campaign cannot run a
 Physical relay OPERATE remains attended-only and is out of this unattended path.
 """
 import argparse
+import hashlib
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -38,9 +40,26 @@ import run as runner  # noqa: E402  (ssh/host constants and the endpoint-run hel
 
 # where the hw installer scripts live on the switch, relative to the copied source tree (hw/README.md)
 HW = 'src/integration/core/response_only/hw'
-REQUIRED = ('endpoints', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
-            'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir')
-PLACEHOLDER = '<sha256 from manifest.json>'
+ARCH = os.path.abspath(os.path.join(HERE, '..', '..'))      # case4_architecture: every config path is relative to it
+REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
+            'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production',
+            'ports_snapshot')
+BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
+ROLES = ('ack', 'resp', 'op')
+HEX64 = re.compile(r'[0-9a-f]{64}')
+HEX40 = re.compile(r'[0-9a-f]{40}')
+
+
+def path_of(rel):
+    return rel if os.path.isabs(rel) else os.path.join(ARCH, rel)
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def load_config(path):
@@ -64,7 +83,93 @@ def load_config(path):
             raise ValueError('arm %r: T and padding are 0/1 feature bits' % a['name'])
     if cfg['trials']['trials_per_arm'] < 1 or cfg['trials']['reads_per_trial'] < 1:
         raise ValueError('trials_per_arm and reads_per_trial must be >= 1')
+    validate_profile(cfg)
     return cfg
+
+
+def validate_profile(cfg):
+    """The hardware profile the campaign may run: the 8-bit-range READ, a positive K, non-negative shaping
+    rates, and no fixture jitter (vision_run.py has no way to apply it)."""
+    if cfg['traffic']['range'] != 8:
+        raise ValueError('traffic.range must be 8 (the 20-byte 8-bit-range READ profile); got %r'
+                         % cfg['traffic']['range'])
+    if cfg['service']['k'] < 1:
+        raise ValueError('service.k must be >= 1 (installer --k is 2*k tokens)')
+    sh = cfg['shaping']
+    for group in ('hold_pps', 'block_pps'):
+        for r in ROLES:
+            v = sh[group].get(r)
+            if not isinstance(v, int) or isinstance(v, bool) or v < 0:
+                raise ValueError('shaping.%s.%s must be an integer >= 0 (0 = unshaped), got %r' % (group, r, v))
+    bb = sh.get('block_burst')
+    if bb is not None and (not isinstance(bb, int) or isinstance(bb, bool) or bb < 1):
+        raise ValueError('shaping.block_burst must be null (installer default) or an integer >= 1')
+    if cfg['fixture'].get('jitter_ms', 0) != 0:
+        raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
+
+
+def shaping_args(cfg):
+    """The installer/snapshot shaping flags, always explicit so a run's requested rates are never implicit."""
+    sh = cfg['shaping']
+    parts = ['--shape-%s-pps %d' % (r, sh['hold_pps'][r]) for r in ROLES]
+    parts += ['--shape-%s-blk-pps %d' % (r, sh['block_pps'][r]) for r in ROLES]
+    if sh.get('block_burst') is not None:
+        parts.append('--block-burst %d' % sh['block_burst'])
+    return ' '.join(parts)
+
+
+def check_bindings(cfg):
+    """Every identity error that must stop a run (empty list = bound). Offline: reads each build's compile
+    manifest.json and hashes the files under out_dir. A config hash must be null (filled from the manifest)
+    or a 64-hex sha256 equal to the manifest; the files on disk must equal the manifest. A placeholder or
+    malformed value is an error, not a warning."""
+    errs = []
+    for name in sorted({a['build'] for a in cfg['arms']}):
+        b = cfg['builds'][name]
+        mpath = path_of(b.get('manifest', ''))
+        try:
+            want = json.load(open(mpath))['artifact_sha256']
+        except (OSError, ValueError, KeyError) as e:
+            errs.append('build %s: cannot read the compile manifest %s (%s)' % (name, mpath, e))
+            continue
+        for rel in BUILD_HASHED:
+            slot = b.get('hashes', {}).get(rel)
+            if slot is not None and not (isinstance(slot, str) and HEX64.fullmatch(slot)):
+                errs.append('build %s: hashes[%s]=%r is a placeholder or not a sha256 (use null to fill it from '
+                            'the manifest)' % (name, rel, slot))
+                continue
+            if rel not in want:
+                errs.append('build %s: the compile manifest has no artifact_sha256 for %s' % (name, rel))
+                continue
+            if slot is not None and slot != want[rel]:
+                errs.append('build %s: hashes[%s] disagrees with the compile manifest (%s vs %s)'
+                            % (name, rel, slot, want[rel]))
+            f = os.path.join(path_of(b['out_dir']), rel)
+            got = sha256_file(f) if os.path.isfile(f) else 'missing'
+            if got != want[rel]:
+                errs.append('build %s: %s on disk is %s but the compile manifest records %s'
+                            % (name, rel, got, want[rel]))
+    ep = cfg['endpoint']
+    for k in ('binary_sha256', 'lib_sha256'):
+        if not (isinstance(ep.get(k), str) and HEX64.fullmatch(ep[k])):
+            errs.append('endpoint.%s is not pinned (%r); it cannot be derived offline, pin it with: %s'
+                        % (k, ep.get(k), ep.get('_pin_with', 'sha256sum on Vision')))
+    if not (isinstance(ep.get('opendnp3_commit'), str) and HEX40.fullmatch(ep['opendnp3_commit'])):
+        errs.append('endpoint.opendnp3_commit is not a 40-hex commit id')
+    return errs
+
+
+def bind_builds(cfg):
+    """{build: {rel: sha256}} verified against the manifest and the files; raises ValueError listing every
+    problem. Null config slots come back filled from the manifest."""
+    errs = [e for e in check_bindings(cfg) if not e.startswith('endpoint.')]
+    if errs:
+        raise ValueError('; '.join(errs))
+    out = {}
+    for name in sorted({a['build'] for a in cfg['arms']}):
+        want = json.load(open(path_of(cfg['builds'][name]['manifest'])))['artifact_sha256']
+        out[name] = {rel: want[rel] for rel in BUILD_HASHED}
+    return out
 
 
 def warnings(cfg):
@@ -75,9 +180,6 @@ def warnings(cfg):
         w.append('fixture delay %d ms >= T readiness %d ns: the child response arrives after the readiness '
                  'deadline, so the normal commit/release path cannot be observed (defect D). Lower the '
                  'fixture delay or raise readiness.' % (cfg['fixture']['delay_ms'], cfg['timing_params_ns']['readiness']))
-    for name, b in cfg['builds'].items():
-        if any(v == PLACEHOLDER for v in b.get('hashes', {}).values()):
-            w.append('build %r still has placeholder hashes; `run` will refuse until they are filled.' % name)
     return w
 
 
@@ -85,15 +187,16 @@ def _install_steps(cfg, build_name):
     b = cfg['builds'][build_name]
     e, pm, t = cfg['endpoints'], cfg['ports_map'], cfg['timing_params_ns']
     R = cfg['hosts']['switch_remote_dir']
-    expects = ' '.join('--expect %s=%s' % (rel, h) for rel, h in b['hashes'].items()
-                       if rel in ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'))
+    bound = {rel: b['hashes'].get(rel) or json.load(open(path_of(b['manifest'])))['artifact_sha256'][rel]
+             for rel in BUILD_HASHED}
+    expects = ' '.join('--expect %s=%s' % (rel, h) for rel, h in bound.items())
     endpoint_args = (
         '--master-ip %s --master-port %d --master-dev %d --relay-ip %s --relay-port %d --relay-dev %d '
         '--read-dst 0x%04x --read-src 0x%04x' % (
             e['master_ip'], cfg['traffic']['master_port'], pm['master_dev'], e['outstation_ip'],
             e['outstation_port'], pm['relay_dev'], e['read_dst'], e['read_src']))
     t_args = '--t-da %d --t-readiness %d --t-cap %d --t-gap %d --t-op-j %d --k %d' % (
-        t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], cfg['service']['k'])
+        t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], cfg['service']['k']) + ' ' + shaping_args(cfg)
     comp = '%s/%s/bringup_composite.py --build-out %s/out %s %s %s' % (R, HW, R, expects, endpoint_args, t_args)
     return [
         ('switch', 'conf from the loaded build',
@@ -102,13 +205,13 @@ def _install_steps(cfg, build_name):
         ('switch', 'launch bf_switchd on the composite build (rehearsed restore in place)',
          'see hw/README.md run-order step 2 (SDE=%s); refuse if bf_switchd is already up' % b['sde']),
         ('switch', 'enable the front-panel ports from the live snapshot',
-         'python3 framework/control/restore_ports.py %s %s --apply --wait 35' % (cfg['program'], cfg['ports_snapshot'])),
+         'python3 framework/control/restore_ports.py %s %s --apply --wait 35' % (cfg['program'], os.path.basename(cfg['ports_snapshot']))),
         ('switch', 'composite install dry-run (prints the ports it will loop)', comp),
         ('switch', 'composite install apply (loopback first, apps enabled last)',
          'DEFENSE4_HW_AUTHORIZED=1 ' + comp + ' --apply --enable-pktgen --manifest-out %s/bringup_manifest.json' % R),
         ('switch', 'counter snapshot before the blocks',
-         'python3 %s/%s/snapshot_counters.py --build-out %s/out --ports %s -o %s/before_%s.json'
-         % (R, HW, R, cfg['ports_map']['stat_ports'], R, build_name)),
+         'python3 %s/%s/snapshot_counters.py --build-out %s/out --ports %s %s -o %s/before_%s.json'
+         % (R, HW, R, cfg['ports_map']['stat_ports'], shaping_args(cfg), R, build_name)),
     ]
 
 
@@ -157,15 +260,15 @@ def plan(cfg):
         R = cfg['hosts']['switch_remote_dir']
         steps += [
             ('switch', 'counter snapshot after the blocks on build %s' % build_name,
-             'python3 %s/%s/snapshot_counters.py --build-out %s/out --ports %s -o %s/after_%s.json'
-             % (R, HW, R, cfg['ports_map']['stat_ports'], R, build_name)),
+             'python3 %s/%s/snapshot_counters.py --build-out %s/out --ports %s %s -o %s/after_%s.json'
+             % (R, HW, R, cfg['ports_map']['stat_ports'], shaping_args(cfg), R, build_name)),
             ('switch', 'teardown the composite on build %s (loopback off last)' % build_name,
              'python3 %s/%s/bringup_teardown.py --manifest %s/bringup_manifest.json --apply' % (R, HW, R)),
         ]
     steps += [('vision', 'restore the namespace profile and the NIC flag', 'python3 %s/run.py restore' % HERE),
               ('switch', 'production port restore (rehearsed cold restart)',
                'python3 framework/control/restore_ports.py %s %s --apply --wait 35'
-               % (cfg['program'], cfg['ports_snapshot']))]
+               % (cfg['program'], os.path.basename(cfg['ports_snapshot'])))]
     return steps
 
 
@@ -184,7 +287,13 @@ def main(argv=None):
     for w in warns:
         sys.stderr.write('WARNING: %s\n' % w)
     if a.mode == 'validate':
-        print('config OK: %d arms over %d build(s), %d trials/arm'
+        errs = check_bindings(cfg)
+        for e in errs:
+            sys.stderr.write('UNBOUND: %s\n' % e)
+        if errs:
+            print('config structure OK but %d binding error(s); `run` will refuse' % len(errs))
+            return 1
+        print('config OK and bound: %d arms over %d build(s), %d trials/arm'
               % (len(cfg['arms']), len({x['build'] for x in cfg['arms']}), cfg['trials']['trials_per_arm']))
         return 0
     steps = plan(cfg)
@@ -196,9 +305,9 @@ def main(argv=None):
         sys.exit('run needs --apply to execute the plan; use `plan` to see it first')
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         sys.exit('run needs DEFENSE4_HW_AUTHORIZED=1 (this is a hardware campaign)')
-    bad = [n for n, b in cfg['builds'].items() if any(v == PLACEHOLDER for v in b.get('hashes', {}).values())]
+    bad = check_bindings(cfg)
     if bad:
-        sys.exit('refusing to run: builds with placeholder hashes: %s' % ', '.join(bad))
+        sys.exit('refusing to run, unbound identity: %s' % '; '.join(bad))
     sys.exit('run execution is intentionally not wired in this session (no hardware contact); the plan '
              'above is the authoritative sequence for the lead to execute with authorization')
 

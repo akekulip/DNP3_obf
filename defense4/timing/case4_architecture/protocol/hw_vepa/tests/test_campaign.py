@@ -29,7 +29,7 @@ class ConfigValidation(unittest.TestCase):
     def test_shipped_config_is_valid(self):
         cfg = cp.load_config(str(CONFIG))
         self.assertEqual(len(cfg['arms']), 4)
-        self.assertEqual(len({a['build'] for a in cfg['arms']}), 2)
+        self.assertEqual(len({a['build'] for a in cfg['arms']}), 1)   # one build; padding is a policy row
 
     def test_timing_order_is_enforced(self):
         bad = copy.deepcopy(self.cfg)
@@ -49,10 +49,6 @@ class ConfigValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             cp.load_config(self._write(bad))
 
-    def test_placeholder_hashes_warn(self):
-        cfg = cp.load_config(str(CONFIG))
-        self.assertTrue(any('placeholder' in w for w in cp.warnings(cfg)))
-
     def test_fixture_delay_past_readiness_warns(self):
         cfg = cp.load_config(str(CONFIG))
         cfg['fixture']['delay_ms'] = 999
@@ -71,7 +67,7 @@ class PlanContent(unittest.TestCase):
 
     def test_installs_each_build_once(self):
         applies = [s for s in self.steps if 'bringup_composite.py' in s[2] and '--apply' in s[2]]
-        self.assertEqual(len(applies), 2)                       # one per build, not one per arm
+        self.assertEqual(len(applies), 1)                       # one per build, not one per arm
         for s in applies:
             self.assertIn('--expect bfrt.json=', s[2])
             self.assertIn('--enable-pktgen', s[2])
@@ -112,12 +108,12 @@ class RunGating(unittest.TestCase):
         with self.assertRaises(SystemExit):
             cp.main(['run', '--config', str(CONFIG), '--apply'])
 
-    def test_run_refuses_on_placeholder_hashes_even_when_authorized(self):
+    def test_run_refuses_on_unbound_identity_even_when_authorized(self):
         os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
         try:
             with self.assertRaises(SystemExit) as e:
                 cp.main(['run', '--config', str(CONFIG), '--apply'])
-            self.assertIn('placeholder', str(e.exception))
+            self.assertIn('not pinned', str(e.exception))
         finally:
             os.environ.pop('DEFENSE4_HW_AUTHORIZED', None)
 
