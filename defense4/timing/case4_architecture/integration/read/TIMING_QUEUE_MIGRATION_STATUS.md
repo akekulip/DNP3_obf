@@ -528,6 +528,40 @@ in 17161e70b, verified as `_19` (70/70; all three checksum cases valid from emit
 from comparing `_17`/`_18` against HEAD after 17161e70b had already landed. `two_pipe_01` is the first
 two-pipe build of 17161e70b's `make_e.py`.
 
+**Both endpoints on one switch port (`route_ab_01/shared_port_01`).** For the first hardware run the master
+and the outstation are both on dev_port 9, reflected 9 → 9.
+- **N `ports`** gains `hdr.ip.src` as a fourth, ternary key. `cp.n_ports_rows(master_dev, outstation_dev,
+  master_ip, outstation_ip)` emits address-qualified rows when the two dev ports are equal:
+  - master TCP → `normalize_ack`;
+  - outstation IP → `route`;
+  - everything else on the port, such as ARP or other addresses → `route` port → port.
+
+  When the dev ports differ the rows are unchanged, with the address wildcarded. It raises if the port is
+  shared and the two addresses are missing or equal.
+- **Checked for the same case, no collision:** N `connection` rows (forward on 70 and 68, reverse on the
+  outstation port; the 4-tuples differ), E `conn` rows (`fwd_conn` at 9, `rev_conn` at 70; a master →
+  outstation frame leaving on 9 misses `conn` and passes natively, so nothing is mapped twice), and
+  `check_no_loop`.
+- **One collision that was not on the list: T's `RELAY_PORT`.** It is a compile-time 64 in `ports.p4`, and T
+  releases READ requests, OPERATEs and client closes to it. On a shared port those frames would leave on a
+  port the outstation is not on. `compose.py --relay-port=9` overrides it for that build; the default is
+  unchanged. The shared and default builds differ in that one line.
+- **Limit of the setup:** on a shared port "which side sent this" is the source address, so C3's port
+  provenance is only as strong as that address there.
+- **Builds:** both variants exit 0 on 9.13.1 and 9.13.2: pipe 0 12 ingress / 11 egress (critical path 11),
+  pipe 1 11 / 0 (critical path 9). Pipe-0 PHV: 193 of 224 containers (8-bit 55/64, 16-bit 74/96, 32-bit
+  64/64); allocated bits 1,954 ingress and 1,683 egress. Pipe 1: 42 containers, 870 ingress / 13 egress bits.
+- **Model, shared port (`model_shared_01`, `SHARED_PORT=1`, `-P "9"`): 57/57.** Handshake; SELECT, padded
+  response, OPERATE held and released, padded response; three READs with the ACK lap, one of them late;
+  genuine RST forwarded once; all on port 9, frames byte-exact. Negative: a third address on the port is
+  forwarded once natively, with no E state, no E mapping outcome and no N binding.
+- **Not run on a shared port, with reasons:** the forged-outstation-tuple test (that frame is the outstation
+  as far as one port can tell), and the second connection in E slot 1 (it needs a second master address, which
+  the single-port rows do not qualify).
+- **Model, distinct ports regression (`model_distinct_01`): 70/70.**
+- **Source-level tests (`SharedPort`):** five tests. Teeth: without the address qualification three fail.
+- **Suites:** 213 / 85 / 32 / 11.
+
 **Token and clone admission qualified by port AND format (`route_ab_01/token_admission_t_02`,
 `token_admission_composite_02`).** The independent review found that the parser default was `parse_timer`
 and the token branch keyed on `hdr.timer.isValid()`. Every frame on any pipe-1 front-panel port (164-191 are

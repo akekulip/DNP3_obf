@@ -43,6 +43,7 @@ not timing.
 | op_tag_composite_02 / op_tag_t_02 | 0 / 0 | 12/11 (T 11/0) | OPERATE clone tag `0xE101 ++ op_gen[15:0]`. Model 70/70. |
 | token_admission_composite_01 / _t_01 | 3 / 3 (T: 0 / 0) | - | Composite: `t_reject: declaration not found`; compose's role prefixer read the comment "parser reject" as a declaration. |
 | token_admission_composite_02 / _t_02 | 0 / 0 | 12/11 (T 11/0) | Tokens only from 196 (or model port 0) in generator format; clones only by 0xE1; other pipe-1 ingress dropped uncounted. Model `model_01` 70/70; `model_tok196_front164` 6/6. |
+| shared_port_01 (shared, distinct) | 0 / 0 each | 12/11 (T 11/0) | `ports` keyed on `hdr.ip.src`; `shared_*` composed with `--relay-port=9` (both endpoints on dev_port 9), `distinct_*` default. Model `model_shared_01` 57/57 (`SHARED_PORT=1`), `model_distinct_01` 70/70. |
 | t_close_fix_01 / _02 | 0 / 0 | T 11/0 | T standalone after the close fix (`_02` with `size = 15`); critical path 9. |
 | compose_t_response_01 | 0 / 0 | 1/12 | Earlier T + response-path join (stub ingress). `model_join_02` 6/6, `model_padded_01` 14/14. |
 

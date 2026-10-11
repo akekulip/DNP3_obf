@@ -26,6 +26,11 @@ against a frozen oracle); this script applies the numbered edit groups below, ea
     whose row is an ordinary route(port). Rows carry explicit $MATCH_PRIORITY (core/response_only/cp.py).
     Keeping the test inside ports (not a separate if/table) matters: ingress and egress share a stage's
     table IDs, crossbar and hash units, and N's stage 1 is full (evidence/route_ab_01/response_only_03, _04).
+    hdr.ip.src is a fourth, ternary key so that both endpoints may share ONE switch port (the reflected
+    hardware setup: master and outstation both on dev_port 9, forwarded 9 -> 9). With equal dev ports the
+    master and outstation rows differ only by source address (cp.n_ports_rows); with distinct ports it is
+    wildcarded and the rows are as before. On a shared port, "which side sent this" is the source address,
+    not the port: the port-provenance property of edit 6 is only as strong as that address there.
  6. Provenance of direction (review finding C3). connection gains ig.ingress_port as its last key, so
     forward_flow is installed only for packets arriving on N_ACK_RETURN (every master packet does, after
     the lap) and reverse_flow only for the outstation port, plus one RETURN_PORT row per direction for N's
@@ -76,7 +81,7 @@ EDITS = [
     ("table ports{key={ig.ingress_port:exact;}actions={route;deny;}size=4;default_action=deny();}",
      "/* every master-side IPv4 TCP packet -> one reverse-map lap through pipe 0 egress; m.port_valid stays 0 */\n"
      "action normalize_ack(){tm.ucast_egress_port=N_ACK_RETURN;tm.bypass_egress=1w0;}\n"
-     "table ports{key={ig.ingress_port:exact;hdr.ip.isValid():ternary;hdr.ip.proto:ternary;}"
+     "table ports{key={ig.ingress_port:exact;hdr.ip.isValid():ternary;hdr.ip.proto:ternary;hdr.ip.src:ternary;}"
      "actions={route;normalize_ack;deny;}size=8;default_action=deny();}"),
     # 5. One CRC table for the link header and the first data block, applied once
     *[(old, '') for old in (

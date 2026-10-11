@@ -242,14 +242,14 @@ class Normalization(unittest.TestCase):
     def test_ternary_row_without_priority_is_rejected(self):
         """Also with plain-integer terms: the table has ternary keys, so the hardware needs a priority."""
         pipe = fresh()
-        for keys in ((rs.IN_CLIENT, (1, 1), (6, 0xff)), (rs.IN_CLIENT, 1, 6)):
+        for keys in ((rs.IN_CLIENT, (1, 1), (6, 0xff), ANY), (rs.IN_CLIENT, 1, 6, 0)):
             with self.assertRaises(ValueError):
                 pipe.src.install('ports', keys, 'normalize_ack', ())
 
     def test_a_wrong_normalize_row_on_n_ack_return_cannot_loop(self):
         """Review W2: the P4 itself drops a non-route packet on N_ACK_RETURN, whatever the rows say."""
         pipe = lap_pipe()
-        pipe.src.install('ports', (N_ACK_RETURN, (1, 1), (6, 0xff)), 'normalize_ack', (), priority=0)
+        pipe.src.install('ports', (N_ACK_RETURN, (1, 1), (6, 0xff), ANY), 'normalize_ack', (), priority=0)
         out = pipe.inject(N_ACK_RETURN, select_packet())
         self.assertTrue(out.dropped)
         self.assertEqual(out.emitted, [])
@@ -258,7 +258,7 @@ class Normalization(unittest.TestCase):
         """W2 residual 1: a (70, *, *) -> route(70) row takes a route (port_valid = 1), so only the head
         gateway on the ports target stops it re-entering on 70 forever."""
         pipe = lap_pipe()
-        pipe.src.install('ports', (N_ACK_RETURN, ANY, ANY), 'route', (N_ACK_RETURN,), priority=0)
+        pipe.src.install('ports', (N_ACK_RETURN, ANY, ANY, ANY), 'route', (N_ACK_RETURN,), priority=0)
         for frame in (select_packet(), vectors.packet(16, SELECT_SEQ, SERVER_SEQ, payload=bytes(range(10)))):
             out = pipe.inject(N_ACK_RETURN, frame)
             self.assertTrue(out.dropped)
@@ -288,7 +288,7 @@ class Normalization(unittest.TestCase):
 
     def test_control_plane_refuses_rows_that_target_n_ack_return(self):
         good = cp.n_ports_rows(MASTER.dev_port, OUTSTATION.dev_port)
-        k = (('ig.ingress_port', N_ACK_RETURN), ('hdr.ip.$valid', ANY), ('hdr.ip.proto', ANY))
+        k = (('ig.ingress_port', N_ACK_RETURN), ('hdr.ip.$valid', ANY), ('hdr.ip.proto', ANY), ('hdr.ip.src', ANY))
         for bad in (('Ingress.ports', k, 'Ingress.route', (('port', N_ACK_RETURN),), 0),
                     ('Ingress.ports', k, 'Ingress.normalize_ack', (), 0),
                     ('Ingress.ports', (('ig.ingress_port', 68),) + k[1:], 'Ingress.route', (('port', 2),), 0)):
@@ -313,6 +313,75 @@ class Normalization(unittest.TestCase):
     def test_ports_table_is_the_only_normalization_site(self):
         self.assertEqual(TEXT.count('normalize_ack'), 2, 'declared once, listed once in ports.actions')
         self.assertNotIn('m.normalize', TEXT)
+
+
+SHARED = 9
+S_MASTER = rp.Endpoint('10.0.0.1', vectors.CLIENT_PORT, SHARED)
+S_OUTSTATION = rp.Endpoint('10.0.0.2', vectors.SERVER_PORT, SHARED)
+
+
+def shared_pipe():
+    """Both endpoints on ONE switch port (the reflected hardware setup: 9 -> 9), rows from cp.py."""
+    pipe = fresh()
+    drop_runtime(pipe, 'ports')
+    drop_runtime(pipe, 'connection')
+    cp.install_ingress(pipe.src, cp.n_ports_rows(SHARED, SHARED, S_MASTER.ip_int, S_OUTSTATION.ip_int)
+                       + cp.n_connection_rows(S_OUTSTATION, S_MASTER))
+    return pipe
+
+
+class SharedPort(unittest.TestCase):
+    """Master and outstation on the same dev_port: the ports rows are told apart by source address."""
+
+    def test_master_tcp_takes_the_lap_and_outstation_tcp_does_not(self):
+        pipe = shared_pipe()
+        before = pipe.state()
+        out = pipe.inject(SHARED, select_packet())
+        self.assertEqual((out.passes, out.emitted), (1, [(N_ACK_RETURN, select_packet())]))
+        self.assertEqual(pipe.state(), before)
+        out = pipe.inject(N_ACK_RETURN, select_packet())
+        self.assertEqual(out.emitted, [(SHARED, select_packet())], 'after the lap: bound and sent back out the shared port')
+        self.assertEqual(pipe.state()['owner'], OWNER['select'])
+        out = pipe.inject(SHARED, response1())
+        self.assertNotIn(N_ACK_RETURN, [p for p, _ in out.emitted], 'the outstation never takes the lap')
+        self.assertEqual(out.emitted, [(SHARED, response1())])
+        self.assertEqual(pipe.state()['owner'], OWNER['response'])
+
+    def test_document_vector_on_one_port(self):
+        pipe = shared_pipe()
+        for port, frame, owner in ((N_ACK_RETURN, select_packet(), 'select'), (SHARED, response1(), 'response'),
+                                   (N_ACK_RETURN, operate_packet(), 'operate'), (SHARED, response2(), 'idle')):
+            out = pipe.inject(port, frame)
+            self.assertFalse(out.dropped, out.drop_reason)
+            self.assertEqual(pipe.state()['owner'], OWNER[owner])
+            want = rs.handoff_port(TEXT) if owner == 'operate' else SHARED
+            self.assertEqual([p for p, _ in out.emitted], [want])
+        self.assertEqual((pipe.state()['client'], pipe.state()['server']), (171, 975))
+
+    def test_non_ip_frame_is_forwarded_port_to_port(self):
+        pipe = shared_pipe()
+        before = pipe.state()
+        arp = bytes.fromhex('ffffffffffffaabbccddeeff0806') + bytes(46)
+        out = pipe.inject(SHARED, arp)
+        self.assertEqual(out.emitted, [(SHARED, arp)])
+        self.assertEqual(pipe.state(), before)
+
+    def test_third_address_is_neither_normalized_nor_bound(self):
+        pipe = shared_pipe()
+        before = pipe.state()
+        third = (0x0a000063, vectors.SERVER, vectors.CLIENT_PORT, vectors.SERVER_PORT)
+        frame = vectors.packet(24, SELECT_SEQ, SERVER_SEQ, payload=vectors.native_select(0, 3), tuple4=third)
+        out = pipe.inject(SHARED, frame)
+        self.assertEqual(out.emitted, [(SHARED, frame)], 'forwarded natively, no lap')
+        self.assertEqual(pipe.state(), before, 'not bound')
+
+    def test_rows_need_distinct_addresses_only_when_the_port_is_shared(self):
+        for args in ((SHARED, SHARED), (SHARED, SHARED, S_MASTER.ip_int, S_MASTER.ip_int)):
+            with self.assertRaises(ValueError):
+                cp.n_ports_rows(*args)
+        distinct = cp.n_ports_rows(MASTER.dev_port, OUTSTATION.dev_port)
+        self.assertEqual({dict(r[1])['hdr.ip.src'] for r in distinct}, {ANY}, 'distinct ports: address wildcarded')
+        self.assertEqual([r[2] for r in distinct].count('Ingress.normalize_ack'), 1)
 
 
 class EgressProvenance(unittest.TestCase):

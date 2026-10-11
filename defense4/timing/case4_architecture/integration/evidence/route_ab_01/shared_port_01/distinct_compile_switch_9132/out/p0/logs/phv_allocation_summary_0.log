@@ -1,0 +1,1272 @@
+PHV ALLOCATION SUCCESSFUL
+PHV Allocation
++-----------+-------+-----------------+----------------------------------------------------------------+
+|Container  |Gress  |Container Slice  |Field Slice                                                     |
++-----------+-------+-----------------+----------------------------------------------------------------+
+|B0         |I-HW   |[2:0]            |ingress::ig_intr_md_for_dprsr.mirror_type                       |
+|           |       |                 |                                                                |
+|B1         |I-HW   |[2:0]            |ingress::ig_intr_md_for_dprsr.drop_ctl                          |
+|           |       |[3]              |ingress::ig_intr_md_for_tm.bypass_egress                        |
+|           |       |[7:4]            |ingress::m.compare_read_app[31:28]                              |
+|           |       |                 |                                                                |
+|B2         |I-HW   |                 |ingress::hdr.rd_tail.value                                      |
+|           |       |                 |ingress::hdr.tail.status                                        |
+|           |       |                 |ingress::hdr.rtail.status                                       |
+|           |       |                 |ingress::hdr.rd_req.crc[15:8]                                   |
+|           |       |                 |                                                                |
+|B3         |I-HW   |                 |ingress::hdr.dl.crc[7:0]                                        |
+|           |       |                 |                                                                |
+|B4         |I-HW   |                 |ingress::m.hcrc[15:8]                                           |
+|           |       |                 |ingress::m.diff_real_links[7:0]                                 |
+|           |       |                 |ingress::m.parsed                                               |
+|           |       |                 |                                                                |
+|B5         |I-HW   |                 |ingress::hdr.dl.crc[15:8]                                       |
+|           |       |                 |                                                                |
+|B6         |I-HW   |                 |ingress::m.hcrc[7:0]                                            |
+|           |       |                 |ingress::m.diff_real_links[15:8]                                |
+|           |       |                 |                                                                |
+|B7         |I-HW   |                 |ingress::hdr.rtail.crc[15:8]                                    |
+|           |       |                 |ingress::hdr.tail.crc[15:8]                                     |
+|           |       |                 |ingress::hdr.rd_tail.crc[15:8]                                  |
+|           |       |                 |ingress::hdr.rd_req.crc[7:0]                                    |
+|           |       |                 |                                                                |
+|B8         |I-HW   |                 |ingress::m.tcrc[7:0]                                            |
+|           |       |                 |ingress::m.diff_real_links[23:16]                               |
+|           |       |                 |                                                                |
+|B9         |I-HW   |                 |ingress::hdr.rtail.crc[7:0]                                     |
+|           |       |                 |ingress::hdr.tail.crc[7:0]                                      |
+|           |       |                 |ingress::hdr.rd_tail.crc[7:0]                                   |
+|           |       |                 |                                                                |
+|B10        |I-HW   |                 |ingress::m.tcrc[15:8]                                           |
+|           |       |                 |ingress::m.diff_real_links[31:24]                               |
+|           |       |                 |                                                                |
+|B11        |I-HW   |                 |ingress::hdr.first.crc[15:8]                                    |
+|           |       |                 |                                                                |
+|B12        |I-HW   |                 |ingress::m.bcrc[7:0]                                            |
+|           |       |                 |ingress::m.diff_real_tcp_dst[7:0]                               |
+|           |       |                 |                                                                |
+|B13        |I-HW   |                 |ingress::hdr.first.crc[7:0]                                     |
+|           |       |                 |                                                                |
+|B14        |I-HW   |                 |ingress::m.bcrc[15:8]                                           |
+|           |       |                 |ingress::m.diff_real_tcp_dst[15:8]                              |
+|           |       |                 |                                                                |
+|B15        |I-HW   |                 |ingress::m.diff_real_object[15:8]                               |
+|           |       |                 |ingress::m.bad1                                                 |
+|           |       |                 |                                                                |
+|B16        |E-HW   |[0]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[0]              |
+|           |       |[1]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[1]              |
+|           |       |[2]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[2]              |
+|           |       |[3]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[3]              |
+|           |       |[6:4]            |egress::eg_intr_md_for_dprsr.drop_ctl                           |
+|           |       |[7]              |egress::hdr.ip.checksum.$deparse_original_csum                  |
+|           |       |                 |                                                                |
+|B17        |E-HW   |                 |egress::hdr.ctn.status                                          |
+|           |       |                 |                                                                |
+|B18        |E-HW   |                 |egress::hdr.ctp1.status                                         |
+|           |       |                 |egress::m.in_cb0[15:8]                                          |
+|           |       |                 |                                                                |
+|B19        |E-HW   |                 |egress::hdr.rtn.data_last                                       |
+|           |       |                 |                                                                |
+|B20        |E-HW   |                 |egress::hdr.rtp.data_last                                       |
+|           |       |                 |egress::m.in_cb0[7:0]                                           |
+|           |       |                 |                                                                |
+|B21        |E-HW   |                 |egress::hdr.ctp1.filler_a[71:64]                                |
+|           |       |                 |egress::m.in_rb0[7:0]                                           |
+|           |       |                 |                                                                |
+|B22        |E-HW   |                 |egress::hdr.rtp.filler[71:64]                                   |
+|           |       |                 |egress::m.in_rb0[15:8]                                          |
+|           |       |                 |                                                                |
+|B23        |E-HW   |                 |egress::hdr.cb0.crc0[7:0]                                       |
+|           |       |                 |                                                                |
+|B24        |E-HW   |                 |egress::hdr.cb0.crc0[15:8]                                      |
+|           |       |                 |                                                                |
+|B25        |E-HW   |                 |egress::hdr.tcp.flags                                           |
+|           |       |                 |                                                                |
+|B26        |E-HW   |                 |egress::hdr.rb0.crc0[15:8]                                      |
+|           |       |                 |                                                                |
+|B27        |E-HW   |                 |egress::hdr.rb0.crc0[7:0]                                       |
+|           |       |                 |                                                                |
+|B28        |E-HW   |                 |egress::hdr.rb1.crc1[15:8]                                      |
+|           |       |                 |                                                                |
+|B29        |E-HW   |                 |egress::m.in_rb1[7:0]                                           |
+|           |       |                 |egress::hdr.ctp2.crc2[7:0]                                      |
+|           |       |                 |                                                                |
+|B30        |E-HW   |                 |egress::hdr.rb1.crc1[7:0]                                       |
+|           |       |                 |                                                                |
+|B31        |E-HW   |                 |egress::m.in_rb1[15:8]                                          |
+|           |       |                 |egress::hdr.ctp2.crc2[15:8]                                     |
+|           |       |                 |                                                                |
+|B32        |I      |                 |ingress::hdr.second.crc[15:8]                                   |
+|           |       |                 |                                                                |
+|B33        |I      |                 |ingress::hdr.second.crc[7:0]                                    |
+|           |       |                 |                                                                |
+|B34        |E      |                 |egress::m.tcp_odd                                               |
+|           |       |                 |                                                                |
+|B35        |E      |                 |egress::m.has_mss                                               |
+|           |       |                 |                                                                |
+|B36        |E      |                 |egress::m.dir                                                   |
+|           |       |                 |                                                                |
+|B37        |E      |                 |egress::m.mode                                                  |
+|           |       |                 |                                                                |
+|B38        |E      |                 |egress::m.grant                                                 |
+|           |       |                 |                                                                |
+|B39        |E      |                 |egress::m.result                                                |
+|           |       |                 |                                                                |
+|B40        |I      |                 |ingress::m.crc1[7:0]                                            |
+|           |       |                 |ingress::m.diff_real_tcp_dst[23:16]                             |
+|           |       |                 |                                                                |
+|B41        |I      |                 |ingress::m.crc1[15:8]                                           |
+|           |       |                 |ingress::m.diff_real_tcp_dst[31:24]                             |
+|           |       |                 |                                                                |
+|B42        |I      |                 |ingress::m.stage                                                |
+|           |       |                 |                                                                |
+|B43        |I      |                 |ingress::m.expected_work_phase[7:0]                             |
+|           |       |                 |ingress::m.diff_real_object[7:0]                                |
+|           |       |                 |                                                                |
+|B44        |I      |                 |ingress::m.kind                                                 |
+|           |       |                 |                                                                |
+|B45        |I      |                 |ingress::m.compare_read_app[11:4]                               |
+|           |       |                 |ingress::m.enabled                                              |
+|           |       |                 |                                                                |
+|B46        |I      |                 |ingress::m.compare_application[15:8]                            |
+|           |       |                 |ingress::m.profile                                              |
+|           |       |                 |                                                                |
+|B47        |I      |                 |ingress::m.response                                             |
+|           |       |                 |                                                                |
+|B48        |I      |                 |ingress::m.matched                                              |
+|           |       |                 |                                                                |
+|B49        |I      |                 |ingress::m.return_abort                                         |
+|           |       |                 |ingress::m.port_valid                                           |
+|           |       |                 |                                                                |
+|B50        |I      |                 |ingress::m.shape_valid                                          |
+|           |       |                 |                                                                |
+|B51        |I      |                 |ingress::m.packet_kind                                          |
+|           |       |                 |                                                                |
+|B52        |I      |                 |ingress::m.work_op                                              |
+|           |       |                 |                                                                |
+|B53        |I      |                 |ingress::m.owner_op                                             |
+|           |       |                 |                                                                |
+|B54        |I      |                 |ingress::m.sequence_valid                                       |
+|           |       |                 |                                                                |
+|B55        |E      |                 |egress::m.wide                                                  |
+|           |       |                 |                                                                |
+|B56        |E      |[0]              |egress::m.rbad1                                                 |
+|           |       |[1]              |egress::m.rbadt                                                 |
+|           |       |[2]              |egress::m.cbad0                                                 |
+|           |       |[3]              |egress::m.cbadt                                                 |
+|           |       |[4]              |egress::hdr.rtn.$parsed                                         |
+|           |       |[5]              |egress::hdr.ctn.$parsed                                         |
+|           |       |                 |                                                                |
+|B57        |E      |                 |egress::m.shape                                                 |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
+|H0         |I-HW   |[7:0]            |ingress::hdr.event.event[7:0]                                   |
+|           |       |[15:8]           |ingress::hdr.event.event[15:8]                                  |
+|           |       |                 |                                                                |
+|H1         |I-HW   |[7:0]            |ingress::m.direction                                            |
+|           |       |[8]              |ingress::m.ip_error                                             |
+|           |       |[11:8]           |ingress::m.compare_application[3:0]                             |
+|           |       |[15:12]          |ingress::m.compare_application[7:4]                             |
+|           |       |                 |                                                                |
+|H2         |I-HW   |[8:0]            |ingress::ig_intr_md_for_tm.ucast_egress_port                    |
+|           |       |                 |                                                                |
+|H3         |I-HW   |[8:0]            |ingress::m.output_port                                          |
+|           |       |                 |ingress::m.tcp_sum                                              |
+|           |       |[12:9]           |ingress::m.compare_read_app[3:0]                                |
+|           |       |                 |                                                                |
+|H4         |I-HW   |[9:0]            |ingress::$tmp3                                                  |
+|           |       |                 |                                                                |
+|H5         |I-HW   |                 |ingress::hdr.dl.src                                             |
+|           |       |                 |                                                                |
+|H6         |I-HW   |                 |ingress::hdr.dl.dst                                             |
+|           |       |                 |                                                                |
+|H7         |I-HW   |                 |ingress::m.compare_real_links[31:16]                            |
+|           |       |                 |ingress::m.link_src                                             |
+|           |       |                 |                                                                |
+|H8         |I-HW   |                 |ingress::m.compare_real_links[15:0]                             |
+|           |       |                 |ingress::m.link_dst                                             |
+|           |       |                 |                                                                |
+|H9         |I-HW   |[7:0]            |ingress::hdr.dl.ctrl                                            |
+|           |       |[15:8]           |ingress::hdr.dl.len                                             |
+|           |       |                 |                                                                |
+|H10        |I-HW   |[7:0]            |ingress::hdr.first.w0[7:0]                                      |
+|           |       |[15:8]           |ingress::hdr.first.w0[15:8]                                     |
+|           |       |[7:0]            |ingress::hdr.rd_req.group                                       |
+|           |       |[15:8]           |ingress::hdr.rd_req.func                                        |
+|           |       |                 |                                                                |
+|H11        |I-HW   |[3:0]            |ingress::hdr.first.w0[19:16]                                    |
+|           |       |[7:4]            |ingress::hdr.first.w0[23:20]                                    |
+|           |       |[15:8]           |ingress::hdr.first.w0[31:24]                                    |
+|           |       |[3:0]            |ingress::hdr.rd_req.app[3:0]                                    |
+|           |       |[7:4]            |ingress::hdr.rd_req.app[7:4]                                    |
+|           |       |[15:8]           |ingress::hdr.rd_req.tp                                          |
+|           |       |                 |                                                                |
+|H12        |I-HW   |[7:0]            |ingress::hdr.tcp.flags                                          |
+|           |       |[11:8]           |ingress::hdr.tcp.reserved                                       |
+|           |       |[15:12]          |ingress::hdr.tcp.offset                                         |
+|           |       |                 |                                                                |
+|H13        |I-HW   |[7:0]            |ingress::hdr.ip.proto                                           |
+|           |       |[15:8]           |ingress::hdr.ip.ttl                                             |
+|           |       |                 |                                                                |
+|H14        |I-HW   |                 |ingress::hdr.tcp.urgent                                         |
+|           |       |                 |                                                                |
+|H15        |I-HW   |                 |ingress::hdr.event.reserved                                     |
+|           |       |                 |                                                                |
+|H16        |E-HW   |                 |egress::hdr.ip.len                                              |
+|           |       |                 |                                                                |
+|H17        |E-HW   |[8:0]            |egress::eg_intr_md.egress_port                                  |
+|           |       |[12:9]           |egress::m.idx                                                   |
+|           |       |                 |                                                                |
+|H18        |E-HW   |                 |egress::hdr.cb0.on_hi                                           |
+|           |       |                 |                                                                |
+|H19        |E-HW   |                 |egress::hdr.tcp.window                                          |
+|           |       |                 |                                                                |
+|H20        |E-HW   |[7:0]            |egress::hdr.mss.len                                             |
+|           |       |[15:8]           |egress::hdr.mss.kind                                            |
+|           |       |                 |                                                                |
+|H21        |E-HW   |                 |egress::hdr.rtp.filler[15:0]                                    |
+|           |       |[15:8]           |egress::m.in_ct[7:0]                                            |
+|           |       |[7:0]            |egress::m.in_ct[15:8]                                           |
+|           |       |                 |                                                                |
+|H22        |E-HW   |                 |egress::hdr.rtp.filler[31:16]                                   |
+|           |       |[7:0]            |egress::m.enable                                                |
+|           |       |                 |                                                                |
+|H23        |E-HW   |                 |egress::hdr.rtp.filler[47:32]                                   |
+|           |       |                 |                                                                |
+|H24        |E-HW   |                 |egress::hdr.rtp.filler[63:48]                                   |
+|           |       |                 |                                                                |
+|H25        |E-HW   |                 |egress::hdr.ctp2.filler_b[15:0]                                 |
+|           |       |                 |                                                                |
+|H26        |E-HW   |                 |egress::hdr.ctp2.filler_b[31:16]                                |
+|           |       |                 |                                                                |
+|H27        |E-HW   |                 |egress::hdr.ctp2.filler_b[47:32]                                |
+|           |       |                 |                                                                |
+|H28        |E-HW   |                 |egress::hdr.ctp2.filler_b[63:48]                                |
+|           |       |                 |                                                                |
+|H29        |E-HW   |                 |egress::hdr.ctn.on_lo                                           |
+|           |       |                 |                                                                |
+|H30        |E-HW   |                 |egress::hdr.ctp1.on_lo                                          |
+|           |       |                 |                                                                |
+|H31        |E-HW   |[7:0]            |egress::hdr.ctn.crc1[7:0]                                       |
+|           |       |[15:8]           |egress::hdr.ctn.crc1[15:8]                                      |
+|           |       |                 |                                                                |
+|H32        |I      |[7:0]            |ingress::hdr.first.w2[7:0]                                      |
+|           |       |[15:8]           |ingress::hdr.first.w2[15:8]                                     |
+|           |       |                 |                                                                |
+|H33        |I      |[7:0]            |ingress::hdr.first.w3[23:16]                                    |
+|           |       |[15:8]           |ingress::hdr.first.w3[31:24]                                    |
+|           |       |                 |                                                                |
+|H34        |I      |[7:0]            |ingress::hdr.first.w3[7:0]                                      |
+|           |       |[15:8]           |ingress::hdr.first.w3[15:8]                                     |
+|           |       |                 |                                                                |
+|H35        |I      |[7:0]            |ingress::hdr.first.w2[23:16]                                    |
+|           |       |[15:8]           |ingress::hdr.first.w2[31:24]                                    |
+|           |       |                 |                                                                |
+|H36        |I      |[7:0]            |ingress::hdr.rtail.on_lo[7:0]                                   |
+|           |       |[15:8]           |ingress::hdr.rtail.on_lo[15:8]                                  |
+|           |       |                 |                                                                |
+|H37        |E      |[7:0]            |egress::m.ctcrc1[7:0]                                           |
+|           |       |[15:8]           |egress::m.ctcrc1[15:8]                                          |
+|           |       |                 |                                                                |
+|H38        |E      |[7:0]            |egress::m.rtcrc[7:0]                                            |
+|           |       |[15:8]           |egress::m.rtcrc[15:8]                                           |
+|           |       |                 |                                                                |
+|H39        |I      |                 |ingress::hdr.dl.magic                                           |
+|           |       |                 |                                                                |
+|H40        |I      |[7:0]            |ingress::m.compare_real_object[23:16]                           |
+|           |       |[15:8]           |ingress::m.compare_real_object[31:24]                           |
+|           |       |[7:0]            |ingress::m.badh                                                 |
+|           |       |                 |                                                                |
+|H41        |I      |[7:0]            |ingress::m.compare_real_object[7:0]                             |
+|           |       |[15:8]           |ingress::m.compare_real_object[15:8]                            |
+|           |       |[7:0]            |ingress::m.badb                                                 |
+|           |       |                 |                                                                |
+|H42        |I      |[7:0]            |ingress::m.compare_real_on[7:0]                                 |
+|           |       |[15:8]           |ingress::m.compare_real_on[15:8]                                |
+|           |       |[7:0]            |ingress::m.badt                                                 |
+|           |       |                 |                                                                |
+|H43        |I      |[7:0]            |ingress::m.compare_real_on[23:16]                               |
+|           |       |[15:8]           |ingress::m.compare_real_on[31:24]                               |
+|           |       |[7:0]            |ingress::m.network_valid                                        |
+|           |       |                 |                                                                |
+|H44        |E      |[7:0]            |egress::hdr.ctp1.crc1[7:0]                                      |
+|           |       |[15:8]           |egress::hdr.ctp1.crc1[15:8]                                     |
+|           |       |[15:8]           |egress::m.in_rt[7:0]                                            |
+|           |       |[7:0]            |egress::m.in_rt[15:8]                                           |
+|           |       |                 |                                                                |
+|H45        |E      |[7:0]            |egress::hdr.rtn.crc2[7:0]                                       |
+|           |       |[15:8]           |egress::hdr.rtn.crc2[15:8]                                      |
+|           |       |                 |                                                                |
+|H46        |E      |[7:0]            |egress::hdr.rtp.crc2[7:0]                                       |
+|           |       |[15:8]           |egress::hdr.rtp.crc2[15:8]                                      |
+|           |       |                 |                                                                |
+|H47        |E      |[7:0]            |egress::hdr.rb0.g_qual                                          |
+|           |       |[15:8]           |egress::hdr.rb0.g_var                                           |
+|           |       |                 |                                                                |
+|H48        |E      |[7:0]            |egress::hdr.rb0.appctrl                                         |
+|           |       |[15:8]           |egress::hdr.rb0.tpctrl                                          |
+|           |       |                 |                                                                |
+|H49        |E      |[7:0]            |egress::hdr.cb0.appctrl                                         |
+|           |       |[15:8]           |egress::hdr.cb0.tpctrl                                          |
+|           |       |                 |                                                                |
+|H50        |E      |                 |egress::hdr.dl.start                                            |
+|           |       |                 |                                                                |
+|H51        |E      |                 |egress::hdr.ctp2.filler_b[79:64]                                |
+|           |       |                 |                                                                |
+|H52        |E      |[0]              |egress::hdr.eth.$valid                                          |
+|           |       |[1]              |egress::hdr.ip.$valid                                           |
+|           |       |[2]              |egress::hdr.tcp.$valid                                          |
+|           |       |[3]              |egress::hdr.dl.$valid                                           |
+|           |       |[4]              |egress::hdr.rb0.$valid                                          |
+|           |       |[5]              |egress::hdr.rb1.$valid                                          |
+|           |       |[6]              |egress::hdr.rtn.$valid                                          |
+|           |       |[7]              |egress::hdr.cb0.$valid                                          |
+|           |       |[8]              |egress::hdr.ctn.$valid                                          |
+|           |       |[9]              |egress::hdr.mss.$valid                                          |
+|           |       |[10]             |egress::hdr.rtp.$valid                                          |
+|           |       |[11]             |egress::hdr.ctp1.$valid                                         |
+|           |       |[12]             |egress::hdr.ctp2.$valid                                         |
+|           |       |[13]             |egress::hdr.ip.checksum.$deparse_updated_csum_0                 |
+|           |       |[14]             |egress::hdr.tcp.checksum.$deparse_original_csum                 |
+|           |       |[15]             |egress::hdr.tcp.checksum.$deparse_updated_csum_0                |
+|           |       |                 |                                                                |
+|H53        |E      |[0]              |egress::hdr.tcp.checksum.$deparse_updated_csum_1                |
+|           |       |[1]              |egress::hdr.tcp.checksum.$deparse_updated_csum_2                |
+|           |       |[9:2]            |egress::m.ip_odd                                                |
+|           |       |[10]             |egress::m.changed                                               |
+|           |       |[11]             |egress::m.pad                                                   |
+|           |       |[12]             |egress::m.read_shape                                            |
+|           |       |[13]             |egress::m.ctl_shape                                             |
+|           |       |[14]             |egress::m.badh                                                  |
+|           |       |[15]             |egress::m.rbad0                                                 |
+|           |       |                 |                                                                |
+|H54        |I      |                 |ingress::m.diff_real_object[31:16]                              |
+|           |       |[7:0]            |ingress::m.go                                                   |
+|           |       |                 |                                                                |
+|H55        |I      |                 |ingress::m.diff_real_off[15:0]                                  |
+|           |       |                 |                                                                |
+|H56        |I      |[0]              |ingress::hdr.envelope.$valid                                    |
+|           |       |[1]              |ingress::hdr.work_generation.$valid                             |
+|           |       |[2]              |ingress::hdr.expected_cell.$valid                               |
+|           |       |[3]              |ingress::hdr.event.$valid                                       |
+|           |       |[4]              |ingress::hdr.eth.$valid                                         |
+|           |       |[5]              |ingress::hdr.ip.$valid                                          |
+|           |       |[6]              |ingress::hdr.tcp.$valid                                         |
+|           |       |[7]              |ingress::hdr.mss.$valid                                         |
+|           |       |[8]              |ingress::hdr.dl.$valid                                          |
+|           |       |[9]              |ingress::hdr.first.$valid                                       |
+|           |       |[10]             |ingress::hdr.tail.$valid                                        |
+|           |       |[11]             |ingress::hdr.rtail.$valid                                       |
+|           |       |[12]             |ingress::hdr.rd_req.$valid                                      |
+|           |       |[13]             |ingress::hdr.second.$valid                                      |
+|           |       |[14]             |ingress::hdr.rd_tail.$valid                                     |
+|           |       |[15]             |ingress::hdr.t0.$valid                                          |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
+|H64        |I      |                 |ingress::m.diff_real_off[31:16]                                 |
+|           |       |                 |                                                                |
+|H65        |I      |                 |ingress::m.diff_native_end[15:0]                                |
+|           |       |                 |                                                                |
+|H66        |I      |                 |ingress::m.diff_native_end[31:16]                               |
+|           |       |                 |                                                                |
+|H67        |I      |                 |ingress::m.diff_application[15:0]                               |
+|           |       |                 |                                                                |
+|H68        |I      |                 |ingress::m.diff_application[31:16]                              |
+|           |       |                 |                                                                |
+|H69        |I      |                 |ingress::m.work_phase[15:0]                                     |
+|           |       |                 |                                                                |
+|H70        |I      |                 |ingress::m.work_phase[31:16]                                    |
+|           |       |                 |                                                                |
+|H71        |I      |                 |ingress::m.epoch_diff[15:0]                                     |
+|           |       |                 |                                                                |
+|H72        |I      |                 |ingress::m.epoch_diff[31:16]                                    |
+|           |       |                 |                                                                |
+|H73        |I      |                 |ingress::m.owner_diff[15:0]                                     |
+|           |       |                 |                                                                |
+|H74        |I      |                 |ingress::m.owner_diff[31:16]                                    |
+|           |       |                 |                                                                |
+|H75        |E      |                 |egress::m.len_delta                                             |
+|           |       |                 |                                                                |
+|H76        |I      |                 |ingress::m.compare_read_app[27:12]                              |
+|           |       |                 |                                                                |
+|H77        |I      |                 |ingress::m.compare_application[31:16]                           |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
+|W0         |I-HW   |[7:0]            |ingress::ig_intr_md_from_prsr.global_tstamp[7:0]                |
+|           |       |[15:8]           |ingress::ig_intr_md_from_prsr.global_tstamp[15:8]               |
+|           |       |[31:16]          |ingress::ig_intr_md_from_prsr.global_tstamp[31:16]              |
+|           |       |                 |                                                                |
+|W1         |I-HW   |[7:0]            |ingress::m.observed[7:0]                                        |
+|           |       |[15:8]           |ingress::m.observed[15:8]                                       |
+|           |       |[31:16]          |ingress::m.observed[31:16]                                      |
+|           |       |                 |ingress::m.new_seq                                              |
+|           |       |[24:16]          |ingress::ig_intr_md.ingress_port                                |
+|           |       |                 |                                                                |
+|W2         |I-HW   |[7:0]            |ingress::hdr.t0.t0q[7:0]                                        |
+|           |       |[15:8]           |ingress::hdr.t0.t0q[15:8]                                       |
+|           |       |[31:16]          |ingress::hdr.t0.t0q[31:16]                                      |
+|           |       |                 |                                                                |
+|W3         |I-HW   |[7:0]            |ingress::hdr.expected_cell.expected_cell[7:0]                   |
+|           |       |[15:8]           |ingress::hdr.expected_cell.expected_cell[15:8]                  |
+|           |       |[31:16]          |ingress::hdr.expected_cell.expected_cell[31:16]                 |
+|           |       |                 |                                                                |
+|W4         |I-HW   |[7:0]            |ingress::m.desired[7:0]                                         |
+|           |       |[15:8]           |ingress::m.desired[15:8]                                        |
+|           |       |[31:16]          |ingress::m.desired[31:16]                                       |
+|           |       |                 |                                                                |
+|W5         |I-HW   |[7:0]            |ingress::m.expected[7:0]                                        |
+|           |       |[15:8]           |ingress::m.expected[15:8]                                       |
+|           |       |[31:16]          |ingress::m.expected[31:16]                                      |
+|           |       |                 |                                                                |
+|W6         |I-HW   |                 |ingress::hdr.tcp.seq                                            |
+|           |       |                 |                                                                |
+|W7         |I-HW   |                 |ingress::hdr.tcp.ack                                            |
+|           |       |                 |                                                                |
+|W8         |I-HW   |                 |ingress::m.client                                               |
+|           |       |                 |                                                                |
+|W9         |I-HW   |                 |ingress::m.server                                               |
+|           |       |                 |                                                                |
+|W10        |I-HW   |                 |ingress::m.ack_native                                           |
+|           |       |                 |                                                                |
+|W11        |I-HW   |                 |ingress::m.compare_native_start                                 |
+|           |       |                 |                                                                |
+|W12        |I-HW   |                 |ingress::m.compare_native_end                                   |
+|           |       |                 |                                                                |
+|W13        |I-HW   |                 |ingress::m.compare_server_start                                 |
+|           |       |                 |                                                                |
+|W14        |I-HW   |                 |ingress::m.server_diff                                          |
+|           |       |[31:8]           |ingress::m.expected_work_phase[31:8]                            |
+|           |       |                 |                                                                |
+|W15        |I-HW   |                 |ingress::m.client_diff                                          |
+|           |       |                 |                                                                |
+|W16        |E-HW   |[15:0]           |$tmp80[15:0]                                                    |
+|           |       |[31:16]          |$tmp80[31:16]                                                   |
+|           |       |[15:0]           |egress::m.r[15:0]                                               |
+|           |       |[31:16]          |egress::m.r[31:16]                                              |
+|           |       |                 |egress::m.front_ret                                             |
+|           |       |                 |                                                                |
+|W17        |E-HW   |[15:0]           |$tmp81[15:0]                                                    |
+|           |       |[31:16]          |$tmp81[31:16]                                                   |
+|           |       |[15:0]           |egress::m.q[15:0]                                               |
+|           |       |[31:16]          |egress::m.q[31:16]                                              |
+|           |       |                 |                                                                |
+|W18        |E-HW   |[15:0]           |egress::hdr.tcp.seq[15:0]                                       |
+|           |       |[31:16]          |egress::hdr.tcp.seq[31:16]                                      |
+|           |       |                 |                                                                |
+|W19        |E-HW   |[15:0]           |egress::m.p[15:0]                                               |
+|           |       |[31:16]          |egress::m.p[31:16]                                              |
+|           |       |[15:8]           |egress::m.in_dl[7:0]                                            |
+|           |       |[7:0]            |egress::m.in_dl[15:8]                                           |
+|           |       |                 |                                                                |
+|W20        |E-HW   |[15:0]           |egress::m.pm[15:0]                                              |
+|           |       |[31:16]          |egress::m.pm[31:16]                                             |
+|           |       |                 |                                                                |
+|W21        |E-HW   |[15:0]           |egress::m.leff[15:0]                                            |
+|           |       |[31:16]          |egress::m.leff[31:16]                                           |
+|           |       |                 |                                                                |
+|W22        |E-HW   |[15:0]           |egress::m.t[15:0]                                               |
+|           |       |[31:16]          |egress::m.t[31:16]                                              |
+|           |       |                 |                                                                |
+|W23        |E-HW   |[15:0]           |egress::m.y[15:0]                                               |
+|           |       |[31:16]          |egress::m.y[31:16]                                              |
+|           |       |                 |                                                                |
+|W24        |E-HW   |[15:0]           |egress::m.z[15:0]                                               |
+|           |       |[31:16]          |egress::m.z[31:16]                                              |
+|           |       |                 |                                                                |
+|W25        |E-HW   |[15:0]           |egress::hdr.tcp.ack[15:0]                                       |
+|           |       |[31:16]          |egress::hdr.tcp.ack[31:16]                                      |
+|           |       |                 |                                                                |
+|W26        |E-HW   |[15:0]           |egress::m.ina[15:0]                                             |
+|           |       |[31:16]          |egress::m.ina[31:16]                                            |
+|           |       |                 |egress::hdr.ctp1.off                                            |
+|           |       |                 |                                                                |
+|W27        |E-HW   |[15:0]           |egress::m.s_end[15:0]                                           |
+|           |       |[31:16]          |egress::m.s_end[31:16]                                          |
+|           |       |                 |                                                                |
+|W28        |E-HW   |[15:0]           |egress::m.ack_inv[15:0]                                         |
+|           |       |[31:16]          |egress::m.ack_inv[31:16]                                        |
+|           |       |                 |                                                                |
+|W29        |E-HW   |[15:0]           |egress::m.qx[15:0]                                              |
+|           |       |[31:16]          |egress::m.qx[31:16]                                             |
+|           |       |                 |                                                                |
+|W30        |E-HW   |[7:0]            |egress::hdr.dl.crc[7:0]                                         |
+|           |       |[15:8]           |egress::hdr.dl.crc[15:8]                                        |
+|           |       |[31:16]          |egress::hdr.dl.src                                              |
+|           |       |                 |                                                                |
+|W31        |E-HW   |                 |egress::hdr.ctn.off                                             |
+|           |       |                 |                                                                |
+|W32        |I      |                 |ingress::m.epoch                                                |
+|           |       |                 |                                                                |
+|W33        |I      |                 |ingress::hdr.work_generation.generation                         |
+|           |       |                 |                                                                |
+|W34        |I      |                 |ingress::hdr.envelope.epoch                                     |
+|           |       |                 |                                                                |
+|W35        |I      |                 |ingress::hdr.ip.dst                                             |
+|           |       |                 |                                                                |
+|W36        |I      |                 |ingress::m.generation                                           |
+|           |       |                 |                                                                |
+|W37        |I      |                 |ingress::hdr.ip.src                                             |
+|           |       |                 |                                                                |
+|W38        |I      |                 |ingress::hdr.tail.off                                           |
+|           |       |                 |ingress::hdr.rtail.off                                          |
+|           |       |[7:0]            |ingress::hdr.rd_req.last                                        |
+|           |       |[15:8]           |ingress::hdr.rd_req.first                                       |
+|           |       |[23:16]          |ingress::hdr.rd_req.qualifier                                   |
+|           |       |[31:24]          |ingress::hdr.rd_req.variation                                   |
+|           |       |                 |ingress::hdr.second.w3                                          |
+|           |       |                 |                                                                |
+|W39        |I      |[7:0]            |ingress::hdr.first.w1[7:0]                                      |
+|           |       |[15:8]           |ingress::hdr.first.w1[15:8]                                     |
+|           |       |[23:16]          |ingress::hdr.first.w1[23:16]                                    |
+|           |       |[31:24]          |ingress::hdr.first.w1[31:24]                                    |
+|           |       |                 |                                                                |
+|W40        |I      |                 |ingress::m.compare_real_tcp_src                                 |
+|           |       |                 |                                                                |
+|W41        |I      |                 |ingress::m.compare_real_tcp_dst                                 |
+|           |       |                 |                                                                |
+|W42        |I      |                 |ingress::m.compare_real_off                                     |
+|           |       |                 |                                                                |
+|W43        |E      |[15:0]           |egress::hdr.dl.dst                                              |
+|           |       |[23:16]          |egress::hdr.dl.ctrl                                             |
+|           |       |[31:24]          |egress::hdr.dl.len                                              |
+|           |       |                 |                                                                |
+|W44        |E      |[15:0]           |egress::hdr.rb0.data_mid[47:32]                                 |
+|           |       |[23:16]          |egress::hdr.rb0.g_stop                                          |
+|           |       |[31:24]          |egress::hdr.rb0.g_start                                         |
+|           |       |                 |                                                                |
+|W45        |E      |[7:0]            |egress::hdr.rb0.g_group                                         |
+|           |       |[23:8]           |egress::hdr.rb0.iin                                             |
+|           |       |[31:24]          |egress::hdr.rb0.func                                            |
+|           |       |                 |                                                                |
+|W46        |E      |[7:0]            |egress::hdr.cb0.crob_count                                      |
+|           |       |[15:8]           |egress::hdr.cb0.crob_code                                       |
+|           |       |[31:16]          |egress::hdr.cb0.index                                           |
+|           |       |                 |                                                                |
+|W47        |E      |[15:0]           |egress::hdr.cb0.g_count                                         |
+|           |       |[23:16]          |egress::hdr.cb0.g_qual                                          |
+|           |       |[31:24]          |egress::hdr.cb0.g_var                                           |
+|           |       |                 |                                                                |
+|W48        |E      |[7:0]            |egress::hdr.cb0.g_group                                         |
+|           |       |[23:8]           |egress::hdr.cb0.iin                                             |
+|           |       |[31:24]          |egress::hdr.cb0.func                                            |
+|           |       |                 |                                                                |
+|W49        |I      |[31:16]          |ingress::m.compare_real_tcp_ports[31:16]                        |
+|           |       |[15:0]           |ingress::m.compare_real_tcp_ports[15:0]                         |
+|           |       |                 |                                                                |
+|W50        |E      |[15:0]           |egress::hdr.tcp.dport                                           |
+|           |       |[31:16]          |egress::hdr.tcp.sport                                           |
+|           |       |                 |                                                                |
+|W51        |E      |                 |egress::hdr.ip.dst                                              |
+|           |       |                 |                                                                |
+|W52        |I      |[15:0]           |ingress::hdr.tcp.dport                                          |
+|           |       |[31:16]          |ingress::hdr.tcp.sport                                          |
+|           |       |                 |                                                                |
+|W53        |I      |                 |ingress::hdr.second.w2                                          |
+|           |       |                 |                                                                |
+|W54        |I      |                 |ingress::hdr.second.w1                                          |
+|           |       |                 |                                                                |
+|W55        |I      |                 |ingress::hdr.second.w0                                          |
+|           |       |                 |                                                                |
+|W56        |E      |                 |egress::hdr.ip.src                                              |
+|           |       |                 |                                                                |
+|W57        |E      |                 |egress::hdr.rb0.data_mid[31:0]                                  |
+|           |       |                 |                                                                |
+|W58        |E      |                 |egress::hdr.rb1.data[31:0]                                      |
+|           |       |                 |                                                                |
+|W59        |E      |                 |egress::hdr.rb1.data[63:32]                                     |
+|           |       |                 |                                                                |
+|W60        |E      |                 |egress::hdr.rb1.data[95:64]                                     |
+|           |       |                 |                                                                |
+|W61        |E      |                 |egress::hdr.rb1.data[127:96]                                    |
+|           |       |                 |                                                                |
+|W62        |E      |                 |egress::hdr.ctp1.filler_a[31:0]                                 |
+|           |       |                 |                                                                |
+|W63        |E      |                 |egress::hdr.ctp1.filler_a[63:32]                                |
+|           |       |                 |                                                                |
+|TB0        |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[87:80]  |
+|           |       |[3:0]            |egress::hdr.tcp.reserved                                        |
+|           |       |[7:4]            |egress::hdr.tcp.offset                                          |
+|           |       |                 |                                                                |
+|TH0        |E      |                 |egress::m.r_residual                                            |
+|           |       |                 |                                                                |
+|TW0        |E      |[7:0]            |egress::hdr.ip.proto                                            |
+|           |       |[15:8]           |egress::hdr.ip.ttl                                              |
+|           |       |[28:16]          |egress::hdr.ip.frag                                             |
+|           |       |[31:29]          |egress::hdr.ip.flags                                            |
+|           |       |                 |                                                                |
+|TB1        |E      |                 |egress::hdr.min_parse_depth_padding_0[1].packet_payload[87:80]  |
+|           |       |                 |egress::hdr.mss.mss[7:0]                                        |
+|           |       |                 |                                                                |
+|TH1        |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[47:32]  |
+|           |       |                 |egress::hdr.tcp.urgent                                          |
+|           |       |                 |                                                                |
+|TW1        |E      |                 |egress::hdr.eth.src[31:0]                                       |
+|           |       |                 |                                                                |
+|TB2        |E      |                 |egress::hdr.min_parse_depth_padding_0[2].packet_payload[87:80]  |
+|           |       |                 |egress::hdr.mss.mss[15:8]                                       |
+|           |       |                 |                                                                |
+|TH2        |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[63:48]  |
+|           |       |                 |egress::hdr.tcp.checksum                                        |
+|           |       |                 |                                                                |
+|TW2        |E      |                 |egress::hdr.eth.dst[31:0]                                       |
+|           |       |                 |                                                                |
+|TB3        |E      |                 |egress::hdr.min_parse_depth_padding_0[3].packet_payload[87:80]  |
+|           |       |                 |                                                                |
+|TH3        |E      |                 |egress::hdr.min_parse_depth_padding_0[1].packet_payload[15:0]   |
+|           |       |                 |                                                                |
+|TW3        |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[31:0]   |
+|           |       |                 |                                                                |
+|TH4        |E      |                 |egress::hdr.min_parse_depth_padding_0[1].packet_payload[31:16]  |
+|           |       |                 |                                                                |
+|TH5        |E      |                 |egress::hdr.min_parse_depth_padding_0[3].packet_payload[47:32]  |
+|           |       |                 |                                                                |
+|TB4        |I      |                 |ingress::hdr.eth.src[39:32]                                     |
+|           |       |                 |                                                                |
+|TW4        |I      |[15:0]           |ingress::hdr.ip.len                                             |
+|           |       |[23:16]          |ingress::hdr.ip.tos                                             |
+|           |       |[27:24]          |ingress::hdr.ip.ihl                                             |
+|           |       |[31:28]          |ingress::hdr.ip.version                                         |
+|           |       |                 |                                                                |
+|TB5        |I      |                 |ingress::hdr.eth.src[47:40]                                     |
+|           |       |                 |                                                                |
+|TW5        |I      |[12:0]           |ingress::hdr.ip.frag                                            |
+|           |       |[15:13]          |ingress::hdr.ip.flags                                           |
+|           |       |[31:16]          |ingress::hdr.ip.id                                              |
+|           |       |                 |                                                                |
+|TB6        |I      |                 |ingress::hdr.eth.dst[39:32]                                     |
+|           |       |                 |                                                                |
+|TH6        |I      |                 |ingress::hdr.tcp.window                                         |
+|           |       |                 |                                                                |
+|TW6        |I      |[15:0]           |ingress::hdr.mss.value                                          |
+|           |       |[23:16]          |ingress::hdr.mss.len                                            |
+|           |       |[31:24]          |ingress::hdr.mss.kind                                           |
+|           |       |                 |                                                                |
+|TB7        |I      |                 |ingress::hdr.eth.dst[47:40]                                     |
+|           |       |                 |                                                                |
+|TH7        |I      |                 |ingress::hdr.ip.checksum                                        |
+|           |       |                 |                                                                |
+|TW7        |I      |                 |ingress::hdr.eth.src[31:0]                                      |
+|           |       |                 |                                                                |
+|TH8        |I      |                 |ingress::hdr.tcp.checksum                                       |
+|           |       |                 |                                                                |
+|TH9        |I      |                 |ingress::hdr.eth.dst[15:0]                                      |
+|           |       |                 |                                                                |
+|TH10       |I      |                 |ingress::hdr.eth.dst[31:16]                                     |
+|           |       |                 |                                                                |
+|TH11       |I      |                 |ingress::hdr.eth.type                                           |
+|           |       |                 |                                                                |
+|TB8        |E      |                 |egress::hdr.ip.id[7:0]                                          |
+|           |       |                 |                                                                |
+|TW8        |E      |                 |egress::hdr.min_parse_depth_padding_0[1].packet_payload[63:32]  |
+|           |       |                 |                                                                |
+|TB9        |E      |                 |egress::hdr.ip.id[15:8]                                         |
+|           |       |                 |                                                                |
+|TW9        |E      |                 |egress::hdr.min_parse_depth_padding_0[2].packet_payload[31:0]   |
+|           |       |                 |                                                                |
+|TB10       |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[71:64]  |
+|           |       |                 |                                                                |
+|TW10       |E      |                 |egress::hdr.min_parse_depth_padding_0[2].packet_payload[63:32]  |
+|           |       |                 |                                                                |
+|TB11       |E      |                 |egress::hdr.min_parse_depth_padding_0[0].packet_payload[79:72]  |
+|           |       |                 |                                                                |
+|TW11       |E      |                 |egress::hdr.min_parse_depth_padding_0[3].packet_payload[31:0]   |
+|           |       |                 |                                                                |
+|TH12       |E      |                 |egress::hdr.min_parse_depth_padding_0[3].packet_payload[63:48]  |
+|           |       |                 |                                                                |
+|TH13       |E      |[7:0]            |egress::hdr.ip.tos                                              |
+|           |       |[11:8]           |egress::hdr.ip.ihl                                              |
+|           |       |[15:12]          |egress::hdr.ip.version                                          |
+|           |       |                 |                                                                |
+|TH14       |E      |                 |egress::hdr.eth.type                                            |
+|           |       |                 |                                                                |
+|TH15       |E      |                 |egress::hdr.eth.src[47:32]                                      |
+|           |       |                 |                                                                |
+|TH16       |E      |                 |egress::hdr.eth.dst[47:32]                                      |
+|           |       |                 |                                                                |
+|TH17       |E      |                 |egress::hdr.ip.checksum                                         |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
+|TH18       |E      |                 |egress::hdr.min_parse_depth_padding_0[1].packet_payload[79:64]  |
+|           |       |                 |                                                                |
+|TH19       |E      |                 |egress::hdr.min_parse_depth_padding_0[2].packet_payload[79:64]  |
+|           |       |                 |                                                                |
+|TH20       |E      |                 |egress::hdr.min_parse_depth_padding_0[3].packet_payload[79:64]  |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
+|TH24       |I      |                 |ingress::ig_intr_md_from_prsr.global_tstamp[47:32]              |
+|           |       |                 |                                                                |
+|...        |       |                 |                                                                |
+|           |       |                 |                                                                |
++-----------+-------+-----------------+----------------------------------------------------------------+
+
+
+POV Allocation (ingress):
++-----------+-----------------+-------------------------------------+
+|Container  |Container Slice  |Field Slice                          |
++-----------+-----------------+-------------------------------------+
+|H56        |[0]              |ingress::hdr.envelope.$valid         |
+|           |[1]              |ingress::hdr.work_generation.$valid  |
+|           |[2]              |ingress::hdr.expected_cell.$valid    |
+|           |[3]              |ingress::hdr.event.$valid            |
+|           |[4]              |ingress::hdr.eth.$valid              |
+|           |[5]              |ingress::hdr.ip.$valid               |
+|           |[6]              |ingress::hdr.tcp.$valid              |
+|           |[7]              |ingress::hdr.mss.$valid              |
+|           |[8]              |ingress::hdr.dl.$valid               |
+|           |[9]              |ingress::hdr.first.$valid            |
+|           |[10]             |ingress::hdr.tail.$valid             |
+|           |[11]             |ingress::hdr.rtail.$valid            |
+|           |[12]             |ingress::hdr.rd_req.$valid           |
+|           |[13]             |ingress::hdr.second.$valid           |
+|           |[14]             |ingress::hdr.rd_tail.$valid          |
+|           |[15]             |ingress::hdr.t0.$valid               |
++-----------+-----------------+-------------------------------------+
+|           |Total Bits Used  |16 / 256 ( 6.25 %)                   |
+|           |Pack Density     |16 / 16 (  100 %)                    |
++-----------+-----------------+-------------------------------------+
+
+POV Allocation (egress):
++-----------+-----------------+----------------------------------------------------+
+|Container  |Container Slice  |Field Slice                                         |
++-----------+-----------------+----------------------------------------------------+
+|B16        |[0]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[0]  |
+|           |[1]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[1]  |
+|           |[2]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[2]  |
+|           |[3]              |egress::hdr.min_parse_depth_padding_0.$stkvalid[3]  |
+|           |[7]              |egress::hdr.ip.checksum.$deparse_original_csum      |
++-----------+-----------------+----------------------------------------------------+
+|H52        |[0]              |egress::hdr.eth.$valid                              |
+|           |[1]              |egress::hdr.ip.$valid                               |
+|           |[2]              |egress::hdr.tcp.$valid                              |
+|           |[3]              |egress::hdr.dl.$valid                               |
+|           |[4]              |egress::hdr.rb0.$valid                              |
+|           |[5]              |egress::hdr.rb1.$valid                              |
+|           |[6]              |egress::hdr.rtn.$valid                              |
+|           |[7]              |egress::hdr.cb0.$valid                              |
+|           |[8]              |egress::hdr.ctn.$valid                              |
+|           |[9]              |egress::hdr.mss.$valid                              |
+|           |[10]             |egress::hdr.rtp.$valid                              |
+|           |[11]             |egress::hdr.ctp1.$valid                             |
+|           |[12]             |egress::hdr.ctp2.$valid                             |
+|           |[13]             |egress::hdr.ip.checksum.$deparse_updated_csum_0     |
+|           |[14]             |egress::hdr.tcp.checksum.$deparse_original_csum     |
+|           |[15]             |egress::hdr.tcp.checksum.$deparse_updated_csum_0    |
++-----------+-----------------+----------------------------------------------------+
+|H53        |[0]              |egress::hdr.tcp.checksum.$deparse_updated_csum_1    |
+|           |[1]              |egress::hdr.tcp.checksum.$deparse_updated_csum_2    |
++-----------+-----------------+----------------------------------------------------+
+|           |Total Bits Used  |23 / 256 ( 8.98 %)                                  |
+|           |Pack Density     |23 / 40 ( 57.5 %)                                   |
++-----------+-----------------+----------------------------------------------------+
+
++----------------------------------------------------------------+------------+-----------+----------------+-----------------+
+|Field Slice                                                     |Live Range  |Container  |Container Type  |Container Slice  |
++----------------------------------------------------------------+------------+-----------+----------------+-----------------+
+|ingress::ig_intr_md_from_prsr.global_tstamp[47:32]              |[-1r, 11w]  |TH24       |TH              |                 |
+|ingress::ig_intr_md_from_prsr.global_tstamp[7:0]                |[-1r, 11w]  |W0         |W               |[7:0]            |
+|ingress::ig_intr_md_from_prsr.global_tstamp[15:8]               |[-1r, 11w]  |W0         |W               |[15:8]           |
+|ingress::ig_intr_md_from_prsr.global_tstamp[31:16]              |[-1r, 11w]  |W0         |W               |[31:16]          |
+|ingress::ig_intr_md.ingress_port                                |[-1r, 11w]  |W1         |W               |[24:16]          |
+|ingress::hdr.envelope.epoch                                     |[-1r, 11w]  |W34        |W               |                 |
+|ingress::hdr.work_generation.generation                         |[-1r, 11w]  |W33        |W               |                 |
+|ingress::hdr.expected_cell.expected_cell[7:0]                   |[-1r, 11w]  |W3         |W               |[7:0]            |
+|ingress::hdr.expected_cell.expected_cell[15:8]                  |[-1r, 11w]  |W3         |W               |[15:8]           |
+|ingress::hdr.expected_cell.expected_cell[31:16]                 |[-1r, 11w]  |W3         |W               |[31:16]          |
+|ingress::hdr.event.event[7:0]                                   |[-1r, 11w]  |H0         |H               |[7:0]            |
+|ingress::hdr.event.event[15:8]                                  |[-1r, 11w]  |H0         |H               |[15:8]           |
+|ingress::hdr.event.reserved                                     |[-1r, 11w]  |H15        |H               |                 |
+|ingress::m.response                                             |[-1r, 11w]  |B47        |B               |                 |
+|ingress::m.matched                                              |[-1r, 11w]  |B48        |B               |                 |
+|ingress::m.crc1[7:0]                                            |[-1r, 11w]  |B40        |B               |                 |
+|ingress::m.crc1[15:8]                                           |[-1r, 11w]  |B41        |B               |                 |
+|ingress::m.bad1                                                 |[-1r, 11w]  |B15        |B               |                 |
+|ingress::m.compare_real_links[31:16]                            |[-1r, 11w]  |H7         |H               |                 |
+|ingress::m.compare_real_links[15:0]                             |[-1r, 11w]  |H8         |H               |                 |
+|ingress::m.diff_real_links[7:0]                                 |[-1r, 11w]  |B4         |B               |                 |
+|ingress::m.diff_real_links[15:8]                                |[-1r, 11w]  |B6         |B               |                 |
+|ingress::m.diff_real_links[23:16]                               |[-1r, 11w]  |B8         |B               |                 |
+|ingress::m.diff_real_links[31:24]                               |[-1r, 11w]  |B10        |B               |                 |
+|ingress::m.compare_real_tcp_src                                 |[-1r, 11w]  |W40        |W               |                 |
+|ingress::m.compare_real_tcp_dst                                 |[-1r, 11w]  |W41        |W               |                 |
+|ingress::m.diff_real_tcp_dst[7:0]                               |[-1r, 11w]  |B12        |B               |                 |
+|ingress::m.diff_real_tcp_dst[15:8]                              |[-1r, 11w]  |B14        |B               |                 |
+|ingress::m.diff_real_tcp_dst[23:16]                             |[-1r, 11w]  |B40        |B               |                 |
+|ingress::m.diff_real_tcp_dst[31:24]                             |[-1r, 11w]  |B41        |B               |                 |
+|ingress::m.compare_real_tcp_ports[15:0]                         |[-1r, 11w]  |W49        |W               |[15:0]           |
+|ingress::m.compare_real_tcp_ports[31:16]                        |[-1r, 11w]  |W49        |W               |[31:16]          |
+|ingress::m.compare_real_object[23:16]                           |[-1r, 11w]  |H40        |H               |[7:0]            |
+|ingress::m.compare_real_object[31:24]                           |[-1r, 11w]  |H40        |H               |[15:8]           |
+|ingress::m.compare_real_object[7:0]                             |[-1r, 11w]  |H41        |H               |[7:0]            |
+|ingress::m.compare_real_object[15:8]                            |[-1r, 11w]  |H41        |H               |[15:8]           |
+|ingress::m.diff_real_object[15:8]                               |[-1r, 11w]  |B15        |B               |                 |
+|ingress::m.diff_real_object[7:0]                                |[-1r, 11w]  |B43        |B               |                 |
+|ingress::m.diff_real_object[31:16]                              |[-1r, 11w]  |H54        |H               |                 |
+|ingress::m.compare_real_on[7:0]                                 |[-1r, 11w]  |H42        |H               |[7:0]            |
+|ingress::m.compare_real_on[15:8]                                |[-1r, 11w]  |H42        |H               |[15:8]           |
+|ingress::m.compare_real_on[23:16]                               |[-1r, 11w]  |H43        |H               |[7:0]            |
+|ingress::m.compare_real_on[31:24]                               |[-1r, 11w]  |H43        |H               |[15:8]           |
+|ingress::m.compare_real_off                                     |[-1r, 11w]  |W42        |W               |                 |
+|ingress::m.diff_real_off[15:0]                                  |[-1r, 11w]  |H55        |H               |                 |
+|ingress::m.diff_real_off[31:16]                                 |[-1r, 11w]  |H64        |H               |                 |
+|ingress::m.compare_native_start                                 |[-1r, 11w]  |W11        |W               |                 |
+|ingress::m.compare_native_end                                   |[-1r, 11w]  |W12        |W               |                 |
+|ingress::m.diff_native_end[15:0]                                |[-1r, 11w]  |H65        |H               |                 |
+|ingress::m.diff_native_end[31:16]                               |[-1r, 11w]  |H66        |H               |                 |
+|ingress::m.compare_server_start                                 |[-1r, 11w]  |W13        |W               |                 |
+|ingress::m.compare_application[15:8]                            |[-1r, 11w]  |B46        |B               |                 |
+|ingress::m.compare_application[3:0]                             |[-1r, 11w]  |H1         |H               |[11:8]           |
+|ingress::m.compare_application[7:4]                             |[-1r, 11w]  |H1         |H               |[15:12]          |
+|ingress::m.compare_application[31:16]                           |[-1r, 11w]  |H77        |H               |                 |
+|ingress::m.diff_application[15:0]                               |[-1r, 11w]  |H67        |H               |                 |
+|ingress::m.diff_application[31:16]                              |[-1r, 11w]  |H68        |H               |                 |
+|ingress::m.enabled                                              |[-1r, 11w]  |B45        |B               |                 |
+|ingress::m.profile                                              |[-1r, 11w]  |B46        |B               |                 |
+|ingress::m.hcrc[15:8]                                           |[-1r, 11w]  |B4         |B               |                 |
+|ingress::m.hcrc[7:0]                                            |[-1r, 11w]  |B6         |B               |                 |
+|ingress::m.bcrc[7:0]                                            |[-1r, 11w]  |B12        |B               |                 |
+|ingress::m.bcrc[15:8]                                           |[-1r, 11w]  |B14        |B               |                 |
+|ingress::m.tcrc[7:0]                                            |[-1r, 11w]  |B8         |B               |                 |
+|ingress::m.tcrc[15:8]                                           |[-1r, 11w]  |B10        |B               |                 |
+|ingress::m.badh                                                 |[-1r, 11w]  |H40        |H               |[7:0]            |
+|ingress::m.badb                                                 |[-1r, 11w]  |H41        |H               |[7:0]            |
+|ingress::m.badt                                                 |[-1r, 11w]  |H42        |H               |[7:0]            |
+|ingress::m.return_abort                                         |[-1r, 11w]  |B49        |B               |                 |
+|ingress::m.ack_native                                           |[-1r, 11w]  |W10        |W               |                 |
+|ingress::m.expected_work_phase[7:0]                             |[-1r, 11w]  |B43        |B               |                 |
+|ingress::m.expected_work_phase[31:8]                            |[-1r, 11w]  |W14        |W               |[31:8]           |
+|ingress::m.go                                                   |[-1r, 11w]  |H54        |H               |[7:0]            |
+|ingress::m.link_dst                                             |[-1r, 11w]  |H8         |H               |                 |
+|ingress::m.link_src                                             |[-1r, 11w]  |H7         |H               |                 |
+|ingress::m.compare_read_app[31:28]                              |[-1r, 11w]  |B1         |B               |[7:4]            |
+|ingress::m.compare_read_app[11:4]                               |[-1r, 11w]  |B45        |B               |                 |
+|ingress::m.compare_read_app[3:0]                                |[-1r, 11w]  |H3         |H               |[12:9]           |
+|ingress::m.compare_read_app[27:12]                              |[-1r, 11w]  |H76        |H               |                 |
+|ingress::m.parsed                                               |[-1r, 11w]  |B4         |B               |                 |
+|ingress::m.port_valid                                           |[-1r, 11w]  |B49        |B               |                 |
+|ingress::m.direction                                            |[-1r, 11w]  |H1         |H               |[7:0]            |
+|ingress::m.network_valid                                        |[-1r, 11w]  |H43        |H               |[7:0]            |
+|ingress::m.shape_valid                                          |[-1r, 11w]  |B50        |B               |                 |
+|ingress::m.packet_kind                                          |[-1r, 11w]  |B51        |B               |                 |
+|ingress::m.stage                                                |[-1r, 11w]  |B42        |B               |                 |
+|ingress::m.kind                                                 |[-1r, 11w]  |B44        |B               |                 |
+|ingress::m.work_op                                              |[-1r, 11w]  |B52        |B               |                 |
+|ingress::m.owner_op                                             |[-1r, 11w]  |B53        |B               |                 |
+|ingress::m.sequence_valid                                       |[-1r, 11w]  |B54        |B               |                 |
+|ingress::m.output_port                                          |[-1r, 11w]  |H3         |H               |[8:0]            |
+|ingress::m.ip_error                                             |[-1r, 11w]  |H1         |H               |[8]              |
+|ingress::m.tcp_sum                                              |[-1r, 11w]  |H3         |H               |                 |
+|ingress::m.generation                                           |[-1r, 11w]  |W36        |W               |                 |
+|ingress::m.work_phase[15:0]                                     |[-1r, 11w]  |H69        |H               |                 |
+|ingress::m.work_phase[31:16]                                    |[-1r, 11w]  |H70        |H               |                 |
+|ingress::m.epoch                                                |[-1r, 11w]  |W32        |W               |                 |
+|ingress::m.client                                               |[-1r, 11w]  |W8         |W               |                 |
+|ingress::m.server                                               |[-1r, 11w]  |W9         |W               |                 |
+|ingress::m.new_seq                                              |[-1r, 11w]  |W1         |W               |                 |
+|ingress::m.client_diff                                          |[-1r, 11w]  |W15        |W               |                 |
+|ingress::m.server_diff                                          |[-1r, 11w]  |W14        |W               |                 |
+|ingress::m.epoch_diff[15:0]                                     |[-1r, 11w]  |H71        |H               |                 |
+|ingress::m.epoch_diff[31:16]                                    |[-1r, 11w]  |H72        |H               |                 |
+|ingress::m.expected[7:0]                                        |[-1r, 11w]  |W5         |W               |[7:0]            |
+|ingress::m.expected[15:8]                                       |[-1r, 11w]  |W5         |W               |[15:8]           |
+|ingress::m.expected[31:16]                                      |[-1r, 11w]  |W5         |W               |[31:16]          |
+|ingress::m.desired[7:0]                                         |[-1r, 11w]  |W4         |W               |[7:0]            |
+|ingress::m.desired[15:8]                                        |[-1r, 11w]  |W4         |W               |[15:8]           |
+|ingress::m.desired[31:16]                                       |[-1r, 11w]  |W4         |W               |[31:16]          |
+|ingress::m.observed[7:0]                                        |[-1r, 11w]  |W1         |W               |[7:0]            |
+|ingress::m.observed[15:8]                                       |[-1r, 11w]  |W1         |W               |[15:8]           |
+|ingress::m.observed[31:16]                                      |[-1r, 11w]  |W1         |W               |[31:16]          |
+|ingress::m.owner_diff[15:0]                                     |[-1r, 11w]  |H73        |H               |                 |
+|ingress::m.owner_diff[31:16]                                    |[-1r, 11w]  |H74        |H               |                 |
+|ingress::hdr.eth.dst[39:32]                                     |[-1r, 11w]  |TB6        |TB              |                 |
+|ingress::hdr.eth.dst[47:40]                                     |[-1r, 11w]  |TB7        |TB              |                 |
+|ingress::hdr.eth.dst[15:0]                                      |[-1r, 11w]  |TH9        |TH              |                 |
+|ingress::hdr.eth.dst[31:16]                                     |[-1r, 11w]  |TH10       |TH              |                 |
+|ingress::hdr.eth.src[39:32]                                     |[-1r, 11w]  |TB4        |TB              |                 |
+|ingress::hdr.eth.src[47:40]                                     |[-1r, 11w]  |TB5        |TB              |                 |
+|ingress::hdr.eth.src[31:0]                                      |[-1r, 11w]  |TW7        |TW              |                 |
+|ingress::hdr.eth.type                                           |[-1r, 11w]  |TH11       |TH              |                 |
+|ingress::hdr.ip.version                                         |[-1r, 11w]  |TW4        |TW              |[31:28]          |
+|ingress::hdr.ip.ihl                                             |[-1r, 11w]  |TW4        |TW              |[27:24]          |
+|ingress::hdr.ip.tos                                             |[-1r, 11w]  |TW4        |TW              |[23:16]          |
+|ingress::hdr.ip.len                                             |[-1r, 11w]  |TW4        |TW              |[15:0]           |
+|ingress::hdr.ip.id                                              |[-1r, 11w]  |TW5        |TW              |[31:16]          |
+|ingress::hdr.ip.flags                                           |[-1r, 11w]  |TW5        |TW              |[15:13]          |
+|ingress::hdr.ip.frag                                            |[-1r, 11w]  |TW5        |TW              |[12:0]           |
+|ingress::hdr.ip.ttl                                             |[-1r, 11w]  |H13        |H               |[15:8]           |
+|ingress::hdr.ip.proto                                           |[-1r, 11w]  |H13        |H               |[7:0]            |
+|ingress::hdr.ip.checksum                                        |[-1r, 11w]  |TH7        |TH              |                 |
+|ingress::hdr.ip.src                                             |[-1r, 11w]  |W37        |W               |                 |
+|ingress::hdr.ip.dst                                             |[-1r, 11w]  |W35        |W               |                 |
+|ingress::hdr.tcp.sport                                          |[-1r, 11w]  |W52        |W               |[31:16]          |
+|ingress::hdr.tcp.dport                                          |[-1r, 11w]  |W52        |W               |[15:0]           |
+|ingress::hdr.tcp.seq                                            |[-1r, 11w]  |W6         |W               |                 |
+|ingress::hdr.tcp.ack                                            |[-1r, 11w]  |W7         |W               |                 |
+|ingress::hdr.tcp.offset                                         |[-1r, 11w]  |H12        |H               |[15:12]          |
+|ingress::hdr.tcp.reserved                                       |[-1r, 11w]  |H12        |H               |[11:8]           |
+|ingress::hdr.tcp.flags                                          |[-1r, 11w]  |H12        |H               |[7:0]            |
+|ingress::hdr.tcp.window                                         |[-1r, 11w]  |TH6        |TH              |                 |
+|ingress::hdr.tcp.checksum                                       |[-1r, 11w]  |TH8        |TH              |                 |
+|ingress::hdr.tcp.urgent                                         |[-1r, 11w]  |H14        |H               |                 |
+|ingress::hdr.mss.kind                                           |[-1r, 11w]  |TW6        |TW              |[31:24]          |
+|ingress::hdr.mss.len                                            |[-1r, 11w]  |TW6        |TW              |[23:16]          |
+|ingress::hdr.mss.value                                          |[-1r, 11w]  |TW6        |TW              |[15:0]           |
+|ingress::hdr.dl.magic                                           |[-1r, 11w]  |H39        |H               |                 |
+|ingress::hdr.dl.len                                             |[-1r, 11w]  |H9         |H               |[15:8]           |
+|ingress::hdr.dl.ctrl                                            |[-1r, 11w]  |H9         |H               |[7:0]            |
+|ingress::hdr.dl.dst                                             |[-1r, 11w]  |H6         |H               |                 |
+|ingress::hdr.dl.src                                             |[-1r, 11w]  |H5         |H               |                 |
+|ingress::hdr.dl.crc[7:0]                                        |[-1r, 11w]  |B3         |B               |                 |
+|ingress::hdr.dl.crc[15:8]                                       |[-1r, 11w]  |B5         |B               |                 |
+|ingress::hdr.first.w0[7:0]                                      |[-1r, 11w]  |H10        |H               |[7:0]            |
+|ingress::hdr.first.w0[15:8]                                     |[-1r, 11w]  |H10        |H               |[15:8]           |
+|ingress::hdr.first.w0[19:16]                                    |[-1r, 11w]  |H11        |H               |[3:0]            |
+|ingress::hdr.first.w0[23:20]                                    |[-1r, 11w]  |H11        |H               |[7:4]            |
+|ingress::hdr.first.w0[31:24]                                    |[-1r, 11w]  |H11        |H               |[15:8]           |
+|ingress::hdr.first.w1[7:0]                                      |[-1r, 11w]  |W39        |W               |[7:0]            |
+|ingress::hdr.first.w1[15:8]                                     |[-1r, 11w]  |W39        |W               |[15:8]           |
+|ingress::hdr.first.w1[23:16]                                    |[-1r, 11w]  |W39        |W               |[23:16]          |
+|ingress::hdr.first.w1[31:24]                                    |[-1r, 11w]  |W39        |W               |[31:24]          |
+|ingress::hdr.first.w2[7:0]                                      |[-1r, 11w]  |H32        |H               |[7:0]            |
+|ingress::hdr.first.w2[15:8]                                     |[-1r, 11w]  |H32        |H               |[15:8]           |
+|ingress::hdr.first.w2[23:16]                                    |[-1r, 11w]  |H35        |H               |[7:0]            |
+|ingress::hdr.first.w2[31:24]                                    |[-1r, 11w]  |H35        |H               |[15:8]           |
+|ingress::hdr.first.w3[23:16]                                    |[-1r, 11w]  |H33        |H               |[7:0]            |
+|ingress::hdr.first.w3[31:24]                                    |[-1r, 11w]  |H33        |H               |[15:8]           |
+|ingress::hdr.first.w3[7:0]                                      |[-1r, 11w]  |H34        |H               |[7:0]            |
+|ingress::hdr.first.w3[15:8]                                     |[-1r, 11w]  |H34        |H               |[15:8]           |
+|ingress::hdr.first.crc[15:8]                                    |[-1r, 11w]  |B11        |B               |                 |
+|ingress::hdr.first.crc[7:0]                                     |[-1r, 11w]  |B13        |B               |                 |
+|ingress::hdr.tail.off                                           |[-1r, 11w]  |W38        |W               |                 |
+|ingress::hdr.tail.status                                        |[-1r, 11w]  |B2         |B               |                 |
+|ingress::hdr.tail.crc[15:8]                                     |[-1r, 11w]  |B7         |B               |                 |
+|ingress::hdr.tail.crc[7:0]                                      |[-1r, 11w]  |B9         |B               |                 |
+|ingress::hdr.rtail.on_lo[7:0]                                   |[-1r, 11w]  |H36        |H               |[7:0]            |
+|ingress::hdr.rtail.on_lo[15:8]                                  |[-1r, 11w]  |H36        |H               |[15:8]           |
+|ingress::hdr.rtail.off                                          |[-1r, 11w]  |W38        |W               |                 |
+|ingress::hdr.rtail.status                                       |[-1r, 11w]  |B2         |B               |                 |
+|ingress::hdr.rtail.crc[15:8]                                    |[-1r, 11w]  |B7         |B               |                 |
+|ingress::hdr.rtail.crc[7:0]                                     |[-1r, 11w]  |B9         |B               |                 |
+|ingress::hdr.rd_req.tp                                          |[-1r, 11w]  |H11        |H               |[15:8]           |
+|ingress::hdr.rd_req.app[3:0]                                    |[-1r, 11w]  |H11        |H               |[3:0]            |
+|ingress::hdr.rd_req.app[7:4]                                    |[-1r, 11w]  |H11        |H               |[7:4]            |
+|ingress::hdr.rd_req.func                                        |[-1r, 11w]  |H10        |H               |[15:8]           |
+|ingress::hdr.rd_req.group                                       |[-1r, 11w]  |H10        |H               |[7:0]            |
+|ingress::hdr.rd_req.variation                                   |[-1r, 11w]  |W38        |W               |[31:24]          |
+|ingress::hdr.rd_req.qualifier                                   |[-1r, 11w]  |W38        |W               |[23:16]          |
+|ingress::hdr.rd_req.first                                       |[-1r, 11w]  |W38        |W               |[15:8]           |
+|ingress::hdr.rd_req.last                                        |[-1r, 11w]  |W38        |W               |[7:0]            |
+|ingress::hdr.rd_req.crc[15:8]                                   |[-1r, 11w]  |B2         |B               |                 |
+|ingress::hdr.rd_req.crc[7:0]                                    |[-1r, 11w]  |B7         |B               |                 |
+|ingress::hdr.second.w0                                          |[-1r, 11w]  |W55        |W               |                 |
+|ingress::hdr.second.w1                                          |[-1r, 11w]  |W54        |W               |                 |
+|ingress::hdr.second.w2                                          |[-1r, 11w]  |W53        |W               |                 |
+|ingress::hdr.second.w3                                          |[-1r, 11w]  |W38        |W               |                 |
+|ingress::hdr.second.crc[15:8]                                   |[-1r, 11w]  |B32        |B               |                 |
+|ingress::hdr.second.crc[7:0]                                    |[-1r, 11w]  |B33        |B               |                 |
+|ingress::hdr.rd_tail.value                                      |[-1r, 11w]  |B2         |B               |                 |
+|ingress::hdr.rd_tail.crc[15:8]                                  |[-1r, 11w]  |B7         |B               |                 |
+|ingress::hdr.rd_tail.crc[7:0]                                   |[-1r, 11w]  |B9         |B               |                 |
+|ingress::hdr.t0.t0q[7:0]                                        |[-1r, 11w]  |W2         |W               |[7:0]            |
+|ingress::hdr.t0.t0q[15:8]                                       |[-1r, 11w]  |W2         |W               |[15:8]           |
+|ingress::hdr.t0.t0q[31:16]                                      |[-1r, 11w]  |W2         |W               |[31:16]          |
+|ingress::ig_intr_md_for_tm.ucast_egress_port                    |[-1r, 11w]  |H2         |H               |[8:0]            |
+|ingress::ig_intr_md_for_tm.bypass_egress                        |[-1r, 11w]  |B1         |B               |[3]              |
+|ingress::ig_intr_md_for_dprsr.drop_ctl                          |[-1r, 11w]  |B1         |B               |[2:0]            |
+|ingress::ig_intr_md_for_dprsr.mirror_type                       |[-1r, 11w]  |B0         |B               |[2:0]            |
+|ingress::$tmp3                                                  |[-1r, 11w]  |H4         |H               |[9:0]            |
+|egress::eg_intr_md.egress_port                                  |[-1r, 11w]  |H17        |H               |[8:0]            |
+|egress::hdr.eth.dst[47:32]                                      |[-1r, 11w]  |TH16       |TH              |                 |
+|egress::hdr.eth.dst[31:0]                                       |[-1r, 11w]  |TW2        |TW              |                 |
+|egress::hdr.eth.src[47:32]                                      |[-1r, 11w]  |TH15       |TH              |                 |
+|egress::hdr.eth.src[31:0]                                       |[-1r, 11w]  |TW1        |TW              |                 |
+|egress::hdr.eth.type                                            |[-1r, 11w]  |TH14       |TH              |                 |
+|egress::hdr.ip.version                                          |[-1r, 11w]  |TH13       |TH              |[15:12]          |
+|egress::hdr.ip.ihl                                              |[-1r, 11w]  |TH13       |TH              |[11:8]           |
+|egress::hdr.ip.tos                                              |[-1r, 11w]  |TH13       |TH              |[7:0]            |
+|egress::hdr.ip.len                                              |[-1r, 11w]  |H16        |H               |                 |
+|egress::hdr.ip.id[7:0]                                          |[-1r, 11w]  |TB8        |TB              |                 |
+|egress::hdr.ip.id[15:8]                                         |[-1r, 11w]  |TB9        |TB              |                 |
+|egress::hdr.ip.flags                                            |[-1r, 11w]  |TW0        |TW              |[31:29]          |
+|egress::hdr.ip.frag                                             |[-1r, 11w]  |TW0        |TW              |[28:16]          |
+|egress::hdr.ip.ttl                                              |[-1r, 11w]  |TW0        |TW              |[15:8]           |
+|egress::hdr.ip.proto                                            |[-1r, 11w]  |TW0        |TW              |[7:0]            |
+|egress::hdr.ip.checksum                                         |[-1r, 11w]  |TH17       |TH              |                 |
+|egress::hdr.ip.src                                              |[-1r, 11w]  |W56        |W               |                 |
+|egress::hdr.ip.dst                                              |[-1r, 11w]  |W51        |W               |                 |
+|egress::hdr.tcp.sport                                           |[-1r, 11w]  |W50        |W               |[31:16]          |
+|egress::hdr.tcp.dport                                           |[-1r, 11w]  |W50        |W               |[15:0]           |
+|egress::hdr.tcp.seq[15:0]                                       |[-1r, 11w]  |W18        |W               |[15:0]           |
+|egress::hdr.tcp.seq[31:16]                                      |[-1r, 11w]  |W18        |W               |[31:16]          |
+|egress::hdr.tcp.ack[15:0]                                       |[-1r, 11w]  |W25        |W               |[15:0]           |
+|egress::hdr.tcp.ack[31:16]                                      |[-1r, 11w]  |W25        |W               |[31:16]          |
+|egress::hdr.tcp.offset                                          |[-1r, 11w]  |TB0        |TB              |[7:4]            |
+|egress::hdr.tcp.reserved                                        |[-1r, 11w]  |TB0        |TB              |[3:0]            |
+|egress::hdr.tcp.flags                                           |[-1r, 11w]  |B25        |B               |                 |
+|egress::hdr.tcp.window                                          |[-1r, 11w]  |H19        |H               |                 |
+|egress::hdr.tcp.checksum                                        |[-1r, 11w]  |TH2        |TH              |                 |
+|egress::hdr.tcp.urgent                                          |[-1r, 11w]  |TH1        |TH              |                 |
+|egress::m.r_residual                                            |[-1r, 11w]  |TH0        |TH              |                 |
+|egress::m.len_delta                                             |[-1r, 11w]  |H75        |H               |                 |
+|egress::m.ack_inv[15:0]                                         |[-1r, 11w]  |W28        |W               |[15:0]           |
+|egress::m.ack_inv[31:16]                                        |[-1r, 11w]  |W28        |W               |[31:16]          |
+|egress::m.ip_odd                                                |[-1r, 11w]  |H53        |H               |[9:2]            |
+|egress::m.tcp_odd                                               |[-1r, 11w]  |B34        |B               |                 |
+|egress::m.has_mss                                               |[-1r, 11w]  |B35        |B               |                 |
+|egress::m.dir                                                   |[-1r, 11w]  |B36        |B               |                 |
+|egress::m.idx                                                   |[-1r, 11w]  |H17        |H               |[12:9]           |
+|egress::m.enable                                                |[-1r, 11w]  |H22        |H               |[7:0]            |
+|egress::m.shape                                                 |[-1r, 11w]  |B57        |B               |                 |
+|egress::m.mode                                                  |[-1r, 11w]  |B37        |B               |                 |
+|egress::m.leff[15:0]                                            |[-1r, 11w]  |W21        |W               |[15:0]           |
+|egress::m.leff[31:16]                                           |[-1r, 11w]  |W21        |W               |[31:16]          |
+|egress::m.s_end[15:0]                                           |[-1r, 11w]  |W27        |W               |[15:0]           |
+|egress::m.s_end[31:16]                                          |[-1r, 11w]  |W27        |W               |[31:16]          |
+|egress::m.ina[15:0]                                             |[-1r, 11w]  |W26        |W               |[15:0]           |
+|egress::m.ina[31:16]                                            |[-1r, 11w]  |W26        |W               |[31:16]          |
+|egress::m.front_ret                                             |[-1r, 11w]  |W16        |W               |                 |
+|egress::m.grant                                                 |[-1r, 11w]  |B38        |B               |                 |
+|egress::m.q[15:0]                                               |[-1r, 11w]  |W17        |W               |[15:0]           |
+|egress::m.q[31:16]                                              |[-1r, 11w]  |W17        |W               |[31:16]          |
+|egress::m.p[15:0]                                               |[-1r, 11w]  |W19        |W               |[15:0]           |
+|egress::m.p[31:16]                                              |[-1r, 11w]  |W19        |W               |[31:16]          |
+|egress::m.y[15:0]                                               |[-1r, 11w]  |W23        |W               |[15:0]           |
+|egress::m.y[31:16]                                              |[-1r, 11w]  |W23        |W               |[31:16]          |
+|egress::m.z[15:0]                                               |[-1r, 11w]  |W24        |W               |[15:0]           |
+|egress::m.z[31:16]                                              |[-1r, 11w]  |W24        |W               |[31:16]          |
+|egress::m.pm[15:0]                                              |[-1r, 11w]  |W20        |W               |[15:0]           |
+|egress::m.pm[31:16]                                             |[-1r, 11w]  |W20        |W               |[31:16]          |
+|egress::m.t[15:0]                                               |[-1r, 11w]  |W22        |W               |[15:0]           |
+|egress::m.t[31:16]                                              |[-1r, 11w]  |W22        |W               |[31:16]          |
+|egress::m.qx[15:0]                                              |[-1r, 11w]  |W29        |W               |[15:0]           |
+|egress::m.qx[31:16]                                             |[-1r, 11w]  |W29        |W               |[31:16]          |
+|egress::m.r[15:0]                                               |[-1r, 11w]  |W16        |W               |[15:0]           |
+|egress::m.r[31:16]                                              |[-1r, 11w]  |W16        |W               |[31:16]          |
+|egress::m.result                                                |[-1r, 11w]  |B39        |B               |                 |
+|egress::m.changed                                               |[-1r, 11w]  |H53        |H               |[10]             |
+|egress::m.pad                                                   |[-1r, 11w]  |H53        |H               |[11]             |
+|egress::m.wide                                                  |[-1r, 11w]  |B55        |B               |                 |
+|egress::m.rtcrc[7:0]                                            |[-1r, 11w]  |H38        |H               |[7:0]            |
+|egress::m.rtcrc[15:8]                                           |[-1r, 11w]  |H38        |H               |[15:8]           |
+|egress::m.ctcrc1[7:0]                                           |[-1r, 11w]  |H37        |H               |[7:0]            |
+|egress::m.ctcrc1[15:8]                                          |[-1r, 11w]  |H37        |H               |[15:8]           |
+|egress::m.read_shape                                            |[-1r, 11w]  |H53        |H               |[12]             |
+|egress::m.ctl_shape                                             |[-1r, 11w]  |H53        |H               |[13]             |
+|egress::m.in_dl[7:0]                                            |[-1r, 11w]  |W19        |W               |[15:8]           |
+|egress::m.in_dl[15:8]                                           |[-1r, 11w]  |W19        |W               |[7:0]            |
+|egress::m.in_rb0[7:0]                                           |[-1r, 11w]  |B21        |B               |                 |
+|egress::m.in_rb0[15:8]                                          |[-1r, 11w]  |B22        |B               |                 |
+|egress::m.in_rb1[7:0]                                           |[-1r, 11w]  |B29        |B               |                 |
+|egress::m.in_rb1[15:8]                                          |[-1r, 11w]  |B31        |B               |                 |
+|egress::m.in_rt[7:0]                                            |[-1r, 11w]  |H44        |H               |[15:8]           |
+|egress::m.in_rt[15:8]                                           |[-1r, 11w]  |H44        |H               |[7:0]            |
+|egress::m.in_cb0[15:8]                                          |[-1r, 11w]  |B18        |B               |                 |
+|egress::m.in_cb0[7:0]                                           |[-1r, 11w]  |B20        |B               |                 |
+|egress::m.in_ct[7:0]                                            |[-1r, 11w]  |H21        |H               |[15:8]           |
+|egress::m.in_ct[15:8]                                           |[-1r, 11w]  |H21        |H               |[7:0]            |
+|egress::m.badh                                                  |[-1r, 11w]  |H53        |H               |[14]             |
+|egress::m.rbad0                                                 |[-1r, 11w]  |H53        |H               |[15]             |
+|egress::m.rbad1                                                 |[-1r, 11w]  |B56        |B               |[0]              |
+|egress::m.rbadt                                                 |[-1r, 11w]  |B56        |B               |[1]              |
+|egress::m.cbad0                                                 |[-1r, 11w]  |B56        |B               |[2]              |
+|egress::m.cbadt                                                 |[-1r, 11w]  |B56        |B               |[3]              |
+|egress::hdr.dl.start                                            |[-1r, 11w]  |H50        |H               |                 |
+|egress::hdr.dl.len                                              |[-1r, 11w]  |W43        |W               |[31:24]          |
+|egress::hdr.dl.ctrl                                             |[-1r, 11w]  |W43        |W               |[23:16]          |
+|egress::hdr.dl.dst                                              |[-1r, 11w]  |W43        |W               |[15:0]           |
+|egress::hdr.dl.src                                              |[-1r, 11w]  |W30        |W               |[31:16]          |
+|egress::hdr.dl.crc[7:0]                                         |[-1r, 11w]  |W30        |W               |[7:0]            |
+|egress::hdr.dl.crc[15:8]                                        |[-1r, 11w]  |W30        |W               |[15:8]           |
+|egress::hdr.rb0.tpctrl                                          |[-1r, 11w]  |H48        |H               |[15:8]           |
+|egress::hdr.rb0.appctrl                                         |[-1r, 11w]  |H48        |H               |[7:0]            |
+|egress::hdr.rb0.func                                            |[-1r, 11w]  |W45        |W               |[31:24]          |
+|egress::hdr.rb0.iin                                             |[-1r, 11w]  |W45        |W               |[23:8]           |
+|egress::hdr.rb0.g_group                                         |[-1r, 11w]  |W45        |W               |[7:0]            |
+|egress::hdr.rb0.g_var                                           |[-1r, 11w]  |H47        |H               |[15:8]           |
+|egress::hdr.rb0.g_qual                                          |[-1r, 11w]  |H47        |H               |[7:0]            |
+|egress::hdr.rb0.g_start                                         |[-1r, 11w]  |W44        |W               |[31:24]          |
+|egress::hdr.rb0.g_stop                                          |[-1r, 11w]  |W44        |W               |[23:16]          |
+|egress::hdr.rb0.data_mid[47:32]                                 |[-1r, 11w]  |W44        |W               |[15:0]           |
+|egress::hdr.rb0.data_mid[31:0]                                  |[-1r, 11w]  |W57        |W               |                 |
+|egress::hdr.rb0.crc0[15:8]                                      |[-1r, 11w]  |B26        |B               |                 |
+|egress::hdr.rb0.crc0[7:0]                                       |[-1r, 11w]  |B27        |B               |                 |
+|egress::hdr.rb1.data[31:0]                                      |[-1r, 11w]  |W58        |W               |                 |
+|egress::hdr.rb1.data[63:32]                                     |[-1r, 11w]  |W59        |W               |                 |
+|egress::hdr.rb1.data[95:64]                                     |[-1r, 11w]  |W60        |W               |                 |
+|egress::hdr.rb1.data[127:96]                                    |[-1r, 11w]  |W61        |W               |                 |
+|egress::hdr.rb1.crc1[15:8]                                      |[-1r, 11w]  |B28        |B               |                 |
+|egress::hdr.rb1.crc1[7:0]                                       |[-1r, 11w]  |B30        |B               |                 |
+|egress::hdr.rtn.data_last                                       |[-1r, 11w]  |B19        |B               |                 |
+|egress::hdr.rtn.crc2[7:0]                                       |[-1r, 11w]  |H45        |H               |[7:0]            |
+|egress::hdr.rtn.crc2[15:8]                                      |[-1r, 11w]  |H45        |H               |[15:8]           |
+|egress::hdr.rtn.$parsed                                         |[-1r, 11w]  |B56        |B               |[4]              |
+|egress::hdr.cb0.tpctrl                                          |[-1r, 11w]  |H49        |H               |[15:8]           |
+|egress::hdr.cb0.appctrl                                         |[-1r, 11w]  |H49        |H               |[7:0]            |
+|egress::hdr.cb0.func                                            |[-1r, 11w]  |W48        |W               |[31:24]          |
+|egress::hdr.cb0.iin                                             |[-1r, 11w]  |W48        |W               |[23:8]           |
+|egress::hdr.cb0.g_group                                         |[-1r, 11w]  |W48        |W               |[7:0]            |
+|egress::hdr.cb0.g_var                                           |[-1r, 11w]  |W47        |W               |[31:24]          |
+|egress::hdr.cb0.g_qual                                          |[-1r, 11w]  |W47        |W               |[23:16]          |
+|egress::hdr.cb0.g_count                                         |[-1r, 11w]  |W47        |W               |[15:0]           |
+|egress::hdr.cb0.index                                           |[-1r, 11w]  |W46        |W               |[31:16]          |
+|egress::hdr.cb0.crob_code                                       |[-1r, 11w]  |W46        |W               |[15:8]           |
+|egress::hdr.cb0.crob_count                                      |[-1r, 11w]  |W46        |W               |[7:0]            |
+|egress::hdr.cb0.on_hi                                           |[-1r, 11w]  |H18        |H               |                 |
+|egress::hdr.cb0.crc0[7:0]                                       |[-1r, 11w]  |B23        |B               |                 |
+|egress::hdr.cb0.crc0[15:8]                                      |[-1r, 11w]  |B24        |B               |                 |
+|egress::hdr.ctn.on_lo                                           |[-1r, 11w]  |H29        |H               |                 |
+|egress::hdr.ctn.off                                             |[-1r, 11w]  |W31        |W               |                 |
+|egress::hdr.ctn.status                                          |[-1r, 11w]  |B17        |B               |                 |
+|egress::hdr.ctn.crc1[7:0]                                       |[-1r, 11w]  |H31        |H               |[7:0]            |
+|egress::hdr.ctn.crc1[15:8]                                      |[-1r, 11w]  |H31        |H               |[15:8]           |
+|egress::hdr.ctn.$parsed                                         |[-1r, 11w]  |B56        |B               |[5]              |
+|egress::hdr.mss.kind                                            |[-1r, 11w]  |H20        |H               |[15:8]           |
+|egress::hdr.mss.len                                             |[-1r, 11w]  |H20        |H               |[7:0]            |
+|egress::hdr.mss.mss[7:0]                                        |[-1r, 11w]  |TB1        |TB              |                 |
+|egress::hdr.mss.mss[15:8]                                       |[-1r, 11w]  |TB2        |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[87:80]  |[-1r, 11w]  |TB0        |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[71:64]  |[-1r, 11w]  |TB10       |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[79:72]  |[-1r, 11w]  |TB11       |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[47:32]  |[-1r, 11w]  |TH1        |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[63:48]  |[-1r, 11w]  |TH2        |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[0].packet_payload[31:0]   |[-1r, 11w]  |TW3        |TW              |                 |
+|egress::hdr.min_parse_depth_padding_0[1].packet_payload[87:80]  |[-1r, 11w]  |TB1        |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[1].packet_payload[15:0]   |[-1r, 11w]  |TH3        |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[1].packet_payload[31:16]  |[-1r, 11w]  |TH4        |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[1].packet_payload[79:64]  |[-1r, 11w]  |TH18       |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[1].packet_payload[63:32]  |[-1r, 11w]  |TW8        |TW              |                 |
+|egress::hdr.min_parse_depth_padding_0[2].packet_payload[87:80]  |[-1r, 11w]  |TB2        |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[2].packet_payload[79:64]  |[-1r, 11w]  |TH19       |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[2].packet_payload[31:0]   |[-1r, 11w]  |TW9        |TW              |                 |
+|egress::hdr.min_parse_depth_padding_0[2].packet_payload[63:32]  |[-1r, 11w]  |TW10       |TW              |                 |
+|egress::hdr.min_parse_depth_padding_0[3].packet_payload[87:80]  |[-1r, 11w]  |TB3        |TB              |                 |
+|egress::hdr.min_parse_depth_padding_0[3].packet_payload[47:32]  |[-1r, 11w]  |TH5        |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[3].packet_payload[63:48]  |[-1r, 11w]  |TH12       |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[3].packet_payload[79:64]  |[-1r, 11w]  |TH20       |TH              |                 |
+|egress::hdr.min_parse_depth_padding_0[3].packet_payload[31:0]   |[-1r, 11w]  |TW11       |TW              |                 |
+|$tmp80[15:0]                                                    |[-1r, 11w]  |W16        |W               |[15:0]           |
+|$tmp80[31:16]                                                   |[-1r, 11w]  |W16        |W               |[31:16]          |
+|$tmp81[15:0]                                                    |[-1r, 11w]  |W17        |W               |[15:0]           |
+|$tmp81[31:16]                                                   |[-1r, 11w]  |W17        |W               |[31:16]          |
+|egress::eg_intr_md_for_dprsr.drop_ctl                           |[-1r, 11w]  |B16        |B               |[6:4]            |
+|egress::hdr.rtp.data_last                                       |[-1r, 11w]  |B20        |B               |                 |
+|egress::hdr.rtp.filler[71:64]                                   |[-1r, 11w]  |B22        |B               |                 |
+|egress::hdr.rtp.filler[15:0]                                    |[-1r, 11w]  |H21        |H               |                 |
+|egress::hdr.rtp.filler[31:16]                                   |[-1r, 11w]  |H22        |H               |                 |
+|egress::hdr.rtp.filler[47:32]                                   |[-1r, 11w]  |H23        |H               |                 |
+|egress::hdr.rtp.filler[63:48]                                   |[-1r, 11w]  |H24        |H               |                 |
+|egress::hdr.rtp.crc2[7:0]                                       |[-1r, 11w]  |H46        |H               |[7:0]            |
+|egress::hdr.rtp.crc2[15:8]                                      |[-1r, 11w]  |H46        |H               |[15:8]           |
+|egress::hdr.ctp1.on_lo                                          |[-1r, 11w]  |H30        |H               |                 |
+|egress::hdr.ctp1.off                                            |[-1r, 11w]  |W26        |W               |                 |
+|egress::hdr.ctp1.status                                         |[-1r, 11w]  |B18        |B               |                 |
+|egress::hdr.ctp1.filler_a[71:64]                                |[-1r, 11w]  |B21        |B               |                 |
+|egress::hdr.ctp1.filler_a[31:0]                                 |[-1r, 11w]  |W62        |W               |                 |
+|egress::hdr.ctp1.filler_a[63:32]                                |[-1r, 11w]  |W63        |W               |                 |
+|egress::hdr.ctp1.crc1[7:0]                                      |[-1r, 11w]  |H44        |H               |[7:0]            |
+|egress::hdr.ctp1.crc1[15:8]                                     |[-1r, 11w]  |H44        |H               |[15:8]           |
+|egress::hdr.ctp2.filler_b[15:0]                                 |[-1r, 11w]  |H25        |H               |                 |
+|egress::hdr.ctp2.filler_b[31:16]                                |[-1r, 11w]  |H26        |H               |                 |
+|egress::hdr.ctp2.filler_b[47:32]                                |[-1r, 11w]  |H27        |H               |                 |
+|egress::hdr.ctp2.filler_b[63:48]                                |[-1r, 11w]  |H28        |H               |                 |
+|egress::hdr.ctp2.filler_b[79:64]                                |[-1r, 11w]  |H51        |H               |                 |
+|egress::hdr.ctp2.crc2[7:0]                                      |[-1r, 11w]  |B29        |B               |                 |
+|egress::hdr.ctp2.crc2[15:8]                                     |[-1r, 11w]  |B31        |B               |                 |
+|egress::hdr.ip.checksum.$deparse_original_csum                  |[-1r, 11w]  |B16        |B               |[7]              |
+|egress::hdr.ip.checksum.$deparse_updated_csum_0                 |[-1r, 11w]  |H52        |H               |[13]             |
+|egress::hdr.tcp.checksum.$deparse_original_csum                 |[-1r, 11w]  |H52        |H               |[14]             |
+|egress::hdr.tcp.checksum.$deparse_updated_csum_0                |[-1r, 11w]  |H52        |H               |[15]             |
+|egress::hdr.tcp.checksum.$deparse_updated_csum_1                |[-1r, 11w]  |H53        |H               |[0]              |
+|egress::hdr.tcp.checksum.$deparse_updated_csum_2                |[-1r, 11w]  |H53        |H               |[1]              |
+|ingress::hdr.envelope.$valid                                    |[-1r, 11w]  |H56        |H               |[0]              |
+|ingress::hdr.work_generation.$valid                             |[-1r, 11w]  |H56        |H               |[1]              |
+|ingress::hdr.expected_cell.$valid                               |[-1r, 11w]  |H56        |H               |[2]              |
+|ingress::hdr.event.$valid                                       |[-1r, 11w]  |H56        |H               |[3]              |
+|ingress::hdr.eth.$valid                                         |[-1r, 11w]  |H56        |H               |[4]              |
+|ingress::hdr.ip.$valid                                          |[-1r, 11w]  |H56        |H               |[5]              |
+|ingress::hdr.tcp.$valid                                         |[-1r, 11w]  |H56        |H               |[6]              |
+|ingress::hdr.mss.$valid                                         |[-1r, 11w]  |H56        |H               |[7]              |
+|ingress::hdr.dl.$valid                                          |[-1r, 11w]  |H56        |H               |[8]              |
+|ingress::hdr.first.$valid                                       |[-1r, 11w]  |H56        |H               |[9]              |
+|ingress::hdr.tail.$valid                                        |[-1r, 11w]  |H56        |H               |[10]             |
+|ingress::hdr.rtail.$valid                                       |[-1r, 11w]  |H56        |H               |[11]             |
+|ingress::hdr.rd_req.$valid                                      |[-1r, 11w]  |H56        |H               |[12]             |
+|ingress::hdr.second.$valid                                      |[-1r, 11w]  |H56        |H               |[13]             |
+|ingress::hdr.rd_tail.$valid                                     |[-1r, 11w]  |H56        |H               |[14]             |
+|ingress::hdr.t0.$valid                                          |[-1r, 11w]  |H56        |H               |[15]             |
+|egress::hdr.eth.$valid                                          |[-1r, 11w]  |H52        |H               |[0]              |
+|egress::hdr.ip.$valid                                           |[-1r, 11w]  |H52        |H               |[1]              |
+|egress::hdr.tcp.$valid                                          |[-1r, 11w]  |H52        |H               |[2]              |
+|egress::hdr.dl.$valid                                           |[-1r, 11w]  |H52        |H               |[3]              |
+|egress::hdr.rb0.$valid                                          |[-1r, 11w]  |H52        |H               |[4]              |
+|egress::hdr.rb1.$valid                                          |[-1r, 11w]  |H52        |H               |[5]              |
+|egress::hdr.rtn.$valid                                          |[-1r, 11w]  |H52        |H               |[6]              |
+|egress::hdr.cb0.$valid                                          |[-1r, 11w]  |H52        |H               |[7]              |
+|egress::hdr.ctn.$valid                                          |[-1r, 11w]  |H52        |H               |[8]              |
+|egress::hdr.mss.$valid                                          |[-1r, 11w]  |H52        |H               |[9]              |
+|egress::hdr.rtp.$valid                                          |[-1r, 11w]  |H52        |H               |[10]             |
+|egress::hdr.ctp1.$valid                                         |[-1r, 11w]  |H52        |H               |[11]             |
+|egress::hdr.ctp2.$valid                                         |[-1r, 11w]  |H52        |H               |[12]             |
+|egress::hdr.min_parse_depth_padding_0.$stkvalid[0]              |[-1r, 11w]  |B16        |B               |[0]              |
+|egress::hdr.min_parse_depth_padding_0.$stkvalid[1]              |[-1r, 11w]  |B16        |B               |[1]              |
+|egress::hdr.min_parse_depth_padding_0.$stkvalid[2]              |[-1r, 11w]  |B16        |B               |[2]              |
+|egress::hdr.min_parse_depth_padding_0.$stkvalid[3]              |[-1r, 11w]  |B16        |B               |[3]              |
++----------------------------------------------------------------+------------+-----------+----------------+-----------------+
+
+
+
+
+
+PHV Allocation State
+
+MAU Groups:
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+|     MAU Group     | Containers Used |   Bits Used    | Bits Used on Ingress | Bits Used on Egress | Bits Allocated | Bits Allocated on Ingress | Bits Allocated on Egress | Available Bits |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+|       B0-15       |  16 (  100 %)   | 123 ( 96.1 %)  |    123 ( 96.1 %)     |     0 (   0  %)     | 251 (  196 %)  |       251 (  196 %)       |       0 (   0  %)        |      128       |
+|      B16-31       |  16 (  100 %)   | 128 (  100 %)  |     0 (   0  %)      |    128 (  100 %)    | 176 (  138 %)  |        0 (   0  %)        |      176 (  138 %)       |      128       |
+|      B32-47       |  16 (  100 %)   | 128 (  100 %)  |     80 ( 62.5 %)     |    48 ( 37.5 %)     | 168 (  131 %)  |       120 ( 93.8 %)       |       48 ( 37.5 %)       |      128       |
+|      B48-63       |  10 ( 62.5 %)   |  78 ( 60.9 %)  |     56 ( 43.8 %)     |    22 ( 17.2 %)     |  86 ( 67.2 %)  |       64 (  50  %)        |       22 ( 17.2 %)       |      128       |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+|       H0-15       |  16 (  100 %)   | 243 ( 94.9 %)  |    243 ( 94.9 %)     |     0 (   0  %)     | 321 (  125 %)  |       321 (  125 %)       |       0 (   0  %)        |      256       |
+|      H16-31       |  16 (  100 %)   | 253 ( 98.8 %)  |     0 (   0  %)      |    253 ( 98.8 %)    | 277 (  108 %)  |        0 (   0  %)        |      277 (  108 %)       |      256       |
+|      H32-47       |  16 (  100 %)   | 256 (  100 %)  |    160 ( 62.5 %)     |    96 ( 37.5 %)     | 304 (  119 %)  |       192 (  75  %)       |      112 ( 43.8 %)       |      256       |
+|      H48-63       |   9 ( 56.2 %)   | 144 ( 56.2 %)  |     48 ( 18.8 %)     |    96 ( 37.5 %)     | 152 ( 59.4 %)  |       56 ( 21.9 %)        |       96 ( 37.5 %)       |      256       |
+|      H64-79       |  14 ( 87.5 %)   | 224 ( 87.5 %)  |    208 ( 81.2 %)     |    16 ( 6.25 %)     | 224 ( 87.5 %)  |       208 ( 81.2 %)       |       16 ( 6.25 %)       |      256       |
+|      H80-95       |   0 (   0  %)   |  0 (   0  %)   |     0 (   0  %)      |     0 (   0  %)     |  0 (   0  %)   |        0 (   0  %)        |       0 (   0  %)        |      256       |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+|       W0-15       |  16 (  100 %)   | 512 (  100 %)  |    512 (  100 %)     |     0 (   0  %)     | 577 (  113 %)  |       577 (  113 %)       |       0 (   0  %)        |      512       |
+|      W16-31       |  16 (  100 %)   | 512 (  100 %)  |     0 (   0  %)      |    512 (  100 %)    | 656 (  128 %)  |        0 (   0  %)        |      656 (  128 %)       |      512       |
+|      W32-47       |  16 (  100 %)   | 512 (  100 %)  |    352 ( 68.8 %)     |    160 ( 31.2 %)    | 608 (  119 %)  |       448 ( 87.5 %)       |      160 ( 31.2 %)       |      512       |
+|      W48-63       |  16 (  100 %)   | 512 (  100 %)  |    160 ( 31.2 %)     |    352 ( 68.8 %)    | 512 (  100 %)  |       160 ( 31.2 %)       |      352 ( 68.8 %)       |      512       |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+|   Usage for 8b    |  58 ( 90.6 %)   | 457 ( 89.3 %)  |    259 ( 50.6 %)     |    198 ( 38.7 %)    | 681 (  133 %)  |       435 (  85  %)       |      246 (  48  %)       |      512       |
+|   Usage for 16b   |  71 (  74  %)   | 1120 ( 72.9 %) |    659 ( 42.9 %)     |    461 (  30  %)    | 1278 ( 83.2 %) |       777 ( 50.6 %)       |      501 ( 32.6 %)       |      1536      |
+|   Usage for 32b   |  64 (  100 %)   | 2048 (  100 %) |    1024 (  50  %)    |   1024 (  50  %)    | 2353 (  115 %) |      1185 ( 57.9 %)       |      1168 (  57  %)      |      2048      |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+| Overall PHV Usage |  193 ( 86.2 %)  | 3625 ( 88.5 %) |    1942 ( 47.4 %)    |   1683 ( 41.1 %)    | 4312 (  105 %) |      2397 ( 58.5 %)       |      1915 ( 46.8 %)      |      4096      |
++-------------------+-----------------+----------------+----------------------+---------------------+----------------+---------------------------+--------------------------+----------------+
+
+
+Tagalong Collections:
++------------+-------+--------------------+---------------------+---------------------+---------------+----------------+
+|  Collection|  Gress|  8b Containers Used|  16b Containers Used|  32b Containers Used|      Bits Used|  Bits Allocated|
++------------+-------+--------------------+---------------------+---------------------+---------------+----------------+
+|           0|      E|         4 (  100 %)|          6 (  100 %)|          4 (  100 %)|  256 (  100 %)|   312 (  122 %)|
+|           1|      I|         4 (  100 %)|          6 (  100 %)|          4 (  100 %)|  256 (  100 %)|   256 (  100 %)|
+|           2|      E|         4 (  100 %)|          6 (  100 %)|          4 (  100 %)|  256 (  100 %)|   256 (  100 %)|
+|           3|      E|         0 (   0  %)|          3 (  50  %)|          0 (   0  %)|   48 ( 18.8 %)|    48 ( 18.8 %)|
+|           4|      I|         0 (   0  %)|          1 ( 16.7 %)|          0 (   0  %)|   16 ( 6.25 %)|    16 ( 6.25 %)|
+|           5|       |         0 (   0  %)|          0 (   0  %)|          0 (   0  %)|    0 (   0  %)|     0 (   0  %)|
+|           6|       |         0 (   0  %)|          0 (   0  %)|          0 (   0  %)|    0 (   0  %)|     0 (   0  %)|
+|           7|       |         0 (   0  %)|          0 (   0  %)|          0 (   0  %)|    0 (   0  %)|     0 (   0  %)|
++------------+-------+--------------------+---------------------+---------------------+---------------+----------------+
+|       Total|       |        12 ( 37.5 %)|         22 ( 45.8 %)|         12 ( 37.5 %)|  832 ( 40.6 %)|   888 ( 43.4 %)|
++------------+-------+--------------------+---------------------+---------------------+---------------+----------------+
+
+
+

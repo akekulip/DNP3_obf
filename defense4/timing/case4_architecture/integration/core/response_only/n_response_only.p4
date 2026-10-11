@@ -100,7 +100,7 @@ RegisterAction<bit<32>,bit<4>,bit<32>>(count_term) count_term_bump={void apply(i
 action route(PortId_t port){m.port_valid=8w1;tm.ucast_egress_port=port;}
  /* every master-side IPv4 TCP packet -> one reverse-map lap through pipe 0 egress; m.port_valid stays 0 */
 action normalize_ack(){tm.ucast_egress_port=N_ACK_RETURN;tm.bypass_egress=1w0;}
-table ports{key={ig.ingress_port:exact;hdr.ip.isValid():ternary;hdr.ip.proto:ternary;}actions={route;normalize_ack;deny;}size=8;default_action=deny();}
+table ports{key={ig.ingress_port:exact;hdr.ip.isValid():ternary;hdr.ip.proto:ternary;hdr.ip.src:ternary;}actions={route;normalize_ack;deny;}size=8;default_action=deny();}
  action forward_flow(PortId_t port){m.direction=8w1;m.output_port=port;tm.ucast_egress_port=port;}
  action reverse_flow(PortId_t port){m.direction=8w2;m.output_port=port;tm.ucast_egress_port=port;}
  table connection{key={hdr.ip.src:exact;hdr.ip.dst:exact;hdr.tcp.sport:exact;hdr.tcp.dport:exact;ig.ingress_port:exact;}actions={forward_flow;reverse_flow;NoAction;}size=4;default_action=NoAction();}
