@@ -121,25 +121,49 @@ class Shaping(Base):
                          {self.hold_pgq(6): 1000, self.hold_pgq(4): 500, self.hold_pgq(2): 200})
         self.assertEqual(len(shp), 3)                                            # exactly the three hold queues
 
-    def test_the_run_records_the_pacing_applied(self):
+    def test_the_run_records_requested_and_quantized_achieved_pps(self):
         from switch import Switch
-        run(bc.main, self.argv('--shape-ack-pps', '1000'))
         import readback
-        snap = readback.snapshot(Switch('response_only', 140), off.PORTS)
-        self.assertEqual(snap['shaping']['ACK_HOLD']['max_rate'], 1000)
-        self.assertEqual(snap['shaping']['ACK_HOLD']['unit'], 'PPS')
-        self.assertTrue(snap['shaping']['ACK_HOLD']['max_rate_enable'])
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        self.assertEqual(rc, 0, out[-500:])                               # quantized 930 is within tolerance -> passes
+        snap = readback.snapshot(Switch('response_only', 140), off.PORTS, {'ack': 1000})
+        ack = snap['shaping']['ACK_HOLD']
+        self.assertEqual(ack['requested_pps'], 1000)
+        self.assertEqual(ack['achieved_pps'], 930)                        # hardware-quantized, recorded as achieved
+        self.assertEqual((ack['unit'], ack['max_burst_size']), ('PPS', 1))
+        self.assertTrue(ack['max_rate_enable'])
+        self.assertIsNone(snap['shaping']['RESP_HOLD']['requested_pps'])
         self.assertFalse(snap['shaping']['RESP_HOLD']['max_rate_enable'])
 
-    def test_a_shaping_readback_mismatch_fails_closed(self):
+    def test_an_exact_shaper_readback_also_passes(self):
+        fake.SHAPE_QUANTIZE = lambda req: req                            # a chip that returns the exact rate
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        self.assertEqual(rc, 0, out[-500:])
+
+    def test_an_implausible_achieved_rate_fails_closed(self):
+        for quant, why in ((lambda req: 0, 'zero'), (lambda req: req * 2, 'off by 2x'),
+                           (lambda req: int(req * 0.5), 'off by 50%')):
+            with self.subTest(why=why):
+                fake.reset()                                 # fresh switch for this subcase
+                self.manifest.unlink(missing_ok=True)        # else bring-up refuses a pre-existing manifest (rc 4)
+                fake.SHAPE_QUANTIZE = quant
+                rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+                self.assertEqual(rc, 2, out[-400:])
+                self.assertIn('max_rate', out)
+
+    def test_a_within_tolerance_rate_passes(self):
+        fake.SHAPE_QUANTIZE = lambda req: int(req * 0.80)                # 20% low: a coarse but plausible step
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
+        self.assertEqual(rc, 0, out[-500:])
+
+    def test_a_shaping_data_field_mismatch_fails_closed(self):
         import switch as sw_mod
         orig = sw_mod.Switch.write
 
-        def bad_write(self, op):               # silently drop the shaping max_rate so readback disagrees
+        def bad_write(self, op):               # corrupt an EXACT shaping field (max_burst_size) so readback disagrees
             if op.get('table') == 'tf1.tm.queue.sched_shaping':
-                op = dict(op, data=[(n, (v + 1 if n == 'max_rate' else v)) for n, v in op['data']])
-                r = orig(self, op)
-                return r
+                op = dict(op, data=[(n, (v + 7 if n == 'max_burst_size' else v)) for n, v in op['data']])
+                return orig(self, op)
             return orig(self, op)
         sw_mod.Switch.write = bad_write
         self.addCleanup(setattr, sw_mod.Switch, 'write', orig)

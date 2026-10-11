@@ -16,12 +16,17 @@ PARAMS = dict(da=2000000, readiness=12000000, cap=16000000, gap=800000, op_j=240
 
 def reset():
     global STATE, LOG, FAIL_ADD, PRIOR_BUFFER, PRIOR_APP_ACTION, OUTCOMES_MOVE, EMPTY_READ, PORTS, LINK_NEVER_UP
+    global SHAPE_QUANTIZE
     STATE, LOG = {}, []
     FAIL_ADD = None                     # (table, nth add to that table) whose entry_add raises
     PRIOR_BUFFER = bytes(60)            # what pkt_buffer holds before bring-up
     PRIOR_APP_ACTION = 'trigger_timer_one_shot'   # the SDE default, as read on the switch 2026-10-11
     PORTS = default_ports()             # $PORT entries, by dev_port
     LINK_NEVER_UP = set()               # front-panel ports whose link stays down after a loopback write
+    # The TF1 TM shaper quantizes a written max_rate to a hardware step; model that so readback is not exact
+    # (a 1000 PPS request reads back ~930 on silicon). A test overrides this to force an implausible achieved
+    # rate (0, or far off) and prove the tolerant readback still fails closed.
+    SHAPE_QUANTIZE = lambda req: int(round(req * 0.93))
     OUTCOMES_MOVE = False               # T's outcome counters never settle
     EMPTY_READ = None                   # table whose entry_get yields nothing and raises nothing
 
@@ -157,7 +162,10 @@ class Table:
             self.e[keys[0]]['$LOOPBACK_MODE'] = mode
             self.e[keys[0]]['$PORT_UP'] = mode == 'BF_LPBK_MAC_NEAR' and port not in LINK_NEVER_UP
             return
-        self.e[keys[0]].update({k: v for k, v in datas[0][0].items() if v is not None})
+        data = dict((k, v) for k, v in datas[0][0].items() if v is not None)
+        if self.name == 'tf1.tm.queue.sched_shaping' and 'max_rate' in data:
+            data['max_rate'] = SHAPE_QUANTIZE(data['max_rate'])      # hardware quantizes the written rate
+        self.e[keys[0]].update(data)
         if datas[0][1]:
             self.e[keys[0]]['action_name'] = datas[0][1]
 

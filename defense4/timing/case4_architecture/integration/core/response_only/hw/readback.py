@@ -32,6 +32,24 @@ def _norm(name, value):
 NOT_STORED = {('p1.t_Ingress.params', 'cap')} | {('p0.n_Ingress.data_connection', f) for f in ('index', 'code', 'repeat', 'on', 'off')}
 
 
+# The TF1 TM shaper quantizes max_rate to a hardware-achievable step, so the sched_shaping readback is NOT
+# exact: a 1000 PPS request read back 930 on silicon (~7% low). We accept the quantized achieved rate and
+# record it (it is what the measurement uses), but still fail closed if it is implausible -- 0 (the write did
+# not land) or more than SHAPE_RATE_TOL off the request (a genuinely wrong rate: a factor error, wrong unit
+# scaling, or the wrong queue). 25% is well above any single quantization step seen (~7%) yet far below a real
+# error (2x+), so it still catches a bad write. unit and max_burst_size are still checked exactly elsewhere.
+SHAPE_RATE_TOL = 0.25
+
+
+def _shaping_rate_bad(where, achieved, requested):
+    if not isinstance(achieved, int) or achieved <= 0:
+        return ['%s: max_rate reads %r (implausible; the shaping write did not land)' % (where, achieved)]
+    if abs(achieved - requested) > SHAPE_RATE_TOL * requested:
+        return ['%s: max_rate %d is >%.0f%% from requested %d (not hardware quantization)'
+                % (where, achieved, SHAPE_RATE_TOL * 100, requested)]
+    return []
+
+
 def verify(sw, op):
     where = '%s %s' % (op['table'], op.get('label') or [k[1] for k in op.get('key', [])])
     try:
@@ -50,6 +68,9 @@ def verify(sw, op):
             bad.append('%s: action %r on readback, wrote %s' % (where, name, op['action']))
     for name, want in op['data']:
         if name in COUNTER_FIELDS or (op['table'], name) in NOT_STORED:
+            continue
+        if op['kind'] == 'queue_shaping' and name == 'max_rate':
+            bad += _shaping_rate_bad(where, got.get('max_rate'), want)   # quantized: tolerant, not exact
             continue
         have = got.get(name)
         if _norm(name, have) != _norm(name, want):
@@ -79,9 +100,13 @@ def register_errors(regs):
             for r, (vals, init) in regs.items() if not vals or any(v != init for v in vals)]
 
 
-def snapshot(sw, ports):
-    """Generator app counters and TM queue counters on T's two ladder ports (watermark/drops; usage_cells is
-    unreliable)."""
+def snapshot(sw, ports, requested_pps=None):
+    """Generator app counters, TM queue counters, and the shaping actually applied to each hold queue.
+
+    requested_pps: optional {role -> pps} ('ack'/'resp'/'op') so the snapshot records requested vs the
+    hardware-quantized achieved rate. Unknown (standalone read) -> requested recorded as None; achieved always
+    comes from hardware."""
+    requested_pps = requested_pps or {}
     snap = {'pktgen': {}, 'queues': {}}
     gen_pipe = tc.pipe_of(ports['pktgen_return'])
     for name, app_id, _pattern in tc.PKTGEN_APPS:
@@ -100,7 +125,9 @@ def snapshot(sw, ports):
         # sched_shaping row (unit, max_rate, max_burst_size). Blocker queues read unshaped (max_rate_enable 0).
         cfg = sw.get('tf1.tm.queue.sched_cfg', pipe, key) or {}
         shp = sw.get('tf1.tm.queue.sched_shaping', pipe, key) or {}
+        role = tc.HOLD_LABELS.get(label)
+        req = requested_pps.get(role) if role else None
         snap['shaping'][label] = dict(dev_port=port, qid=qid, max_rate_enable=cfg.get('max_rate_enable'),
-                                      unit=shp.get('unit'), max_rate=shp.get('max_rate'),
-                                      max_burst_size=shp.get('max_burst_size'))
+                                      unit=shp.get('unit'), requested_pps=(req or None),
+                                      achieved_pps=shp.get('max_rate'), max_burst_size=shp.get('max_burst_size'))
     return snap

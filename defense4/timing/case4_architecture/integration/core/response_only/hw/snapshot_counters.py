@@ -37,6 +37,9 @@ def main(argv=None):
     ap.add_argument('--client-id', type=int, default=122)
     ap.add_argument('--ports', default='9,64')
     ap.add_argument('--build-out', required=True, help="the loaded build's out/: T's ladder ports are read from it")
+    for role in ('ack', 'resp', 'op'):
+        ap.add_argument('--shape-%s-pps' % role, type=int, default=0, dest='shape_%s' % role,
+                        help='the requested %s hold-queue rate, recorded alongside the achieved rate' % role.upper())
     a = ap.parse_args(argv)
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':      # read-only, but it binds a BF Runtime client
         print('REFUSED: needs DEFENSE4_HW_AUTHORIZED=1')
@@ -70,7 +73,8 @@ def main(argv=None):
             bucket = 'rewait' if 'REWAIT' in label else 'blocker_laps'
             role = label.replace('DIAG_', '').replace('_REWAIT', '').replace('_BLOCKER_LAP', '')
             snap['diag'][bucket][role] = value            # None on the production build
-        snap.update(readback.snapshot(sw, ports))
+        requested = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
+        snap.update(readback.snapshot(sw, ports, requested))
         for p in [int(x) for x in a.ports.split(',')]:
             snap['ports'][p] = sw.get('$PORT_STAT', tc.ALL_PIPES, [('$DEV_PORT', p, None)])
         Path(a.output).write_text(json.dumps(snap, indent=1, default=str) + '\n')

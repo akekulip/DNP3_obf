@@ -287,7 +287,8 @@ def apply(ops, a, ports):
             print('NOTE: read back from software state, not hardware (no hardware read on this SDE): %s' % ', '.join(sorted(sw.sw_read)))
         print('INSTALLED %d writes; manifest %s; pktgen %s' % (len(done), manifest,
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
-        print('counters', json.dumps(readback.snapshot(sw, ports), indent=1))
+        shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
+        print('counters', json.dumps(readback.snapshot(sw, ports, shape), indent=1))
     finally:
         sw.close()
 
