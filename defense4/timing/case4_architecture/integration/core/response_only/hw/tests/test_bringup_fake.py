@@ -88,7 +88,7 @@ class Apply(Base):
         self.assertEqual({i: (a['app_enable'], a['pattern_value'], a['pattern_mask'], a['pipe_local_source_port'],
                               a['action_name']) for i, a in apps.items()},
                          {1: (True, 0xE1010000, 0xFFFF0000, 68, 'trigger_recirc_pattern'),
-                          2: (True, 0xE1000000, 0xFFFF0000, 68, 'trigger_recirc_pattern')})
+                          0: (True, 0xE1000000, 0xFFFF0000, 68, 'trigger_recirc_pattern')})
         enables = [c for c in fake.LOG if c[0] == 'mod' and c[1] == APP and c[3][0] == {'app_enable': True}]
         self.assertEqual([c[3][1] for c in enables], [None, None])               # enabled without an action
         writes = [c[1] for c in fake.LOG if c[0] in ('add', 'mod', 'default_set')]

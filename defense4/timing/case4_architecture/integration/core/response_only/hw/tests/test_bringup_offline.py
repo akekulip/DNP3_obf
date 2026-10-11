@@ -299,7 +299,9 @@ class Order(unittest.TestCase):
         held, hb = PORTS['held_return'], PORTS['hb_return']
         self.assertEqual({(p, q) for p, q, _ in tc.queue_plan(PORTS)}, {(held, 7), (held, 6), (held, 5), (held, 4), (hb, 3), (hb, 2)})
         self.assertEqual({op['pipe'] for op in tc.queue_ops(PORTS)}, {held // 128, hb // 128})   # the port's own pipe
-        self.assertEqual({(n, i, hex(p)) for n, i, p in tc.PKTGEN_APPS}, {('OPERATE', 1, '0xe1010000'), ('READ', 2, '0xe1000000')})
+        self.assertEqual({(n, i, hex(p)) for n, i, p in tc.PKTGEN_APPS}, {('OPERATE', 1, '0xe1010000'), ('READ', 0, '0xe1000000')})
+        # app ids are the ids read_queue_timing.p4 parse_timer admits: 1 OPERATE, 0 READ (defect B was READ on app 2)
+        self.assertEqual({i for _n, i, _p in tc.PKTGEN_APPS}, {0, 1})
 
 
 class Teardown(unittest.TestCase):

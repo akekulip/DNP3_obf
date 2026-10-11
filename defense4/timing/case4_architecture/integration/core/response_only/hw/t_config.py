@@ -19,7 +19,16 @@ T_PARAM_DEFAULTS = dict(da=2000000, readiness=12000000, cap=16000000, gap=800000
 # (role of the port, qid, label): strict priority, qid == max_priority, descending within each port.
 LADDER = (('held_return', 7, 'ACK_BLOCK'), ('held_return', 6, 'ACK_HOLD'), ('held_return', 5, 'RESP_BLOCK'),
           ('held_return', 4, 'RESP_HOLD'), ('hb_return', 3, 'OP_BLOCK'), ('hb_return', 2, 'OP_HOLD'))
-PKTGEN_APPS = (('OPERATE', 1, 0xE1010000), ('READ', 2, 0xE1000000))
+# (name, pktgen app_id, recirc trigger pattern). The app_id is AUTHORITATIVE and must match T's parser:
+# read_queue_timing.p4 parse_timer admits only (PKTGEN_PIPE, 0) and (PKTGEN_PIPE, 1) as tokens, and
+# token_verdict routes app 1 -> OPERATE blocker, any other admitted app (i.e. app 0) -> READ blocker (ACK on
+# even packet_id, response on odd). READ was app 2, which parse_timer sends to default:accept with token_ok=0
+# and the apply block then drops via drop_foreign, so no READ blocker was ever seeded (defect B: on silicon
+# the READ app generated 544 packets with ACK_BLOCK/RESP_BLOCK watermarks both zero). READ is app 0, the id
+# the committed P4 admits; apps 0 and 1 are the only pktgen apps this composite uses in pipe 1, so neither
+# overwrites a foreign app. The pattern matches the recirculating clone tag's top 16 bits (0xE100 READ,
+# 0xE101 OPERATE), which is independent of the app_id.
+PKTGEN_APPS = (('OPERATE', 1, 0xE1010000), ('READ', 0, 0xE1000000))
 PKTGEN_MASK = 0xFFFF0000
 TOKEN_LEN = 60                                      # buffer after the 6 B header the generator prepends
 BUF_OFFSET = 0
