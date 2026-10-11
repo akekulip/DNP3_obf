@@ -10,7 +10,7 @@ not the switch's SDE 9.13.2, so the 9.13.2 build under "Next steps" is still req
 | Path | What it is | Verified by |
 |---|---|---|
 | `tools/syn_option_audit.py` | Reads captures (read-only) and reports the TCP options on every SYN and SYN-ACK, per host, and whether the response-path mapper would arm | Run over 200 retained captures; result in `evidence/syn_options_relay_rig.json` |
-| `single_pipe/make_single_pipe.py` | Composes ONE pipeline: the seven-stage timing ingress (`stage_reduction/src/defense4_timing.p4`, `U_BOR`) + role E egress (`make_e.py`, from the hardware-run `protocol/case4_response_path.p4`), with edits S1 (reverse pass on the relay port) and S2 (SYN option scrub) | `single_pipe/tests` (17 tests); compiled, see "Compile results" |
+| `single_pipe/make_single_pipe.py` | Composes ONE pipeline: the seven-stage timing ingress (`stage_reduction/src/defense4_timing.p4`, `U_BOR`) + role E egress (`make_e.py`, from the hardware-run `protocol/case4_response_path.p4`), with edits S1 (reverse pass on the relay port), S2 (SYN option scrub), S3 (reverse window fold) and S4 (grouped CRC tables) | `single_pipe/tests` (24 tests); compiled, see "Compile results" |
 | `single_pipe/single_pipe.p4` | Generated output; a test pins it to the generator | same |
 | `single_pipe/cp_single_pipe.py` | Egress control-plane rows: forward rows at the master port (9), reverse rows at the relay port (64) | same |
 
@@ -41,11 +41,31 @@ Results for this track:
 
 | Build | Ingress / egress | Critical path | Other |
 |---|---|---|---|
-| **Single-pipe candidate** | **10 / 12** | 11 | Exit 0, `tofino.bin` assembled. Fifth egress checksum unit (SYN scrub) accepted. PHV 158 / 224 containers (32-bit 57 / 64), final attempt. Warning kinds are the same as the two separate programs. |
+| Single-pipe candidate, S1+S2 (`opensource_9134_01`) | 10 / 12 | 11 | Exit 0, `tofino.bin` assembled. Fifth egress checksum unit (SYN scrub) accepted. PHV 158 / 224 containers (32-bit 57 / 64), final attempt. Warning kinds are the same as the two separate programs. |
+| **Single-pipe candidate, S1-S4 (`opensource_9134_02`)** | **10 / 11** | 10 | Egress stage cut (see "Stage cuts"). Tables 117 -> 113; PHV unchanged at 158 (32-bit 57 / 64). |
 | Composite with `make_n` edit 9 | p0 12 / 11, p1 11 / 0 | 11 / 9 | No stage saved. Tables 115 -> 109, hash-distribution units 26 -> 23, PHV 193 -> 185. |
 
-The single-pipe ingress rises from 7 to 10 stages beside a full egress: a stage's table IDs, crossbar
-and hash units are shared by both gresses. Two ingress stages remain spare.
+The single-pipe ingress rises from 7 to 10 stages beside the egress: a stage's 16 logical table IDs, 4
+stateful ALUs, crossbar and hash units are shared by both gresses, and the compiler gives the early slots
+to the egress tables, whose dependency chain is longer. Two ingress stages remain spare.
+
+## Stage cuts (edits S3, S4)
+
+- **S3, reverse window fold: egress 12 -> 11.** The reverse-ACK path ended `img_wend_t` (stage 8, after the
+  forward classifier) -> `rev_prep_t` -> `classify_rev` -> `window_t` -> `count_t`. Of the window edge
+  `(r + window) + (q - p)`, only `r` comes from the `img_wend` register, so `q - p + window` is computed
+  earlier (`rev_qp_t`, plus one add inside `img_wend_t`'s reverse action) and `classify_rev` picks the exact
+  or clamped window in its own actions: `window_t` is gone. `classify_rev` counts its own outcome code in the
+  same `outcome` counter (same indices), and `count_t` moves into the else branch so the two counter users
+  share a stage. `m.changed` is set in `rev_qp_t`: every reverse outcome rewrites the segment except
+  `rev_drop`, which drops it. `tests/test_stage_cuts.py` runs the original and S3 reverse logic on 200,000
+  biased random inputs and an edge grid, outcome, ACK and window identical; a deliberately broken variant
+  fails it on 14,441 of 20,000 inputs.
+- **S4, grouped CRC tables: 8 tables -> 4, no stage change.** The same hash actions, two per table (bf-p4c
+  allows 32 hash-output bits per table), under the same header validity.
+- **Tried and not kept:** reusing `m.y` / `m.t` for the new reverse values (egress back to 12: write-after-
+  write ordering with the forward path); `@stage` hints on `mode_t` or on the timing decision chain (no
+  change: the final placement round re-allocates PHV and ignores them). The ingress stays at 10.
 
 ## Findings that drove it
 
@@ -101,7 +121,7 @@ and hash units are shared by both gresses. Two ingress stages remain spare.
 1. Compile `single_pipe/single_pipe.p4` with the switch's SDE 9.13.2 (compile-only, through
    `installed_sdk_build.py`) and locally with 9.13.1:
    `python3 build.py simplify/single_pipe/single_pipe.p4 simplify/evidence/single_pipe_01`.
-   `U_BOR` is defined in the file. Compare with the 9.13.4 result (10 / 12, PHV 158).
+   `U_BOR` is defined in the file. Compare with the 9.13.4 result (10 / 11, PHV 158).
 2. Run the local Tofino model with the existing drivers: the padding drivers for E, the timing
    driver for ingress, then both together on one READ and one SELECT/OPERATE.
 3. On the switch: compare a master SYN before and after the scrub, and confirm the SEL-751's

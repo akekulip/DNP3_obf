@@ -10,8 +10,9 @@
 Why this fits on paper: the timing candidate places in 7 ingress / 0 egress stages (stage_reduction
 README, SDE 9.13.1 and 9.13.2); the response path places in 1 ingress / 12 egress (fused_12), and its one
 ingress stage is a port-forwarding stub that the timing ingress replaces. Measured with the open-source
-bf-p4c 9.13.4 (simplify/evidence/opensource_9134_01): 10 ingress / 12 egress, critical path 11, 158 PHV
-containers, the fifth egress checksum unit accepted. The switch's SDE 9.13.2 build is still to be run.
+bf-p4c 9.13.4: 10 ingress / 12 egress before edits S3/S4 (simplify/evidence/opensource_9134_01), 10 / 11 with
+them (opensource_9134_02), critical path 10, 158 PHV containers, the fifth egress checksum unit accepted.
+The switch's SDE 9.13.2 build is still to be run.
 
 Why the padder runs exactly once per frame: the timing ingress sends every hold and reservoir frame to
 its loopback ports with ig_tm_md.bypass_egress = 1 (PORT_L dp8, PORT_BOR_L dp10), and every final
@@ -114,6 +115,159 @@ S2_EDITS = ((SOPT_HEADER_ANCHOR, SOPT_HEADER), (HDRS_OLD, HDRS_NEW), (META_OLD, 
             (SCRUB_APPLY_ANCHOR, SCRUB_APPLY), (CSUM_DECL_OLD, CSUM_DECL_NEW), (DEPARSE_ANCHOR, DEPARSE_SCRUB),
             (EMIT_OLD, EMIT_NEW))
 
+# ---------------------------------------------------------------- edit S3: reverse window fold (one egress stage)
+# The reverse chain was img_wend_t (r) -> rev_prep_t (y, z, pm, t) -> classify_rev (s_end = y + t) -> window_t
+# (test s_end, narrow it). Of s_end = (r + window) + (q - p), only r comes from the img_wend register, which
+# sits after the forward classifier; q - p + window is ready once img_start / img_end have run. S3 computes
+# u = q - p + window in early dir-2 tables, rev_prep writes u = r + u (the old s_end, mod 2^32), and
+# classify_rev keys on u so the window test and narrowing happen in its own actions: window_t is gone.
+# The new fields win32 and u leave m.t and m.s_end, which the forward path also uses, untouched.
+S3_META_OLD = "    bit<8>  result; bit<1> changed; bit<1> pad; bit<8> wide;\n"
+S3_META_NEW = S3_META_OLD + "    bit<32> win32; bit<32> u;   // single-pipe edit S3: widened window; q - p + window, then r + that\n"
+S3_PREP_OLD = ("    action rev_prep() { m.y = m.r + widen_win.get({hdr.tcp.window}); m.z = m.r + IMAGE_LEN;"
+               " m.pm = m.q + m.r; m.t = m.q - m.p; }\n")
+S3_PREP_NEW = (
+    "    /* S3: everything in the window edge except r, computed before img_wend_t on reverse packets */\n"
+    "    /* m.changed set here, not in classify_rev: every reverse outcome rewrites the segment except rev_drop,\n"
+    "       which drops it, so its checksum is moot. The deparser condition then no longer waits for classify_rev. */\n"
+    "    /* One table: u = q - p, the widened window, and m.changed; img_wend_t's reverse action adds the window. */\n"
+    "    action rev_qp() { m.u = m.q - m.p; m.win32 = widen_win.get({hdr.tcp.window}); m.changed = 1; }\n"
+    "    table rev_qp_t {\n"
+    "        key = { m.dir : exact; } actions = { rev_qp; NoAction; } size = 1;\n"
+    "        const default_action = NoAction(); const entries = { 2 : rev_qp(); }\n"
+    "    }\n"
+    "    action rev_prep() { m.y = m.r + m.win32; m.z = m.r + IMAGE_LEN; m.pm = m.q + m.r; m.u = m.r + m.u; }\n")
+S3_WEND_OLD = "    action do_wend_rev() { m.r = wend_rev.execute(m.idx); }\n"
+S3_WEND_NEW = "    action do_wend_rev() { m.r = wend_rev.execute(m.idx); m.u = m.u + m.win32; }   // S3: u = q - p + window\n"
+S3_CLASSIFY_OLD = (
+    "    action rev_withhold_open() { hdr.tcp.ack = m.p; m.s_end = m.y + m.t; m.wide = 1;\n"
+    "                                 m.result = OUT_REV_WITHHOLD; m.changed = 1; }\n"
+    "    action rev_drop() { m.result = OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }\n"
+    "    table classify_rev {\n"
+    "        key = { m.r : ternary; m.z : ternary; m.y : ternary; }\n"
+    "        actions = { rev_translate; rev_withhold_zero; rev_withhold_open; rev_drop; } size = 4;\n"
+    "        const default_action = rev_drop();\n"
+    "        const entries = {\n"
+    "            (32w0 &&& 32w0x80000000, _, _)                                    : rev_translate();\n"
+    "            (_, 32w0 &&& 32w0x80000000, 32w0x80000000 &&& 32w0x80000000)     : rev_withhold_zero();\n"
+    "            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000)              : rev_withhold_open();\n"
+    "        }\n"
+    "    }\n"
+    "    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;\n"
+    "    action window_exact() { hdr.tcp.window = narrow_win.get({m.s_end[15:0]}); }\n"
+    "    action window_clamp() { hdr.tcp.window = 0xffff; }\n"
+    "    table window_t {\n"
+    "        key = { m.s_end : ternary; }\n"
+    "        actions = { window_exact; window_clamp; } size = 2; const default_action = window_clamp();\n"
+    "        const entries = { 32w0 &&& 32w0xFFFF0000 : window_exact(); 32w0 &&& 32w0 : window_clamp(); }\n"
+    "    }\n")
+S3_CLASSIFY_NEW = (
+    "    /* S3: window_t folded in. u holds the old s_end; its upper half picks exact or clamped, as window_t did. */\n"
+    "    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;\n"
+    "    action rev_withhold_open() { hdr.tcp.ack = m.p; hdr.tcp.window = narrow_win.get({m.u[15:0]}); m.wide = 1;\n"
+    "                                 m.result = OUT_REV_WITHHOLD; }\n"
+    "    action rev_withhold_clamp() { hdr.tcp.ack = m.p; hdr.tcp.window = 0xffff; m.wide = 1;\n"
+    "                                  m.result = OUT_REV_WITHHOLD; }\n"
+    "    action rev_drop() { m.result = OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }\n"
+    "    table classify_rev {\n"
+    "        key = { m.r : ternary; m.z : ternary; m.y : ternary; m.u : ternary; }\n"
+    "        actions = { rev_translate; rev_withhold_zero; rev_withhold_open; rev_withhold_clamp; rev_drop; } size = 4;\n"
+    "        const default_action = rev_drop();\n"
+    "        const entries = {\n"
+    "            (32w0 &&& 32w0x80000000, _, _, _)                                            : rev_translate();\n"
+    "            (_, 32w0 &&& 32w0x80000000, 32w0x80000000 &&& 32w0x80000000, _)             : rev_withhold_zero();\n"
+    "            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0xFFFF0000) : rev_withhold_open();\n"
+    "            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000, _)                       : rev_withhold_clamp();\n"
+    "        }\n"
+    "    }\n")
+S3_APPLY_EARLY_OLD = "        img_start_t.apply();\n"
+S3_APPLY_EARLY_NEW = (S3_APPLY_EARLY_OLD +
+    "        if (m.dir == 2 && m.shape == SH_ACK && m.mode == 1) { rev_qp_t.apply(); }   // S3\n")
+# The outcome counter is read after classify_rev, so count_t would still need a stage of its own. S3 instead
+# has classify_rev count its own outcome code and puts count_t (and the SYN scrub, which never sees a
+# reverse ACK) in the else branch of the reverse condition: the two counter users are mutually exclusive
+# by control flow and share one stage. The counter, its size and every outcome index are unchanged.
+# Equivalence: pad == 1 only on dir 1, so `if (pad) .. else if (rev) ..` equals `if (rev) .. else { if (pad) .. }`.
+S3_APPLY_WINDOW_OLD = (
+    "        if (m.pad == 1) {\n"
+    "            if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }\n"
+    "        } else if (m.dir == 2 && m.shape == SH_ACK && m.mode == 1) {   // exclusive with padding\n"
+    "            rev_prep_t.apply(); classify_rev.apply();\n"
+    "            if (m.wide == 1) { window_t.apply(); }\n"
+    "        }\n"
+    "        syn_scrub_t.apply();   // S2: SH_SYN never takes the forward, padding or reverse-ACK branch\n"
+    "        count_t.apply();\n")
+S3_APPLY_WINDOW_NEW = (
+    "        if (m.dir == 2 && m.shape == SH_ACK && m.mode == 1) {   // S3: reverse first; pad == 1 never holds here\n"
+    "            rev_prep_t.apply(); classify_rev.apply();   // window_t folded in; classify_rev counts its own outcome\n"
+    "        } else {\n"
+    "            if (m.pad == 1) {\n"
+    "                if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }\n"
+    "            }\n"
+    "            syn_scrub_t.apply();   // S2: SH_SYN never takes the forward, padding or reverse-ACK branch\n"
+    "            count_t.apply();\n"
+    "        }\n")
+S3_COUNTER_DECL = "    Counter<bit<32>, bit<8>>(32, CounterType_t.PACKETS) outcome;\n"
+S3_COUNTER_OLD = S3_COUNTER_DECL + "    action count() { outcome.count(m.result); }\n"
+S3_COUNTER_NEW = "    action count() { outcome.count(m.result); }   // S3: outcome is declared before classify_rev\n"
+S3_REV_COUNT = (
+    ("    action rev_translate() { hdr.tcp.ack = m.pm; m.result = OUT_REV_TRANSLATE; m.changed = 1; }\n",
+     S3_COUNTER_DECL +
+     "    action rev_translate() { hdr.tcp.ack = m.pm; m.result = OUT_REV_TRANSLATE;"
+     " outcome.count(OUT_REV_TRANSLATE); }\n"),
+    ("    action rev_withhold_zero() { hdr.tcp.ack = m.p; hdr.tcp.window = 0; m.result = OUT_REV_WITHHOLD; m.changed = 1; }\n",
+     "    action rev_withhold_zero() { hdr.tcp.ack = m.p; hdr.tcp.window = 0; m.result = OUT_REV_WITHHOLD;"
+     " outcome.count(OUT_REV_WITHHOLD); }\n"),
+    ("                                 m.result = OUT_REV_WITHHOLD; }\n"
+     "    action rev_withhold_clamp() { hdr.tcp.ack = m.p; hdr.tcp.window = 0xffff; m.wide = 1;\n"
+     "                                  m.result = OUT_REV_WITHHOLD; }\n"
+     "    action rev_drop() { m.result = OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }\n",
+     "                                 m.result = OUT_REV_WITHHOLD; outcome.count(OUT_REV_WITHHOLD); }\n"
+     "    action rev_withhold_clamp() { hdr.tcp.ack = m.p; hdr.tcp.window = 0xffff; m.wide = 1;\n"
+     "                                  m.result = OUT_REV_WITHHOLD; outcome.count(OUT_REV_WITHHOLD); }\n"
+     "    action rev_drop() { m.result = OUT_REV_DROP_STALE; md.drop_ctl = 3w1; outcome.count(OUT_REV_DROP_STALE); }\n"),
+)
+S3_EDITS = ((S3_META_OLD, S3_META_NEW), (S3_PREP_OLD, S3_PREP_NEW), (S3_CLASSIFY_OLD, S3_CLASSIFY_NEW),
+            (S3_APPLY_EARLY_OLD, S3_APPLY_EARLY_NEW), (S3_APPLY_WINDOW_OLD, S3_APPLY_WINDOW_NEW),
+            (S3_COUNTER_OLD, S3_COUNTER_NEW), (S3_WEND_OLD, S3_WEND_NEW)) + S3_REV_COUNT
+
+
+# ---------------------------------------------------------------- edit S4: fewer CRC tables (logical table IDs)
+# Ingress and egress share each stage's 16 logical table IDs, and stages 0-3 are full; the timing ingress, 7
+# stages alone, was pushed to 10. E spent 8 IDs in stages 1-2 on one-hash CRC tables. S4 keeps every hash and
+# every action unchanged and only groups the actions into fewer tables, by the header validity each already had:
+# crc_dl_t: link header (+ CONTROL padded tail1); crc_read_a_t: rb0+rb1; crc_read_b_t: rt + READ padded tail;
+# crc_ctl_a_t: cb0+ct. 8 tables -> 4.
+S4_DROP = ("    table in_dl_t{actions={in_dl;}size=1;const default_action=in_dl();}\n",
+           "    table in_rb0_t{actions={in_rb0;}size=1;const default_action=in_rb0();}\n",
+           "    table in_rb1_t{actions={in_rb1;}size=1;const default_action=in_rb1();}\n",
+           "    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}\n",
+           "    table in_cb0_t{actions={in_cb0;}size=1;const default_action=in_cb0();}\n",
+           "    table in_ct_t{actions={in_ct;}size=1;const default_action=in_ct();}\n",
+           "    table crc_read_tail_t{actions={crc_read_tail;}size=1;const default_action=crc_read_tail();}\n")
+# bf-p4c allows 32 bits of hash output per table (two 16-bit CRCs), and a hash action must run on the hit
+# pathway; crc_dl_t is keyed on the CONTROL header so both of its cases are hits.
+S4_TABLES_OLD = "    table crc_ctl_tail1_t{actions={crc_ctl_tail1;}size=1;const default_action=crc_ctl_tail1();}\n"
+S4_TABLES_NEW = (
+    "    /* S4: the same CRC actions, grouped two per table (bf-p4c: at most 32 hash-output bits per table) */\n"
+    "    action crc_dl_ctl(){in_dl();crc_ctl_tail1();}\n"
+    "    table crc_dl_t{key={hdr.cb0.isValid():exact;}actions={crc_dl_ctl;in_dl;NoAction;}size=2;const default_action=NoAction();\n"
+    "     const entries={true:crc_dl_ctl();false:in_dl();}}\n"
+    "    action crc_read_a(){in_rb0();in_rb1();}\n"
+    "    table crc_read_a_t{actions={crc_read_a;}size=1;const default_action=crc_read_a();}\n"
+    "    action crc_read_b(){in_rt();crc_read_tail();}\n"
+    "    table crc_read_b_t{actions={crc_read_b;}size=1;const default_action=crc_read_b();}\n"
+    "    action crc_ctl_a(){in_cb0();in_ct();}\n"
+    "    table crc_ctl_a_t{actions={crc_ctl_a;}size=1;const default_action=crc_ctl_a();}\n")
+S4_APPLY = (
+    ("        if (hdr.dl.isValid()) { in_dl_t.apply(); }\n",
+     "        if (hdr.dl.isValid()) { crc_dl_t.apply(); }   // S4\n"),
+    ("        if (hdr.rb0.isValid()) { read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); crc_read_tail_t.apply(); }\n",
+     "        if (hdr.rb0.isValid()) { read_profile.apply(); crc_read_a_t.apply(); crc_read_b_t.apply(); }   // S4\n"),
+    ("        if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); crc_ctl_tail1_t.apply(); }\n",
+     "        if (hdr.cb0.isValid()) { ctl_profile.apply(); crc_ctl_a_t.apply(); }   // S4\n"))
+S4_EDITS = tuple((t, "") for t in S4_DROP) + ((S4_TABLES_OLD, S4_TABLES_NEW),) + S4_APPLY
+
 
 def replace_once(text, old, new):
     assert text.count(old) == 1, ('edit target not found exactly once', old[:70])
@@ -125,7 +279,7 @@ def egress_text(master_port=MASTER_PORT, relay_port=RELAY_PORT):
     gate_new = "transition select(eg.egress_port) { 9w%d: eth; 9w%d: eth; default: accept; }" % (master_port, relay_port)
     text = replace_once(text, GATE_OLD, gate_new)
     text = replace_once(text, GATE_COMMENT_OLD, GATE_COMMENT_NEW)
-    for old, new in S2_EDITS:
+    for old, new in S2_EDITS + S3_EDITS + S4_EDITS:
         text = replace_once(text, old, new)
     return text
 
@@ -165,7 +319,7 @@ def generate(master_port=MASTER_PORT, relay_port=RELAY_PORT):
                 source_sha256=hashlib.sha256(source.encode()).hexdigest(),
                 renamed=dict(d=len(d_names), r=len(r_names)),
                 collisions_before_prefixing=sorted(set(d_names) & set(r_names)),
-                compiled_with='open-source bf-p4c 9.13.4: simplify/evidence/opensource_9134_01')
+                compiled_with='open-source bf-p4c 9.13.4: simplify/evidence/opensource_9134_02')
     return source, meta
 
 

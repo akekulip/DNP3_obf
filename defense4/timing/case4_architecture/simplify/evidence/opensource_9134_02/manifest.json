@@ -1,0 +1,40 @@
+{
+ "compiler": {
+  "name": "bf-p4c (open-source, p4lang/p4c Tofino backend)",
+  "p4c_version": "9.13.4 (driver bfn_version.py); p4c 1.2.5.17",
+  "p4c_commit": "ff5070480d76cd171df54051404f118d005fbf5e (open-p4studio submodule pin)",
+  "p4c_barefoot_sha256": "cc24cf06d8919f55e5a7bfe3c4fbb98491c8567f10f97a6e04d5485c06cd7ddb",
+  "bfas_sha256": "5898d60b41560ba2903a1035a5b7461544fbd4af181f238a198284b89efbbe26",
+  "built_in": "claude.ai cloud container, Ubuntu 24.04, g++ 13.3, 2026-10-11",
+  "not_the_switch_compiler": "The rig compiles with Intel SDE 9.13.2 (p4c 9.13.2, SHA 1baf055). This is NOT qualification evidence for that compiler."
+ },
+ "command": "bf-p4c --target tofino --arch tna -g -o <dir> single_pipe.p4",
+ "calibration": "see ../opensource_9134_01 (same compiler binaries; three recorded builds reproduced)",
+ "builds": {
+  "sp_cut": {
+   "source": "case4_architecture/simplify/single_pipe/single_pipe.p4",
+   "source_sha256": "05e95d370b36f1e70ac1ebf3f79538ec8e9f9d06d6e044795efeeec6970cbcc5",
+   "exit_code": 0,
+   "edits": "S1 S2 S3 S4 (make_single_pipe.py)",
+   "ingress": 10,
+   "egress": 11,
+   "critical_path": 10,
+   "allocation_attempts": 5,
+   "phv_containers": 158,
+   "phv_32b": "57/64",
+   "tables_allocated": 113,
+   "logical_table_ids": 113,
+   "hash_distribution_units": 19,
+   "previous": {
+    "build": "../opensource_9134_01 sp",
+    "ingress": 10,
+    "egress": 12,
+    "critical_path": 11,
+    "tables_allocated": 117
+   },
+   "compile_log_sha256": "063a290524f9cfbfbf35c924fb37e52107eca015fb7445da454172d462860dbe",
+   "tofino_bin_sha256": "1963b2c80f4096217d08839607f243df19326ff2e20d08f1c7bcceb0bbac09e2",
+   "bfrt_json_sha256": "e764104cc3b8e8a3e341db11f8b9317e57a893dfc33ebb94f362720922f6e047"
+  }
+ }
+}

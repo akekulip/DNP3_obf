@@ -3347,6 +3347,7 @@ struct r_meta_t {
     /* forward / reverse share these (see case4_transport_mapper.p4 for the table) */
     bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;
     bit<8>  result; bit<1> changed; bit<1> pad; bit<8> wide;
+    bit<32> win32; bit<32> u;   // single-pipe edit S3: widened window; q - p + window, then r + that
     /* padder verdict and CRC scratch (case4_pad58b_wire.p4) */
     bit<16> rtcrc; bit<16> ctcrc1;
     bit<1> read_shape; bit<1> ctl_shape;
@@ -3543,22 +3544,16 @@ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_me
     CRCPolynomial<bit<16>>(16w0x3D65,true,false,false,16w0,16w0xFFFF) poly;
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_dl;
     action in_dl(){m.in_dl=hash_in_dl.get({hdr.dl.start,hdr.dl.len,hdr.dl.ctrl,hdr.dl.dst,hdr.dl.src});}
-    table in_dl_t{actions={in_dl;}size=1;const default_action=in_dl();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb0;
     action in_rb0(){m.in_rb0=hash_in_rb0.get({hdr.rb0.tpctrl,hdr.rb0.appctrl,hdr.rb0.func,hdr.rb0.iin,hdr.rb0.g_group,hdr.rb0.g_var,hdr.rb0.g_qual,hdr.rb0.g_start,hdr.rb0.g_stop,hdr.rb0.data_mid});}
-    table in_rb0_t{actions={in_rb0;}size=1;const default_action=in_rb0();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb1;
     action in_rb1(){m.in_rb1=hash_in_rb1.get({hdr.rb1.data});}
-    table in_rb1_t{actions={in_rb1;}size=1;const default_action=in_rb1();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rt;
     action in_rt(){m.in_rt=hash_in_rt.get({hdr.rtn.data_last});}
-    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_cb0;
     action in_cb0(){m.in_cb0=hash_in_cb0.get({hdr.cb0.tpctrl,hdr.cb0.appctrl,hdr.cb0.func,hdr.cb0.iin,hdr.cb0.g_group,hdr.cb0.g_var,hdr.cb0.g_qual,hdr.cb0.g_count,hdr.cb0.index,hdr.cb0.crob_code,hdr.cb0.crob_count,hdr.cb0.on_hi});}
-    table in_cb0_t{actions={in_cb0;}size=1;const default_action=in_cb0();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_ct;
     action in_ct(){m.in_ct=hash_in_ct.get({hdr.ctn.on_lo,hdr.ctn.off,hdr.ctn.status});}
-    table in_ct_t{actions={in_ct;}size=1;const default_action=in_ct();}
 
     /* ============ mapper registers ============ */
     Register<bit<8>, r_slot_t>(16, 0) mode;
@@ -3719,7 +3714,7 @@ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_me
     action do_wend_arm() { wend_arm.execute(m.idx); }
     action do_wend_commit() { hdr.tcp.seq = wend_commit.execute(m.idx); }
     action do_wend_fwd() { hdr.tcp.seq = wend_fwd.execute(m.idx); }
-    action do_wend_rev() { m.r = wend_rev.execute(m.idx); }
+    action do_wend_rev() { m.r = wend_rev.execute(m.idx); m.u = m.u + m.win32; }   // S3: u = q - p + window
     table img_wend_t {
         key = { m.dir : exact; m.shape : ternary; m.result : ternary; }
         actions = { do_wend_arm; do_wend_commit; do_wend_fwd; do_wend_rev; NoAction; } size = 8;
@@ -3738,50 +3733,64 @@ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_me
     table ctl_pad_t{actions={ctl_eligible;}size=1;const default_action=ctl_eligible();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_tail;
     action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.rtn.data_last,8w0x29,64w0x0106290206290306});}
-    table crc_read_tail_t{actions={crc_read_tail;}size=1;const default_action=crc_read_tail();}
     Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_ctl_tail1;
     action crc_ctl_tail1(){m.ctcrc1=hash_ctl_tail1.get({hdr.ctn.on_lo,hdr.ctn.off,hdr.ctn.status,8w0x29,64w0x032802002d010000});}
-    table crc_ctl_tail1_t{actions={crc_ctl_tail1;}size=1;const default_action=crc_ctl_tail1();}
+    /* S4: the same CRC actions, grouped two per table (bf-p4c: at most 32 hash-output bits per table) */
+    action crc_dl_ctl(){in_dl();crc_ctl_tail1();}
+    table crc_dl_t{key={hdr.cb0.isValid():exact;}actions={crc_dl_ctl;in_dl;NoAction;}size=2;const default_action=NoAction();
+     const entries={true:crc_dl_ctl();false:in_dl();}}
+    action crc_read_a(){in_rb0();in_rb1();}
+    table crc_read_a_t{actions={crc_read_a;}size=1;const default_action=crc_read_a();}
+    action crc_read_b(){in_rt();crc_read_tail();}
+    table crc_read_b_t{actions={crc_read_b;}size=1;const default_action=crc_read_b();}
+    action crc_ctl_a(){in_cb0();in_ct();}
+    table crc_ctl_a_t{actions={crc_ctl_a;}size=1;const default_action=crc_ctl_a();}
 
 
     /* ============ reverse: monotone inverse on both window edges (spec section 6) ============ */
     /* r + window: the window is widened through an identity hash (a 16-bit metadata operand in a 32-bit
        add drew "invalid container action within a Tofino ALU"). Keyed so the hash runs on a hit. */
     Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_win;
-    action rev_prep() { m.y = m.r + widen_win.get({hdr.tcp.window}); m.z = m.r + r_IMAGE_LEN; m.pm = m.q + m.r; m.t = m.q - m.p; }
+    /* S3: everything in the window edge except r, computed before img_wend_t on reverse packets */
+    /* m.changed set here, not in classify_rev: every reverse outcome rewrites the segment except rev_drop,
+       which drops it, so its checksum is moot. The deparser condition then no longer waits for classify_rev. */
+    /* One table: u = q - p, the widened window, and m.changed; img_wend_t's reverse action adds the window. */
+    action rev_qp() { m.u = m.q - m.p; m.win32 = widen_win.get({hdr.tcp.window}); m.changed = 1; }
+    table rev_qp_t {
+        key = { m.dir : exact; } actions = { rev_qp; NoAction; } size = 1;
+        const default_action = NoAction(); const entries = { 2 : rev_qp(); }
+    }
+    action rev_prep() { m.y = m.r + m.win32; m.z = m.r + r_IMAGE_LEN; m.pm = m.q + m.r; m.u = m.r + m.u; }
     table rev_prep_t {
         key = { m.dir : exact; } actions = { rev_prep; NoAction; } size = 1;
         const default_action = NoAction(); const entries = { 2 : rev_prep(); }
     }
-    action rev_translate() { hdr.tcp.ack = m.pm; m.result = r_OUT_REV_TRANSLATE; m.changed = 1; }
-    action rev_withhold_zero() { hdr.tcp.ack = m.p; hdr.tcp.window = 0; m.result = r_OUT_REV_WITHHOLD; m.changed = 1; }
-    action rev_withhold_open() { hdr.tcp.ack = m.p; m.s_end = m.y + m.t; m.wide = 1;
-                                 m.result = r_OUT_REV_WITHHOLD; m.changed = 1; }
-    action rev_drop() { m.result = r_OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }
+    Counter<bit<32>, bit<8>>(32, CounterType_t.PACKETS) outcome;
+    action rev_translate() { hdr.tcp.ack = m.pm; m.result = r_OUT_REV_TRANSLATE; outcome.count(r_OUT_REV_TRANSLATE); }
+    action rev_withhold_zero() { hdr.tcp.ack = m.p; hdr.tcp.window = 0; m.result = r_OUT_REV_WITHHOLD; outcome.count(r_OUT_REV_WITHHOLD); }
+    /* S3: window_t folded in. u holds the old s_end; its upper half picks exact or clamped, as window_t did. */
+    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;
+    action rev_withhold_open() { hdr.tcp.ack = m.p; hdr.tcp.window = narrow_win.get({m.u[15:0]}); m.wide = 1;
+                                 m.result = r_OUT_REV_WITHHOLD; outcome.count(r_OUT_REV_WITHHOLD); }
+    action rev_withhold_clamp() { hdr.tcp.ack = m.p; hdr.tcp.window = 0xffff; m.wide = 1;
+                                  m.result = r_OUT_REV_WITHHOLD; outcome.count(r_OUT_REV_WITHHOLD); }
+    action rev_drop() { m.result = r_OUT_REV_DROP_STALE; md.drop_ctl = 3w1; outcome.count(r_OUT_REV_DROP_STALE); }
     table classify_rev {
-        key = { m.r : ternary; m.z : ternary; m.y : ternary; }
-        actions = { rev_translate; rev_withhold_zero; rev_withhold_open; rev_drop; } size = 4;
+        key = { m.r : ternary; m.z : ternary; m.y : ternary; m.u : ternary; }
+        actions = { rev_translate; rev_withhold_zero; rev_withhold_open; rev_withhold_clamp; rev_drop; } size = 4;
         const default_action = rev_drop();
         const entries = {
-            (32w0 &&& 32w0x80000000, _, _)                                    : rev_translate();
-            (_, 32w0 &&& 32w0x80000000, 32w0x80000000 &&& 32w0x80000000)     : rev_withhold_zero();
-            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000)              : rev_withhold_open();
+            (32w0 &&& 32w0x80000000, _, _, _)                                            : rev_translate();
+            (_, 32w0 &&& 32w0x80000000, 32w0x80000000 &&& 32w0x80000000, _)             : rev_withhold_zero();
+            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0xFFFF0000) : rev_withhold_open();
+            (_, 32w0 &&& 32w0x80000000, 32w0 &&& 32w0x80000000, _)                       : rev_withhold_clamp();
         }
-    }
-    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;
-    action window_exact() { hdr.tcp.window = narrow_win.get({m.s_end[15:0]}); }
-    action window_clamp() { hdr.tcp.window = 0xffff; }
-    table window_t {
-        key = { m.s_end : ternary; }
-        actions = { window_exact; window_clamp; } size = 2; const default_action = window_clamp();
-        const entries = { 32w0 &&& 32w0xFFFF0000 : window_exact(); 32w0 &&& 32w0 : window_clamp(); }
     }
 
     /* ============ outcome bookkeeping ============
        count_t is observability only. settle_t is NOT: it drops untranslatable shapes on mapped connections
        (drop_odd) and gives m.result its value on paths no classifier writes. */
-    Counter<bit<32>, bit<8>>(32, CounterType_t.PACKETS) outcome;
-    action count() { outcome.count(m.result); }
+    action count() { outcome.count(m.result); }   // S3: outcome is declared before classify_rev
     table count_t { actions = { count; } size = 1; const default_action = count(); }
     action drop_odd() { m.result = r_OUT_DROP_ODD; md.drop_ctl = 3w1; }
     action native() { m.result = r_OUT_NATIVE; }
@@ -3799,9 +3808,9 @@ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_me
         if (hdr.tcp.isValid()) { conn.apply(); leff_t.apply(); prep_t.apply(); }
         else if (m.ip_odd == 1) { odd_ip_t.apply(); }
         shape_t.apply();
-        if (hdr.dl.isValid()) { in_dl_t.apply(); }
-        if (hdr.rb0.isValid()) { read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); crc_read_tail_t.apply(); }
-        if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); crc_ctl_tail1_t.apply(); }
+        if (hdr.dl.isValid()) { crc_dl_t.apply(); }   // S4
+        if (hdr.rb0.isValid()) { read_profile.apply(); crc_read_a_t.apply(); crc_read_b_t.apply(); }   // S4
+        if (hdr.cb0.isValid()) { ctl_profile.apply(); crc_ctl_a_t.apply(); }   // S4
         /* padder native-CRC verdict */
         if (hdr.dl.crc != (m.in_dl[7:0] ++ m.in_dl[15:8])) { m.badh = 1; }
         if (hdr.rb0.crc0 != (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { m.rbad0 = 1; }
@@ -3817,20 +3826,22 @@ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_me
         acct_t.apply();
         img_end_t.apply();
         img_start_t.apply();
+        if (m.dir == 2 && m.shape == r_SH_ACK && m.mode == 1) { rev_qp_t.apply(); }   // S3
         if (m.dir == 1 && (m.shape == r_SH_ACK || m.shape == r_SH_NOACK)) {
             fwd_prep_t.apply();
             if (m.mode == 1) { classify_fwd.apply(); }
         }
         if ((m.dir == 1 && m.shape == r_SH_SYNACK_OK) || m.mode == 1) { img_wend_t.apply(); }
         /* pad only on commit or replay; the verdict that allowed either also fixes the profile */
-        if (m.pad == 1) {
-            if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }
-        } else if (m.dir == 2 && m.shape == r_SH_ACK && m.mode == 1) {   // exclusive with padding
-            rev_prep_t.apply(); classify_rev.apply();
-            if (m.wide == 1) { window_t.apply(); }
+        if (m.dir == 2 && m.shape == r_SH_ACK && m.mode == 1) {   // S3: reverse first; pad == 1 never holds here
+            rev_prep_t.apply(); classify_rev.apply();   // window_t folded in; classify_rev counts its own outcome
+        } else {
+            if (m.pad == 1) {
+                if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }
+            }
+            syn_scrub_t.apply();   // S2: r_SH_SYN never takes the forward, padding or reverse-ACK branch
+            count_t.apply();
         }
-        syn_scrub_t.apply();   // S2: r_SH_SYN never takes the forward, padding or reverse-ACK branch
-        count_t.apply();
     }
 }
 

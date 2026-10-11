@@ -1,0 +1,631 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 15
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 15
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 113
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 2 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 3 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 3 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 4 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2856                       |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2897                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2898                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2899                       |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2965                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2971                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2981                       |
+|   1   |    [ 1, 3 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 3 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_b_t                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_a_t                  |
+|   1   |    [ 0, 4 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_ctl_a_t                   |
+|   1   |    [ 0, 5 ]     |                      tbl_sp4l2941                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2943                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2946                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2949                       |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2999                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2997                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2998                       |
+|   1   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   1   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 4 ]     |                  r_Egress.ctl_profile                   |
+|   2   |    [ 0, 3 ]     |                    r_Egress.crc_dl_t                    |
+|   2   |    [ 2, 4 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3820                       |
+|   2   |    [ 2, 5 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 6 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2910                       |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2903                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2904                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2907                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2908                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2905                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2862                       |
+|   2   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   2   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3819                       |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3817                       |
+|   3   |    [ 2, 6 ]     |                      tbl_sp4l3017                       |
+|   3   |    [ 2, 6 ]     |                      tbl_sp4l3019                       |
+|   3   |    [ 2, 7 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3022                       |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l2916                       |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3101                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3102                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3103                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3104                       |
+|   3   |    [ 2, 7 ]     |                         cond-93                         |
+|   3   |   [ 0, 10 ]     |                      tbl_sp4l2853                       |
+|   4   |    [ 1, 4 ]     |                      tbl_sp4l3818                       |
+|   4   |    [ 1, 4 ]     |                      tbl_sp4l3816                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3043                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3047                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3053                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3069                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3064                       |
+|   4   |    [ 3, 7 ]     |                      tbl_sp4l3066                       |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3114                       |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3105                       |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3106                       |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3113                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3116                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3117                       |
+|   4   |    [ 3, 9 ]     |                      tbl_sp4l3118                       |
+|   5   |    [ 1, 4 ]*    |                      tbl_sp4l3815                       |
+|   5   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   5   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   5   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   5   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3122                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3123                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3124                       |
+|   5   |    [ 0, 9 ]     |                      tbl_sp4l2865                       |
+|   6   |    [ 3, 5 ]*    |                     r_Egress.acct_t                     |
+|   6   |    [ 5, 9 ]     |                      tbl_sp4l3084                       |
+|   6   |    [ 5, 9 ]     |                      tbl_sp4l3090                       |
+|   6   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   7   |    [ 4, 6 ]*    |                  r_Egress.img_start_t                   |
+|   7   |    [ 4, 6 ]*    |                   r_Egress.img_end_t                    |
+|   7   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   8   |    [ 5, 7 ]*    |                    r_Egress.rev_qp_t                    |
+|   8   |    [ 5, 7 ]*    |                   r_Egress.fwd_prep_t                   |
+|   8   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|   9   |    [ 6, 8 ]*    |                  r_Egress.classify_fwd                  |
+|  10   |    [ 7, 9 ]*    |                   r_Egress.img_wend_t                   |
+|  10   |    [ -, - ]     |                  r_Egress.syn_scrub_t                   |
+|  10   |   [ 7, 10 ]     |                        cond-129                         |
+|  10   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|  10   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|  10   |    [ -, - ]     |                    r_Egress.count_t                     |
+|  11   |   [ 8, 10 ]*    |                   r_Egress.rev_prep_t                   |
+|  12   |    [ -, - ]     |                  r_Egress.classify_rev                  |
+|  12   |   [ 8, 11 ]*    |       egress_reset_invalidated_checksum_fields_1        |
+|  12   |   [ 8, 11 ]*    |       egress_reset_invalidated_checksum_fields_0        |
+|  13   |   [ 7, 11 ]*    | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  14   |   [ 9, 11 ]*    | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 11
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 113
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 2 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 3 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 3 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 4 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2856                       |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2897                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2898                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2899                       |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2965                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2971                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2981                       |
+|   1   |    [ 1, 3 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 3 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_b_t                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_a_t                  |
+|   1   |    [ 0, 4 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_ctl_a_t                   |
+|   1   |    [ 0, 4 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 5 ]     |                      tbl_sp4l2941                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2943                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2946                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2949                       |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2999                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2997                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2998                       |
+|   1   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 3 ]     |                    r_Egress.crc_dl_t                    |
+|   2   |    [ 2, 4 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3820                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3819                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3818                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3817                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3816                       |
+|   2   |    [ 2, 5 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 6 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2910                       |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2903                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2904                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2907                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2908                       |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3815                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2905                       |
+|   3   |    [ 0, 6 ]     |                      tbl_sp4l2862                       |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l2916                       |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   3   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 2, 6 ]     |                      tbl_sp4l3017                       |
+|   3   |    [ 2, 7 ]     |                    r_Egress.settle_t                    |
+|   3   |   [ 0, 10 ]     |                      tbl_sp4l2853                       |
+|   4   |    [ 3, 5 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 6 ]     |                      tbl_sp4l3019                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3022                       |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3114                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3101                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3102                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3103                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3104                       |
+|   4   |    [ 2, 7 ]     |                         cond-93                         |
+|   5   |    [ 4, 6 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 6 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3043                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3047                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3053                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3069                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3064                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3066                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3105                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3106                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3113                       |
+|   5   |    [ 0, 9 ]     |                      tbl_sp4l2865                       |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   6   |    [ 5, 7 ]     |                    r_Egress.rev_qp_t                    |
+|   6   |    [ 5, 7 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3122                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3123                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3124                       |
+|   6   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 3, 8 ]     |                      tbl_sp4l3116                       |
+|   6   |    [ 3, 8 ]     |                      tbl_sp4l3117                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3118                       |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   7   |    [ 6, 8 ]     |                  r_Egress.classify_fwd                  |
+|   7   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   7   |    [ 5, 9 ]     |                      tbl_sp4l3084                       |
+|   7   |    [ 5, 9 ]     |                      tbl_sp4l3090                       |
+|   8   |    [ 7, 9 ]     |                   r_Egress.img_wend_t                   |
+|   8   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   8   |   [ 6, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ -, - ]     |                  r_Egress.syn_scrub_t                   |
+|   8   |   [ 7, 10 ]     |                        cond-129                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |    [ -, - ]     |                    r_Egress.count_t                     |
+|   9   |   [ 8, 10 ]     |                   r_Egress.rev_prep_t                   |
+|   9   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|  10   |    [ -, - ]     |                  r_Egress.classify_rev                  |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  10   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  10   |   [ 9, 11 ]     | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 11
+Critical path length through the table dependency graph: 10
+Invoking table placement without container conflicts because previous round of table placement took 11 stages.
+Number of tables allocated: 113
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 2 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 3 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 3 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 4 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2856                       |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2897                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2898                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2899                       |
+|   0   |    [ 0, 6 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   0   |    [ 0, 6 ]     |                      tbl_sp4l2910                       |
+|   0   |    [ 0, 6 ]     |                      tbl_sp4l2862                       |
+|   0   |    [ 0, 6 ]     |                         cond-80                         |
+|   1   |    [ 1, 3 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 3 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_b_t                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_a_t                  |
+|   1   |    [ 0, 4 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_ctl_a_t                   |
+|   1   |    [ 0, 4 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2941                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2943                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2965                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2946                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2971                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2949                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2981                       |
+|   1   |    [ 1, 6 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2999                       |
+|   2   |    [ 0, 3 ]     |                    r_Egress.crc_dl_t                    |
+|   2   |    [ 2, 4 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3820                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3819                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3818                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3817                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3816                       |
+|   2   |    [ 2, 5 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 1, 6 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2903                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2904                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2907                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2908                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2905                       |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3815                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2997                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2998                       |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l2916                       |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3101                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3102                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3103                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3104                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3105                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3106                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3113                       |
+|   3   |    [ 0, 9 ]     |                      tbl_sp4l2865                       |
+|   4   |    [ 3, 5 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_resp_authorise               |
+|   4   |    [ 2, 7 ]     |                         cond-90                         |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3017                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3019                       |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3022                       |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3114                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3116                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3117                       |
+|   4   |    [ 3, 9 ]     |                      tbl_sp4l3118                       |
+|   4   |    [ 2, 8 ]     |                         cond-93                         |
+|   4   |   [ 0, 10 ]     |                      tbl_sp4l2853                       |
+|   5   |    [ 4, 6 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 6 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3043                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3047                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3053                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3069                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3064                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3066                       |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3122                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3123                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3124                       |
+|   6   |    [ 5, 7 ]     |                    r_Egress.rev_qp_t                    |
+|   6   |    [ 5, 7 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   6   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   6   |    [ 4, 9 ]     |                      tbl_sp4l3084                       |
+|   6   |    [ 4, 9 ]     |                      tbl_sp4l3090                       |
+|   7   |    [ 6, 8 ]     |                  r_Egress.classify_fwd                  |
+|   7   |   [ 5, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   7   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ 7, 9 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                  r_Egress.syn_scrub_t                   |
+|   8   |   [ 7, 10 ]     |                        cond-129                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |    [ -, - ]     |                    r_Egress.count_t                     |
+|   8   |   [ 6, 11 ]     |                  d_Ingress.tbl_commit                   |
+|   9   |   [ 8, 10 ]     |                   r_Egress.rev_prep_t                   |
+|  10   |    [ -, - ]     |                  r_Egress.classify_rev                  |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  10   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  10   |   [ 9, 11 ]     | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 4 time(s), state = NOCC_TRY2
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 11
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 113
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 2 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 3 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 3 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 4 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2856                       |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2897                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2898                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2899                       |
+|   0   |    [ 0, 6 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   0   |    [ 0, 6 ]     |                      tbl_sp4l2910                       |
+|   0   |    [ 0, 6 ]     |                      tbl_sp4l2862                       |
+|   0   |    [ 0, 6 ]     |                         cond-80                         |
+|   1   |    [ 1, 3 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 3 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_b_t                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_a_t                  |
+|   1   |    [ 0, 4 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_ctl_a_t                   |
+|   1   |    [ 0, 4 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2941                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2943                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2965                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2946                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2971                       |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2949                       |
+|   1   |    [ 0, 6 ]     |                      tbl_sp4l2981                       |
+|   1   |    [ 1, 6 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 6 ]     |                      tbl_sp4l2999                       |
+|   2   |    [ 0, 3 ]     |                    r_Egress.crc_dl_t                    |
+|   2   |    [ 2, 4 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3820                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3819                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3818                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3817                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3816                       |
+|   2   |    [ 2, 5 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 1, 6 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2903                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2904                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2907                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2908                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2905                       |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3815                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2997                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2998                       |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |                    r_Egress.settle_t                    |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l2916                       |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3101                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3102                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3103                       |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l3104                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3105                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3106                       |
+|   3   |    [ 2, 8 ]     |                      tbl_sp4l3113                       |
+|   3   |    [ 0, 9 ]     |                      tbl_sp4l2865                       |
+|   4   |    [ 3, 5 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 7 ]     |              d_Ingress.tbl_resp_authorise               |
+|   4   |    [ 2, 7 ]     |                         cond-90                         |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3017                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3019                       |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3022                       |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3114                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3116                       |
+|   4   |    [ 3, 8 ]     |                      tbl_sp4l3117                       |
+|   4   |    [ 3, 9 ]     |                      tbl_sp4l3118                       |
+|   4   |    [ 2, 8 ]     |                         cond-93                         |
+|   4   |   [ 0, 10 ]     |                      tbl_sp4l2853                       |
+|   5   |    [ 4, 6 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 6 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3043                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3047                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3053                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3069                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3064                       |
+|   5   |    [ 3, 8 ]     |                      tbl_sp4l3066                       |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3122                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3123                       |
+|   5   |    [ 3, 9 ]     |                      tbl_sp4l3124                       |
+|   6   |    [ 5, 7 ]     |                    r_Egress.rev_qp_t                    |
+|   6   |    [ 5, 7 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   6   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   6   |    [ 4, 9 ]     |                      tbl_sp4l3084                       |
+|   6   |    [ 4, 9 ]     |                      tbl_sp4l3090                       |
+|   7   |    [ 6, 8 ]     |                  r_Egress.classify_fwd                  |
+|   7   |   [ 5, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   7   |   [ 5, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ 7, 9 ]     |                   r_Egress.img_wend_t                   |
+|   8   |    [ -, - ]     |                  r_Egress.syn_scrub_t                   |
+|   8   |   [ 7, 10 ]     |                        cond-129                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |    [ -, - ]     |                    r_Egress.count_t                     |
+|   8   |   [ 6, 11 ]     |                  d_Ingress.tbl_commit                   |
+|   9   |   [ 8, 10 ]     |                   r_Egress.rev_prep_t                   |
+|  10   |    [ -, - ]     |                  r_Egress.classify_rev                  |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  10   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  10   |   [ 9, 11 ]     | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 5 time(s), state = REDO_PHV2
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 11
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 113
++-------+-----------------+---------------------------------------------------------+
+| Stage | Min / Max Stage |                       Table Name                        |
++-------+-----------------+---------------------------------------------------------+
+|   0   |    [ 0, 2 ]     |                   leff_t_0$precompute                   |
+|   0   |    [ 0, 3 ]     |                      r_Egress.conn                      |
+|   0   |    [ 0, 3 ]     |                    r_Egress.odd_ip_t                    |
+|   0   |    [ 0, 4 ]     |                     r_Egress.prep_t                     |
+|   0   |    [ -, - ]     |               d_Ingress.tbl_build_exp_ack               |
+|   0   |    [ 0, 4 ]     |                  d_Ingress.tbl_session                  |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2856                       |
+|   0   |    [ 0, 5 ]     |                  d_Ingress.tbl_params                   |
+|   0   |    [ 0, 5 ]     |                         cond-70                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2897                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2898                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2899                       |
+|   0   |    [ 0, 5 ]     |                         cond-80                         |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2965                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2971                       |
+|   0   |    [ 0, 5 ]     |                      tbl_sp4l2981                       |
+|   1   |    [ 1, 3 ]     |                     r_Egress.leff_t                     |
+|   1   |    [ 0, 3 ]     |                    r_Egress.shape_t                     |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_b_t                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_read_a_t                  |
+|   1   |    [ 0, 4 ]     |                  r_Egress.read_profile                  |
+|   1   |    [ 0, 3 ]     |                  r_Egress.crc_ctl_a_t                   |
+|   1   |    [ 0, 4 ]     |                  r_Egress.ctl_profile                   |
+|   1   |    [ 0, 5 ]     |                      tbl_sp4l2941                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2943                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2946                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2949                       |
+|   1   |    [ 1, 5 ]     |               d_Ingress.tbl_expected_ack                |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2999                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2997                       |
+|   1   |    [ 1, 5 ]     |                      tbl_sp4l2998                       |
+|   1   |    [ 1, 6 ]     |                 d_Ingress.tbl_build_now                 |
+|   2   |    [ 0, 3 ]     |                    r_Egress.crc_dl_t                    |
+|   2   |    [ 2, 4 ]     |                    r_Egress.front_t                     |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3820                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3819                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3818                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3817                       |
+|   2   |    [ 1, 4 ]     |                      tbl_sp4l3816                       |
+|   2   |    [ 2, 5 ]     |                    r_Egress.derive_t                    |
+|   2   |    [ 1, 6 ]     |                     r_Egress.mode_t                     |
+|   2   |    [ 0, 6 ]     |                d_Ingress.tbl_bor_params                 |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2910                       |
+|   2   |    [ 0, 6 ]     |                         cond-74                         |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2903                       |
+|   2   |    [ 1, 6 ]     |                      tbl_sp4l2904                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2907                       |
+|   2   |    [ 0, 6 ]     |                      tbl_sp4l2908                       |
+|   3   |    [ 1, 4 ]     |                      tbl_sp4l3815                       |
+|   3   |    [ 1, 6 ]     |                      tbl_sp4l2905                       |
+|   3   |    [ 0, 6 ]     |                      tbl_sp4l2862                       |
+|   3   |    [ 1, 7 ]     |               d_Ingress.tbl_bor_codebook                |
+|   3   |    [ 2, 7 ]     |                      tbl_sp4l2916                       |
+|   3   |    [ 2, 7 ]     |                d_Ingress.tbl_build_cand                 |
+|   3   |    [ 2, 7 ]     |              d_Ingress.tbl_build_cand_resp              |
+|   3   |    [ 2, 6 ]     |              d_Ingress.tbl_resp_authorise               |
+|   3   |    [ 2, 6 ]     |                         cond-90                         |
+|   3   |    [ 2, 6 ]     |                      tbl_sp4l3017                       |
+|   3   |    [ 2, 7 ]     |                    r_Egress.settle_t                    |
+|   3   |   [ 0, 10 ]     |                      tbl_sp4l2853                       |
+|   4   |    [ 3, 5 ]     |                     r_Egress.acct_t                     |
+|   4   |    [ 2, 6 ]     |                      tbl_sp4l3019                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3022                       |
+|   4   |    [ 3, 8 ]     |             d_Ingress.tbl_select_deadlines              |
+|   4   |    [ 2, 8 ]     |                      tbl_sp4l3114                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3101                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3102                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3103                       |
+|   4   |    [ 2, 7 ]     |                      tbl_sp4l3104                       |
+|   4   |    [ 2, 7 ]     |                         cond-93                         |
+|   5   |    [ 4, 6 ]     |                  r_Egress.img_start_t                   |
+|   5   |    [ 4, 6 ]     |                   r_Egress.img_end_t                    |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3043                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3047                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3053                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3069                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3064                       |
+|   5   |    [ 3, 7 ]     |                      tbl_sp4l3066                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3105                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3106                       |
+|   5   |    [ 2, 8 ]     |                      tbl_sp4l3113                       |
+|   5   |    [ 0, 9 ]     |                      tbl_sp4l2865                       |
+|   5   |    [ 2, 9 ]     |                        cond-109                         |
+|   6   |    [ 5, 7 ]     |                    r_Egress.rev_qp_t                    |
+|   6   |    [ 5, 7 ]     |                   r_Egress.fwd_prep_t                   |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3122                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3123                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3124                       |
+|   6   |    [ 4, 8 ]     |                d_Ingress.tbl_txn_active                 |
+|   6   |    [ 3, 8 ]     |                      tbl_sp4l3116                       |
+|   6   |    [ 3, 8 ]     |                      tbl_sp4l3117                       |
+|   6   |    [ 3, 9 ]     |                      tbl_sp4l3118                       |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_state_decode                |
+|   6   |    [ 4, 9 ]     |               d_Ingress.tbl_resp_deadline               |
+|   7   |    [ 6, 8 ]     |                  r_Egress.classify_fwd                  |
+|   7   |    [ 4, 9 ]     |                  d_Ingress.tbl_hold_ok                  |
+|   7   |    [ 5, 9 ]     |                      tbl_sp4l3084                       |
+|   7   |    [ 5, 9 ]     |                      tbl_sp4l3090                       |
+|   8   |    [ 7, 9 ]     |                   r_Egress.img_wend_t                   |
+|   8   |   [ 6, 10 ]     |               d_Ingress.tbl_decide_fresh                |
+|   8   |   [ 6, 10 ]     |                d_Ingress.tbl_decide_deq                 |
+|   8   |    [ -, - ]     |                  r_Egress.syn_scrub_t                   |
+|   8   |   [ 7, 10 ]     |                        cond-129                         |
+|   8   |   [ 7, 10 ]     |                   r_Egress.read_pad_t                   |
+|   8   |   [ 7, 10 ]     |                   r_Egress.ctl_pad_t                    |
+|   8   |    [ -, - ]     |                    r_Egress.count_t                     |
+|   9   |   [ 8, 10 ]     |                   r_Egress.rev_prep_t                   |
+|   9   |   [ 7, 11 ]     |                  d_Ingress.tbl_commit                   |
+|  10   |    [ -, - ]     |                  r_Egress.classify_rev                  |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_1        |
+|  10   |   [ 8, 11 ]     |       egress_reset_invalidated_checksum_fields_0        |
+|  10   |   [ 7, 11 ]     | egresshdr.ip.checksum_encode_update_condition_2_egress  |
+|  10   |   [ 9, 11 ]     | egresshdr.tcp.checksum_encode_update_condition_3_egress |
++-------+-----------------+---------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

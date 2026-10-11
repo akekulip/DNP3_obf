@@ -76,7 +76,9 @@ class Generation(unittest.TestCase):
         # m.changed is set only by forward classify (dir 1) and reverse classify (dir 2, SH_ACK); padding by
         # dir 1 commit/replay. The scrub row requires dir 2 and SH_SYN, so no packet reaches two cases.
         self.assertIn('if (m.dir == 1 && (m.shape == r_SH_ACK || m.shape == r_SH_NOACK))', self.code)
-        self.assertIn('else if (m.dir == 2 && m.shape == r_SH_ACK && m.mode == 1)', self.code)
+        # S3 puts the reverse branch first; padding, the SYN scrub and count_t are in its else branch
+        self.assertIn('if (m.dir == 2 && m.shape == r_SH_ACK && m.mode == 1) {', self.code)
+        self.assertRegex(self.code, r'\} else \{\s*if \(m\.pad == 1\) \{')
 
 
 class TimingIngressBypass(unittest.TestCase):

@@ -1,0 +1,230 @@
+sp4.p4(103): [--Wwarn=unused] warning: 'd_V_BLK_OP_LIVE' is unused
+const bit<8> d_V_BLK_OP_LIVE = 8w1;
+             ^^^^^^^^^^^^^^^
+sp4.p4(143): [--Wwarn=unused] warning: 'd_CLONE_TAG_MARKER' is unused
+const bit<32> d_CLONE_TAG_MARKER = 32w0xE1000000; /* base marker (back-compat alias == 2K) */
+              ^^^^^^^^^^^^^^^^^^
+sp4.p4(154): [--Wwarn=unused] warning: 'd_PGEN_HDR_BITS' is unused
+const bit<32> d_PGEN_HDR_BITS = 32w48;
+              ^^^^^^^^^^^^^^^
+sp4.p4(335): [--Wwarn=unused] warning: 'd_MODE_D2_RESP' is unused
+const bit<8> d_MODE_D2_RESP = 8w2; /* ACK immediate; RESPONSE held to T_RESP            */
+             ^^^^^^^^^^^^^^
+sp4.p4(400): [--Wwarn=unused] warning: 'd_CF_BYPASS_FWD' is unused
+const bit<8> d_CF_BYPASS_FWD = 8w0; /* d_ROLE_BYPASS forwarded transparently        */
+             ^^^^^^^^^^^^^^^
+sp4.p4(401): [--Wwarn=unused] warning: 'd_CF_BAD_PORT' is unused
+const bit<8> d_CF_BAD_PORT = 8w1; /* dropped: ingress port not in the topology  */
+             ^^^^^^^^^^^^^
+sp4.p4(402): [--Wwarn=unused] warning: 'd_CF_ARM_FRESH' is unused
+const bit<8> d_CF_ARM_FRESH = 8w2; /* READ armed a new generation + one K=64 burst*/
+             ^^^^^^^^^^^^^^
+sp4.p4(403): [--Wwarn=unused] warning: 'd_CF_ARM_DUP' is unused
+const bit<8> d_CF_ARM_DUP = 8w3; /* duplicate READ: forwarded, NO second burst  */
+             ^^^^^^^^^^^^
+sp4.p4(404): [--Wwarn=unused] warning: 'd_CF_ARM_BUSY' is unused
+const bit<8> d_CF_ARM_BUSY = 8w4; /* CONCURRENT_TRANSACTION_ESCAPE (direction §7)*/
+             ^^^^^^^^^^^^^
+sp4.p4(405): [--Wwarn=unused] warning: 'd_CF_ACK_HOLD' is unused
+const bit<8> d_CF_ACK_HOLD = 8w5; /* qualifying ACK -> Q_HOLD, deadline armed    */
+             ^^^^^^^^^^^^^
+sp4.p4(406): [--Wwarn=unused] warning: 'd_CF_ACK_DUP_HOLD' is unused
+const bit<8> d_CF_ACK_DUP_HOLD = 8w6; /* second qualifying ACK -> Q_HOLD, NO re-arm  */
+             ^^^^^^^^^^^^^^^^^
+sp4.p4(407): [--Wwarn=unused] warning: 'd_CF_ACK_REJECT' is unused
+const bit<8> d_CF_ACK_REJECT = 8w7; /* ACK failed §8.1 -> forwarded unprotected    */
+             ^^^^^^^^^^^^^^^
+sp4.p4(408): [--Wwarn=unused] warning: 'd_CF_RESP_HOLD_EARLY' is unused
+const bit<8> d_CF_RESP_HOLD_EARLY= 8w8; /* RESPONSE before the ACK release (rel_diff!=0)*/
+             ^^^^^^^^^^^^^^^^^^^^
+sp4.p4(409): [--Wwarn=unused] warning: 'd_CF_RESP_HOLD_LATE' is unused
+const bit<8> d_CF_RESP_HOLD_LATE = 8w9; /* RESPONSE after  the ACK release (rel_diff==0)*/
+             ^^^^^^^^^^^^^^^^^^^
+sp4.p4(410): [--Wwarn=unused] warning: 'd_CF_RESP_BYPASS' is unused
+const bit<8> d_CF_RESP_BYPASS = 8w10; /* RESPONSE failed §8.2 / stale / no active txn */
+             ^^^^^^^^^^^^^^^^
+sp4.p4(411): [--Wwarn=unused] warning: 'd_CF_UNSUP_SEG' is unused
+const bit<8> d_CF_UNSUP_SEG = 8w11; /* UNSUPPORTED_SEGMENTATION (direction §8)      */
+             ^^^^^^^^^^^^^^
+sp4.p4(412): [--Wwarn=unused] warning: 'd_CF_BLOCK_ENQ' is unused
+const bit<8> d_CF_BLOCK_ENQ = 8w12; /* host token ACCEPTED into Q_BLOCK (legacy A/B; NOT the R3-d...
+             ^^^^^^^^^^^^^^
+sp4.p4(413): [--Wwarn=unused] warning: 'd_CF_PKTGEN_ADMIT' is unused
+const bit<8> d_CF_PKTGEN_ADMIT = 8w13; /* generated token -> Q_BLOCK                   */
+             ^^^^^^^^^^^^^^^^^
+sp4.p4(414): [--Wwarn=unused] warning: 'd_CF_PKTGEN_DROP' is unused
+const bit<8> d_CF_PKTGEN_DROP = 8w14; /* generated token, no active txn -> dropped    */
+             ^^^^^^^^^^^^^^^^
+sp4.p4(422): [--Wwarn=unused] warning: 'd_CF_CLONE_SEEN' is unused
+const bit<8> d_CF_CLONE_SEEN = 8w15; /* the tagged clone came back on dp68: dropped  */
+             ^^^^^^^^^^^^^^^
+sp4.p4(429): [--Wwarn=unused] warning: 'd_CF_RESP_DUP_SUPP' is unused
+const bit<8> d_CF_RESP_DUP_SUPP = 8w16; /* TCP-position-matched RESPONSE retransmission, suppress...
+             ^^^^^^^^^^^^^^^^^^
+sp4.p4(430): [--Wwarn=unused] warning: 'd_CF_BLOCK_REJECT' is unused
+const bit<8> d_CF_BLOCK_REJECT = 8w17; /* R3: fresh host 0x88C1 REJECTED before Q_BLOCK */
+             ^^^^^^^^^^^^^^^^^
+sp4.p4(436): [--Wwarn=unused] warning: 'd_CD_BLOCK_LOOP' is unused
+const bit<8> d_CD_BLOCK_LOOP = 8w0; /* token re-enqueued, one budget unit consumed  */
+             ^^^^^^^^^^^^^^^
+sp4.p4(437): [--Wwarn=unused] warning: 'd_CD_BLOCK_TERM_STALE' is unused
+const bit<8> d_CD_BLOCK_TERM_STALE = 8w1; /* token terminated: not the current generation */
+             ^^^^^^^^^^^^^^^^^^^^^
+sp4.p4(438): [--Wwarn=unused] warning: 'd_CD_BLOCK_TERM_DL' is unused
+const bit<8> d_CD_BLOCK_TERM_DL = 8w2; /* token terminated: deadline reached           */
+             ^^^^^^^^^^^^^^^^^^
+sp4.p4(439): [--Wwarn=unused] warning: 'd_CD_BLOCK_TERM_TMO' is unused
+const bit<8> d_CD_BLOCK_TERM_TMO = 8w3; /* token terminated: ACK_MISSING_FAIL_OPEN      */
+             ^^^^^^^^^^^^^^^^^^^
+sp4.p4(440): [--Wwarn=unused] warning: 'd_CD_RELEASE_DEADLINE' is unused
+const bit<8> d_CD_RELEASE_DEADLINE = 8w4; /* RESPONSE released, reservoir drained on D    */
+             ^^^^^^^^^^^^^^^^^^^^^
+sp4.p4(441): [--Wwarn=unused] warning: 'd_CD_RELEASE_FAILOPEN' is unused
+const bit<8> d_CD_RELEASE_FAILOPEN = 8w5; /* RESPONSE released, reservoir drained on B    */
+             ^^^^^^^^^^^^^^^^^^^^^
+sp4.p4(442): [--Wwarn=unused] warning: 'd_CD_ACK_RELEASE' is unused
+const bit<8> d_CD_ACK_RELEASE = 8w6; /* D3: ACK left Q_HOLD, a RESPONSE was pending  */
+             ^^^^^^^^^^^^^^^^
+sp4.p4(446): [--Wwarn=unused] warning: 'd_CD_ACK_REL_RETIRE' is unused
+const bit<8> d_CD_ACK_REL_RETIRE = 8w7; /* D3/E1: ACK left Q_HOLD and retired the txn   */
+             ^^^^^^^^^^^^^^^^^^^
+sp4.p4(1703): [--Wwarn=unused] warning: 'ts_first_block_w' is unused
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+sp4.p4(1707): [--Wwarn=unused] warning: 'ts_ack_arm_w' is unused
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+sp4.p4(1711): [--Wwarn=unused] warning: 'ts_block_term_w' is unused
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+sp4.p4(1719): [--Wwarn=unused] warning: 'ts_ack_release_w' is unused
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+sp4.p4(1830): [--Wwarn=unused] warning: 'ctr_fresh' is unused
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+sp4.p4(1831): [--Wwarn=unused] warning: 'ctr_deq' is unused
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+sp4.p4(1901): [--Wwarn=unused] warning: 'arm_clone' is unused
+    action arm_clone() {
+           ^^^^^^^^^
+sp4.p4(3207): [--Wwarn=unused] warning: parser 'd_EgParser' is unused
+parser d_EgParser(packet_in pkt, out d_headers_t hdr, out d_eg_meta_t m,
+       ^^^^^^^^^^
+sp4.p4(3242): [--Wwarn=unused] warning: control 'd_Egress' is unused
+control d_Egress(inout d_headers_t hdr, inout d_eg_meta_t m,
+        ^^^^^^^^
+sp4.p4(3253): [--Wwarn=unused] warning: control 'd_EgDeparser' is unused
+control d_EgDeparser(packet_out pkt, inout d_headers_t hdr, in d_eg_meta_t m,
+        ^^^^^^^^^^^^
+sp4.p4(3298): [--Wwarn=unused] warning: 'r_SH_NONE' is unused
+const bit<8> r_SH_NONE = 0; const bit<8> r_SH_SYNACK_OK = 1; const bit<8> r_SH_SYN = 2; const bit...
+             ^^^^^^^^^
+sp4.p4(3417): [--Wwarn=unused] warning: parser 'r_IgParser' is unused
+parser r_IgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out ingress_intrinsic_metad...
+       ^^^^^^^^^^
+sp4.p4(3420): [--Wwarn=unused] warning: control 'r_Ingress' is unused
+control r_Ingress(inout r_headers_t hdr, inout r_meta_t m, in ingress_intrinsic_metadata_t ig,
+        ^^^^^^^^^
+sp4.p4(3428): [--Wwarn=unused] warning: control 'r_IgDeparser' is unused
+control r_IgDeparser(packet_out pkt, inout r_headers_t hdr, in r_meta_t m, in ingress_intrinsic_m...
+        ^^^^^^^^^^^^
+sp4.p4(3207): [--Winfo=removed] info: removing parser 'd_EgParser'
+parser d_EgParser(packet_in pkt, out d_headers_t hdr, out d_eg_meta_t m,
+       ^^^^^^^^^^
+sp4.p4(3242): [--Winfo=removed] info: removing control 'd_Egress'
+control d_Egress(inout d_headers_t hdr, inout d_eg_meta_t m,
+        ^^^^^^^^
+sp4.p4(3253): [--Winfo=removed] info: removing control 'd_EgDeparser'
+control d_EgDeparser(packet_out pkt, inout d_headers_t hdr, in d_eg_meta_t m,
+        ^^^^^^^^^^^^
+sp4.p4(3417): [--Winfo=removed] info: removing parser 'r_IgParser'
+parser r_IgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out ingress_intrinsic_metad...
+       ^^^^^^^^^^
+sp4.p4(3420): [--Winfo=removed] info: removing control 'r_Ingress'
+control r_Ingress(inout r_headers_t hdr, inout r_meta_t m, in ingress_intrinsic_metadata_t ig,
+        ^^^^^^^^^
+sp4.p4(3428): [--Winfo=removed] info: removing control 'r_IgDeparser'
+control r_IgDeparser(packet_out pkt, inout r_headers_t hdr, in r_meta_t m, in ingress_intrinsic_m...
+        ^^^^^^^^^^^^
+sp4.p4(720): [--Wwarn=uninitialized-out-param] warning: out parameter 'meta' may be uninitialized when 'd_IgParser' terminates
+                out d_ig_meta_t meta,
+                                ^^^^
+sp4.p4(718)
+parser d_IgParser(packet_in pkt,
+       ^^^^^^^^^^
+sp4.p4(3433): [--Wwarn=uninitialized-out-param] warning: out parameter 'm' may be uninitialized when 'r_EgParser' terminates
+...gParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                            ^
+sp4.p4(3433)
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metada...
+       ^^^^^^^^^^
+sp4.p4(3518): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+sp4.p4(3545): warning: Expected single call to get for hash instance 'r_Egress.hash_in_dl'.Control plane API is not generated for this hash call
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_dl;
+                                               ^^^^^^^^^^
+sp4.p4(3518): warning: Expected single call to get for hash instance 'r_Egress.widen_len'.Control plane API is not generated for this hash call
+    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_len;
+                                            ^^^^^^^^^
+sp4.p4(3545): warning: Expected single call to get for hash instance 'r_Egress.hash_in_dl'.Control plane API is not generated for this hash call
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_dl;
+                                               ^^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: sp4.p4(2281): The stage specified for table d_Ingress.tbl_resp_authorise is 2, but we could not place it until stage 3
+    table tbl_resp_authorise {
+          ^^^^^^^^^^^^^^^^^^
+
+warning: sp4.p4(2334): The stage specified for table d_Ingress.tbl_select_deadlines is 3, but we could not place it until stage 4
+    table tbl_select_deadlines {
+          ^^^^^^^^^^^^^^^^^^^^
+
+warning: sp4.p4(2342): The stage specified for table d_Ingress.tbl_state_decode is 4, but we could not place it until stage 6
+    table tbl_state_decode {
+          ^^^^^^^^^^^^^^^^
+
+warning: sp4.p4(1970): The stage specified for table d_Ingress.tbl_commit is 6, but we could not place it until stage 9
+    table tbl_commit {
+          ^^^^^^^^^^
+
+
+0 errors, 56 warnings generated.
+
+sp4/pipe/sp4.bfa:10373: warning: duplicate hash group 0, will merge with
+sp4/pipe/sp4.bfa:10368: warning: previous definition here
+sp4/pipe/sp4.bfa:10897: warning: duplicate hash group 0, will merge with
+sp4/pipe/sp4.bfa:10891: warning: previous definition here
+sp4/pipe/sp4.bfa:10903: warning: duplicate hash group 0, will merge with
+sp4/pipe/sp4.bfa:10897: warning: previous definition here
+sp4/pipe/sp4.bfa:11087: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:11081: warning: previous definition here
+sp4/pipe/sp4.bfa:11095: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:11087: warning: previous definition here
+sp4/pipe/sp4.bfa:11103: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:11095: warning: previous definition here
+sp4/pipe/sp4.bfa:11256: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:11250: warning: previous definition here
+sp4/pipe/sp4.bfa:11262: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:11256: warning: previous definition here
+sp4/pipe/sp4.bfa:12640: warning: duplicate hash group 1, will merge with
+sp4/pipe/sp4.bfa:12635: warning: previous definition here
+sp4/pipe/sp4.bfa:4199: warning: Action bus byte 36 set in table tbl_sp4l2998$tind and table tbl_sp4l2997$tind
+sp4/pipe/sp4.bfa:4199: warning: Action bus byte 38 set in table tbl_sp4l2998$tind and table tbl_sp4l2997$tind
+sp4/pipe/sp4.bfa:10951: warning: Input xbar hash group 0 mergeable conflict in stage 1
+sp4/pipe/sp4.bfa:10903: warning: conflicting hash group definition here
+sp4/pipe/sp4.bfa:11103: warning: Input xbar hash group 1 mergeable conflict in stage 1
+sp4/pipe/sp4.bfa:10959: warning: conflicting hash group definition here
+sp4/pipe/sp4.bfa:11341: warning: Input xbar hash group 1 mergeable conflict in stage 2
+sp4/pipe/sp4.bfa:11262: warning: conflicting hash group definition here
+sp4/pipe/sp4.bfa:5025: warning: Action bus byte 32 set in table tbl_sp4l3103$tind and table tbl_sp4l3102$tind
+sp4/pipe/sp4.bfa:5080: warning: Action bus byte 32 set in table tbl_sp4l3104$tind and table tbl_sp4l3102$tind
+sp4/pipe/sp4.bfa:5185: warning: Action bus byte 0 set in table tbl_sp4l3047$tind and table tbl_sp4l3043$tind
+sp4/pipe/sp4.bfa:5261: warning: Action bus byte 0 set in table tbl_sp4l3069$tind and table tbl_sp4l3043$tind
+sp4/pipe/sp4.bfa:5300: warning: Action bus byte 32 set in table tbl_sp4l3064$tind and table tbl_sp4l3053$tind
+sp4/pipe/sp4.bfa:5352: warning: Action bus byte 32 set in table tbl_sp4l3066$tind and table tbl_sp4l3053$tind
+sp4/pipe/sp4.bfa:5426: warning: Action bus byte 2 set in table tbl_sp4l3106$tind and table tbl_sp4l3105$tind
+sp4/pipe/sp4.bfa:5468: warning: Action bus byte 2 set in table tbl_sp4l3113$tind and table tbl_sp4l3105$tind
+sp4/pipe/sp4.bfa:7887: warning: Action bus byte 32 set in table tbl_sp4l3090$tind and table tbl_sp4l3084$tind
