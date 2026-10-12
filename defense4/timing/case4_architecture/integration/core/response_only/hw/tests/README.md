@@ -13,7 +13,8 @@ Two suites, split by file name. Run both from `integration/core/response_only/hw
 
 Runs on a fresh clone with no skips.
 
-- `test_src_installer.py`: identity hashes, the port checks (ports in use, dead recirculation entries,
+- `test_src_installer.py`: the mirror guard (a synthetic defective `p1/*.bfa` is refused before any write,
+  a fixed one passes, a missing one is refused), identity hashes, the port checks (ports in use, dead recirculation entries,
   inconsistent or unreadable builds), the refusals, T parameter ranges, write order, the token buffer, the
   ladder and generator app ids, and teardown order.
 - `test_src_fake_client.py`: `apply()`, `switch.py`, the teardown, `set_enabled.py`, shaping, padding policy,
@@ -72,13 +73,15 @@ Hardware-measured facts the fake does model:
   a duplicate key;
 - the shared-port plan validates;
 - a dry-run of `bringup_composite.py` exits 0.
+- the mirror guard passes on the pinned build and refuses `close_reset_fix_01` (each skipped, naming the
+  path, if that compiled tree is not present locally).
 
 What it does NOT prove: anything about silicon. The fixed-table names are checked against 9.13.1 here. The
 installer's own dry-run on the switch re-checks them against 9.13.2.
 
 The build under test is the entry in `pinned_build.json` (`build_dir`, relative to `integration/`, and its
 three sha256). The current entry is the production build
-`evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132`. `HW_BUILD=<dir holding manifest.json and
+`evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132`. `HW_BUILD=<dir holding manifest.json and
 out/>` overrides it. Nothing chooses a build by modification time.
 
 **The compiled `out/` tree is not tracked in git.** Only `manifest.json` and `remote_manifest.json` are. On a
@@ -87,8 +90,8 @@ path and the command that produces the tree:
 
 ```
 python3 defense4/timing/case4_architecture/installed_sdk_build.py \
-  defense4/timing/case4_architecture/integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/source/response_only.p4 \
-  defense4/timing/case4_architecture/integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132
+  defense4/timing/case4_architecture/integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/source/response_only.p4 \
+  defense4/timing/case4_architecture/integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132
 ```
 
 That compiles with SDE 9.13.2 on the switch host. `tofino.bin` embeds a random run id, so a recompile does not

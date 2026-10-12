@@ -69,7 +69,14 @@ def main(argv=None):
     print('program', prog['program-name'], '| scopes', {p['p4_pipeline_name']: p['pipe_scope'] for p in prog['p4_pipelines']})
     for rel in ['bfrt.json'] + ['%s/%s' % (n, f) for n in sorted(SCOPES) for f in ('context.json', 'tofino.bin')]:
         print('  sha256 %s  %s' % (hashlib.sha256((out / rel).read_bytes()).hexdigest(), rel))
-    print('wrote', a.output, '(copy out/ to %s first; the paths above must exist there)' % remote)
+    bfas = sorted((out / 'p1').glob('*.bfa'))
+    if len(bfas) != 1:
+        print('FAIL: expected exactly one out/p1/*.bfa, found %d: bringup_composite.py runs the mirror guard on it'
+              % len(bfas))
+        return 1
+    print('  sha256 %s  p1/%s   (read by the mirror guard at load; pass it as --expect p1/%s=<sha> to bind it)'
+          % (hashlib.sha256(bfas[0].read_bytes()).hexdigest(), bfas[0].name, bfas[0].name))
+    print('wrote', a.output, '(copy ALL of out/ to %s first, including p1/*.bfa; the paths above must exist there)' % remote)
     return 0
 
 

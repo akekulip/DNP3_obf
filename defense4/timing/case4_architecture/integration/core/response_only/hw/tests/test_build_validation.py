@@ -206,5 +206,44 @@ class RealBuildEndToEnd(BuildTest):
         self.assertEqual(bc.main(argv), 0)
 
 
+
+class MirrorGuardOnRealBuilds(unittest.TestCase):
+    """The compiler-mirror defect (route_ab_01/token_stale_01) must be refused on the real compiled builds.
+    Each build is checked only if its compiled tree exists locally; otherwise the test is skipped and names it."""
+    DEFECTIVE = INTEG / 'evidence/route_ab_01/close_reset_fix_01/hw_compile_switch_9132'
+
+    def guard(self, build):
+        if not (build / 'out' / 'p1').is_dir():
+            self.skipTest('needs %s/out/p1/*.bfa (compiled tree not tracked in git; produce with '
+                          'installed_sdk_build.py <build>/source/response_only.p4 <build>)' % build)
+        sys.path.insert(0, str(HW.parent))
+        import check_mirror_select
+        return check_mirror_select.check(build)
+
+    def test_the_pinned_build_passes(self):
+        ok, notes = self.guard(BUILD)
+        self.assertTrue(ok, notes)
+
+    def test_close_reset_fix_01_is_refused(self):
+        ok, notes = self.guard(self.DEFECTIVE)
+        self.assertFalse(ok, notes)
+        self.assertTrue(any(n.startswith('FAIL') for n in notes))
+
+    def test_bringup_refuses_close_reset_fix_01_before_any_write(self):
+        self.guard(self.DEFECTIVE)                                    # skips if absent
+        sha = json.loads((self.DEFECTIVE / 'manifest.json').read_text())['artifact_sha256']
+        argv = ['--build-out', str(self.DEFECTIVE / 'out'), '--fixed-schema-dir', FIXED or 'unset',
+                '--master-port', '54321', '--master-dev', '9', '--relay-dev', '9',
+                '--master-ip', '192.168.10.61', '--relay-ip', '192.168.10.62']
+        for rel in bc.REQUIRED_EXPECT:
+            argv += ['--expect', '%s=%s' % (rel, sha[rel])]
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = bc.main(argv)
+        self.assertNotEqual(rc, 0)
+        self.assertIn('mirror guard: FAIL', buf.getvalue())
+
 if __name__ == '__main__':
     unittest.main()

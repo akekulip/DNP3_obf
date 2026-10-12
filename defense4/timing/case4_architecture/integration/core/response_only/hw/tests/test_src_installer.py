@@ -167,3 +167,58 @@ class Teardown(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class MirrorGuard(unittest.TestCase):
+    """The token_stale_01 compiler-mirror defect must never be loadable: bringup refuses it before any write."""
+
+    def setUp(self):
+        self.bfa = fx.BUILD / 'out' / 'p1' / 'response_only.bfa'
+        self.addCleanup(self.bfa.write_text, fx.BFA_PASS)
+
+    def argv(self):
+        argv = ['--build-out', str(fx.BUILD / 'out'), '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS
+        for rel in bc.REQUIRED_EXPECT:
+            argv += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
+        return argv
+
+    def run_main(self):
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with fx.no_name_check(), contextlib.redirect_stdout(buf):
+            rc = bc.main(self.argv())
+        return rc, buf.getvalue()
+
+    def test_a_fixed_build_passes(self):
+        rc, out = self.run_main()
+        self.assertEqual(rc, 0, out[-400:])
+        self.assertIn('MIRROR GUARD', out)
+        self.assertIn(': PASS', out)
+
+    def test_a_defective_build_is_refused_with_the_failing_note(self):
+        self.bfa.write_text(fx.BFA_FAIL)
+        rc, out = self.run_main()
+        self.assertEqual(rc, 1)
+        self.assertIn('REFUSED', out)
+        self.assertIn('mirror guard: FAIL: non-clone mirror entries [0]', out)
+
+    def test_a_defective_build_is_refused_on_apply_before_any_grpc_call(self):
+        self.bfa.write_text(fx.BFA_FAIL)
+        os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
+        self.addCleanup(os.environ.pop, 'DEFENSE4_HW_AUTHORIZED', None)
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp, fx.no_name_check(), contextlib.redirect_stdout(buf):
+            rc = bc.main(self.argv() + ['--apply', '--manifest-out', str(Path(tmp) / 'm.json')])
+            self.assertFalse((Path(tmp) / 'm.json').exists())
+        self.assertEqual(rc, 1)
+        self.assertIn('mirror guard: FAIL', buf.getvalue())       # refused by the guard, not by a later check
+        self.assertNotIn('RUNNING DAEMON', buf.getvalue())         # before the daemon check and any gRPC
+
+    def test_a_build_without_the_p1_assembly_is_refused(self):
+        self.bfa.unlink()
+        rc, out = self.run_main()
+        self.assertEqual(rc, 1)
+        self.assertIn('expected one out/p1/*.bfa', out)

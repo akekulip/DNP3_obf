@@ -49,6 +49,28 @@ _out = BUILD / 'out'
 (_out / 'response_only.p4pp').write_text(P4PP)
 for rel, body in (('bfrt.json', b'{"tables": []}\n'), ('p0/tofino.bin', b'fixture p0\n'), ('p1/tofino.bin', b'fixture p1\n')):
     (_out / rel).write_bytes(body)
+# Minimal pipe-1 assembly in the layout check_mirror_select parses: a live-range listing, then the ingress
+# deparser's mirror block. BFA_PASS: the non-clone entry's session container holds only that temporary, so it
+# can never carry another field's value. BFA_FAIL: that container also holds md.cur_gen, the token_stale_01
+# defect, so a non-clone pass could be mirrored to session cur_gen[9:0].
+_BFA = """  live:
+    W0:
+    - { name : md.clone_ses, x }
+    W1:
+    - { name : $tmp1, x }%s
+    B0:
+    - { name : ig_intr_md_for_dprsr.mirror_type, x }
+deparser ingress:
+  mirror:
+    select: B0(0..3)
+    0:
+      - W1  # ingress::$tmp1
+    1:
+      - W0  # ingress::md.clone_ses
+"""
+BFA_PASS = _BFA % ''
+BFA_FAIL = _BFA % '\n    - { name : md.cur_gen, x }'
+(_out / 'p1' / 'response_only.bfa').write_text(BFA_PASS)
 SHA = {rel: hashlib.sha256((_out / rel).read_bytes()).hexdigest() for rel in bc.REQUIRED_EXPECT}
 (BUILD / 'manifest.json').write_text(json.dumps({'artifact_sha256': SHA}) + '\n')
 FIXED = str(BUILD / 'no_schemas')        # never read: the name check is replaced (see no_name_check)

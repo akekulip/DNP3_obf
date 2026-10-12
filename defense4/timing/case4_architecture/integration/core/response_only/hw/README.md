@@ -81,6 +81,7 @@ E=integration/evidence/route_ab_01/<build>/<...>compile_switch_9132
 cd defense4/timing/case4_architecture
 rsync -a $E/out/ decps@<switch>:$R/out/
 rsync -aR integration/core/response_only/cp.py integration/core/response_only/port_map.py \
+  integration/core/response_only/check_mirror_select.py \
   integration/core/response_only/hw protocol/response_path_cp.py decps@<switch>:$R/src/
 # 1. on the switch: PCI check and conf; note the three sha256 lines it prints
 cat /sys/bus/pci/devices/0000:04:00.0/vendor          # must print 0x1d1c
@@ -124,6 +125,19 @@ Endpoint arguments are plain values and nothing assumes the two dev ports differ
   `--crob-*` arguments are not that object: they are the `data_connection` values the model driver installs
   from `vectors.decoy_config()` (the inert decoy, index 201 = 0xC900 in wire order). The response-only N
   never reads them, so the hardware stores nothing and they read back 0 (measured 2026-10-11).
+
+### Mirror guard (compiler-mirror defect, route_ab_01/token_stale_01)
+
+Before any plan or write, in dry-run and `--apply` alike, the installer runs
+`core/response_only/check_mirror_select.check(<build-out>/..)`. It refuses (exit 1, the `FAIL:` note in the
+message) a build whose compiled T ingress deparser could mirror a non-clone pass. That defect copied every T
+pass to the session numbered by the live READ generation; it is fixed from `mirror_fix_01` on. Older builds
+(`sbo_admission_01`, `close_reset_fix_01`) fail the guard and are refused.
+
+At load time the guard needs exactly one file from the build: `out/p1/*.bfa` (the pipe-1 assembly). The
+`rsync -a $E/out/` deploy step already copies it; `check_mirror_select.py` must be in the `src/` copy (above).
+`make_conf.py` refuses an `out/` without exactly one `p1/*.bfa` and prints its sha256; pass it as
+`--expect p1/response_only.bfa=<sha>` to bind the guarded file to the build identity.
 
 ### What `--apply` refuses
 

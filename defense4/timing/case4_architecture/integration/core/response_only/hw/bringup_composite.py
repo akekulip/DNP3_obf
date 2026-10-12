@@ -21,6 +21,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))     # core/response_only: cp.py, port_map.py, check_mirror_select.py
 import check_names  # noqa: E402
 import readback  # noqa: E402
 import rows  # noqa: E402
@@ -90,6 +91,31 @@ def identity(a):
         if got != sha:
             errs.append('%s: sha256 %s, expected %s' % (rel, got, sha))
     return errs
+
+
+def mirror_guard(a):
+    """Refuse a build whose compiled T ingress deparser can mirror a non-clone pass (route_ab_01/token_stale_01:
+    the mirror_type 0 entry's session id came from a compiler temporary sharing a container with md.cur_gen, so
+    every T pass was copied to session cur_gen[9:0]; fixed in mirror_fix_01). Runs Agent 1's
+    core/response_only/check_mirror_select.check() on <build-out>/../out/p1/*.bfa -- the only file it needs.
+    Errors (never raises): one per FAIL note, or the read failure."""
+    import glob
+    import check_mirror_select as cms
+    build = Path(a.build_out).resolve().parent
+    bfas = glob.glob(str(build / 'out' / 'p1' / '*.bfa'))
+    try:
+        ok, notes = cms.check(build)
+    except Exception as e:
+        ok, notes = False, ['FAIL: the guard could not parse %s: %s' % (bfas or 'out/p1/*.bfa', oneline(e))]
+    sha = hashlib.sha256(Path(bfas[0]).read_bytes()).hexdigest() if len(bfas) == 1 else 'absent'
+    print('MIRROR GUARD (check_mirror_select on %s, sha256 %s): %s' % (
+        bfas[0] if len(bfas) == 1 else Path(a.build_out) / 'p1/*.bfa', sha, 'PASS' if ok else 'FAIL'))
+    for n in notes:
+        print('    ' + n)
+    if ok:
+        return []
+    return ['mirror guard: %s' % n for n in notes if n.startswith('FAIL') or 'expected one' in n] or \
+        ['mirror guard: %s' % notes[-1]]
 
 
 def build_ports_for(a):
@@ -307,6 +333,10 @@ def main(argv=None):
     a = parse(argv)
     print('BUILD IDENTITY (%s):' % a.build_out)
     errs = identity(a)
+    errs += mirror_guard(a)              # before any plan or write, in dry-run and --apply alike
+    if errs:                             # wrong build or a defective one: nothing further is worth checking
+        print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
+        return 1
     ports, port_errs = build_ports_for(a)
     errs += port_errs + tc.check_params(params(a))
     if port_errs:                # without the build's ports there is no plan to print or check

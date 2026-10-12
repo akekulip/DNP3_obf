@@ -1,13 +1,25 @@
 {
   "comment": "Build the build-dependent hw tests validate against (test_build_*.py). Paths are relative to integration/. HW_BUILD=<dir holding manifest.json and out/> overrides. The pure-source suite (test_src_*.py) reads only the port map below.",
-  "build_dir": "evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132",
+  "build_dir": "evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132",
   "sha256": {
-    "bfrt.json": "ee9986058d520fcb11e6c869ba6962f33b9dde89d1cfceb67f79a73bfd40e118",
-    "p0/tofino.bin": "741fee7ee23c720d3b7490bc29767db4d1cb8354290060d8d10e60b879e068a3",
-    "p1/tofino.bin": "084e496313f981190e099d86e00022803d26843a4336a75a7ab61d9e0a59de1f"
+    "bfrt.json": "4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa",
+    "p0/tofino.bin": "aff15250cc9af232f99c4d759fd801dd3d4a7b750b712fe760dc637550af2edb",
+    "p1/tofino.bin": "296444ce43e28e3228edd8e1d61c52f2a6f233dc4be357e3e96610e896e02309"
   },
-  "ports": {"return_port": 68, "n_ack_return": 48, "n_handoff": 180, "pktgen_return": 196, "t_in": 180,
-            "hb_return": 181, "held_return": 182, "forward": 9, "relay": 9, "t_n_return": 68, "clone_session": 7},
-  "source": "evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/source/response_only.p4",
-  "produce": "python3 defense4/timing/case4_architecture/installed_sdk_build.py defense4/timing/case4_architecture/integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/source/response_only.p4 defense4/timing/case4_architecture/integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132 (compiles with SDE 9.13.2 on the switch host)"
+  "ports": {
+    "return_port": 68,
+    "n_ack_return": 48,
+    "n_handoff": 180,
+    "pktgen_return": 196,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "forward": 9,
+    "relay": 9,
+    "t_n_return": 68,
+    "clone_session": 7
+  },
+  "source": "evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/source/response_only.p4",
+  "produce": "python3 defense4/timing/case4_architecture/installed_sdk_build.py defense4/timing/case4_architecture/integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/source/response_only.p4 defense4/timing/case4_architecture/integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132 (compiles with SDE 9.13.2 on the switch host)",
+  "mirror_guard": "check_mirror_select.check(<build_dir>) must PASS (reads out/p1/*.bfa, sha256 eea04489a6ad5da5a3d2ca91201223af26458d1516c2a7a4b6d3b5843893ff96)"
 }
