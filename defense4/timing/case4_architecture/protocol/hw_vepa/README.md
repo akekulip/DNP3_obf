@@ -63,6 +63,15 @@ trial, even for arms that share a build) or `one_connection` (one bring-up and o
 starting: the configured production program, a port snapshot taken at the start, the relay slot, Vision, then a
 ping.
 
+Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (or `python3 hw_vepa/report.py RUN_DIR`)
+prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
+packets and bytes (sum over ports 48/180/181/182 of the `$FramesTransmittedAll` / `$OctetsTransmittedTotal` deltas,
+plus per port), original re-waits, blocker laps (only if the build's snapshot has diag counters), READ CLRT
+median/IQR/p95/p99 with population and sample SD, request->ACK and request->response median/p95, the error against
+the intended gap (`timing_params_ns.gap`), completion/retransmission counts, padding coverage and growth, READ
+triggers, generated packets, stale tokens and the received-vs-good octet gap. All deltas are after minus before, as in
+`evidence/mirror_fix_silicon_01`. For a paired run it adds A-B per condition.
+
 Trial gate (expectations). Each trial is judged by `checks.py` from its own evidence (before/after snapshot deltas,
 `master.json`, `outstation.json`, `wire.json`, `timing.json`); any violation fails the trial and the campaign. The table
 lives in `campaign.json` under `expectations` (this is its only copy; README restates it):

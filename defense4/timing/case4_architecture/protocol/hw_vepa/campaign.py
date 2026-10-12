@@ -853,9 +853,10 @@ class Campaign:
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('mode', choices=('validate', 'plan', 'deploy', 'run'))
+    ap.add_argument('mode', choices=('validate', 'plan', 'deploy', 'run', 'report'))
     ap.add_argument('--config', default=os.path.join(HERE, 'campaign.json'))
     ap.add_argument('--arms', help='comma-separated arm names to run (default: all arms in the config)')
+    ap.add_argument('--run-dir', help='report: a campaign run directory (contains campaign_run.json)')
     ap.add_argument('--run-id', default=None)
     ap.add_argument('--fixtures', help='comma-separated fixtures to run (default: fixture.modes)')
     ap.add_argument('--paired', help='run the named paired_blocks entry: presets A/B, identical conditions, alternating order')
@@ -863,6 +864,12 @@ def main(argv=None):
     ap.add_argument('--apply', action='store_true', help='required for run: actually execute on hardware')
     ap.add_argument('--dry-run', action='store_true', help='run: print the commands instead (same as plan)')
     a = ap.parse_args(argv)
+    if a.mode == 'report':
+        if not a.run_dir:
+            sys.exit('report needs --run-dir')
+        import report
+        print(report.render(a.run_dir), end='')
+        return 0
     cfg = load_config(a.config)
     if a.preset:
         cfg['shaping']['preset'] = a.preset
