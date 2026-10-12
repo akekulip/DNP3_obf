@@ -155,13 +155,13 @@ class PairedBlocks(Base):
 
     def test_installer_gets_the_preset_of_its_slot(self):
         rc, r = self.execute()
-        applies = [r.calls[i][1] for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]]
+        applies = [r.calls[i][1] for i in r.runs('bringup_composite.py') if '--apply' in r.calls[i][1]]
         self.assertEqual(len(applies), 6)
         for cmd, preset in zip(applies, ['shape_14892', 'shape_3723', 'shape_3723', 'shape_14892',
                                          'shape_14892', 'shape_3723']):
             rate = {'shape_14892': 14892, 'shape_3723': 3723}[preset]
             self.assertIn('--shape-resp-blk-pps %d' % rate, cmd)
-        snaps = [r.calls[i][1] for i in r.cmds('snapshot_counters.py')]
+        snaps = [r.calls[i][1] for i in r.runs('snapshot_counters.py')]
         self.assertIn('--shape-ack-pps 14892', snaps[0])
 
     def test_fixture_delay_changes_only_when_the_condition_changes(self):

@@ -69,7 +69,7 @@ class PlanContent(unittest.TestCase):
         self.dry = cp.DryRunner()
         with contextlib.redirect_stdout(io.StringIO()):
             cp.Campaign(self.cfg, self.dry, 'c1', installer_flags=lambda f: True).execute()
-        self.cmds = [c for _w, c in self.dry.calls]
+        self.cmds = [c for _w, c in self.dry.calls if not c.startswith('sha256sum')]   # the verification line names every file
         self.text = '\n'.join(self.cmds)
 
     def test_every_trial_has_its_own_install(self):

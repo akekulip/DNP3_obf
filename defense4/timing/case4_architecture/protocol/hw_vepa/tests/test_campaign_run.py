@@ -6,6 +6,7 @@ import contextlib
 import copy
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -49,12 +50,13 @@ class FakeRunner:
     def run(self, where, cmd, cwd=None, timeout=None, label=None):
         self.calls.append((where, cmd))
         rc, out = 0, ''
-        if any(s in cmd for s in self.fail_on):
+        if not cmd.startswith('sha256sum') and any(s in cmd for s in self.fail_on):
             return runmod_result(1, '', 'forced failure')
         if 'observe_program.py' in cmd and not cmd.startswith('sha256sum'):
             out = json.dumps({'program': self.observed, 'conf': '/x/%s_conf.json' % self.observed}) + '\n'
         elif cmd.startswith('sha256sum') and where == 'switch':
             names = {n: cp.sha256_file(pth) for pth, n in cp.switch_tools()}
+            names.update({os.path.basename(p): cp.sha256_file(p) for p in cp.installer_sources() + cp.installer_hw_files()})
             out = ''.join('%s  %s\n' % (names[tok.rsplit('/', 1)[1]], tok) for tok in cmd.split()[1:])
         elif 'sha256sum' in cmd and where == 'vision':
             if 'vision_run.py' in cmd:
@@ -157,10 +159,10 @@ class Sequence(Base):
             pos = hits[0]
         # production restore comes last: cold swap to the production launch script, then its ports
         last_swap = r.swaps()[-1]
-        last_ports = r.cmds('restore_ports.py')[-1]
+        last_ports = r.runs('restore_ports.py')[-1]
         self.assertIn(self.cfg['production']['launch_script'], r.calls[last_swap][1])
         self.assertIn(self.cfg['production']['program'], r.calls[last_ports][1])
-        self.assertGreater(last_swap, r.cmds('bringup_teardown.py')[-1])
+        self.assertGreater(last_swap, r.runs('bringup_teardown.py')[-1])
 
     def test_each_arm_has_its_own_before_and_after_snapshot_around_its_traffic(self):
         r = FakeRunner()
@@ -176,17 +178,17 @@ class Sequence(Base):
     def test_T_bit_per_arm(self):
         r = FakeRunner()
         self.campaign(r).execute()
-        sets = [r.calls[i][1] for i in r.cmds('set_enabled.py')]
+        sets = [r.calls[i][1] for i in r.runs('set_enabled.py')]
         self.assertEqual([('--enabled 0' in c, '--enabled 1' in c) for c in sets], [(True, False), (False, True)])
 
     def test_shaping_k_range_and_timing_reach_the_installer_and_the_snapshots(self):
         r = FakeRunner()
         self.campaign(r).execute()
-        apply_cmd = r.calls[[i for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]][0]][1]
+        apply_cmd = r.calls[[i for i in r.runs('bringup_composite.py') if '--apply' in r.calls[i][1]][0]][1]
         for s in ('--k 2', '--shape-ack-pps 3723', '--shape-op-blk-pps 3723', '--block-burst 64', '--t-readiness 30000000', '--enable-pktgen',
                   'DEFENSE4_HW_AUTHORIZED=1', '--expect bfrt.json='):
             self.assertIn(s, apply_cmd)
-        snap = r.calls[r.cmds('snapshot_counters.py')[0]][1]
+        snap = r.calls[r.runs('snapshot_counters.py')[0]][1]
         self.assertIn('--shape-ack-pps 3723', snap)
         run = r.calls[r.cmds('vision_run.py run')[0]][1]
         self.assertIn('--range 8', run)
@@ -207,7 +209,7 @@ class Sequence(Base):
 def master_ports(r):
     """[(install port, traffic port)] per bring-up, in order."""
     ins = [int(re.search(r'--master-port (\d+)', r.calls[i][1]).group(1))
-           for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]]
+           for i in r.runs('bringup_composite.py') if '--apply' in r.calls[i][1]]
     run = [int(re.search(r'--master-port (\d+)', r.calls[i][1]).group(1)) for i in r.cmds('vision_run.py run')]
     return ins, run
 
@@ -507,7 +509,7 @@ class RestoreTarget(Base):
 
 class BfaInPlan(Base):
     def applies(self, r):
-        return [r.calls[i][1] for i in r.cmds('bringup_composite.py')]
+        return [r.calls[i][1] for i in r.runs('bringup_composite.py')]
 
     def test_every_installer_command_carries_the_bfa_pin_and_the_other_three(self):
         r = FakeRunner()
@@ -563,16 +565,16 @@ class Refusals(Base):
     def test_padding_off_arm_emits_the_flag_when_the_installer_supports_it(self):
         r = FakeRunner()
         self.assertEqual(self.campaign(r, arms=('off',), flags=('--pad-enable',)).execute(), 0)
-        apply_cmd = r.calls[[i for i in r.cmds('bringup_composite.py') if '--apply' in r.calls[i][1]][0]][1]
+        apply_cmd = r.calls[[i for i in r.runs('bringup_composite.py') if '--apply' in r.calls[i][1]][0]][1]
         self.assertIn('--pad-enable 0', apply_cmd)
 
 
 class FailurePropagation(Base):
     def assert_restored(self, r):
-        self.assertTrue(r.cmds('bringup_teardown.py'), 'composite not torn down')
+        self.assertTrue(r.runs('bringup_teardown.py'), 'composite not torn down')
         self.assertTrue(r.cmds('vision_run.py restore'), 'Vision profile not restored')
         self.assertIn(self.cfg['production']['launch_script'], r.calls[r.swaps()[-1]][1])
-        self.assertIn(self.cfg['production']['program'], r.calls[r.cmds('restore_ports.py')[-1]][1])
+        self.assertIn(self.cfg['production']['program'], r.calls[r.runs('restore_ports.py')[-1]][1])
 
     def test_endpoint_failure_fails_the_run_stops_the_campaign_and_restores(self):
         r = FakeRunner(vision_out='{"ok": false, "master_rc": 3}', vision_rc=1)

@@ -337,6 +337,19 @@ def switch_tools():
             (os.path.join(HERE, 'launch_composite.sh'), 'launch_composite.sh')]
 
 
+def installer_sources():
+    """[local path]: the installer source files deployed to <switch_remote_dir>/src at their repo-relative path
+    (rsync -R from case4_architecture), so `import X` resolves on the switch exactly as in the repo. hw/ goes whole."""
+    ro = os.path.join(ARCH, RESPONSE_ONLY)
+    return [os.path.join(ro, 'cp.py'), os.path.join(ro, 'port_map.py'), os.path.join(ro, 'check_mirror_select.py'),
+            os.path.join(ARCH, 'protocol', 'response_path_cp.py')]
+
+
+def installer_hw_files():
+    hw = os.path.join(ARCH, RESPONSE_ONLY, 'hw')
+    return sorted(os.path.join(hw, f) for f in os.listdir(hw) if f.endswith('.py'))
+
+
 class Campaign:
     def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None, paired=None):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
@@ -519,21 +532,23 @@ class Campaign:
         tools = switch_tools()
         self.step('local', 'copy the switch tools (ports, snapshot, observe, relay slot, swap/launch) into aux',
                   'scp -q %s %s:%s/' % (' '.join(q(p) for p, _n in tools), host, aux))
-        self.step('local', 'copy the installer source tree to the switch', 'rsync -aR --exclude __pycache__ '
-                  '%s/cp.py %s/port_map.py %s/hw protocol/response_path_cp.py %s:%s/src/'
-                  % (RESPONSE_ONLY, RESPONSE_ONLY, RESPONSE_ONLY, host, R), cwd=ARCH)
+        rel = [os.path.relpath(p, ARCH) for p in installer_sources()]
+        self.step('local', 'copy the installer source tree to the switch (repo-relative paths)',
+                  'rsync -aR --exclude __pycache__ %s %s/hw %s:%s/src/' % (' '.join(rel), RESPONSE_ONLY, host, R),
+                  cwd=ARCH)
         for build in sorted({a['build'] for a in self.arms}):
             self.step('local', 'copy build %s out/ to the switch' % build, 'rsync -a %s/ %s:%s/'
                       % (q(path_of(c['builds'][build]['out_dir'])), host, '%s/out_%s' % (R, build)))
-        r = self.step('switch', 'verify the deployed tools by sha256',
-                      'sha256sum ' + ' '.join('%s/%s' % (aux, n) for _p, n in tools))
+        src = [(p, '%s/src/%s' % (R, os.path.relpath(p, ARCH))) for p in installer_sources() + installer_hw_files()]
+        want = [(p, '%s/%s' % (aux, n)) for p, n in tools] + src
+        r = self.step('switch', 'verify every deployed tool and installer source file by sha256',
+                      'sha256sum ' + ' '.join(remote for _p, remote in want))
         if not self.rn.dry:
             got = {l.split()[1]: l.split()[0] for l in r.out.splitlines() if len(l.split()) == 2}
-            for path, name in tools:
-                want = sha256_file(path)
-                if got.get('%s/%s' % (aux, name)) != want:
+            for path, remote in want:
+                if got.get(remote) != sha256_file(path):
                     raise StepFailed('deployed %s on the switch has sha256 %s, expected %s'
-                                     % (name, got.get('%s/%s' % (aux, name)), want))
+                                     % (remote, got.get(remote), sha256_file(path)))
 
     def deploy(self):
         self.vision_identity()

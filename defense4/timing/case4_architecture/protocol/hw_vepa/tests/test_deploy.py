@@ -53,6 +53,74 @@ class NoScratchPaths(unittest.TestCase):
                 self.assertTrue(tok.startswith(allowed), '%s runs %s outside the configured dirs' % (cmd[:80], tok))
 
 
+class ImportClosure(unittest.TestCase):
+    """Every local module a script the campaign runs on the switch imports (transitively) must be deployed at its
+    repo-relative path. Computed from the scripts' own import statements, not from a list kept in step by hand."""
+    ARCH = HERE.parents[2]
+    RO = ARCH / 'integration' / 'core' / 'response_only'
+    HW = RO / 'hw'
+    FW = ARCH.parent / 'framework' / 'control'
+    SEARCH = [HW, RO, ARCH / 'protocol', HERE.parent, FW]          # the dirs the scripts put on sys.path
+    HW_SCRIPTS = ['bringup_composite.py', 'bringup_teardown.py', 'snapshot_counters.py', 'set_enabled.py',
+                  'make_conf.py']
+    AUX_SCRIPTS = [HERE.parent / 'observe_program.py', HERE.parent / 'switch_slot.py', FW / 'live_snapshot.py',
+                   FW / 'restore_ports.py']
+
+    def local_imports(self, path):
+        import ast
+        mods = set()
+        for node in ast.walk(ast.parse(Path(path).read_text())):
+            if isinstance(node, ast.Import):
+                mods.update(a.name.split('.')[0] for a in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                mods.add(node.module.split('.')[0])
+        found = []
+        for m in sorted(mods):
+            for d in self.SEARCH:
+                if (d / (m + '.py')).is_file():
+                    found.append(d / (m + '.py'))
+                    break
+        return found
+
+    def closure(self, scripts):
+        seen, todo = {}, [Path(s) for s in scripts]
+        while todo:
+            cur = todo.pop()
+            for mod in self.local_imports(cur):
+                if mod not in seen:
+                    seen[mod] = cur
+                    todo.append(mod)
+        return seen
+
+    def test_closure_finds_the_known_guard_import(self):
+        found = {p.name for p in self.closure([self.HW / s for s in self.HW_SCRIPTS])}
+        self.assertIn('check_mirror_select.py', found)                  # bringup_composite imports it inside a function
+        self.assertTrue({'cp.py', 'port_map.py', 'response_path_cp.py', 'rows.py', 't_config.py'} <= found)
+
+    def test_every_local_module_the_installer_scripts_import_is_deployed_at_its_repo_path(self):
+        deployed = {Path(p).resolve() for p in cp.installer_sources() + cp.installer_hw_files()}
+        missing = [str(p.relative_to(self.ARCH)) + '  (imported by %s)' % by.name
+                   for p, by in sorted(self.closure([self.HW / s for s in self.HW_SCRIPTS]).items())
+                   if p.resolve() not in deployed]
+        self.assertEqual(missing, [], 'not deployed to <switch>/src: %s' % missing)
+
+    def test_every_local_module_the_aux_scripts_import_is_deployed_into_aux(self):
+        aux = {Path(p).resolve() for p, _n in cp.switch_tools()}
+        missing = [p.name for p in self.closure(self.AUX_SCRIPTS) if p.resolve() not in aux]
+        self.assertEqual(missing, [])
+
+    def test_the_rsync_command_carries_the_deployed_files(self):
+        dry = cp.DryRunner()
+        import contextlib
+        import io
+        cfg = cp.load_config(str(CONFIG))
+        with contextlib.redirect_stdout(io.StringIO()):
+            cp.Campaign(cfg, dry, 'c1', arms=['combined'], installer_flags=lambda f: True).execute()
+        rs = [c for _w, c in dry.calls if c.startswith('rsync -aR')][0]
+        self.assertIn('integration/core/response_only/check_mirror_select.py', rs)
+        self.assertIn('integration/core/response_only/hw', rs)
+
+
 class DeployStep(unittest.TestCase):
     def setUp(self):
         td = tempfile.TemporaryDirectory()
@@ -74,6 +142,26 @@ class DeployStep(unittest.TestCase):
         for name in ('switch_swap.sh', 'launch_composite.sh', 'observe_program.py', 'switch_slot.py',
                      'response_path_cp.py', 'restore_ports.py', 'live_snapshot.py'):
             self.assertIn('%s/%s' % (aux, name), verify[0], name)
+
+    def test_the_hash_verification_covers_the_installer_sources_including_the_mirror_guard(self):
+        r = FakeRunner()
+        self.deploy(r)
+        verify = [c for w, c in r.calls if w == 'switch' and c.startswith('sha256sum')][0]
+        src = self.cfg['hosts']['switch_remote_dir'] + '/src/integration/core/response_only'
+        for name in ('check_mirror_select.py', 'cp.py', 'port_map.py', 'hw/bringup_composite.py', 'hw/t_config.py'):
+            self.assertIn('%s/%s' % (src, name), verify, name)
+        self.assertIn(self.cfg['hosts']['switch_remote_dir'] + '/src/protocol/response_path_cp.py', verify)
+
+    def test_a_corrupted_mirror_guard_on_the_switch_fails_deploy(self):
+        class Corrupt(FakeRunner):
+            def run(self, where, cmd, **kw):
+                res = super().run(where, cmd, **kw)
+                if where == 'switch' and cmd.startswith('sha256sum'):
+                    lines = [l.replace(l.split()[0], '0' * 64) if 'check_mirror_select' in l else l
+                             for l in res.out.splitlines()]
+                    return cp.Result(0, '\n'.join(lines), '')
+                return res
+        self.assertEqual(self.deploy(Corrupt()), 1)
 
     def test_deploy_changes_nothing_but_files(self):
         r = FakeRunner()
