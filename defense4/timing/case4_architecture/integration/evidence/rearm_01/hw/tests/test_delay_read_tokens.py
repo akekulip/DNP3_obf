@@ -45,3 +45,45 @@ def test_live_bfrt_must_match_whole_pinned_schema():
     wrong = {'tables': [{'name': 'p0.r_Egress.epoch', 'id': 124}], 'learn_filters': []}
     with pytest.raises(ValueError, match='differs from pinned'):
         module.compare_schema(schema, json.dumps(wrong).encode())
+
+
+def test_ipg_configuration_has_trigger_action_and_replays_config_without_counters_or_enable():
+    before = dict(fresh(), ibg=0, ibg_jitter=0, ipg_jitter=0,
+                  increment_source_port=False, pkt_buffer_offset=0, pkt_len=60)
+    op = module.ipg_operation(before, 2_500_000_000)
+    assert op['kind'] == 'pktgen_app' and op['action'] == 'trigger_recirc_pattern'
+    fields = dict(op['data'])
+    assert fields['ipg'] == 2_500_000_000
+    assert not set(fields) & (set(module.COUNTERS) | {'app_enable', 'action_name', 'is_default_entry'})
+    assert {key: value for key, value in fields.items() if key != 'ipg'} == {
+        key: value for key, value in before.items()
+        if key not in set(module.COUNTERS) | {'ipg', 'app_enable', 'action_name', 'is_default_entry'}}
+    del before['pkt_len']
+    with pytest.raises(ValueError, match='missing'):
+        module.ipg_operation(before, 2_500_000_000)
+
+
+def test_ipg_change_disables_only_the_idle_app_and_preserves_counters_when_reenabled():
+    before = dict(fresh(), ibg=0, ibg_jitter=0, ipg_jitter=0,
+                  increment_source_port=False, pkt_buffer_offset=0, pkt_len=60)
+    class Switch:
+        def __init__(self):
+            self.current = dict(before)
+            self.operations = []
+
+        def write(self, op):
+            fields = dict(op['data'])
+            if op['kind'] == 'pktgen_app':
+                assert self.current['app_enable'] is False
+                assert not set(fields) & set(module.COUNTERS)
+            else:
+                assert set(fields) == {'app_enable'}
+            self.operations.append(op)
+            self.current.update(fields)
+
+        def must_get(self, *args):
+            return dict(self.current)
+    sw = Switch()
+    after = module.change_ipg(sw, before, 2_500_000_000)
+    assert len(sw.operations) == 3
+    assert after == dict(before, ipg=2_500_000_000)

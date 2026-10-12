@@ -1,6 +1,7 @@
 """Whole-source regressions for the isolated reconnect candidate."""
 import sys
 import struct
+import random
 import tempfile
 import unittest
 from pathlib import Path
@@ -299,6 +300,99 @@ class EAccounting(unittest.TestCase):
         import copy
         return copy.deepcopy(s.cells)
 
+    def control_response(self, tail):
+        _, user = rs.case4_padding.decode_frame(vectors.native_select(0, 3))
+        objects = bytearray(user[3:])
+        objects[17] = 0
+        user = user[:2] + bytes((0x81, 0, 0)) + bytes(objects)
+        return rs.case4_padding.build_frame(bytes.fromhex('05641c4401000a00'), user[:-7] + tail)
+
+    def test_control_output_crc_matches_codec_for_complete_affine_basis(self):
+        # Zero plus every input basis vector proves the affine 56-bit CRC map.
+        # Random bodies also exercise the actual source hash and byte ordering.
+        rng = random.Random(0)
+        tails = [bytes(7), bytes((255,)) * 7]
+        tails += [(1 << bit).to_bytes(7, 'little') for bit in range(56)]
+        tails += [rng.getrandbits(56).to_bytes(7, 'little') for _ in range(256)]
+        filler = bytes.fromhex('29032802002d010000')
+        s = self.fresh()
+        for tail in tails:
+            with self.subTest(tail=tail.hex()):
+                payload = self.control_response(tail)
+                out = self.send(s, 9, 0xe3, vectors.packet(24, 901, 101, reverse=True, payload=payload))
+                self.assertEqual(s.env['m.ctcrc1'], rs.case4_padding.rrc.dnp3_crc(tail + filler))
+                self.assertEqual(s.env['m.cbadt'], 0)
+                if s.valid.get('ctp1', False):
+                    self.assertIsNotNone(out)
+                    _, user = rs.case4_padding.decode_frame(out[54:])
+                    self.assertEqual(user[16:32], tail + filler)
+
+    def test_malformed_control_crc_cannot_commit_padded_image(self):
+        for corruption in ('wire_crc', 'tail_body'):
+            with self.subTest(corruption=corruption):
+                s = self.fresh()
+                payload = bytearray(self.control_response(bytes(7)))
+                payload[-1 if corruption == 'wire_crc' else -4] ^= 1
+                before = {name: list(s.cells[('', name)])
+                          for name in ('img_start', 'img_end', 'img_wend')}
+                out = self.send(s, 9, 0xe3,
+                                vectors.packet(24, 901, 101, reverse=True, payload=bytes(payload)))
+                self.assertEqual(s.env['m.cbadt'], 1)
+                self.assertEqual(s.env['m.pad'], 0)
+                self.assertFalse(s.valid.get('ctp1', False))
+                self.assertEqual({name: s.cells[('', name)] for name in before}, before)
+                self.assertIsNotNone(out)
+                self.assertEqual(out[54:], payload)
+                self.assertEqual(s.cells[('', 'acct')][0]['hi'], 37)
+
+    def test_reverse_window_inverse_boundaries_and_modular_endpoints(self):
+        s = self.fresh()
+        rng = random.Random(1)
+        cases = []
+        # Both sides of every byte boundary within the fixed 58-byte image.
+        for distance in range(1, 59):
+            for window in sorted({0, distance - 1, distance, distance + 1, 65535}):
+                cases.append((950, 901, 959, -distance, window))
+                cases.append((0x20, 0xfffffff0, 0x90, -distance, window))
+        for offset in (0, 1, 58, 0x7fffffff, 0x80000000, 0x80000001, -59, -65535):
+            for window in (0, 1, 58, 65535):
+                cases.append((950, 901, 959, offset, window))
+        cases += [(rng.getrandbits(32), rng.getrandbits(32), rng.getrandbits(32),
+                   rng.getrandbits(32), rng.getrandbits(16)) for _ in range(256)]
+        for end, start, wire_end, offset, window in cases:
+            with self.subTest(end=end, start=start, offset=offset, window=window):
+                s.cells[('', 'img_end')][0] = end
+                s.cells[('', 'img_start')][0] = start
+                s.cells[('', 'img_wend')][0] = wire_end
+                before = self.snapshot(s)
+                raw = bytearray(vectors.packet(16, 101, (wire_end + offset) & 0xffffffff))
+                raw[48:50] = struct.pack('!H', window)
+                raw[50:52] = bytes(2)
+                pseudo = raw[26:34] + bytes((0, 6)) + struct.pack('!H', len(raw) - 34)
+                raw[50:52] = struct.pack('!H', vectors.checksum(pseudo + raw[34:]))
+                out = self.send(s, 70, 0xe0, bytes(raw))
+                offset &= 0xffffffff
+                if offset < 0x80000000:
+                    expected_ack, expected_window, result = (end + offset) & 0xffffffff, window, 9
+                else:
+                    distance = (-offset) & 0xffffffff
+                    if distance > 58:
+                        self.assertIsNone(out)
+                        self.assertEqual(s.env['m.result'], 11)
+                        self.assertEqual(s.cells, before)
+                        continue
+                    expected_ack, result = start, 10
+                    if window < distance:
+                        expected_window = 0
+                    else:
+                        endpoint = (end - start + window - distance) & 0xffffffff
+                        expected_window = min(endpoint, 65535)
+                self.assertIsNotNone(out)
+                self.assertEqual(int.from_bytes(out[58:62], 'big'), expected_ack)
+                self.assertEqual(int.from_bytes(out[64:66], 'big'), expected_window)
+                self.assertEqual(s.env['m.result'], result)
+                self.assertEqual(s.cells, before, 'normalization remains readonly')
+
     def test_normalize_reads_accounting_and_images_without_writes(self):
         s = self.fresh()
         before = self.snapshot(s)
@@ -324,6 +418,36 @@ class EAccounting(unittest.TestCase):
                                         (64, 14, vectors.packet(2, 99, 0, mss=1460), 16)):
             before = self.snapshot(s)
             self.assertIsNone(self.send(s, port, kind, frame, epoch))
+            self.assertEqual(s.cells, before)
+
+    def test_invalid_tcp_with_matching_poisoned_tuple_cannot_open_epoch(self):
+        s = self.fresh()
+        before = self.snapshot(s)
+        frame = bytearray(vectors.packet(2, 4000, reverse=True, mss=1460))
+        frame[23] = 17  # The parser accepts IPv4 without extracting TCP.
+        raw = struct.pack('!IIIBBH', 18, 0, 0, 14, 0, 0) + bytes(frame)
+        s.begin_pass(0)
+        s.env['eg.egress_port'] = 9
+        accepted, _ = s.packet_parser(raw)
+        self.assertTrue(accepted)
+        self.assertFalse(s.valid.get('tcp', False))
+        # Invalid-header bits are unspecified. Give them a matching bound
+        # tuple and a SYN so connection lookup hits despite TCP being invalid.
+        s.env.update({'hdr.tcp.sport': vectors.SERVER_PORT,
+                      'hdr.tcp.dport': vectors.CLIENT_PORT,
+                      'hdr.tcp.flags': 2, 'hdr.tcp.seq': 4000, 'hdr.tcp.ack': 0})
+        s.apply_control('Ingress')
+        self.assertEqual(s.env['m.dir'], 1)
+        self.assertEqual(s.cells, before)
+
+    def test_unbound_tcp_cannot_write_epoch_even_for_open_kind(self):
+        s = self.fresh()
+        before = self.snapshot(s)
+        frame = bytearray(vectors.packet(2, 4000, mss=1460))
+        frame[34:36] = struct.pack('!H', vectors.CLIENT_PORT + 1)
+        for epoch in (18, 0x7fffffff, 0x80000000, 0xffffffff):
+            self.send(s, 70, 14, bytes(frame), epoch)
+            self.assertEqual(s.env['m.dir'], 0)
             self.assertEqual(s.cells, before)
 
     def test_first_latch_rejects_zero_and_encoded_epoch_inputs(self):

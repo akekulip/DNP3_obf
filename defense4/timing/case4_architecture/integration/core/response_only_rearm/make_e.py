@@ -57,19 +57,21 @@ LIFECYCLE = '''    Register<bit<32>, slot_t>(16, 0) epoch;
         default_action = NoAction(); size = 1;
     }
     table lifecycle_access {
-        key = { hdr.prov.kind : ternary; hdr.prov.epoch : ternary; }
-        actions = { normalize_epoch; check_epoch; open_epoch; first_epoch; reject_lifetime; }
+        key = { hdr.tcp.isValid() : exact; m.dir : ternary; hdr.prov.kind : ternary; hdr.prov.epoch : ternary; }
+        actions = { normalize_epoch; check_epoch; open_epoch; first_epoch; reject_lifetime; NoAction; }
         const entries = {
-            (_, 32w0x80000000 &&& 32w0x80000000) : reject_lifetime();
-            (_, 32w0x7fffffff) : reject_lifetime();
-            (8w0xe7, 0) : reject_lifetime();
-            (8w0xe0, _) : normalize_epoch(); (8w14, _) : open_epoch();
-            (8w0xe3, _) : check_epoch(); (8w0xe4, _) : check_epoch();
-            (8w0xe5, _) : check_epoch(); (8w0xe7, _) : first_epoch();
-            (8w9, _) : check_epoch(); (8w10, _) : check_epoch();
-            (8w11, _) : check_epoch(); (8w12, _) : check_epoch(); (8w13, _) : check_epoch();
+            (false, _, _, _) : NoAction(); (true, 0, _, _) : NoAction();
+            (true, _, _, 32w0x80000000 &&& 32w0x80000000) : reject_lifetime();
+            (true, _, _, 32w0x7fffffff) : reject_lifetime();
+            (true, _, 8w0xe7, 0) : reject_lifetime();
+            (true, _, 8w0xe0, _) : normalize_epoch(); (true, _, 8w14, _) : open_epoch();
+            (true, _, 8w0xe3, _) : check_epoch(); (true, _, 8w0xe4, _) : check_epoch();
+            (true, _, 8w0xe5, _) : check_epoch(); (true, _, 8w0xe7, _) : first_epoch();
+            (true, _, 8w9, _) : check_epoch(); (true, _, 8w10, _) : check_epoch();
+            (true, _, 8w11, _) : check_epoch(); (true, _, 8w12, _) : check_epoch(); (true, _, 8w13, _) : check_epoch();
+            (true, _, _, _) : reject_lifetime();
         }
-        default_action = reject_lifetime(); size = 14;
+        default_action = NoAction(); size = 17;
     }
     Register<bit<32>, slot_t>(16, 0) master_isn;
     RegisterAction<bit<32>, slot_t, bit<32>>(master_isn) isn_open = {
@@ -245,11 +247,70 @@ def generate():
     assert '.execute(' not in crc_verdict
     text = text[:start] + text[end:]
     text = replace(text, '        acct_t.apply();', crc_verdict + '        acct_t.apply();')
-    # The dependency graph gives lifecycle a stage-1 minimum, but the greedy
-    # placement drifts it to 3 behind independent CRC gateways. Stage 2 leaves
-    # room for packet preparation and shortens the qualified mapper chain.
+    # These packet-only preparations have no input used by the epoch bank.
+    # Placing them before lifecycle creates next-table anti dependencies from
+    # every hash/profile branch to that bank. Run them after the valid-TCP,
+    # connected lifecycle access, outside its result gateway so that its output
+    # does not extend every packet-preparation lifetime. Mapper writes still
+    # require the same lifetime verdict, and CRC verdicts still precede acct.
+    text = replace(text, '        normalization_ack_t.apply(); prepare_open_t.apply(); leff_t.apply(); prep_t.apply();',
+                   '        normalization_ack_t.apply(); prepare_open_t.apply();')
+    start = text.index('        if (hdr.dl.isValid()) { in_dl_t.apply(); }')
+    end = text.index('        if (m.dir != 0 && hdr.tcp.isValid())', start)
+    packet_prepare = text[start:end]
+    assert '.execute(' not in packet_prepare
+    text = text[:start] + text[end:]
+    text = replace(text, '''        if (m.dir != 0 && hdr.tcp.isValid()) {
+            lifecycle_access.apply();
+''', '''        lifecycle_access.apply();
+        leff_t.apply(); prep_t.apply();
+''' + packet_prepare + '''        if (m.dir != 0 && hdr.tcp.isValid()) {
+''')
+    # These qualified operand stages have a stage-1 dependency minimum. Prefer
+    # them ahead of independent CRC calculations in the greedy allocator.
     text = replace(text, '    table lifecycle_access {',
-                   '    @stage(2) table lifecycle_access {')
+                   '    @placement_priority(100) table lifecycle_access {')
+    text = replace(text, '    table prep_t {',
+                   '    @placement_priority(90) table prep_t {')
+    # The inverse's decision depends on r and the original window, rather
+    # than the late derived y/z. The only negative r values retained by the
+    # fixed image are -58..-1. Partition each of their window ranges exactly;
+    # positive-halfspace translation and default stale rejection are unchanged.
+    # Reuse s_end only after img_end has consumed the forward endpoint. The
+    # two pure preparations can run beside the forward classifier before the
+    # shared img_wend access; the OPEN action adds r once that access returns.
+    start = text.index('    action rev_prep()')
+    end = text.index('    action rev_translate()', start)
+    text = text[:start] + '''    action reverse_gap() { m.s_end = m.q - m.p; }
+    table reverse_gap_t { actions = { reverse_gap; } size = 1; const default_action = reverse_gap(); }
+    action reverse_window_base() { m.s_end = m.s_end + widen_win.get({hdr.tcp.window}); }
+    table reverse_window_base_t { actions = { reverse_window_base; } size = 1; const default_action = reverse_window_base(); }
+''' + text[end:]
+    text = replace(text, 'action rev_translate() { hdr.tcp.ack = m.pm;',
+                   'action rev_translate() { hdr.tcp.ack = m.q + m.r;')
+    text = replace(text, 'm.s_end = m.y + m.t;', 'm.s_end = m.s_end + m.r;')
+    start = text.index('    table classify_rev {')
+    end = text.index('    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;', start)
+    rows = ['(32w0 &&& 32w0x80000000, _) : rev_translate();']
+    for distance in range(1, 59):
+        offset = '32w0x%08x' % ((1 << 32) - distance)
+        rows += ['(%s, 16w0 .. 16w%d) : rev_withhold_zero();' % (offset, distance - 1),
+                 '(%s, 16w%d .. 16w65535) : rev_withhold_open();' % (offset, distance)]
+    text = text[:start] + '''    table classify_rev {
+        key = { m.r : ternary; hdr.tcp.window : range; }
+        actions = { rev_translate; rev_withhold_zero; rev_withhold_open; rev_drop; }
+        size = 118; const default_action = rev_drop();
+        const entries = {
+            ''' + '\n            '.join(rows) + '''
+        }
+    }
+''' + text[end:]
+    reverse = 'm.dir == 2 && m.shape == SH_ACK && m.mode == 1 && m.normalize == 1'
+    text = replace(text, '        envelope_result.apply();',
+                   '        envelope_result.apply();\n        if (' + reverse + ') {\n'
+                   '            reverse_gap_t.apply(); reverse_window_base_t.apply();\n        }')
+    text = replace(text, '            rev_prep_t.apply(); classify_rev.apply();',
+                   '            classify_rev.apply();')
     # E captures the untouched wire ACK on N's private normalization opcode,
     # before reverse translation. All qualified N returns preserve that value.
     text = replace(text, '        pkt.emit(hdr.eth);', '        pkt.emit(hdr.prov); pkt.emit(hdr.eth);')

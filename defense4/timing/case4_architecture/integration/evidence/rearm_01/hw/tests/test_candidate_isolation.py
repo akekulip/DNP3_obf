@@ -17,7 +17,7 @@ def config():
     cfg['trials']=dict(reads_per_trial=1,trials_per_arm=1)
     cfg['evaluation']=dict(purpose='stale_source_characterization',read_precision=False)
     cfg['traffic']['master_port_range']=dict(first=59412,last=59412)
-    cfg['hosts']['vision_run_dir']='/home/decps/pad58b_rearm_barrier_20261012'
+    cfg['hosts']['vision_run_dir']=ci.BARRIER_DIRECTORY
     cfg['endpoint']['binary_sha256']=ci.BARRIER_BINARY
     return cfg
 
@@ -64,3 +64,10 @@ def test_hardware_execute_refuses_missing_local_authorization_before_any_step(mo
     run=ci.TokenIsolationCampaign(config(),runner,'no_auth',arms=['combined'],fixtures=['separate_ack'])
     monkeypatch.delenv('DEFENSE4_HW_AUTHORIZED',raising=False)
     with pytest.raises(ValueError,match='DEFENSE4_HW_AUTHORIZED'):run.execute()
+
+
+def test_new_barrier_config_is_pinned_to_its_isolated_directory():
+    cfg=config()
+    cfg['hosts']['vision_run_dir']='/home/decps/pad58b_rearm_barrier_20261012'
+    with pytest.raises(ValueError,match='exact pinned'):
+        ci.TokenIsolationCampaign(cfg,ci.base.DryRunner(),'old_barrier',arms=['combined'],fixtures=['separate_ack'])

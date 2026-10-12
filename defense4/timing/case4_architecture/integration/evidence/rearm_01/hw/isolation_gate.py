@@ -7,7 +7,7 @@ from pathlib import Path
 from candidate_series import _field_int, _pick
 
 
-def compare_quiet_generation(before, after, epoch, server_isn):
+def compare_quiet_generation(before, after, connection_generation, server_isn):
     failures, allowed, observed = [], [], {}
     for label, snapshot in (('before', before), ('after', after)):
         if snapshot.get('valid') is not True or snapshot.get('errors') or snapshot.get('software_read_fallbacks'):
@@ -30,23 +30,31 @@ def compare_quiet_generation(before, after, epoch, server_isn):
                 N=_pick(registers, 'N epoch', lambda n: n == 'p0.n_Ingress.epoch'),
                 E=_pick(registers, 'E epoch', lambda n: n == 'p0.r_Egress.epoch'),
                 T=_pick(registers, 'T epoch', lambda n: n == 'p1.t_Ingress.cur_epoch_reg'),
+                owner=_pick(registers, 'N owner', lambda n: n == 'p0.n_Ingress.owner'),
                 work=_pick(registers, 'N WorkRecord', lambda n: n.startswith('p0.n_Ingress.') and 'work' in n),
                 front=_pick(registers, 'E front', lambda n: n == 'p0.r_Egress.front'),
                 acct=_pick(registers, 'E accounting', lambda n: n.startswith('p0.r_Egress.') and 'acct' in n))
             values = {key: _field_int(registers, names[key]) for key in ('N', 'E', 'T')}
+            e_latched = bool(values['E'] & 0x80000000)
             # E's high bit is the atomic FIRST latch; only the lower 31 bits identify the lifetime.
             values['E'] &= 0x7fffffff
             phase = _field_int(registers, names['work'], r'phase')
             generation = _field_int(registers, names['work'], r'generation|gen')
+            owner = _field_int(registers, names['owner'])
             mapper = dict(front=_field_int(registers, names['front']),
                           lo=_field_int(registers, names['acct'], r'(^|[.])lo$'),
                           hi=_field_int(registers, names['acct'], r'(^|[.])hi$'))
-            observed[label] = dict(epochs=values, work_phase=phase, work_generation=generation, mapper=mapper)
+            observed[label] = dict(epochs=values, work_phase=phase, work_generation=generation,
+                                   owner=owner, mapper=mapper)
             work_name = names['work']
-            if values != {'N': epoch, 'E': epoch, 'T': epoch}:
-                failures.append(label + ': N/E/T are not the expected current epoch')
+            if not 0 < values['N'] <= 0x7ffffffe or len(set(values.values())) != 1 or not e_latched:
+                failures.append(label + ': N/E/T must share a bounded current epoch with FIRST latched')
+            if owner != (5 << 16) | connection_generation:
+                failures.append(label + ': owner is not the established current connection')
             if phase != 4 or not 0 < generation <= 0x7ffffffe:
                 failures.append(label + ': WorkRecord is not genuinely free with bounded generation')
+            if values['N'] > generation:
+                failures.append(label + ': current epoch exceeds the packet Work allocation')
             frontier = (server_isn + 1) & 0xffffffff
             if mapper != {'front': frontier, 'lo': frontier, 'hi': 0}:
                 failures.append(label + ': E does not have fresh zero-growth mapping state')
@@ -78,12 +86,12 @@ def compare_quiet_generation(before, after, epoch, server_isn):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('before', type=Path); parser.add_argument('after', type=Path)
-    parser.add_argument('--epoch', type=int, required=True)
+    parser.add_argument('--connection-generation', type=int, required=True)
     parser.add_argument('--server-isn', type=int, required=True)
     parser.add_argument('--json', type=Path)
     args = parser.parse_args()
     result = compare_quiet_generation(json.loads(args.before.read_text()), json.loads(args.after.read_text()),
-                                      args.epoch, args.server_isn)
+                                      args.connection_generation, args.server_isn)
     output = json.dumps(result, indent=2) + '\n'
     if args.json:
         args.json.write_text(output)

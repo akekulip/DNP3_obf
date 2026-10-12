@@ -10,6 +10,16 @@ import time
 OLD_REJECTION_INDICES = (6, 14)  # OUT_TOKEN_STALE, OUT_OLD_EPOCH_DROP
 
 
+def rejection_layout(definitions):
+    tables = {item['name']: item for item in definitions}
+    size = tables['p1.t_Ingress.outcomes']['size']
+    if size == 25 and 'p1.t_Ingress.quarantine_reg' not in tables:
+        return 'split_raw_timer_23_24', (6, 14, 23, 24)
+    if size == 16:
+        return 'aggregate_6', OLD_REJECTION_INDICES
+    raise ValueError('unsupported timer rejection counter layout')
+
+
 def allocated_registers(build_out):
     """BFRT may retain optimized-away declarations; context proves allocation."""
     names, hashes = set(), {}
@@ -47,6 +57,7 @@ def main():
     args = ap.parse_args()
     schema = args.build_out / 'bfrt.json'
     definitions = json.loads(schema.read_text())['tables']
+    layout, rejection_indices = rejection_layout(definitions) if args.read_app else (None, ())
     allocated, context_hashes = allocated_registers(args.build_out)
     sys.path.insert(0, str(args.switch_tools.resolve()))
     from switch import Switch, gc
@@ -76,6 +87,10 @@ def main():
               'bfrt_sha256': hashlib.sha256(schema.read_bytes()).hexdigest(),
               'context_sha256': context_hashes, 'optimized_away': [],
               'slot': args.slot, 'registers': {}, 'errors': {}}
+    result['T_epoch_sealed_encoding'] = not any(
+        table['name'] == 'p1.t_Ingress.quarantine_reg' for table in definitions)
+    if args.read_app:
+        result['timer_rejection_layout'] = layout
     result['expected_registers'] = sorted(table['name'] for table in definitions
         if table.get('table_type') == 'Register' and table['name'] in allocated and
         table['name'].startswith(('p0.n_Ingress.', 'p0.r_Egress.', 'p1.t_Ingress.')))
@@ -92,8 +107,9 @@ def main():
         if args.read_app:
             try:
                 result['read_app_before'] = sw.must_get('tf1.pktgen.app_cfg', 1, [('app_id', 0, None)])
+                result['operate_app_before'] = sw.must_get('tf1.pktgen.app_cfg', 1, [('app_id', 1, None)])
                 result['old_reject_before'] = {str(index): sw.must_get('p1.t_Ingress.outcomes', 1,
-                    [('$REGISTER_INDEX', index, None)]) for index in OLD_REJECTION_INDICES}
+                    [('$REGISTER_INDEX', index, None)]) for index in rejection_indices}
             except Exception as error:
                 result['errors']['read_app_before'] = str(error)
         for table in definitions:
@@ -116,8 +132,9 @@ def main():
         if args.read_app:
             try:
                 result['read_app_after'] = sw.must_get('tf1.pktgen.app_cfg', 1, [('app_id', 0, None)])
+                result['operate_app_after'] = sw.must_get('tf1.pktgen.app_cfg', 1, [('app_id', 1, None)])
                 result['old_reject_after'] = {str(index): sw.must_get('p1.t_Ingress.outcomes', 1,
-                    [('$REGISTER_INDEX', index, None)]) for index in OLD_REJECTION_INDICES}
+                    [('$REGISTER_INDEX', index, None)]) for index in rejection_indices}
             except Exception as error:
                 result['errors']['read_app_after'] = str(error)
         result['completed_time'] = time.time()

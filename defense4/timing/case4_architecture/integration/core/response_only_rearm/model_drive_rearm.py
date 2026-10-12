@@ -30,6 +30,7 @@ cp = load('_protected_model_cp', HERE / 'cp.py')
 Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
 vectors, rs, b, scalar = helpers.vectors, helpers.rs, helpers.b, helpers.scalar
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
+PKTGEN_RETURN = helpers.PKTGEN_RETURN
 
 
 def main():
@@ -86,6 +87,15 @@ def main():
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
                     for role, names in registers.items()}
 
+        def private_snapshot():
+            state = snapshot()
+            for name in ('work.work', 'counter', 'application', 'read_app',
+                         'pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports',
+                         'pair_real_object_real_on', 'pair_real_off_native_start',
+                         'pair_native_end_server_start'):
+                state['N'][name] = m.register_read('p0.n_Ingress.' + name, 0, pipe=0)
+            return state
+
         def step(name, sent, expected, master=True):
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
@@ -101,7 +111,15 @@ def main():
             syn = vectors.packet(2, client, mss=1460)
             synack = vectors.packet(18, server, client + 1, reverse=True, mss=1460)
             step('SYN_%d' % client, syn, syn)
+            before = snapshot()
+            step('exact_pending_SYN_retry_%d' % client, syn, syn)
+            report.add('pending_SYN_retry_authority_%d' % client, before, snapshot())
             step('SYNACK_%d' % server, synack, synack, master=False)
+            before = snapshot()
+            # Consume the first wire SYNACK without acknowledging it, then
+            # retry exactly. This must forward without another FIRST arm.
+            step('exact_pending_SYNACK_retry_%d' % server, synack, synack, master=False)
+            report.add('pending_SYNACK_retry_authority_%d' % server, before, snapshot())
             ack = vectors.packet(16, client + 1, server + 1)
             step('final_ACK_%d' % client, ack, ack)
             state = snapshot()
@@ -115,6 +133,8 @@ def main():
             return state
 
         initial = handshake(100, 900)
+        initial_work = m.register_read('p0.n_Ingress.work.work', 0, pipe=0)
+        old_work_generation = scalar({k: v for k, v in initial_work.items() if k.endswith('.generation')})
         request = rs.request_packet(seq=101, ack=901)
         step('READ_native', request, request)
         ack = rs.ack_packet(seq=901, ack=121)
@@ -123,6 +143,33 @@ def main():
         padded, _ = b.pad_read_response(frame)
         step('READ_padded_58', rs.response_packet(seq=901, ack=121),
              vectors.packet(24, 901, 121, reverse=True, payload=padded), master=False)
+        # Probe actual E's private normalization return before N qualifies the
+        # ACK. These ACKs lie inside the prior image, so N will reject them and
+        # cannot commit accounting. Every bounded range row is observed with
+        # its computed ACK/window and independently computed checksums.
+        before_inverse = copy.deepcopy(snapshot())
+        for distance in range(1, 59):
+            for window in sorted({0, distance - 1, distance, distance + 1, 65535}):
+                sent = bytearray(vectors.packet(16, 121, 959 - distance))
+                sent[48:50] = struct.pack('!H', window)
+                sent[50:52] = bytes(2)
+                pseudo = sent[26:34] + bytes((0, 6)) + struct.pack('!H', len(sent) - 34)
+                sent[50:52] = struct.pack('!H', vectors.checksum(pseudo + sent[34:]))
+                expected = bytearray(vectors.packet(16, 121, 901))
+                expected_window = 0 if window < distance else min(49 + window - distance, 65535)
+                expected[48:50] = struct.pack('!H', expected_window)
+                expected[50:52] = bytes(2)
+                expected[50:52] = struct.pack('!H', vectors.checksum(pseudo + expected[34:]))
+                got = m.exchange(MASTER.dev_port, bytes(sent), ports + [PM.n_ack_return],
+                                 timeout=.5, quiet=.03)
+                private = [raw for raw in got[PM.n_ack_return] if len(raw) >= 70 and raw[12] == 0xe1]
+                name = 'inverse_distance%d_window%d' % (distance, window)
+                good = len(private) == 1 and same_frame(private[0][16:], bytes(expected), bytes(sent))
+                report.add(name, 'one exact normalization; no wire departure',
+                           '%d normalization / %d wire' % (len(private), sum(len(got[p]) for p in ports)),
+                           ok=good and not any(got[p] for p in ports),
+                           received=got, want=bytes(expected).hex())
+        report.add('inverse_range_batch_authority_unchanged', before_inverse, snapshot())
         # Wire coordinates acknowledge the padded READ. E normalization occurs
         # before N validates the native frontier and authorizes accounting.
         step('mapped_FIN', vectors.packet(17, 121, 959), vectors.packet(17, 121, 950))
@@ -132,6 +179,49 @@ def main():
         report.add('bilaterally_retired', 0x10f, scalar(snapshot()['N']['owner']) >> 16)
         current = handshake(4000, 7000)
         report.add('epoch_advanced', True, scalar(current['N']['epoch']) > scalar(initial['N']['epoch']))
+        # The real timer header has no epoch. CLOSE and OPEN must advance both
+        # preserved allocators before the new connection's first READ, so old
+        # raw tokens are rejected on the silicon clone_or_token parser path.
+        params['enabled'] = 1
+        m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
+        before_token = copy.deepcopy(snapshot())
+        stale = scalar(m.register_read('p1.t_Ingress.outcomes', 6, pipe=1))
+        for profile, allocator in ((0, 'gen_alloc_reg'), (1, 'op_gen_alloc_reg')):
+            old_generation = scalar(initial['T'][allocator])
+            for packet_id in (0, 1):
+                raw = bytes((1 << 3 | profile, profile)) + struct.pack('!HH', old_generation, packet_id) + bytes(58)
+                m.drain(ports)
+                m.send(PKTGEN_RETURN, raw)
+                got = m.capture(ports, timeout=.4, quiet=.1)
+                name = 'old_raw_token_app%d_id%d_on196' % (profile, packet_id)
+                report.add(name + '_dropped', True, not any(got.values()))
+                report.add(name + '_authority_unchanged', before_token, snapshot())
+        report.add('old_raw_tokens_stale_count', stale + 4,
+                   scalar(m.register_read('p1.t_Ingress.outcomes', 6, pipe=1)))
+        params['enabled'] = 0
+        m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
+        before_private = copy.deepcopy(private_snapshot())
+        old_epoch = scalar(initial['N']['epoch'])
+        old_owner = scalar(initial['N']['owner'])
+        for phase in (1, 2, 3):
+            # Full old Work generation, expected owner and phase, including
+            # READ's t0/origin headers. These never claim a replacement Work.
+            prefix = struct.pack('!IIIHH', old_epoch, old_work_generation, old_owner, phase << 8 | 9, 0)
+            raw = prefix + struct.pack('!III', 0, 901, old_epoch) + rs.request_packet(seq=101, ack=901)
+            m.drain(ports)
+            m.send(68, raw)
+            got = m.capture(ports, timeout=.4, quiet=.1)
+            report.add('old_Work_phase%d_dropped' % phase, True, not any(got.values()))
+            report.add('old_Work_phase%d_all_banks_unchanged' % phase, before_private, private_snapshot())
+        for role in range(11, 17):
+            generation = scalar(initial['T']['op_gen_alloc_reg' if role in (13, 16) else 'gen_alloc_reg'])
+            raw = struct.pack('!BBHI', role, 0, generation, old_epoch) + rs.response_packet(seq=901, ack=121)
+            port = PM.hb_return if role in (13, 16) else PM.held_return
+            m.drain(ports)
+            m.send(port, raw)
+            got = m.capture(ports, timeout=.4, quiet=.1)
+            report.add('old_ladder_role%d_dropped_even_OFF' % role, True, not any(got.values()))
+            report.add('old_ladder_role%d_all_banks_unchanged' % role, before_private, private_snapshot())
         before = copy.deepcopy(snapshot())
         for name, packet, master in (
                 ('old_ACK', vectors.packet(16, 101, 901), True),
@@ -140,7 +230,6 @@ def main():
                 ('old_READ_reply', rs.response_packet(seq=901, ack=121), False)):
             step(name, packet, None, master)
             report.add(name + '_authority_unchanged', before, snapshot())
-        old_epoch = scalar(initial['N']['epoch'])
         old_reset = struct.pack('!IIIBBH', old_epoch, 0, 0, 13, 0, 0) + bytes(14)
         m.drain(ports)
         m.send(PM.t_in, old_reset)

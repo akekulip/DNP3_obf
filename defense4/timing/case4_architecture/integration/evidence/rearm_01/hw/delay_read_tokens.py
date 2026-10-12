@@ -14,6 +14,34 @@ COUNTERS = ('trigger_counter', 'batch_counter', 'pkt_counter')
 EXPECTED = {'action_name': 'trigger_recirc_pattern', 'pattern_value': 0xe1000000,
             'pattern_mask': 0xffff0000, 'pipe_local_source_port': 68,
             'batch_count_cfg': 0, 'packets_per_batch_cfg': 3, 'app_enable': True}
+CONFIG_FIELDS = ('pattern_value', 'pattern_mask', 'pkt_len', 'pkt_buffer_offset',
+                 'pipe_local_source_port', 'increment_source_port', 'batch_count_cfg',
+                 'packets_per_batch_cfg', 'ibg', 'ibg_jitter', 'ipg', 'ipg_jitter')
+
+
+def ipg_operation(before, value):
+    # The SDK ignores configuration fields without an action. With an action,
+    # it constructs a fresh zero-filled config, so replay every config field.
+    missing = [name for name in CONFIG_FIELDS if name not in before]
+    if missing:
+        raise ValueError('missing READ app configuration fields: ' + ', '.join(missing))
+    return {'kind': 'pktgen_app', 'table': TABLE, 'pipe': 1, 'key': KEY,
+            'action': EXPECTED['action_name'],
+            'data': [(name, value if name == 'ipg' else before[name]) for name in CONFIG_FIELDS]}
+
+
+def change_ipg(sw, before, value):
+    check_app(before, restore=before.get('trigger_counter') == 1)
+    operation = ipg_operation(before, value)
+    enable = dict(kind='pktgen_enable', table=TABLE, pipe=1, key=KEY)
+    sw.write(dict(enable, data=[('app_enable', False)]))
+    disabled = sw.must_get(TABLE, 1, KEY)
+    check_change(dict(before, app_enable=False), disabled, before['ipg'])
+    sw.write(operation)
+    sw.write(dict(enable, data=[('app_enable', True)]))
+    after = sw.must_get(TABLE, 1, KEY)
+    check_change(before, after, value)
+    return after
 
 
 def check_app(entry, restore=False):
@@ -90,14 +118,13 @@ def main():
         if live_epoch.info.id_get() != epoch[0]['id']:
             raise ValueError('live candidate E lifetime schema differs')
         before = sw.must_get(TABLE, 1, KEY)
+        record['before'] = before
         check_app(before, restore=bool(prior))
         if prior and before['ipg'] != prior['ipg_ns']:
             raise ValueError('current IPG differs from the saved delay')
-        record['before'] = before
         record['software_read_fallbacks_before'] = sorted(sw.sw_read)
         args.record.write_text(json.dumps(record, indent=2) + '\n')
-        sw.write({'kind': 'pktgen_enable', 'table': TABLE, 'pipe': 1, 'key': KEY, 'data': [('ipg', value)]})
-        after = sw.must_get(TABLE, 1, KEY)
+        after = change_ipg(sw, before, value)
         record['after'] = after
         record['software_read_fallbacks_after'] = sorted(sw.sw_read)
         check_change(before, after, value)

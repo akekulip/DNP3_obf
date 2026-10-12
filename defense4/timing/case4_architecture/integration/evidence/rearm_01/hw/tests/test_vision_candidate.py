@@ -228,18 +228,18 @@ class VisionCandidate(unittest.TestCase):
                 self.assertEqual(vc.scenario('test', self.port, 'rst', 1, rst_grace_ms=value)['close_grace_ms'], value)
 
     def test_pre_read_grace_bounds_are_enforced_offline(self):
-        for value in (-1, 5001, True, '500'):
+        for value in (-1, vc.PRE_READ_GRACE_MS + 1, True, '500'):
             with self.subTest(grace=value), self.assertRaises(ValueError):
                 vc.scenario('test', self.port, 'rst', 1, pre_read_grace_ms=value)
-        for value in (0, 5000):
+        for value in (0, vc.PRE_READ_GRACE_MS):
             self.assertEqual(vc.scenario('test', self.port, 'rst', 1, pre_read_grace_ms=value)['pre_read_grace_ms'], value)
 
     def test_pre_read_environment_uses_exact_marker_and_restores_caller_on_failure(self):
         old = {'CASE4_PRE_READ_GRACE_MS': '777', 'CASE4_PRE_READ_MARKER': '/caller/marker'}
         with patch.dict(os.environ, old):
             with self.assertRaisesRegex(RuntimeError, 'injected'):
-                with vc.pre_read_controls(self.root, 5000):
-                    self.assertEqual(os.environ['CASE4_PRE_READ_GRACE_MS'], '5000')
+                with vc.pre_read_controls(self.root, vc.PRE_READ_GRACE_MS):
+                    self.assertEqual(os.environ['CASE4_PRE_READ_GRACE_MS'], str(vc.PRE_READ_GRACE_MS))
                     self.assertEqual(os.environ['CASE4_PRE_READ_MARKER'], str(self.root / 'pre_read_ready.json'))
                     raise RuntimeError('injected')
             self.assertEqual({key: os.environ[key] for key in old}, old)
@@ -293,19 +293,21 @@ class VisionCandidate(unittest.TestCase):
             dest = Path(dest); dest.mkdir()
             marker_path = os.environ['CASE4_PRE_READ_MARKER']
             calls.append((os.environ['CASE4_PRE_READ_GRACE_MS'], marker_path))
-            master = dict(pre_read_grace_ms=5000, pre_read_ready_ns=1_000_000_000, first_read_issued_ns=6_000_000_000)
+            master = dict(pre_read_grace_ms=vc.PRE_READ_GRACE_MS, pre_read_ready_ns=1_000_000_000,
+                          first_read_issued_ns=1_000_000_000 + vc.PRE_READ_GRACE_MS * 1_000_000)
             (dest/'master.json').write_text(json.dumps(master))
-            Path(marker_path).write_text(json.dumps(dict(pre_read_grace_ms=5000, pre_read_ready_ns=1_000_000_000,
-                 first_read_issued_ns=0, tcp_open=True, opens=1)))
+            Path(marker_path).write_text(json.dumps(dict(pre_read_grace_ms=vc.PRE_READ_GRACE_MS,
+                 pre_read_ready_ns=1_000_000_000, first_read_issued_ns=0, tcp_open=True, opens=1)))
             return {'ok': True}
         with patch.object(vc.vr, 'RUNS', str(self.root)), patch.object(vc, 'preflight', return_value=[]), \
              patch.object(vc.vr, 'run_connection', side_effect=connect), patch.object(vc, 'evaluate', return_value=[]):
-            record = vc.scenario('hook_test', self.port, 'graceful', 1, apply=True, pre_read_grace_ms=5000)
+            record = vc.scenario('hook_test', self.port, 'graceful', 1, apply=True,
+                                 pre_read_grace_ms=vc.PRE_READ_GRACE_MS)
         self.assertTrue(record['ok']); self.assertEqual(len(calls), 3)
         for index, (grace, path) in enumerate(calls, 1):
-            self.assertEqual(grace, '5000'); self.assertEqual(path, str(self.root/'hook_test'/('c%d' % index)/'pre_read_ready.json'))
+            self.assertEqual(grace, str(vc.PRE_READ_GRACE_MS)); self.assertEqual(path, str(self.root/'hook_test'/('c%d' % index)/'pre_read_ready.json'))
             hook = record['connections'][index-1]['pre_read_hook']
-            self.assertEqual(hook['observed_pre_read_grace_ms'], 5000); self.assertEqual(len(hook['marker_sha256']), 64)
+            self.assertEqual(hook['observed_pre_read_grace_ms'], vc.PRE_READ_GRACE_MS); self.assertEqual(len(hook['marker_sha256']), 64)
 
     def test_failed_connection_stops_observer_and_remaining_scenario(self):
         stopped = threading.Event()

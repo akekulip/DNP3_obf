@@ -21,7 +21,7 @@ def source_text(text):
     has precisely the value of its input; all stateful statements are retained.
     """
     text = re.sub(r'@name\("[^"]+"\)', '', text)
-    text = re.sub(r'@stage\(\d+\)', '', text)
+    text = re.sub(r'@(?:stage|placement_priority)\(-?\d+\)', '', text)
     text = text.replace('Hash<bit<32>>(HashAlgorithm_t.IDENTITY) wire_ack_stamp;', '')
     return text.replace('wire_ack_stamp.get({hdr.tcp.ack})', 'hdr.tcp.ack')
 

@@ -238,6 +238,28 @@ class Composite(unittest.TestCase):
                 self.assertEqual({k: v for k, v in s.t.src.cells.items() if k[1] != 'outcomes'}, before)
         self.assertGreater(s.t.counter(14), 0)
 
+    def test_old_raw_read_token_on_silicon_return_before_new_read(self):
+        s = self.fresh()
+        old_generation = s.t.cell('gen_alloc_reg')
+        s.send(vectors.packet(20, 101, 901))
+        s.handshake(4000, 7000)
+        self.assertGreater(s.t.cell('gen_alloc_reg'), old_generation)
+        before_n = {k: s.n.state()[k] for k in ('owner', 'client', 'server', 'epoch')}
+        before_e = copy.deepcopy(s.e.cells)
+        before_t = {k: copy.deepcopy(v) for k, v in s.t.src.cells.items() if k[1] != 'outcomes'}
+        enqueued, emitted = len(s.t.enqueued), len(s.t.emitted)
+        stale = s.t.counter(s.t.consts()['OUT_TOKEN_STALE'])
+        # Real app-0 packets carry the generation and packet id, with no epoch.
+        # Port 196 takes the silicon clone_or_token parser branch rather than
+        # the model-only port-0 shortcut used by the broader profile test.
+        raw = bytes((qs.PKTGEN_PIPE << 3, 0)) + struct.pack('!HH', old_generation, 0) + bytes(10)
+        s.t.ingress(s.now + 1000, qs.PKTGEN_PORT, raw)
+        self.assertEqual(s.t.counter(s.t.consts()['OUT_TOKEN_STALE']), stale + 1)
+        self.assertEqual((len(s.t.enqueued), len(s.t.emitted)), (enqueued, emitted))
+        self.assertEqual({k: s.n.state()[k] for k in before_n}, before_n)
+        self.assertEqual(s.e.cells, before_e)
+        self.assertEqual({k: v for k, v in s.t.src.cells.items() if k[1] != 'outcomes'}, before_t)
+
 
 if __name__ == '__main__':
     unittest.main()

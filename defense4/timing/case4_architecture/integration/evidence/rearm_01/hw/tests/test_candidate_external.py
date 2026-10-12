@@ -45,7 +45,7 @@ def test_vision_deployment_includes_transitive_isolation_helper(monkeypatch):
     monkeypatch.setattr(ce.cs.CandidateSeriesCampaign,'vision_identity',lambda self:None)
     run.vision_identity()
     assert set(run.record['external_vision_identity'])=={
-        'vision_replay.py','vision_isolation.py','replay_old_packets.py'}
+        'vision_replay.py','vision_isolation.py','replay_old_packets.py','token_window.py','snapshot_lifecycle.py'}
 
 
 def test_root_reproduces_filtering_and_rejects_changed_current_evidence(tmp_path):

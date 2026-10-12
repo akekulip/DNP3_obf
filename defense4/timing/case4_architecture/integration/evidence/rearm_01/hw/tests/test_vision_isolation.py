@@ -26,7 +26,7 @@ class VisionIsolation(unittest.TestCase):
             self.assertEqual(vi.main(['test', '--master-port', str(self.port)]), 0)
             plan = vi.scenario('test', self.port, 1)
         self.assertFalse(plan['applied']); self.assertEqual(plan['reads'], 1)
-        self.assertEqual([row['pre_read_grace_ms'] for row in plan['plan']], [0, 5000, 0])
+        self.assertEqual([row['pre_read_grace_ms'] for row in plan['plan']], [0, vi.PRE_READ_GRACE_MS, 0])
         self.assertEqual([row['master_port'] for row in plan['plan']], [self.port] * 3)
         self.assertEqual(plan['close_grace_ms'], 1000); self.assertEqual(plan['close_mode'], 'rst')
         self.assertTrue(all(row['reads'] == 1 for row in plan['plan']))
@@ -64,12 +64,12 @@ class VisionIsolation(unittest.TestCase):
              patch.object(vi.vc.vr, 'casea', side_effect=AssertionError('fixture')):
             record = vi.scenario('test', self.port, 0, apply=True)
         self.assertTrue(record['ok']); self.assertEqual(observe.call_count, 3)
-        self.assertEqual([row['grace'] for row in calls], [0, 5000, 0])
+        self.assertEqual([row['grace'] for row in calls], [0, vi.PRE_READ_GRACE_MS, 0])
         self.assertTrue(all(row['port'] == self.port and row['args'][:4] == (1, 8, 0, 0) for row in calls))
         self.assertEqual([row['args'][4] for row in calls], [12345, 12346, 12347])
         self.assertTrue(all(row['kwargs'] == dict(read_pause_ms=25, run_sbo=True, close_grace_ms=1000,
                                                  capture_immediate=True) for row in calls))
-        self.assertEqual([row['pre_read_grace_ms'] for row in gates], [0, 5000, 0])
+        self.assertEqual([row['pre_read_grace_ms'] for row in gates], [0, vi.PRE_READ_GRACE_MS, 0])
         self.assertTrue(all(row['reads'] == 1 and row['rst_grace_ms'] == 1000 for row in gates))
         self.assertIsNone(calls[0]['marker']); self.assertIsNone(calls[2]['marker'])
         self.assertEqual(calls[1]['marker'], str(self.root/'test/c2/pre_read_ready.json'))

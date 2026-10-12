@@ -42,3 +42,15 @@ def test_context_allocation_separates_absent_declarations(tmp_path):
 def test_missing_context_cannot_silently_omit_hardware_registers(tmp_path):
     with pytest.raises(FileNotFoundError):
         module.allocated_registers(tmp_path)
+
+
+def test_timer_layout_separates_sparse_rearm_and_legacy_diagnostics():
+    outcomes = {'name': 'p1.t_Ingress.outcomes', 'size': 25}
+    assert module.rejection_layout([outcomes]) == ('split_raw_timer_23_24', (6, 14, 23, 24))
+    with pytest.raises(ValueError, match='unsupported'):
+        module.rejection_layout([outcomes, {'name': 'p1.t_Ingress.quarantine_reg'}])
+    outcomes['size'] = 16
+    assert module.rejection_layout([outcomes]) == ('aggregate_6', (6, 14))
+    outcomes['size'] = 26
+    with pytest.raises(ValueError, match='unsupported'):
+        module.rejection_layout([outcomes])

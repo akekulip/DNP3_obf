@@ -3,7 +3,7 @@
 
 Default is an offline plan. --apply requires DEFENSE4_HW_AUTHORIZED=1 and an
 already installed software tuple. The hardware owner writes c2/replay_graceful.json
-and c2/replay_rst.json using replay_old_packets.py during c2's5000ms pre-READ pause.
+and c2/replay_rst.json using replay_old_packets.py during c2's10000ms pre-READ pause.
 No setup, switch access, packet sending, or checksum repair occurs here.
 
 Raw captures remain intact. Only exact manifest-declared OUT frame counts are
@@ -178,7 +178,7 @@ def scenario(label, port=PORT, padding=1, apply=False):
     record.update(scenario='candidate_same_tuple_replay', applied=apply, ok=False)
     if not apply:
         record['ok'] = True; return record
-    parent = Path(vc.vr.RUNS) / label; parent.mkdir()
+    parent = Path(vc.vr.RUNS) / label; parent.mkdir(parents=True)
     try:
         record['preflight'] = vc.preflight('rst')
         for leg in record['plan']:
@@ -223,7 +223,8 @@ def scenario(label, port=PORT, padding=1, apply=False):
     finally:
         record['source_sha256'] = {str(path): sha(path) for path in
             (Path(__file__), Path(vi.__file__), Path(vc.__file__), Path(rp.__file__), Path(vc.vr.__file__),
-             Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__))}
+             Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
+             HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')}
         record['hashes'] = {str(path.relative_to(parent)): sha(path) for path in parent.rglob('*') if path.is_file()}
         vc.write_json(parent / 'scenario.json', record)
     return record

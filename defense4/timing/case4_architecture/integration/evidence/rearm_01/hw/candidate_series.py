@@ -30,6 +30,8 @@ from privileged_python import authorized_python
 
 
 VISION_EXTRA = {
+    'token_window.py': HERE / 'token_window.py',
+    'snapshot_lifecycle.py': HERE / 'snapshot_lifecycle.py',
     'vision_candidate.py': HERE / 'vision_candidate.py',
     'wire_check.py': ARCH / 'protocol' / 'hw_vepa' / 'wire_check.py',
     'clrt_check.py': ARCH / 'protocol' / 'hw_vepa' / 'clrt_check.py',
@@ -110,7 +112,7 @@ def lifecycle_gate(snapshot, close_mode='graceful'):
         n_epoch = _pick(registers, 'N epoch',
                         lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])n(_|[.]|$)|[.]N[.]', name))
         e_epoch = _pick(registers, 'E epoch',
-                        lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])(e|r)_?egress|[.]E[.]', name))
+                        lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])(e|r)_?egress|[.]E[.]', name, re.I))
         t_epoch = _pick(registers, 'T epoch',
                         lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])t(_|[.]|$)|[.]T[.]', name))
         work = _pick(registers, 'N WorkRecord',
@@ -120,22 +122,36 @@ def lifecycle_gate(snapshot, close_mode='graceful'):
         epochs = {'N': _field_int(registers, n_epoch), 'E': _field_int(registers, e_epoch),
                   'T': _field_int(registers, t_epoch)}
         e_raw = epochs['E']
+        t_raw = epochs['T']
+        sealed_encoding = snapshot.get('T_epoch_sealed_encoding') is True
         epochs['E'] &= 0x7fffffff
+        if sealed_encoding:
+            epochs['T'] &= 0x7fffffff
+            if not t_raw & 0x80000000:
+                failures.append('T must be sealed after c3 close')
         phase = _field_int(registers, work, r'phase')
         generation = _field_int(registers, work, r'generation|gen')
         owner_value = _field_int(registers, owner)
         observed['epochs'] = {'registers': {'N': n_epoch, 'E': e_epoch, 'T': t_epoch}, 'values': epochs}
         observed['epochs']['E_raw'] = e_raw
+        observed['epochs']['T_raw'] = t_raw
+        observed['epochs']['T_sealed'] = bool(t_raw & 0x80000000) if sealed_encoding else None
         observed['epochs']['E_FIRST_latched'] = bool(e_raw & 0x80000000)
         observed['work'] = {'register': work, 'phase': phase, 'generation': generation}
         observed['owner'] = {'register': owner, 'value': owner_value,
                              'phase': owner_value >> 16, 'generation': owner_value & 0xffff}
-        if epochs != {'N': 3, 'E': 3, 'T': 3}:
-            failures.append('N/E/T epochs must all equal 3 after three same-tuple incarnations: %s' % epochs)
+        # FIRST_SYN uses the monotonic packet Work generation as its epoch.
+        # The owner's low 16 bits separately count connection incarnations.
+        if not 0 < epochs['N'] <= 0x7ffffffe or len(set(epochs.values())) != 1:
+            failures.append('N/E/T epochs must agree on a nonzero bounded Work generation: %s' % epochs)
         if phase != 4:
             failures.append('N WorkRecord phase must be retired/free phase 4 after c3 close, observed %s' % phase)
         if not 0 < generation <= 0x7ffffffe:
             failures.append('N packet WorkRecord generation is not readable and bounded')
+        if epochs['N'] > generation:
+            failures.append('current epoch exceeds the allocated packet Work generation')
+        if not observed['epochs']['E_FIRST_latched']:
+            failures.append('E FIRST must be latched for the current connection')
         retired = 0x200 if close_mode == 'rst' else 0x10f
         if owner_value != (retired << 16) | 3:
             failures.append('N owner must be retired with current connection generation3')
@@ -176,11 +192,17 @@ def freshness_gate(sent, returned, port, previous=None):
     return observed
 
 
-def _reg(snapshot, name, field=None):
-    return base.runner.reg(snapshot, name, field)
+def _mapper_reg(snapshot, name, field=None):
+    if (snapshot.get('valid') is not True or snapshot.get('errors') or
+            snapshot.get('software_read_fallbacks')):
+        raise ValueError('mapper requires a complete hardware lifecycle read')
+    registers = snapshot['registers']
+    table = _pick(registers, 'E mapper ' + name,
+                  lambda table: table.lower().startswith('p0.r_egress.') and table.endswith('.' + name))
+    return _field_int(registers, table, re.escape(field) + '$' if field else None)
 
 
-def series_switch_gate(cfg, arm, reads, ev):
+def series_switch_gate(cfg, arm, reads, ev, lifecycle):
     """Switch-only aggregate gate for a three-connection protected candidate series."""
     run_sbo = cfg['traffic'].get('run_sbo', True)
     build = cfg['builds'][arm['build']]
@@ -190,8 +212,8 @@ def series_switch_gate(cfg, arm, reads, ev):
         checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
         sbo_count=3 * int(run_sbo), complete_reads=3 * reads, piggyback_reads=0)
     try:
-        growth = (_reg(ev['after'], 'acct', '.lo') - _reg(ev['after'], 'front')) & 0xffffffff
-        unacked = _reg(ev['after'], 'acct', '.hi')
+        growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
+        unacked = _mapper_reg(lifecycle, 'acct', '.hi')
         expected = reads * 9 + 42 if arm['padding'] else 0
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
@@ -387,9 +409,9 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         snapdir = os.path.join(dest, 'snapshots')
         snapshots = checks.load_evidence_files(before=os.path.join(snapdir, '%s_before.json' % label),
                                                after=os.path.join(snapdir, '%s_after.json' % label))
-        sfail, sobs = series_switch_gate(self.cfg, arm, trial['reads'], snapshots)
-        failures.extend('switch: ' + failure for failure in sfail)
         lifecycle = _load_json(os.path.join(snapdir, '%s_after_lifecycle.json' % label)) or {}
+        sfail, sobs = series_switch_gate(self.cfg, arm, trial['reads'], snapshots, lifecycle)
+        failures.extend('switch: ' + failure for failure in sfail)
         lfail, lobs = lifecycle_gate(lifecycle, self.close_mode)
         failures.extend('lifecycle: ' + failure for failure in lfail)
         if snapshots.get('after'):

@@ -8,7 +8,7 @@ from isolation_gate import compare_quiet_generation
 
 def snapshot():
     registers = {
-        'p0.n_Ingress.owner': {'owner': [0x70002]},
+        'p0.n_Ingress.owner': {'owner': [0x50002]},
         'p0.n_Ingress.epoch': {'epoch': [2]},
         'p0.n_Ingress.client': {'client': [101]},
         'p0.n_Ingress.server': {'server': [201]},
@@ -33,7 +33,7 @@ def test_old_replay_can_only_advance_n_diagnostics_and_free_packet_allocator():
     after['registers']['p0.n_Ingress.counter']['counter'] = [20]
     after['registers']['p0.n_Ingress.count_busy']['busy'] = [4]
     after['registers']['p0.n_Ingress.work.work']['generation'] = [20]
-    result = compare_quiet_generation(before, after, epoch=2, server_isn=201)
+    result = compare_quiet_generation(before, after, connection_generation=2, server_isn=201)
     assert result['ok'] and len(result['allowed_changes']) == 3
 
 
@@ -43,19 +43,19 @@ def test_any_mapping_owner_or_timing_authority_mutation_fails():
                         ('p1.t_Ingress.anchors','lo')]:
         before = snapshot(); after = copy.deepcopy(before)
         after['registers'][name][field][0] += 1
-        assert not compare_quiet_generation(before,after,epoch=2,server_isn=201)['ok']
+        assert not compare_quiet_generation(before,after,connection_generation=2,server_isn=201)['ok']
 
 
 def test_missing_or_software_reads_cannot_prove_isolation():
     for key, value in [('valid',False),('errors',['failed']),('software_read_fallbacks',['epoch'])]:
         before = snapshot(); before[key] = value
-        assert not compare_quiet_generation(before,snapshot(),epoch=2,server_isn=201)['ok']
+        assert not compare_quiet_generation(before,snapshot(),connection_generation=2,server_isn=201)['ok']
     after = snapshot(); after['registers'].pop('p0.r_Egress.image')
-    assert not compare_quiet_generation(snapshot(),after,epoch=2,server_isn=201)['ok']
+    assert not compare_quiet_generation(snapshot(),after,connection_generation=2,server_isn=201)['ok']
     before=snapshot();after=snapshot()
     for name in ('p0.n_Ingress.client','p0.n_Ingress.server','p0.r_Egress.image'):
         before['registers'].pop(name);after['registers'].pop(name)
-    assert not compare_quiet_generation(before,after,epoch=2,server_isn=201)['ok']
+    assert not compare_quiet_generation(before,after,connection_generation=2,server_isn=201)['ok']
 
 
 def test_both_snapshots_must_show_fresh_mapping_and_current_epochs():
@@ -64,10 +64,45 @@ def test_both_snapshots_must_show_fresh_mapping_and_current_epochs():
                                ('p0.r_Egress.epoch','epoch',0x80000001),
                                ('p1.t_Ingress.cur_epoch_reg','epoch',1)]:
         before = snapshot(); before['registers'][name][field] = [value]
-        assert not compare_quiet_generation(before,copy.deepcopy(before),epoch=2,server_isn=201)['ok']
+        assert not compare_quiet_generation(before,copy.deepcopy(before),connection_generation=2,server_isn=201)['ok']
 
 
 def test_busy_work_or_generation_regression_is_not_diagnostic_only():
     for field,value in [('phase',[0]),('generation',[9])]:
         after = snapshot(); after['registers']['p0.n_Ingress.work.work'][field] = value
-        assert not compare_quiet_generation(snapshot(),after,epoch=2,server_isn=201)['ok']
+        assert not compare_quiet_generation(snapshot(),after,connection_generation=2,server_isn=201)['ok']
+
+
+def test_quiet_epoch_comes_from_work_allocator_and_owner_identifies_connection():
+    before = snapshot()
+    for name, value in [('p0.n_Ingress.epoch', 9), ('p0.r_Egress.epoch', 0x80000009),
+                        ('p1.t_Ingress.cur_epoch_reg', 9)]:
+        before['registers'][name]['epoch'] = [value]
+    assert compare_quiet_generation(before, copy.deepcopy(before), connection_generation=2, server_isn=201)['ok']
+    for name, field, value in [('p0.n_Ingress.owner', 'owner', 0x50003),
+                               ('p0.n_Ingress.owner', 'owner', 0x10f0002),
+                               ('p0.n_Ingress.epoch', 'epoch', 0),
+                               ('p0.n_Ingress.epoch', 'epoch', 0x7fffffff)]:
+        bad = copy.deepcopy(before)
+        bad['registers'][name][field] = [value]
+        assert not compare_quiet_generation(bad, copy.deepcopy(bad), connection_generation=2, server_isn=201)['ok']
+
+
+def test_quiet_epoch_cannot_exceed_its_packet_work_allocation():
+    before = snapshot()
+    for name, value in [('p0.n_Ingress.epoch', 99), ('p0.r_Egress.epoch', 0x80000063),
+                        ('p1.t_Ingress.cur_epoch_reg', 99)]:
+        before['registers'][name]['epoch'] = [value]
+    assert not compare_quiet_generation(before, copy.deepcopy(before),
+                                        connection_generation=2, server_isn=201)['ok']
+
+
+def test_pre_read_established_phase_five_is_required_before_any_read():
+    # The actual N final-handshake ACK leaves phase5; phase7 follows READ.
+    before = snapshot()
+    before['registers']['p0.n_Ingress.owner']['owner'] = [0x50002]
+    assert compare_quiet_generation(before, copy.deepcopy(before),
+                                    connection_generation=2, server_isn=201)['ok']
+    before['registers']['p0.n_Ingress.owner']['owner'] = [0x70002]
+    assert not compare_quiet_generation(before, copy.deepcopy(before),
+                                        connection_generation=2, server_isn=201)['ok']

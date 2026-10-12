@@ -2,7 +2,7 @@
 """Fixed three-incarnation isolation sequence on an already installed tuple.
 
 Default prints an offline plan. The hardware owner installs/restores the switch
-and observes c2/pre_read_ready.json during its five-second pre-READ pause:
+and observes c2/pre_read_ready.json during its ten-second pre-READ pause:
   sudo env DEFENSE4_HW_AUTHORIZED=1 python3 vision_isolation.py LABEL \
     --master-port PORT --padding 1 --apply
 
@@ -23,8 +23,9 @@ import threading
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import vision_candidate as vc
+from token_window import PRE_READ_GRACE_MS
 
-GRACES = (0, 5000, 0)
+GRACES = (0, PRE_READ_GRACE_MS, 0)
 
 
 def scenario(label, port, padding, apply=False):
@@ -44,7 +45,7 @@ def scenario(label, port, padding, apply=False):
     if not apply:
         record['ok'] = True
         return record
-    parent.mkdir()  # retained evidence must never be reused
+    parent.mkdir(parents=True)  # retained evidence must never be reused
     try:
         record['preflight'] = vc.preflight('rst')
         for leg in plan:
@@ -94,7 +95,8 @@ def scenario(label, port, padding, apply=False):
     finally:
         record['source_sha256'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in
                                   (Path(__file__), Path(vc.__file__), Path(vc.vr.__file__),
-                                   Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__))}
+                                   Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
+                                   HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')}
         record['hashes'] = {str(path.relative_to(parent)): hashlib.sha256(path.read_bytes()).hexdigest()
                             for path in parent.rglob('*') if path.is_file()}
         vc.write_json(parent / 'scenario.json', record)

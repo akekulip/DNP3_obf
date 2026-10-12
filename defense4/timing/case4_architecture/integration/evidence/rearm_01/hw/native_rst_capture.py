@@ -34,7 +34,7 @@ def native_rst_config(path, out):
 
 
 def vision_tools():
-    return [('vision_candidate.py', HERE / 'vision_candidate.py')] + [
+    return [(name, HERE / name) for name in ('vision_candidate.py', 'token_window.py', 'snapshot_lifecycle.py')] + [
         (name, nr.HW_VEPA / name) for name in ('wire_check.py', 'clrt_check.py', 'checks.py')]
 
 

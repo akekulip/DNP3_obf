@@ -14,7 +14,8 @@ sys.path.insert(0, str(ARCH / 'protocol' / 'hw_vepa'))
 import campaign as base
 
 CANDIDATE = 'integration/core/response_only_rearm'
-EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py')
+EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
+               CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py')
 
 
 class CandidateCampaign(base.Campaign):
@@ -61,6 +62,11 @@ class CandidateCampaign(base.Campaign):
         if command.count(original) != 1:
             raise ValueError('baseline installer command no longer has the expected entrypoint')
         return command.replace(original, replacement, 1)
+
+    def switch_cmd(self, script, args):
+        if script == 'snapshot_counters.py':
+            return 'python3 %s/src/%s/hw/%s %s' % (self.R, CANDIDATE, script, args)
+        return super().switch_cmd(script, args)
 
 
 if __name__ == '__main__':

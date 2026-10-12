@@ -6,10 +6,10 @@ Default prints an offline plan. On Vision (already set up and installed):
     --master-port PORT --padding 1 --close-mode graceful|rst --apply
 
 --rst-grace-ms accepts 500..5000 (default5000); --reads accepts 1..20 (default20).
---pre-read-grace-ms accepts 0..5000 (default0). Nonzero uses the isolated
+--pre-read-grace-ms accepts 0..10000 (default0). Nonzero uses the isolated
 pre-READ endpoint binary deployed by the hardware owner; each connection writes
 its own pre_read_ready.json before the pause. Existing master timeout budgets
-(at least34s for one READ) already accommodate the bounded additional5s pause.
+(at least34s for one READ) already accommodate the bounded additional10s pause.
 
 Deploy beside the pinned controls endpoint's vision_run.py, loss.py, wire_check.py,
 clrt_check.py and checks.py. This helper never installs rows, changes the fixture,
@@ -38,6 +38,7 @@ import vision_run as vr
 import wire_check as wc
 import clrt_check as clrt
 import checks
+from token_window import PRE_READ_GRACE_MS
 
 MASTER, OUTSTATION, SERVER_PORT = '192.168.10.61', '192.168.10.62', 20000
 NAMESPACE_M, NAMESPACE_O, NIC = 'ns_vepa_a', 'ns_vepa_b', 'enp59s0f0np0'
@@ -262,8 +263,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
         raise ValueError('RST grace must be an integer in 500..5000 ms')
     if type(reads) is not int or not 1 <= reads <= 20:
         raise ValueError('READ count must be an integer in 1..20')
-    if type(pre_read_grace_ms) is not int or not 0 <= pre_read_grace_ms <= 5000:
-        raise ValueError('pre-READ grace must be an integer in 0..5000 ms')
+    if type(pre_read_grace_ms) is not int or not 0 <= pre_read_grace_ms <= PRE_READ_GRACE_MS:
+        raise ValueError('pre-READ grace must be an integer in 0..%d ms' % PRE_READ_GRACE_MS)
     parent = Path(vr.RUNS) / label
     record = dict(scenario='candidate_same_tuple', label=label, close_mode=mode, master_port=port,
                   tuple=[MASTER, port, OUTSTATION, SERVER_PORT], namespaces=[NAMESPACE_M, NAMESPACE_O], nic=NIC,
@@ -276,7 +277,7 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                           for index in range(1, 4)]
         record['ok'] = True
         return record
-    parent.mkdir()                                # refuse retained evidence reuse
+    parent.mkdir(parents=True)                    # refuse retained evidence reuse
     try:
         record['preflight'] = preflight(mode)
         for index in range(1, 4):
@@ -319,7 +320,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
         record['error'] = str(error)
     finally:
         record['source_sha256'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in
-                                  (Path(__file__), Path(vr.__file__), Path(wc.__file__), Path(clrt.__file__), Path(checks.__file__))}
+                                  (Path(__file__), Path(vr.__file__), Path(wc.__file__), Path(clrt.__file__), Path(checks.__file__),
+                                   HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')}
         record['hashes'] = {str(path.relative_to(parent)): hashlib.sha256(path.read_bytes()).hexdigest()
                             for path in parent.rglob('*') if path.is_file()}
         write_json(parent / 'scenario.json', record)

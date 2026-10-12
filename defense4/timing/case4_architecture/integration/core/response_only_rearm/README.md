@@ -41,6 +41,12 @@ decode `epoch = raw & 0x7fffffff` and `first_seen = raw >> 31`. N and T store
 the bare epoch. OPEN must advance the decoded E epoch and clears its latch;
 duplicate FIRST fails before any transport/image arm write.
 
+E classifies the reverse ACK offset and TCP window directly. Each negative
+offset within the fixed 58-byte image has an exact zero/open window partition;
+the original window clamp and outcome counting follow that decision. Two pure
+endpoint preparations reuse existing metadata before the shared image-end
+access. Accounting and image authorities retain their original qualifications.
+
 T holds the full epoch in the original's existing ladder budget word. It drops
 old held originals under ON and OFF, fences tokens with nonreused generations,
 and rejects old RESET without changing the current epoch, quarantine, anchors,
@@ -77,11 +83,19 @@ offline evidence only.
 
 After a full compile, run `model_drive_rearm.py` using `integration/core/launch_model.sh`
 with `PORT_MAP` pointing at that checkpoint's `.inputs.json`, its compiled output
-as `-p`, a new evidence directory as `-o`, and `-P "9 48 180 181 182"` for the
+as `-p`, a new evidence directory as `-o`, and `-P "9 48 68 180 181 182 196"` for the
 hardware map. This launcher uses a private user/network/PID namespace. The driver
 reuses baseline transport, reflector, and padding helpers, and performs no
 register writes. Compiled model results establish functional behavior, not host
 CLRT precision or ASIC timing.
+
+Checkpoint `evidence/incremental_55` compiled under SDK 9.13.1 with N/E/T using
+12 stages each and passed the compiled mirror guard. Its private compiled model
+passed 80/80 lifecycle/isolation checks, then 382/382 checks including every
+reverse image-byte window boundary and exact pending handshake retries.
+`full_composite_qualification.json` binds the source, inputs, binaries, authority
+register inventory, resource reports, mirror guard, and model report hashes.
+Installed SDK and silicon qualification remain separate requirements.
 
 Source tests execute generated parser/control/register actions through the
 existing interpreter. The candidate adapter evaluates identity hashes exactly;

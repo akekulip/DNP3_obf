@@ -22,7 +22,7 @@ import candidate_series as cs
 import replay_old_packets as replay
 from isolation_gate import compare_quiet_generation
 from privileged_python import authorized_python
-from token_window import require_marker
+from token_window import PRE_READ_GRACE_MS, PRE_READ_GRACE_NS, require_marker
 
 base,ARCH=cs.base,cs.ARCH
 
@@ -52,7 +52,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
 
     def vision_identity(self):
         cs.CandidateSeriesCampaign.vision_identity(self)
-        self._copy_verify('vision',[HERE/'vision_replay.py',HERE/'vision_isolation.py',HERE/'replay_old_packets.py'],self.V,
+        self._copy_verify('vision',[HERE/'vision_replay.py',HERE/'vision_isolation.py',HERE/'replay_old_packets.py',HERE/'token_window.py',HERE/'snapshot_lifecycle.py'],self.V,
                           'external_vision_identity')
         for kind,root in self.old_archives.items():
             remote=self.V+'/old_replay/'+self.run_id+'/'+kind
@@ -113,7 +113,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
             self.window['after']=after
             tick=self.step('vision','confirm replay completed during pre-READ pause',ci.marker_command(marker),timeout=5)
             self.window['completed_vision_ns']=json.loads(tick.out)['vision_ns']
-            if self.window['completed_vision_ns']>=observed['marker']['pre_read_ready_ns']+5_000_000_000:
+            if self.window['completed_vision_ns']>=observed['marker']['pre_read_ready_ns']+PRE_READ_GRACE_NS:
                 raise ValueError('old packet replay/snapshot exceeded bounded quiet window')
             self.window['monitor_ok']=True
         except Exception as error:
@@ -130,7 +130,9 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
         expected.update({self.V+'/vision_run.py':base.sha256_file(ARCH/'protocol/hw_vepa/vision_run.py'),
                          self.V+'/vision_isolation.py':base.sha256_file(HERE/'vision_isolation.py'),
                          self.V+'/vision_replay.py':base.sha256_file(HERE/'vision_replay.py'),
-                         self.V+'/replay_old_packets.py':base.sha256_file(HERE/'replay_old_packets.py')})
+                         self.V+'/replay_old_packets.py':base.sha256_file(HERE/'replay_old_packets.py'),
+                         self.V+'/token_window.py':base.sha256_file(HERE/'token_window.py'),
+                         self.V+'/snapshot_lifecycle.py':base.sha256_file(HERE/'snapshot_lifecycle.py')})
         if scenario.get('source_sha256')!=expected:failures.append('Vision replay source pins differ')
         if v.rc or scenario.get('ok') is not True:failures.append('Vision replay series failed')
         shape=dict(scenario='candidate_same_tuple_replay',applied=True,padding=1,reads=1,
@@ -155,7 +157,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 self.save(str(analysis),script+'.log',result)
                 if result.rc:failures.append(cn+': '+script+' failed rc'+str(result.rc))
             cfail=vc.evaluate(analysis,59400,'rst',1,cs._load_json(raw/'result.json') or {},
-                              rst_grace_ms=1000,reads=1,pre_read_grace_ms=5000 if cn=='c2' else 0)
+                              rst_grace_ms=1000,reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0)
             fresh=None
             try:
                 fresh=cs.freshness_gate(cs.wc.parse(analysis/'out.pcap')[0],cs.wc.parse(analysis/'in.pcap')[0],59400,previous)
@@ -176,9 +178,10 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
         if self.window.get('error'):failures.append(self.window['error'])
         snap=Path(dest)/'snapshots'
         snapshots=cs.checks.load_evidence_files(before=str(snap/(label+'_before.json')),after=str(snap/(label+'_after.json')))
-        sfail,sobs=cs.series_switch_gate(self.cfg,arm,1,snapshots)
+        lifecycle=cs._load_json(snap/(label+'_after_lifecycle.json')) or {}
+        sfail,sobs=cs.series_switch_gate(self.cfg,arm,1,snapshots,lifecycle)
         failures.extend('switch: '+failure for failure in sfail)
-        lfail,lobs=cs.lifecycle_gate(cs._load_json(snap/(label+'_after_lifecycle.json')) or {},'rst')
+        lfail,lobs=cs.lifecycle_gate(lifecycle,'rst')
         failures.extend('lifecycle: '+failure for failure in lfail)
         trial.update(ok=not failures,failures=failures,scenario=dict(policy='exact_old_external_replay',connections=connections),
                      observed=dict(bank_isolation=isolation,switch=sobs,lifecycle=lobs,precision_qualified=False))

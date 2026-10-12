@@ -155,7 +155,7 @@ class VisionReplay(unittest.TestCase):
     def test_plan_is_offline_and_fixed_port_authorization_identity_are_guarded(self):
         with patch.object(vp.vc, 'preflight', side_effect=AssertionError('process')):
             plan = vp.scenario('offline')
-        self.assertFalse(plan['applied']); self.assertEqual([row['pre_read_grace_ms'] for row in plan['plan']], [0, 5000, 0])
+        self.assertFalse(plan['applied']); self.assertEqual([row['pre_read_grace_ms'] for row in plan['plan']], [0, vp.vi.PRE_READ_GRACE_MS, 0])
         for port in (59399, True):
             with self.assertRaises(ValueError): vp.scenario('unsafe', port)
         with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(ValueError, 'DEFENSE4_HW_AUTHORIZED'):
@@ -182,12 +182,13 @@ class VisionReplay(unittest.TestCase):
              patch.object(vp.vc.vr, 'run_connection', side_effect=connect), patch.object(vp.vc, 'observe', return_value={'ok': True}), \
              patch.object(vp.vc, 'evaluate', side_effect=evaluate):
             result = vp.scenario('series', apply=True)
-        self.assertTrue(result['ok']); self.assertEqual([row[2] for row in calls], [0, 5000, 0])
+        self.assertTrue(result['ok']); self.assertEqual([row[2] for row in calls], [0, vp.vi.PRE_READ_GRACE_MS, 0])
         self.assertTrue(all(row[1] == dict(read_pause_ms=25, run_sbo=True, close_grace_ms=1000, capture_immediate=True) for row in calls))
         self.assertEqual(gates, [self.root / 'series/c1', self.root / 'series/c2/current', self.root / 'series/c3'])
         self.assertEqual(result['connections'][1]['replay_filter']['removed'], 12)
         self.assertEqual(set(result['source_sha256']), {str(Path(module.__file__)) for module in
-            (vp, vp.vi, vp.vc, vp.rp, vp.vc.vr, vp.vc.wc, vp.vc.clrt, vp.vc.checks)})
+            (vp, vp.vi, vp.vc, vp.rp, vp.vc.vr, vp.vc.wc, vp.vc.clrt, vp.vc.checks)} |
+            {str(HW / 'token_window.py'), str(HW / 'snapshot_lifecycle.py')})
         verdict = json.loads((self.root / 'series/c2/verdict.json').read_text())
         self.assertEqual(verdict['replay_filter'], result['connections'][1]['replay_filter'])
         self.assertTrue(result['hashes'])

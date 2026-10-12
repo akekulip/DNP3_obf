@@ -3,7 +3,7 @@
 
 This diagnostic is separate from >=20 READ precision qualification and from
 external packet replay. App0 emits its one old batch at 0/2.5/5/7.5seconds;
-the next connection pauses5000ms after TCP open. Complete hardware banks are
+the next connection pauses10000ms after TCP open. Complete hardware banks are
 compared before/after the remaining tokens and IPG is restored before new READ.
 """
 import argparse
@@ -18,11 +18,13 @@ HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 import candidate_series as cs
 from isolation_gate import compare_quiet_generation
-from token_window import require_marker, window_proof, rejection_delta
+from token_window import (PRE_READ_GRACE_MS, PRE_READ_GRACE_NS, require_marker, window_proof, rejection_delta,
+                          rejection_counts, full_run_rejections, operate_rejection_proof)
 from privileged_python import authorized_python
 
 base, ARCH=cs.base,cs.ARCH
-BARRIER_BINARY='13c99c456af1f730d586a8923b474d2dbaf9c156c9d4e96c9d3d549750475a35'
+BARRIER_DIRECTORY='/home/decps/pad58b_rearm_barrier_10s_20261012'
+BARRIER_BINARY='8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158'
 
 
 def marker_command(path):
@@ -56,7 +58,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if (traffic['range'],traffic['gap_ms'],traffic['start_delay_ms'],traffic.get('read_pause_ms'),
                 traffic.get('run_sbo'),self.cfg['seeds']['rng_seed'])!=(8,0,0,25,True,12345):
             raise ValueError('isolation requires range8/gap0/start0/pause25/SBO/seed12345')
-        if self.cfg['hosts']['vision_run_dir']!='/home/decps/pad58b_rearm_barrier_20261012' or \
+        if self.cfg['hosts']['vision_run_dir']!=BARRIER_DIRECTORY or \
                 self.cfg['endpoint']['binary_sha256']!=BARRIER_BINARY:
             raise ValueError('isolation requires the exact pinned pre-READ barrier endpoint')
 
@@ -75,7 +77,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
 
     def vision_identity(self):
         super().vision_identity()
-        self._copy_verify('vision',[HERE/'vision_isolation.py'],self.V,'isolation_vision_identity')
+        self._copy_verify('vision',[HERE/'vision_isolation.py', HERE/'token_window.py', HERE/'snapshot_lifecycle.py'],
+                          self.V,'isolation_vision_identity')
 
     def deploy_switch(self):
         super().deploy_switch()
@@ -145,11 +148,12 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             self.window['before']=before
             if before.get('read_app_after',{}).get('pkt_counter',4)>=4:
                 raise ValueError('c2 became ready after all old tokens; isolation cannot qualify')
-            pause_deadline=observed['marker']['pre_read_ready_ns']+5_000_000_000
+            pause_deadline=observed['marker']['pre_read_ready_ns']+PRE_READ_GRACE_NS
             while not done.is_set():
                 after=self.quiet_snapshot(label,'after_%02d' % len(self.window.setdefault('polls',[])))
                 self.window['polls'].append(after)
-                if after.get('read_app_before',{}).get('pkt_counter')==4:
+                if after.get('read_app_before',{}).get('pkt_counter')==4 and \
+                        after.get('operate_app_before',{}).get('pkt_counter')==4:
                     self.window['after']=after;break
                 tick=self.rn.run('vision',marker_command(marker),timeout=5,label='observe bounded pause')
                 if tick.rc or json.loads(tick.out)['vision_ns']>=pause_deadline-500_000_000:
@@ -192,7 +196,9 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         scenario=cs._load_json(Path(dest)/'scenario.json') or {}
         expected_sources={self.V+'/'+name:base.sha256_file(path) for name,path in cs.VISION_EXTRA.items()}
         expected_sources.update({self.V+'/vision_isolation.py':base.sha256_file(HERE/'vision_isolation.py'),
-                                 self.V+'/vision_run.py':base.sha256_file(ARCH/'protocol/hw_vepa/vision_run.py')})
+                                 self.V+'/vision_run.py':base.sha256_file(ARCH/'protocol/hw_vepa/vision_run.py'),
+                                 self.V+'/token_window.py':base.sha256_file(HERE/'token_window.py'),
+                                 self.V+'/snapshot_lifecycle.py':base.sha256_file(HERE/'snapshot_lifecycle.py')})
         if scenario.get('source_sha256')!=expected_sources:
             failures.append('collected Vision scenario source pins differ from deployed helpers')
         shape=dict(scenario='candidate_same_tuple_isolation',applied=True,padding=1,reads=1,
@@ -225,7 +231,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             import vision_candidate as vc
             cfail.extend(vc.evaluate(root,trial['master_port'],'rst',1,
                                      cs._load_json(root/'result.json') or {},rst_grace_ms=1000,
-                                     reads=1,pre_read_grace_ms=5000 if cn=='c2' else 0))
+                                     reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
             failures.extend(cn+': '+failure for failure in cfail)
         if v.rc or scenario.get('ok') is not True:
@@ -240,42 +246,40 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         failures.extend('banks: '+f for f in bank['failures'])
         failures.extend('window: '+f for f in window['failures'])
         rejection_delta_value=None
+        quiet_rejections=None
         if window.get('ok'):
             try:
+                quiet_rejections=rejection_counts(self.window['before'],self.window['after'])
                 rejection_delta_value=rejection_delta(self.window['before'],self.window['after'])
                 if rejection_delta_value!=window['old_packets_during_pause']:
-                    failures.append('old-token rejection counters do not match generated packets during pause')
+                    failures.append('old READ token rejections do not match generated packets during pause')
             except (KeyError,TypeError,ValueError) as error:
                 failures.append('missing old-token rejection hardware evidence: '+str(error))
         snapdir=Path(dest)/'snapshots'
         snapshots=cs.checks.load_evidence_files(before=str(snapdir/(label+'_before.json')),
                                                 after=str(snapdir/(label+'_after.json')))
-        # Exactly three delayed tokens belong to c1. This explicit diagnostic
-        # allowance is local; baseline and precision profiles remain strict0.
+        # Qualification stays strict0. This diagnostic permits only the exact
+        # independently proven prefix while both old batches drain before c2 READ.
         diagnostic_cfg=copy.deepcopy(self.cfg)
-        diagnostic_cfg['builds'][arm['build']]['max_token_stale']=3
-        sfail,sobs=cs.series_switch_gate(diagnostic_cfg,arm,1,snapshots)
-        failures.extend('switch: '+failure for failure in sfail)
+        sobs={}
         try:
-            total=0
-            for key in ('OUT_TOKEN_STALE','index_14'):
-                values=[snapshots[side]['outcomes'][key] for side in ('before','after')]
-                if any(type(value) is not int for value in values):
-                    raise ValueError('unreadable rejection outcome '+key)
-                total+=values[1]-values[0]
-            if total!=3:
-                failures.append('full-run old-token rejection count must equal exactly the three delayed c1 tokens')
-            sobs['expected_old_tokens']=3
-            sobs['old_rejections_total']=total
+            prefix=full_run_rejections(snapshots['before'],snapshots['after'],self.window['after'])
+            sobs['operate_cohort']=operate_rejection_proof(self.window['before'],self.window['after'],snapshots['before'])
+            diagnostic_cfg['builds'][arm['build']]['max_token_stale']=prefix['strict_stale_total']
+            sobs.update(prefix)
         except (KeyError,TypeError,ValueError) as error:
             failures.append('missing full-run rejection evidence: '+str(error))
         lifecycle=cs._load_json(snapdir/(label+'_after_lifecycle.json')) or {}
+        sfail,switch_observed=cs.series_switch_gate(diagnostic_cfg,arm,1,snapshots,lifecycle)
+        sobs.update(switch_observed)
+        failures.extend('switch: '+failure for failure in sfail)
         lfail,lobs=cs.lifecycle_gate(lifecycle,'rst')
         failures.extend('lifecycle: '+failure for failure in lfail)
         if self.window.get('error'):
             failures.append(self.window['error'])
         trial.update(ok=not failures,failures=failures,scenario=dict(policy='real_old_token_isolation',connections=connections),
                      observed=dict(bank_isolation=bank,old_token_window=window,old_rejection_delta=rejection_delta_value,
+                                   quiet_rejections=quiet_rejections,
                                    switch=sobs,lifecycle=lobs,precision_qualified=False))
         (Path(dest)/'trial.json').write_text(json.dumps(trial,indent=2)+'\n')
         if failures:
