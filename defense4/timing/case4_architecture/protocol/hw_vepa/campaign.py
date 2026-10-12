@@ -284,6 +284,18 @@ def q(x):
     return shlex.quote(str(x))
 
 
+def switch_tools():
+    """[(local path, name)]: every tool the campaign runs on the switch, deployed into <switch_remote_dir>/aux."""
+    fw = os.path.join(ARCH, '..', 'framework', 'control')
+    return [(os.path.join(fw, 'restore_ports.py'), 'restore_ports.py'),
+            (os.path.join(fw, 'live_snapshot.py'), 'live_snapshot.py'),
+            (os.path.join(HERE, 'observe_program.py'), 'observe_program.py'),
+            (os.path.join(HERE, 'switch_slot.py'), 'switch_slot.py'),
+            (os.path.join(HERE, '..', 'response_path_cp.py'), 'response_path_cp.py'),
+            (os.path.join(HERE, 'switch_swap.sh'), 'switch_swap.sh'),
+            (os.path.join(HERE, 'launch_composite.sh'), 'launch_composite.sh')]
+
+
 class Campaign:
     def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
@@ -375,7 +387,7 @@ class Campaign:
             os.makedirs(self.root)
         failed = False
         try:
-            self.vision_identity()
+            self.deploy()
             self.switch_toolkit()
             self.vision_setup()
             current = None
@@ -411,25 +423,49 @@ class Campaign:
         self.record['endpoint_observed'] = {'binary_sha256': ep['binary_sha256'], 'lib_sha256': ep['lib_sha256'],
                                             'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py'))}
 
-    def switch_toolkit(self):
-        """Copy the tools and builds to the switch, then observe (read-only) which program is running, refuse
-        unless it is the configured production program, and snapshot its $PORT table for every later replay."""
+    def deploy_switch(self):
+        """Copy every tool and build into the configured switch directory and verify each tool's sha256 there.
+        Nothing the campaign runs lives anywhere else."""
         c, R, host = self.cfg, self.R, self.cfg['hosts']['switch']
         aux = R + '/aux'
         self.step('switch', 'make remote directories', 'mkdir -p %s %s/src %s/snap' % (aux, R, R))
-        fw = os.path.join(ARCH, '..', 'framework', 'control')
-        self.step('local', 'copy the switch tools (ports, snapshot, observe, relay slot, swap/launch)',
-                  'scp -q %s %s %s %s %s %s %s %s:%s/' % (
-                      q(os.path.join(fw, 'restore_ports.py')), q(os.path.join(fw, 'live_snapshot.py')),
-                      q(os.path.join(HERE, 'observe_program.py')), q(os.path.join(HERE, 'switch_slot.py')),
-                      q(os.path.join(HERE, '..', 'response_path_cp.py')), q(os.path.join(HERE, 'switch_swap.sh')),
-                      q(os.path.join(HERE, 'launch_composite.sh')), host, aux))
+        tools = switch_tools()
+        self.step('local', 'copy the switch tools (ports, snapshot, observe, relay slot, swap/launch) into aux',
+                  'scp -q %s %s:%s/' % (' '.join(q(p) for p, _n in tools), host, aux))
         self.step('local', 'copy the installer source tree to the switch', 'rsync -aR --exclude __pycache__ '
                   '%s/cp.py %s/port_map.py %s/hw protocol/response_path_cp.py %s:%s/src/'
                   % (RESPONSE_ONLY, RESPONSE_ONLY, RESPONSE_ONLY, host, R), cwd=ARCH)
         for build in sorted({a['build'] for a in self.arms}):
             self.step('local', 'copy build %s out/ to the switch' % build, 'rsync -a %s/ %s:%s/'
                       % (q(path_of(c['builds'][build]['out_dir'])), host, '%s/out_%s' % (R, build)))
+        r = self.step('switch', 'verify the deployed tools by sha256',
+                      'sha256sum ' + ' '.join('%s/%s' % (aux, n) for _p, n in tools))
+        if not self.rn.dry:
+            got = {l.split()[1]: l.split()[0] for l in r.out.splitlines() if len(l.split()) == 2}
+            for path, name in tools:
+                want = sha256_file(path)
+                if got.get('%s/%s' % (aux, name)) != want:
+                    raise StepFailed('deployed %s on the switch has sha256 %s, expected %s'
+                                     % (name, got.get('%s/%s' % (aux, name)), want))
+
+    def deploy(self):
+        self.vision_identity()
+        self.deploy_switch()
+
+    def deploy_only(self):
+        """The `deploy` mode: put the tools in place and verify them; changes no switch or Vision state."""
+        try:
+            self.deploy()
+            return 0
+        except (StepFailed, OSError) as e:
+            sys.stderr.write('DEPLOY FAILED: %s\n' % e)
+            return 1
+
+    def switch_toolkit(self):
+        """Observe (read-only) which program is running, refuse unless it is the configured production program,
+        and snapshot its $PORT table for every later replay."""
+        c, R, host = self.cfg, self.R, self.cfg['hosts']['switch']
+        aux = R + '/aux'
         prod = c['production']
         r = self.step('switch', 'observe the running program (read-only, from ps)',
                       'python3 %s/observe_program.py' % aux)
@@ -716,7 +752,7 @@ class Campaign:
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('mode', choices=('validate', 'plan', 'run'))
+    ap.add_argument('mode', choices=('validate', 'plan', 'deploy', 'run'))
     ap.add_argument('--config', default=os.path.join(HERE, 'campaign.json'))
     ap.add_argument('--arms', help='comma-separated arm names to run (default: all arms in the config)')
     ap.add_argument('--run-id', default=None)
@@ -744,6 +780,13 @@ def main(argv=None):
     run_id = a.run_id or time.strftime('c%Y%m%dT%H%M%S')
     arms = a.arms.split(',') if a.arms else None
     fixtures = a.fixtures.split(',') if a.fixtures else None
+    if a.mode == 'deploy':
+        runner_ = DryRunner() if a.dry_run else ShellRunner(cfg['hosts'])
+        if not a.dry_run:
+            bad = check_bindings(cfg)
+            if bad:
+                sys.exit('refusing to deploy, unbound identity: %s' % '; '.join(bad))
+        return Campaign(cfg, runner_, run_id, arms, fixtures=fixtures).deploy_only()
     if a.mode == 'plan' or a.dry_run:
         return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures).execute()
     if not a.apply:

@@ -50,7 +50,9 @@ def build(tmp):
 
 class WireCheck(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
         self.out, self.in_ = build(self.tmp)
         self.rep = wc.analyze(self.out, self.in_)
 
@@ -90,7 +92,9 @@ class WireCheck(unittest.TestCase):
 
 class SpuriousReturned(unittest.TestCase):
     def test_spurious_returned_frame_is_flagged_and_exits_nonzero(self):
-        tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        tmp = td.name
         out = [(0, tk.frame(M, O, 1, 20000, 1000, 0, SYN, ip_id=1))]
         ret = [(50, tk.frame(M, O, 1, 20000, 1000, 0, SYN, ip_id=1)),
                (60, tk.frame(O, M, 20000, 1, 9999, 1, PSH | ACK, tk.read_response(0), ip_id=9))]

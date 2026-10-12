@@ -51,8 +51,11 @@ class FakeRunner:
         rc, out = 0, ''
         if any(s in cmd for s in self.fail_on):
             return runmod_result(1, '', 'forced failure')
-        if 'observe_program.py' in cmd:
+        if 'observe_program.py' in cmd and not cmd.startswith('sha256sum'):
             out = json.dumps({'program': self.observed, 'conf': '/x/%s_conf.json' % self.observed}) + '\n'
+        elif cmd.startswith('sha256sum') and where == 'switch':
+            names = {n: cp.sha256_file(pth) for pth, n in cp.switch_tools()}
+            out = ''.join('%s  %s\n' % (names[tok.rsplit('/', 1)[1]], tok) for tok in cmd.split()[1:])
         elif 'sha256sum' in cmd and where == 'vision':
             if 'vision_run.py' in cmd:
                 out = '%s  vision_run.py\n' % cp.sha256_file(str(HERE.parent / 'vision_run.py'))
@@ -103,7 +106,7 @@ class FakeRunner:
     def runs(self, needle):
         """Like cmds() but ignoring the scp/rsync lines that merely copy a script."""
         return [i for i, (_w, c) in enumerate(self.calls)
-                if needle in c and not c.startswith(('scp', 'rsync'))]
+                if needle in c and not c.startswith(('scp', 'rsync', 'sha256sum'))]
 
     def swaps(self):
         """Indexes of the commands that actually stop/launch bf_switchd (not the scp that copies the script)."""
@@ -125,7 +128,9 @@ def runmod_result(rc, out, err):
 
 class Base(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
         self.cfg = cfg_for(Path(self.tmp) / 'b', 'match')
         (Path(self.tmp) / 'b').mkdir(exist_ok=True)
         self.cfg['evidence_dir'] = str(Path(self.tmp) / 'ev')

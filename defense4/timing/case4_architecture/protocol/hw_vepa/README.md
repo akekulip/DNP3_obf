@@ -20,6 +20,7 @@ through the Tofino, with both endpoints behind dev_port 9. First used for the pa
 ```bash
 # the whole campaign (reads campaign.json; see its _notes before running)
 python3 hw_vepa/campaign.py validate      # structure + build/endpoint identity (nonzero while anything is unbound)
+python3 hw_vepa/campaign.py deploy [--dry-run]   # tools into <switch_remote_dir>/aux and vision_run.py, sha256-verified; changes no state
 python3 hw_vepa/campaign.py plan [--arms combined]   # the exact commands run would execute; executes none
 DEFENSE4_HW_AUTHORIZED=1 python3 hw_vepa/campaign.py run --apply [--arms size_only,combined]   # hardware; gated
 
@@ -32,6 +33,8 @@ python3 hw_vepa/run.py restore        # sysctls and NIC flag back, relay slot re
 
 `wire_check.py` and `clrt_check.py` no longer need scapy (built-in pcap reader, checksum and DNP3 CRC), so
 `python3 -m pytest hw_vepa/tests` runs on a fresh clone with no install step.
+
+Deployed tools. Nothing the campaign needs lives in a scratch path (`/tmp`) on the switch or the workstation: `deploy` (also the first step of `run`) copies every switch tool and `launch_composite.sh` / `switch_swap.sh` into the configured `<switch_remote_dir>/aux`, verifies each one's sha256 there, and every emitted command refers to that directory (a test scans for it). The pre-run port snapshot and per-unit logs live under `<switch_remote_dir>/snap` and the evidence directory. Tests use `TemporaryDirectory` with cleanup and read no scratch fixtures.
 
 Campaign bring-ups. N does not re-arm after a connection and a closed tuple stays in TIME-WAIT for 60 s, so a
 second connection on an installed tuple cannot work. `campaign.json` `trial_mode` is therefore either

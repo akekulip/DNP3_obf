@@ -53,7 +53,9 @@ def build(tmp, corrupt_resp0=False):
 
 class ClrtCheck(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
         self.out, self.in_ = build(self.tmp)
         self.rep = cc.analyze(self.out, self.in_)
         self.read = self.rep['summary']['READ']
@@ -105,14 +107,18 @@ class SdConvention(unittest.TestCase):
         self.assertEqual((s['sd_population'], s['sd_sample']), (0.0, 0.0))
 
     def test_report_declares_the_convention(self):
-        rep = cc.analyze(*build(tempfile.mkdtemp()))
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        rep = cc.analyze(*build(td.name))
         self.assertIn('population', rep['sd_convention'])
         self.assertIn('sample', rep['sd_convention'])
 
 
 class CrcFailure(unittest.TestCase):
     def test_bad_response_crc_is_reported_and_exits_nonzero(self):
-        tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        tmp = td.name
         op, ip = build(tmp, corrupt_resp0=True)
         rep = cc.analyze(op, ip)
         self.assertEqual(rep['summary']['READ']['resp_crc_bad'], 1)

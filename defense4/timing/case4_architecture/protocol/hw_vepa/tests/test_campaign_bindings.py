@@ -43,7 +43,9 @@ def cfg_for(root, hashes, tamper=None):
 
 class Bindings(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.mkdtemp()
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
 
     def test_matching_manifest_hashes_and_files_bind(self):
         cfg = cfg_for(self.tmp, 'match')

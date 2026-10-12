@@ -23,9 +23,10 @@ class ConfigValidation(unittest.TestCase):
         self.cfg = json.load(open(CONFIG))
 
     def _write(self, cfg):
-        fd, path = tempfile.mkstemp(suffix='.json')
-        os.write(fd, json.dumps(cfg).encode())
-        os.close(fd)
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        path = os.path.join(td.name, 'cfg.json')
+        open(path, 'w').write(json.dumps(cfg))
         return path
 
     def test_shipped_config_is_valid(self):
@@ -116,9 +117,10 @@ class RunGating(unittest.TestCase):
     def test_run_refuses_on_unbound_identity_even_when_authorized(self):
         cfg = json.load(open(CONFIG))
         cfg['endpoint']['binary_sha256'] = None
-        fd, path = tempfile.mkstemp(suffix='.json')
-        os.write(fd, json.dumps(cfg).encode())
-        os.close(fd)
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        path = os.path.join(td.name, 'cfg.json')
+        open(path, 'w').write(json.dumps(cfg))
         os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
         try:
             with self.assertRaises(SystemExit) as e:
