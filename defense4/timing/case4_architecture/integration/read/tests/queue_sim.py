@@ -115,7 +115,7 @@ class QueueSim:
         self.event(time, 12, frame, epoch)
 
     def reset(self, time, epoch=1, stage=0, frame=None):
-        self.event(time, 4, frame if frame is not None else w.ETH + bytes(6), epoch, stage=stage)
+        self.event(time, self.consts()['KIND_RESET'], frame if frame is not None else w.ETH + bytes(6), epoch, stage=stage)
 
     def call(self, time, fn):
         self.order += 1

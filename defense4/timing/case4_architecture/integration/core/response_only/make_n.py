@@ -157,6 +157,38 @@ EDITS = [
      "  ports.apply();network.apply();\n"
      "  if(m.packet_kind==8w13){deny();}   /* command-bearing FIN/RST: rejected, never bypasses the mechanism */\n"
      "  else if((ig.ingress_port==RETURN_PORT&&m.stage==8w0)||"),
+    # 10. Close path (route_ab_01/close_defect_01). The second FIN of a close finds N in phase 7 and leaves in ONE
+    #     pass through first_event's catch-all close_forward. snapshot()'s default has already set
+    #     bypass_egress=1 for a recirculation lap; close_forward re-targets the port but kept the bypass, so an
+    #     outstation FIN or RST skipped pipe-0 egress and E never translated it: it reached the master at its
+    #     native seq, behind the padded frontier the master had ACKed, and was ignored (prod_shape). Every close
+    #     departure now crosses E, as route() already does in this profile (edit 1). A master->outstation
+    #     departure finds no E conn row at the outstation port and passes unchanged.
+    ("m.emit_loop=8w0;tm.ucast_egress_port=m.output_port;}",
+     "m.emit_loop=8w0;tm.ucast_egress_port=m.output_port;tm.bypass_egress=1w0;}"),
+    # 11. FIN accounting in N's sequence check. A FIN consumes one sequence number and N's stored native
+    #     positions do not count it, so once a side has sent its FIN that side's diff is 1: the master's ACKs
+    #     after its own FIN are (1,0), after both FINs (1,1), and its ACK of an outstation-first FIN is (0,1).
+    #     They get their own code 5 (seq_fin), which no row outside phase 7 accepts (edit 12).
+    ("action seq_replay(){m.sequence_valid=8w4;}",
+     "action seq_replay(){m.sequence_valid=8w4;}\naction seq_fin(){m.sequence_valid=8w5;}   /* a FIN's sequence byte, phase 7 only */"),
+    ("actions={seq_ok;seq_resent;seq_replay;NoAction;}size=3;const entries={(32w0,32w0):seq_ok();",
+     "actions={seq_ok;seq_resent;seq_replay;seq_fin;NoAction;}size=6;const entries={(32w0,32w0):seq_ok();"
+     "(32w1,32w0):seq_fin();(32w1,32w1):seq_fin();(32w0,32w1):seq_fin();"),
+    # 12. ...and in phase 7 (closed) such a master ACK is forwarded unchanged (it was reverse-mapped on the lap),
+    #     so the outstation sees its FIN acknowledged and stops retransmitting. Outstation ACKs already pass
+    #     through the kind-10 forward_original catch-all.
+    ("(8w3,8w1,8w0,32w0xc0000&&&32w0xffff0000):forward_original();",
+     "(8w3,8w1,8w0,32w0xc0000&&&32w0xffff0000):forward_original();"
+     "(8w3,8w5,8w0,32w0x70000&&&32w0xffff0000):forward_original();"),
+    # 13. RESET event kind. emit_reset hands a close to T on T_IN with the event in wire bytes 12-13. Kind 4 made
+    #     them 0x0401/0x0402, an 802.3 length; on a front-panel MAC-loopback T_IN the MAC counts it as received
+    #     but not good (silicon p2_production_01: port 180 $OctetsReceived - $OctetsReceivedinGoodFrames = 80 B,
+    #     one 76-byte RESET event + FCS). Kind 13 gives 0x0d01/0x0d02, in the EtherType range and not a
+    #     reserved type, like every other event (0x0900..0x0c00). T's KIND_RESET (read_queue_timing.p4) is 13;
+    #     compose.py refuses a build where the two differ.
+    ("action emit_reset(){hdr.event.event=8w4++m.direction;",
+     "action emit_reset(){hdr.event.event=8w13++m.direction;"),
 ]
 
 

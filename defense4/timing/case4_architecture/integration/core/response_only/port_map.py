@@ -62,3 +62,19 @@ def load(inputs_json):
         values['relay_port'] = meta['relay_port']
     values.update(meta.get('port_map') or {})
     return check(PortMap(**values))
+
+
+# A real MAC reads wire bytes 12-13 as EtherType/length. Below 0x0600 it is an 802.3 length (silicon
+# p2_production_01: the 76-byte RESET event, bytes 12-13 0x0401, counted on port 180 as received but not good);
+# these types are consumed or re-parsed by a MAC/bridge: MAC control (PAUSE), slow protocols (LACP/OAM), the
+# VLAN tag types, LLDP, EAPOL, PTP, CFM. Every frame on a front-panel loop port must avoid both.
+RESERVED_TYPES = {0x8808: 'MAC control', 0x8809: 'slow protocols', 0x8100: 'VLAN', 0x88a8: 'S-VLAN',
+                  0x9100: 'VLAN (legacy)', 0x9200: 'VLAN (legacy)', 0x88cc: 'LLDP', 0x888e: 'EAPOL',
+                  0x88f7: 'PTP', 0x8902: 'CFM'}
+
+
+def type_violation(value):
+    """None if `value` (wire bytes 12-13) is a usable EtherType, else why not."""
+    if value < 0x0600:
+        return '802.3 length'
+    return RESERVED_TYPES.get(value)

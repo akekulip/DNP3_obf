@@ -39,7 +39,7 @@ import cp  # noqa: E402
 import port_map  # noqa: E402
 import response_path_cp as rp  # noqa: E402
 import vectors  # noqa: E402
-from model_drive_composite import Reflector, native_response37, scalar, CTL_POINTS  # noqa: E402
+from model_drive_composite import Reflector, native_response37, scalar, CTL_POINTS, loop_type_violations  # noqa: E402
 
 PM = port_map.load(os.environ['PORT_MAP']) if os.environ.get('PORT_MAP') else port_map.DEFAULT
 MASTER_PORT, SID = 9, 7
@@ -60,42 +60,57 @@ MSS = 1460
 REAL_IIN1 = 0x90
 
 
-def close_vector(m, rep, sw, ports, step):
-    """The close-path vector from residency_shape_01/prod_shape (CLOSE=1). Runs after the T-off SELECT/OPERATE, so
-    the mapper oracle `sw` holds the native and padded frontiers of the outstation stream."""
-    # ---- clean close: the prod_shape defect. The outstation emits its FIN at its NATIVE next-seq, but the
-    # master has advanced to the PADDED frontier (every response grew by its padding). E must translate the
-    # server FIN's seq by the accumulated growth, exactly as it translates response DATA; a FIN consumes one
-    # sequence number (leff = 1). The client FIN's ACK is at the padded frontier and must reverse-map to the
-    # native frontier. A FIN forwarded in native coordinates lands behind the master's frontier and is
-    # ignored, so the connection never closes (wire_check exits 1).
-    native_front = sw.img_end          # outstation's native next-seq after the OPERATE response
-    padded_front = sw.img_wend         # the frontier the master has ACKed
-    client_seq = 136 + 35              # master's next seq after the OPERATE request
-    cfin = vectors.packet(17, client_seq, padded_front)                      # client FIN+ACK (ack = padded)
-    want_cfin_ack = sw.reverse(padded_front, 4096).ack                       # reverse-map -> native
-    step('client_FIN_reverse_mapped_to_outstation', MASTER_PORT, cfin, OUTST_PORT,
-         vectors.packet(17, client_seq, want_cfin_ack), 0x7)
-    rfin = sw.forward(native_front, 0, fin=True)                             # oracle: translated server-FIN seq
-    m.drain(ports)
-    got = m.exchange(OUTST_PORT, vectors.packet(17, native_front, client_seq + 1, reverse=True), ports, timeout=2.0, quiet=0.5)
-    returned = got[MASTER_PORT]
-    seq_ret = struct.unpack('!I', returned[0][38:42])[0] if returned else None
-    rep.add('server_FIN_seq_translated_to_padded_frontier', rfin.seq, seq_ret,
-            native_frontier=native_front, padded_frontier=padded_front,
-            received={p: [g.hex() for g in got[p]] for p in ports})
-    rep.add('server_FIN_not_left_in_native_coordinates', True, seq_ret != native_front)
-    # The master's ACK of the server FIN: FIN consumes one sequence number, so the master acknowledges
-    # padded_front + 1 (the ACK it sends once the FIN arrives at the padded frontier). It must reach the
-    # outstation reverse-mapped to native_front + 1, so the outstation's FIN is acknowledged and it stops
-    # retransmitting (prod_shape: the outstation sent its FIN three times).
-    last = vectors.packet(16, client_seq + 1, (rfin.seq + 1) & 0xffffffff)
-    want_last = vectors.packet(16, client_seq + 1, sw.reverse((rfin.seq + 1) & 0xffffffff, 4096).ack)
-    m.drain(ports)
-    got = m.exchange(MASTER_PORT, last, ports, timeout=2.0, quiet=0.5)
-    good = len(got[OUTST_PORT]) == 1 and same_frame(got[OUTST_PORT][0], want_last, last)
-    rep.add('final_ACK_of_server_FIN_reverse_mapped_to_outstation', 'frame', 'frame' if good else 'mismatch', ok=good,
-            want_ack=(native_front + 1) & 0xffffffff, received={p: [g.hex() for g in got[p]] for p in ports})
+def close_vector(m, rep, sw, ports, step, scenario='client'):
+    """Close-path vectors from residency_shape_01/prod_shape (route_ab_01/close_defect_01). They run after the
+    T-off SELECT/OPERATE, so the mapper oracle `sw` holds the outstation stream's native frontier (img_end) and
+    the padded frontier the master has ACKed (img_wend). Every expected frame comes from the oracle.
+
+    FIN accounting: a FIN consumes one sequence number in its own direction, RST none. The outstation's FIN or
+    RST is outstation data, so its seq must leave TRANSLATED (native frontier -> padded frontier), exactly as
+    response data; every master ACK acknowledges padded positions and must reach the outstation reverse-mapped.
+
+      client         master closes first (prod): client FIN, outstation FIN, master's ACK of it
+      client_sepack  as client, but the outstation ACKs the client FIN in its own segment before its FIN
+      server         outstation closes first: outstation FIN, master's ACK, master FIN, outstation's final ACK
+      rst            client FIN, then an outstation RST|ACK in phase 7 (must still be translated: the master
+                     validates an RST against its padded receive window)
+    """
+    nat, pad = sw.img_end, sw.img_wend
+    cs = 136 + 35                               # master's next seq after the OPERATE request
+
+    def o2m(name, flags, seq, ack, fin=False, rst=False, phase=None):
+        """An outstation segment at native `seq`; the master must get it once, at the oracle's seq."""
+        f = sw.forward(seq, 0, fin=fin, rst=rst)
+        sent = vectors.packet(flags, seq, ack, reverse=True)
+        got = step(name, OUTST_PORT, sent, MASTER_PORT, vectors.packet(flags, f.seq, ack, reverse=True), phase)
+        ret = got[MASTER_PORT]
+        rep.add(name + '_seq_on_master_side', f.seq, struct.unpack('!I', ret[0][38:42])[0] if ret else None,
+                native=seq & 0xffffffff, oracle_case=f.case)
+        return f
+
+    def m2o(name, flags, seq, padded_ack, phase=None):
+        """A master segment acknowledging `padded_ack`; the outstation must get it once, ACK reverse-mapped."""
+        want = vectors.packet(flags, seq, sw.reverse(padded_ack & 0xffffffff, 4096).ack)
+        step(name, MASTER_PORT, vectors.packet(flags, seq, padded_ack & 0xffffffff), OUTST_PORT, want, phase)
+
+    rep.record['meta']['close_scenario'] = dict(name=scenario, native_frontier=nat, padded_frontier=pad)
+    if scenario in ('client', 'client_sepack', 'rst'):
+        m2o('client_FIN_reverse_mapped_to_outstation', 17, cs, pad, 0x7)
+        if scenario == 'rst':
+            o2m('outstation_RST_in_phase7_translated', 0x14, nat, cs + 1, rst=True)
+            return
+        if scenario == 'client_sepack':
+            o2m('outstation_ACK_of_client_FIN_translated', 16, nat, cs + 1)
+        f = o2m('server_FIN_translated_to_padded_frontier', 17, nat, cs + 1, fin=True)
+        rep.add('server_FIN_not_left_in_native_coordinates', True, f.seq != nat)
+        m2o('final_ACK_of_server_FIN_reverse_mapped_to_outstation', 16, cs + 1, f.seq + 1)
+    elif scenario == 'server':
+        f = o2m('server_FIN_first_translated_to_padded_frontier', 17, nat, cs, fin=True, phase=0x7)
+        m2o('master_ACK_of_server_FIN_reverse_mapped', 16, cs, f.seq + 1)
+        m2o('master_FIN_after_server_FIN_reverse_mapped', 17, cs, f.seq + 1)
+        o2m('outstation_final_ACK_translated', 16, nat + 1, cs + 1)
+    else:
+        raise ValueError('unknown CLOSE scenario %r' % scenario)
 
 
 def main():
@@ -208,15 +223,15 @@ def main():
         rep.add('fin_operate_retransmission_not_delivered', [], [p for p in ports if got[p]],
                 received={p: [g.hex() for g in got[p]] for p in ports})
 
-        # CLOSE=1 runs the close-path vector below (residency_shape_01/prod_shape). It is RED on the current
-        # program (route_ab_01/close_defect_01) and is meant to turn green with the close-path fix; without the
-        # flag the scenario is the T-off READ+SBO milestone check it was (18 checks).
-        if os.environ.get('CLOSE') == '1':
-            close_vector(m, rep, sw, ports, step)
+        # CLOSE=1|client|client_sepack|server|rst runs one close-path vector (close_vector below; one close per
+        # connection, since N does not re-arm). Without CLOSE this is the T-off READ+SBO milestone check (18).
+        if os.environ.get('CLOSE'):
+            close_vector(m, rep, sw, ports, step, 'client' if os.environ['CLOSE'] == '1' else os.environ['CLOSE'])
 
 
         if reflectors:
             rep.record['meta']['loopback_frames'] = {str(r.port): r.summary() for r in reflectors}
+            rep.add('every_loop_frame_has_an_ethertype_at_bytes_12_13', {}, loop_type_violations(reflectors))
         ok = True
     except BaseException as error:
         rep.record['error'] = type(error).__name__ + ': ' + str(error)

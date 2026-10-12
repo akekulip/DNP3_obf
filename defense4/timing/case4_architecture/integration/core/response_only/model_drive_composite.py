@@ -92,13 +92,30 @@ def native_response37(app, fc, status=0, iin1=0):
     return codec.build_frame(bytes.fromhex('05641c4401000a00'), user[:2] + bytes((0x81, iin1, 0)) + bytes(objects))
 
 
+from port_map import RESERVED_TYPES, type_violation  # noqa: E402,F401  (the loop-port EtherType rule)
+
+
+def loop_type_violations(reflectors):
+    """{port: [{'bytes_12_13', 'why', 'first_16_bytes'}]} for every bad value seen on a reflected loop port."""
+    bad = {}
+    for r in reflectors:
+        for value, sample in sorted(r.types.items()):
+            why = type_violation(value)
+            if why:
+                bad.setdefault(str(r.port), []).append(dict(bytes_12_13='0x%04x' % value, why=why, first_16_bytes=sample))
+    return bad
+
+
 class Reflector(threading.Thread):
     """Stand-in for a front-panel port in MAC loopback: every frame the model transmits on dev_port comes
-    straight back in on it, unchanged. Counts the frames and keeps the shortest and longest length."""
+    straight back in on it, unchanged. Counts the frames, keeps the shortest and longest length, and records
+    every distinct wire bytes 12-13 value (with the first frame's first 16 bytes), because the model does not
+    filter what a real MAC would."""
 
     def __init__(self, port):
         super().__init__(daemon=True)
         self.port, self.frames, self.shortest, self.longest, self.first = port, 0, None, 0, {}
+        self.types = {}
         self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
         self.sock.bind(('veth%d' % (2 * port + 1), 0))
 
@@ -112,11 +129,14 @@ class Reflector(threading.Thread):
             if self.shortest is None or len(frame) < self.shortest:
                 self.shortest = len(frame)
             self.first.setdefault(len(frame), frame[:16].hex())
+            if len(frame) >= 14:
+                self.types.setdefault(int.from_bytes(frame[12:14], 'big'), frame[:16].hex())
             self.sock.send(frame)
 
     def summary(self):
         return dict(frames=self.frames, shortest=self.shortest, longest=self.longest,
-                    first_16_bytes_by_length={str(k): v for k, v in sorted(self.first.items())})
+                    first_16_bytes_by_length={str(k): v for k, v in sorted(self.first.items())},
+                    bytes_12_13_seen={'0x%04x' % k: v for k, v in sorted(self.types.items())})
 
 
 def scalar(regs):
@@ -436,6 +456,7 @@ def main():
             op_samples = [bytes.fromhex(h) for h in hb.values() if bytes.fromhex(h)[0] in (13, 16)]
             ip_after_ladder = [s.hex() for s in op_samples if len(s) > 8 and s[8] == 0x45]
             ok_ethertype = [s for s in op_samples if len(s) >= 14 and s[8] != 0x45 and int.from_bytes(s[12:14], 'big') >= 0x0600]
+            rep.add('every_loop_frame_has_an_ethertype_at_bytes_12_13', {}, loop_type_violations(reflectors))
             rep.add('operate_blocker_on_181_keeps_eth_no_ip_after_ladder', [], ip_after_ladder)
             rep.add('operate_blocker_on_181_has_ethertype_at_offset_12_13',
                     True, bool(op_samples) and not ip_after_ladder and bool(ok_ethertype),

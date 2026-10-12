@@ -31,9 +31,13 @@ const MirrorId_t CLONE_SESSION_ID = 10w7;
 const bit<8> ROLE_ACK_BLK  = 11; const bit<8> ROLE_RESP_BLK = 12; const bit<8> ROLE_OP_BLK  = 13;
 const bit<8> ROLE_ACK_HELD = 14; const bit<8> ROLE_RESP_HELD = 15; const bit<8> ROLE_OP_HELD = 16;
 
-// tev.kind wire values, identical to read_timing.p4's own T_IN convention.
+// tev.kind wire values. The event's kind and stage are wire bytes 12-13 of the frame on T_IN, which is a
+// front-panel MAC-loopback port on the hardware map, so kind must be >= 6: the pair is then in the EtherType
+// range and not a reserved type (0x0900..0x0d02). RESET was 4 (read_timing.p4's value), giving 0x0401/0x0402,
+// an 802.3 length that the MAC counted as received-not-good on port 180 (silicon p2_production_01); it is 13
+// now. N's emit_reset must send the same value (make_n.py edit 13; compose.py checks the two agree).
 const bit<8> KIND_REQUEST = 9; const bit<8> KIND_ACK = 10; const bit<8> KIND_RESPONSE = 11;
-const bit<8> KIND_OPERATE = 12; const bit<8> KIND_RESET = 4;
+const bit<8> KIND_OPERATE = 12; const bit<8> KIND_RESET = 13;
 
 // Outcome counters (outcomes register index), named to match test_t_queue_invariants.py's
 // out(sim, 'OUT_*') lookups via sim.consts().
@@ -121,7 +125,7 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
             (10, 0) : opaque_ethernet;
             (11, 0) : opaque_ethernet;
             (12, 0) : opaque_ethernet;
-            (4, 0) : opaque_ethernet;
+            (KIND_RESET, 0) : opaque_ethernet;
             default : reject;
         }
     }

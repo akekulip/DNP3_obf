@@ -26,7 +26,7 @@ from model_driver import Model, Report, gc  # noqa: E402
 
 T_IN, PKTGEN_RETURN, FORWARD, RELAY, SID = 325, 324, 9, 64, 7
 WATCH = [FORWARD, RELAY]
-KIND = {'request': 9, 'ack': 10, 'response': 11, 'operate': 12, 'reset': 4}
+KIND = {'request': 9, 'ack': 10, 'response': 11, 'operate': 12, 'reset': 13}   # read_queue_timing.p4 KIND_*
 DECISION = ['OUT_UNMATCHED', 'OUT_ACK_COMMIT', 'OUT_RESP_RELEASE', 'OUT_RESP_DUP_DROP', 'OUT_OP_RELEASE',
             'OUT_HELD_STALE_FLUSH', 'OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK', 'OUT_HELD_OFF_FLUSH',
             'OUT_REQ_BYPASS']

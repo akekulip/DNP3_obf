@@ -63,6 +63,17 @@ def set_e_lap_port(text, value):
     return text.replace(old, '9w%d: eth; 9w%d: eth; default: accept;' % (make_e.MASTER_PORT, value))
 
 
+def check_reset_kind(n_text, t_text):
+    """N hands a close to T as an event whose kind/stage are wire bytes 12-13 on T_IN, a front-panel MAC-loopback
+    port on the hardware map. N's emit_reset kind must equal T's KIND_RESET, and be >= 6 so the pair is in the
+    EtherType range (an 802.3 length below 0x0600 was counted received-not-good on silicon, p2_production_01)."""
+    n = re.findall(r'hdr\.event\.event=8w(\d+)\+\+m\.direction', n_text)
+    t = re.findall(r'const\s+bit<8>\s+KIND_RESET\s*=\s*(\d+)\s*;', t_text)
+    assert len(n) == 1 and len(t) == 1, 'RESET kind found %d times in N and %d in T' % (len(n), len(t))
+    assert int(n[0]) == int(t[0]), "N's emit_reset kind %s differs from T's KIND_RESET %s" % (n[0], t[0])
+    assert int(n[0]) >= 6, 'RESET kind %s puts an 802.3 length in wire bytes 12-13' % n[0]
+
+
 def generate(relay_port=None, ports=None):
     """relay_port: the device port T releases toward the OUTSTATION (requests, OPERATEs, client closes).
     Default: read/ports.p4's RELAY_PORT (64). When both endpoints share one switch port (the reflected
@@ -95,6 +106,7 @@ def generate(relay_port=None, ports=None):
     for name, field in (('T_IN', 't_in'), ('HB_RETURN', 'hb_return'), ('HELD_RETURN', 'held_return')):
         if getattr(ports, field) != getattr(pm.DEFAULT, field):
             t_text = set_port(t_text, name, getattr(ports, field), getattr(pm.DEFAULT, field))
+    check_reset_kind(n_text, t_text)
     for name, fixed in (('PKTGEN_RETURN', pm.PKTGEN_RETURN), ('N_RETURN', pm.RETURN_PORT)):
         assert re.search(r'const\s+PortId_t\s+%s\s*=\s*9w%d\s*;' % (name, fixed), t_text), name + ' moved'
     t_out, t_names = ct.role(ct.strip_main(t_text), 't')

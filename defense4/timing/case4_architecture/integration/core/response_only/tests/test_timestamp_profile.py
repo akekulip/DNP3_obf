@@ -25,7 +25,9 @@ MASTER = rp.Endpoint(rp_.MASTER_IP, rp_.MASTER_TCP, 9)
 RELAY = rp.Endpoint(rp_.RELAY_IP, rp_.RELAY_TCP, 64)
 LAP, T_IN = cp.N_ACK_RETURN, rs.handoff_port(TEXT)
 PHASE = {'syn': 0x2, 'synack': 0x4, 'idle': 0x5, 'read': 0xe, 'closed': 0x7}
-KIND = {'request': 9, 'ack': 10, 'response': 11, 'reset': 4}
+KIND_RESET = int(__import__('re').search(r'const\s+bit<8>\s+KIND_RESET\s*=\s*(\d+)',
+                (RO.parent.parent / 'read' / 'read_queue_timing.p4').read_text())[1])   # T's own value
+KIND = {'request': 9, 'ack': 10, 'response': 11, 'reset': KIND_RESET}
 
 
 def pipe():

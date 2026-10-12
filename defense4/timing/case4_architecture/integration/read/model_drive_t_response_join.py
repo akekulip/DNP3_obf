@@ -27,7 +27,7 @@ from model_driver import Model, Report, gc  # noqa: E402
 
 T_IN, PKTGEN_RETURN, FORWARD, RELAY, SID = 325, 324, 9, 64, 7
 WATCH = [FORWARD, RELAY]
-KIND = {'request': 9, 'ack': 10, 'response': 11, 'operate': 12, 'reset': 4}
+KIND = {'request': 9, 'ack': 10, 'response': 11, 'operate': 12, 'reset': 13}   # read_queue_timing.p4 KIND_*
 PARAMS = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000, gap=50_000_000, op_j=200_000_000,
               budget=240_000, enabled=1)
 
