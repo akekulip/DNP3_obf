@@ -76,6 +76,8 @@ lives in `campaign.json` under `expectations` (this is its only copy; README res
 | T off | `OUT_ACK_COMMIT`, `OUT_RESP_RELEASE`, `OUT_OP_RELEASE` deltas are 0 |
 | fixture `separate_ack` | READ piggyback fraction in [0, 0.05] (the request is ACKed separately) |
 | fixture `piggyback` | READ piggyback fraction in [0.95, 1] |
+| builds flagged `mirror_fix` (T on) | READ generator trigger delta equals the READs; generated READ packets equal 2k per trigger (`service.k`, the installer `--k`); OPERATE trigger delta equals the SBOs run; `OUT_TOKEN_STALE` delta is 0. Builds before the compiler-mirror fix selected T's deparser mirror entry 0, which gave several triggers per READ and thousands of stale tokens, so the counts only hold, and are only checked, on the flagged build (`mirror_fix_01`) |
+| builds flagged `mirror_fix` (T off) | READ and OPERATE generator trigger and packet deltas are 0 (as the T-off silicon evidence shows) |
 | loop ports 48 / 180 / 181 / 182 | delta of (`$OctetsReceived` - `$OctetsReceivedinGoodFrames`) is 0, or the build's `allowed_loop_octet_gap[role]` (default 0; the pre-RESET-fix build shows 80 on `t_in`). A larger gap fails with the byte count |
 
 Missing or unreadable evidence is itself a failure. The observed values (outcome deltas, piggyback fraction, growth,

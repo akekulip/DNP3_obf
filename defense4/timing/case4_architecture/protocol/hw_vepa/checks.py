@@ -58,7 +58,41 @@ def _loop_gap(before, after):
     return out
 
 
-def evaluate(exp, arm, fixture, reads, ev, allowed=None):
+def _mirror_checks(mx, arm, reads, o, b, a, k, fails, obs):
+    """Generator counters (snapshot pktgen block, after minus before) on a build carrying the compiler-mirror
+    fix: T on -> READ triggers == READs, READ packets == 2k per trigger, OPERATE triggers == SBOs, stale == 0;
+    T off -> no generator activity at all (what the T-off silicon evidence shows)."""
+    try:
+        d = {}
+        for app in ('READ', 'OPERATE'):
+            d[app] = {'triggers': a['pktgen'][app]['trigger_counter'] - b['pktgen'][app]['trigger_counter'],
+                      'pkts': a['pktgen'][app]['pkt_counter'] - b['pktgen'][app]['pkt_counter']}
+    except (KeyError, TypeError):
+        fails.append('mirror_fix build: the snapshots carry no pktgen trigger/packet counters')
+        return
+    obs['pktgen'] = d
+    sbo = 1 if (o and o.get('select_real') == 1 and o.get('operate_real') == 1) else 0
+    if arm['T']:
+        want = {'READ': (reads, 2 * k * reads), 'OPERATE': (sbo, 2 * k * sbo)}
+        for app, (trig, pkts) in want.items():
+            if d[app]['triggers'] != trig:
+                fails.append('T on: %s trigger delta %d, expected %d' % (app, d[app]['triggers'], trig))
+            if d[app]['pkts'] != pkts:
+                fails.append('T on: generated %s packets delta %d, expected %d (2k = %d per trigger)'
+                             % (app, d[app]['pkts'], pkts, 2 * k))
+        outs = obs.get('outcomes') or {}
+        for key in mx['T1']['zero_outcomes']:
+            if outs.get(key):
+                fails.append('T on, mirror_fix build: %s delta %s, expected 0' % (key, outs[key]))
+    else:
+        for app in mx['T0']['zero_triggers']:
+            if d[app]['triggers'] or d[app]['pkts']:
+                fails.append('T off: %s trigger delta %d and packet delta %d, expected none (generator idle)'
+                             % (app, d[app]['triggers'], d[app]['pkts']))
+
+
+def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None):
+    """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None."""
     allowed = allowed or {}
     fails, obs = [], {}
     need = [k for k in ('before', 'after', 'master', 'outstation', 'wire', 'timing') if not ev.get(k)]
@@ -154,6 +188,8 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None):
                 for k in exp['T']['0']['zero_outcomes']:
                     if d.get(k):
                         fails.append('T off but %s=%s (expected 0)' % (k, d[k]))
+        if mirror_k is not None:
+            _mirror_checks(exp['mirror_fix'], arm, reads, o, b, a, mirror_k, fails, obs)
         gaps = _loop_gap(b, a)
         obs['loop_octet_gap'] = {r: g for r, (g, e) in gaps.items()}
         for role, (g, err) in gaps.items():

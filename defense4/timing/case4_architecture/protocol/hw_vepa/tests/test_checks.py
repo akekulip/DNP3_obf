@@ -23,8 +23,13 @@ def loop(extra=0):
             for r in ROLES}
 
 
-def snap(outcomes, lp):
-    return {'outcomes': dict(outcomes), 'loop_ports': lp}
+def pktgen(read_trig=0, read_pkts=0, op_trig=0, op_pkts=0):
+    return {'READ': {'trigger_counter': read_trig, 'batch_counter': read_trig, 'pkt_counter': read_pkts},
+            'OPERATE': {'trigger_counter': op_trig, 'batch_counter': op_trig, 'pkt_counter': op_pkts}}
+
+
+def snap(outcomes, lp, pg=None):
+    return {'outcomes': dict(outcomes), 'loop_ports': lp, 'pktgen': pg or pktgen()}
 
 
 def kind(n, lens, piggy=0):
@@ -41,12 +46,14 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
     ex += [{'kind': 'SELECT', 'resp_len': sbo_len[0], 'complete': True},
            {'kind': 'OPERATE', 'resp_len': sbo_len[0], 'complete': True}]
     out0 = {'OUT_ACK_COMMIT': 7, 'OUT_RESP_RELEASE': 7, 'OUT_OP_RELEASE': 1, 'OUT_ACK_FALLBACK': 0,
-            'OUT_RESP_FALLBACK': 0}
+            'OUT_RESP_FALLBACK': 0, 'OUT_TOKEN_STALE': 0}
     d = {'OUT_ACK_COMMIT': reads, 'OUT_RESP_RELEASE': reads, 'OUT_OP_RELEASE': 1} if T else \
         {'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_OP_RELEASE': 0}
     out1 = {k: out0.get(k, 0) + d.get(k, 0) for k in out0}
+    pg0 = pktgen(3, 12, 1, 4)
+    pg1 = pktgen(3 + reads, 12 + 4 * reads, 2, 8) if T else copy.deepcopy(pg0)      # k = 2: 2k = 4 tokens per trigger
     return {
-        'before': snap(out0, loop()), 'after': snap(out1, loop()),
+        'before': snap(out0, loop(), pg0), 'after': snap(out1, loop(), pg1),
         'master': {'success': True, 'reads_requested': reads, 'reads_completed': reads, 'all_reads_match_seed': True,
                    'reads': [{'completed': True, 'points_received': 23, 'matches_seed': True}] * reads},
         'outstation': {'select_real': 1, 'select_decoy': 0, 'operate_real': 1, 'operate_decoy': 0},
@@ -55,8 +62,8 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
                                'OPERATE': kind(1, sbo_len)}, 'exchanges': ex}}
 
 
-def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None):
-    return checks.evaluate(exp or EXP, {'T': T, 'padding': padding}, fixture, reads, ev, allowed)
+def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None, mirror_k=None):
+    return checks.evaluate(exp or EXP, {'T': T, 'padding': padding}, fixture, reads, ev, allowed, mirror_k)
 
 
 class IdealTrials(unittest.TestCase):
@@ -200,6 +207,64 @@ class Violations(unittest.TestCase):
         self.one(ev, 'timing')
 
 
+class MirrorFix(unittest.TestCase):
+    """A build flagged mirror_fix (it carries the compiler-mirror fix) must show one generator trigger per READ,
+    2k generated packets per trigger, one OPERATE trigger per SBO and zero stale tokens. Builds without the flag
+    had the defect, so the check is skipped for them."""
+    def one(self, ev, needle, T=1, k=2, **kw):
+        fails, _ = run(ev, T=T, mirror_k=k, **kw)
+        self.assertTrue(any(needle in f for f in fails), (needle, fails))
+
+    def test_ideal_trials_pass_and_record_the_deltas(self):
+        for T in (0, 1):
+            fails, obs = run(evidence(1, T), 1, T, mirror_k=2)
+            self.assertEqual(fails, [], T)
+        obs = run(evidence(1, 1), 1, 1, mirror_k=2)[1]
+        self.assertEqual(obs['pktgen'], {'READ': {'triggers': 10, 'pkts': 40}, 'OPERATE': {'triggers': 1, 'pkts': 4}})
+
+    def test_read_trigger_count_must_equal_the_reads(self):
+        ev = evidence()
+        ev['after']['pktgen']['READ']['trigger_counter'] += 1
+        self.one(ev, 'READ trigger')
+
+    def test_generated_packets_are_2k_per_trigger_using_the_configured_k(self):
+        ev = evidence()
+        self.one(ev, 'generated READ packets', k=3)                 # the evidence is k=2
+        fails, _ = run(ev, mirror_k=2)
+        self.assertEqual(fails, [])
+
+    def test_operate_trigger_must_equal_the_sbo_count(self):
+        ev = evidence()
+        ev['after']['pktgen']['OPERATE']['trigger_counter'] -= 1
+        self.one(ev, 'OPERATE trigger')
+
+    def test_stale_tokens_must_be_zero(self):
+        ev = evidence()
+        ev['after']['outcomes']['OUT_TOKEN_STALE'] += 4
+        self.one(ev, 'OUT_TOKEN_STALE')
+
+    def test_T_off_must_show_no_generator_activity(self):
+        ev = evidence(1, 0)
+        ev['after']['pktgen']['READ']['trigger_counter'] += 2
+        self.one(ev, 'READ trigger', T=0)
+
+    def test_missing_generator_counters_fail_on_a_flagged_build(self):
+        ev = evidence()
+        del ev['after']['pktgen']
+        self.one(ev, 'pktgen')
+
+    def test_check_is_skipped_on_builds_without_the_flag(self):
+        ev = evidence()
+        ev['after']['pktgen']['READ']['trigger_counter'] += 30
+        ev['after']['outcomes']['OUT_TOKEN_STALE'] += 9000
+        self.assertEqual(run(ev)[0], [])
+        self.assertNotIn('pktgen', run(ev)[1])
+
+    def test_table_documents_the_mirror_section(self):
+        self.assertIn('mirror_fix', EXP)
+        self.assertEqual(EXP['mirror_fix']['T1']['zero_outcomes'], ['OUT_TOKEN_STALE'])
+
+
 class ConfigTable(unittest.TestCase):
     def test_table_lives_in_campaign_json_and_is_complete(self):
         for k in ('common', 'padding', 'T', 'fixture', 'native_len'):
@@ -210,6 +275,16 @@ class ConfigTable(unittest.TestCase):
     def test_allowed_loop_gap_defaults_to_zero_per_build(self):
         cfg = cp.load_config(str(CONFIG))
         self.assertEqual(checks.allowed_gap(cfg['builds'][cfg['arms'][0]['build']]), {})
+
+    def test_only_the_mirror_fix_build_is_flagged(self):
+        b = cp.load_config(str(CONFIG))['builds']
+        self.assertEqual([n for n, x in b.items() if x.get('mirror_fix')], ['mirror_fix_01'])
+
+    def test_non_boolean_mirror_flag_is_rejected(self):
+        cfg = copy.deepcopy(cp.load_config(str(CONFIG)))
+        cfg['builds']['mirror_fix_01']['mirror_fix'] = 'yes'
+        with self.assertRaises(ValueError):
+            cp.validate_profile(cfg)
 
     def test_bad_allowed_gap_is_rejected(self):
         cfg = copy.deepcopy(cp.load_config(str(CONFIG)))
@@ -222,6 +297,18 @@ class ConfigTable(unittest.TestCase):
 
 
 REAL = HERE.parents[2] / 'integration' / 'evidence' / 'p2_production_01' / 'p_unshaped'
+
+
+@pytest.mark.evidence_tree
+class RealMirrorEvidence(unittest.TestCase):
+    """mirror_fix_silicon_01/s_r20: 20 READs, k=2: 20 triggers, 80 packets, zero stale."""
+    def test_the_real_silicon_run_satisfies_the_mirror_checks(self):
+        d = HERE.parents[2] / 'integration' / 'evidence' / 'mirror_fix_silicon_01' / 's_r20'
+        ev = checks.load_evidence_files(before=d / 'snb_s_r20.json', after=d / 'sna_s_r20.json',
+                                        master=d / 'master.json', outstation=d / 'outstation.json')
+        fails, obs = checks.evaluate(EXP, {'T': 1, 'padding': 1}, 'separate_ack', 20, ev, None, 2)
+        self.assertEqual([f for f in fails if 'READ trigger' in f or 'packets' in f or 'STALE' in f or 'OPERATE trigger' in f], [])
+        self.assertEqual(obs['pktgen']['READ'], {'triggers': 20, 'pkts': 80})
 
 
 @pytest.mark.evidence_tree

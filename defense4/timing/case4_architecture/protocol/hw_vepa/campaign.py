@@ -135,6 +135,8 @@ def validate_profile(cfg):
         raise ValueError('traffic.master_port_range needs integer first <= last within 1024..65535, got %r' % pr)
     for name, b in cfg['builds'].items():
         checks.validate_allowed_gap(b, name)
+        if not isinstance(b.get('mirror_fix', False), bool):
+            raise ValueError('build %s: mirror_fix must be true or false' % name)
     exp = cfg['expectations']
     for k in ('common', 'native_len', 'padding', 'T', 'fixture'):
         if k not in exp:
@@ -766,7 +768,8 @@ class Campaign:
         if ev['after']:
             trial['achieved_shaping'] = rec['achieved_shaping'] = ev['after'].get('shaping')
         cfail, obs = checks.evaluate(self.cfg['expectations'], arm, fixture, trial['reads'], ev,
-                                     checks.allowed_gap(self.cfg['builds'][arm['build']]))
+                                     checks.allowed_gap(self.cfg['builds'][arm['build']]),
+                                     self.cfg['service']['k'] if self.cfg['builds'][arm['build']].get('mirror_fix') else None)
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail
         trial.update(ok=ok, failures=fails)
