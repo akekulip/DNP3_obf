@@ -1,0 +1,253 @@
+{
+ "note": "intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; timestamps are integer microseconds at the capture resolution",
+ "sent": 33,
+ "returned": 14,
+ "sent_integrity": {
+  "dnp3_crc_bad": [
+   {
+    "index": 29,
+    "reason": "trailing"
+   },
+   {
+    "index": 30,
+    "reason": "trailing"
+   }
+  ],
+  "tcp_checksum_bad": "not validated (sender capture)",
+  "tcp_checksum_offloaded": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31
+  ]
+ },
+ "returned_integrity": {
+  "dnp3_crc_bad": [],
+  "tcp_checksum_bad": [],
+  "tcp_checksum_offloaded": []
+ },
+ "matched": 14,
+ "unmatched_sent": [
+  {
+   "sent_index": 16,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 18,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 19,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 20,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 21,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 23,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 25,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 27,
+   "dir": "M->O",
+   "flags": 24,
+   "len": 20
+  },
+  {
+   "sent_index": 30,
+   "dir": "M->O",
+   "flags": 25,
+   "len": 375
+  },
+  {
+   "sent_index": 32,
+   "dir": "M->O",
+   "flags": 4,
+   "len": 0
+  },
+  {
+   "sent_index": 29,
+   "dir": "M->O",
+   "flags": 25,
+   "len": 355
+  },
+  {
+   "sent_index": 13,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 14,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 15,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 17,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 22,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 24,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 26,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  },
+  {
+   "sent_index": 28,
+   "dir": "O->M",
+   "flags": 24,
+   "len": 49
+  }
+ ],
+ "unmatched_returned": [],
+ "duplicate_returned": [],
+ "reordered_returned_indices": [],
+ "reference_mapping": {
+  "0": 0,
+  "2": 2,
+  "3": 3,
+  "6": 6,
+  "7": 7,
+  "10": 10,
+  "1": 1,
+  "4": 4,
+  "5": 5,
+  "8": 8,
+  "9": 9,
+  "11": 11,
+  "12": 12,
+  "13": 31
+ },
+ "M->O sent payload lengths": [
+  20,
+  355,
+  375
+ ],
+ "M->O returned payload lengths": [
+  20
+ ],
+ "M->O matched": 6,
+ "M->O seq delta set": [
+  0
+ ],
+ "M->O ack delta set": [
+  0,
+  4294967278,
+  4294967287
+ ],
+ "M->O payload identical count": 6,
+ "O->M sent payload lengths": [
+  49
+ ],
+ "O->M returned payload lengths": [
+  58
+ ],
+ "O->M matched": 8,
+ "O->M seq delta set": [
+  0,
+  9,
+  18,
+  27
+ ],
+ "O->M ack delta set": [
+  0
+ ],
+ "O->M payload identical count": 5,
+ "reflect latency us min/median/max": [
+  28,
+  99,
+  5360
+ ],
+ "O->M reflected images": [
+  {
+   "sent_len": 49,
+   "returned_len": 58,
+   "sent_tp_app_func": "c0c081",
+   "returned_tp_app_func": "c0c081"
+  },
+  {
+   "sent_len": 49,
+   "returned_len": 58,
+   "sent_tp_app_func": "c1c181",
+   "returned_tp_app_func": "c1c181"
+  },
+  {
+   "sent_len": 49,
+   "returned_len": 58,
+   "sent_tp_app_func": "c2c281",
+   "returned_tp_app_func": "c2c281"
+  }
+ ]
+}

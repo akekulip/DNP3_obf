@@ -1,0 +1,286 @@
+{
+ "fixture": "separate_ack",
+ "label": "baseline_single_loss_01_separate_ack_combined_t2",
+ "master_port": 54502,
+ "reads": 20,
+ "ok": false,
+ "failures": [
+  "dropped data packet (seq 996383574) was never retransmitted",
+  "master did not complete: success=False, 2 of 20 READs, seed match False",
+  "exactly-once violated: select_real=0, expected exactly 1",
+  "exactly-once violated: operate_real=0, expected exactly 1",
+  "returned frames with a bad DNP3 CRC: [{'index': 13, 'reason': 'trailing'}, {'index': 15, 'reason': 'trailing'}, {'index': 17, 'reason': 'trailing'}]",
+  "growth 76 B != 36 B expected from the responses delivered (9 per READ, 21 per control response)"
+ ],
+ "max_token_stale": 0,
+ "reconnect_policy": "characterize",
+ "diagnostic": false,
+ "preset": "unshaped",
+ "conditions": {
+  "delay_ms": 5,
+  "gap_ms": 0,
+  "start_delay_ms": 0,
+  "start_seed": 12347
+ },
+ "achieved_shaping": {
+  "ACK_BLOCK": {
+   "dev_port": 182,
+   "qid": 7,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  },
+  "ACK_HOLD": {
+   "dev_port": 182,
+   "qid": 6,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  },
+  "RESP_BLOCK": {
+   "dev_port": 182,
+   "qid": 5,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  },
+  "RESP_HOLD": {
+   "dev_port": 182,
+   "qid": 4,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  },
+  "OP_BLOCK": {
+   "dev_port": 181,
+   "qid": 3,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  },
+  "OP_HOLD": {
+   "dev_port": 181,
+   "qid": 2,
+   "max_rate_enable": false,
+   "unit": "BPS",
+   "requested_pps": null,
+   "achieved_pps": 25010000,
+   "max_burst_size": 16384
+  }
+ },
+ "master_completion_s": 0.5,
+ "vision": {
+  "label": "baseline_single_loss_01_separate_ack_combined_t2",
+  "master_port": 54502,
+  "reads": 20,
+  "range": 8,
+  "gap_ms": 0,
+  "start_delay_ms_max": 0,
+  "start_seed": 12347,
+  "start_delay_ms_applied": 0,
+  "endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "capture_immediate": false,
+  "capture_commands": {
+   "out": [
+    "tcpdump",
+    "-i",
+    "enp59s0f0np0",
+    "-Q",
+    "out",
+    "-s0",
+    "-U",
+    "-n",
+    "-w",
+    "/home/decps/pad58b_20261011/runs/baseline_single_loss_01_separate_ack_combined_t2/out.pcap",
+    "tcp and host 192.168.10.61 and host 192.168.10.62"
+   ],
+   "in": [
+    "tcpdump",
+    "-i",
+    "enp59s0f0np0",
+    "-Q",
+    "in",
+    "-s0",
+    "-U",
+    "-n",
+    "-w",
+    "/home/decps/pad58b_20261011/runs/baseline_single_loss_01_separate_ack_combined_t2/in.pcap",
+    "tcp and host 192.168.10.61 and host 192.168.10.62"
+   ]
+  },
+  "source_port_wait": {
+   "port": 54502,
+   "polls": 1,
+   "elapsed_s": 0.036,
+   "result": "free"
+  },
+  "outstation_ready": true,
+  "master_rc": 3,
+  "master_wall_s": 55.058,
+  "loss": {
+   "class": "read_resp_padded",
+   "n": 3,
+   "occurrence": 3,
+   "base": "resp_padded",
+   "dir": "O>M",
+   "ip_len": 98,
+   "flags": "ACK,PSH",
+   "ns": "ns_vepa_a",
+   "chain": "INPUT",
+   "mode": "limit-burst-1 chain (kernel-atomic)",
+   "rules": [
+    "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 54502 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+    "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 54502 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+    "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 54502 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+   ],
+   "counters": [
+    {
+     "pos": 1,
+     "target": "ACCEPT",
+     "pkts": 1,
+     "bytes": 98
+    },
+    {
+     "pos": 2,
+     "target": "ACCEPT",
+     "pkts": 1,
+     "bytes": 98
+    },
+    {
+     "pos": 3,
+     "target": "DROP",
+     "pkts": 1,
+     "bytes": 98
+    }
+   ],
+   "counter_error": null,
+   "dropped_packets": 1,
+   "dropped_bytes": 98,
+   "earlier_matches": 2,
+   "exact": true,
+   "removed": true,
+   "remove_errors": [],
+   "state_before": [
+    "-P INPUT ACCEPT"
+   ],
+   "state_after": [
+    "-P INPUT ACCEPT"
+   ],
+   "state_restored": true
+  },
+  "tcpdump": {
+   "out": {
+    "captured": 35,
+    "received": 54,
+    "dropped_kernel": 0
+   },
+   "in": {
+    "captured": 19,
+    "received": 54,
+    "dropped_kernel": 0
+   }
+  },
+  "frames_out": 35,
+  "frames_in": 19,
+  "ok": false,
+  "loss_exact": true
+ },
+ "wire_rc": 1,
+ "clrt_rc": 1,
+ "loss": {
+  "class": "read_resp_padded",
+  "n": 3,
+  "occurrence": 3,
+  "dir": "O>M",
+  "ip_len": 98,
+  "max_recovery_s": 5.0,
+  "rule": {
+   "exact": true,
+   "dropped_packets": 1,
+   "dropped_bytes": 98,
+   "removed": true,
+   "state_restored": true,
+   "remove_errors": []
+  },
+  "packet": {
+   "index": 12,
+   "seq": 996383574,
+   "ack": 1367439548,
+   "len": 58,
+   "ip_len": 98,
+   "t_us": 1791848929585998
+  },
+  "identified": true,
+  "copies_returned": 1,
+  "retransmitted": false,
+  "progress_us": null,
+  "candidates": 3,
+  "retransmissions": 16,
+  "first_retx_delay_ms": null,
+  "completed": false,
+  "completion_s": 0.5,
+  "callbacks": {
+   "select_real": 0,
+   "select_decoy": 0,
+   "operate_real": 0,
+   "operate_decoy": 0
+  },
+  "exactly_once": false,
+  "duplicate_returned": 0,
+  "growth_bytes": 76,
+  "expected_growth_bytes": 36
+ },
+ "observed": {
+  "piggyback_fraction": 0.0,
+  "growth_bytes": 76,
+  "outcomes": {
+   "OUT_UNMATCHED": 0,
+   "OUT_HELD_REWAIT": 23122,
+   "OUT_ACK_COMMIT": 3,
+   "OUT_RESP_RELEASE": 3,
+   "OUT_RESP_DUP_DROP": 0,
+   "OUT_OP_RELEASE": 0,
+   "OUT_TOKEN_STALE": 0,
+   "OUT_HELD_STALE_FLUSH": 0,
+   "OUT_ACK_FALLBACK": 0,
+   "OUT_RESP_FALLBACK": 0,
+   "OUT_TOKEN_TMO": 0,
+   "OUT_HELD_OFF_FLUSH": 0,
+   "OUT_TOKEN_OFF": 0,
+   "OUT_REQ_BYPASS": 0,
+   "index_14": 0,
+   "index_15": 0
+  },
+  "token_stale": 0,
+  "pktgen": {
+   "READ": {
+    "triggers": 3,
+    "pkts": 12
+   },
+   "OPERATE": {
+    "triggers": 0,
+    "pkts": 0
+   }
+  },
+  "loop_octet_gap": {
+   "n_ack_return": 0,
+   "t_in": 0,
+   "hb_return": 0,
+   "held_return": 0
+  }
+ }
+}
