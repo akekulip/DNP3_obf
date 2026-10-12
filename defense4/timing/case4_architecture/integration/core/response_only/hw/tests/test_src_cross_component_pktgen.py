@@ -7,7 +7,7 @@ app 2, which parse_timer drops as a foreign frame, so no READ blocker is ever se
 from the INSTALLER's app-IDs and run through T's real parser + Ingress in the source interpreter; a wrong
 app-ID shows up as a missing seed, which a schema check on the installer alone cannot see.
 
-  python3 -m unittest discover -s integration/core/response_only/hw/tests -v
+  python3 -m unittest discover -s tests -p 'test_src_*.py'     (from integration/core/response_only/hw)
 """
 import struct
 import sys

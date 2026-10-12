@@ -45,7 +45,7 @@ both `tofino.bin` for the build it is given. Pass the three for `bfrt.json`, `p0
 | `set_enabled.py` | changes only T's `enabled` on a live install, for alternating Timing OFF / Obfuscated blocks |
 | `bringup_teardown.py` | generator off, T off, wait for the flush to settle, then undo in reverse with readback |
 | `snapshot_counters.py` | JSON of T outcomes, generator counters, queue watermark/drops on the build's ladder ports, `$PORT_STAT` |
-| `tests/` | 47 tests: name-check faults, refusals, and `apply()` / `switch.py` / teardown / `set_enabled` against the fake client |
+| `tests/` | two suites, see `tests/README.md`: pure-source `test_src_*.py` (no build, no SDE; fake client and P4-source interpreter) and build-dependent `test_build_*.py` (the pinned compiled build + SDE schemas) |
 
 Every script that binds a BF Runtime client needs `DEFENSE4_HW_AUTHORIZED=1`.
 
@@ -160,15 +160,15 @@ restore with no recorded value is refused and reported the same way.
   read as N_ACK_RETURN 48, T_IN 180, HB_RETURN 181, HELD_RETURN 182, RETURN_PORT 68, PKTGEN_RETURN 196;
   33 writes (4 loopback first) plus 2 generator enables; name check PASS; exit 0. The 47 tests also pass
   with `HW_BUILD` pointed at it. The build to load is the 9.13.2 one, with its own hashes.
-- Without `HW_BUILD` the tests take the newest switch-compiled composite under `evidence/route_ab_01` that
-  passes the port checks. Until one exists they fall back to a **synthetic** build: `shared_port_01`'s real
-  `bfrt.json` and binaries with only the port constants in a copy of its `p4pp` rewritten to 48 / 180 / 181
-  / 182. That exercises the installer and is not a build to load; the test run says which it used.
+- Tests are now two suites with no build discovery by modification time: the build-dependent suite uses the
+  build pinned in `tests/pinned_build.json` (or `HW_BUILD`); the pure-source suite uses a synthetic fixture
+  and needs no compiled tree. See `tests/README.md`.
 - `shared_port_01` itself is now refused offline: four looping ports are pipe-local 69-71.
 
 ```bash
-python3 -m unittest discover -s integration/core/response_only/hw/tests -v
-HW_BUILD=<dir holding manifest.json and out/> FIXED_SCHEMA_DIR=<bf_rt_shared> python3 -m unittest discover -s …/hw/tests
+cd integration/core/response_only/hw
+python3 -m unittest discover -s tests -p 'test_src_*.py'                                   # pure-source
+FIXED_SCHEMA_DIR=<sde>/install/share/bf_rt_shared python3 -m unittest discover -s tests -p 'test_build_*.py'
 ```
 
 The fixed-table name check uses the SDE 9.13.1 schemas here; step 4 repeats it on the switch against 9.13.2.

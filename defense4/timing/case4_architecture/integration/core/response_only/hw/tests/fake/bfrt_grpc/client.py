@@ -23,12 +23,26 @@ def reset():
     PRIOR_APP_ACTION = 'trigger_timer_one_shot'   # the SDE default, as read on the switch 2026-10-11
     PORTS = default_ports()             # $PORT entries, by dev_port
     LINK_NEVER_UP = set()               # front-panel ports whose link stays down after a loopback write
-    # The TF1 TM shaper quantizes a written max_rate to a hardware step; model that so readback is not exact
-    # (a 1000 PPS request reads back ~930 on silicon). A test overrides this to force an implausible achieved
-    # rate (0, or far off) and prove the tolerant readback still fails closed.
-    SHAPE_QUANTIZE = lambda req: int(round(req * 0.93))
+    # The TF1 TM shaper realizes only a x4 ladder of PPS rates; a written max_rate reads back as the nearest
+    # ladder value (in log space), measured on silicon by a write/readback probe (p2_blocker_occupancy_01).
+    # A test overrides this to force an implausible achieved rate and prove the readback still fails closed.
+    SHAPE_QUANTIZE = ladder_pps
     OUTCOMES_MOVE = False               # T's outcome counters never settle
     EMPTY_READ = None                   # table whose entry_get yields nothing and raises nothing
+
+
+import math
+
+# Measured TF1 TM shaper rate ladder, burst 1 (PPS). Requests snap to the nearest value in log space, which
+# reproduces every measured point: 100->58, 200->232, 300->232, 500->930, 750..1500->930, 2000..5000->3723,
+# 7500..20000->14892, 30000..100000->59570, 200000->238281.
+SHAPER_LADDER_PPS = (58, 232, 930, 3723, 14892, 59570, 238281)
+
+
+def ladder_pps(req):
+    if not req or req <= 0:
+        return 0
+    return min(SHAPER_LADDER_PPS, key=lambda v: abs(math.log(v) - math.log(req)))
 
 
 INTERNAL_PORTS = (68, 69, 70, 71, 196, 197, 198, 199)

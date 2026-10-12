@@ -15,7 +15,7 @@ from pathlib import Path
 TESTS = Path(__file__).resolve().parent
 sys.path[:0] = [str(TESTS / 'fake'), str(TESTS)]
 import bfrt_grpc.client as fake  # noqa: E402  (must be imported before switch.py looks for the SDE's)
-import test_bringup_offline as off  # noqa: E402  (build discovery; raises SkipTest when no build matches cp.py)
+import fixture as fx  # noqa: E402  (synthetic build: no compiled tree, no SDE)
 import bringup_composite as bc  # noqa: E402
 import bringup_teardown as bt  # noqa: E402
 import build_ports  # noqa: E402
@@ -25,7 +25,7 @@ import t_config as tc  # noqa: E402
 
 assert switch.gc is fake, 'switch.py imported a real bfrt_grpc'
 N_CONN, APP, BUF = 'p0.n_Ingress.connection', 'tf1.pktgen.app_cfg', 'tf1.pktgen.pkt_buffer'
-LOOPS = sorted(build_ports.loopback_ports(off.PORTS).values())     # front-panel ports the build loops
+LOOPS = sorted(build_ports.loopback_ports(fx.PORTS).values())     # front-panel ports the build loops
 N_WRITES = 29 + len(LOOPS)
 
 
@@ -42,11 +42,14 @@ def run(main, argv):
 class Base(unittest.TestCase):
     def setUp(self):
         fake.reset()
+        nc = fx.no_name_check()          # the fixture has no real bfrt.json/schemas (see fixture.py)
+        nc.__enter__()
+        self.addCleanup(nc.__exit__, None, None, None)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.manifest = Path(self.tmp.name) / 'manifest.json'
         self.conf = Path(self.tmp.name) / 'daemon.conf'
-        out = (off.BUILD / 'out').resolve()
+        out = (fx.BUILD / 'out').resolve()
         self.conf.write_text(json.dumps({'p4_devices': [{'p4_programs': [{
             'program-name': 'response_only', 'bfrt-config': str(out / 'bfrt.json'),
             'p4_pipelines': [dict(p4_pipeline_name=n, context=str(out / n / 'context.json'),
@@ -57,10 +60,10 @@ class Base(unittest.TestCase):
         self.addCleanup(os.environ.pop, 'DEFENSE4_HW_AUTHORIZED', None)
 
     def argv(self, *extra):
-        base = (['--build-out', str(off.BUILD / 'out'), '--fixed-schema-dir', off.FIXED, '--manifest-out',
-                 str(self.manifest), '--apply'] + off.ENDPOINTS)
+        base = (['--build-out', str(fx.BUILD / 'out'), '--fixed-schema-dir', fx.FIXED, '--manifest-out',
+                 str(self.manifest), '--apply'] + fx.ENDPOINTS)
         for rel in bc.REQUIRED_EXPECT:
-            base += ['--expect', '%s=%s' % (rel, off.SHA[rel])]
+            base += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
         return base + list(extra)
 
     def installed(self):
@@ -87,7 +90,7 @@ class Base(unittest.TestCase):
     def hold_pgq(self, role_qid):
         """(pg_id, pg_queue) the installer resolves for a hold queue on the build's ladder port."""
         role = {6: 'held_return', 4: 'held_return', 2: 'hb_return'}[role_qid]
-        port = off.PORTS[role]
+        port = fx.PORTS[role]
         return port % 128 // 4, (port % 4) * 8 + role_qid          # mirrors the fake's tf1.tm.port.cfg map
 
 
@@ -109,16 +112,16 @@ class Shaping(Base):
         cfg = self.writes('tf1.tm.queue.sched_cfg')
         self.assertTrue(cfg[self.hold_pgq(6)]['max_rate_enable'])                # ACK hold enabled
         self.assertFalse(cfg[self.hold_pgq(4)]['max_rate_enable'])               # RESP hold untouched
-        blk7 = (off.PORTS['held_return'] % 128 // 4, (off.PORTS['held_return'] % 4) * 8 + 7)
+        blk7 = (fx.PORTS['held_return'] % 128 // 4, (fx.PORTS['held_return'] % 4) * 8 + 7)
         self.assertNotIn(blk7, shp)                                              # blocker queue 7 is never shaped
         self.assertFalse(cfg[blk7]['max_rate_enable'])
 
     def test_all_three_roles_shape_their_own_hold_queue(self):
-        rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000', '--shape-resp-pps', '500', '--shape-op-pps', '200'))
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '3723', '--shape-resp-pps', '930', '--shape-op-pps', '232'))
         self.assertEqual(rc, 0, out[-500:])
         shp = self.writes('tf1.tm.queue.sched_shaping')
         self.assertEqual({k: shp[k]['max_rate'] for k in shp},
-                         {self.hold_pgq(6): 1000, self.hold_pgq(4): 500, self.hold_pgq(2): 200})
+                         {self.hold_pgq(6): 3723, self.hold_pgq(4): 930, self.hold_pgq(2): 232})
         self.assertEqual(len(shp), 3)                                            # exactly the three hold queues
 
     def test_the_run_records_requested_and_quantized_achieved_pps(self):
@@ -126,7 +129,7 @@ class Shaping(Base):
         import readback
         rc, out = run(bc.main, self.argv('--shape-ack-pps', '1000'))
         self.assertEqual(rc, 0, out[-500:])                               # quantized 930 is within tolerance -> passes
-        snap = readback.snapshot(Switch('response_only', 140), off.PORTS, {'ack': 1000})
+        snap = readback.snapshot(Switch('response_only', 140), fx.PORTS, {'ack': 1000})
         ack = snap['shaping']['ACK_HOLD']
         self.assertEqual(ack['requested_pps'], 1000)
         self.assertEqual(ack['achieved_pps'], 930)                        # hardware-quantized, recorded as achieved
@@ -152,13 +155,13 @@ class Shaping(Base):
                 self.assertIn('max_rate', out)
 
     def test_a_blocker_rate_shapes_qid7_not_the_hold_queue(self):
-        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '10000'))
+        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '14892'))
         self.assertEqual(rc, 0, out[-500:])
         shp = self.writes('tf1.tm.queue.sched_shaping')
-        blk7 = (off.PORTS['held_return'] % 128 // 4, (off.PORTS['held_return'] % 4) * 8 + 7)
+        blk7 = (fx.PORTS['held_return'] % 128 // 4, (fx.PORTS['held_return'] % 4) * 8 + 7)
         self.assertEqual(set(shp), {blk7})                                       # ONLY the ACK blocker queue
         row = shp[blk7]
-        self.assertEqual((row['unit'], row['max_rate']), ('PPS', 10000))
+        self.assertEqual((row['unit'], row['max_rate']), ('PPS', 14892))
         self.assertEqual(row['max_burst_size'], 64)                              # blocker burst >= live population
         cfg = self.writes('tf1.tm.queue.sched_cfg')
         self.assertTrue(cfg[blk7]['max_rate_enable'])
@@ -167,12 +170,35 @@ class Shaping(Base):
     def test_within_tolerance_blocker_rate_records_requested_and_achieved(self):
         from switch import Switch
         import readback
-        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '10000'))
+        rc, out = run(bc.main, self.argv('--shape-ack-blk-pps', '14892'))
         self.assertEqual(rc, 0, out[-500:])
-        snap = readback.snapshot(Switch('response_only', 141), off.PORTS, None, {'ack': 10000})
-        self.assertEqual(snap['shaping']['ACK_BLOCK']['requested_pps'], 10000)
-        self.assertEqual(snap['shaping']['ACK_BLOCK']['achieved_pps'], 9300)     # quantized 0.93
+        snap = readback.snapshot(Switch('response_only', 141), fx.PORTS, None, {'ack': 14892})
+        self.assertEqual(snap['shaping']['ACK_BLOCK']['requested_pps'], 14892)
+        self.assertEqual(snap['shaping']['ACK_BLOCK']['achieved_pps'], 14892)    # a ladder value reads back exactly
         self.assertTrue(snap['shaping']['ACK_BLOCK']['max_rate_enable'])
+
+    def test_the_fake_reproduces_the_measured_ladder(self):
+        measured = {100: 58, 200: 232, 300: 232, 500: 930, 750: 930, 1000: 930, 1500: 930, 2000: 3723, 5000: 3723,
+                    7500: 14892, 20000: 14892, 30000: 59570, 100000: 59570, 200000: 238281}
+        self.assertEqual({r: fake.ladder_pps(r) for r in measured}, measured)
+
+    def test_the_readback_gate_on_the_ladder(self):
+        import readback
+        gate = lambda req: readback._shaping_rate_bad('q', fake.ladder_pps(req), req)
+        for req in fake.SHAPER_LADDER_PPS:                    # requesting an exact ladder value always passes
+            with self.subTest(ladder=req):
+                self.assertEqual(gate(req), [])
+        for req in (1000, 300, 750):                          # off-ladder but within 25% of the snapped value
+            with self.subTest(accepted=req):
+                self.assertEqual(gate(req), [])
+        for req in (500, 1500, 2000, 100, 10000):             # off-ladder and >25% away: refused, as on silicon
+            with self.subTest(refused=req):
+                self.assertTrue(gate(req))
+
+    def test_an_off_ladder_request_fails_closed_end_to_end(self):
+        rc, out = run(bc.main, self.argv('--shape-ack-pps', '500'))   # snaps to 930, +86%
+        self.assertEqual(rc, 2, out[-400:])
+        self.assertIn('max_rate 930 is >25% from requested 500', out)
 
     def test_a_within_tolerance_rate_passes(self):
         fake.SHAPE_QUANTIZE = lambda req: int(req * 0.80)                # 20% low: a coarse but plausible step
@@ -313,12 +339,12 @@ class Loopback(Base):
 
     def test_a_build_that_loops_a_port_in_use_is_refused_before_any_grpc_call(self):
         out_dir = Path(self.tmp.name) / 'out'
-        off.shutil.copytree(str(off.BUILD / 'out'), str(out_dir))
+        fx.shutil.copytree(str(fx.BUILD / 'out'), str(out_dir))
         p4pp = out_dir / 'response_only.p4pp'
         text = p4pp.read_text(errors='replace')
-        ack = off.PORTS['n_ack_return']                         # move N's ACK lap onto dev 10, a cabled port
-        text = off.re.sub(r'(const PortId_t n_N_ACK_RETURN\s*=\s*9w)\d+', r'\g<1>10', text)
-        p4pp.write_text(off.re.sub(r'9w%d(\s*:\s*eth;)' % ack, r'9w10\1', text))
+        ack = fx.PORTS['n_ack_return']                         # move N's ACK lap onto dev 10, a cabled port
+        text = fx.re.sub(r'(const PortId_t n_N_ACK_RETURN\s*=\s*9w)\d+', r'\g<1>10', text)
+        p4pp.write_text(fx.re.sub(r'9w%d(\s*:\s*eth;)' % ack, r'9w10\1', text))
         argv = self.argv()
         argv[argv.index('--build-out') + 1] = str(out_dir)
         rc, out = run(bc.main, argv)
@@ -431,8 +457,8 @@ class LoopPortStats(Base):
         from switch import Switch
         import readback
         self.assertEqual(run(bc.main, self.argv())[0], 0)
-        snap = readback.snapshot(Switch('response_only', 142), off.PORTS)
-        loops = build_ports.loopback_ports(off.PORTS)               # from the build, not hard-coded
+        snap = readback.snapshot(Switch('response_only', 142), fx.PORTS)
+        loops = build_ports.loopback_ports(fx.PORTS)               # from the build, not hard-coded
         self.assertEqual({r: v['dev_port'] for r, v in snap['loop_ports'].items()}, loops)
         for role, dp in loops.items():
             got = snap['loop_ports'][role]
@@ -446,7 +472,7 @@ class LoopPortStats(Base):
         import readback
         self.assertEqual(run(bc.main, self.argv())[0], 0)
         fake.EMPTY_READ = '$PORT_STAT'                              # driver returns nothing: get() raises
-        snap = readback.snapshot(Switch('response_only', 143), off.PORTS)
+        snap = readback.snapshot(Switch('response_only', 143), fx.PORTS)
         self.assertTrue(snap['loop_ports'])
         self.assertTrue(all(v['$FramesTransmittedAll'] is None for v in snap['loop_ports'].values()))
 
@@ -469,7 +495,7 @@ class SwitchReads(Base):
         sw = switch.Switch('response_only', 1)
         sw.as_dict = lambda d: d.to_dict()                                       # the raw client: buffer reads None
         with self.assertRaisesRegex(RuntimeError, 'pre-read has no value'):
-            sw.write(tc.pktgen_ops(2, off.PORTS)[1])
+            sw.write(tc.pktgen_ops(2, fx.PORTS)[1])
         self.assertFalse([c for c in fake.LOG if c[0] == 'mod'])
 
 
