@@ -33,7 +33,7 @@ import loss  # shared packet classes and iptables rule lifecycle; deployed besid
 PARENT = 'enp59s0f0np0'
 NS_M, NS_O = 'ns_vepa_a', 'ns_vepa_b'
 IP_M, IP_O, PORT_O = '192.168.10.61', '192.168.10.62', 20000
-HOME = '/home/decps/pad58b_20261011'
+HOME = os.path.dirname(os.path.abspath(__file__))
 BIN, LIB, RUNS = HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/runs'
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
@@ -130,39 +130,67 @@ def profile(value, port_range):
 
 
 def wait_port_free(port, tries=80):
-    for _ in range(tries):
-        if ':%d ' % port not in nsx(NS_M, 'ss', '-tan').stdout:
-            return
+    start = time.monotonic()
+    for poll in range(1, tries + 1):
+        probe = nsx(NS_M, 'ss', '-tan')
+        if probe.returncode:
+            return dict(port=port, polls=poll, elapsed_s=round(time.monotonic() - start, 3),
+                        result='probe_error', error=probe.stderr.strip(), probe_rc=probe.returncode)
+        if ':%d ' % port not in probe.stdout:
+            return dict(port=port, polls=poll, elapsed_s=round(time.monotonic() - start, 3), result='free')
         time.sleep(1)
-    raise RuntimeError('master port %d still busy' % port)
+    return dict(port=port, polls=tries, elapsed_s=round(time.monotonic() - start, 3), result='busy')
 
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
-                   connect_must_fail=False):
+                   connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False):
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
-    reused). Returns the result dict, which is also written to run_dir/result.json."""
+    reused). capture_immediate enables tcpdump's immediate mode for live observers.
+    Returns the result dict and capture arguments, also written to run_dir/result.json."""
+    for key, value in (('read_pause_ms', read_pause_ms), ('close_grace_ms', close_grace_ms)):
+        if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5000:
+            raise ValueError('%s must be an integer in 0..5000' % key)
+    if run_sbo not in (False, True, 0, 1):
+        raise ValueError('run_sbo must be 0 or 1')
+    if type(capture_immediate) is not bool:
+        raise ValueError('capture_immediate must be a boolean')
     os.makedirs(run_dir)                      # refuses to reuse a label
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
 
     set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', '%d %d' % (master_port, master_port))
-    wait_port_free(master_port)               # a tuple just closed by its master sits in TIME-WAIT for 60 s
+    port_wait = wait_port_free(master_port)   # the existing TIME-WAIT barrier; record its result
 
     flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
-    env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB]
+    env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB,
+           'CASE4_READ_PAUSE_MS=%d' % read_pause_ms, 'CASE4_RUN_SBO=%d' % int(run_sbo),
+           'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms]
+    extra_seconds = (reads * (gap_ms + read_pause_ms) + close_grace_ms + 999) // 1000
     stop = os.path.join(run_dir, 'stop')
     result = {'label': label, 'master_port': master_port, 'reads': reads, 'range': rng, 'gap_ms': gap_ms,
               'start_delay_ms_max': start_delay_max, 'start_seed': start_seed,
               'start_delay_ms_applied': start_delay_ms(start_delay_max, start_seed)}
+    result['endpoint_controls'] = dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms)
+    result['capture_immediate'] = capture_immediate
+    result['capture_commands'] = {}
+    result['source_port_wait'] = port_wait
+    if port_wait['result'] != 'free':
+        result.update(ok=False, error=('master port %d still busy' % master_port if port_wait['result'] == 'busy'
+                                       else 'master port probe failed: ' + port_wait['error']))
+        json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=1)
+        return result
     caps = {}
     ost = None
     rule = None
     try:
         for d in ('out', 'in'):                # stderr kept, not DEVNULL, so a startup error is not hidden
-            caps[d] = subprocess.Popen(['tcpdump', '-i', PARENT, '-Q', d, '-s0', '-U', '-n',
-                                        '-w', os.path.join(run_dir, d + '.pcap'), flt],
-                                       stderr=subprocess.PIPE, text=True)
+            command = ['tcpdump', '-i', PARENT, '-Q', d, '-s0', '-U', '-n',
+                       '-w', os.path.join(run_dir, d + '.pcap'), flt]
+            if capture_immediate:
+                command.insert(1, '--immediate-mode')
+            result['capture_commands'][d] = command
+            caps[d] = subprocess.Popen(command, stderr=subprocess.PIPE, text=True)
         time.sleep(2.0)
         for d, c in caps.items():              # capture-ready confirmation
             if c.poll() is not None:
@@ -171,7 +199,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
                 raise RuntimeError('tcpdump -Q %s wrote no capture file' % d)
 
         ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env +
-                               [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads // 5 + reads * (gap_ms + 60) // 1000)],
+                               [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads * 4 + extra_seconds)],
                                stdout=subprocess.PIPE, text=True)
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
@@ -182,7 +210,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
             t0 = time.time()
             try:
                 mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads), IP_M, str(rng),
-                          str(gap_ms), timeout=reads * 4 + 30 + reads * gap_ms // 1000)
+                          str(gap_ms), timeout=reads * 4 + 30 + extra_seconds)
                 result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
                 open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
             except subprocess.TimeoutExpired:
@@ -224,13 +252,15 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
     return result
 
 
-def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed):
+def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed,
+                  read_pause_ms=25, run_sbo=True, close_grace_ms=0):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
 
       c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
       c2  a NEW source port the switch has no rows for: defined behaviour is that it completes natively
       c3  the SAME installed tuple again, once TIME-WAIT clears: N does not re-arm, so nothing is asserted here;
           the connect result, application result and timeouts are recorded to characterize the limitation.
+    A failed c1 or c2 stops the scenario; c3 is not comparable after a failed prerequisite.
     ok = c1 and c2 completed; c3 never changes it."""
     parent = os.path.join(RUNS, label)
     os.makedirs(parent)                                   # refuses to reuse a label
@@ -241,17 +271,28 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
     for name, port, role in plan:
         try:
             res = run_connection(os.path.join(parent, name), '%s_%s' % (label, name), port, reads, rng, gap_ms,
-                                 start_delay_max, start_seed)
+                                 start_delay_max, start_seed, read_pause_ms=read_pause_ms,
+                                 run_sbo=run_sbo, close_grace_ms=close_grace_ms)
         except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
             res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
         res['role'] = role
         out['connections'][name] = res
-        if name == 'c1' and not res.get('ok'):
+        if name in ('c1', 'c2') and not res.get('ok'):
+            if name == 'c2':
+                out['connections']['c3'] = {'role': 'installed_again', 'master_port': master_port,
+                                             'ran': False, 'ok': False, 'comparable': False,
+                                             'error': 'not run: c2 native prerequisite failed'}
             break
     c = out['connections']
     out['ok'] = bool(c.get('c1', {}).get('ok') and c.get('c2', {}).get('ok'))
     json.dump(out, open(os.path.join(parent, 'scenario.json'), 'w'), indent=1)
     return out
+
+
+def bounded_ms(value):
+    if not re.fullmatch(r'[0-9]+', value) or not 0 <= int(value) <= 5000:
+        raise argparse.ArgumentTypeError('expected a decimal integer in 0..5000')
+    return int(value)
 
 
 def main():
@@ -262,6 +303,9 @@ def main():
     ap.add_argument('--reads', type=int, default=10)
     ap.add_argument('--range', type=int, choices=(8, 16), default=16)
     ap.add_argument('--gap-ms', type=int, default=0, help='spacing between READ requests')
+    ap.add_argument('--read-pause-ms', type=bounded_ms, default=25, help='endpoint completion pause after each READ')
+    ap.add_argument('--run-sbo', type=int, choices=(0, 1), default=1, help='perform one real SELECT/OPERATE after READs')
+    ap.add_argument('--close-grace-ms', type=bounded_ms, default=0, help='endpoint pause before normal close')
     ap.add_argument('--start-delay-ms', type=int, default=0,
                     help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
@@ -303,12 +347,13 @@ def main():
             sys.exit(str(e))
     if a.scenario == 'reconnect':
         out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
-                            a.start_delay_ms, a.start_seed)
+                            a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms)
         print(json.dumps(out))
         sys.exit(0 if out['ok'] else 1)
     try:
         result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
-                                a.start_delay_ms, a.start_seed, drop, a.connect_must_fail)
+                                a.start_delay_ms, a.start_seed, drop, a.connect_must_fail,
+                                a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms)
     except RuntimeError as e:
         sys.exit(str(e))
     print(json.dumps(result))

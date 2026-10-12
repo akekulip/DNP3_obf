@@ -1,0 +1,479 @@
+{
+ "run_id": "rearm_stale_rate_14892_01",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "stale_split_diag_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+     "master_port": 59030,
+     "reads": 1,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": true,
+     "preset": "shape_14892",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "vision": {
+      "label": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+      "master_port": 59030,
+      "reads": 1,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12345,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.058,
+      "tcpdump": {
+       "out": {
+        "captured": 17,
+        "received": 34,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 17,
+        "received": 34,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 17,
+      "frames_in": 17,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 14892,
+       "achieved_pps": 14892,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 51,
+      "read_precision": {
+       "gap_us": 800.0,
+       "read_rows": 1,
+       "eligible": 1,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 1,
+        "min": 5.0,
+        "median": 5,
+        "iqr": 0.0,
+        "p95": 5.0,
+        "p99": 5.0,
+        "max": 5.0,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+       },
+       "signed_error_us": {
+        "n": 1,
+        "min": -5.0,
+        "median": -5,
+        "iqr": 0.0,
+        "p95": -5.0,
+        "p99": -5.0,
+        "max": -5.0,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+       },
+       "tails": [
+        {
+         "t_req": 1791813566640526,
+         "clrt_us": 795,
+         "error_us": -5.0
+        }
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "stale_sources": {
+       "19": 0,
+       "20": 0,
+       "21": 0,
+       "22": 0,
+       "23": 0,
+       "24": 0
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 37,
+       "OUT_ACK_COMMIT": 1,
+       "OUT_RESP_RELEASE": 1,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 53,
+       "index_15": 14
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 1,
+        "pkts": 4
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 14892,
+     "achieved_pps": 14892,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59030,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rearm_stale_rate_14892_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rearm_stale_rate_14892_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_run_sha256": "79f06cc61ad57e879efe4e37f4421bc2c3770294dddb0bb2eb31c0337e8d5ea1",
+  "loss_sha256": "4f4d205fbc5c037a31168b38dab5178bf95e16ef6cb5fcf12eb4d7ebfaf159cd"
+ },
+ "pre_run_program": "case4_response_path",
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 800000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_14892",
+   "hold_pps": {
+    "ack": 14892,
+    "resp": 14892,
+    "op": 14892
+   },
+   "block_pps": {
+    "ack": 14892,
+    "resp": 14892,
+    "op": 14892
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 3,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 1,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59030,
+    "last": 59030
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Each connection gets its own cold bring-up on the next port in this range (N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s). Pick a range not used in the last minute. range 8 is the 20-byte 8-bit-range READ profile.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "stale_source_characterization",
+   "read_precision": false
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "stale_split_diag_01": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "058d05b64f995030076885622058f6858e7a1e38be6a5c4bc6b1fa4f5a928d57",
+ "config_file_sha256": "6d452a9fbbdd191ce6f0fc5e4f5d46f6ddb60afa681b60cd168f8768c4fe011d",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "027f0698755ddeaf3229fe1779f929a0274f22bd3a46b88c50dea13958ff392e",
+   "checks.py": "9bd0d067fe07880a0c1c066426d6b3f964dd566f2cd45f3efc03e08d496ff6f8",
+   "vision_run.py": "79f06cc61ad57e879efe4e37f4421bc2c3770294dddb0bb2eb31c0337e8d5ea1",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453"
+  },
+  "build_sources": {
+   "stale_split_diag_01": {
+    "source_sha256": "23ee563bd3e50256d13079bb8d97039e4a2e2c863c1ea827ad083ce077042575",
+    "source_files": {
+     "response_only.p4": "23ee563bd3e50256d13079bb8d97039e4a2e2c863c1ea827ad083ce077042575"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "stale_split_diag_01": {
+   "bfrt.json": "b80faaf825d3dda34d737591ea6b714d5106218a1f418ece646502be0f43ac67",
+   "p0/tofino.bin": "148a9e82010377b27ad63c4cd9747fc0289db0a519bf0e32b03294f616ab6dc6",
+   "p1/tofino.bin": "89c7654501b31fa692e8af93ef33ed8c96e8f8e7ba737f86232e157d49ce19f0",
+   "p1/response_only.bfa": "5cfd30bc6290bb6d06d04fe2690fa5868add06378b292e6b0d5749aee4390ec5"
+  }
+ },
+ "paired_block": null,
+ "time": 1791813638.7171378
+}

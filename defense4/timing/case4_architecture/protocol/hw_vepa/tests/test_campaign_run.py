@@ -147,6 +147,61 @@ class Base(unittest.TestCase):
 
 
 class Sequence(Base):
+    def test_alternate_endpoint_directory_drives_identity_traffic_and_collection(self):
+        self.cfg['hosts']['vision_run_dir'] = '/home/decps/pad58b_rearm_controls_20261012'
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r).execute(), 0)
+        commands = '\n'.join(cmd for _, cmd in r.calls)
+        expected = self.cfg['hosts']['vision_run_dir']
+        self.assertIn('sha256sum %s/case4_socket_gate_pad58b' % expected, commands)
+        self.assertIn('cd %s/lib ' % expected, commands)
+        self.assertIn('%s/vision_run.py run' % expected, commands)
+        self.assertIn('%s/runs/' % expected, commands)
+        self.assertNotIn('/home/decps/pad58b_20261011', commands)
+
+    def test_default_controls_are_explicit_and_retained_with_the_frozen_binary(self):
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r).execute(), 0)
+        command = r.calls[r.cmds('vision_run.py run')[0]][1]
+        for arg in ('--read-pause-ms 25', '--run-sbo 1', '--close-grace-ms 0'):
+            self.assertIn(arg, command)
+        record = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        self.assertEqual({k: record['effective']['traffic'][k] for k in ('read_pause_ms', 'run_sbo', 'close_grace_ms')},
+                         {'read_pause_ms': 25, 'run_sbo': True, 'close_grace_ms': 0})
+
+    def test_control_fixture_requires_all_three_effective_fields(self):
+        self.cfg['traffic']['read_pause_ms'] = 0
+        campaign = self.campaign(FakeRunner())
+        failures = campaign.endpoint_control_checks({'read_pause_ms': 0})
+        self.assertTrue(any('run_sbo' in f for f in failures))
+        self.assertTrue(any('close_grace_ms' in f for f in failures))
+
+    def test_endpoint_controls_are_explicit_and_retained(self):
+        self.cfg['traffic'].update(read_pause_ms=0, run_sbo=False, close_grace_ms=500)
+        r = FakeRunner()
+        # The command must be inspectable even before its new binary is qualified.
+        c = self.campaign(r)
+        c.execute()
+        command = r.calls[r.cmds('vision_run.py run')[0]][1]
+        for arg in ('--read-pause-ms 0', '--run-sbo 0', '--close-grace-ms 500'):
+            self.assertIn(arg, command)
+
+    def test_diagnostic_characterization_retains_failures_and_continues(self):
+        self.cfg['evaluation'] = {'purpose': 'stale_source_characterization', 'read_precision': False}
+        self.cfg['trials'] = {'reads_per_trial': 1, 'trials_per_arm': 3}
+        class Stale(FakeRunner):
+            def evidence(self, text):
+                ev = super().evidence(text)
+                ev['after']['outcomes']['OUT_TOKEN_STALE'] += 5
+                return ev
+        r = Stale()
+        self.assertEqual(self.campaign(r, arms=('combined',)).execute(), 1)
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        trials = rec['arms'][0]['trials']
+        self.assertEqual(len(trials), 3)
+        self.assertTrue(all(not t['ok'] and t['failures'] for t in trials))
+        self.assertEqual(len(rec['soft_failures']), 3)
+
     def test_full_sequence_is_in_the_reviewed_order(self):
         r = FakeRunner()
         self.assertEqual(self.campaign(r).execute(), 0)

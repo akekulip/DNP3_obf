@@ -32,13 +32,28 @@ class LossFake(FakeRunner):
         self.resp_len, self.retransmit, self.rule, self.c3 = resp_len, retransmit, rule, c3
         self.drops, self.scenarios, self.ports = {}, {}, {}
 
-    def write_conv(self, d, reads, resp_len, retx_resp=None, issued=10, dur_s=3):
+    def write_conv(self, d, reads, resp_len, retx_resp=None, issued=10, dur_s=3, sbo=False):
         d.mkdir(parents=True, exist_ok=True)
         out, inn = conversation(reads=reads, retx_resp=retx_resp, resp_len=resp_len)
+        if sbo:
+            master, station, mport, oport = '192.168.10.61', '192.168.10.62', 54500, 20000
+            seq, ack = 1000 + 20 * reads, 5000 + resp_len * reads
+            for offset, function in enumerate((3, 4)):
+                t = (reads + offset + 1) * 1000000
+                request = tk.read_request(reads + offset, func=function)
+                response = tk.read_response(reads + offset, body_len=37 if resp_len == 58 else 18)
+                frames = [(t, tk.frame(master, station, mport, oport, seq, ack, tk.PSH | tk.ACK, request)),
+                          (t + 300, tk.frame(station, master, oport, mport, ack, seq + len(request), tk.ACK)),
+                          (t + 5000, tk.frame(station, master, oport, mport, ack, seq + len(request), tk.PSH | tk.ACK, response))]
+                out.extend(frames)
+                inn.extend((time + 50, frame) for time, frame in frames)
+                seq, ack = seq + len(request), ack + len(response)
         tk.write_pcap(str(d / 'out.pcap'), out)
         tk.write_pcap(str(d / 'in.pcap'), inn)
         (d / 'master.json').write_text(json.dumps({'success': True, 'reads_requested': reads, 'reads_completed': reads,
-                                                   'all_reads_match_seed': True, 'issued_ns': issued,
+                                                   'all_reads_match_seed': True,
+                                                   'reads': [{'completed': True, 'points_received': 23, 'matches_seed': True} for _ in range(reads)],
+                                                   'issued_ns': issued,
                                                    'completed_ns': issued + dur_s * 10 ** 9}))
         (d / 'outstation.json').write_text(json.dumps({'select_real': 1, 'select_decoy': 0, 'operate_real': 1,
                                                        'operate_decoy': 0}))
@@ -73,9 +88,9 @@ class LossFake(FakeRunner):
                 self.calls.append((where, cmd))
                 fx, arm = parse_label(label)
                 padded = 58 if arm['padding'] else 49
-                self.write_conv(dest / 'c1', self.reads[label], padded)
-                self.write_conv(dest / 'c2', self.reads[label], 49)
-                self.write_conv(dest / 'c3', self.reads[label], 49 if self.c3 == 'native_ok' else padded)
+                self.write_conv(dest / 'c1', self.reads[label], padded, sbo=True)
+                self.write_conv(dest / 'c2', self.reads[label], 49, sbo=True)
+                self.write_conv(dest / 'c3', self.reads[label], 49 if self.c3 == 'native_ok' else padded, sbo=True)
                 return cp.Result(0, '', '')
         if where == 'local' and ('wire_check.py' in cmd or 'clrt_check.py' in cmd):
             tool = 'wire' if 'wire_check.py' in cmd else 'clrt'
@@ -220,7 +235,7 @@ class Reconnect(Base):
         self.assertEqual(sorted(s['connections']), ['c1', 'c2', 'c3'])
         self.assertEqual(s['connections']['c1']['resp_lens'], [58])
         self.assertEqual(s['connections']['c1']['padded'], True)
-        self.assertEqual(s['connections']['c2']['resp_lens'], [49])
+        self.assertEqual(s['connections']['c2']['resp_lens'], [37, 49])
         self.assertEqual(s['connections']['c2']['padded'], False)
         self.assertEqual(s['connections']['c3']['padded'], False)
         for c in ('c1', 'c2', 'c3'):

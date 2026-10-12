@@ -84,7 +84,7 @@ class Bindings(unittest.TestCase):
 
     def test_missing_manifest_is_refused(self):
         cfg = cfg_for(self.tmp, 'match')
-        next(iter(cfg['builds'].values()))['manifest'] = str(Path(self.tmp) / 'nope.json')
+        cfg['builds'][build_name(cfg)]['manifest'] = str(Path(self.tmp) / 'nope.json')
         self.assertTrue(any('manifest' in e for e in cp.check_bindings(cfg)))
 
     def test_unpinned_endpoint_identity_is_refused(self):
@@ -187,12 +187,30 @@ class ShippedBuilds(unittest.TestCase):
         h = self.cfg['builds']['close_reset_fix_01']['hashes']
         self.assertEqual(h['bfrt.json'], '7c7e7f3bbe1220b6abcc7cbc1fdc9cc18d7854428447529f79b6c4ed7808d2e3')
 
-    @pytest.mark.build_tree
-    def test_validate_checks_the_unused_pre_fix_build_too(self):
-        cfg = copy.deepcopy(self.cfg)
-        cfg['builds']['sbo_admission_01']['hashes']['bfrt.json'] = H64
-        self.assertTrue(any('sbo_admission_01' in e for e in cp.check_bindings(cfg)))
-        self.assertEqual(cp.check_bindings(self.cfg), [])
+    def test_unused_historical_build_is_checked_only_by_explicit_audit(self):
+        with tempfile.TemporaryDirectory() as td:
+            cfg = cfg_for(td, 'match')
+            cfg['builds']['sbo_admission_01']['manifest'] = str(Path(td) / 'missing.json')
+            self.assertEqual(cp.check_bindings(cfg), [])
+            self.assertTrue(any('sbo_admission_01' in e for e in cp.check_bindings(cfg, all_builds=True)))
+
+    def test_final_arm_selection_controls_preflight_and_binding(self):
+        with tempfile.TemporaryDirectory() as td:
+            cfg = cfg_for(td, 'match')
+            cfg['arms'][0]['build'] = 'sbo_admission_01'
+            cfg['builds']['sbo_admission_01']['manifest'] = str(Path(td) / 'missing.json')
+            c = cp.Campaign(cfg, cp.DryRunner(), 'fresh', arms=['combined'])
+            self.assertEqual(c.preflight(), [])
+            self.assertEqual(set(cp.bind_builds(cfg, c.arms)), {'mirror_fix_01'})
+
+    def test_scenario_and_paired_overrides_select_their_final_build(self):
+        with tempfile.TemporaryDirectory() as td:
+            cfg = cfg_for(td, 'match')
+            cfg['arms'][0]['build'] = 'sbo_admission_01'
+            cfg['builds']['sbo_admission_01']['manifest'] = str(Path(td) / 'missing.json')
+            for kw in ({'scenario': 'reconnect'}, {'paired': 'shape_14892_vs_3723'}):
+                c = cp.Campaign(cfg, cp.DryRunner(), 'fresh', arms=['off'], **kw)
+                self.assertEqual(c.preflight(), [])
 
 
 class Profile(unittest.TestCase):

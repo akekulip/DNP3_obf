@@ -28,6 +28,36 @@ T_OUTCOMES = ('OUT_UNMATCHED', 'OUT_HELD_REWAIT', 'OUT_ACK_COMMIT', 'OUT_RESP_RE
 # (so the composite OPERATE assertion stays green); ACK and RESP re-wait are at 14/15.
 DIAG_OUTCOMES = {14: 'DIAG_ACK_REWAIT', 15: 'DIAG_RESP_REWAIT',
                  16: 'DIAG_ACK_BLOCKER_LAP', 17: 'DIAG_RESP_BLOCKER_LAP', 18: 'DIAG_OP_BLOCKER_LAP'}
+DIAG_STALE = {19: 'OP_BLOCKER_DEADLINE_PAST', 20: 'OP_BLOCKER_BEFORE_DEADLINE',
+              21: 'ACK_BLOCKER', 22: 'RESP_BLOCKER', 23: 'OP_TOKEN', 24: 'READ_TOKEN'}
+
+
+def read_diagnostics(read_outcome, outcomes, expected=False):
+    """Read every diagnostic source. None remains visible if a diagnostic read fails."""
+    diag = dict(present=bool(expected), rewait={}, blocker_laps={}, stale={}, read_errors=[])
+    diag['rewait']['OPERATE'] = outcomes.get('OUT_HELD_REWAIT')
+    for idx, label in DIAG_OUTCOMES.items():
+        bucket = 'rewait' if 'REWAIT' in label else 'blocker_laps'
+        role = label.replace('DIAG_', '').replace('_REWAIT', '').replace('_BLOCKER_LAP', '')
+        value = read_outcome(idx)
+        diag[bucket][role] = value
+        if idx == 16 and value is not None:
+            diag['present'] = True
+        if value is None:
+            diag['read_errors'].append(idx)
+    for idx in DIAG_STALE:
+        diag['stale'][str(idx)] = read_outcome(idx)
+        if diag['stale'][str(idx)] is None:
+            diag['read_errors'].append(idx)
+    diag['stale_sources'] = {str(idx): name for idx, name in DIAG_STALE.items()}
+    values = list(diag['stale'].values())
+    diag['stale_total'] = sum(values) if all(isinstance(v, int) for v in values) else None
+    return diag
+
+
+def diagnostic_build(build_out):
+    tables = json.loads((Path(build_out) / 'bfrt.json').read_text())['tables']
+    return any(table['name'] == 'p1.t_Ingress.outcomes' and table['size'] >= 25 for table in tables)
 
 
 def main(argv=None):
@@ -64,17 +94,7 @@ def main(argv=None):
         for i in range(16):
             name = T_OUTCOMES[i] if i < len(T_OUTCOMES) else 'index_%d' % i
             snap['outcomes'][name] = read_outcome(i)
-        # Role-split residency view. ACK re-wait is outcome index 1; on the diag build that is ACK-only, on the
-        # production build it is the combined OUT_HELD_REWAIT (both are reported under the same key so a reader
-        # of either build sees it). RESP/OP re-wait and the per-role blocker laps exist only on the diag build.
-        diag_present = read_outcome(16) is not None       # a diag-only index: present iff the register is 32 wide
-        snap['diag']['present'] = diag_present
-        snap['diag']['rewait']['OPERATE'] = snap['outcomes']['OUT_HELD_REWAIT']   # index 1: OPERATE on the diag build
-        for idx, label in DIAG_OUTCOMES.items():
-            value = read_outcome(idx)
-            bucket = 'rewait' if 'REWAIT' in label else 'blocker_laps'
-            role = label.replace('DIAG_', '').replace('_REWAIT', '').replace('_BLOCKER_LAP', '')
-            snap['diag'][bucket][role] = value            # None on the production build
+        snap['diag'] = read_diagnostics(read_outcome, snap['outcomes'], diagnostic_build(a.build_out))
         requested = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
         requested_block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
         snap.update(readback.snapshot(sw, ports, requested, requested_block))
@@ -82,6 +102,9 @@ def main(argv=None):
             snap['ports'][p] = sw.get('$PORT_STAT', tc.ALL_PIPES, [('$DEV_PORT', p, None)])
         Path(a.output).write_text(json.dumps(snap, indent=1, default=str) + '\n')
         print('wrote', a.output)
+        if snap['diag']['present'] and snap['diag']['read_errors']:
+            print('FAILED: diagnostic indices unreadable:', snap['diag']['read_errors'])
+            return 1
     finally:
         sw.close()
     return 0

@@ -1,0 +1,70 @@
+{
+ "sd_convention": "sd_population divides by n (statistics.pstdev); sd_sample divides by n-1 (statistics.stdev). Both are in the units of the statistic (microseconds); a single value reports 0.0 for both.",
+ "note": "intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; timestamps are integer microseconds at the capture resolution",
+ "summary": {
+  "READ": {
+   "logical_requests": 1,
+   "attempts": 1,
+   "retransmitted": 0,
+   "complete": 1,
+   "incomplete": 0,
+   "piggyback": 0,
+   "req_crc_bad": 0,
+   "resp_crc_bad": 0,
+   "resp_len": [
+    58
+   ],
+   "eligible_for_latency": 1,
+   "clrt_us": {
+    "n": 1,
+    "min": 858,
+    "median": 858,
+    "iqr": 0,
+    "p95": 858,
+    "p99": 858,
+    "max": 858,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "rt_us": {
+    "n": 1,
+    "min": 4593,
+    "median": 4593,
+    "iqr": 0,
+    "p95": 4593,
+    "p99": 4593,
+    "max": 4593,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "ack_lat_us": {
+    "n": 1,
+    "min": 3735,
+    "median": 3735,
+    "iqr": 0,
+    "p95": 3735,
+    "p99": 3735,
+    "max": 3735,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   }
+  }
+ },
+ "exchanges": [
+  {
+   "kind": "READ",
+   "app_seq": 0,
+   "t_req": 1791814361767458,
+   "attempts": 1,
+   "retransmitted": false,
+   "req_crc_ok": true,
+   "complete": true,
+   "piggyback": false,
+   "resp_crc_ok": true,
+   "resp_len": 58,
+   "ack_lat_us": 3735,
+   "clrt_us": 858,
+   "rt_us": 4593
+  }
+ ]
+}

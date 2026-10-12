@@ -1,0 +1,61 @@
+{
+  "claim": "unchanged protected same-tuple reconnect is refused",
+  "connections": {
+    "c1": {
+      "verified": true,
+      "reads": 20,
+      "real_select": 1,
+      "real_operate": 1,
+      "response_lengths": {
+        "READ": 58,
+        "SELECT": 58,
+        "OPERATE": 58
+      },
+      "read_absolute_error_us": {
+        "n": 20,
+        "min": 1,
+        "median": 12,
+        "iqr": 10,
+        "p95": 40,
+        "p99": 46,
+        "max": 46,
+        "sd_population": 11.7,
+        "sd_sample": 12.0
+      }
+    },
+    "c2": {
+      "verified": true,
+      "reads": 20,
+      "real_select": 1,
+      "real_operate": 1,
+      "response_lengths": {
+        "READ": 49,
+        "SELECT": 37,
+        "OPERATE": 37
+      },
+      "read_absolute_error_us": {
+        "n": 20,
+        "min": 4473,
+        "median": 4528,
+        "iqr": 37,
+        "p95": 4639,
+        "p99": 4738,
+        "max": 4738,
+        "sd_population": 56.8,
+        "sd_sample": 58.3
+      }
+    },
+    "c3": {
+      "verified_refusal": true,
+      "syn_sent": 5,
+      "returned": 0,
+      "master_rc": 2,
+      "master_wall_s": 5.015,
+      "master_json": "empty: endpoint never connected"
+    }
+  },
+  "restoration_verified": true,
+  "campaign_verdict_authoritative": false,
+  "original_gate_defect": "native SBO lengths were collapsed with READ lengths",
+  "verified": true
+}

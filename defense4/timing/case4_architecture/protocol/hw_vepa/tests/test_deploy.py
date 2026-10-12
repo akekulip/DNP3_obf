@@ -13,7 +13,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import campaign as cp  # noqa: E402
 from test_campaign_run import FakeRunner  # noqa: E402
-from test_campaign_bindings import H64  # noqa: E402
+from test_campaign_bindings import H64, cfg_for  # noqa: E402
 
 SCRATCH = '/' + 'tmp'                      # spelled so this file does not trip its own scan
 CONFIG = HERE.parent / 'campaign.json'
@@ -46,7 +46,8 @@ class NoScratchPaths(unittest.TestCase):
         allowed = (cfg['hosts']['switch_remote_dir'], cfg['builds'][cfg['arms'][0]['build']]['sde'],
                    cfg['production']['launch_script'], cfg['hosts']['switch_remote_dir'] + '/')
         for where, cmd in dry.calls:
-            self.assertNotIn(SCRATCH, cmd)
+            if where != 'local':             # the checkout itself may live in a cleaned temporary directory
+                self.assertNotIn(SCRATCH, cmd)
             if where != 'switch':
                 continue
             for tok in re.findall(r'(?<![\w=-])/[\w./-]+\.(?:py|sh)\b', cmd):
@@ -125,7 +126,7 @@ class DeployStep(unittest.TestCase):
     def setUp(self):
         td = tempfile.TemporaryDirectory()
         self.addCleanup(td.cleanup)
-        self.cfg = cp.load_config(str(CONFIG))
+        self.cfg = cfg_for(Path(td.name) / 'build', 'match')
         self.cfg['evidence_dir'] = str(Path(td.name) / 'ev')
         self.cfg['endpoint'].update(binary_sha256=H64, lib_sha256=H64)      # what the fake Vision reports
 

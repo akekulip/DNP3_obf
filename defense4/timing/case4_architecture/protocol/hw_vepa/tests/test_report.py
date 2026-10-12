@@ -32,7 +32,8 @@ def timing(clrt, ack, rt, retx=0, resp_lens=(58,)):
     kind = {'logical_requests': n, 'attempts': n + retx, 'retransmitted': retx, 'complete': n, 'incomplete': 0,
             'piggyback': 0, 'req_crc_bad': 0, 'resp_crc_bad': 0, 'resp_len': sorted(set(resp_lens)),
             'eligible_for_latency': n, 'clrt_us': cc.stats(clrt), 'rt_us': cc.stats(rt), 'ack_lat_us': cc.stats(ack)}
-    ex = [{'kind': 'READ', 'resp_len': l, 'complete': True} for l in resp_lens for _ in range(n // len(resp_lens))]
+    ex = [{'kind': 'READ', 'resp_len': resp_lens[i % len(resp_lens)], 'complete': True,
+           'attempts': 1, 'piggyback': False, 'clrt_us': value} for i, value in enumerate(clrt)]
     return {'summary': {'READ': kind}, 'exchanges': ex}
 
 
@@ -52,6 +53,8 @@ def make_trial(root, fixture, arm, label, preset, frames, octets, clrt, ack=(550
                    'OPERATE': {'trigger_counter': 1, 'pkt_counter': 4}}
     if blk is not None:
         a['diag']['blocker_laps'] = {'ACK': blk[0], 'RESP': blk[1], 'OP': blk[2]}
+        b['diag']['stale'] = {str(i): 0 for i in range(19, 25)}
+        a['diag']['stale'] = dict(b['diag']['stale'], **{'19': stale})
     (d / 'snapshots' / ('%s_before.json' % label)).write_text(json.dumps(b))
     (d / 'snapshots' / ('%s_after.json' % label)).write_text(json.dumps(a))
     t = timing(list(clrt), list(ack), list(rt), retx, resp_lens)
@@ -75,6 +78,14 @@ def make_run(root, trials_by_arm, pairs=None, gap_ns=800000):
 
 
 class Metrics(unittest.TestCase):
+    def test_absolute_precision_stats_and_eligible_denominator_are_reported(self):
+        self.assertEqual(self.m['read_precision']['eligible'], 6)
+        self.assertEqual(self.m['read_precision']['absolute_error_us']['p99'], 100)
+        self.assertFalse(self.m['read_precision']['pass'])
+        text = report.render(self.root)
+        self.assertIn('p99 absolute error', text)
+        self.assertIn('eligible READs', text)
+
     def setUp(self):
         td = tempfile.TemporaryDirectory()
         self.addCleanup(td.cleanup)

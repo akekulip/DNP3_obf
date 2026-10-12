@@ -31,6 +31,44 @@ verified before launch. Reuse does not resume a connection or output directory.
 The independent pcap check runs in its own exclusive subdirectory before the
 outer completion inventory is sealed.
 
+`SocketGatePad58B.cpp` also supports bounded environment controls for software
+READ/SBO timing experiments. Existing positional arguments are unchanged.
+`CASE4_PAD58B_SOCKET_GATE=1` remains required. The controls are:
+
+| Variable | Default | Accepted values | Behavior |
+| --- | --- | --- | --- |
+| `CASE4_READ_PAUSE_MS` | `25` | decimal integer, 0–5000 | Pause after each completed READ, before the positional `gap-ms` pause. |
+| `CASE4_RUN_SBO` | `1` | decimal integer, 0 or 1 | Include exactly one SELECT/OPERATE pair; 0 runs READs only. |
+| `CASE4_CLOSE_GRACE_MS` | `0` | decimal integer, 0–5000 | Keep the connection open after the workload before shutdown. |
+
+Empty values, signs, whitespace, nondecimal text, and out-of-range values fail
+with exit code 64 and a diagnostic naming the variable before opening a socket.
+The master JSON retains `read_pause_ms`, `run_sbo`, and `close_grace_ms`.
+`application_calls` counts SBO tasks and is zero for READ-only runs;
+`success` requires all requested READs and any requested SBO to succeed.
+READ admission waits for `EndFragment`, including when the pause is zero.
+The 25 ms default therefore remains an explicit pacing choice, not a substitute
+for waiting for completion. Use captures to establish actual request spacing.
+
+Build this endpoint with the existing pinned software gate, using new paths:
+
+```sh
+python3 -B defense4/timing/framework/size/endpoint_gate/run_sockets_pad58b.py \
+  --output /tmp/new-controls-evidence --work /tmp/new-controls-build \
+  --dependency-cache /tmp/dnp3-case4-endpoint-gate/build/_deps --jobs 2
+CASE4_ENDPOINT_TEST_BINARY=/tmp/new-controls-build/build/case4_socket_gate_pad58b \
+  python3 -m unittest discover \
+  -s defense4/timing/framework/size/endpoint_gate/tests -v
+```
+
+The evidence manifest records the binary and rebuilt production library hashes.
+Deploy to a separate endpoint directory and pin both identities before hardware
+experiments. Preserve the frozen endpoint directory. For a READ-only experiment
+with no extra pause and a 250 ms close grace, set
+`CASE4_READ_PAUSE_MS=0 CASE4_RUN_SBO=0 CASE4_CLOSE_GRACE_MS=250` in the master
+process environment. These software gate tests use real loopback OpenDNP3 TCP
+sockets and the response-padding proxy; they do not prove Tofino behavior.
+
 `context_evidence_03` passed 4 production-context cases / 46 assertions.
 `socket_evidence_03` passed the production TCP socket pair and its independent
 capture check: native ACK boundaries 34/35 and 69/70, one-byte kernel

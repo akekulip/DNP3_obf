@@ -1,0 +1,216 @@
+{
+  "_notes": [
+    "Single config for the response-only four-arm hardware campaign; campaign.py is the entry point.",
+    "Every relative path below is relative to defense4/timing/case4_architecture.",
+    "ARMS. The four arms share ONE build, one path and one endpoint fixture (same ports, same READ range, same",
+    "fixture delay). Two independent feature bits select them: T (timing) is a LIVE toggle on an installed",
+    "composite (hw/set_enabled.py, no reinstall); padding is a POLICY ROW, not a build property: the E table",
+    "Egress.conn carries an `enable` field written at install time from response_path_cp's pad_enable. The two",
+    "padding-off arms are therefore the SAME program with the padding policy row off, not a different binary.",
+    "BLOCKED (TODO, hw/ owner): hw/bringup_composite.py has no flag that writes pad_enable=0 (hw/rows.py calls",
+    "cp.e_conn_rows with its default pad_enable=True). Until the installer grows one (campaign.py looks for",
+    "`padding_installer_flag` below in the installer source), `run` REFUSES any arm with padding 0 and says so;",
+    "`run --arms size_only,combined` runs the two padding-on arms today.",
+    "BRING-UPS. N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s, so a second",
+    "connection on an installed tuple fails. trial_mode per_trial_cold (default): EVERY trial is its own cold",
+    "bring-up (swap, restore ports, install, T, snapshot, run, snapshot, teardown) on a NEW master port taken from",
+    "traffic.master_port_range, incrementing per trial; arms that share a build still get a fresh bring-up per",
+    "trial. trial_mode one_connection: one bring-up and one connection per arm with reads_per_trial x",
+    "trials_per_arm READs (the persistent-connection mode). Cold swap, not a live re-install: the installer",
+    "refuses an existing manifest and a re-install on a dirtied daemon is unrehearsed.",
+    "BINDING. Each build's `hashes` are checked three ways before anything runs: config == the build's compile",
+    "manifest.json artifact_sha256 == the files under out_dir. A null slot is filled from the manifest; a",
+    "placeholder or malformed value is an error. endpoint.binary_sha256 / lib_sha256 cannot be derived offline;",
+    "they are pinned below and `run` re-checks them on Vision (command in `endpoint._pin_with`).",
+    "SHAPING. All hold-queue and blocker-queue rates default to 0 (unshaped, the production baseline). Set the",
+    "chosen rates here; the requested values are passed to the installer and to snapshot_counters, and the",
+    "ACHIEVED (hardware-quantized) rates read back in each snapshot are copied into campaign_run.json.",
+    "K. The installer's --k is 2*k generator tokens per trigger; production uses --k 2 (installer default and",
+    "hw/t_config.py pktgen_ops, count = 2*k); it is NOT 32.",
+    "Timing: readiness/cap sit above the fixture delay (5 ms) so the delayed child response arrives before the",
+    "readiness deadline and the normal commit/release path is observable (audit defect D)."
+  ],
+  "program": "response_only",
+  "production": {
+    "program": "case4_response_path",
+    "launch_script": "/home/decps/Philip_repo/logs/bringup_20261005/launch_case4_response_path.sh",
+    "relay_slot": true,
+    "ping": {"src": "192.168.10.1", "dst": "192.168.10.7", "count": 2},
+    "_note": "The state observed before every run and restored many times on 2026-10-11. `run` reads the running program from ps before touching anything and refuses unless it equals `program`; the $PORT snapshot used for every port replay is TAKEN at the start of the run from that program (live_snapshot.py), never a stale file. Restore = cold swap to launch_script, restore_ports.py, switch_slot.py relay (if relay_slot), Vision restore, then the ping must succeed."
+  },
+  "evidence_dir": "integration/evidence/campaign_hw_vepa",
+  "hosts": {
+    "switch": "decps@10.10.54.81",
+    "vision": "decps@10.10.54.19",
+    "switch_remote_dir": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite",
+    "vision_run_dir": "/home/decps/pad58b_20261011"
+  },
+  "endpoint": {
+    "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+    "binary_sha256": "f66ad08cce45407483c505edf4547c3d222d9ac3b959f3ba9540281f3c793097",
+    "lib_sha256": "6c7a6892d5b9fddb0c09a5ae1d63067f17034b4edf93f8f295f4c4bb32a6d23d",
+    "_pinned": "binary = the 8-bit-range gate master built from source commit 3d6869c04; lib/ holds only libopendnp3.so (sha 79e1f695...)",
+    "_pin_with": "ssh decps@10.10.54.19 'cd /home/decps/pad58b_20261011 && sha256sum case4_socket_gate_pad58b && (cd lib && find . -type f | sort | xargs sha256sum | sha256sum)'",
+    "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/"
+  },
+  "endpoints": {
+    "master_ip": "192.168.10.61",
+    "outstation_ip": "192.168.10.62",
+    "outstation_port": 20000,
+    "read_dst": 2560,
+    "read_src": 256,
+    "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "ports_map": {
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "master_dev": 9,
+    "relay_dev": 9,
+    "stat_ports": "9,64"
+  },
+  "builds": {
+    "sbo_admission_01": {
+      "out_dir": "integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/out",
+      "manifest": "integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/manifest.json",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "allowed_loop_octet_gap": {"t_in": 80},
+      "_allowed_loop_octet_gap_note": "Per loop role (n_ack_return, t_in, hb_return, held_return): octets received but not in good frames that this build is allowed per trial. Default 0. The build before the RESET fix shows 80 on t_in; set {\"t_in\": 80} for that build only.",
+      "hashes": {
+        "bfrt.json": "ee9986058d520fcb11e6c869ba6962f33b9dde89d1cfceb67f79a73bfd40e118",
+        "p0/tofino.bin": "741fee7ee23c720d3b7490bc29767db4d1cb8354290060d8d10e60b879e068a3",
+        "p1/tofino.bin": "084e496313f981190e099d86e00022803d26843a4336a75a7ab61d9e0a59de1f",
+        "p1/response_only.bfa": "94350238b895cbcb0b377e3a6bddf95a490af2386c132526fcc5ac703cb1040c"
+      }
+    },
+    "close_reset_fix_01": {
+      "out_dir": "integration/evidence/route_ab_01/close_reset_fix_01/hw_compile_switch_9132/out",
+      "manifest": "integration/evidence/route_ab_01/close_reset_fix_01/hw_compile_switch_9132/manifest.json",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "allowed_loop_octet_gap": {},
+      "_note": "The build verified on silicon with the close and RESET fixes (loop-port gap 0), so no gap is allowed. sbo_admission_01 above is the pre-fix comparison build (known 80-octet t_in gap) and is validated but not used by the arms.",
+      "hashes": {
+        "bfrt.json": "7c7e7f3bbe1220b6abcc7cbc1fdc9cc18d7854428447529f79b6c4ed7808d2e3",
+        "p0/tofino.bin": "e15b6177ddc87ee6e2132bdd5a5e8c720ae4e8850c3b1df2c9a2eaff0bccbe6a",
+        "p1/tofino.bin": "7ab242e86b9a30d66b468e6f01e7d4c5142d07b76d17bad26c336b6ff9e302a0",
+        "p1/response_only.bfa": "89ccc96a383c379d72342e0bb3cd4663bb7db2b8a5e7cca13e9bb805842abf91"
+      }
+    },
+    "mirror_fix_01": {
+      "out_dir": "integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/out",
+      "manifest": "integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/manifest.json",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "allowed_loop_octet_gap": {},
+      "mirror_fix": true,
+      "max_token_stale": 0,
+      "_max_token_stale_note": "Bound on the OUT_TOKEN_STALE delta of a T-on trial (default 0). One of ~10 shaped runs showed 5 at a 3 ms fixture / 3,723 PPS; the T owner is analysing it, so raise this only deliberately. The observed value is recorded in every trial.",
+      "_note": "Verified on silicon 2026-10-12 (evidence/mirror_fix_silicon_01): one READ trigger per READ, zero stale tokens, port gaps 0. close_reset_fix_01 and sbo_admission_01 are kept as named comparison builds.",
+      "hashes": {
+        "bfrt.json": "4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa",
+        "p0/tofino.bin": "aff15250cc9af232f99c4d759fd801dd3d4a7b750b712fe760dc637550af2edb",
+        "p1/tofino.bin": "296444ce43e28e3228edd8e1d61c52f2a6f233dc4be357e3e96610e896e02309",
+        "p1/response_only.bfa": "eea04489a6ad5da5a3d2ca91201223af26458d1516c2a7a4b6d3b5843893ff96"
+      }
+    }
+  },
+  "expectations": {
+    "_note": "THE one expectations table; checks.evaluate enforces it per trial from the trial's own evidence (before/after snapshot deltas, master.json, outstation.json, wire.json, timing.json) and a violation fails the trial. README repeats it. The T-on counts for the piggyback fixture are assumed equal to separate_ack (one commit and one release per READ) and have not been measured: only the fallback bound is restricted to the on-time fixture.",
+    "common": {"read_points": 23},
+    "native_len": {"READ": 49, "SELECT": 37, "OPERATE": 37},
+    "mirror_fix": {
+      "_note": "Applies only to a T-on/T-off trial on a build flagged mirror_fix:true in `builds` (the builds before the compiler-mirror fix selected T's deparser mirror entry 0, giving several READ triggers per READ and thousands of stale tokens, so these counts do not hold on them; the check is skipped there). Deltas are after minus before from the snapshot pktgen block and outcomes. T1: READ trigger delta == READs; generated READ packets == 2k * READs (k = service.k, installer --k, 2k tokens per trigger); OPERATE trigger delta == SBOs run; OPERATE packets == 2k * SBOs; OUT_TOKEN_STALE delta <= the build's max_token_stale (default 0). T0 (as the T-off silicon evidence shows, evidence/milestone_sbo_01/toff): READ and OPERATE trigger and packet deltas == 0.",
+      "T1": {"note": "OUT_TOKEN_STALE is bounded per build by builds.<name>.max_token_stale (default 0) and its observed delta is recorded in every trial."},
+      "T0": {"zero_triggers": ["READ", "OPERATE"]}
+    },
+    "padding": {
+      "1": {"read_resp_len": [58], "sbo_resp_len": [58], "growth": "positive"},
+      "0": {"read_resp_len": [49], "sbo_resp_len": [37], "growth": "zero"}
+    },
+    "T": {
+      "1": {"op_release_when_sbo": 1, "fallback_zero_fixtures": ["separate_ack"]},
+      "0": {"zero_outcomes": ["OUT_ACK_COMMIT", "OUT_RESP_RELEASE", "OUT_OP_RELEASE"]}
+    },
+    "fixture": {
+      "separate_ack": {"piggyback_fraction": [0.0, 0.05]},
+      "piggyback": {"piggyback_fraction": [0.95, 1.0]}
+    }
+  },
+  "padding_installer_flag": "--pad-enable",
+  "arms": [
+    {"name": "off",         "T": 0, "padding": 0, "build": "mirror_fix_01", "role": "feature-off baseline: composite installed, T off, padding policy off"},
+    {"name": "timing_only", "T": 1, "padding": 0, "build": "mirror_fix_01", "role": "timing only"},
+    {"name": "size_only",   "T": 0, "padding": 1, "build": "mirror_fix_01", "role": "size (padding) only"},
+    {"name": "combined",    "T": 1, "padding": 1, "build": "mirror_fix_01", "role": "timing + size"}
+  ],
+  "timing_params_ns": {
+    "da": 2000000,
+    "readiness": 30000000,
+    "cap": 40000000,
+    "gap": 800000,
+    "op_j": 2400000
+  },
+  "service": {"k": 2, "note": "installer --k is 2*k tokens per trigger; production k=2 (installer default)"},
+  "shaping": {
+    "preset": "unshaped",
+    "presets": {
+      "unshaped":    {"hold_pps": {"ack": 0, "resp": 0, "op": 0}, "block_pps": {"ack": 0, "resp": 0, "op": 0}, "block_burst": null},
+      "shape_3723":  {"hold_pps": {"ack": 3723, "resp": 3723, "op": 3723}, "block_pps": {"ack": 3723, "resp": 3723, "op": 3723}, "block_burst": 64},
+      "shape_14892": {"hold_pps": {"ack": 14892, "resp": 14892, "op": 14892}, "block_pps": {"ack": 14892, "resp": 14892, "op": 14892}, "block_burst": 64},
+      "shape_59570": {"hold_pps": {"ack": 59570, "resp": 59570, "op": 59570}, "block_pps": {"ack": 59570, "resp": 59570, "op": 59570}, "block_burst": 64},
+      "slow_232":    {"hold_pps": {"ack": 232, "resp": 232, "op": 232}, "block_pps": {"ack": 232, "resp": 232, "op": 232}, "block_burst": 64}
+    },
+    "note": "Pick one with `preset` (or --preset). All rates are exact TM-shaper ladder values (the shaper realizes only 58/232/930/3723/14892/59570/238281 PPS; 0 = unshaped); any other value is rejected. shape_* shape the hold AND blocker queues together (measured 2026-10-11, evidence/p2_blocker_occupancy_01/STATUS.md: CLRT stays at the 0.8 ms target with unshaped precision and total passes drop 168-364x); slow_232 is a comparison preset only. block_burst null = installer default. Default stays unshaped until the lead chooses."
+  },
+  "fixture": {
+    "modes": ["separate_ack", "piggyback"],
+    "delay_ms": 5,
+    "jitter_ms": 0,
+    "readiness_margin_ms": 5,
+    "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {"reads_per_trial": 20, "trials_per_arm": 3},
+  "paired_blocks": {
+    "shape_14892_vs_3723": {
+      "arm": "combined", "fixture": "separate_ack", "presets": ["shape_14892", "shape_3723"], "repeats": 1,
+      "conditions": [
+        {"delay_ms": 5, "gap_ms": 0,  "start_delay_ms": 20, "seed": 101},
+        {"delay_ms": 5, "gap_ms": 20, "start_delay_ms": 40, "seed": 102},
+        {"delay_ms": 3, "gap_ms": 0,  "start_delay_ms": 0,  "seed": 103}
+      ],
+      "_note": "A paired block runs presets A and B (each its own cold bring-up) under IDENTICAL conditions {fixture delay_ms, READ gap_ms, start_delay_ms, seed}, alternating the order between consecutive pairs (A,B then B,A ...), and records each pair. Select with --paired NAME; the arm and fixture come from the block."
+    }
+  },
+  "trial_mode": "per_trial_cold",
+  "traffic": {"master_port_range": {"first": 54500, "last": 54599}, "range": 8, "gap_ms": 0, "start_delay_ms": 0,
+              "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+              "master_port_note": "Each connection gets its own cold bring-up on the next port in this range (N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s). Pick a range not used in the last minute. range 8 is the 20-byte 8-bit-range READ profile."},
+  "loss": {
+    "inject": false, "netem_loss_pct": 0.0,
+    "max_recovery_s": 5.0,
+    "presets": {
+      "read_request_3":      [{"class": "request", "n": 3}],
+      "ack_sep_3":           [{"class": "ack_sep", "n": 3}],
+      "read_resp_padded_3":  [{"class": "read_resp_padded", "n": 3}],
+      "select_resp_padded":  [{"class": "select_resp_padded", "n": 1}],
+      "operate_req":         [{"class": "operate_req", "n": 1}],
+      "operate_resp_padded": [{"class": "operate_resp_padded", "n": 1}],
+      "master_ack_of_padded_3": [{"class": "master_ack_of_padded", "n": 3}],
+      "core": [
+        {"class": "request", "n": 3}, {"class": "ack_sep", "n": 3}, {"class": "read_resp_padded", "n": 3},
+        {"class": "select_resp_padded", "n": 1}, {"class": "operate_req", "n": 1},
+        {"class": "operate_resp_padded", "n": 1}, {"class": "master_ack_of_padded", "n": 3}
+      ]
+    },
+    "_note": "A preset is a list of {class, n}; `--loss NAME` runs one trial per entry per arm/fixture, each its own cold bring-up with `vision_run.py --drop CLASS:N` (classes and wire shapes: loss.py). The padded classes assume a padding-on arm; use the native classes (read_resp_native, select_resp_native, operate_resp_native) with padding off. max_recovery_s is the bound on recovery after the drop; exceeding it fails the trial, which is recorded and does not stop the campaign. n counts packets of the class on the connection (the handshake ACK is master_ack #1)."
+  },
+  "scenarios": {
+    "reconnect": {"arm": "combined", "fixture": "separate_ack", "reconnect_port_offset": 1000,
+                  "_note": "c1 on the installed port, c2 from installed port + offset (no switch rows; must complete natively), c3 on the installed tuple again (recorded, not asserted). Run with --scenario reconnect."}
+  },
+  "seeds": {"rng_seed": 12345}
+}

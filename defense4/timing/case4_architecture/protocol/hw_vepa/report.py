@@ -20,6 +20,8 @@ import json
 import os
 import sys
 
+import checks
+
 LOOP_ROLES = ('n_ack_return', 't_in', 'hb_return', 'held_return')
 PORT_OF = {'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182}
 
@@ -62,7 +64,10 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     m['loop_pkts'], m['loop_bytes'] = (pk, by) if ok_loop else (None, None)
     m['bad_octets'] = bad if ok_loop else None
     m['rewaits'] = _delta(a, b, lambda s: s['outcomes']['OUT_HELD_REWAIT']) if a and b else None
-    m['stale'] = _delta(a, b, lambda s: s['outcomes']['OUT_TOKEN_STALE']) if a and b else None
+    try:
+        m['stale'], m['stale_sources'] = checks.stale_delta(b, a, trial.get('diagnostic', False)) if a and b else (None, None)
+    except ValueError:
+        m['stale'], m['stale_sources'] = None, None
     blk = None
     if a and b and a.get('diag', {}).get('present') and b.get('diag', {}).get('present'):
         blk = sum(a['diag']['blocker_laps'][r] - b['diag']['blocker_laps'][r] for r in a['diag']['blocker_laps'])
@@ -73,6 +78,9 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     m['clrt'] = rd and rd.get('clrt_us')
     m['ack'] = rd and rd.get('ack_lat_us')
     m['rt'] = rd and rd.get('rt_us')
+    m['read_precision'] = checks.read_precision(t, gap_ns) if t and gap_ns is not None else None
+    if m['read_precision']:
+        m['read_precision']['gated'] = trial.get('observed', {}).get('read_precision', {}).get('gated')
     m['gap_us'] = gap_ns / 1000.0 if gap_ns else None
     m['gap_us'] = int(m['gap_us']) if m['gap_us'] is not None and m['gap_us'] == int(m['gap_us']) else m['gap_us']
     for key, stat in (('gap_error_median_us', 'median'), ('gap_error_p95_us', 'p95')):
@@ -121,7 +129,20 @@ def _stat(m, key, stat):
     return m[key][stat] if m.get(key) else None
 
 
+def _precision(metric, *keys):
+    value = metric.get('read_precision')
+    for key in keys:
+        value = value.get(key) if isinstance(value, dict) else None
+    return value
+
+
 ROWS = [
+    ('eligible READs', lambda m: _precision(m, 'eligible')),
+    ('excluded incomplete', lambda m: _precision(m, 'excluded', 'incomplete')),
+    ('excluded piggyback', lambda m: _precision(m, 'excluded', 'piggyback')),
+    ('excluded multiple attempts', lambda m: _precision(m, 'excluded', 'multiple_attempts')),
+    ('excluded missing CLRT', lambda m: _precision(m, 'excluded', 'missing_clrt')),
+    ('p99 absolute error (us)', lambda m: _precision(m, 'absolute_error_us', 'p99')),
     ('loop packets', lambda m: m['loop_pkts']), ('loop bytes', lambda m: m['loop_bytes']),
     ] + [('port %d pkts/bytes' % PORT_OF[r], (lambda r: lambda m: '%s/%s' % (_f(m['per_port'][r]['pkts']),
                                                                           _f(m['per_port'][r]['bytes'])))(r))
@@ -223,9 +244,21 @@ def render(root):
                 break
         else:
             groups.append((key, [m]))
-    out = []
+    effective = rec.get('effective', {})
+    out = ['config sha256: %s; file sha256: %s' % (rec.get('config_sha256', '-'), rec.get('config_file_sha256', '-')),
+           'policy: reconnect=%s; max_token_stale=%s; evaluation=%s' %
+           (effective.get('reconnect_policy', 'unrecorded'), effective.get('max_token_stale', 'unrecorded'), effective.get('evaluation', 'unrecorded'))]
     for (fx, arm, preset), ms in groups:
         out += _table('fixture %s | arm %s | preset %s' % (fx, arm, preset or '(config default)'), ms) + ['']
+        for metric in ms:
+            precision = metric['read_precision']
+            if precision:
+                out.append('%s READ precision: eligible%d/%d, exclusions%s, gated=%s, qualifies=%s; worst tails%s' %
+                           (metric['label'], precision['eligible'], precision['read_rows'], precision['excluded'],
+                            precision.get('gated'), precision['pass'], precision['tails']))
+            if metric['stale_sources'] is not None:
+                out.append('%s stale-source deltas19..24: %s (sum%s)' %
+                           (metric['label'], metric['stale_sources'], metric['stale']))
     pairs = rec.get('pairs') or []
     if pairs:
         by_label = {m['label']: m for m in metrics}
@@ -259,7 +292,7 @@ def render(root):
         out += _table_rows('reconnect scenarios', ('connection', 'trial', 'role/port', 'connect', 'completed', 'resp lens',
                                                    'padded', 'retransmitted', 'timeout', ''), rr) + [
             'legend: c1 = installed port; c2 = new port with no switch rows (expected native); c3 = installed tuple again '
-            '(characterization only: N does not re-arm).', '']
+            '(effective reconnect policy above determines whether c3 is gated).', '']
     return '\n'.join(out).rstrip() + '\n'
 
 

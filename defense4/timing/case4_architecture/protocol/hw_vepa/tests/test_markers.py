@@ -1,11 +1,14 @@
 """Build-dependent tests are marked, and skip (never fail) when the compiled evidence tree is absent, so the
 pure-source set always runs on a bare checkout. The nested runs are skipped inside themselves."""
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+import pytest as pytest_module
 
 HERE = Path(__file__).resolve().parent
 NESTED = os.environ.get('HW_VEPA_NESTED') == '1'
@@ -21,6 +24,28 @@ def pytest(args, root=None):
 
 @unittest.skipIf(NESTED, 'nested run')
 class Markers(unittest.TestCase):
+    def test_tracked_source_export_needs_no_ignored_compile_artifacts(self):
+        repo = HERE
+        while not (repo / '.git').exists():
+            repo = repo.parent
+        tracked = subprocess.check_output(['git', 'ls-files', '-z', 'defense4/timing'], cwd=repo).decode().split('\0')
+        with tempfile.TemporaryDirectory() as td:
+            exported = Path(td)
+            for relative in tracked:
+                source = repo / relative
+                if not relative or source.suffix not in ('.py', '.json', '.sh', '.p4', '.md', '.txt', '.ini') or not source.is_file():
+                    continue
+                target = exported / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+            tests = exported / HERE.relative_to(repo)
+            env = dict(os.environ, HW_VEPA_NESTED='1', PYTHONDONTWRITEBYTECODE='1')
+            env.pop('HW_VEPA_EVIDENCE_ROOT', None)
+            result = subprocess.run([sys.executable, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', str(tests)],
+                                    cwd=exported, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout[-3000:] + result.stderr[-500:])
+            self.assertIn('skipped', result.stdout)
+
     def test_the_build_dependent_tests_carry_the_markers(self):
         out = pytest(['--collect-only', '-m', 'build_tree or evidence_tree']).stdout
         for name in ('test_shipped_config_is_fully_bound_with_the_real_pins', 'test_validate_passes_with_the_real_pins',
@@ -40,6 +65,7 @@ class Markers(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout[-1500:])
         self.assertNotIn('skipped', r.stdout)
 
+    @pytest_module.mark.build_tree
     def test_with_the_tree_present_nothing_is_skipped(self):
         r = pytest([])
         self.assertEqual(r.returncode, 0, r.stdout[-1500:])

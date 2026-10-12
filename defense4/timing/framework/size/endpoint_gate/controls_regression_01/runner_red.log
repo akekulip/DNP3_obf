@@ -1,0 +1,22 @@
+test_boundaries_are_accepted (test_endpoint_controls.EndpointControls) ... ok
+test_defaults_preserve_two_reads_and_one_sbo (test_endpoint_controls.EndpointControls) ... READY
+ok
+test_invalid_controls_fail_before_listening_with_clear_error (test_endpoint_controls.EndpointControls) ... ok
+test_pause_and_close_grace_delay_actual_requests_and_socket_close (test_endpoint_controls.EndpointControls) ... READY
+ok
+test_read_only_zero_pause_completes_every_scan_without_sbo (test_endpoint_controls.EndpointControls) ... READY
+ok
+test_software_evidence_runner_accepts_read_only_workload (test_endpoint_controls.EndpointControls) ... FAIL
+
+======================================================================
+FAIL: test_software_evidence_runner_accepts_read_only_workload (test_endpoint_controls.EndpointControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/framework/size/endpoint_gate/tests/test_endpoint_controls.py", line 159, in test_software_evidence_runner_accepts_read_only_workload
+    self.assertTrue(evidence['passed'], evidence['failures'])
+AssertionError: False is not true : ['application resend', 'endpoint callback select_real', 'endpoint callback operate_real', 'expected exactly 2 CONTROL-padded response frames (SELECT echo + OPERATE echo), tee shows 0']
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.966s
+
+FAILED (failures=1)

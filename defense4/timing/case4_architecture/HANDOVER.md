@@ -1,5 +1,9 @@
 # Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08; T's status corrected same day)
 
+User-requested pause: resume from [lab checkpoint](integration/evidence/rearm_01/PAUSE.md). Latest candidate47 is unqualified: N/T12, E13 stages; installedSDK9.13.2 confirms the blocker. Baseline restored; all agents/compiles stopped.
+
+Current work (2026-10-12): the user approved implementation of [generation-safe rearm](integration/evidence/rearm_01/PLAN.md). Read [current checkpoint](integration/evidence/rearm_01/CHECKPOINT.md) first. The unchanged same-tuple failure is independently verified; the isolated candidate is under compilation and has not been loaded. Independent baseline experiments are complete and their strict failures remain retained. Native FIN/RST replay archives are captured, source/isolation harness reviews approve, and full compile/model/silicon qualification remains pending. The switch currently runs restored `case4_response_path` under one hardware owner. Frozen sources, build artifacts, endpoint directory and paper remain preserved. Historical evidence below remains useful but does not describe the current task status.
+
 **Read first, in order:**
 1. [`integration/INTEGRATION_CONTRACT.md`](integration/INTEGRATION_CONTRACT.md) — the decision record
    for the whole timing+size integration effort.

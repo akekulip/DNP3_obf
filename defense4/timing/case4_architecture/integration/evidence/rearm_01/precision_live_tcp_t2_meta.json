@@ -1,0 +1,15 @@
+{
+  "rc": 0,
+  "read_only": true,
+  "source_port": 59102,
+  "trigger": "counter snapshot rearm_precision_5_800_01_separate_ack_combined_t2_before -> rc 0",
+  "command": [
+    "ip",
+    "netns",
+    "exec",
+    "ns_vepa_a",
+    "ss",
+    "-tin",
+    "( sport = :59102 )"
+  ]
+}

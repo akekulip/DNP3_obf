@@ -1,0 +1,163 @@
+[
+  {
+    "run_id": "rearm_stale_read_only_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/stale_diag_read_only_3723.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/stale_diag_read_only_3723.json",
+      "--preset",
+      "shape_3723",
+      "--run-id",
+      "rearm_stale_read_only_01",
+      "--apply"
+    ],
+    "rc": 0,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_stale_read_only_01_runner.log",
+    "restored": true,
+    "failure": null,
+    "ok": true
+  },
+  {
+    "run_id": "rearm_precision_5_800_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_5ms_gap800us_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_5ms_gap800us_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_precision_5_800_01",
+      "--apply"
+    ],
+    "rc": 0,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_precision_5_800_01_runner.log",
+    "restored": true,
+    "failure": null,
+    "ok": true
+  },
+  {
+    "run_id": "rearm_precision_5_950_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_5ms_gap950us_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_5ms_gap950us_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_precision_5_950_01",
+      "--apply"
+    ],
+    "rc": 0,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_precision_5_950_01_runner.log",
+    "restored": true,
+    "failure": null,
+    "ok": true
+  },
+  {
+    "run_id": "rearm_precision_10_950_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_10ms_gap950us_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/precision_10ms_gap950us_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_precision_10_950_01",
+      "--apply"
+    ],
+    "rc": 1,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_precision_10_950_01_runner.log",
+    "restored": true,
+    "failure": "rearm_precision_10_950_01_separate_ack_combined_t0 failed: READ precision: eligible=50 (minimum20), p99 absolute CLRT error=151.0 us (maximum100)",
+    "ok": false
+  },
+  {
+    "run_id": "rearm_precision_pause0_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/config/precision_pause0_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/config/precision_pause0_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_precision_pause0_01",
+      "--apply"
+    ],
+    "rc": 1,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_precision_pause0_01_runner.log",
+    "restored": true,
+    "failure": "rearm_precision_pause0_01_separate_ack_combined_t0 failed: T on, mirror_fix build: OUT_TOKEN_STALE delta 28 exceeds the build bound 0",
+    "ok": false
+  },
+  {
+    "run_id": "rearm_fourarm_separate_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/fourarm_separate_ack_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/fourarm_separate_ack_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_fourarm_separate_01",
+      "--apply"
+    ],
+    "rc": 0,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_fourarm_separate_01_runner.log",
+    "restored": true,
+    "failure": null,
+    "ok": true
+  },
+  {
+    "run_id": "rearm_fourarm_piggyback_01",
+    "applied": true,
+    "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/fourarm_piggyback_14892.json",
+    "command": [
+      "/usr/bin/python3",
+      "-u",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py",
+      "run",
+      "--config",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/config/fourarm_piggyback_14892.json",
+      "--preset",
+      "shape_14892",
+      "--run-id",
+      "rearm_fourarm_piggyback_01",
+      "--apply"
+    ],
+    "rc": 1,
+    "log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/rearm_fourarm_piggyback_01_runner.log",
+    "restored": true,
+    "failure": "rearm_fourarm_piggyback_01_piggyback_combined_t0 failed: T on, mirror_fix build: OUT_TOKEN_STALE delta 5 exceeds the build bound 0",
+    "ok": false
+  }
+]

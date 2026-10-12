@@ -131,7 +131,7 @@ def _last_json(path):
     return json.loads(rows[-1])
 
 
-def _check_transforms(run, tee_path, reads):
+def _check_transforms(run, tee_path, reads, run_sbo=True):
     """Independent byte-exact check: recompute case4_pad58b fresh on every
     captured native response frame and assert it equals the bytes the proxy
     actually put on the wire to the master -- not a re-check of the proxy's
@@ -165,8 +165,9 @@ def _check_transforms(run, tee_path, reads):
         failures.append('%d response frame(s) do not match the independently recomputed codec output' % len(mismatches))
     if counts['read'] != reads:
         failures.append('expected %d READ-padded response frames, tee shows %d' % (reads, counts['read']))
-    if counts['control'] != 2:
-        failures.append('expected exactly 2 CONTROL-padded response frames (SELECT echo + OPERATE echo), tee shows %d' % counts['control'])
+    expected_control = 2 if run_sbo else 0
+    if counts['control'] != expected_control:
+        failures.append('expected exactly %d CONTROL-padded response frames, tee shows %d' % (expected_control, counts['control']))
     run.write_json('independent_wire_check.json', {'counts': counts, 'mismatches': mismatches, 'failures': failures})
     return failures
 
@@ -174,12 +175,17 @@ def _check_transforms(run, tee_path, reads):
 def launch(run, manifest, reads, listen_port, outstation_port):
     binary = Path(manifest['binary_path'])
     env = dict(os.environ, CASE4_PAD58B_SOCKET_GATE='1')
+    expected_sbo = int(env.get('CASE4_RUN_SBO', '1'))
+    expected_pause = int(env.get('CASE4_READ_PAUSE_MS', '25'))
+    expected_grace = int(env.get('CASE4_CLOSE_GRACE_MS', '0'))
+    # Completion timeout includes bounded per-READ wait/pause and final close grace.
+    master_timeout = 10 + reads * (3 + expected_pause / 1000) + 3 * expected_sbo + expected_grace / 1000
     stop = run.path / 'endpoint_stop'
     outstation_log, master_log, tee_path = run.path / 'outstation.log', run.path / 'master.log', run.path / 'tee.jsonl'
     procs = []
     try:
         with outstation_log.open('x') as log:
-            outstation = subprocess.Popen([str(binary), 'outstation', '127.0.0.1', str(outstation_port), str(stop)],
+            outstation = subprocess.Popen([str(binary), 'outstation', '127.0.0.1', str(outstation_port), str(stop), str(int(master_timeout) + 5)],
                                           stdout=log, stderr=subprocess.STDOUT, env=env)
         procs.append(outstation)
         _wait_ready(outstation_log, outstation, 5)
@@ -197,7 +203,7 @@ def launch(run, manifest, reads, listen_port, outstation_port):
                                       stdout=log, stderr=subprocess.STDOUT, env=env)
         procs.append(master)
         try:
-            master_rc = master.wait(timeout=15)
+            master_rc = master.wait(timeout=master_timeout)
         except subprocess.TimeoutExpired:
             master.kill(); master.wait()
             raise RuntimeError('master binary timed out: ' + master_log.read_text()[-2000:])
@@ -221,15 +227,17 @@ def launch(run, manifest, reads, listen_port, outstation_port):
     if master_rc != 0: failures.append('master exit code %r' % master_rc)
     if outstation_rc != 0: failures.append('outstation exit code %r' % outstation_rc)
     if master_result.get('success') is not True: failures.append('master SELECT/OPERATE task status')
-    if master_result.get('application_calls') != 1: failures.append('application resend')
+    if master_result.get('application_calls') != expected_sbo: failures.append('application SBO count')
+    for key, expected in [('read_pause_ms', expected_pause), ('run_sbo', bool(expected_sbo)), ('close_grace_ms', expected_grace)]:
+        if master_result.get(key) != expected: failures.append('effective endpoint control ' + key)
     if master_result.get('reads_completed') != reads: failures.append('reads_completed != %d' % reads)
     if master_result.get('all_reads_match_seed') is not True: failures.append('a READ did not deliver all 23 seeded points')
     for key in ('select_real', 'operate_real'):
-        if outstation_result.get(key) != 1: failures.append('endpoint callback ' + key)
+        if outstation_result.get(key) != expected_sbo: failures.append('endpoint callback ' + key)
     for key in ('select_decoy', 'operate_decoy'):
         if outstation_result.get(key) != 0: failures.append('decoy point touched: ' + key)
     if outstation_result.get('opens') != 1: failures.append('outstation connection count (expected 1: only the proxy connects to it)')
-    failures += _check_transforms(run, tee_path, reads)
+    failures += _check_transforms(run, tee_path, reads, bool(expected_sbo))
     return dict(passed=not failures, failures=failures, **data)
 
 

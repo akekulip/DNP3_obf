@@ -49,6 +49,26 @@ using namespace opendnp3;
 using Clock = std::chrono::steady_clock;
 static long long now_ns() { return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count(); }
 
+// Strict bounded experiment controls: no atoi truncation, signs, or overflow.
+static bool envUnsigned(const char* name, int defaultValue, int maximum, int& value) {
+    const char* text = std::getenv(name);
+    value = defaultValue;
+    if (!text) return true;
+    value = 0;
+    if (*text) {
+        for (const char* p = text; *p; ++p) {
+            if (*p < '0' || *p > '9' || value > (maximum - (*p - '0')) / 10) {
+                std::cerr << name << " must be a decimal integer in 0.." << maximum << "\n";
+                return false;
+            }
+            value = value * 10 + (*p - '0');
+        }
+        if (value <= maximum) return true;
+    }
+    std::cerr << name << " must be a decimal integer in 0.." << maximum << "\n";
+    return false;
+}
+
 class Listener final : public IChannelListener {
 public:
     std::atomic<int> opens{0}; std::atomic<bool> open{false};
@@ -81,8 +101,14 @@ struct ScanResult {
 class RecordingSOEHandler final : public ISOEHandler {
 public:
     std::vector<ScanResult> scans;
+    std::atomic<size_t> completedScans{0};
     void BeginFragment(const ResponseInfo&) override { scans.emplace_back(); }
-    void EndFragment(const ResponseInfo&) override { if (!scans.empty()) scans.back().completed = true; }
+    void EndFragment(const ResponseInfo&) override {
+        if (!scans.empty()) {
+            scans.back().completed = true;
+            completedScans.fetch_add(1, std::memory_order_release);
+        }
+    }
     void Process(const HeaderInfo&, const ICollection<Indexed<Binary>>&) override {}
     void Process(const HeaderInfo&, const ICollection<Indexed<DoubleBitBinary>>&) override {}
     void Process(const HeaderInfo&, const ICollection<Indexed<Analog>>&) override {}
@@ -142,6 +168,10 @@ int main(int argc, char** argv) {
     const int range_bits = argc > 7 ? std::atoi(argv[7]) : 16;
     const int gap_ms = argc > 8 ? std::atoi(argv[8]) : 0;
     if ((range_bits != 16 && range_bits != 8) || gap_ms < 0) return 64;
+    int read_pause_ms, run_sbo, close_grace_ms;
+    if (!envUnsigned("CASE4_READ_PAUSE_MS", 25, 5000, read_pause_ms) ||
+        !envUnsigned("CASE4_RUN_SBO", 1, 1, run_sbo) ||
+        !envUnsigned("CASE4_CLOSE_GRACE_MS", 0, 5000, close_grace_ms)) return 64;
     DNP3Manager manager(1); auto listener = std::make_shared<Listener>();
     if (role == "outstation") {
         if (lifetime_s <= 0) return 64;
@@ -167,7 +197,7 @@ int main(int argc, char** argv) {
                    << ",\"operate_accept_ns\":" << handler->operated_ns << "}\n";
         return 0;
     }
-    if (role != "master") return 64;
+    if (role != "master" || reads < 0) return 64;
     auto retry = ChannelRetry(TimeDuration::Seconds(60), TimeDuration::Seconds(60), TimeDuration::Seconds(60));
     auto channel = manager.AddTCPClient("gate", levels::NOTHING, retry, {IPEndpoint(host, port)}, adapter, listener);
     MasterStackConfig config;
@@ -182,23 +212,28 @@ int main(int argc, char** argv) {
     while (!listener->open && Clock::now() < connectDeadline) std::this_thread::sleep_for(std::chrono::milliseconds(2));
     if (!listener->open) { manager.Shutdown(); return 2; }
     for (int i = 0; i < reads; ++i) {
-        const size_t before = soe->scans.size();
+        const size_t before = soe->completedScans.load(std::memory_order_acquire);
         if (range_bits == 8) master->Scan({Header::Range8(10, 2, 0, 22)}, soe);
         else master->ScanRange(GroupVariationID(10, 2), 0, 22, soe);
         const auto deadline = Clock::now() + std::chrono::seconds(3);
-        while (soe->scans.size() <= before && Clock::now() < deadline) std::this_thread::sleep_for(std::chrono::milliseconds(2));
-        std::this_thread::sleep_for(std::chrono::milliseconds(25)); // let EndFragment land
+        while (soe->completedScans.load(std::memory_order_acquire) <= before && Clock::now() < deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        if (read_pause_ms) std::this_thread::sleep_for(std::chrono::milliseconds(read_pause_ms));
         if (gap_ms) std::this_thread::sleep_for(std::chrono::milliseconds(gap_ms));
     }
-    std::atomic<bool> done{false}, success{false}; const auto issued = now_ns(); long long completed = 0;
-    master->SelectAndOperate(ControlRelayOutputBlock(OperationType::PULSE_ON, TripCloseCode::NUL, false, 1, 100, 100), 1,
-        [&](const ICommandTaskResult& result) {
-            bool ok = result.summary == TaskCompletion::SUCCESS; int count = 0;
-            result.ForeachItem([&](const CommandPointResult& p) { ++count; ok = ok && p.index==1 && p.status==CommandStatus::SUCCESS && p.state==CommandPointState::SUCCESS; });
-            success = ok && count == 1; completed = now_ns(); done = true;
-        });
-    const auto sboDeadline = Clock::now() + std::chrono::seconds(3);
-    while (!done && Clock::now() < sboDeadline) std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    std::atomic<bool> done{false}, success{run_sbo == 0};
+    const auto issued = run_sbo ? now_ns() : 0; long long completed = 0;
+    if (run_sbo) {
+        master->SelectAndOperate(ControlRelayOutputBlock(OperationType::PULSE_ON, TripCloseCode::NUL, false, 1, 100, 100), 1,
+            [&](const ICommandTaskResult& result) {
+                bool ok = result.summary == TaskCompletion::SUCCESS; int count = 0;
+                result.ForeachItem([&](const CommandPointResult& p) { ++count; ok = ok && p.index==1 && p.status==CommandStatus::SUCCESS && p.state==CommandPointState::SUCCESS; });
+                success = ok && count == 1; completed = now_ns(); done = true;
+            });
+        const auto sboDeadline = Clock::now() + std::chrono::seconds(3);
+        while (!done && Clock::now() < sboDeadline) std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    if (close_grace_ms) std::this_thread::sleep_for(std::chrono::milliseconds(close_grace_ms));
     manager.Shutdown();
     std::ostringstream reads_json;
     reads_json << "[";
@@ -212,7 +247,10 @@ int main(int argc, char** argv) {
     reads_json << "]";
     const bool allReadsMatch = soe->scans.size() == static_cast<size_t>(reads) &&
         std::all_of(soe->scans.begin(), soe->scans.end(), [](const ScanResult& s) { return s.completed && matchesSeed(s); });
-    std::cout << "{\"success\":" << (success ? "true" : "false") << ",\"application_calls\":1,\"opens\":" << listener->opens
+    std::cout << "{\"success\":" << (success && allReadsMatch ? "true" : "false")
+               << ",\"application_calls\":" << run_sbo << ",\"opens\":" << listener->opens
+               << ",\"read_pause_ms\":" << read_pause_ms << ",\"run_sbo\":" << (run_sbo ? "true" : "false")
+               << ",\"close_grace_ms\":" << close_grace_ms
                << ",\"issued_ns\":" << issued << ",\"completed_ns\":" << completed
                << ",\"reads_requested\":" << reads << ",\"reads_completed\":" << soe->scans.size()
                << ",\"all_reads_match_seed\":" << (allReadsMatch ? "true" : "false")

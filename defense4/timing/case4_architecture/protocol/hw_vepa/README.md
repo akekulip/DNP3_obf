@@ -19,7 +19,8 @@ through the Tofino, with both endpoints behind dev_port 9. First used for the pa
 
 ```bash
 # the whole campaign (reads campaign.json; see its _notes before running)
-python3 hw_vepa/campaign.py validate      # structure + build/endpoint identity (nonzero while anything is unbound)
+python3 hw_vepa/campaign.py validate --arms combined   # final selected builds + endpoint identity
+python3 hw_vepa/campaign.py validate --all-builds       # explicit historical-build audit
 python3 hw_vepa/campaign.py deploy [--dry-run]   # tools into <switch_remote_dir>/aux and vision_run.py, sha256-verified; changes no state
 python3 hw_vepa/campaign.py plan [--arms combined]   # the exact commands run would execute; executes none
 DEFENSE4_HW_AUTHORIZED=1 python3 hw_vepa/campaign.py run --apply [--arms size_only,combined]   # hardware; gated
@@ -38,7 +39,7 @@ absent (`HW_VEPA_EVIDENCE_ROOT` overrides the evidence root, default `integratio
 
 | marker | needs | tests |
 |---|---|---|
-| `build_tree` | the compiled build `out/` and compile `manifest.json` that `campaign.json` binds to (`route_ab_01/sbo_admission_01/hw_compile_switch_9132`) | `test_campaign_bindings.py::test_shipped_config_is_fully_bound_with_the_real_pins`, `::test_validate_passes_with_the_real_pins`; `test_deploy.py::test_run_deploys_before_it_observes_the_switch` |
+| `build_tree` | the compiled build `out/` and compile `manifest.json` that `campaign.json` binds to (`route_ab_01/mirror_fix_01/hw_compile_switch_9132`; all four hashed outputs must exist) | `test_campaign_bindings.py::test_shipped_config_is_fully_bound_with_the_real_pins`, `::test_validate_passes_with_the_real_pins`; `test_deploy.py::test_run_deploys_before_it_observes_the_switch` |
 | `evidence_tree` | committed hardware captures (`p2_production_01/p_unshaped` pcaps and snapshots) | `test_checks.py::RealEvidence` |
 
 Everything else builds its own fixtures (synthetic pcaps, a fake process boundary, a throwaway compile manifest) in a
@@ -63,7 +64,7 @@ trial, even for arms that share a build) or `one_connection` (one bring-up and o
 starting: the configured production program, a port snapshot taken at the start, the relay slot, Vision, then a
 ping.
 
-Build identity. Each build's `hashes` pin `bfrt.json`, `p0/tofino.bin`, `p1/tofino.bin` and `p1/response_only.bfa`,
+Build identity. The final arm selection, including scenario/paired overrides, determines the builds validated, bound and deployed. Unused historical builds are checked only by `validate --all-builds`. Each selected build's `hashes` pin `bfrt.json`, `p0/tofino.bin`, `p1/tofino.bin` and `p1/response_only.bfa`,
 checked three ways (config, compile `manifest.json`, file on disk) by `validate` and `run`. The `.bfa` is the file the
 installer's mirror-defect guard reads, so pinning it ties the checked file to the loaded binaries; every
 `bringup_composite.py` command (dry-run and apply) passes `--expect p1/response_only.bfa=<sha256>`.
@@ -81,13 +82,17 @@ taps the NIC before netfilter, so the dropped frame is still in `in.pcap`. Which
 afterwards from the captures (see the loss analysis), by position in the class and the retransmission that follows.
 `vision_run.py` and `loss.py` are deployed together and both hash-verified.
 
-Reconnect scenario. `vision_run.py run LABEL --scenario reconnect --master-port P [--reconnect-port P2]` runs three
-connections, each a complete run with its own pcaps and endpoint JSON under `runs/LABEL/c1..c3/` (labels `LABEL_c1..`,
-never reused): c1 on the installed port (READs, SBO, normal close; must succeed or the scenario stops), c2 from a NEW
-source port the switch has no rows for (default P+1; defined behaviour: it completes natively, with no padding and no
-timing hold), and c3 on the SAME installed tuple once TIME-WAIT clears. N does not re-arm after a connection, so c3
-asserts nothing: its connect result, application result, timeouts and response lengths are recorded to characterize
-the limitation. `ok` is c1 and c2 completing; c3 never changes it. `scenario.json` summarizes the three.
+Reconnect scenario. `campaign.py run --scenario reconnect --reconnect-policy characterize|protected` runs
+c1 on the installed port, c2 on a new port with no switch rows, and c3 on the same installed tuple after
+TIME-WAIT clears. Each connection has its own endpoint JSON and captures; the switch is not reset between
+connections. The compatibility default `characterize` requires c1/c2 and retains c3 failures. `protected`
+also requires c3 to pass the selected arm's endpoint, extractor, integrity, padding and applicable READ
+precision checks. Config `scenarios.reconnect.policy` can select the policy; the CLI overrides it.
+
+Every required connection must have successful extractors, readable evidence, all 23 correct seed points
+per READ, exactly one real SELECT and OPERATE, zero decoys, and clean returned CRC/checksums. Lengths are
+checked per function: native READ49, SELECT/OPERATE37; padded responses58. The effective policy and
+per-connection failures are retained even when c3 is characterized.
 
 Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (or `python3 hw_vepa/report.py RUN_DIR`)
 prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
@@ -112,7 +117,7 @@ loop-port gaps and snapshot evidence still apply. `report` prints a loss table (
 retransmissions, exactly-once, growth, completion delta against a clean trial of the same arm in the run) and a
 reconnect table (per connection: role/port, connect, completion, response lengths, padded, retransmitted, timeout).
 In the reconnect trial c1 must complete with the arm's response lengths and c2 (a port with no switch rows) must
-complete natively; c3 (the installed tuple again) is only recorded.
+complete natively; the effective reconnect policy determines whether c3 is required to pass.
 
 Trial gate (expectations). Each trial is judged by `checks.py` from its own evidence (before/after snapshot deltas,
 `master.json`, `outstation.json`, `wire.json`, `timing.json`); any violation fails the trial and the campaign. The table
@@ -120,21 +125,62 @@ lives in `campaign.json` under `expectations` (this is its only copy; README res
 
 | scope | expectation |
 |---|---|
-| every trial | master success; every READ completes with all 23 seed values and matches the seed; exactly one real SELECT and one real OPERATE; zero decoy; no DNP3 CRC or IP/TCP checksum errors on returned frames |
+| every trial | master success; every READ completes with all 23 seed values and matches the seed; exactly one real SELECT and OPERATE when `traffic.run_sbo=true` (default), zero real callbacks and zero SBO exchanges when false; zero decoy; clean returned DNP3 CRC and IP/TCP checksum |
 | padding on | every READ, SELECT and OPERATE response is 58 B on the master side; master-visible growth over native (READ 49, SELECT/OPERATE 37) is positive and recorded |
 | padding off | responses native (READ 49 B, SELECT/OPERATE 37 B); growth 0 |
-| T on | `OUT_ACK_COMMIT` and `OUT_RESP_RELEASE` deltas equal the READ count; `OUT_OP_RELEASE` delta is 1 when the SBO ran; `OUT_ACK_FALLBACK` and `OUT_RESP_FALLBACK` deltas are 0 on `separate_ack` (the piggyback T-on counts are assumed, not measured) |
-| T off | `OUT_ACK_COMMIT`, `OUT_RESP_RELEASE`, `OUT_OP_RELEASE` deltas are 0 |
+| T on | For R complete READs and P piggyback responses: `ACK_COMMIT=R-P`, `ACK_FALLBACK=0`, `RESP_RELEASE=R-P`, `RESP_FALLBACK=P`; `OP_RELEASE=1` with SBO, otherwise0. READ generator triggers remainR and generated tokens2kR, including piggyback |
+| T off | ACK commit/fallback, response release/fallback and OPERATE release deltas are0 |
 | fixture `separate_ack` | READ piggyback fraction in [0, 0.05] (the request is ACKed separately) |
 | fixture `piggyback` | READ piggyback fraction in [0.95, 1] |
 | builds flagged `mirror_fix` (T on) | READ generator trigger delta equals the READs; generated READ packets equal 2k per trigger (`service.k`, the installer `--k`); OPERATE trigger delta equals the SBOs run; `OUT_TOKEN_STALE` delta is at most the build's `max_token_stale` (default 0; the observed value is recorded in every trial). Builds before the compiler-mirror fix selected T's deparser mirror entry 0, which gave several triggers per READ and thousands of stale tokens, so the counts only hold, and are only checked, on the flagged build (`mirror_fix_01`) |
 | builds flagged `mirror_fix` (T off) | READ and OPERATE generator trigger and packet deltas are 0 (as the T-off silicon evidence shows) |
 | loop ports 48 / 180 / 181 / 182 | delta of (`$OctetsReceived` - `$OctetsReceivedinGoodFrames`) is 0, or the build's `allowed_loop_octet_gap[role]` (default 0; the pre-RESET-fix build shows 80 on `t_in`). A larger gap fails with the byte count |
 
+READ precision qualification applies to T1 separate-ACK clean blocks, including c1/c3 in protected
+reconnect mode. Use `timing_params_ns.gap` as the target; there is no campaign `--t-gap` override.
+At least20 READ rows must be complete, non-piggyback and single-attempt. `clrt_check.stats` computes the
+p99 of the absolute CLRT error, which must be at most100us. Reports retain the denominator, mutually
+exclusive exclusions (incomplete, piggyback, multiple attempts, missing CLRT), signed/absolute distributions
+and worst tails. Loss, piggyback and T0 trials do not qualify this timing claim. An explicit
+`evaluation={"purpose":"stale_source_characterization","read_precision":false}` profile can run short
+attribution probes; their failures are retained and subsequent probes continue, with campaign exit1 if
+any trial failed. One eligible READ never establishes timing precision.
+
+On builds marked `diagnostic:true`, every snapshot must report indices19..24. Their sum replaces
+production `OUT_TOKEN_STALE` index6 for the strict bound (default0); a missing value fails. The diagnostic
+index6 is zero by design and cannot establish zero stale. Counters19/20 distinguish OPERATE blocker
+mismatch after/before its deadline;21/22 are ACK/response blockers,23 OPERATE tokens,24 READ tokens.
+Snapshot errors remain visible and return nonzero. Attribution of19 requires phase, actual OP release
+and callback evidence; the runner keeps the ordinary strict0 failure.
+
 Missing or unreadable evidence is itself a failure. The observed values (outcome deltas, piggyback fraction, growth,
 loop-port gaps) are written into `campaign_run.json` per trial. When anything fails, the collection phase still
 fetches the snapshots, endpoint outputs, pcaps, switch log, manifest and teardown output before the restore, and
 `campaign_run.json` `collections` lists each fetch with ok/error.
+
+Endpoint controls. `traffic.read_pause_ms` (default25), `run_sbo` (defaulttrue) and `close_grace_ms`
+(default0) become explicit Vision flags and `CASE4_*` environment values. Millisecond controls are bounded
+0..5000; explicit values must match the master's effective JSON. Process lifetimes include these delays.
+`hosts.vision_run_dir` determines identity checks, traffic and collection. Vision resolves binary,lib and
+runs beside its deployed script. New controls profiles use the separate
+`/home/decps/pad58b_rearm_controls_20261012` fixture with separate binary/lib/source pins; the old fixture
+remains pinned. Run records retain effective policy, stale bound, exact config-file hash, canonical effective
+config hash, runner hashes, compile source identity and endpoint identity.
+
+Profiles under `config/` are Case4 engineering evidence, separate from frozen paper `campaign_v2`:
+
+| profiles | workload |
+|---|---|
+| `stale_diag_sbo_14892.json`, `stale_diag_sbo_3723_grace250.json`, `stale_diag_read_only_3723.json` | one READ,3ms fixture, source attribution; strict0 and explicit precision exemption |
+| `precision_5ms_gap800us_14892.json`, `precision_5ms_gap950us_14892.json`, `precision_10ms_gap950us_14892.json`, `precision_25ms_gap800us_14892.json` | three cold trials of50 READs each; combined arm,14892PPS; last profile readiness35ms |
+| `fourarm_separate_ack_14892.json` | all four arms,3x20 READs per arm |
+| `fourarm_piggyback_14892.json` | all four arms,1x20 READs per arm; precision not qualified |
+
+Precision/four-arm profiles preserve the immutable `mirror_fix_01` baseline artifact hashes. The hardware
+owner creates a separately bound config copy for any lifecycle candidate. Readiness is30ms except35ms in
+the25ms profile; cap40ms is accepted but unused in the current T implementation and is not a deadline.
+The950us target exercises a non-aligned gap. Neither profile proves relay RTO assumptions or a transport
+accuracy bound beyond the host capture clock.
 
 Start phase and spacing. `vision_run.py run` takes `--gap-ms` (spacing between READs) and `--start-delay-ms N
 --start-seed S`: the master connects after a delay drawn uniformly in 0..N ms from a generator seeded with S, so the
@@ -163,3 +209,25 @@ Facts the runner depends on:
 - On Vision, `decps` has passwordless sudo only for python3, tcpdump and iptables, which is why everything
   privileged goes through `sudo python3`.
 - Never stop the switch daemon with `pkill -f` over ssh: the pattern matches the remote shell itself.
+
+Protected reconnect additionally gates the readable before/after switch snapshots for both installed
+connections: `2 * reads` READ triggers, `2k * 2 * reads` READ tokens, two SBO triggers/releases
+when SBO is enabled, strict stale-source bounds and loop integrity. The unknown-port c2 completes
+natively and contributes no installed T counts. Complete and piggyback READ totals from c1/c3
+set the aggregate commit/release/fallback expectations. A failed c2 stops traffic before c3;
+c3 is retained as not comparable. Each connection records its existing source-port wait's elapsed
+seconds, polls and free/busy/probe-error result; no second TIME-WAIT barrier is added.
+
+Endpoint defaults are sent explicitly as `--read-pause-ms 25 --run-sbo 1 --close-grace-ms 0` and
+retained in effective traffic settings. Configurations omitting these controls stay compatible
+with the frozen binary's older JSON. Explicit control profiles, or JSON exposing any control
+field, require all three effective fields to match.
+
+An explicit `evaluation={"purpose":"timing_precision_characterization","read_precision":true}`
+profile retains strict failed trial verdicts and continues subsequent clean blocks only when every
+failure is the READ p99 absolute-error threshold, at least20 READs remain eligible, and the precision
+gate was enabled. Campaign exit remains1 if any block fails; the original failure strings, precision
+distributions, and per-trial continuation decision/reason are retained alongside effective evaluation
+purpose and config/source identities. Missing or insufficient timing evidence, application/integrity
+failures, stale bounds, and infrastructure failures stop the campaign. This purpose cannot disable the
+precision gate. It supports bounded timing characterization without changing qualification profiles.

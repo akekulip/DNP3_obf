@@ -70,6 +70,20 @@ def build_class0_read(dest, source, app_seq=0):
     return build_link_frame(dest, source, transport + app)
 
 
+def build_range_read(dest, source, group, variation, start, stop, app_seq=0):
+    """Transport header + application-layer READ(fc=1) with an 8-bit start/stop range
+    (qualifier 0x00), e.g. ScanRange(GroupVariationID(group, variation), start, stop).
+
+    Reproduces, for group=10, variation=2, start=0, stop=22, exactly
+    05640dc400000100f387c0c0010a020000165a2c (dest=0, source=1, app_seq=0).
+    """
+    transport = bytes([0xC0])
+    app = bytes([0xC0 | (app_seq & 0x0F), 0x01, group & 0xFF, variation & 0xFF, 0x00,
+                 start & 0xFF, stop & 0xFF])
+    # object header: group/variation, qualifier 0x00 (8-bit start/stop indices), start, stop
+    return build_link_frame(dest, source, transport + app)
+
+
 def split_frames(buf):
     """Return (complete DNP3 link frames found at the front of buf, leftover bytes)."""
     frames = []
@@ -101,6 +115,9 @@ def main(argv=None):
     p.add_argument("--connect-timeout", type=float, default=5.0)
     p.add_argument("--read-timeout", type=float, default=3.0, help="max wait for the first response byte")
     p.add_argument("--idle-timeout", type=float, default=0.2, help="wait for trailing bytes after the first arrive")
+    p.add_argument("--range", metavar="GROUP,VARIATION,START,STOP",
+                    help="send a ranged READ (qualifier 0x00, 8-bit start/stop) instead of the default "
+                         "Class 0 integrity poll, e.g. --range 10,2,0,22 for ScanRange(G10V2, 0, 22)")
     args = p.parse_args(argv)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -126,7 +143,18 @@ def main(argv=None):
         return 1
     print("connected %s:%d -> %s:%d" % (bound[0], bound[1], args.remote_ip, args.remote_port))
 
-    request = build_class0_read(args.outstation_addr, args.master_addr)
+    if args.range:
+        try:
+            group, variation, start, stop = (int(x) for x in args.range.split(","))
+        except ValueError:
+            sock.close()
+            print("FAIL: --range must be GROUP,VARIATION,START,STOP (all integers)", file=sys.stderr)
+            return 1
+        request = build_range_read(args.outstation_addr, args.master_addr, group, variation, start, stop)
+        label = "ranged READ (G%dV%d, %d-%d)" % (group, variation, start, stop)
+    else:
+        request = build_class0_read(args.outstation_addr, args.master_addr)
+        label = "Class 0 READ"
     if not rrc.dnp3_frame_ok(request):
         sock.close()
         print("FAIL: self-built request frame failed its own CRC check", file=sys.stderr)
@@ -137,7 +165,7 @@ def main(argv=None):
         sock.close()
         print("FAIL: send failed: %s" % error, file=sys.stderr)
         return 1
-    print("sent Class 0 READ request: %d bytes, hex=%s" % (len(request), request.hex()))
+    print("sent %s request: %d bytes, hex=%s" % (label, len(request), request.hex()))
 
     sock.settimeout(args.read_timeout)
     buf, got_first = b"", False
@@ -176,7 +204,7 @@ def main(argv=None):
         print("FAIL: at least one response frame failed its link/data CRC", file=sys.stderr)
         return 1
 
-    print("PASS: fixed-source-port Class 0 READ request/response exchange completed, all CRCs valid")
+    print("PASS: fixed-source-port %s request/response exchange completed, all CRCs valid" % label)
     return 0
 
 

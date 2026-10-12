@@ -91,11 +91,84 @@ class Base(unittest.TestCase):
 
 
 class SingleRun(Base):
+    def test_default_capture_arguments_remain_buffered_and_are_recorded(self):
+        dest = os.path.join(self.runs, 'default_capture')
+        result = vr.run_connection(dest, 'default_capture', 54500, 1, 8, 0, 0, 0)
+        expected = {direction: ['tcpdump', '-i', vr.PARENT, '-Q', direction, '-s0', '-U', '-n',
+                     '-w', os.path.join(dest, direction + '.pcap'),
+                     'tcp and host %s and host %s' % (vr.IP_M, vr.IP_O)] for direction in ('out', 'in')}
+        self.assertEqual([call for call in FakePopen.log if call[0] == 'tcpdump'], list(expected.values()))
+        self.assertIs(result['capture_immediate'], False)
+        self.assertEqual(result['capture_commands'], expected)
+
+    def test_immediate_capture_adds_only_the_flag_to_both_directions(self):
+        dest = os.path.join(self.runs, 'immediate_capture')
+        result = vr.run_connection(dest, 'immediate_capture', 54500, 1, 8, 0, 0, 0, capture_immediate=True)
+        expected = {direction: ['tcpdump', '--immediate-mode', '-i', vr.PARENT, '-Q', direction, '-s0', '-U', '-n',
+                     '-w', os.path.join(dest, direction + '.pcap'),
+                     'tcp and host %s and host %s' % (vr.IP_M, vr.IP_O)] for direction in ('out', 'in')}
+        self.assertEqual([call for call in FakePopen.log if call[0] == 'tcpdump'], list(expected.values()))
+        retained = json.loads(Path(dest, 'result.json').read_text())
+        self.assertIs(retained['capture_immediate'], True)
+        self.assertEqual(retained['capture_commands'], expected)
+
+    def test_capture_immediate_requires_boolean_before_state_or_process_calls(self):
+        for value in ('true', 1, None):
+            dest = os.path.join(self.runs, 'invalid_capture')
+            with self.assertRaisesRegex(ValueError, 'capture_immediate'):
+                vr.run_connection(dest, 'invalid_capture', 54500, 1, 8, 0, 0, 0, capture_immediate=value)
+            self.assertFalse(os.path.exists(dest))
+        self.assertEqual(FakePopen.log, [])
+
+    def test_controls_reach_endpoint_environment_and_extend_timeout(self):
+        res = vr.run_connection(os.path.join(self.runs, 'controls'), 'controls', 54500, 5, 8, 0, 0, 0,
+                                read_pause_ms=5000, run_sbo=False, close_grace_ms=5000)
+        self.assertTrue(res['ok'])
+        call = self.master_calls[0]
+        for value in ('CASE4_READ_PAUSE_MS=5000', 'CASE4_RUN_SBO=0', 'CASE4_CLOSE_GRACE_MS=5000'):
+            self.assertIn(value, call)
+        self.assertEqual(res['endpoint_controls'], {'read_pause_ms': 5000, 'run_sbo': False, 'close_grace_ms': 5000})
+
     def test_a_normal_run_still_writes_its_evidence_and_result(self):
         res = vr.run_connection(os.path.join(self.runs, 'one'), 'one', 54500, 5, 8, 0, 0, 0)
         self.assertTrue(res['ok'])
         for f in ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt'):
             self.assertTrue(os.path.exists(os.path.join(self.runs, 'one', f)), f)
+
+    def test_source_port_wait_records_poll_count_elapsed_and_result(self):
+        original = vr.nsx
+        busy = iter(['ESTAB 0 0 192.168.10.61:54500 peer\n', '', ''])
+        def nsx(ns, *cmd, **kw):
+            if cmd[0] == 'ss':
+                return SimpleNamespace(returncode=0, stdout=next(busy), stderr='')
+            return original(ns, *cmd, **kw)
+        vr.nsx = nsx
+        res = vr.run_connection(os.path.join(self.runs, 'wait'), 'wait', 54500, 5, 8, 0, 0, 0)
+        self.assertEqual(res['source_port_wait']['polls'], 2)
+        self.assertEqual(res['source_port_wait']['result'], 'free')
+        self.assertEqual(res['source_port_wait']['port'], 54500)
+        self.assertGreaterEqual(res['source_port_wait']['elapsed_s'], 0)
+
+    def test_busy_port_timeout_is_retained_before_any_endpoint_starts(self):
+        vr.nsx = lambda ns, *cmd, **kw: SimpleNamespace(returncode=0, stdout='ESTAB 0 0 192.168.10.61:54500 peer\n', stderr='')
+        res = self.reconnect()
+        wait = res['connections']['c1']['source_port_wait']
+        self.assertEqual(wait['polls'], 80)
+        self.assertEqual(wait['result'], 'busy')
+        self.assertFalse(res['ok'])
+        self.assertEqual(FakePopen.log, [])
+        retained = json.load(open(Path(self.runs) / 'lbl' / 'c1' / 'result.json'))
+        self.assertEqual(retained['source_port_wait'], wait)
+
+    def test_unreadable_source_port_probe_is_retained_and_starts_no_endpoint(self):
+        vr.nsx = lambda ns, *cmd, **kw: SimpleNamespace(returncode=1, stdout='', stderr='ss probe failed')
+        res = self.reconnect()
+        wait = res['connections']['c1']['source_port_wait']
+        self.assertEqual(wait['result'], 'probe_error')
+        self.assertEqual(wait['polls'], 1)
+        self.assertIn('ss probe failed', wait['error'])
+        self.assertFalse(res['ok'])
+        self.assertEqual(FakePopen.log, [])
 
     def test_a_label_is_never_reused(self):
         vr.run_connection(os.path.join(self.runs, 'one'), 'one', 54500, 5, 8, 0, 0, 0)
@@ -153,7 +226,9 @@ class ReconnectScenario(Base):
         self.master_rcs = {2: 1}
         res = self.reconnect()
         self.assertFalse(res['ok'])
-        self.assertIn('c3', res['connections'])                     # still characterized after c2 misbehaves
+        self.assertEqual(len(self.master_calls), 2)
+        self.assertFalse(res['connections']['c3']['ran'])
+        self.assertFalse(res['connections']['c3']['comparable'])
 
     def test_scenario_json_and_state_are_written_and_the_label_is_not_reusable(self):
         self.reconnect()

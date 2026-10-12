@@ -1,9 +1,13 @@
 # Case 4 architecture execution
 
+Paused at the user's request. Resume from [lab checkpoint](integration/evidence/rearm_01/PAUSE.md); full compile/model/silicon qualification remains pending.
+
 Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
 Current execution: `main`; accepted checkpoints and their exact artifacts are listed below.
 Earlier assignment bases are historical.
 This directory contains new engineering candidates; it is not deployment evidence.
+
+Current continuation (2026-10-12): implement bounded, generation-safe same-tuple N/E/T rearm while preserving `mirror_fix_01`. The approved sequence and qualification gates are in [rearm execution plan](integration/evidence/rearm_01/PLAN.md), with current evidence in [checkpoint](integration/evidence/rearm_01/CHECKPOINT.md). The unchanged failure was captured and independently verified before candidate edits. Independent baseline timing, four-arm and native reference experiments are complete, with strict failures preserved in [retained outcomes](integration/evidence/rearm_01/baseline_independent_results_02.json). The switch is restored to `case4_response_path`; the isolated candidate still needs full compile/model/silicon qualification. Root owns the switch; offline agents own isolated implementation and review. This continuation supersedes the historical stop/checkpoint instructions below.
 
 ## Current plan: core functionality and its tests
 

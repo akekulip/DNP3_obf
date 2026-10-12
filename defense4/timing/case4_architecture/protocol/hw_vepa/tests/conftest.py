@@ -16,15 +16,20 @@ ARCH = Path(__file__).resolve().parents[3]
 EVIDENCE = Path('integration/evidence')
 
 
-def _shipped_manifest():
+def _shipped_build_files():
     """The compile manifest of the build the shipped campaign.json arms run on, relative to the evidence root."""
     cfg = json.load(open(ARCH / 'protocol' / 'hw_vepa' / 'campaign.json'))
-    rel = Path(cfg['builds'][cfg['arms'][0]['build']]['manifest'])
-    return rel.relative_to(EVIDENCE)
+    build = cfg['builds'][cfg['arms'][0]['build']]
+    return [Path(build['manifest']).relative_to(EVIDENCE)] + [
+        (Path(build['out_dir']) / relative).relative_to(EVIDENCE)
+        for relative in ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')]
 
 
-NEEDS = {'build_tree': _shipped_manifest(),
-         'evidence_tree': Path('p2_production_01/p_unshaped/sna_p_unshaped.json')}
+NEEDS = {'build_tree': _shipped_build_files(),
+         'evidence_tree': [Path('p2_production_01/p_unshaped') / name for name in
+                           ('sna_p_unshaped.json', 'snb_p_unshaped.json', 'out.pcap', 'in.pcap', 'master.json', 'outstation.json')] +
+                          [Path('mirror_fix_silicon_01/s_r20') / name for name in
+                           ('sna_s_r20.json', 'snb_s_r20.json', 'out.pcap', 'in.pcap', 'master.json', 'outstation.json')]}
 
 
 def evidence_root():
@@ -39,6 +44,7 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config, items):
     root = evidence_root()
     for item in items:
-        for name, rel in NEEDS.items():
-            if item.get_closest_marker(name) and not (root / rel).exists():
-                item.add_marker(pytest.mark.skip(reason='%s: %s not found under %s' % (name, rel, root)))
+        for name, files in NEEDS.items():
+            missing = [relative for relative in files if not (root / relative).is_file()]
+            if item.get_closest_marker(name) and missing:
+                item.add_marker(pytest.mark.skip(reason='%s: required files missing under%s: %s' % (name, root, missing)))

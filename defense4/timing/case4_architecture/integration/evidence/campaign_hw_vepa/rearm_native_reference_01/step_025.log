@@ -1,0 +1,8 @@
+{"which": "vepa", "master_port": 59402, "enable": 0, "no_forwarding": false, "Egress.conn": [{"key": {"hdr.ip.dst": 3232238141, "hdr.ip.src": 3232238142, "hdr.tcp.dport": 59402, "hdr.tcp.sport": 20000}, "data": {"enable": 0, "idx": 0, "action_name": "Egress.fwd_conn"}}, {"key": {"hdr.ip.dst": 3232238142, "hdr.ip.src": 3232238141, "hdr.tcp.dport": 20000, "hdr.tcp.sport": 59402}, "data": {"idx": 0, "action_name": "Egress.rev_conn"}}], "Egress.odd_ip_t": [{"key": {"hdr.ip.dst": 3232238141, "hdr.ip.src": 3232238142}, "data": {"idx": 0, "action_name": "Egress.odd_conn"}}, {"key": {"hdr.ip.dst": 3232238142, "hdr.ip.src": 3232238141}, "data": {"idx": 0, "action_name": "Egress.odd_conn"}}], "Ingress.forwarding": [{"key": {"ig.ingress_port": 9}, "data": {"port": 9, "action_name": "Ingress.route"}}]}
+
+--- stderr ---
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case4_response_path
+Binding with p4_name case4_response_path successful!!
+Received case4_response_path on GetForwarding on client 125, device 0

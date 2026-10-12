@@ -119,7 +119,7 @@
     }
   },
   "expectations": {
-    "_note": "THE one expectations table; checks.evaluate enforces it per trial from the trial's own evidence (before/after snapshot deltas, master.json, outstation.json, wire.json, timing.json) and a violation fails the trial. README repeats it. The T-on counts for the piggyback fixture are assumed equal to separate_ack (one commit and one release per READ) and have not been measured: only the fallback bound is restricted to the on-time fixture.",
+    "_note": "Per-trial endpoint, wire and timing expectations. For R complete READs and P piggyback responses: ACK_COMMIT=R-P, ACK_FALLBACK=0, RESP_RELEASE=R-P, RESP_FALLBACK=P. READ triggers remain R and tokens2kR. run_sbo=false requires zero real SBO callbacks, no SBO exchanges and OP_RELEASE0. Strict stale default0 includes mandatory diagnostic19..24sum.",
     "common": {"read_points": 23},
     "native_len": {"READ": 49, "SELECT": 37, "OPERATE": 37},
     "mirror_fix": {

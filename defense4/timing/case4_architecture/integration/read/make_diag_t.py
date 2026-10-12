@@ -32,6 +32,13 @@ SRC = HERE / 'read_queue_timing.p4'
 # re-wait move to the free indices 14/15. Index -> role is also printed by snapshot_counters.py's DIAG map.
 DIAG_ACK_REWAIT, DIAG_RESP_REWAIT = 14, 15
 DIAG_ACK_LAP, DIAG_RESP_LAP, DIAG_OP_LAP = 16, 17, 18
+# OUT_TOKEN_STALE (index 6) split by source (2026-10-12, stale_probe_01's "exactly 5 or 0"). In this build index 6
+# stays 0; the sum 19..24 equals production's index 6. 19/20 split the OPERATE blocker by whether the deadline of
+# the OPERATE recorded in op_t0_reg had passed: 19 = the blocker outlived a released OPERATE and only the
+# generation moved under it (e.g. the close RESET's op_gen bump), 20 = the blocker's OPERATE was superseded live.
+DIAG_STALE_OPBLK_PAST, DIAG_STALE_OPBLK_LIVE = 19, 20
+DIAG_STALE_ACKBLK, DIAG_STALE_RESPBLK = 21, 22
+DIAG_STALE_OPTOK, DIAG_STALE_RDTOK = 23, 24
 
 EDITS = [
     # 1. widen the outcomes register and its bump path to a 32-entry, 5-bit-indexed bank
@@ -46,6 +53,7 @@ EDITS = [
      '        }\n        default_action = NoAction(); size = 16;',
      '            7 : bump(7); 8 : bump(8); 9 : bump(9); 10 : bump(10); 11 : bump(11); 12 : bump(12); 13 : bump(13);\n'
      '            14 : bump(14); 15 : bump(15); 16 : bump(16); 17 : bump(17); 18 : bump(18);   /* diag */\n'
+     '            19 : bump(19); 20 : bump(20); 21 : bump(21); 22 : bump(22); 23 : bump(23); 24 : bump(24);   /* diag */\n'
      '        }\n        default_action = NoAction(); size = 32;'),
     # 2. split the held-original re-wait counts. OPERATE (HB_RETURN qid 2) keeps OUT_HELD_REWAIT (index 1);
     #    ACK (HELD_RETURN qid 6) -> 14, RESP (HELD_RETURN qid 4) -> 15.
@@ -70,6 +78,31 @@ EDITS = [
      '// DIAGNOSTIC (make_diag_t.py): index 1 OPERATE re-wait (OUT_HELD_REWAIT, kept so the composite OPERATE\n'
      '// assertion stays green), 14 ACK re-wait, 15 RESP re-wait, 16 ACK-blocker lap, 17 RESP-blocker lap,\n'
      '// 18 OPERATE-blocker lap. Indices 0..13 unchanged.'),
+    # 4. split OUT_TOKEN_STALE (index 6) by source; the two stale actions take the outcome code as a parameter
+    ('action stop_blocking_stale() { ig_dprsr_md.drop_ctl = 1; count(OUT_TOKEN_STALE); }',
+     'action stop_blocking_stale(bit<8> c) { ig_dprsr_md.drop_ctl = 1; md.outcome_code = c; }   /* diag */'),
+    ('(ROLE_ACK_BLK, _, _, _, _, _, _, _, _, _, _, _) : stop_blocking_stale();',
+     '(ROLE_ACK_BLK, _, _, _, _, _, _, _, _, _, _, _) : stop_blocking_stale(%d);' % DIAG_STALE_ACKBLK),
+    ('(ROLE_RESP_BLK, _, _, _, _, _, _, _, _, _, _, _) : stop_blocking_stale();',
+     '(ROLE_RESP_BLK, _, _, _, _, _, _, _, _, _, _, _) : stop_blocking_stale(%d);' % DIAG_STALE_RESPBLK),
+    ('            (ROLE_OP_BLK, _, _, _, _, _) : stop_blocking_stale();',
+     '            (ROLE_OP_BLK, _, _, _, 32w0 &&& 32w0x80000000, _) : stop_blocking_stale(%d);   /* diag */\n'
+     '            (ROLE_OP_BLK, _, _, _, _, _) : stop_blocking_stale(%d);' % (DIAG_STALE_OPBLK_PAST, DIAG_STALE_OPBLK_LIVE)),
+    ('        default_action = unmatched(); size = 11;',
+     '        default_action = unmatched(); size = 12;   /* diag: +1 OPERATE-blocker stale row */'),
+    ('action drop_timer_stale() { hdr.timer.setInvalid(); ig_dprsr_md.drop_ctl = 1; count(OUT_TOKEN_STALE); }',
+     'action drop_timer_stale(bit<8> c) { hdr.timer.setInvalid(); ig_dprsr_md.drop_ctl = 1; md.outcome_code = c; }'
+     '   /* diag */'),
+    ('            (1, _, _, _) : drop_timer_stale();',
+     '            (1, _, _, _) : drop_timer_stale(%d);' % DIAG_STALE_OPTOK),
+    ('            (_, 16w0 &&& 16w1, _, _) : drop_timer_stale();',
+     '            (_, 16w0 &&& 16w1, _, _) : drop_timer_stale(%d);' % DIAG_STALE_RDTOK),
+    ('        default_action = drop_timer_stale(); size = 5;',
+     '        default_action = drop_timer_stale(%d); size = 5;' % DIAG_STALE_RDTOK),
+    ('// 18 OPERATE-blocker lap. Indices 0..13 unchanged.',
+     '// 18 OPERATE-blocker lap. Indices 0..13 unchanged except 6 (OUT_TOKEN_STALE), split by source: 19 OPERATE\n'
+     '// blocker after its OPERATE deadline, 20 OPERATE blocker before it, 21 ACK blocker, 22 response blocker,\n'
+     '// 23 OPERATE token, 24 READ token.'),
 ]
 
 

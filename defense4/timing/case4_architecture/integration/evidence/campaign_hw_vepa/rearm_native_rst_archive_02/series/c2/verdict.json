@@ -1,0 +1,87 @@
+{
+  "name": "c2",
+  "master_port": 59400,
+  "ok": false,
+  "failures": [
+    "kernel RST observer failed",
+    "captured close proof missing: rst"
+  ],
+  "result": {
+    "label": "rearm_native_rst_archive_02_native_rst_c2",
+    "master_port": 59400,
+    "reads": 1,
+    "range": 8,
+    "gap_ms": 0,
+    "start_delay_ms_max": 0,
+    "start_seed": 12346,
+    "start_delay_ms_applied": 0,
+    "endpoint_controls": {
+      "read_pause_ms": 25,
+      "run_sbo": true,
+      "close_grace_ms": 1000
+    },
+    "source_port_wait": {
+      "port": 59400,
+      "polls": 1,
+      "elapsed_s": 0.032,
+      "result": "free"
+    },
+    "outstation_ready": true,
+    "master_rc": 0,
+    "master_wall_s": 1.062,
+    "tcpdump": {
+      "out": {
+        "captured": 18,
+        "received": 36,
+        "dropped_kernel": 0
+      },
+      "in": {
+        "captured": 18,
+        "received": 36,
+        "dropped_kernel": 0
+      }
+    },
+    "frames_out": 18,
+    "frames_in": 18,
+    "ok": true
+  },
+  "observer": {
+    "ok": false,
+    "response": {
+      "response_index": 12,
+      "t_us": 1791819529817954,
+      "app_seq": 2,
+      "frame_sha256": "7b12ade7947fccd4348549af495f70c5dd0bbe3b67358065dd870e871ac4abb1",
+      "checksum_valid": true,
+      "dnp3_crc_valid": true
+    },
+    "error": "exact established socket probe is missing or ambiguous",
+    "commands": [
+      {
+        "argv": [
+          "ss",
+          "-H",
+          "-4",
+          "-t",
+          "-n",
+          "state",
+          "established",
+          "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+        ],
+        "namespace": "ns_vepa_a",
+        "rc": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ]
+  },
+  "pre_read_hook": {
+    "requested_pre_read_grace_ms": 0,
+    "supported": false,
+    "observed_pre_read_grace_ms": null,
+    "pre_read_ready_ns": null,
+    "first_read_issued_ns": null,
+    "marker_path": null,
+    "marker_sha256": null
+  }
+}

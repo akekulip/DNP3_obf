@@ -42,12 +42,14 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
     plen = [58] if padding else None
     read_len, sbo_len = (plen or [49]), (plen or [37])
     piggy = reads if fixture == 'piggyback' else 0
-    ex = [{'kind': 'READ', 'resp_len': read_len[0], 'complete': True} for _ in range(reads)]
+    ex = [{'kind': 'READ', 'resp_len': read_len[0], 'complete': True, 'attempts': 1,
+           'piggyback': fixture == 'piggyback', 'clrt_us': None if piggy else 800} for _ in range(reads)]
     ex += [{'kind': 'SELECT', 'resp_len': sbo_len[0], 'complete': True},
            {'kind': 'OPERATE', 'resp_len': sbo_len[0], 'complete': True}]
     out0 = {'OUT_ACK_COMMIT': 7, 'OUT_RESP_RELEASE': 7, 'OUT_OP_RELEASE': 1, 'OUT_ACK_FALLBACK': 0,
             'OUT_RESP_FALLBACK': 0, 'OUT_TOKEN_STALE': 0}
-    d = {'OUT_ACK_COMMIT': reads, 'OUT_RESP_RELEASE': reads, 'OUT_OP_RELEASE': 1} if T else \
+    d = {'OUT_ACK_COMMIT': reads - piggy, 'OUT_RESP_RELEASE': reads - piggy,
+         'OUT_RESP_FALLBACK': piggy, 'OUT_OP_RELEASE': 1} if T else \
         {'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 0, 'OUT_OP_RELEASE': 0}
     out1 = {k: out0.get(k, 0) + d.get(k, 0) for k in out0}
     pg0 = pktgen(3, 12, 1, 4)
@@ -125,13 +127,19 @@ class Violations(unittest.TestCase):
         ev = evidence(1, 1)
         ev['after']['outcomes']['OUT_ACK_FALLBACK'] += 1
         self.one(ev, 'OUT_ACK_FALLBACK')
-        fails, _ = run(ev, fixture='piggyback')      # the fallback bound applies to separate_ack only
-        self.assertFalse(any('FALLBACK' in f for f in fails))
+        fails, _ = run(ev, fixture='piggyback')
+        self.assertTrue(any('OUT_ACK_FALLBACK' in f for f in fails))
 
     def test_T_off_with_release_outcomes(self):
         ev = evidence(1, 0)
         ev['after']['outcomes']['OUT_ACK_COMMIT'] += 3
         self.one(ev, 'OUT_ACK_COMMIT', T=0)
+
+    def test_T_off_unreadable_outcome_is_not_assumed_zero(self):
+        ev = evidence(T=0)
+        ev['before']['outcomes']['OUT_ACK_COMMIT'] = None
+        ev['after']['outcomes']['OUT_ACK_COMMIT'] = None
+        self.one(ev, 'outcomes', T=0)
 
     def test_master_failure(self):
         ev = evidence()
