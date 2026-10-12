@@ -232,7 +232,9 @@ def warnings(cfg):
 
 
 class StepFailed(Exception):
-    pass
+    def __init__(self, msg, result=None):
+        super().__init__(msg)
+        self.result = result
 
 
 class ShellRunner:
@@ -294,7 +296,7 @@ class Campaign:
         self.V = vr.HOME
         self.prerun = '%s/snap/%s_prerun.json' % (self.R, run_id)
         self.root = os.path.join(path_of(cfg['evidence_dir']), run_id)
-        self.record = {'run_id': run_id, 'ok': False, 'failure': None, 'arms': [], 'restore': [], 'bringups': []}
+        self.record = {'run_id': run_id, 'ok': False, 'failure': None, 'arms': [], 'restore': [], 'bringups': [], 'collections': []}
         self.switch_touched = False
         self.standing = []            # manifests of installs not yet torn down
         self.vision_touched = False
@@ -335,7 +337,7 @@ class Campaign:
             self.out('[%s] %s -> rc %d' % (where, label, r.rc))
         if check and r.rc != 0:
             raise StepFailed('%s failed (rc %d) on %s: %s | %s' % (label, r.rc, where, cmd[:300],
-                                                                   (r.err or r.out)[-400:].strip()))
+                                                                   (r.err or r.out)[-400:].strip()), r)
         return r
 
     def switch_cmd(self, script, args):
@@ -471,8 +473,9 @@ class Campaign:
         return rec
 
     def run_unit(self, fixture, arm, i, reads, port):
-        """One cold bring-up and one connection: swap, ports, install, T, snapshot, traffic, snapshot, teardown."""
-        c, R, host = self.cfg, self.R, self.cfg['hosts']['switch']
+        """One cold bring-up and one connection: swap, ports, install, T, snapshot, traffic, then ALWAYS the
+        collection phase (after snapshot, teardown, logs, manifest, endpoint outputs), then the verdict."""
+        c, R = self.cfg, self.R
         aux, build, tr = R + '/aux', arm['build'], c['traffic']
         b = c['builds'][build]
         n, out_remote = arm['name'], '%s/out_%s' % (R, build)
@@ -483,33 +486,120 @@ class Campaign:
         trial = {'fixture': fixture, 'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': []}
         rec['trials'].append(trial)
         dest = os.path.join(self.root, fixture, n, label)
-        self.step('switch', '%s: PCI vendor must be Barefoot/Intel (0x1d1c)' % label,
-                  'test "$(cat /sys/bus/pci/devices/%s/vendor)" = 0x1d1c' % b['pcie'])
-        self.step('switch', '%s: make the bf_switchd conf for this build' % label,
-                  'python3 %s/%s/make_conf.py %s --remote-dir %s --pcie %s -o %s'
-                  % (R, HW, out_remote, out_remote, b['pcie'], conf))
-        self.switch_touched = True
-        self.step('switch', '%s: cold-swap bf_switchd to the composite (stop, launch, wait for :50052)' % label,
-                  'bash %s/switch_swap.sh %s %s/launch_composite.sh %s %s' % (aux, log, aux, conf, b['sde']))
-        self.step('switch', '%s: replay the pre-run $PORT snapshot' % label,
-                  'python3 %s/restore_ports.py %s %s --apply --wait 35' % (aux, c['program'], self.prerun))
-        comp = self.installer_cmd(build, arm['padding'], out_remote, port)
-        self.step('switch', '%s: composite install dry-run (hash check, name check, ports it will loop)' % label, comp)
-        self.standing.append(manifest)
-        self.step('switch', '%s: composite install apply (loopback first, apps enabled last)' % label,
-                  self.hw_env(comp + ' --apply --enable-pktgen --manifest-out %s' % manifest))
-        self.record['bringups'].append({'label': label, 'fixture': fixture, 'arm': n, 'trial': i, 'master_port': port,
-                                        'padding': arm['padding'], 'T': arm['T'], 'manifest': manifest})
-        self.step('switch', '%s: select T (0=Timing OFF, 1=Obfuscated)' % label, self.hw_env(self.switch_cmd(
-            'set_enabled.py', '--manifest %s --enabled %d' % (manifest, arm['T']))))
-        self.snapshot(out_remote, label + '_before')
-        v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port),
-                      'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d'
-                      % (self.V, label, port, reads, tr['range'], tr['gap_ms']), check=False)
         if not self.rn.dry:
             os.makedirs(os.path.join(dest, 'snapshots'))
-        self.step('local', '%s: copy evidence' % label, 'scp -q %s:%s/runs/%s/* %s/'
-                  % (c['hosts']['vision'], self.V, label, q(dest)), check=not self.rn.dry)
+        err, v, state = None, None, {'installed': False, 'ran': False, 'before': False, 'after': False}
+        try:
+            self.step('switch', '%s: PCI vendor must be Barefoot/Intel (0x1d1c)' % label,
+                      'test "$(cat /sys/bus/pci/devices/%s/vendor)" = 0x1d1c' % b['pcie'])
+            self.step('switch', '%s: make the bf_switchd conf for this build' % label,
+                      'python3 %s/%s/make_conf.py %s --remote-dir %s --pcie %s -o %s'
+                      % (R, HW, out_remote, out_remote, b['pcie'], conf))
+            self.switch_touched = True
+            self.step('switch', '%s: cold-swap bf_switchd to the composite (stop, launch, wait for :50052)' % label,
+                      'bash %s/switch_swap.sh %s %s/launch_composite.sh %s %s' % (aux, log, aux, conf, b['sde']))
+            self.step('switch', '%s: replay the pre-run $PORT snapshot' % label,
+                      'python3 %s/restore_ports.py %s %s --apply --wait 35' % (aux, c['program'], self.prerun))
+            comp = self.installer_cmd(build, arm['padding'], out_remote, port)
+            self.step('switch', '%s: composite install dry-run (hash check, name check, ports it will loop)' % label,
+                      comp)
+            self.standing.append(manifest)
+            state['installed'] = True
+            r = self.step('switch', '%s: composite install apply (loopback first, apps enabled last)' % label,
+                          self.hw_env(comp + ' --apply --enable-pktgen --manifest-out %s' % manifest))
+            self.save(dest, 'install.log', r)
+            self.record['bringups'].append({'label': label, 'fixture': fixture, 'arm': n, 'trial': i,
+                                            'master_port': port, 'padding': arm['padding'], 'T': arm['T'],
+                                            'manifest': manifest})
+            self.step('switch', '%s: select T (0=Timing OFF, 1=Obfuscated)' % label, self.hw_env(self.switch_cmd(
+                'set_enabled.py', '--manifest %s --enabled %d' % (manifest, arm['T']))))
+            self.snapshot(out_remote, label + '_before')
+            state['before'] = True
+            state['ran'] = True
+            v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port),
+                          'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d'
+                          % (self.V, label, port, reads, tr['range'], tr['gap_ms']), check=False)
+            self.save(dest, 'vision_run.out', v)
+            state['after'] = True
+            self.snapshot(out_remote, label + '_after', check=False)
+        except (StepFailed, OSError) as e:
+            err = e
+            if isinstance(e, StepFailed) and e.result is not None:
+                self.save(dest, 'install.log' if state['installed'] and not state['before'] else 'failed_step.log',
+                          e.result)
+        self.collect_unit(label, dest, out_remote, manifest, log, state)
+        if err is not None:
+            raise err
+        self.verdict(trial, rec, label, dest, v)
+
+    def save(self, dest, name, result):
+        """Write a command's captured output next to the evidence (local, best effort)."""
+        if self.rn.dry or result is None:
+            return
+        try:
+            with open(os.path.join(dest, name), 'w') as f:
+                f.write(result.out + ('\n--- stderr ---\n' + result.err if result.err else ''))
+        except OSError:
+            pass
+
+    def collect(self, label, what, where, cmd):
+        """One independent best-effort collection step, recorded with ok/error whatever happens."""
+        entry = {'unit': label, 'what': what, 'ok': False, 'error': None}
+        try:
+            r = self.rn.run(where, cmd, timeout=900, label='%s: collect %s' % (label, what))
+            entry['ok'] = r.rc == 0
+            if r.rc != 0:
+                entry['error'] = 'rc %d: %s' % (r.rc, (r.err or r.out)[-300:].strip())
+        except Exception as e:
+            entry['error'] = '%s: %s' % (type(e).__name__, e)
+        self.record['collections'].append(entry)
+        if not self.rn.dry and not entry['ok']:
+            sys.stderr.write('COLLECTION FAILED: %s %s: %s\n' % (label, what, entry['error']))
+        return entry
+
+    def collect_unit(self, label, dest, out_remote, manifest, log, state):
+        """Runs after success AND failure, before any restore: tear the install down (output kept), then fetch
+        everything the unit produced. Every step is independent of the others."""
+        R, host, vhost = self.R, self.cfg['hosts']['switch'], self.cfg['hosts']['vision']
+        if state['installed']:
+            if not state['after']:                  # the failure came before the normal after-snapshot
+                state['after'] = True
+                try:
+                    self.snapshot(out_remote, label + '_after', check=False)
+                except Exception:
+                    pass
+            entry = {'unit': label, 'what': 'teardown', 'ok': False, 'error': None}
+            try:
+                r = self.rn.run('switch', self.hw_env(self.switch_cmd('bringup_teardown.py',
+                                '--manifest %s --apply' % manifest)), timeout=1800,
+                                label='%s: teardown the composite (generator and T off, rows out, loopback off last)'
+                                % label)
+                self.save(dest, 'teardown.log', r)
+                entry['ok'] = r.rc == 0
+                if r.rc != 0:
+                    entry['error'] = 'rc %d: %s' % (r.rc, (r.err or r.out)[-300:].strip())
+                else:
+                    self.standing.remove(manifest)
+            except Exception as e:
+                entry['error'] = '%s: %s' % (type(e).__name__, e)
+            self.record['collections'].append(entry)
+        fetch = lambda f: 'scp -q %s:%s %s/' % (host, f, q(dest))
+        snapdir = q(os.path.join(dest, 'snapshots'))
+        if state['before']:
+            self.collect(label, 'before snapshot', 'local',
+                         'scp -q %s:%s/snap/%s_before.json %s/' % (host, R, label, snapdir))
+        if state['after']:
+            self.collect(label, 'after snapshot', 'local',
+                         'scp -q %s:%s/snap/%s_after.json %s/' % (host, R, label, snapdir))
+        if state['ran']:
+            self.collect(label, 'vision run directory', 'local', 'scp -q %s:%s/runs/%s/* %s/'
+                         % (vhost, self.V, label, q(dest)))
+        self.collect(label, 'switch log', 'local', fetch(log))
+        if state['installed']:
+            self.collect(label, 'bring-up manifest', 'local', fetch(manifest))
+
+    def verdict(self, trial, rec, label, dest, v):
+        """The gate: independent wire verification, timing extraction and run.evaluate over the collected files."""
         w = self.step('local', '%s: independent wire verification' % label,
                       '%s %s/wire_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
                                                                 q(dest + '/in.pcap'), q(dest + '/wire.json')),
@@ -518,30 +608,22 @@ class Campaign:
                       '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
                                                                 q(dest + '/in.pcap'), q(dest + '/timing.json')),
                       check=False)
-        if not self.rn.dry:
-            try:
-                result = json.loads([l for l in v.out.splitlines() if l.startswith('{')][-1])
-            except (IndexError, ValueError):
-                result = {'error': (v.out + v.err)[-500:]}
-            artifacts = {f: os.path.exists(os.path.join(dest, f)) for f in ('out.pcap', 'in.pcap', 'wire.json',
-                                                                            'timing.json')}
-            ok, fails = runner.evaluate(False, v.rc, result, w.rc, k.rc, artifacts)
-            trial.update(ok=ok, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc)
-            json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
-            if not ok:
-                raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
-        self.snapshot(out_remote, label + '_after')
-        self.step('local', '%s: copy the before/after snapshots back' % label,
-                  'scp -q %s:%s/snap/%s_before.json %s:%s/snap/%s_after.json %s/snapshots/'
-                  % (host, R, label, host, R, label, q(dest)), check=not self.rn.dry)
-        if not self.rn.dry:
-            snap = json.load(open(os.path.join(dest, 'snapshots', '%s_after.json' % label)))
-            trial['achieved_shaping'] = rec['achieved_shaping'] = snap.get('shaping')
-        self.step('switch', '%s: teardown the composite (generator and T off, rows out, loopback off last)' % label,
-                  self.hw_env(self.switch_cmd('bringup_teardown.py', '--manifest %s --apply' % manifest)))
-        self.standing.remove(manifest)
-        self.step('local', '%s: copy the bring-up manifest back' % label,
-                  'scp -q %s:%s %s/' % (host, manifest, q(dest)), check=False)
+        if self.rn.dry:
+            return
+        try:
+            result = json.loads([l for l in v.out.splitlines() if l.startswith('{')][-1])
+        except (IndexError, ValueError):
+            result = {'error': (v.out + v.err)[-500:]}
+        artifacts = {f: os.path.exists(os.path.join(dest, f)) for f in ('out.pcap', 'in.pcap', 'wire.json',
+                                                                        'timing.json')}
+        ok, fails = runner.evaluate(False, v.rc, result, w.rc, k.rc, artifacts)
+        trial.update(ok=ok, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc)
+        snap = os.path.join(dest, 'snapshots', '%s_after.json' % label)
+        if os.path.exists(snap):
+            trial['achieved_shaping'] = rec['achieved_shaping'] = json.load(open(snap)).get('shaping')
+        json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
+        if not ok:
+            raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
 
     def installer_cmd(self, build, padding, out_remote, port):
         c = self.cfg
@@ -559,8 +641,8 @@ class Campaign:
                    t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], c['service']['k'],
                    shaping_args(c), pad))
 
-    def snapshot(self, out_remote, name):
-        return self.step('switch', 'counter snapshot %s' % name, self.hw_env(self.switch_cmd(
+    def snapshot(self, out_remote, name, check=True):
+        return self.step('switch', 'counter snapshot %s' % name, check=check, cmd=self.hw_env(self.switch_cmd(
             'snapshot_counters.py', '--build-out %s --ports %s %s -o %s/snap/%s.json'
             % (out_remote, self.cfg['ports_map']['stat_ports'], shaping_args(self.cfg, burst=False), self.R, name))))
 

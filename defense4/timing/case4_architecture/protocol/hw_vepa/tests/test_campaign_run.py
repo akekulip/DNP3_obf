@@ -60,6 +60,12 @@ class FakeRunner:
             dest.mkdir(parents=True, exist_ok=True)
             for tok in shlex_split(cmd)[2:-1]:               # scp -q host:/path/x.json host:/path/y.json DEST
                 (dest / tok.rsplit('/', 1)[1]).write_text(json.dumps(SNAP))
+        elif cmd.startswith('scp') and '@10.10.54.81:' in cmd:       # one file fetched back from the switch
+            toks = shlex_split(cmd)
+            dest = Path(toks[-1])
+            dest.mkdir(parents=True, exist_ok=True)
+            for tok in toks[2:-1]:
+                (dest / tok.rsplit('/', 1)[1]).write_text(json.dumps(SNAP))
         elif 'wire_check.py' in cmd:
             rc = self.wire_rc
             (Path(cmd.split('--json ')[1].split()[0])).write_text('{}')
@@ -307,6 +313,74 @@ class FixtureDimension(Base):
         r = FakeRunner()
         self.campaign(r, arms=('combined',)).execute()
         self.assertGreater(r.runs('vision_run.py restore')[-1], r.cmds('vision_run.py run')[-1])
+
+
+class FailurePathCollection(Base):
+    """A failed step must not lose the evidence: the after-snapshot, endpoint outputs, pcaps, switch log,
+    manifest and teardown output are still fetched before restore; each fetch is independent and recorded."""
+    def record_of(self):
+        return json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+
+    def collected(self, rec):
+        return {c['what']: c for c in rec['collections']}
+
+    def test_vision_run_failure_still_collects_after_snapshot_and_switch_log(self):
+        r = FakeRunner(vision_out='{"ok": false, "master_rc": 3}', vision_rc=1)
+        self.assertEqual(self.campaign(r, arms=('size_only',)).execute(), 1)
+        got = self.collected(self.record_of())
+        for what in ('after snapshot', 'before snapshot', 'switch log', 'bring-up manifest', 'vision run directory'):
+            self.assertIn(what, got)
+            self.assertTrue(got[what]['ok'], got[what])
+        fetched = [r.calls[i][1] for i in r.cmds('scp')]
+        self.assertTrue(any('_after.json' in c for c in fetched))
+        self.assertTrue(any('switchd_c1_separate_ack_size_only_t0.log' in c for c in fetched))
+        ev = Path(self.tmp) / 'ev' / 'c1' / 'separate_ack' / 'size_only' / 'c1_separate_ack_size_only_t0'
+        self.assertTrue((ev / 'snapshots' / 'c1_separate_ack_size_only_t0_after.json').exists())
+        self.assertTrue((ev / 'switchd_c1_separate_ack_size_only_t0.log').exists())
+
+    def test_collection_happens_before_the_restore(self):
+        r = FakeRunner(vision_out='{"ok": false}', vision_rc=1)
+        self.campaign(r, arms=('size_only',)).execute()
+        self.assertLess(max(r.cmds('_after.json')), r.swaps()[-1])
+        self.assertLess(max(i for i in r.cmds('scp') if 'switchd_c1' in r.calls[i][1]), r.swaps()[-1])
+
+    def test_teardown_output_is_saved_even_when_the_trial_failed(self):
+        r = FakeRunner(vision_out='{"ok": false}', vision_rc=1)
+        self.campaign(r, arms=('size_only',)).execute()
+        ev = Path(self.tmp) / 'ev' / 'c1' / 'separate_ack' / 'size_only' / 'c1_separate_ack_size_only_t0'
+        self.assertTrue((ev / 'teardown.log').exists())
+        self.assertEqual(len(r.runs('bringup_teardown.py')), 1)         # done once, not again by restore
+
+    def test_install_failure_midway_collects_the_switch_log_and_records_the_missing_pieces(self):
+        r = FakeRunner(fail_on=['--apply --enable-pktgen'])
+        self.assertEqual(self.campaign(r, arms=('size_only',)).execute(), 1)
+        got = self.collected(self.record_of())
+        self.assertTrue(got['switch log']['ok'])
+        self.assertTrue((Path(self.tmp) / 'ev' / 'c1' / 'separate_ack' / 'size_only' /
+                         'c1_separate_ack_size_only_t0' / 'install.log').exists())
+        self.assertFalse(r.cmds('vision_run.py run'))
+        self.assertNotIn('vision run directory', got)                    # traffic never started: nothing to fetch
+
+    def test_each_collection_is_independent_one_failure_does_not_stop_the_rest(self):
+        r = FakeRunner(vision_out='{"ok": false}', vision_rc=1, fail_on=['_after.json'])
+        self.campaign(r, arms=('size_only',)).execute()
+        got = self.collected(self.record_of())
+        self.assertFalse(got['after snapshot']['ok'])
+        self.assertTrue(got['after snapshot']['error'])
+        self.assertTrue(got['switch log']['ok'])
+        self.assertTrue(got['vision run directory']['ok'])
+
+    def test_a_collection_that_raises_is_recorded_not_propagated(self):
+        class Boom(FakeRunner):
+            def run(self, where, cmd, **kw):
+                if cmd.startswith('scp') and 'switchd_' in cmd:
+                    raise OSError('connection reset')
+                return super().run(where, cmd, **kw)
+        r = Boom(vision_out='{"ok": false}', vision_rc=1)
+        self.assertEqual(self.campaign(r, arms=('size_only',)).execute(), 1)
+        got = self.collected(self.record_of())
+        self.assertIn('connection reset', got['switch log']['error'])
+        self.assertTrue(got['vision run directory']['ok'])
 
 
 class RestoreTarget(Base):
