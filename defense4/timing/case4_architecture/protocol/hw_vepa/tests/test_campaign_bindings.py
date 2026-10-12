@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import campaign as cp  # noqa: E402
@@ -84,6 +86,7 @@ class Bindings(unittest.TestCase):
         cfg['endpoint']['binary_sha256'] = None
         self.assertTrue(any('endpoint' in e and 'binary_sha256' in e for e in cp.check_bindings(cfg)))
 
+    @pytest.mark.build_tree
     def test_shipped_config_is_fully_bound_with_the_real_pins(self):
         cfg = cp.load_config(str(CONFIG))
         self.assertEqual(cp.check_bindings(cfg), [])
@@ -91,6 +94,7 @@ class Bindings(unittest.TestCase):
         self.assertEqual(ep['binary_sha256'], 'f66ad08cce45407483c505edf4547c3d222d9ac3b959f3ba9540281f3c793097')
         self.assertEqual(ep['lib_sha256'], '6c7a6892d5b9fddb0c09a5ae1d63067f17034b4edf93f8f295f4c4bb32a6d23d')
 
+    @pytest.mark.build_tree
     def test_validate_passes_with_the_real_pins(self):
         self.assertEqual(cp.main(['validate', '--config', str(CONFIG)]), 0)
 

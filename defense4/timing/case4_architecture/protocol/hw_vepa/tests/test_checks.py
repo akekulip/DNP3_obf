@@ -6,6 +6,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import pytest
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import checks  # noqa: E402
@@ -222,7 +224,7 @@ class ConfigTable(unittest.TestCase):
 REAL = HERE.parents[2] / 'integration' / 'evidence' / 'p2_production_01' / 'p_unshaped'
 
 
-@unittest.skipUnless((REAL / 'sna_p_unshaped.json').exists(), 'needs the committed production evidence tree')
+@pytest.mark.evidence_tree
 class RealEvidence(unittest.TestCase):
     """The production unshaped run (padding on, T on, separate ACK, 50 READs): analyzers run for real."""
     def ev(self):

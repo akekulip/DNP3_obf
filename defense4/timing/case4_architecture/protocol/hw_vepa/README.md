@@ -31,6 +31,24 @@ python3 hw_vepa/run.py run NAME --master-port 54410 --reads 10 --out evidence/<d
 python3 hw_vepa/run.py restore        # sysctls and NIC flag back, relay slot reinstalled
 ```
 
+Tests. All run under a plain `python3 -m pytest` (Python 3.8, standard library only; no test needs the research
+venv, and `run.py` falls back to the current interpreter when `$RESEARCH_PYTHON` is unset). Two markers
+(`tests/conftest.py`) name the tests that need files outside this directory; they skip, never fail, when those are
+absent (`HW_VEPA_EVIDENCE_ROOT` overrides the evidence root, default `integration/evidence`):
+
+| marker | needs | tests |
+|---|---|---|
+| `build_tree` | the compiled build `out/` and compile `manifest.json` that `campaign.json` binds to (`route_ab_01/sbo_admission_01/hw_compile_switch_9132`) | `test_campaign_bindings.py::test_shipped_config_is_fully_bound_with_the_real_pins`, `::test_validate_passes_with_the_real_pins`; `test_deploy.py::test_run_deploys_before_it_observes_the_switch` |
+| `evidence_tree` | committed hardware captures (`p2_production_01/p_unshaped` pcaps and snapshots) | `test_checks.py::RealEvidence` |
+
+Everything else builds its own fixtures (synthetic pcaps, a fake process boundary, a throwaway compile manifest) in a
+cleaned temporary directory.
+
+```bash
+python3 -m pytest hw_vepa/tests -m "not build_tree and not evidence_tree"   # pure-source set (bare checkout)
+python3 -m pytest hw_vepa/tests                                             # full set (tree present)
+```
+
 `wire_check.py` and `clrt_check.py` no longer need scapy (built-in pcap reader, checksum and DNP3 CRC), so
 `python3 -m pytest hw_vepa/tests` runs on a fresh clone with no install step.
 

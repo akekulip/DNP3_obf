@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import campaign as cp  # noqa: E402
@@ -90,6 +92,7 @@ class DeployStep(unittest.TestCase):
                 return res
         self.assertEqual(self.deploy(Corrupt()), 1)
 
+    @pytest.mark.build_tree
     def test_run_deploys_before_it_observes_the_switch(self):
         r = FakeRunner()
         cp.Campaign(self.cfg, r, 'c1', arms=['combined'], installer_flags=lambda f: True).execute()
