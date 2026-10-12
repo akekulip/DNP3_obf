@@ -1,0 +1,325 @@
+{
+ "cases": [
+  {
+   "expected": "frame",
+   "name": "master_SYN",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": 2,
+   "name": "master_SYN_N_phase",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_SYNACK",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": 4,
+   "name": "outstation_SYNACK_N_phase",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "master_ACK",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": 5,
+   "name": "master_ACK_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "SELECT_to_outstation",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000650000038550181000cbd4000005641ac40a0001008a1cc0c0030c012801000100010164000000585b6400000000005b"
+  },
+  {
+   "expected": 9,
+   "name": "SELECT_to_outstation_N_phase",
+   "observed": 9,
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "SELECT_response_iin1_0x90_advances_and_pads",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e2075310000038500000088501810006c76000005642f4401000a00652cc0c08190000c01280100010001016400471d0000640000000029032802002d010000ce4a2041002e010000a04100f995"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e2075310000038500000088501810006c76000005642f4401000a00652cc0c08190000c01280100010001016400471d0000640000000029032802002d010000ce4a2041002e010000a04100f995"
+  },
+  {
+   "expected": 10,
+   "name": "SELECT_response_iin1_0x90_advances_and_pads_N_phase",
+   "observed": 10,
+   "ok": true
+  },
+  {
+   "decoy": 0,
+   "expected": [
+    58,
+    1
+   ],
+   "image_len": 58,
+   "name": "SELECT_response_padded_to_58_one_real_zero_decoy",
+   "observed": [
+    58,
+    1
+   ],
+   "ok": true
+  },
+  {
+   "expected": {
+    "1": 1
+   },
+   "name": "E_commit_on_select_response",
+   "observed": {
+    "1": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "OPERATE_admitted_and_delivered_to_outstation",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000088000003aa501810009259000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000088000003aa501810009259000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b"
+  },
+  {
+   "expected": 12,
+   "name": "OPERATE_admitted_and_delivered_to_outstation_N_phase",
+   "observed": 12,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_reached_outstation_exactly_once",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "frame",
+   "name": "OPERATE_response_padded_to_master",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003bf000000ab5018100053c2000005642f4401000a00652cc0c18190000c012801000100010164005f730000640000000029032802002d010000ce4a2041002e010000a04100f995"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e207531000003bf000000ab5018100053c2000005642f4401000a00652cc0c18190000c012801000100010164005f730000640000000029032802002d010000ce4a2041002e010000a04100f995"
+  },
+  {
+   "expected": 5,
+   "name": "OPERATE_response_padded_to_master_N_phase",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": [],
+   "name": "fin_operate_retransmission_not_delivered",
+   "observed": [],
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "frame",
+   "name": "server_FIN_first_translated_to_padded_frontier",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003f9000000ab50111000c3db0000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003f9000000ab50111000c3db0000"
+  },
+  {
+   "expected": 7,
+   "name": "server_FIN_first_translated_to_padded_frontier_N_phase",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": 1017,
+   "name": "server_FIN_first_translated_to_padded_frontier_seq_on_master_side",
+   "native": 975,
+   "observed": 1017,
+   "ok": true,
+   "oracle_case": "translate"
+  },
+  {
+   "expected": "frame",
+   "name": "master_ACK_of_server_FIN_reverse_mapped",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000ab000003d050101000c4050000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000ab000003d050101000c4050000"
+  },
+  {
+   "expected": "frame",
+   "name": "master_FIN_after_server_FIN_reverse_mapped",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000ab000003d050111000c4040000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000ab000003d050111000c4040000"
+  },
+  {
+   "expected": "frame",
+   "name": "outstation_final_ACK_translated",
+   "observed": "frame",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003fa000000ac50101000c3da0000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003fa000000ac50101000c3da0000"
+  },
+  {
+   "expected": 1018,
+   "name": "outstation_final_ACK_translated_seq_on_master_side",
+   "native": 976,
+   "observed": 1018,
+   "ok": true,
+   "oracle_case": "translate"
+  },
+  {
+   "expected": {},
+   "name": "every_loop_frame_has_an_ethertype_at_bytes_12_13",
+   "observed": {},
+   "ok": true
+  }
+ ],
+ "meta": {
+  "close_scenario": {
+   "name": "server",
+   "native_frontier": 975,
+   "padded_frontier": 1017
+  },
+  "driver_sha256": "86919d44a526e05292c6b8835159fee5e1dde9a26c04918db616a3dd088b658c",
+  "loopback_frames": {
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0c00": "0000000100000006311b6c000c000000",
+     "0x0d02": "0000000100000001000000000d020000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "0000000100000006311b6c000c000000",
+     "76": "0000000100000001000000000d020000"
+    },
+    "frames": 2,
+    "longest": 105,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "48": {
+    "bytes_12_13_seen": {
+     "0x0800": "00000000000000000000000008004500"
+    },
+    "first_16_bytes_by_length": {
+     "60": "001122334455aabbccddeeff08004500",
+     "66": "00000000000000000000000008004500",
+     "89": "001122334455aabbccddeeff08004500"
+    },
+    "frames": 7,
+    "longest": 89,
+    "shortest": 60
+   }
+  },
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 0,
+   "gap": 50000000,
+   "op_j": 200000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "port_enable_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "real_iin1": 144,
+  "scope": "T-off SBO: SELECT then OPERATE end to end with real IIN1 0x90; defects A and E",
+  "shared_port": true
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 26,
+  "total": 26
+ }
+}
