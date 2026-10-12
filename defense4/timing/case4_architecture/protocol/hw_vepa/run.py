@@ -84,6 +84,13 @@ def evaluate(expect_fail, vision_rc, vision_result, wire_rc, clrt_rc, artifacts_
     return (not fails), fails
 
 
+def vision_cmd(label, master_port, reads, rng, gap_ms, start_delay_ms=0, start_seed=0, connect_must_fail=False):
+    """The Vision-side command for one run; shared by `run` here so the flags cannot drift from vision_run.py."""
+    return ('sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d '
+            '--start-delay-ms %d --start-seed %d%s' % (V_RUN, label, master_port, reads, rng, gap_ms, start_delay_ms,
+                                                       start_seed, ' --connect-must-fail' if connect_must_fail else ''))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('mode', choices=('deploy', 'setup', 'restore', 'casea', 'run'))
@@ -94,6 +101,8 @@ def main(argv=None):
     ap.add_argument('--no-forwarding', action='store_true')
     ap.add_argument('--range', type=int, choices=(8, 16), default=16)
     ap.add_argument('--gap-ms', type=int, default=0)
+    ap.add_argument('--start-delay-ms', type=int, default=0)
+    ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
     ap.add_argument('--out')
     a = ap.parse_args(argv)
@@ -121,9 +130,8 @@ def main(argv=None):
     slot = last_json(ssh(SWITCH, 'python3 %s/switch_slot.py vepa --master-port %d --enable %d%s' %
                          (SW_DIR, a.master_port, a.enable, ' --no-forwarding' if a.no_forwarding else '')).stdout)
     before = counters()
-    v = ssh(VISION, 'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d%s' %
-            (V_RUN, a.label, a.master_port, a.reads, a.range, a.gap_ms, ' --connect-must-fail' if a.no_forwarding else ''),
-            check=False)
+    v = ssh(VISION, vision_cmd(a.label, a.master_port, a.reads, a.range, a.gap_ms, a.start_delay_ms, a.start_seed,
+                               a.no_forwarding), check=False)
     after = counters()
     subprocess.run(['scp', '-q', '%s:%s/runs/%s/*' % (VISION, V_RUN, a.label), dest + '/'], check=True)
     for stale in ('stop', 'stop.master'):

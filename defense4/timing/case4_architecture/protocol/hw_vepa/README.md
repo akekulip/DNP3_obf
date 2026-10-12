@@ -34,7 +34,7 @@ python3 hw_vepa/run.py restore        # sysctls and NIC flag back, relay slot re
 `wire_check.py` and `clrt_check.py` no longer need scapy (built-in pcap reader, checksum and DNP3 CRC), so
 `python3 -m pytest hw_vepa/tests` runs on a fresh clone with no install step.
 
-Deployed tools. Nothing the campaign needs lives in a scratch path (`/tmp`) on the switch or the workstation: `deploy` (also the first step of `run`) copies every switch tool and `launch_composite.sh` / `switch_swap.sh` into the configured `<switch_remote_dir>/aux`, verifies each one's sha256 there, and every emitted command refers to that directory (a test scans for it). The pre-run port snapshot and per-unit logs live under `<switch_remote_dir>/snap` and the evidence directory. Tests use `TemporaryDirectory` with cleanup and read no scratch fixtures.
+Deployed tools. Nothing the campaign needs lives in an ad hoc scratch path on the switch or the workstation: `deploy` (also the first step of `run`) copies every switch tool and `launch_composite.sh` / `switch_swap.sh` into the configured `<switch_remote_dir>/aux`, verifies each one's sha256 there, and every emitted command refers to that directory (a test scans for it). The pre-run port snapshot and per-unit logs live under `<switch_remote_dir>/snap` and the evidence directory. Tests use `TemporaryDirectory` with cleanup and read no scratch fixtures.
 
 Campaign bring-ups. N does not re-arm after a connection and a closed tuple stays in TIME-WAIT for 60 s, so a
 second connection on an installed tuple cannot work. `campaign.json` `trial_mode` is therefore either
@@ -64,6 +64,17 @@ Missing or unreadable evidence is itself a failure. The observed values (outcome
 loop-port gaps) are written into `campaign_run.json` per trial. When anything fails, the collection phase still
 fetches the snapshots, endpoint outputs, pcaps, switch log, manifest and teardown output before the restore, and
 `campaign_run.json` `collections` lists each fetch with ok/error.
+
+Start phase and spacing. `vision_run.py run` takes `--gap-ms` (spacing between READs) and `--start-delay-ms N
+--start-seed S`: the master connects after a delay drawn uniformly in 0..N ms from a generator seeded with S, so the
+same seed replays the same start phase; the applied delay is written to `result.json`. `campaign.json` sets the
+defaults (`fixture.delay_ms`, `traffic.gap_ms`, `traffic.start_delay_ms`); every trial records its
+`conditions` (delay_ms, gap_ms, start_delay_ms, start_seed = `seeds.rng_seed` + trial number).
+
+Paired blocks. `campaign.py plan|run --paired NAME` runs a `paired_blocks` entry: for each condition (and repeat)
+presets A and B each get their own cold bring-up under IDENTICAL conditions (fixture delay, gap, start delay and
+seed), the order alternating between consecutive pairs (A,B then B,A ...). `campaign_run.json` `pairs` lists each
+pair's condition, order, labels and verdict; each trial records its `preset`.
 
 Facts the runner depends on:
 - **Source pruning.** Vision's i40e NIC drops reflected frames whose source MAC is its own unless

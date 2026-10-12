@@ -22,6 +22,7 @@ Nothing here touches the parent NIC's addresses or routes, or any global sysctl.
 import argparse
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -38,6 +39,12 @@ DEFAULT_RANGE = '32768 60999'
 
 def sh(*cmd, **kw):
     return subprocess.run(list(cmd), capture_output=True, text=True, **kw)
+
+
+def start_delay_ms(max_ms, seed):
+    """The pre-connect delay for a run: uniform over 0..max_ms ms, but a pure function of the seed so a paired
+    block can replay the identical start phase and the result can record exactly what was applied."""
+    return random.Random(seed).randint(0, max_ms) if max_ms > 0 else 0
 
 
 def nsx(ns, *cmd, **kw):
@@ -127,7 +134,10 @@ def main():
     ap.add_argument('--master-port', type=int)
     ap.add_argument('--reads', type=int, default=10)
     ap.add_argument('--range', type=int, choices=(8, 16), default=16)
-    ap.add_argument('--gap-ms', type=int, default=0)
+    ap.add_argument('--gap-ms', type=int, default=0, help='spacing between READ requests')
+    ap.add_argument('--start-delay-ms', type=int, default=0,
+                    help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
+    ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
     ap.add_argument('--connect-must-fail', action='store_true')
     a = ap.parse_args()
@@ -168,7 +178,9 @@ def main():
     flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
     env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB]
     stop = os.path.join(run_dir, 'stop')
-    result = {'label': a.label, 'master_port': a.master_port, 'reads': a.reads, 'range': a.range, 'gap_ms': a.gap_ms}
+    result = {'label': a.label, 'master_port': a.master_port, 'reads': a.reads, 'range': a.range, 'gap_ms': a.gap_ms,
+              'start_delay_ms_max': a.start_delay_ms, 'start_seed': a.start_seed,
+              'start_delay_ms_applied': start_delay_ms(a.start_delay_ms, a.start_seed)}
     caps = {}
     ost = None
     try:
@@ -189,6 +201,7 @@ def main():
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
         if ready == 'READY':
+            time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
             mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, str(a.range), str(a.gap_ms),
                       timeout=a.reads * 4 + 30 + a.reads * a.gap_ms // 1000)

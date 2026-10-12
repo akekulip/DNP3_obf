@@ -137,8 +137,20 @@
     "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
   },
   "trials": {"reads_per_trial": 20, "trials_per_arm": 3},
+  "paired_blocks": {
+    "shape_14892_vs_3723": {
+      "arm": "combined", "fixture": "separate_ack", "presets": ["shape_14892", "shape_3723"], "repeats": 1,
+      "conditions": [
+        {"delay_ms": 5, "gap_ms": 0,  "start_delay_ms": 20, "seed": 101},
+        {"delay_ms": 5, "gap_ms": 20, "start_delay_ms": 40, "seed": 102},
+        {"delay_ms": 3, "gap_ms": 0,  "start_delay_ms": 0,  "seed": 103}
+      ],
+      "_note": "A paired block runs presets A and B (each its own cold bring-up) under IDENTICAL conditions {fixture delay_ms, READ gap_ms, start_delay_ms, seed}, alternating the order between consecutive pairs (A,B then B,A ...), and records each pair. Select with --paired NAME; the arm and fixture come from the block."
+    }
+  },
   "trial_mode": "per_trial_cold",
-  "traffic": {"master_port_range": {"first": 54500, "last": 54599}, "range": 8, "gap_ms": 0,
+  "traffic": {"master_port_range": {"first": 54500, "last": 54599}, "range": 8, "gap_ms": 0, "start_delay_ms": 0,
+              "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
               "master_port_note": "Each connection gets its own cold bring-up on the next port in this range (N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s). Pick a range not used in the last minute. range 8 is the 20-byte 8-bit-range READ profile."},
   "loss": {"inject": false, "netem_loss_pct": 0.0},
   "seeds": {"rng_seed": 12345}

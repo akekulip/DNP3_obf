@@ -144,6 +144,10 @@ def validate_profile(cfg):
         raise ValueError('fixture.modes must be a non-empty list of distinct values from %s, got %r' % (FIXTURES, modes))
     if 'separate_ack' in modes and not cfg['fixture'].get('delay_ms', 0) > 0:
         raise ValueError('fixture.delay_ms must be > 0 for the separate_ack fixture')
+    sd = cfg['traffic'].get('start_delay_ms', 0)
+    if not isinstance(sd, int) or isinstance(sd, bool) or sd < 0:
+        raise ValueError('traffic.start_delay_ms must be an integer >= 0')
+    validate_paired_blocks(cfg)
     if cfg['fixture'].get('jitter_ms', 0) != 0:
         raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
 
@@ -157,6 +161,32 @@ def resolve_shaping(cfg, preset=None):
     p = sh['presets'][name]
     return {'preset': name, 'hold_pps': dict(p['hold_pps']), 'block_pps': dict(p['block_pps']),
             'block_burst': p.get('block_burst')}
+
+
+def validate_paired_blocks(cfg):
+    names = [a['name'] for a in cfg['arms']]
+    for bname, blk in cfg.get('paired_blocks', {}).items():
+        where = 'paired_blocks.%s' % bname
+        if blk.get('arm') not in names:
+            raise ValueError('%s.arm %r is not one of %s' % (where, blk.get('arm'), names))
+        if blk.get('fixture') not in FIXTURES:
+            raise ValueError('%s.fixture must be one of %s' % (where, FIXTURES))
+        pr = blk.get('presets')
+        if not (isinstance(pr, list) and len(pr) == 2 and pr[0] != pr[1]
+                and all(p in cfg['shaping']['presets'] for p in pr)):
+            raise ValueError('%s.presets must be two distinct shaping presets (A, B) from %s'
+                             % (where, sorted(cfg['shaping']['presets'])))
+        if not isinstance(blk.get('repeats', 1), int) or blk.get('repeats', 1) < 1:
+            raise ValueError('%s.repeats must be an integer >= 1' % where)
+        if not blk.get('conditions'):
+            raise ValueError('%s.conditions must be a non-empty list' % where)
+        for cnd in blk['conditions']:
+            if set(cnd) != {'delay_ms', 'gap_ms', 'start_delay_ms', 'seed'} or \
+                    any(not isinstance(v, int) or isinstance(v, bool) or v < 0 for v in cnd.values()):
+                raise ValueError('%s: each condition needs integer delay_ms, gap_ms, start_delay_ms, seed >= 0, got %r'
+                                 % (where, cnd))
+            if blk['fixture'] == 'separate_ack' and cnd['delay_ms'] < 1:
+                raise ValueError('%s: separate_ack needs delay_ms >= 1' % where)
 
 
 def shaping_args(cfg, burst=True, preset=None):
@@ -235,6 +265,13 @@ def warnings(cfg):
                      'readiness deadline (or too close to it), so the normal commit/release path cannot be '
                      'observed (defect D). Lower the fixture delay or raise readiness.'
                      % (fx['delay_ms'], fx.get('readiness_margin_ms', 0), cfg['timing_params_ns']['readiness']))
+    for bname, blk in cfg.get('paired_blocks', {}).items():
+        if blk['fixture'] != 'separate_ack':
+            continue
+        for cnd in blk['conditions']:
+            if int((cnd['delay_ms'] + fx.get('readiness_margin_ms', 0)) * 1_000_000) >= cfg['timing_params_ns']['readiness']:
+                w.append('paired_blocks.%s condition delay %d ms + margin >= T readiness: the child response misses '
+                         'the readiness deadline (defect D)' % (bname, cnd['delay_ms']))
     return w
 
 
@@ -297,7 +334,7 @@ def switch_tools():
 
 
 class Campaign:
-    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None):
+    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None, paired=None):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
         self.installer_has = installer_flags or (lambda flag: default_installer_flags(flag))
         names = [a['name'] for a in cfg['arms']]
@@ -305,10 +342,16 @@ class Campaign:
         unknown = [n for n in want if n not in names]
         if unknown:
             raise ValueError('unknown arm(s) %s; the config defines %s' % (unknown, names))
+        self.paired = paired
+        if paired is not None:
+            if paired not in cfg.get('paired_blocks', {}):
+                raise ValueError('unknown paired block %r; the config defines %s'
+                                 % (paired, sorted(cfg.get('paired_blocks', {}))))
+            want = [cfg['paired_blocks'][paired]['arm']]
         self.arms = [a for a in cfg['arms'] if a['name'] in want]
         modes = cfg['fixture']['modes']
-        self.fixtures = fixtures or list(modes)
-        bad = [f for f in self.fixtures if f not in modes]
+        self.fixtures = [cfg['paired_blocks'][paired]['fixture']] if paired is not None else (fixtures or list(modes))
+        bad = [f for f in self.fixtures if f not in modes and paired is None]
         if bad:
             raise ValueError('unknown or unconfigured fixture(s) %s; fixture.modes is %s' % (bad, modes))
         self.R = cfg['hosts']['switch_remote_dir']
@@ -322,11 +365,36 @@ class Campaign:
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
     def units(self):
-        """[(fixture, arm, index, reads)]: one cold bring-up and one connection each, fixture-major.
-        per_trial_cold: every trial of every arm; one_connection: one per arm carrying all of its READs."""
-        t, one = self.cfg['trials'], self.cfg['trial_mode'] == 'one_connection'
-        return [(fx, arm, i, t['reads_per_trial'] * (t['trials_per_arm'] if one else 1))
-                for fx in self.fixtures for arm in self.arms for i in range(1 if one else t['trials_per_arm'])]
+        """[unit dict]: one cold bring-up and one connection each, with its own recorded conditions.
+        per_trial_cold: every trial of every arm (fixture-major); one_connection: one per arm carrying all of its
+        READs. A paired block instead lists, per condition and repeat, presets A and B under IDENTICAL conditions,
+        the order alternating between consecutive pairs."""
+        c, t = self.cfg, self.cfg['trials']
+        out = []
+        base = {'delay_ms': c['fixture']['delay_ms'], 'gap_ms': c['traffic']['gap_ms'],
+                'start_delay_ms': c['traffic'].get('start_delay_ms', 0)}
+        if self.paired is not None:
+            blk = c['paired_blocks'][self.paired]
+            arm = self.arms[0]
+            pair = 0
+            for _rep in range(blk.get('repeats', 1)):
+                for cnd in blk['conditions']:
+                    order = list(blk['presets']) if pair % 2 == 0 else list(reversed(blk['presets']))
+                    for preset in order:
+                        out.append({'fixture': blk['fixture'], 'arm': arm, 'i': len(out), 'reads': t['reads_per_trial'],
+                                    'preset': preset, 'pair': pair, 'order': order, 'condition': dict(cnd),
+                                    'delay_ms': cnd['delay_ms'], 'gap_ms': cnd['gap_ms'],
+                                    'start_delay_ms': cnd['start_delay_ms'], 'start_seed': cnd['seed']})
+                    pair += 1
+            return out
+        one = c['trial_mode'] == 'one_connection'
+        for fx in self.fixtures:
+            for arm in self.arms:
+                for i in range(1 if one else t['trials_per_arm']):
+                    out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None,
+                                    reads=t['reads_per_trial'] * (t['trials_per_arm'] if one else 1),
+                                    start_seed=c['seeds']['rng_seed'] + len(out)))
+        return out
 
     def ports(self):
         pr = self.cfg['traffic']['master_port_range']
@@ -391,11 +459,12 @@ class Campaign:
             self.switch_toolkit()
             self.vision_setup()
             current = None
-            for (fx, arm, i, reads), port in zip(self.units(), self.ports()):
-                if fx != current:
-                    self.set_fixture(fx)
-                    current = fx
-                self.run_unit(fx, arm, i, reads, port)
+            for unit, port in zip(self.units(), self.ports()):
+                key = (unit['fixture'], unit['delay_ms'])
+                if key != current:
+                    self.set_fixture(unit['fixture'], unit['delay_ms'])
+                    current = key
+                self.run_unit(unit, port)
         except (StepFailed, ValueError, OSError) as e:
             failed = True
             self.record['failure'] = str(e)
@@ -490,11 +559,11 @@ class Campaign:
         self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)',
                   'sudo python3 %s/vision_run.py setup' % V)
 
-    def set_fixture(self, fixture):
+    def set_fixture(self, fixture, delay_ms):
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
         if fixture == 'separate_ack':
-            self.step('vision', 'fixture separate_ack: casea on, response delayed %d ms' % self.cfg['fixture']['delay_ms'],
-                      'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (self.V, self.cfg['fixture']['delay_ms']))
+            self.step('vision', 'fixture separate_ack: casea on, response delayed %d ms' % delay_ms,
+                      'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (self.V, delay_ms))
         else:
             self.step('vision', 'fixture piggyback: casea off (ACK rides on the response)',
                       'sudo python3 %s/vision_run.py casea off' % self.V)
@@ -515,10 +584,11 @@ class Campaign:
         self.record['arms'].append(rec)
         return rec
 
-    def run_unit(self, fixture, arm, i, reads, port):
+    def run_unit(self, unit, port):
         """One cold bring-up and one connection: swap, ports, install, T, snapshot, traffic, then ALWAYS the
         collection phase (after snapshot, teardown, logs, manifest, endpoint outputs), then the verdict."""
         c, R = self.cfg, self.R
+        fixture, arm, i, reads, preset = unit['fixture'], unit['arm'], unit['i'], unit['reads'], unit['preset']
         aux, build, tr = R + '/aux', arm['build'], c['traffic']
         b = c['builds'][build]
         n, out_remote = arm['name'], '%s/out_%s' % (R, build)
@@ -526,8 +596,18 @@ class Campaign:
         conf = '%s/response_only_hw_%s.conf' % (R, label)
         manifest, log = '%s/bringup_manifest_%s.json' % (R, label), '%s/switchd_%s.log' % (R, label)
         rec = self.arm_record(fixture, arm)
-        trial = {'fixture': fixture, 'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': []}
+        trial = {'fixture': fixture, 'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': [],
+                 'preset': preset or c['shaping']['preset'],
+                 'conditions': {k: unit[k] for k in ('delay_ms', 'gap_ms', 'start_delay_ms', 'start_seed')}}
         rec['trials'].append(trial)
+        pair = None
+        if unit['pair'] is not None:
+            pairs = self.record.setdefault('pairs', [])
+            if not pairs or pairs[-1]['pair'] != unit['pair']:
+                pairs.append({'pair': unit['pair'], 'condition': unit['condition'], 'order': unit['order'],
+                              'labels': [], 'ok': False})
+            pair = pairs[-1]
+            pair['labels'].append(label)
         dest = os.path.join(self.root, fixture, n, label)
         if not self.rn.dry:
             os.makedirs(os.path.join(dest, 'snapshots'))
@@ -543,7 +623,7 @@ class Campaign:
                       'bash %s/switch_swap.sh %s %s/launch_composite.sh %s %s' % (aux, log, aux, conf, b['sde']))
             self.step('switch', '%s: replay the pre-run $PORT snapshot' % label,
                       'python3 %s/restore_ports.py %s %s --apply --wait 35' % (aux, c['program'], self.prerun))
-            comp = self.installer_cmd(build, arm['padding'], out_remote, port)
+            comp = self.installer_cmd(build, arm['padding'], out_remote, port, preset)
             self.step('switch', '%s: composite install dry-run (hash check, name check, ports it will loop)' % label,
                       comp)
             self.standing.append(manifest)
@@ -556,24 +636,27 @@ class Campaign:
                                             'manifest': manifest})
             self.step('switch', '%s: select T (0=Timing OFF, 1=Obfuscated)' % label, self.hw_env(self.switch_cmd(
                 'set_enabled.py', '--manifest %s --enabled %d' % (manifest, arm['T']))))
-            self.snapshot(out_remote, label + '_before')
+            self.snapshot(out_remote, label + '_before', preset=preset)
             state['before'] = True
             state['ran'] = True
             v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port),
-                          'sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d'
-                          % (self.V, label, port, reads, tr['range'], tr['gap_ms']), check=False)
+                          runner.vision_cmd(label, port, reads, tr['range'], unit['gap_ms'], unit['start_delay_ms'],
+                                            unit['start_seed']).replace(runner.V_RUN, self.V), check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
-            self.snapshot(out_remote, label + '_after', check=False)
+            self.snapshot(out_remote, label + '_after', check=False, preset=preset)
         except (StepFailed, OSError) as e:
             err = e
             if isinstance(e, StepFailed) and e.result is not None:
                 self.save(dest, 'install.log' if state['installed'] and not state['before'] else 'failed_step.log',
                           e.result)
-        self.collect_unit(label, dest, out_remote, manifest, log, state)
+        self.collect_unit(label, dest, out_remote, manifest, log, state, preset)
         if err is not None:
             raise err
         self.verdict(trial, rec, label, dest, v, arm, fixture)
+        if pair is not None:
+            pair['ok'] = len(pair['labels']) == 2 and all(
+                t['ok'] for a in self.record['arms'] for t in a['trials'] if t['label'] in pair['labels'])
 
     def save(self, dest, name, result):
         """Write a command's captured output next to the evidence (local, best effort)."""
@@ -600,7 +683,7 @@ class Campaign:
             sys.stderr.write('COLLECTION FAILED: %s %s: %s\n' % (label, what, entry['error']))
         return entry
 
-    def collect_unit(self, label, dest, out_remote, manifest, log, state):
+    def collect_unit(self, label, dest, out_remote, manifest, log, state, preset=None):
         """Runs after success AND failure, before any restore: tear the install down (output kept), then fetch
         everything the unit produced. Every step is independent of the others."""
         R, host, vhost = self.R, self.cfg['hosts']['switch'], self.cfg['hosts']['vision']
@@ -608,7 +691,7 @@ class Campaign:
             if not state['after']:                  # the failure came before the normal after-snapshot
                 state['after'] = True
                 try:
-                    self.snapshot(out_remote, label + '_after', check=False)
+                    self.snapshot(out_remote, label + '_after', check=False, preset=preset)
                 except Exception:
                     pass
             entry = {'unit': label, 'what': 'teardown', 'ok': False, 'error': None}
@@ -677,7 +760,7 @@ class Campaign:
         if not ok:
             raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
 
-    def installer_cmd(self, build, padding, out_remote, port):
+    def installer_cmd(self, build, padding, out_remote, port, preset=None):
         c = self.cfg
         e, pm, t = c['endpoints'], c['ports_map'], c['timing_params_ns']
         expects = ' '.join('--expect %s=%s' % (rel, h) for rel, h in sorted(self.bound[build].items()))
@@ -691,12 +774,12 @@ class Campaign:
                 % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'],
                    e['outstation_ip'], e['outstation_port'], pm['relay_dev'], e['read_dst'], e['read_src'],
                    t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], c['service']['k'],
-                   shaping_args(c), pad))
+                   shaping_args(c, preset=preset), pad))
 
-    def snapshot(self, out_remote, name, check=True):
+    def snapshot(self, out_remote, name, check=True, preset=None):
         return self.step('switch', 'counter snapshot %s' % name, check=check, cmd=self.hw_env(self.switch_cmd(
             'snapshot_counters.py', '--build-out %s --ports %s %s -o %s/snap/%s.json'
-            % (out_remote, self.cfg['ports_map']['stat_ports'], shaping_args(self.cfg, burst=False), self.R, name))))
+            % (out_remote, self.cfg['ports_map']['stat_ports'], shaping_args(self.cfg, burst=False, preset=preset), self.R, name))))
 
     # ---- restoration: best effort, every step attempted, every failure recorded -------------------------------
     def restore(self):
@@ -746,6 +829,7 @@ class Campaign:
             'shaping_requested': resolve_shaping(c), 'fixture': c['fixture'], 'trials': c['trials'],
             'traffic': c['traffic'], 'ports_map': c['ports_map'], 'endpoints': c['endpoints']}
         self.record['builds'] = getattr(self, 'bound', None)
+        self.record['paired_block'] = self.paired
         self.record['time'] = time.time()
         json.dump(self.record, open(os.path.join(self.root, 'campaign_run.json'), 'w'), indent=1, default=str)
 
@@ -757,6 +841,7 @@ def main(argv=None):
     ap.add_argument('--arms', help='comma-separated arm names to run (default: all arms in the config)')
     ap.add_argument('--run-id', default=None)
     ap.add_argument('--fixtures', help='comma-separated fixtures to run (default: fixture.modes)')
+    ap.add_argument('--paired', help='run the named paired_blocks entry: presets A/B, identical conditions, alternating order')
     ap.add_argument('--preset', help='shaping preset from campaign.json (default: shaping.preset)')
     ap.add_argument('--apply', action='store_true', help='required for run: actually execute on hardware')
     ap.add_argument('--dry-run', action='store_true', help='run: print the commands instead (same as plan)')
@@ -786,9 +871,9 @@ def main(argv=None):
             bad = check_bindings(cfg)
             if bad:
                 sys.exit('refusing to deploy, unbound identity: %s' % '; '.join(bad))
-        return Campaign(cfg, runner_, run_id, arms, fixtures=fixtures).deploy_only()
+        return Campaign(cfg, runner_, run_id, arms, fixtures=fixtures, paired=a.paired).deploy_only()
     if a.mode == 'plan' or a.dry_run:
-        return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures).execute()
+        return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures, paired=a.paired).execute()
     if not a.apply:
         sys.exit('run needs --apply to execute on hardware; use `plan` (or --dry-run) to see the commands first')
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
@@ -796,7 +881,7 @@ def main(argv=None):
     bad = check_bindings(cfg)
     if bad:
         sys.exit('refusing to run, unbound identity: %s' % '; '.join(bad))
-    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms, fixtures=fixtures).execute()
+    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms, fixtures=fixtures, paired=a.paired).execute()
 
 
 if __name__ == '__main__':
