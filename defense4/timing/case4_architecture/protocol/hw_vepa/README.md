@@ -98,6 +98,22 @@ the intended gap (`timing_params_ns.gap`), completion/retransmission counts, pad
 triggers, generated packets, stale tokens and the received-vs-good octet gap. All deltas are after minus before, as in
 `evidence/mirror_fix_silicon_01`. For a paired run it adds A-B per condition.
 
+Loss and reconnect trials. `campaign.py plan|run --loss PRESET` runs one trial per entry of `loss.presets.PRESET` (each
+`{class, n}` is one `vision_run.py --drop class:n`, each its own cold bring-up); `--scenario reconnect` runs the
+three-connection scenario. A loss trial is gated differently from a clean one: the iptables counters must be exact and
+the rules removed; the dropped packet must be found in the capture (`loss.identify`, by class and occurrence); a dropped
+data packet must be retransmitted and recovery (the retransmitted response, or the next outstation frame after a
+retransmitted request) must come within `loss.max_recovery_s` (default 5 s); the master must complete every READ with
+the seed values; exactly one real SELECT and one real OPERATE callback and no decoy; no CRC or checksum error and no
+unmatched returned frame; and master-visible growth must equal 9 B per READ response plus 21 B per control response
+actually delivered (0 with padding off). Retransmissions are allowed and counted. A failed recovery is a recorded
+result: the trial is marked failed, the next trial still runs, the exit status is nonzero. The stale-token bound,
+loop-port gaps and snapshot evidence still apply. `report` prints a loss table (packet, completion, recovery,
+retransmissions, exactly-once, growth, completion delta against a clean trial of the same arm in the run) and a
+reconnect table (per connection: role/port, connect, completion, response lengths, padded, retransmitted, timeout).
+In the reconnect trial c1 must complete with the arm's response lengths and c2 (a port with no switch rows) must
+complete natively; c3 (the installed tuple again) is only recorded.
+
 Trial gate (expectations). Each trial is judged by `checks.py` from its own evidence (before/after snapshot deltas,
 `master.json`, `outstation.json`, `wire.json`, `timing.json`); any violation fails the trial and the campaign. The table
 lives in `campaign.json` under `expectations` (this is its only copy; README restates it):

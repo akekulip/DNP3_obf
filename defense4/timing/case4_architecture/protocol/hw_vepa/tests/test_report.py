@@ -239,3 +239,75 @@ class RealSiliconRun(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class LossAndReconnectTables(unittest.TestCase):
+    def setUp(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.root = td.name
+        loss_ok = {'class': 'read_resp_padded', 'n': 3, 'occurrence': 3, 'identified': True,
+                   'packet': {'seq': 5100, 'len': 58, 'ip_len': 98}, 'retransmissions': 1, 'first_retx_delay_ms': 200.0,
+                   'recovery_s': 0.2, 'completed': True, 'completion_s': 3.2, 'baseline_completion_s': 2.5,
+                   'completion_delta_s': 0.7, 'exactly_once': True, 'growth_bytes': 69, 'expected_growth_bytes': 69}
+        loss_bad = dict(loss_ok, n=5, occurrence=5, recovery_s=None, completed=False, exactly_once=False,
+                        retransmissions=0, first_retx_delay_ms=None, growth_bytes=60)
+        scen = {'connections': {
+            'c1': {'role': 'installed', 'master_port': 54500, 'connect_ok': True, 'completed': True, 'resp_lens': [58],
+                   'padded': True, 'retransmitted': 0, 'master_timeout': False},
+            'c2': {'role': 'unknown_port', 'master_port': 55500, 'connect_ok': True, 'completed': True,
+                   'resp_lens': [49], 'padded': False, 'retransmitted': 0, 'master_timeout': False},
+            'c3': {'role': 'installed_again', 'master_port': 54500, 'connect_ok': False, 'completed': False,
+                   'resp_lens': [], 'padded': False, 'retransmitted': None, 'master_timeout': True}}}
+        trials = [{'fixture': 'separate_ack', 'label': 'c1_separate_ack_combined_t0', 'preset': 'unshaped', 'ok': True,
+                   'reads': 3, 'loss': loss_ok},
+                  {'fixture': 'separate_ack', 'label': 'c1_separate_ack_combined_t1', 'preset': 'unshaped', 'ok': False,
+                   'reads': 3, 'loss': loss_bad},
+                  {'fixture': 'separate_ack', 'label': 'c1_separate_ack_combined_t2', 'preset': 'unshaped', 'ok': True,
+                   'reads': 3, 'scenario': scen}]
+        make_run(self.root, {('separate_ack', 'combined'): trials})
+        self.text = report.render(self.root)
+
+    def test_loss_table_has_one_row_per_loss_trial_with_the_requested_columns(self):
+        self.assertIn('== loss trials ==', self.text)
+        sec = self.text.split('== loss trials ==')[1].split('==')[0]
+        for col in ('class:n', 'packet seq/len', 'completed', 'recovery s', 'first retx ms', 'retransmissions',
+                    'exactly-once', 'growth/expected', 'completion delta s', 'ok'):
+            self.assertIn(col, sec, col)
+        self.assertIn('read_resp_padded:3', sec)
+        self.assertIn('5100/58', sec)
+        self.assertIn('69/69', sec)
+        self.assertIn('read_resp_padded:5', sec)
+        self.assertIn('60/69', sec)
+
+    def test_failed_recovery_is_shown_not_hidden(self):
+        sec = self.text.split('== loss trials ==')[1].split('==')[0]
+        row = [l for l in sec.splitlines() if 'read_resp_padded:5' in l][0]
+        self.assertIn('FAIL', row)
+        self.assertIn('-', row)                                   # recovery missing is a dash
+
+    def test_reconnect_table_shows_each_connection(self):
+        self.assertIn('== reconnect scenarios ==', self.text)
+        sec = self.text.split('== reconnect scenarios ==')[1]
+        for col in ('connection', 'port', 'connect', 'completed', 'resp lens', 'padded', 'retransmitted', 'timeout'):
+            self.assertIn(col, sec, col)
+        lines = {l.split()[0]: l for l in sec.splitlines() if l.split() and l.split()[0] in ('c1', 'c2', 'c3')}
+        self.assertIn('58', lines['c1'])
+        self.assertIn('49', lines['c2'])
+        self.assertIn('FAILED', lines['c3'])
+        self.assertIn('installed_again', lines['c3'])
+
+    def test_loss_and_reconnect_trials_do_not_pollute_the_metric_tables(self):
+        heads = [l for l in self.text.splitlines() if l.startswith('== fixture')]
+        self.assertEqual(heads, [])
+
+    def test_no_loss_section_without_loss_trials(self):
+        self.assertNotIn('== loss trials ==', Tables_text(self))
+
+
+def Tables_text(case):
+    d = tempfile.TemporaryDirectory()
+    case.addCleanup(d.cleanup)
+    t = make_trial(d.name, 'separate_ack', 'combined', 'c1_separate_ack_combined_t0', 'p', [1] * 4, [1] * 4, [800, 810])
+    make_run(d.name, {('separate_ack', 'combined'): [t]})
+    return report.render(d.name)

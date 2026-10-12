@@ -103,6 +103,8 @@ def load(root):
     out = []
     for arm in rec['arms']:
         for tr in arm['trials']:
+            if tr.get('loss') or tr.get('scenario'):          # reported in their own tables, not mixed into the metrics
+                continue
             out.append(trial_metrics(root, arm['fixture'], arm['arm'], tr, gap))
     return out
 
@@ -162,6 +164,53 @@ def _table(title, ms):
     return lines
 
 
+def _g(v, fmt='%s'):
+    return '-' if v is None else fmt % v
+
+
+def _table_rows(title, header, rows):
+    w = [max(len(str(x)) for x in col) for col in zip(header, *rows)] if rows else [len(h) for h in header]
+    line = lambda r: '  '.join('%-*s' % (w[i], r[i]) for i in range(len(header)))
+    return ['== %s ==' % title, line(header)] + [line(r) for r in rows]
+
+
+def loss_rows(rec):
+    rows = []
+    for arm in rec['arms']:
+        for tr in arm['trials']:
+            l = tr.get('loss')
+            if not l:
+                continue
+            p = l.get('packet') or {}
+            rows.append((tr['label'], '%s:%s' % (l['class'], l['n']),
+                         '%s/%s' % (_g(p.get('seq')), _g(p.get('len'))) if p else '-',
+                         'yes' if l.get('completed') else 'NO', _g(l.get('recovery_s')), _g(l.get('first_retx_delay_ms')),
+                         _g(l.get('retransmissions')), 'yes' if l.get('exactly_once') else 'NO',
+                         '%s/%s' % (_g(l.get('growth_bytes')), _g(l.get('expected_growth_bytes'))),
+                         _g(l.get('completion_delta_s')), 'ok' if tr.get('ok') else 'FAIL'))
+    return rows
+
+
+def reconnect_rows(rec):
+    rows = []
+    for arm in rec['arms']:
+        for tr in arm['trials']:
+            sc = tr.get('scenario')
+            if not sc:
+                continue
+            for cn in ('c1', 'c2', 'c3'):
+                c = sc['connections'].get(cn)
+                if not c:
+                    rows.append((cn, tr['label'], '-', '-', 'not run', '-', '-', '-', '-', '-'))
+                    continue
+                rows.append((cn, tr['label'], '%s/%s' % (_g(c.get('role')), _g(c.get('master_port'))),
+                             'ok' if c.get('connect_ok') else 'FAILED', 'yes' if c.get('completed') else 'NO',
+                             ','.join(str(x) for x in c.get('resp_lens', [])) or '-',
+                             'yes' if c.get('padded') else 'no', _g(c.get('retransmitted')),
+                             'yes' if c.get('master_timeout') else 'no', ''))
+    return rows
+
+
 def render(root):
     metrics = load(root)
     rec = json.load(open(os.path.join(root, 'campaign_run.json')))
@@ -200,6 +249,17 @@ def render(root):
                 out.append('  A-B %-22s %s   (A %s, B %s)' % (name, _f(diff) if diff is not None else '-',
                                                               _f(va), _f(vb)))
         out.append('')
+    lr = loss_rows(rec)
+    if lr:
+        out += _table_rows('loss trials', ('trial', 'class:n', 'packet seq/len', 'completed', 'recovery s', 'first retx ms',
+                                           'retransmissions', 'exactly-once', 'growth/expected', 'completion delta s',
+                                           'ok'), lr) + ['']
+    rr = reconnect_rows(rec)
+    if rr:
+        out += _table_rows('reconnect scenarios', ('connection', 'trial', 'role/port', 'connect', 'completed', 'resp lens',
+                                                   'padded', 'retransmitted', 'timeout', ''), rr) + [
+            'legend: c1 = installed port; c2 = new port with no switch rows (expected native); c3 = installed tuple again '
+            '(characterization only: N does not re-arm).', '']
     return '\n'.join(out).rstrip() + '\n'
 
 
