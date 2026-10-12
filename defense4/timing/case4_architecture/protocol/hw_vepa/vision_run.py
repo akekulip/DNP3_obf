@@ -28,6 +28,8 @@ import subprocess
 import sys
 import time
 
+import loss  # shared packet classes and iptables rule lifecycle; deployed beside this file
+
 PARENT = 'enp59s0f0np0'
 NS_M, NS_O = 'ns_vepa_a', 'ns_vepa_b'
 IP_M, IP_O, PORT_O = '192.168.10.61', '192.168.10.62', 20000
@@ -140,6 +142,9 @@ def main():
     ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
     ap.add_argument('--connect-must-fail', action='store_true')
+    ap.add_argument('--drop', metavar='CLASS[:N]',
+                    help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
+                         'classes: ' + ', '.join(loss.names()))
     a = ap.parse_args()
 
     if a.mode == 'setup':
@@ -161,6 +166,12 @@ def main():
 
     if not a.label or not re.fullmatch(r'[A-Za-z0-9_]+', a.label) or a.master_port is None:
         sys.exit('run needs LABEL and --master-port')
+    drop = None
+    if a.drop:
+        try:
+            drop = loss.parse_drop(a.drop, a.reads)      # a bad spec stops the run before anything is created
+        except ValueError as e:
+            sys.exit(str(e))
     run_dir = os.path.join(RUNS, a.label)
     os.makedirs(run_dir)                      # refuses to reuse a label
 
@@ -183,6 +194,7 @@ def main():
               'start_delay_ms_applied': start_delay_ms(a.start_delay_ms, a.start_seed)}
     caps = {}
     ost = None
+    rule = None
     try:
         for d in ('out', 'in'):                # stderr kept, not DEVNULL, so a startup error is not hidden
             caps[d] = subprocess.Popen(['tcpdump', '-i', PARENT, '-Q', d, '-s0', '-U', '-n',
@@ -201,15 +213,24 @@ def main():
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
         if ready == 'READY':
+            if drop:                                                     # fail fast, before any traffic
+                rule = loss.LossRule(nsx, drop, IP_M, IP_O, a.master_port, PORT_O).install()
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
-            mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, str(a.range), str(a.gap_ms),
-                      timeout=a.reads * 4 + 30 + a.reads * a.gap_ms // 1000)
-            result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
-            open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
+            try:
+                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, str(a.range),
+                          str(a.gap_ms), timeout=a.reads * 4 + 30 + a.reads * a.gap_ms // 1000)
+                result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
+                open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
+            except subprocess.TimeoutExpired:
+                result.update(master_rc=None, master_timeout=True, master_wall_s=round(time.time() - t0, 3))
             time.sleep(1.0)
     finally:
         # bounded, comprehensive cleanup of everything this run started, even on an exception above
+        if rule is not None:
+            rule.finish()                    # counters first, then the rules come out whatever happened above
+            rule.remove()
+            result['loss'] = rule.record()
         open(stop, 'w').close()
         if ost is not None:
             try:
@@ -234,6 +255,8 @@ def main():
         result['frames_' + d] = len(sh('tcpdump', '-r', path, '-n').stdout.splitlines()) \
             if os.path.exists(path) and os.path.getsize(path) > 24 else 0
     result['ok'] = (result.get('master_rc') == 2) if a.connect_must_fail else (result.get('master_rc') == 0)
+    if drop:
+        result['loss_exact'] = bool(result.get('loss', {}).get('exact'))
     json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=1)
     print(json.dumps(result))
     sys.exit(0 if result['ok'] else 1)

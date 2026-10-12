@@ -68,6 +68,19 @@ checked three ways (config, compile `manifest.json`, file on disk) by `validate`
 installer's mirror-defect guard reads, so pinning it ties the checked file to the loaded binaries; every
 `bringup_composite.py` command (dry-run and apply) passes `--expect p1/response_only.bfa=<sha256>`.
 
+Deterministic loss. `vision_run.py run ... --drop CLASS[:N]` drops exactly the Nth packet of one class (direction,
+IP total length, TCP flags; the table is `loss.py` `CLASSES`, computed from the real wire shapes: READ request 60,
+SELECT/OPERATE request 75, native responses 89/77, padded responses 98, pure ACK 40) at the INGRESS of the receiving
+namespace (`ip netns exec ... iptables`): M>O classes in `ns_vepa_b`, O>M classes in `ns_vepa_a`, so the frame has
+already crossed the switch. Exactness does not rely on polling: occurrence N is N-1 `ACCEPT` rules and one `DROP` rule,
+each a burst-1 `-m limit --limit 1/hour` match, so the kernel hands the Nth packet to the DROP rule atomically and no
+packet can slip past between a counter read and a delete. The rules are removed in a `finally` and the chain compared
+with its prior state; the counters (`DROP` 1 packet of exactly the class's IP length, `ACCEPT`s N-1) are recorded as
+`loss` in `result.json` with `exact` true/false. The counters prove the rule fired, not which packet it was: `tcpdump`
+taps the NIC before netfilter, so the dropped frame is still in `in.pcap`. Which packet it was is established
+afterwards from the captures (see the loss analysis), by position in the class and the retransmission that follows.
+`vision_run.py` and `loss.py` are deployed together and both hash-verified.
+
 Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (or `python3 hw_vepa/report.py RUN_DIR`)
 prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
 packets and bytes (sum over ports 48/180/181/182 of the `$FramesTransmittedAll` / `$OctetsTransmittedTotal` deltas,

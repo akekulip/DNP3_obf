@@ -507,10 +507,18 @@ class Campaign:
     def vision_identity(self):
         """Read-only identity checks on Vision (the only change is copying vision_run.py)."""
         ep, V = self.cfg['endpoint'], self.V
-        self.step('local', 'deploy vision_run.py to Vision',
-                  'scp -q %s %s:%s/' % (q(os.path.join(HERE, 'vision_run.py')), self.cfg['hosts']['vision'], V))
-        r = self.step('vision', 'verify the deployed vision_run.py identity', 'sha256sum %s/vision_run.py' % V)
-        self.check_hash(r, sha256_file(os.path.join(HERE, 'vision_run.py')), 'vision_run.py on Vision')
+        files = ('vision_run.py', 'loss.py')                  # loss.py = packet classes + iptables rule lifecycle
+        self.step('local', 'deploy vision_run.py and loss.py to Vision',
+                  'scp -q %s %s:%s/' % (' '.join(q(os.path.join(HERE, f)) for f in files),
+                                        self.cfg['hosts']['vision'], V))
+        r = self.step('vision', 'verify the deployed vision_run.py and loss.py by sha256',
+                      'sha256sum ' + ' '.join('%s/%s' % (V, f) for f in files))
+        if not self.rn.dry:
+            got = {l.split()[1].rsplit('/', 1)[-1]: l.split()[0] for l in r.out.splitlines() if len(l.split()) == 2}
+            for f in files:
+                want = sha256_file(os.path.join(HERE, f))
+                if got.get(f) != want:
+                    raise StepFailed('%s on Vision has sha256 %s, expected %s' % (f, got.get(f), want))
         r = self.step('vision', 'verify the endpoint binary identity', 'sha256sum %s' % vr.BIN)
         self.check_hash(r, ep['binary_sha256'], 'endpoint binary %s' % vr.BIN)
         r = self.step('vision', 'verify the endpoint lib/ identity',
@@ -521,7 +529,8 @@ class Campaign:
                   'for l in %s; do test ! -e %s/runs/$l || { echo "EXISTS $l"; exit 1; }; done'
                   % (' '.join(labels), self.V))
         self.record['endpoint_observed'] = {'binary_sha256': ep['binary_sha256'], 'lib_sha256': ep['lib_sha256'],
-                                            'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py'))}
+                                            'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py')),
+                                            'loss_sha256': sha256_file(os.path.join(HERE, 'loss.py'))}
 
     def deploy_switch(self):
         """Copy every tool and build into the configured switch directory and verify each tool's sha256 there.

@@ -60,7 +60,8 @@ class FakeRunner:
             out = ''.join('%s  %s\n' % (names[tok.rsplit('/', 1)[1]], tok) for tok in cmd.split()[1:])
         elif 'sha256sum' in cmd and where == 'vision':
             if 'vision_run.py' in cmd:
-                out = '%s  vision_run.py\n' % cp.sha256_file(str(HERE.parent / 'vision_run.py'))
+                out = '%s  vision_run.py\n%s  loss.py\n' % (cp.sha256_file(str(HERE.parent / 'vision_run.py')),
+                                                            cp.sha256_file(str(HERE.parent / 'loss.py')))
             else:
                 out = '%s  -\n' % H64
         elif 'vision_run.py run' in cmd:

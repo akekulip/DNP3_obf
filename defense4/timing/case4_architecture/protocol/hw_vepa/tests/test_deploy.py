@@ -163,6 +163,23 @@ class DeployStep(unittest.TestCase):
                 return res
         self.assertEqual(self.deploy(Corrupt()), 1)
 
+    def test_vision_gets_loss_py_beside_vision_run_and_both_are_hash_verified(self):
+        r = FakeRunner()
+        self.deploy(r)
+        scp = [c for w, c in r.calls if c.startswith('scp') and 'vision_run.py' in c][0]
+        self.assertIn('loss.py', scp)
+        verify = [c for w, c in r.calls if w == 'vision' and c.startswith('sha256sum') and 'vision_run.py' in c][0]
+        self.assertIn('/loss.py', verify)
+
+    def test_a_corrupted_loss_py_on_vision_fails_deploy(self):
+        class Corrupt(FakeRunner):
+            def run(self, where, cmd, **kw):
+                res = super().run(where, cmd, **kw)
+                if where == 'vision' and cmd.startswith('sha256sum') and 'loss.py' in cmd:
+                    return cp.Result(0, res.out.replace(res.out.splitlines()[-1].split()[0], '0' * 64), '')
+                return res
+        self.assertEqual(self.deploy(Corrupt()), 1)
+
     def test_deploy_changes_nothing_but_files(self):
         r = FakeRunner()
         self.deploy(r)
