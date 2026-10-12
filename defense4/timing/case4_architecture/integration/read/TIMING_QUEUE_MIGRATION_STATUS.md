@@ -549,6 +549,13 @@ continuation READs. The capture was taken on the sender, so five master frames h
 `real_profile.wire()` restores them. Hardware map: 12/11 + 11/0 on both SDKs, pipe 0 ingress PHV +6
 containers. Model: real profile 35/35 and 36/36; existing scenarios 70/70, 57/57, 58/58. E untouched.
 
+**Deparser mirror entry 0 (2026-10-12, `route_ab_01/token_stale_01`, `mirror_fix_01`).** Every non-cloning T pass
+selected mirror entry 0, whose session id bf-p4c takes from an unwritten temporary placed in `md.cur_gen`'s
+container. Passes were therefore mirrored to session = live READ generation, and while it equalled the configured
+session 7, every T pass was copied to 196 and the READ generator fired thousands of times in shaped runs. T now
+sets `mirror_type = MIRROR_TYPE_CLONE` and `clone_ses = NO_MIRROR_SESSION` (0) on every pass, with
+`@pa_no_overlay` on both. `check_mirror_select.py` guards each build (`build_composite.py`).
+
 **Looping ports are build parameters (2026-10-11, `route_ab_01/loopback_ports_01`).** On the switch only
 pipe-local 68 recirculates (`evidence/recirc_ports_01/STATUS.md`), so 70, 197, 198 and 199 cannot be used
 there. `core/response_only/port_map.py` now holds the five ports (`relay_port`, `n_ack_return`, `t_in`,

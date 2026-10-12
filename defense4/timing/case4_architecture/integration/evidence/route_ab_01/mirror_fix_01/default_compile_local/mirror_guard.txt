@@ -1,0 +1,5 @@
+PASS mirror_select
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1
+   unconditional mirror_type=1: tbl_response_only1982
+   non-clone entries [0] are unreachable; clone session and select containers are solitary
