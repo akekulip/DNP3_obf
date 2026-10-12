@@ -1,0 +1,494 @@
+{
+ "run_id": "candidate55_old_external_01",
+ "ok": false,
+ "failure": "candidate55_old_external_01_separate_ack_combined_t0 failed: Vision replay source pins differ; Vision replay series failed; collected replay scenario has wrong effective tuple/controls; independent replay filtering: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2'; c1: wire_check.py failed rc1; c1: clrt_check.py failed rc1; c1: missing or empty evidence: out.pcap; c1: missing or empty evidence: in.pcap; c1: missing or empty evidence: master.json; c1: missing or empty evidence: outstation.json; c1: missing or empty evidence: result.json; c1: missing or empty evidence: state.txt; c1: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/master.json'; c1: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/out.pcap'; c1: strict Vision replay leg verdict failed; c2: wire_check.py failed rc1; c2: clrt_check.py failed rc1; c2: missing or empty evidence: out.pcap; c2: missing or empty evidence: in.pcap; c2: missing or empty evidence: master.json; c2: missing or empty evidence: outstation.json; c2: missing or empty evidence: result.json; c2: missing or empty evidence: state.txt; c2: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/master.json'; c2: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/out.pcap'; c2: strict Vision replay leg verdict failed; c3: wire_check.py failed rc1; c3: clrt_check.py failed rc1; c3: missing or empty evidence: out.pcap; c3: missing or empty evidence: in.pcap; c3: missing or empty evidence: master.json; c3: missing or empty evidence: outstation.json; c3: missing or empty evidence: result.json; c3: missing or empty evidence: state.txt; c3: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/master.json'; c3: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/out.pcap'; c3: strict Vision replay leg verdict failed; isolation: missing established quiet window; current TCP did not publish readiness within90seconds; switch: T on: OUT_ACK_COMMIT=0, expected 3 (complete READs=3, piggyback=0); switch: T on: OUT_RESP_RELEASE=0, expected 3 (complete READs=3, piggyback=0); switch: T on: OUT_OP_RELEASE=0, expected 3; switch: T on: READ trigger delta 0, expected 3; switch: T on: generated READ packets delta 0, expected 12 (2k = 4 per trigger); switch: T on: OPERATE trigger delta 0, expected 3; switch: T on: generated OPERATE packets delta 0, expected 12 (2k = 4 per trigger); switch: E mapper growth must reflect last generation only: observed 0, expected 51; lifecycle: N/E/T epochs must agree on a nonzero bounded Work generation: {'N': 0, 'E': 0, 'T': 0}; lifecycle: N packet WorkRecord generation is not readable and bounded; lifecycle: E FIRST must be latched for the current connection; lifecycle: N owner must be retired with current connection generation3",
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_55",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate55_old_external_01_separate_ack_combined_t0",
+     "master_port": 59400,
+     "reads": 1,
+     "ok": false,
+     "failures": [
+      "Vision replay source pins differ",
+      "Vision replay series failed",
+      "collected replay scenario has wrong effective tuple/controls",
+      "independent replay filtering: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2'",
+      "c1: wire_check.py failed rc1",
+      "c1: clrt_check.py failed rc1",
+      "c1: missing or empty evidence: out.pcap",
+      "c1: missing or empty evidence: in.pcap",
+      "c1: missing or empty evidence: master.json",
+      "c1: missing or empty evidence: outstation.json",
+      "c1: missing or empty evidence: result.json",
+      "c1: missing or empty evidence: state.txt",
+      "c1: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/master.json'",
+      "c1: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/out.pcap'",
+      "c1: strict Vision replay leg verdict failed",
+      "c2: wire_check.py failed rc1",
+      "c2: clrt_check.py failed rc1",
+      "c2: missing or empty evidence: out.pcap",
+      "c2: missing or empty evidence: in.pcap",
+      "c2: missing or empty evidence: master.json",
+      "c2: missing or empty evidence: outstation.json",
+      "c2: missing or empty evidence: result.json",
+      "c2: missing or empty evidence: state.txt",
+      "c2: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/master.json'",
+      "c2: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/out.pcap'",
+      "c2: strict Vision replay leg verdict failed",
+      "c3: wire_check.py failed rc1",
+      "c3: clrt_check.py failed rc1",
+      "c3: missing or empty evidence: out.pcap",
+      "c3: missing or empty evidence: in.pcap",
+      "c3: missing or empty evidence: master.json",
+      "c3: missing or empty evidence: outstation.json",
+      "c3: missing or empty evidence: result.json",
+      "c3: missing or empty evidence: state.txt",
+      "c3: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/master.json'",
+      "c3: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/out.pcap'",
+      "c3: strict Vision replay leg verdict failed",
+      "isolation: missing established quiet window",
+      "current TCP did not publish readiness within90seconds",
+      "switch: T on: OUT_ACK_COMMIT=0, expected 3 (complete READs=3, piggyback=0)",
+      "switch: T on: OUT_RESP_RELEASE=0, expected 3 (complete READs=3, piggyback=0)",
+      "switch: T on: OUT_OP_RELEASE=0, expected 3",
+      "switch: T on: READ trigger delta 0, expected 3",
+      "switch: T on: generated READ packets delta 0, expected 12 (2k = 4 per trigger)",
+      "switch: T on: OPERATE trigger delta 0, expected 3",
+      "switch: T on: generated OPERATE packets delta 0, expected 12 (2k = 4 per trigger)",
+      "switch: E mapper growth must reflect last generation only: observed 0, expected 51",
+      "lifecycle: N/E/T epochs must agree on a nonzero bounded Work generation: {'N': 0, 'E': 0, 'T': 0}",
+      "lifecycle: N packet WorkRecord generation is not readable and bounded",
+      "lifecycle: E FIRST must be latched for the current connection",
+      "lifecycle: N owner must be retired with current connection generation3"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "scenario": {
+      "policy": "exact_old_external_replay",
+      "connections": {
+       "c1": {
+        "ok": false,
+        "failures": [
+         "missing or empty evidence: out.pcap",
+         "missing or empty evidence: in.pcap",
+         "missing or empty evidence: master.json",
+         "missing or empty evidence: outstation.json",
+         "missing or empty evidence: result.json",
+         "missing or empty evidence: state.txt",
+         "evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/master.json'",
+         "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c1/out.pcap'",
+         "strict Vision replay leg verdict failed"
+        ],
+        "fresh_mapping": null
+       },
+       "c2": {
+        "ok": false,
+        "failures": [
+         "missing or empty evidence: out.pcap",
+         "missing or empty evidence: in.pcap",
+         "missing or empty evidence: master.json",
+         "missing or empty evidence: outstation.json",
+         "missing or empty evidence: result.json",
+         "missing or empty evidence: state.txt",
+         "evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/master.json'",
+         "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c2/current/out.pcap'",
+         "strict Vision replay leg verdict failed"
+        ],
+        "fresh_mapping": null
+       },
+       "c3": {
+        "ok": false,
+        "failures": [
+         "missing or empty evidence: out.pcap",
+         "missing or empty evidence: in.pcap",
+         "missing or empty evidence: master.json",
+         "missing or empty evidence: outstation.json",
+         "missing or empty evidence: result.json",
+         "missing or empty evidence: state.txt",
+         "evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/master.json'",
+         "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate55_old_external_01/separate_ack/combined/candidate55_old_external_01_separate_ack_combined_t0/c3/out.pcap'",
+         "strict Vision replay leg verdict failed"
+        ],
+        "fresh_mapping": null
+       }
+      }
+     },
+     "observed": {
+      "bank_isolation": {
+       "ok": false,
+       "failures": [
+        "missing established quiet window"
+       ]
+      },
+      "switch": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 0,
+        "OUT_ACK_COMMIT": 0,
+        "OUT_RESP_RELEASE": 0,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 0,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0
+       },
+       "token_stale": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 0,
+         "pkts": 0
+        },
+        "OPERATE": {
+         "triggers": 0,
+         "pkts": 0
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       },
+       "external_growth_bytes": 0,
+       "external_growth_expected": 51,
+       "unacked": 0
+      },
+      "lifecycle": {
+       "epochs": {
+        "registers": {
+         "N": "p0.n_Ingress.epoch",
+         "E": "p0.r_Egress.epoch",
+         "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+         "N": 0,
+         "E": 0,
+         "T": 0
+        },
+        "E_raw": 0,
+        "E_FIRST_latched": false
+       },
+       "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 0
+       },
+       "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 0,
+        "phase": 0,
+        "generation": 0
+       }
+      },
+      "precision_qualified": false
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate55_old_external_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59400,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate55_old_external_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": false,
+   "error": "rc 1: scp: /home/decps/pad58b_rearm_barrier_20261012/runs/candidate55_old_external_01_separate_ack_combined_t0/*: No such file or directory"
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "before lifecycle snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate55_old_external_01_separate_ack_combined_t0",
+   "what": "after lifecycle snapshot",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "6ed2ca84883eb857415e4a48e79b2c4a497abf800f46d2aa3536147c8351e298",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "dfee563ed026d5b027a3cb97fac369eefbb5e73722aaf8f14ee548b0580f77b5"
+ },
+ "candidate_series": {
+  "close_mode": "rst",
+  "rst_grace_ms": 1000,
+  "connections": 3,
+  "effective_endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "limitations": [
+   "old retained packet replay is proven by replay_old_packets.py, not this series harness",
+   "delayed internal token proof is a separate IPG diagnostic, not a precision qualification"
+  ]
+ },
+ "isolation_source_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_isolation.py": "02d05e45fc9038cbc074ef97649cc679b9bf78786a26050e827e8c816fcb45cd",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_window.py": "35759692a4a2ebda242b1c6f8a52f83d2697b580e38348bfe310466daecfad14",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/isolation_gate.py": "e162121f7d06c12874bafc5a52f0c10c643e2a6d40ff07ec67e15cf4b786424a",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_series.py": "3bfcb69c0ef87c5d58f8e93bacc08a676e928b15ea52bdff3fd16d35dd0e2c80",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "b65ea9f635ebb81af52c7d9966e20c1a7401186759f2d876a697809b54b88f69",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py": "c2332e17b15ab15c1efc3692b18fefe4ea71cb69b06e4eeff8fe7a88a53d9700",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf"
+ },
+ "external_packet_isolation": {
+  "monitor_ok": false,
+  "error": "current TCP did not publish readiness within90seconds"
+ },
+ "external_source_identity": {
+  "integration/evidence/rearm_01/hw/candidate_external.py": "48a859a66fd2f79d3375726a2df220183f47eca508ea66c3e77e0d42cf7a94ea",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_replay.py": "c2c2ec309900d1b8ee82eb519772cdf5e7881c8b5730ffd3f89a7fd24772fa49",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/replay_old_packets.py": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf"
+ },
+ "old_capture_identity": {
+  "graceful": {
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_01/rearm_native_reference_01_native_t0/out.pcap": "13c98880b7910c1bd871efcfdd3081389b2274ea7fb01953b3bfd0dd14645df8",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_01/rearm_native_reference_01_native_t0/in.pcap": "fc568efec3d1400fbb7b5d4823eaa824b51205de3393028c0f0fd6f127b77458"
+  },
+  "rst": {
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c1/out.pcap": "d7af5e95978a8867065a0b0c56b056049305405cf3feacc41378d9f601bdac90",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c1/in.pcap": "2e4a4834c650a7beb53a97bf115ebf27372c46294992a1422e4a034f40a47366"
+  }
+ },
+ "endpoint_observed": {
+  "binary_sha256": "13c99c456af1f730d586a8923b474d2dbaf9c156c9d4e96c9d3d549750475a35",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_barrier_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_barrier_20261012/lib",
+  "vision_run_sha256": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+  "loss_sha256": "4f4d205fbc5c037a31168b38dab5178bf95e16ef6cb5fcf12eb4d7ebfaf159cd"
+ },
+ "candidate_series_vision_identity": {
+  "vision_candidate.py": "ef5722d57a5a965b87caf883b157591fe43a3a9647df83e3e5ef63a27b8ae1e1",
+  "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453",
+  "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+  "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672"
+ },
+ "external_vision_identity": {
+  "vision_replay.py": "c2c2ec309900d1b8ee82eb519772cdf5e7881c8b5730ffd3f89a7fd24772fa49",
+  "vision_isolation.py": "b0bf3b0758bfac6bd0804be5a7b8d9d8e21881e9de8c545f8621e66684078437",
+  "replay_old_packets.py": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3"
+ },
+ "candidate_series_switch_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "b65ea9f635ebb81af52c7d9966e20c1a7401186759f2d876a697809b54b88f69"
+ },
+ "pre_run_program": "case4_response_path",
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 1,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59400,
+    "last": 59400
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "stale_source_characterization",
+   "read_precision": false
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "rearm_55": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "13c99c456af1f730d586a8923b474d2dbaf9c156c9d4e96c9d3d549750475a35",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "08ff3cb7d47c795a2b8bccd88f73abcaa30760bbcd7d5fea7264b25b5def0d0f",
+   "source_files": {
+    "SocketGatePad58B.cpp": "08ff3cb7d47c795a2b8bccd88f73abcaa30760bbcd7d5fea7264b25b5def0d0f",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_barrier_20261012"
+ },
+ "config_sha256": "5c1a6e3d7f8a12a6f8cf4a98e9630090f594c3b70dadcb32e5cd25cf73502545",
+ "config_file_sha256": "af19c29e3b540a86e912ce57abb854445562dd04ede62e32052a7e188c27ba36",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "44db67570d4e085ab5409305ef48b21e992113654acf2da1ed9897a6d65d7cd4",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453"
+  },
+  "build_sources": {
+   "rearm_55": {
+    "source_sha256": "628af1c66da5b61a7b4062dfae40b3e14320bc5d370d20219d893fef3862b261",
+    "source_files": {
+     "response_only.p4": "628af1c66da5b61a7b4062dfae40b3e14320bc5d370d20219d893fef3862b261"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_55": {
+   "bfrt.json": "52fa08c7c5a92363178e75c659316ad6dc0bbb98c038077eac348758b0e5eb3a",
+   "p0/tofino.bin": "da13dc0f2f4a1fc4e744ed564fe53ac2f41114e4a79742c47885ca16a91c0fab",
+   "p1/tofino.bin": "b9279ba6bbb8b8f63372be611157afa510a85f6cc998293eeaf6f70c450a692c",
+   "p1/response_only.bfa": "79ecfc0d5cd5e981f74ecbf8e264dd1fff0aa34d9b8afef97bf43323bc014f02"
+  }
+ },
+ "paired_block": null,
+ "time": 1791826639.8113117
+}

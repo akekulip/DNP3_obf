@@ -1,0 +1,194 @@
+{
+  "sd_convention": "sd_population divides by n (statistics.pstdev); sd_sample divides by n-1 (statistics.stdev). Both are in the units of the statistic (microseconds); a single value reports 0.0 for both.",
+  "note": "intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; timestamps are integer microseconds at the capture resolution",
+  "summary": {
+    "OPERATE": {
+      "logical_requests": 1,
+      "attempts": 1,
+      "retransmitted": 0,
+      "complete": 1,
+      "incomplete": 0,
+      "piggyback": 0,
+      "req_crc_bad": 0,
+      "resp_crc_bad": 0,
+      "resp_len": [
+        37
+      ],
+      "eligible_for_latency": 1,
+      "clrt_us": {
+        "n": 1,
+        "min": 5249,
+        "median": 5249,
+        "iqr": 0,
+        "p95": 5249,
+        "p99": 5249,
+        "max": 5249,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "rt_us": {
+        "n": 1,
+        "min": 5435,
+        "median": 5435,
+        "iqr": 0,
+        "p95": 5435,
+        "p99": 5435,
+        "max": 5435,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "ack_lat_us": {
+        "n": 1,
+        "min": 186,
+        "median": 186,
+        "iqr": 0,
+        "p95": 186,
+        "p99": 186,
+        "max": 186,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      }
+    },
+    "READ": {
+      "logical_requests": 1,
+      "attempts": 1,
+      "retransmitted": 0,
+      "complete": 1,
+      "incomplete": 0,
+      "piggyback": 0,
+      "req_crc_bad": 0,
+      "resp_crc_bad": 0,
+      "resp_len": [
+        49
+      ],
+      "eligible_for_latency": 1,
+      "clrt_us": {
+        "n": 1,
+        "min": 5414,
+        "median": 5414,
+        "iqr": 0,
+        "p95": 5414,
+        "p99": 5414,
+        "max": 5414,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "rt_us": {
+        "n": 1,
+        "min": 5613,
+        "median": 5613,
+        "iqr": 0,
+        "p95": 5613,
+        "p99": 5613,
+        "max": 5613,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "ack_lat_us": {
+        "n": 1,
+        "min": 199,
+        "median": 199,
+        "iqr": 0,
+        "p95": 199,
+        "p99": 199,
+        "max": 199,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      }
+    },
+    "SELECT": {
+      "logical_requests": 1,
+      "attempts": 1,
+      "retransmitted": 0,
+      "complete": 1,
+      "incomplete": 0,
+      "piggyback": 0,
+      "req_crc_bad": 0,
+      "resp_crc_bad": 0,
+      "resp_len": [
+        37
+      ],
+      "eligible_for_latency": 1,
+      "clrt_us": {
+        "n": 1,
+        "min": 5316,
+        "median": 5316,
+        "iqr": 0,
+        "p95": 5316,
+        "p99": 5316,
+        "max": 5316,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "rt_us": {
+        "n": 1,
+        "min": 5487,
+        "median": 5487,
+        "iqr": 0,
+        "p95": 5487,
+        "p99": 5487,
+        "max": 5487,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      },
+      "ack_lat_us": {
+        "n": 1,
+        "min": 171,
+        "median": 171,
+        "iqr": 0,
+        "p95": 171,
+        "p99": 171,
+        "max": 171,
+        "sd_population": 0.0,
+        "sd_sample": 0.0
+      }
+    }
+  },
+  "exchanges": [
+    {
+      "kind": "READ",
+      "app_seq": 0,
+      "t_req": 1791829706729012,
+      "attempts": 1,
+      "retransmitted": false,
+      "req_crc_ok": true,
+      "complete": true,
+      "piggyback": false,
+      "resp_crc_ok": true,
+      "resp_len": 49,
+      "ack_lat_us": 199,
+      "clrt_us": 5414,
+      "rt_us": 5613
+    },
+    {
+      "kind": "SELECT",
+      "app_seq": 1,
+      "t_req": 1791829706760440,
+      "attempts": 1,
+      "retransmitted": false,
+      "req_crc_ok": true,
+      "complete": true,
+      "piggyback": false,
+      "resp_crc_ok": true,
+      "resp_len": 37,
+      "ack_lat_us": 171,
+      "clrt_us": 5316,
+      "rt_us": 5487
+    },
+    {
+      "kind": "OPERATE",
+      "app_seq": 2,
+      "t_req": 1791829706766141,
+      "attempts": 1,
+      "retransmitted": false,
+      "req_crc_ok": true,
+      "complete": true,
+      "piggyback": false,
+      "resp_crc_ok": true,
+      "resp_len": 37,
+      "ack_lat_us": 186,
+      "clrt_us": 5249,
+      "rt_us": 5435
+    }
+  ]
+}

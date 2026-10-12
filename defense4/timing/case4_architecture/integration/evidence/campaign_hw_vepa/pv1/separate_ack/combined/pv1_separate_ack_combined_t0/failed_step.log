@@ -1,0 +1,15 @@
+BUILD IDENTITY (/home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_mirror_fix_01):
+    OK       4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa  bfrt.json
+    OK       aff15250cc9af232f99c4d759fd801dd3d4a7b750b712fe760dc637550af2edb  p0/tofino.bin
+    OK       eea04489a6ad5da5a3d2ca91201223af26458d1516c2a7a4b6d3b5843893ff96  p1/response_only.bfa
+    OK       296444ce43e28e3228edd8e1d61c52f2a6f233dc4be357e3e96610e896e02309  p1/tofino.bin
+
+--- stderr ---
+Traceback (most recent call last):
+  File "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/src/integration/core/response_only/hw/bringup_composite.py", line 385, in <module>
+    sys.exit(main())
+  File "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/src/integration/core/response_only/hw/bringup_composite.py", line 336, in main
+    errs += mirror_guard(a)              # before any plan or write, in dry-run and --apply alike
+  File "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/src/integration/core/response_only/hw/bringup_composite.py", line 103, in mirror_guard
+    import check_mirror_select as cms
+ModuleNotFoundError: No module named 'check_mirror_select'

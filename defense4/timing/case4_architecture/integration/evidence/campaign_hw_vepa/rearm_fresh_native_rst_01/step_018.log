@@ -1,0 +1,527 @@
+{
+  "scenario": "candidate_same_tuple",
+  "label": "rearm_fresh_native_rst_01_native_rst",
+  "close_mode": "rst",
+  "master_port": 59400,
+  "tuple": [
+    "192.168.10.61",
+    59400,
+    "192.168.10.62",
+    20000
+  ],
+  "namespaces": [
+    "ns_vepa_a",
+    "ns_vepa_b"
+  ],
+  "nic": "enp59s0f0np0",
+  "padding": 0,
+  "reads": 1,
+  "read_pause_ms": 25,
+  "close_grace_ms": 1000,
+  "pre_read_grace_ms": 0,
+  "switch_mutations": false,
+  "applied": true,
+  "connections": [
+    {
+      "name": "c1",
+      "master_port": 59400,
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "rearm_fresh_native_rst_01_native_rst_c1",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12345,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c1/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c1/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 7,
+          "elapsed_s": 6.25,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.06,
+        "tcpdump": {
+          "out": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 15,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791829706771576,
+          "app_seq": 2,
+          "frame_sha256": "46001871cc2e02c5abdb0e6988bc0ba8f67c9be58ca65e0eebc1bd2d12a20bbe",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 0,
+        "supported": false,
+        "observed_pre_read_grace_ms": null,
+        "pre_read_ready_ns": null,
+        "first_read_issued_ns": null,
+        "marker_path": null,
+        "marker_sha256": null
+      }
+    },
+    {
+      "name": "c2",
+      "master_port": 59400,
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "rearm_fresh_native_rst_01_native_rst_c2",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12346,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c2/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c2/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 1,
+          "elapsed_s": 0.035,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.061,
+        "tcpdump": {
+          "out": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 15,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791829711997429,
+          "app_seq": 2,
+          "frame_sha256": "ee59d2a8c0739db9df55c12329e66c194b9c42ac53686c93e40536b982456554",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 0,
+        "supported": false,
+        "observed_pre_read_grace_ms": null,
+        "pre_read_ready_ns": null,
+        "first_read_issued_ns": null,
+        "marker_path": null,
+        "marker_sha256": null
+      }
+    },
+    {
+      "name": "c3",
+      "master_port": 59400,
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "rearm_fresh_native_rst_01_native_rst_c3",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12347,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c3/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_controls_20261012/runs/rearm_fresh_native_rst_01_native_rst/c3/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 1,
+          "elapsed_s": 0.035,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.06,
+        "tcpdump": {
+          "out": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 15,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791829717218088,
+          "app_seq": 2,
+          "frame_sha256": "0b5e64982c96cac0c9bbd37ee7415d3f0cd8147dff6480ec47d91b924aeb9c09",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 0,
+        "supported": false,
+        "observed_pre_read_grace_ms": null,
+        "pre_read_ready_ns": null,
+        "first_read_issued_ns": null,
+        "marker_path": null,
+        "marker_sha256": null
+      }
+    }
+  ],
+  "ok": true,
+  "preflight": [
+    {
+      "namespace": null,
+      "argv": [
+        "ip",
+        "-j",
+        "link",
+        "show",
+        "dev",
+        "enp59s0f0np0"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":2,\"ifname\":\"enp59s0f0np0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"mq\",\"operstate\":\"UP\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"3c:fd:fe:cc:5d:c0\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"vfinfo_list\":[]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": "ns_vepa_a",
+      "argv": [
+        "ip",
+        "-j",
+        "address",
+        "show",
+        "dev",
+        "mvA"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":12,\"link_index\":2,\"ifname\":\"mvA\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"noqueue\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"d2:9d:1d:1c:f4:dd\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.61\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvA\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::d09d:1dff:fe1c:f4dd\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": "ns_vepa_b",
+      "argv": [
+        "ip",
+        "-j",
+        "address",
+        "show",
+        "dev",
+        "mvB"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":13,\"link_index\":2,\"ifname\":\"mvB\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"prio\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"ee:df:16:18:b0:a5\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.62\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvB\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::ecdf:16ff:fe18:b0a5\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": null,
+      "argv": [
+        "ss",
+        "--help"
+      ],
+      "rc": 0,
+      "stdout": "Usage: ss [ OPTIONS ]\n       ss [ OPTIONS ] [ FILTER ]\n   -h, --help          this message\n   -V, --version       output version information\n   -n, --numeric       don't resolve service names\n   -r, --resolve       resolve host names\n   -a, --all           display all sockets\n   -l, --listening     display listening sockets\n   -o, --options       show timer information\n   -e, --extended      show detailed socket information\n   -m, --memory        show socket memory usage\n   -p, --processes     show process using socket\n   -T, --threads       show thread using socket\n   -i, --info          show internal TCP information\n       --tipcinfo      show internal tipc socket information\n   -s, --summary       show socket usage summary\n       --tos           show tos and priority information\n       --cgroup        show cgroup information\n   -b, --bpf           show bpf filter socket information\n   -E, --events        continually display sockets as they are destroyed\n   -Z, --context       display task SELinux security contexts\n   -z, --contexts      display task and socket SELinux security contexts\n   -N, --net           switch to the specified network namespace name\n\n   -4, --ipv4          display only IP version 4 sockets\n   -6, --ipv6          display only IP version 6 sockets\n   -0, --packet        display PACKET sockets\n   -t, --tcp           display only TCP sockets\n   -M, --mptcp         display only MPTCP sockets\n   -S, --sctp          display only SCTP sockets\n   -u, --udp           display only UDP sockets\n   -d, --dccp          display only DCCP sockets\n   -w, --raw           display only RAW sockets\n   -x, --unix          display only Unix domain sockets\n       --tipc          display only TIPC sockets\n       --vsock         display only vsock sockets\n       --xdp           display only XDP sockets\n   -f, --family=FAMILY display sockets of type FAMILY\n       FAMILY := {inet|inet6|link|unix|netlink|vsock|tipc|xdp|help}\n\n   -K, --kill          forcibly close sockets, display what was closed\n   -H, --no-header     Suppress header line\n   -O, --oneline       socket's data printed on a single line\n       --inet-sockopt  show various inet socket options\n\n   -A, --query=QUERY, --socket=QUERY\n       QUERY := {all|inet|tcp|mptcp|udp|raw|unix|unix_dgram|unix_stream|unix_seqpacket|packet|packet_raw|packet_dgram|netlink|dccp|sctp|vsock_stream|vsock_dgram|tipc|xdp}[,QUERY]\n\n   -D, --diag=FILE     Dump raw information about TCP sockets to FILE\n   -F, --filter=FILE   read filter information from FILE\n       FILTER := [ state STATE-FILTER ] [ EXPRESSION ]\n       STATE-FILTER := {all|connected|synchronized|bucket|big|TCP-STATES}\n         TCP-STATES := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|closed|close-wait|last-ack|listening|closing}\n          connected := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}\n       synchronized := {established|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}\n             bucket := {syn-recv|time-wait}\n                big := {established|syn-sent|fin-wait-{1,2}|closed|close-wait|last-ack|listening|closing}\n",
+      "stderr": ""
+    }
+  ],
+  "source_sha256": {
+    "/home/decps/pad58b_rearm_controls_20261012/vision_candidate.py": "1ceb80b364f09ae9525b185dd854010a390079e36e4bc7c7c4fd9a17fea954e4",
+    "/home/decps/pad58b_rearm_controls_20261012/vision_run.py": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+    "/home/decps/pad58b_rearm_controls_20261012/wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453",
+    "/home/decps/pad58b_rearm_controls_20261012/clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+    "/home/decps/pad58b_rearm_controls_20261012/checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+    "/home/decps/pad58b_rearm_controls_20261012/token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+    "/home/decps/pad58b_rearm_controls_20261012/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+  },
+  "hashes": {
+    "c1/timing.json": "4fcc1e96766b530556cc972e3f9b77122c1a206674a1380be98ddcbba9bcf393",
+    "c1/in.pcap": "ecf92460ddfdb1cfccdade54f711ce4ab0dcbb8cdec037e0a5a023928bfa90e5",
+    "c1/master.json": "93c0a64747b920b642b7aee7fc49149165ca4da24872abaa6d5d2a3b6e7e1cb8",
+    "c1/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c1/verdict.json": "9106ba0a0b49853b274389d38a2766a38c30072315828283c40ceffe785304ca",
+    "c1/outstation.json": "185a9cd9b088c0f26f080326d37e61102b7e22b52827ad7b228e8e41b3dacc5a",
+    "c1/observer.json": "b916c49d19149ccf1d8ed0ff92a29cb17b4910461f118177ed1c479df231a4ac",
+    "c1/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c1/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c1/state.txt": "2ab8d6e6ed51c36902dca54b69920f716873d3c745e19bfac0d163c0ff24f8ff",
+    "c1/out.pcap": "fce88df247bd4c6f4913537ff3bf919a037e1d6f7b48e45e4e6ef27a885d0c5f",
+    "c1/wire.json": "fde6d5219c15e4a474faa768b8e71706477576dc6e0ffaee53c60896d508143c",
+    "c1/result.json": "943d9586de4df4733598fb68a60b6b41a05a19f113aee7904ec67c5133c463cb",
+    "c3/timing.json": "b4ec7767dce6fdf7685e3741386dae2488510683548fdd9affc478b0dcd1e67a",
+    "c3/in.pcap": "1623ae0e41e5af49f3ecf6c86299d8fb74ba0871f775020cc2123767eb86d267",
+    "c3/master.json": "b2f005a82df1472712a1214649ad1c3bbd7492c8388058f8ff1350d00dc83866",
+    "c3/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c3/verdict.json": "49c7a78cd291d2cdcae310b7b5af62ace59815781f6e6ea3ef64c536ac935d3a",
+    "c3/outstation.json": "fa3ce684d85ee464110e6e47776f9342ab2a33a058768e3ccf91e25ddd6c3523",
+    "c3/observer.json": "0a1d730d96454bde775d8224ddc042bc7bace809ec356f6ad6604bd569aa74e9",
+    "c3/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c3/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c3/state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+    "c3/out.pcap": "43de2681d5d4cc879858d6bc77b00857df026a510152e74795b67ec8b8bedbc6",
+    "c3/wire.json": "82d2b9c0bfa7455adb291b82115525fe1213cd13818a71d411b0b86ca4084ccf",
+    "c3/result.json": "4d9defe61bf24ea79b6e88abe4416f5bbeff2844f893bb148c921cc43e1a2c89",
+    "c2/timing.json": "afe1ae4e18fa1d304d5cb8722b485c6372029fde4d682554f4ca1a85c6c902b9",
+    "c2/in.pcap": "16de5216681e652b1f612a70a62f6864060163ae4fc8c2b4ba6b32056d96967c",
+    "c2/master.json": "eaa5ec813fb01a742f6b00e4158f006912c2976738a91a6aefa4ef5920c9f300",
+    "c2/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c2/verdict.json": "05e9f27894a8c8fda0943a274a3f7651dde0c27c91e6b6c657ccd23513eee0a7",
+    "c2/outstation.json": "2d21bbf23e78575c1d5954b3293307f5763963b073d086a2be8fbee54a372848",
+    "c2/observer.json": "11e7b4e6d67a95f1416e1d71ba3b4b11b38c7eb08306cf5571b2f8ab25ce5f8d",
+    "c2/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c2/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c2/state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+    "c2/out.pcap": "e460f1b6733b85d254ac677d63e685f12d8d99fa5d845eea216b74d90cc6981a",
+    "c2/wire.json": "c581850485a7c149b5023b631f6d8706bff26129ab445a3067fa32bd80ac46a1",
+    "c2/result.json": "24fae9783f296ffa127142d31ade630d5fd5da406c6d49ae89fbe1a6eb69c872"
+  }
+}

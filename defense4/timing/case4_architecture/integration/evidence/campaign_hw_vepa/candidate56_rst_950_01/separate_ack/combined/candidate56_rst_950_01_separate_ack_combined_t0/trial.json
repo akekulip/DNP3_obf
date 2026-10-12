@@ -1,0 +1,305 @@
+{
+ "fixture": "separate_ack",
+ "label": "candidate56_rst_950_01_separate_ack_combined_t0",
+ "master_port": 59421,
+ "reads": 20,
+ "ok": false,
+ "failures": [
+  "c1: missing or malformed evidence: master",
+  "c1: missing or malformed evidence: outstation",
+  "c1: missing or malformed evidence: wire",
+  "c1: missing or malformed evidence: timing",
+  "c1: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c1/out.pcap'",
+  "c1: READ precision did not qualify: eligible0, p99 absolute errorNone us",
+  "c1: wire_rc=1",
+  "c1: clrt_rc=1",
+  "c1: vision_candidate per-connection verdict failed",
+  "c2: missing or malformed evidence: master",
+  "c2: missing or malformed evidence: outstation",
+  "c2: missing or malformed evidence: wire",
+  "c2: missing or malformed evidence: timing",
+  "c2: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c2/out.pcap'",
+  "c2: READ precision did not qualify: eligible0, p99 absolute errorNone us",
+  "c2: wire_rc=1",
+  "c2: clrt_rc=1",
+  "c2: vision_candidate per-connection verdict failed",
+  "c3: missing or malformed evidence: master",
+  "c3: missing or malformed evidence: outstation",
+  "c3: missing or malformed evidence: wire",
+  "c3: missing or malformed evidence: timing",
+  "c3: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c3/out.pcap'",
+  "c3: READ precision did not qualify: eligible0, p99 absolute errorNone us",
+  "c3: wire_rc=1",
+  "c3: clrt_rc=1",
+  "c3: vision_candidate per-connection verdict failed",
+  "vision_candidate series failed (rc=1)",
+  "switch: T on: OUT_ACK_COMMIT=0, expected 60 (complete READs=60, piggyback=0)",
+  "switch: T on: OUT_RESP_RELEASE=0, expected 60 (complete READs=60, piggyback=0)",
+  "switch: T on: OUT_OP_RELEASE=0, expected 3",
+  "switch: T on: READ trigger delta 0, expected 60",
+  "switch: T on: generated READ packets delta 0, expected 240 (2k = 4 per trigger)",
+  "switch: T on: OPERATE trigger delta 0, expected 3",
+  "switch: T on: generated OPERATE packets delta 0, expected 12 (2k = 4 per trigger)",
+  "switch: E mapper growth must reflect last generation only: observed 0, expected 222",
+  "lifecycle: T must be sealed after c3 close",
+  "lifecycle: N/E/T epochs must agree on a nonzero bounded Work generation: {'N': 0, 'E': 0, 'T': 0}",
+  "lifecycle: N packet WorkRecord generation is not readable and bounded",
+  "lifecycle: E FIRST must be latched for the current connection",
+  "lifecycle: N owner must be retired with current connection generation3"
+ ],
+ "max_token_stale": 0,
+ "reconnect_policy": "characterize",
+ "diagnostic": false,
+ "preset": "shape_59570",
+ "conditions": {
+  "delay_ms": 5,
+  "gap_ms": 0,
+  "start_delay_ms": 0,
+  "start_seed": 12345
+ },
+ "achieved_shaping": {
+  "ACK_BLOCK": {
+   "dev_port": 182,
+   "qid": 7,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "ACK_HOLD": {
+   "dev_port": 182,
+   "qid": 6,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  },
+  "RESP_BLOCK": {
+   "dev_port": 182,
+   "qid": 5,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "RESP_HOLD": {
+   "dev_port": 182,
+   "qid": 4,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  },
+  "OP_BLOCK": {
+   "dev_port": 181,
+   "qid": 3,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "OP_HOLD": {
+   "dev_port": 181,
+   "qid": 2,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  }
+ },
+ "vision": {
+  "error": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"<frozen runpy>\", line 286, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/home/decps/pad58b_rearm_controls_20261012/vision_candidate.py\", line 41, in <module>\n    from token_window import PRE_READ_GRACE_MS\nModuleNotFoundError: No module named 'token_window'\n"
+ },
+ "scenario": {
+  "policy": "candidate_same_tuple_protected",
+  "connections": {
+   "c1": {
+    "ok": false,
+    "failures": [
+     "missing or malformed evidence: master",
+     "missing or malformed evidence: outstation",
+     "missing or malformed evidence: wire",
+     "missing or malformed evidence: timing",
+     "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c1/out.pcap'",
+     "READ precision did not qualify: eligible0, p99 absolute errorNone us",
+     "wire_rc=1",
+     "clrt_rc=1",
+     "vision_candidate per-connection verdict failed"
+    ],
+    "read_precision": {
+     "gap_us": 950.0,
+     "read_rows": 0,
+     "eligible": 0,
+     "excluded": {
+      "incomplete": 0,
+      "piggyback": 0,
+      "multiple_attempts": 0,
+      "missing_clrt": 0
+     },
+     "minimum_eligible": 20,
+     "maximum_p99_absolute_error_us": 100,
+     "absolute_error_us": null,
+     "signed_error_us": null,
+     "tails": [],
+     "pass": false,
+     "gated": true
+    },
+    "fresh_mapping": null,
+    "wire_rc": 1,
+    "clrt_rc": 1
+   },
+   "c2": {
+    "ok": false,
+    "failures": [
+     "missing or malformed evidence: master",
+     "missing or malformed evidence: outstation",
+     "missing or malformed evidence: wire",
+     "missing or malformed evidence: timing",
+     "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c2/out.pcap'",
+     "READ precision did not qualify: eligible0, p99 absolute errorNone us",
+     "wire_rc=1",
+     "clrt_rc=1",
+     "vision_candidate per-connection verdict failed"
+    ],
+    "read_precision": {
+     "gap_us": 950.0,
+     "read_rows": 0,
+     "eligible": 0,
+     "excluded": {
+      "incomplete": 0,
+      "piggyback": 0,
+      "multiple_attempts": 0,
+      "missing_clrt": 0
+     },
+     "minimum_eligible": 20,
+     "maximum_p99_absolute_error_us": 100,
+     "absolute_error_us": null,
+     "signed_error_us": null,
+     "tails": [],
+     "pass": false,
+     "gated": true
+    },
+    "fresh_mapping": null,
+    "wire_rc": 1,
+    "clrt_rc": 1
+   },
+   "c3": {
+    "ok": false,
+    "failures": [
+     "missing or malformed evidence: master",
+     "missing or malformed evidence: outstation",
+     "missing or malformed evidence: wire",
+     "missing or malformed evidence: timing",
+     "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate56_rst_950_01/separate_ack/combined/candidate56_rst_950_01_separate_ack_combined_t0/c3/out.pcap'",
+     "READ precision did not qualify: eligible0, p99 absolute errorNone us",
+     "wire_rc=1",
+     "clrt_rc=1",
+     "vision_candidate per-connection verdict failed"
+    ],
+    "read_precision": {
+     "gap_us": 950.0,
+     "read_rows": 0,
+     "eligible": 0,
+     "excluded": {
+      "incomplete": 0,
+      "piggyback": 0,
+      "multiple_attempts": 0,
+      "missing_clrt": 0
+     },
+     "minimum_eligible": 20,
+     "maximum_p99_absolute_error_us": 100,
+     "absolute_error_us": null,
+     "signed_error_us": null,
+     "tails": [],
+     "pass": false,
+     "gated": true
+    },
+    "fresh_mapping": null,
+    "wire_rc": 1,
+    "clrt_rc": 1
+   }
+  },
+  "installed_connections_expected": 3,
+  "old_replay_and_token_proofs": "separate diagnostics"
+ },
+ "observed": {
+  "switch": {
+   "outcomes": {
+    "OUT_UNMATCHED": 0,
+    "OUT_HELD_REWAIT": 0,
+    "OUT_ACK_COMMIT": 0,
+    "OUT_RESP_RELEASE": 0,
+    "OUT_RESP_DUP_DROP": 0,
+    "OUT_OP_RELEASE": 0,
+    "OUT_TOKEN_STALE": 0,
+    "OUT_HELD_STALE_FLUSH": 0,
+    "OUT_ACK_FALLBACK": 0,
+    "OUT_RESP_FALLBACK": 0,
+    "OUT_TOKEN_TMO": 0,
+    "OUT_HELD_OFF_FLUSH": 0,
+    "OUT_TOKEN_OFF": 0,
+    "OUT_REQ_BYPASS": 0,
+    "index_14": 0,
+    "index_15": 0,
+    "STALE_BLOCKER": 0,
+    "RAW_OPERATE_TIMER_STALE": 0,
+    "RAW_READ_TIMER_STALE": 0
+   },
+   "token_stale": 0,
+   "pktgen": {
+    "READ": {
+     "triggers": 0,
+     "pkts": 0
+    },
+    "OPERATE": {
+     "triggers": 0,
+     "pkts": 0
+    }
+   },
+   "loop_octet_gap": {
+    "n_ack_return": 0,
+    "t_in": 0,
+    "hb_return": 0,
+    "held_return": 0
+   },
+   "external_growth_bytes": 0,
+   "external_growth_expected": 222,
+   "unacked": 0
+  },
+  "lifecycle": {
+   "epochs": {
+    "registers": {
+     "N": "p0.n_Ingress.epoch",
+     "E": "p0.r_Egress.epoch",
+     "T": "p1.t_Ingress.cur_epoch_reg"
+    },
+    "values": {
+     "N": 0,
+     "E": 0,
+     "T": 0
+    },
+    "E_raw": 0,
+    "T_raw": 0,
+    "T_sealed": false,
+    "E_FIRST_latched": false
+   },
+   "work": {
+    "register": "p0.n_Ingress.work.work",
+    "phase": 4,
+    "generation": 0
+   },
+   "owner": {
+    "register": "p0.n_Ingress.owner",
+    "value": 0,
+    "phase": 0,
+    "generation": 0
+   }
+  }
+ }
+}
