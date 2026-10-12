@@ -81,6 +81,14 @@ taps the NIC before netfilter, so the dropped frame is still in `in.pcap`. Which
 afterwards from the captures (see the loss analysis), by position in the class and the retransmission that follows.
 `vision_run.py` and `loss.py` are deployed together and both hash-verified.
 
+Reconnect scenario. `vision_run.py run LABEL --scenario reconnect --master-port P [--reconnect-port P2]` runs three
+connections, each a complete run with its own pcaps and endpoint JSON under `runs/LABEL/c1..c3/` (labels `LABEL_c1..`,
+never reused): c1 on the installed port (READs, SBO, normal close; must succeed or the scenario stops), c2 from a NEW
+source port the switch has no rows for (default P+1; defined behaviour: it completes natively, with no padding and no
+timing hold), and c3 on the SAME installed tuple once TIME-WAIT clears. N does not re-arm after a connection, so c3
+asserts nothing: its connect result, application result, timeouts and response lengths are recorded to characterize
+the limitation. `ok` is c1 and c2 completing; c3 never changes it. `scenario.json` summarizes the three.
+
 Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (or `python3 hw_vepa/report.py RUN_DIR`)
 prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
 packets and bytes (sum over ports 48/180/181/182 of the `$FramesTransmittedAll` / `$OctetsTransmittedTotal` deltas,

@@ -129,69 +129,32 @@ def profile(value, port_range):
     set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', port_range)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('mode', choices=('setup', 'restore', 'state', 'casea', 'run'))
-    ap.add_argument('label', nargs='?')
-    ap.add_argument('--master-port', type=int)
-    ap.add_argument('--reads', type=int, default=10)
-    ap.add_argument('--range', type=int, choices=(8, 16), default=16)
-    ap.add_argument('--gap-ms', type=int, default=0, help='spacing between READ requests')
-    ap.add_argument('--start-delay-ms', type=int, default=0,
-                    help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
-    ap.add_argument('--start-seed', type=int, default=0)
-    ap.add_argument('--delay-ms', type=int, default=25)
-    ap.add_argument('--connect-must-fail', action='store_true')
-    ap.add_argument('--drop', metavar='CLASS[:N]',
-                    help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
-                         'classes: ' + ', '.join(loss.names()))
-    a = ap.parse_args()
+def wait_port_free(port, tries=80):
+    for _ in range(tries):
+        if ':%d ' % port not in nsx(NS_M, 'ss', '-tan').stdout:
+            return
+        time.sleep(1)
+    raise RuntimeError('master port %d still busy' % port)
 
-    if a.mode == 'setup':
-        profile('0', DEFAULT_RANGE)
-        if 'source-pruning : on' not in state():
-            pruning('on')
-    if a.mode == 'casea':
-        if a.label not in ('on', 'off'):
-            sys.exit('casea on|off')
-        casea(a.label == 'on', a.delay_ms)
-    if a.mode == 'restore':
-        casea(False, 0)
-        profile('1', DEFAULT_RANGE)
-        if 'source-pruning : off' not in state():
-            pruning('off')
-    if a.mode != 'run':
-        print(state())
-        sys.exit(0)
 
-    if not a.label or not re.fullmatch(r'[A-Za-z0-9_]+', a.label) or a.master_port is None:
-        sys.exit('run needs LABEL and --master-port')
-    drop = None
-    if a.drop:
-        try:
-            drop = loss.parse_drop(a.drop, a.reads)      # a bad spec stops the run before anything is created
-        except ValueError as e:
-            sys.exit(str(e))
-    run_dir = os.path.join(RUNS, a.label)
+def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
+                   connect_must_fail=False):
+    """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
+    reused). Returns the result dict, which is also written to run_dir/result.json."""
     os.makedirs(run_dir)                      # refuses to reuse a label
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
 
-    set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', '%d %d' % (a.master_port, a.master_port))
-    for _ in range(80):                       # a tuple just closed by its master sits in TIME-WAIT for 60 s
-        if ':%d ' % a.master_port not in nsx(NS_M, 'ss', '-tan').stdout:
-            break
-        time.sleep(1)
-    else:
-        sys.exit('master port %d still busy' % a.master_port)
+    set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', '%d %d' % (master_port, master_port))
+    wait_port_free(master_port)               # a tuple just closed by its master sits in TIME-WAIT for 60 s
 
     flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
     env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB]
     stop = os.path.join(run_dir, 'stop')
-    result = {'label': a.label, 'master_port': a.master_port, 'reads': a.reads, 'range': a.range, 'gap_ms': a.gap_ms,
-              'start_delay_ms_max': a.start_delay_ms, 'start_seed': a.start_seed,
-              'start_delay_ms_applied': start_delay_ms(a.start_delay_ms, a.start_seed)}
+    result = {'label': label, 'master_port': master_port, 'reads': reads, 'range': rng, 'gap_ms': gap_ms,
+              'start_delay_ms_max': start_delay_max, 'start_seed': start_seed,
+              'start_delay_ms_applied': start_delay_ms(start_delay_max, start_seed)}
     caps = {}
     ost = None
     rule = None
@@ -208,18 +171,18 @@ def main():
                 raise RuntimeError('tcpdump -Q %s wrote no capture file' % d)
 
         ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env +
-                               [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + a.reads // 5 + a.reads * (a.gap_ms + 60) // 1000)],
+                               [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads // 5 + reads * (gap_ms + 60) // 1000)],
                                stdout=subprocess.PIPE, text=True)
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
         if ready == 'READY':
             if drop:                                                     # fail fast, before any traffic
-                rule = loss.LossRule(nsx, drop, IP_M, IP_O, a.master_port, PORT_O).install()
+                rule = loss.LossRule(nsx, drop, IP_M, IP_O, master_port, PORT_O).install()
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
             try:
-                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(a.reads), IP_M, str(a.range),
-                          str(a.gap_ms), timeout=a.reads * 4 + 30 + a.reads * a.gap_ms // 1000)
+                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads), IP_M, str(rng),
+                          str(gap_ms), timeout=reads * 4 + 30 + reads * gap_ms // 1000)
                 result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
                 open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
             except subprocess.TimeoutExpired:
@@ -254,10 +217,100 @@ def main():
         path = os.path.join(run_dir, d + '.pcap')
         result['frames_' + d] = len(sh('tcpdump', '-r', path, '-n').stdout.splitlines()) \
             if os.path.exists(path) and os.path.getsize(path) > 24 else 0
-    result['ok'] = (result.get('master_rc') == 2) if a.connect_must_fail else (result.get('master_rc') == 0)
+    result['ok'] = (result.get('master_rc') == 2) if connect_must_fail else (result.get('master_rc') == 0)
     if drop:
         result['loss_exact'] = bool(result.get('loss', {}).get('exact'))
     json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=1)
+    return result
+
+
+def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed):
+    """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
+
+      c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
+      c2  a NEW source port the switch has no rows for: defined behaviour is that it completes natively
+      c3  the SAME installed tuple again, once TIME-WAIT clears: N does not re-arm, so nothing is asserted here;
+          the connect result, application result and timeouts are recorded to characterize the limitation.
+    ok = c1 and c2 completed; c3 never changes it."""
+    parent = os.path.join(RUNS, label)
+    os.makedirs(parent)                                   # refuses to reuse a label
+    open(os.path.join(parent, 'state.txt'), 'w').write(state() + '\n')
+    plan = (('c1', master_port, 'installed'), ('c2', reconnect_port, 'unknown_port'),
+            ('c3', master_port, 'installed_again'))
+    out = {'scenario': 'reconnect', 'label': label, 'connections': {}, 'ok': False}
+    for name, port, role in plan:
+        try:
+            res = run_connection(os.path.join(parent, name), '%s_%s' % (label, name), port, reads, rng, gap_ms,
+                                 start_delay_max, start_seed)
+        except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
+            res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
+        res['role'] = role
+        out['connections'][name] = res
+        if name == 'c1' and not res.get('ok'):
+            break
+    c = out['connections']
+    out['ok'] = bool(c.get('c1', {}).get('ok') and c.get('c2', {}).get('ok'))
+    json.dump(out, open(os.path.join(parent, 'scenario.json'), 'w'), indent=1)
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('mode', choices=('setup', 'restore', 'state', 'casea', 'run'))
+    ap.add_argument('label', nargs='?')
+    ap.add_argument('--master-port', type=int)
+    ap.add_argument('--reads', type=int, default=10)
+    ap.add_argument('--range', type=int, choices=(8, 16), default=16)
+    ap.add_argument('--gap-ms', type=int, default=0, help='spacing between READ requests')
+    ap.add_argument('--start-delay-ms', type=int, default=0,
+                    help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
+    ap.add_argument('--start-seed', type=int, default=0)
+    ap.add_argument('--delay-ms', type=int, default=25)
+    ap.add_argument('--connect-must-fail', action='store_true')
+    ap.add_argument('--scenario', choices=('reconnect',),
+                    help='reconnect: c1 on the installed port, c2 on a new unknown port (expected native), c3 on the '
+                         'installed tuple again (characterized, not asserted); each its own evidence under RUNS/LABEL/')
+    ap.add_argument('--reconnect-port', type=int, help='source port of c2 (default: master port + 1)')
+    ap.add_argument('--drop', metavar='CLASS[:N]',
+                    help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
+                         'classes: ' + ', '.join(loss.names()))
+    a = ap.parse_args()
+
+    if a.mode == 'setup':
+        profile('0', DEFAULT_RANGE)
+        if 'source-pruning : on' not in state():
+            pruning('on')
+    if a.mode == 'casea':
+        if a.label not in ('on', 'off'):
+            sys.exit('casea on|off')
+        casea(a.label == 'on', a.delay_ms)
+    if a.mode == 'restore':
+        casea(False, 0)
+        profile('1', DEFAULT_RANGE)
+        if 'source-pruning : off' not in state():
+            pruning('off')
+    if a.mode != 'run':
+        print(state())
+        sys.exit(0)
+
+    if not a.label or not re.fullmatch(r'[A-Za-z0-9_]+', a.label) or a.master_port is None:
+        sys.exit('run needs LABEL and --master-port')
+    drop = None
+    if a.drop:
+        try:
+            drop = loss.parse_drop(a.drop, a.reads)      # a bad spec stops the run before anything is created
+        except ValueError as e:
+            sys.exit(str(e))
+    if a.scenario == 'reconnect':
+        out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
+                            a.start_delay_ms, a.start_seed)
+        print(json.dumps(out))
+        sys.exit(0 if out['ok'] else 1)
+    try:
+        result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
+                                a.start_delay_ms, a.start_seed, drop, a.connect_must_fail)
+    except RuntimeError as e:
+        sys.exit(str(e))
     print(json.dumps(result))
     sys.exit(0 if result['ok'] else 1)
 
