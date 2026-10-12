@@ -77,11 +77,30 @@
       "manifest": "integration/evidence/route_ab_01/sbo_admission_01/hw_compile_switch_9132/manifest.json",
       "sde": "/home/decps/Downloads/bf-sde-9.13.2",
       "pcie": "0000:04:00.0",
+      "allowed_loop_octet_gap": {},
+      "_allowed_loop_octet_gap_note": "Per loop role (n_ack_return, t_in, hb_return, held_return): octets received but not in good frames that this build is allowed per trial. Default 0. The build before the RESET fix shows 80 on t_in; set {\"t_in\": 80} for that build only.",
       "hashes": {
         "bfrt.json": "ee9986058d520fcb11e6c869ba6962f33b9dde89d1cfceb67f79a73bfd40e118",
         "p0/tofino.bin": "741fee7ee23c720d3b7490bc29767db4d1cb8354290060d8d10e60b879e068a3",
         "p1/tofino.bin": "084e496313f981190e099d86e00022803d26843a4336a75a7ab61d9e0a59de1f"
       }
+    }
+  },
+  "expectations": {
+    "_note": "THE one expectations table; checks.evaluate enforces it per trial from the trial's own evidence (before/after snapshot deltas, master.json, outstation.json, wire.json, timing.json) and a violation fails the trial. README repeats it. The T-on counts for the piggyback fixture are assumed equal to separate_ack (one commit and one release per READ) and have not been measured: only the fallback bound is restricted to the on-time fixture.",
+    "common": {"read_points": 23},
+    "native_len": {"READ": 49, "SELECT": 37, "OPERATE": 37},
+    "padding": {
+      "1": {"read_resp_len": [58], "sbo_resp_len": [58], "growth": "positive"},
+      "0": {"read_resp_len": [49], "sbo_resp_len": [37], "growth": "zero"}
+    },
+    "T": {
+      "1": {"op_release_when_sbo": 1, "fallback_zero_fixtures": ["separate_ack"]},
+      "0": {"zero_outcomes": ["OUT_ACK_COMMIT", "OUT_RESP_RELEASE", "OUT_OP_RELEASE"]}
+    },
+    "fixture": {
+      "separate_ack": {"piggyback_fraction": [0.0, 0.05]},
+      "piggyback": {"piggyback_fraction": [0.95, 1.0]}
     }
   },
   "padding_installer_flag": "--pad-enable",

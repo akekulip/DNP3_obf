@@ -19,6 +19,15 @@ import campaign as cp  # noqa: E402
 import run as runmod  # noqa: E402
 import vision_run as vr  # noqa: E402
 from test_campaign_bindings import cfg_for, H64  # noqa: E402
+from test_checks import evidence as ideal_evidence  # noqa: E402
+
+ARMS = {a['name']: a for a in json.load(open(HERE.parent / 'campaign.json'))['arms']}
+
+
+def parse_label(text):
+    """(fixture, arm) from any path or command containing c1_<fixture>_<arm>_t<i>."""
+    m = re.search(r'_(separate_ack|piggyback)_(%s)_t\d+' % '|'.join(ARMS), text)
+    return (m.group(1), ARMS[m.group(2)]) if m else (None, None)
 
 HWDIR = HERE.parents[2] / 'integration' / 'core' / 'response_only' / 'hw'
 SNAP = {'shaping': {'ACK_HOLD': {'requested_pps': 300, 'achieved_pps': 281, 'dev_port': 68, 'qid': 6}},
@@ -35,6 +44,7 @@ class FakeRunner:
         self.calls = []
         self.wire_rc, self.clrt_rc, self.vision_out, self.vision_rc = wire_rc, clrt_rc, vision_out, vision_rc
         self.fail_on = fail_on or []                      # substrings that make a command return rc 1
+        self.reads = {}
 
     def run(self, where, cmd, cwd=None, timeout=None, label=None):
         self.calls.append((where, cmd))
@@ -49,30 +59,43 @@ class FakeRunner:
             else:
                 out = '%s  -\n' % H64
         elif 'vision_run.py run' in cmd:
+            self.reads[re.search(r'run (\S+)', cmd).group(1)] = int(re.search(r'--reads (\d+)', cmd).group(1))
             rc, out = self.vision_rc, self.vision_out
         elif cmd.startswith('scp') and '/runs/' in cmd:
             dest = Path(shlex_last(cmd))
             dest.mkdir(parents=True, exist_ok=True)
+            ev = self.evidence(cmd)
             for f in ('out.pcap', 'in.pcap'):
                 (dest / f).write_bytes(b'x')
-        elif cmd.startswith('scp') and 'snap/' in cmd:
-            dest = Path(shlex_last(cmd))
-            dest.mkdir(parents=True, exist_ok=True)
-            for tok in shlex_split(cmd)[2:-1]:               # scp -q host:/path/x.json host:/path/y.json DEST
-                (dest / tok.rsplit('/', 1)[1]).write_text(json.dumps(SNAP))
+            (dest / 'master.json').write_text(json.dumps(ev['master']))
+            (dest / 'outstation.json').write_text(json.dumps(ev['outstation']))
         elif cmd.startswith('scp') and '@10.10.54.81:' in cmd:       # one file fetched back from the switch
             toks = shlex_split(cmd)
             dest = Path(toks[-1])
             dest.mkdir(parents=True, exist_ok=True)
             for tok in toks[2:-1]:
-                (dest / tok.rsplit('/', 1)[1]).write_text(json.dumps(SNAP))
+                name = tok.rsplit('/', 1)[1]
+                body = SNAP
+                if name.endswith(('_before.json', '_after.json')):
+                    body = self.evidence(name)['before' if name.endswith('_before.json') else 'after']
+                (dest / name).write_text(json.dumps(body))
         elif 'wire_check.py' in cmd:
             rc = self.wire_rc
-            (Path(cmd.split('--json ')[1].split()[0])).write_text('{}')
+            (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['wire']))
         elif 'clrt_check.py' in cmd:
             rc = self.clrt_rc
-            (Path(cmd.split('--json ')[1].split()[0])).write_text('{}')
+            (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['timing']))
         return runmod_result(rc, out, '')
+
+    def evidence(self, text):
+        """Ideal evidence for the arm/fixture named in `text` (a path or command carrying the unit label)."""
+        fx, arm = parse_label(text)
+        label = re.search(r'c1_\w+?_t\d+', text)
+        reads = self.reads.get(label.group(0), 20) if label else 20
+        ev = ideal_evidence(arm['padding'], arm['T'], fx, reads)
+        for sname in ('before', 'after'):
+            ev[sname]['shaping'] = SNAP['shaping']
+        return ev
 
     def cmds(self, needle):
         return [i for i, (_w, c) in enumerate(self.calls) if needle in c]
@@ -381,6 +404,41 @@ class FailurePathCollection(Base):
         got = self.collected(self.record_of())
         self.assertIn('connection reset', got['switch log']['error'])
         self.assertTrue(got['vision run directory']['ok'])
+
+
+class OutcomeGate(Base):
+    """The explicit per-arm/per-fixture checks are part of the gate: a violation fails the trial."""
+    class Gap(FakeRunner):
+        def evidence(self, text):
+            ev = super().evidence(text)
+            ev['after']['loop_ports']['t_in']['$OctetsReceived'] += 80
+            return ev
+
+    def test_loop_octet_gap_fails_the_trial_and_reports_the_bytes(self):
+        r = self.Gap()
+        self.assertEqual(self.campaign(r, arms=('combined',)).execute(), 1)
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        self.assertTrue(any('t_in' in f and '80' in f for f in rec['arms'][0]['trials'][0]['failures']))
+        self.assertEqual(rec['arms'][0]['trials'][0]['observed']['loop_octet_gap']['t_in'], 80)
+
+    def test_per_build_allowed_gap_lets_the_known_gap_through(self):
+        self.cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'] = {'t_in': 80}
+        self.assertEqual(self.campaign(self.Gap(), arms=('combined',)).execute(), 0)
+
+    def test_padding_violation_fails_the_trial(self):
+        class Native(FakeRunner):
+            def evidence(self, text):
+                ev = super().evidence(text)
+                ev['timing']['summary']['READ']['resp_len'] = [49]
+                return ev
+        self.assertEqual(self.campaign(Native(), arms=('combined',)).execute(), 1)
+
+    def test_good_trials_record_what_was_observed(self):
+        self.assertEqual(self.campaign(FakeRunner(), arms=('combined',)).execute(), 0)
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        obs = rec['arms'][0]['trials'][0]['observed']
+        self.assertGreater(obs['growth_bytes'], 0)
+        self.assertEqual(obs['piggyback_fraction'], 0.0)
 
 
 class RestoreTarget(Base):

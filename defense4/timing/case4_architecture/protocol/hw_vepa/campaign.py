@@ -49,6 +49,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import checks  # noqa: E402
 import run as runner  # noqa: E402  (evaluate(): the reviewed per-run gate)
 import vision_run as vr  # noqa: E402  (the Vision-side paths the endpoint runner itself uses)
 
@@ -58,7 +59,7 @@ RESPONSE_ONLY = 'integration/core/response_only'
 Result = collections.namedtuple('Result', 'rc out err')
 ARCH = os.path.abspath(os.path.join(HERE, '..', '..'))      # case4_architecture: every config path is relative to it
 REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
-            'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production')
+            'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production', 'expectations')
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
 ROLES = ('ack', 'resp', 'op')
 FIXTURES = ('separate_ack', 'piggyback')
@@ -132,6 +133,12 @@ def validate_profile(cfg):
     if not (isinstance(pr.get('first'), int) and isinstance(pr.get('last'), int)
             and 1024 <= pr['first'] <= pr['last'] <= 65535):
         raise ValueError('traffic.master_port_range needs integer first <= last within 1024..65535, got %r' % pr)
+    for name, b in cfg['builds'].items():
+        checks.validate_allowed_gap(b, name)
+    exp = cfg['expectations']
+    for k in ('common', 'native_len', 'padding', 'T', 'fixture'):
+        if k not in exp:
+            raise ValueError('expectations.%s is missing' % k)
     modes = cfg['fixture'].get('modes')
     if not modes or any(m not in FIXTURES for m in modes) or len(set(modes)) != len(modes):
         raise ValueError('fixture.modes must be a non-empty list of distinct values from %s, got %r' % (FIXTURES, modes))
@@ -530,7 +537,7 @@ class Campaign:
         self.collect_unit(label, dest, out_remote, manifest, log, state)
         if err is not None:
             raise err
-        self.verdict(trial, rec, label, dest, v)
+        self.verdict(trial, rec, label, dest, v, arm, fixture)
 
     def save(self, dest, name, result):
         """Write a command's captured output next to the evidence (local, best effort)."""
@@ -598,7 +605,7 @@ class Campaign:
         if state['installed']:
             self.collect(label, 'bring-up manifest', 'local', fetch(manifest))
 
-    def verdict(self, trial, rec, label, dest, v):
+    def verdict(self, trial, rec, label, dest, v, arm, fixture):
         """The gate: independent wire verification, timing extraction and run.evaluate over the collected files."""
         w = self.step('local', '%s: independent wire verification' % label,
                       '%s %s/wire_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
@@ -618,9 +625,18 @@ class Campaign:
                                                                         'timing.json')}
         ok, fails = runner.evaluate(False, v.rc, result, w.rc, k.rc, artifacts)
         trial.update(ok=ok, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc)
-        snap = os.path.join(dest, 'snapshots', '%s_after.json' % label)
-        if os.path.exists(snap):
-            trial['achieved_shaping'] = rec['achieved_shaping'] = json.load(open(snap)).get('shaping')
+        snapdir = os.path.join(dest, 'snapshots')
+        ev = checks.load_evidence_files(
+            before=os.path.join(snapdir, '%s_before.json' % label), after=os.path.join(snapdir, '%s_after.json' % label),
+            master=os.path.join(dest, 'master.json'), outstation=os.path.join(dest, 'outstation.json'),
+            wire=os.path.join(dest, 'wire.json'), timing=os.path.join(dest, 'timing.json'))
+        if ev['after']:
+            trial['achieved_shaping'] = rec['achieved_shaping'] = ev['after'].get('shaping')
+        cfail, obs = checks.evaluate(self.cfg['expectations'], arm, fixture, trial['reads'], ev,
+                                     checks.allowed_gap(self.cfg['builds'][arm['build']]))
+        trial['observed'] = obs
+        ok, fails = ok and not cfail, fails + cfail
+        trial.update(ok=ok, failures=fails)
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if not ok:
             raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))

@@ -42,6 +42,26 @@ trial, even for arms that share a build) or `one_connection` (one bring-up and o
 starting: the configured production program, a port snapshot taken at the start, the relay slot, Vision, then a
 ping.
 
+Trial gate (expectations). Each trial is judged by `checks.py` from its own evidence (before/after snapshot deltas,
+`master.json`, `outstation.json`, `wire.json`, `timing.json`); any violation fails the trial and the campaign. The table
+lives in `campaign.json` under `expectations` (this is its only copy; README restates it):
+
+| scope | expectation |
+|---|---|
+| every trial | master success; every READ completes with all 23 seed values and matches the seed; exactly one real SELECT and one real OPERATE; zero decoy; no DNP3 CRC or IP/TCP checksum errors on returned frames |
+| padding on | every READ, SELECT and OPERATE response is 58 B on the master side; master-visible growth over native (READ 49, SELECT/OPERATE 37) is positive and recorded |
+| padding off | responses native (READ 49 B, SELECT/OPERATE 37 B); growth 0 |
+| T on | `OUT_ACK_COMMIT` and `OUT_RESP_RELEASE` deltas equal the READ count; `OUT_OP_RELEASE` delta is 1 when the SBO ran; `OUT_ACK_FALLBACK` and `OUT_RESP_FALLBACK` deltas are 0 on `separate_ack` (the piggyback T-on counts are assumed, not measured) |
+| T off | `OUT_ACK_COMMIT`, `OUT_RESP_RELEASE`, `OUT_OP_RELEASE` deltas are 0 |
+| fixture `separate_ack` | READ piggyback fraction in [0, 0.05] (the request is ACKed separately) |
+| fixture `piggyback` | READ piggyback fraction in [0.95, 1] |
+| loop ports 48 / 180 / 181 / 182 | delta of (`$OctetsReceived` - `$OctetsReceivedinGoodFrames`) is 0, or the build's `allowed_loop_octet_gap[role]` (default 0; the pre-RESET-fix build shows 80 on `t_in`). A larger gap fails with the byte count |
+
+Missing or unreadable evidence is itself a failure. The observed values (outcome deltas, piggyback fraction, growth,
+loop-port gaps) are written into `campaign_run.json` per trial. When anything fails, the collection phase still
+fetches the snapshots, endpoint outputs, pcaps, switch log, manifest and teardown output before the restore, and
+`campaign_run.json` `collections` lists each fetch with ok/error.
+
 Facts the runner depends on:
 - **Source pruning.** Vision's i40e NIC drops reflected frames whose source MAC is its own unless
   `disable-source-pruning` is on. Changing the flag resets the NIC's PF; the link returns in a few seconds.
