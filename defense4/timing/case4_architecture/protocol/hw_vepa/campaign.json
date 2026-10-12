@@ -189,6 +189,28 @@
   "traffic": {"master_port_range": {"first": 54500, "last": 54599}, "range": 8, "gap_ms": 0, "start_delay_ms": 0,
               "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
               "master_port_note": "Each connection gets its own cold bring-up on the next port in this range (N does not re-arm after a connection and a closed tuple sits in TIME-WAIT for 60 s). Pick a range not used in the last minute. range 8 is the 20-byte 8-bit-range READ profile."},
-  "loss": {"inject": false, "netem_loss_pct": 0.0},
+  "loss": {
+    "inject": false, "netem_loss_pct": 0.0,
+    "max_recovery_s": 5.0,
+    "presets": {
+      "read_request_3":      [{"class": "request", "n": 3}],
+      "ack_sep_3":           [{"class": "ack_sep", "n": 3}],
+      "read_resp_padded_3":  [{"class": "read_resp_padded", "n": 3}],
+      "select_resp_padded":  [{"class": "select_resp_padded", "n": 1}],
+      "operate_req":         [{"class": "operate_req", "n": 1}],
+      "operate_resp_padded": [{"class": "operate_resp_padded", "n": 1}],
+      "master_ack_of_padded_3": [{"class": "master_ack_of_padded", "n": 3}],
+      "core": [
+        {"class": "request", "n": 3}, {"class": "ack_sep", "n": 3}, {"class": "read_resp_padded", "n": 3},
+        {"class": "select_resp_padded", "n": 1}, {"class": "operate_req", "n": 1},
+        {"class": "operate_resp_padded", "n": 1}, {"class": "master_ack_of_padded", "n": 3}
+      ]
+    },
+    "_note": "A preset is a list of {class, n}; `--loss NAME` runs one trial per entry per arm/fixture, each its own cold bring-up with `vision_run.py --drop CLASS:N` (classes and wire shapes: loss.py). The padded classes assume a padding-on arm; use the native classes (read_resp_native, select_resp_native, operate_resp_native) with padding off. max_recovery_s is the bound on recovery after the drop; exceeding it fails the trial, which is recorded and does not stop the campaign. n counts packets of the class on the connection (the handshake ACK is master_ack #1)."
+  },
+  "scenarios": {
+    "reconnect": {"arm": "combined", "fixture": "separate_ack", "reconnect_port_offset": 1000,
+                  "_note": "c1 on the installed port, c2 from installed port + offset (no switch rows; must complete natively), c3 on the installed tuple again (recorded, not asserted). Run with --scenario reconnect."}
+  },
   "seeds": {"rng_seed": 12345}
 }

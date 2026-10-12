@@ -84,11 +84,14 @@ def evaluate(expect_fail, vision_rc, vision_result, wire_rc, clrt_rc, artifacts_
     return (not fails), fails
 
 
-def vision_cmd(label, master_port, reads, rng, gap_ms, start_delay_ms=0, start_seed=0, connect_must_fail=False):
+def vision_cmd(label, master_port, reads, rng, gap_ms, start_delay_ms=0, start_seed=0, connect_must_fail=False,
+               drop=None, scenario=None, reconnect_port=None):
     """The Vision-side command for one run; shared by `run` here so the flags cannot drift from vision_run.py."""
     return ('sudo python3 %s/vision_run.py run %s --master-port %d --reads %d --range %d --gap-ms %d '
-            '--start-delay-ms %d --start-seed %d%s' % (V_RUN, label, master_port, reads, rng, gap_ms, start_delay_ms,
-                                                       start_seed, ' --connect-must-fail' if connect_must_fail else ''))
+            '--start-delay-ms %d --start-seed %d%s%s%s' % (
+                V_RUN, label, master_port, reads, rng, gap_ms, start_delay_ms, start_seed,
+                ' --connect-must-fail' if connect_must_fail else '', ' --drop %s' % drop if drop else '',
+                ' --scenario %s --reconnect-port %d' % (scenario, reconnect_port) if scenario else ''))
 
 
 def main(argv=None):

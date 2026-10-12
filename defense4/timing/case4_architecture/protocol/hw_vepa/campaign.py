@@ -50,6 +50,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import checks  # noqa: E402
+import loss  # noqa: E402
 import run as runner  # noqa: E402  (evaluate(): the reviewed per-run gate)
 import vision_run as vr  # noqa: E402  (the Vision-side paths the endpoint runner itself uses)
 
@@ -153,6 +154,7 @@ def validate_profile(cfg):
     if not isinstance(sd, int) or isinstance(sd, bool) or sd < 0:
         raise ValueError('traffic.start_delay_ms must be an integer >= 0')
     validate_paired_blocks(cfg)
+    validate_loss_and_scenarios(cfg)
     if cfg['fixture'].get('jitter_ms', 0) != 0:
         raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
 
@@ -166,6 +168,31 @@ def resolve_shaping(cfg, preset=None):
     p = sh['presets'][name]
     return {'preset': name, 'hold_pps': dict(p['hold_pps']), 'block_pps': dict(p['block_pps']),
             'block_burst': p.get('block_burst')}
+
+
+def validate_loss_and_scenarios(cfg):
+    lc = cfg['loss']
+    mr = lc.get('max_recovery_s', 5.0)
+    if not isinstance(mr, (int, float)) or isinstance(mr, bool) or mr <= 0:
+        raise ValueError('loss.max_recovery_s must be a positive number of seconds')
+    for pname, entries in lc.get('presets', {}).items():
+        if not entries:
+            raise ValueError('loss.presets.%s must list at least one {class, n}' % pname)
+        for e in entries:
+            if set(e) != {'class', 'n'} or not isinstance(e['n'], int) or isinstance(e['n'], bool):
+                raise ValueError('loss.presets.%s: each entry needs exactly class and integer n, got %r' % (pname, e))
+            loss.parse_drop('%s:%d' % (e['class'], e['n']), cfg['trials']['reads_per_trial'])
+    names = [a['name'] for a in cfg['arms']]
+    for sname, sc in cfg.get('scenarios', {}).items():
+        if sname != 'reconnect':
+            raise ValueError('scenarios.%s: only "reconnect" is implemented' % sname)
+        if sc.get('arm') not in names or sc.get('fixture') not in FIXTURES:
+            raise ValueError('scenarios.%s needs a configured arm and a fixture from %s' % (sname, FIXTURES))
+        off = sc.get('reconnect_port_offset')
+        if not isinstance(off, int) or isinstance(off, bool) or off < 1:
+            raise ValueError('scenarios.%s.reconnect_port_offset must be an integer >= 1' % sname)
+        if cfg['traffic']['master_port_range']['last'] + off > 65535:
+            raise ValueError('scenarios.%s: reconnect port would exceed 65535' % sname)
 
 
 def validate_paired_blocks(cfg):
@@ -352,7 +379,8 @@ def installer_hw_files():
 
 
 class Campaign:
-    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None, paired=None):
+    def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None, paired=None,
+                 loss=None, scenario=None):
         self.cfg, self.rn, self.run_id, self.out = cfg, runner_, run_id, out
         self.installer_has = installer_flags or (lambda flag: default_installer_flags(flag))
         names = [a['name'] for a in cfg['arms']]
@@ -361,6 +389,14 @@ class Campaign:
         if unknown:
             raise ValueError('unknown arm(s) %s; the config defines %s' % (unknown, names))
         self.paired = paired
+        self.loss_preset, self.scenario = loss, scenario
+        self.soft_failures = []
+        if loss is not None and loss not in cfg['loss'].get('presets', {}):
+            raise ValueError('unknown loss preset %r; the config defines %s' % (loss, sorted(cfg['loss'].get('presets', {}))))
+        if scenario is not None:
+            if scenario not in cfg.get('scenarios', {}):
+                raise ValueError('unknown scenario %r; the config defines %s' % (scenario, sorted(cfg.get('scenarios', {}))))
+            want = [cfg['scenarios'][scenario]['arm']]
         if paired is not None:
             if paired not in cfg.get('paired_blocks', {}):
                 raise ValueError('unknown paired block %r; the config defines %s'
@@ -368,7 +404,8 @@ class Campaign:
             want = [cfg['paired_blocks'][paired]['arm']]
         self.arms = [a for a in cfg['arms'] if a['name'] in want]
         modes = cfg['fixture']['modes']
-        self.fixtures = [cfg['paired_blocks'][paired]['fixture']] if paired is not None else (fixtures or list(modes))
+        self.fixtures = ([cfg['paired_blocks'][paired]['fixture']] if paired is not None else
+                         [cfg['scenarios'][scenario]['fixture']] if scenario is not None else (fixtures or list(modes)))
         bad = [f for f in self.fixtures if f not in modes and paired is None]
         if bad:
             raise ValueError('unknown or unconfigured fixture(s) %s; fixture.modes is %s' % (bad, modes))
@@ -404,6 +441,18 @@ class Campaign:
                                     'delay_ms': cnd['delay_ms'], 'gap_ms': cnd['gap_ms'],
                                     'start_delay_ms': cnd['start_delay_ms'], 'start_seed': cnd['seed']})
                     pair += 1
+            return out
+        if self.loss_preset is not None or self.scenario is not None:
+            for fx in self.fixtures:
+                for arm in self.arms:
+                    i = 0
+                    entries = ([None] if self.scenario else c['loss']['presets'][self.loss_preset])
+                    for e in entries:
+                        out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'],
+                                        start_seed=c['seeds']['rng_seed'] + len(out),
+                                        drop='%s:%d' % (e['class'], e['n']) if e else None,
+                                        scenario=self.scenario))
+                        i += 1
             return out
         one = c['trial_mode'] == 'one_connection'
         for fx in self.fixtures:
@@ -500,7 +549,9 @@ class Campaign:
         finally:
             restore_ok = self.restore()
             self.finish(dry)
-        self.record['ok'] = (not failed) and restore_ok
+        self.record['ok'] = (not failed) and restore_ok and not self.soft_failures
+        if self.soft_failures:
+            self.record['soft_failures'] = self.soft_failures
         if not dry:
             self.finish(dry)
         return 0 if self.record['ok'] else 1
@@ -684,7 +735,10 @@ class Campaign:
             state['ran'] = True
             v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port),
                           runner.vision_cmd(label, port, reads, tr['range'], unit['gap_ms'], unit['start_delay_ms'],
-                                            unit['start_seed']).replace(runner.V_RUN, self.V), check=False)
+                                            unit['start_seed'], drop=unit.get('drop'), scenario=unit.get('scenario'),
+                                            reconnect_port=(port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
+                                                            if unit.get('scenario') else None)
+                                            ).replace(runner.V_RUN, self.V), check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
             self.snapshot(out_remote, label + '_after', check=False, preset=preset)
@@ -696,7 +750,12 @@ class Campaign:
         self.collect_unit(label, dest, out_remote, manifest, log, state, preset)
         if err is not None:
             raise err
-        self.verdict(trial, rec, label, dest, v, arm, fixture)
+        if unit.get('scenario'):
+            self.verdict_scenario(trial, label, dest, v, arm)
+        elif unit.get('drop'):
+            self.verdict_loss(trial, rec, label, dest, v, arm, fixture, unit, port)
+        else:
+            self.verdict(trial, rec, label, dest, v, arm, fixture)
         if pair is not None:
             pair['ok'] = len(pair['labels']) == 2 and all(
                 t['ok'] for a in self.record['arms'] for t in a['trials'] if t['label'] in pair['labels'])
@@ -761,7 +820,7 @@ class Campaign:
             self.collect(label, 'after snapshot', 'local',
                          'scp -q %s:%s/snap/%s_after.json %s/' % (host, R, label, snapdir))
         if state['ran']:
-            self.collect(label, 'vision run directory', 'local', 'scp -q %s:%s/runs/%s/* %s/'
+            self.collect(label, 'vision run directory', 'local', 'scp -qr %s:%s/runs/%s/* %s/'
                          % (vhost, self.V, label, q(dest)))
         self.collect(label, 'switch log', 'local', fetch(log))
         if state['installed']:
@@ -804,6 +863,123 @@ class Campaign:
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if not ok:
             raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
+
+    def _vision_json(self, v):
+        try:
+            return json.loads([l for l in v.out.splitlines() if l.startswith('{')][-1])
+        except (IndexError, ValueError, AttributeError):
+            return {'error': ((v.out if v else '') + (v.err if v else ''))[-500:]}
+
+    def _baseline_completion_s(self, fixture, arm_name):
+        vals = []
+        for a in self.record['arms']:
+            if a['fixture'] == fixture and a['arm'] == arm_name:
+                vals += [t['master_completion_s'] for t in a['trials'] if t.get('master_completion_s') and t.get('ok')
+                         and not t.get('loss') and not t.get('scenario')]
+        return sorted(vals)[len(vals) // 2] if vals else None
+
+    def verdict_loss(self, trial, rec, label, dest, v, arm, fixture, unit, port):
+        """Gate for a trial with one deterministic drop. A failed recovery is RECORDED (trial not ok, campaign goes
+        on to the next trial); only infrastructure failures stop the campaign."""
+        w = self.step('local', '%s: independent wire verification' % label,
+                      '%s %s/wire_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
+                                                                q(dest + '/in.pcap'), q(dest + '/wire.json')),
+                      check=False)
+        k = self.step('local', '%s: per-exchange timing extraction' % label,
+                      '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
+                                                                q(dest + '/in.pcap'), q(dest + '/timing.json')),
+                      check=False)
+        if self.rn.dry:
+            return
+        c = self.cfg
+        result = self._vision_json(v)
+        snapdir = os.path.join(dest, 'snapshots')
+        ev = checks.load_evidence_files(
+            before=os.path.join(snapdir, '%s_before.json' % label), after=os.path.join(snapdir, '%s_after.json' % label),
+            master=os.path.join(dest, 'master.json'), outstation=os.path.join(dest, 'outstation.json'),
+            wire=os.path.join(dest, 'wire.json'), timing=os.path.join(dest, 'timing.json'))
+        if ev['after']:
+            trial['achieved_shaping'] = rec['achieved_shaping'] = ev['after'].get('shaping')
+        spec = loss.parse_drop(unit['drop'], trial['reads'])
+        try:
+            ident = loss.identify(os.path.join(dest, 'out.pcap'), os.path.join(dest, 'in.pcap'), spec, port,
+                                  c['endpoints']['outstation_port'])
+        except Exception as e:                       # an unreadable capture is a recorded failure, not a crash
+            ident = {'identified': False, 'candidates': None, 'packet': None, 'error': str(e)}
+        base = self._baseline_completion_s(fixture, arm['name'])
+        fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
+                                        result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
+                                        ev['timing'], c['expectations'], base)
+        for f in ('out.pcap', 'in.pcap', 'wire.json', 'timing.json', 'master.json', 'outstation.json'):
+            if not os.path.exists(os.path.join(dest, f)):
+                fails.append('missing expected artifact: %s' % f)
+        # infrastructure checks that still apply: snapshot evidence, stale bound, loop-port gaps
+        _f, obs = checks.evaluate(c['expectations'], arm, fixture, trial['reads'], ev,
+                                  checks.allowed_gap(c['builds'][arm['build']]),
+                                  c['service']['k'] if c['builds'][arm['build']].get('mirror_fix') else None,
+                                  checks.max_token_stale(c['builds'][arm['build']]))
+        fails += [f for f in _f if f.startswith(('loop port', 'missing evidence: before', 'missing evidence: after'))
+                  or 'OUT_TOKEN_STALE' in f]
+        if ev['master'] and ev['master'].get('issued_ns') and ev['master'].get('completed_ns'):
+            trial['master_completion_s'] = round((ev['master']['completed_ns'] - ev['master']['issued_ns']) / 1e9, 3)
+        trial.update(ok=not fails, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc, loss=res, observed=obs)
+        json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
+        if fails:
+            self.soft_failures.append(label)
+            sys.stderr.write('LOSS TRIAL %s: %s\n' % (label, '; '.join(fails)))
+
+    def verdict_scenario(self, trial, label, dest, v, arm):
+        """Reconnect scenario: analyse c1..c3 separately. c1 must succeed and carry the arm's response lengths; c2
+        (a port the switch has no rows for) must complete natively; c3 (the installed tuple again) is only RECORDED."""
+        conns = ('c1', 'c2', 'c3')
+        rcs = {}
+        for cn in conns:
+            d = '%s/%s' % (dest, cn)
+            rcs[cn] = (
+                self.step('local', '%s/%s: independent wire verification' % (label, cn),
+                          '%s %s/wire_check.py %s %s --json %s' % (runner.PY, q(HERE), q(d + '/out.pcap'),
+                                                                    q(d + '/in.pcap'), q(d + '/wire.json')), check=False),
+                self.step('local', '%s/%s: per-exchange timing extraction' % (label, cn),
+                          '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(d + '/out.pcap'),
+                                                                    q(d + '/in.pcap'), q(d + '/timing.json')), check=False))
+        if self.rn.dry:
+            return
+        result = self._vision_json(v)
+        vc = result.get('connections', {})
+        out, fails = {}, []
+        padded_lens = [58] if arm['padding'] else [49]
+        for cn in conns:
+            d = os.path.join(dest, cn)
+            e = checks.load_evidence_files(master=os.path.join(d, 'master.json'), wire=os.path.join(d, 'wire.json'),
+                                           timing=os.path.join(d, 'timing.json'))
+            rd = ((e['timing'] or {}).get('summary') or {}).get('READ') or {}
+            lens = sorted({l for k in ((e['timing'] or {}).get('summary') or {}).values() for l in k.get('resp_len', [])})
+            m = e['master'] or {}
+            ent = vc.get(cn, {})
+            out[cn] = {'role': ent.get('role'), 'master_port': ent.get('master_port'), 'ran': cn in vc,
+                       'vision_ok': bool(ent.get('ok')),
+                       'connect_ok': ent.get('master_rc') == 0, 'master_rc': ent.get('master_rc'),
+                       'master_timeout': bool(ent.get('master_timeout')), 'error': ent.get('error'),
+                       'completed': bool(m.get('success') and m.get('reads_completed') == trial['reads']),
+                       'reads_completed': m.get('reads_completed'), 'resp_lens': lens,
+                       'padded': 58 in lens, 'retransmitted': rd.get('retransmitted'),
+                       'complete': rd.get('complete'), 'incomplete': rd.get('incomplete'),
+                       'wire_rc': rcs[cn][0].rc, 'clrt_rc': rcs[cn][1].rc}
+        if not (out['c1']['ran'] and out['c1']['vision_ok'] and out['c1']['completed'] and out['c1']['connect_ok']):
+            fails.append('c1 (the installed port) did not complete')
+        elif out['c1']['resp_lens'] != padded_lens:
+            fails.append('c1 response lengths %s, expected %s for padding %d' % (out['c1']['resp_lens'], padded_lens,
+                                                                               arm['padding']))
+        if not (out['c2']['ran'] and out['c2']['vision_ok'] and out['c2']['completed'] and out['c2']['connect_ok']):
+            fails.append('c2 (a port with no switch rows) did not complete')
+        elif out['c2']['resp_lens'] != [49]:
+            fails.append('c2 must complete natively (READ responses 49 B), saw %s' % out['c2']['resp_lens'])
+        out['c3']['note'] = 'characterization only: N does not re-arm; nothing is asserted'
+        trial.update(ok=not fails, failures=fails, vision=result, scenario={'connections': out})
+        json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
+        if fails:
+            self.soft_failures.append(label)
+            sys.stderr.write('RECONNECT TRIAL %s: %s\n' % (label, '; '.join(fails)))
 
     def installer_cmd(self, build, padding, out_remote, port, preset=None):
         c = self.cfg
@@ -887,6 +1063,8 @@ def main(argv=None):
     ap.add_argument('--run-dir', help='report: a campaign run directory (contains campaign_run.json)')
     ap.add_argument('--run-id', default=None)
     ap.add_argument('--fixtures', help='comma-separated fixtures to run (default: fixture.modes)')
+    ap.add_argument('--loss', help='run the named loss preset: one deterministic drop per entry, each its own cold bring-up')
+    ap.add_argument('--scenario', help='run the named scenario (reconnect)')
     ap.add_argument('--paired', help='run the named paired_blocks entry: presets A/B, identical conditions, alternating order')
     ap.add_argument('--preset', help='shaping preset from campaign.json (default: shaping.preset)')
     ap.add_argument('--apply', action='store_true', help='required for run: actually execute on hardware')
@@ -923,9 +1101,9 @@ def main(argv=None):
             bad = check_bindings(cfg)
             if bad:
                 sys.exit('refusing to deploy, unbound identity: %s' % '; '.join(bad))
-        return Campaign(cfg, runner_, run_id, arms, fixtures=fixtures, paired=a.paired).deploy_only()
+        return Campaign(cfg, runner_, run_id, arms, fixtures=fixtures, paired=a.paired, loss=a.loss, scenario=a.scenario).deploy_only()
     if a.mode == 'plan' or a.dry_run:
-        return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures, paired=a.paired).execute()
+        return Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures, paired=a.paired, loss=a.loss, scenario=a.scenario).execute()
     if not a.apply:
         sys.exit('run needs --apply to execute on hardware; use `plan` (or --dry-run) to see the commands first')
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
@@ -933,7 +1111,7 @@ def main(argv=None):
     bad = check_bindings(cfg)
     if bad:
         sys.exit('refusing to run, unbound identity: %s' % '; '.join(bad))
-    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms, fixtures=fixtures, paired=a.paired).execute()
+    return Campaign(cfg, ShellRunner(cfg['hosts']), run_id, arms, fixtures=fixtures, paired=a.paired, loss=a.loss, scenario=a.scenario).execute()
 
 
 if __name__ == '__main__':
