@@ -63,6 +63,11 @@ trial, even for arms that share a build) or `one_connection` (one bring-up and o
 starting: the configured production program, a port snapshot taken at the start, the relay slot, Vision, then a
 ping.
 
+Build identity. Each build's `hashes` pin `bfrt.json`, `p0/tofino.bin`, `p1/tofino.bin` and `p1/response_only.bfa`,
+checked three ways (config, compile `manifest.json`, file on disk) by `validate` and `run`. The `.bfa` is the file the
+installer's mirror-defect guard reads, so pinning it ties the checked file to the loaded binaries; every
+`bringup_composite.py` command (dry-run and apply) passes `--expect p1/response_only.bfa=<sha256>`.
+
 Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (or `python3 hw_vepa/report.py RUN_DIR`)
 prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
 packets and bytes (sum over ports 48/180/181/182 of the `$FramesTransmittedAll` / `$OctetsTransmittedTotal` deltas,

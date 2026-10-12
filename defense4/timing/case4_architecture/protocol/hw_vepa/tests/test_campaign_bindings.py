@@ -22,7 +22,7 @@ H64 = 'a' * 64
 def fake_build(root, tamper=None):
     """A tiny compiled out/ tree plus the compile manifest.json that records its sha256s."""
     out = Path(root) / 'out'
-    files = {'bfrt.json': b'{}', 'p0/tofino.bin': b'p0', 'p1/tofino.bin': b'p1'}
+    files = {'bfrt.json': b'{}', 'p0/tofino.bin': b'p0', 'p1/tofino.bin': b'p1', 'p1/response_only.bfa': b'bfa'}
     for rel, data in files.items():
         (out / rel).parent.mkdir(parents=True, exist_ok=True)
         (out / rel).write_bytes(data)
@@ -59,7 +59,7 @@ class Bindings(unittest.TestCase):
         cfg = cfg_for(self.tmp, 'match')
         self.assertEqual(cp.check_bindings(cfg), [])
         bound = cp.bind_builds(cfg)
-        self.assertEqual(set(next(iter(bound.values()))), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
+        self.assertEqual(set(next(iter(bound.values()))), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa'})
 
     def test_placeholder_hash_is_an_error_not_a_warning(self):
         cfg = cfg_for(self.tmp, '<sha256 from manifest.json>')
@@ -103,6 +103,59 @@ class Bindings(unittest.TestCase):
     @pytest.mark.build_tree
     def test_validate_passes_with_the_real_pins(self):
         self.assertEqual(cp.main(['validate', '--config', str(CONFIG)]), 0)
+
+
+class BfaPin(unittest.TestCase):
+    """p1/response_only.bfa is the file the installer's mirror-defect guard reads; pinning its hash ties the checked
+    file to the loaded binaries. It is enforced like the other three."""
+    def setUp(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
+
+    def test_bfa_is_in_the_hashed_set(self):
+        self.assertIn('p1/response_only.bfa', cp.BUILD_HASHED)
+
+    def test_mismatching_bfa_on_disk_is_refused(self):
+        errs = cp.check_bindings(cfg_for(self.tmp, 'match', tamper='p1/response_only.bfa'))
+        self.assertTrue(any('p1/response_only.bfa' in e and 'on disk' in e for e in errs), errs)
+
+    def test_config_bfa_hash_that_disagrees_with_the_manifest_is_refused(self):
+        cfg = cfg_for(self.tmp, 'match')
+        cfg['builds'][build_name(cfg)]['hashes']['p1/response_only.bfa'] = H64
+        errs = cp.check_bindings(cfg)
+        self.assertTrue(any('p1/response_only.bfa' in e and 'disagrees with the compile manifest' in e for e in errs), errs)
+
+    def test_placeholder_bfa_hash_is_an_error(self):
+        cfg = cfg_for(self.tmp, 'match')
+        cfg['builds'][build_name(cfg)]['hashes']['p1/response_only.bfa'] = '<sha256 from manifest.json>'
+        self.assertTrue(any('p1/response_only.bfa' in e for e in cp.check_bindings(cfg)))
+
+    def test_manifest_without_a_bfa_entry_is_refused(self):
+        cfg = cfg_for(self.tmp, 'match')
+        mp = Path(cfg['builds'][build_name(cfg)]['manifest'])
+        m = json.loads(mp.read_text())
+        del m['artifact_sha256']['p1/response_only.bfa']
+        mp.write_text(json.dumps(m))
+        self.assertTrue(any('no artifact_sha256 for p1/response_only.bfa' in e for e in cp.check_bindings(cfg)))
+
+    def test_missing_bfa_file_is_refused(self):
+        cfg = cfg_for(self.tmp, 'match')
+        (Path(cfg['builds'][build_name(cfg)]['out_dir']) / 'p1' / 'response_only.bfa').unlink()
+        self.assertTrue(any('p1/response_only.bfa' in e and 'missing' in e for e in cp.check_bindings(cfg)))
+
+    def test_null_slot_is_filled_from_the_manifest(self):
+        cfg = cfg_for(self.tmp, None)
+        self.assertEqual(cp.check_bindings(cfg), [])
+        self.assertEqual(len(cp.bind_builds(cfg)[build_name(cfg)]['p1/response_only.bfa']), 64)
+
+    def test_shipped_builds_pin_their_bfa_and_validate_enforces_it(self):
+        cfg = cp.load_config(str(CONFIG))
+        want = {'mirror_fix_01': 'eea04489a6ad5da5a3d2ca91201223af26458d1516c2a7a4b6d3b5843893ff96',
+                'close_reset_fix_01': '89ccc96a383c379d72342e0bb3cd4663bb7db2b8a5e7cca13e9bb805842abf91',
+                'sbo_admission_01': '94350238b895cbcb0b377e3a6bddf95a490af2386c132526fcc5ac703cb1040c'}
+        for name, sha in want.items():
+            self.assertEqual(cfg['builds'][name]['hashes']['p1/response_only.bfa'], sha, name)
 
 
 class ShippedBuilds(unittest.TestCase):

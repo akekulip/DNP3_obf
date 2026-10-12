@@ -60,7 +60,9 @@ Result = collections.namedtuple('Result', 'rc out err')
 ARCH = os.path.abspath(os.path.join(HERE, '..', '..'))      # case4_architecture: every config path is relative to it
 REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
             'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production', 'expectations')
-BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')   # what bringup_composite --expect requires
+# bringup_composite --expect: the first three are required by the installer; p1/response_only.bfa is the file its
+# mirror-defect guard reads (out/p1/*.bfa), pinned here to tie the checked file to the loaded binaries.
+BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
 ROLES = ('ack', 'resp', 'op')
 FIXTURES = ('separate_ack', 'piggyback')
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)

@@ -200,7 +200,7 @@ class Sequence(Base):
         self.assertEqual(rec['effective']['shaping_requested']['preset'], 'shape_3723')
         self.assertEqual(rec['effective']['shaping_requested']['hold_pps']['ack'], 3723)
         self.assertEqual(rec['arms'][0]['achieved_shaping']['ACK_HOLD']['achieved_pps'], 281)
-        self.assertEqual(set(rec['builds'][self.cfg['arms'][0]['build']]), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
+        self.assertEqual(set(rec['builds'][self.cfg['arms'][0]['build']]), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa'})
         self.assertEqual(rec['endpoint_observed']['binary_sha256'], H64)
 
 
@@ -503,6 +503,34 @@ class RestoreTarget(Base):
         self.assertFalse(r.runs('bringup_composite.py'))
         self.assertFalse(r.runs('restore_ports.py '))       # nothing was changed, so nothing is "restored"
         self.assertFalse(r.runs('switch_slot.py relay'))
+
+
+class BfaInPlan(Base):
+    def applies(self, r):
+        return [r.calls[i][1] for i in r.cmds('bringup_composite.py')]
+
+    def test_every_installer_command_carries_the_bfa_pin_and_the_other_three(self):
+        r = FakeRunner()
+        self.campaign(r).execute()
+        cmds = self.applies(r)
+        self.assertEqual(len(cmds), 4)                              # dry-run + apply for two bring-ups
+        want = json.load(open(Path(self.cfg['builds'][self.cfg['arms'][0]['build']]['manifest'])))['artifact_sha256']
+        for c in cmds:
+            for rel in ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa'):
+                self.assertIn('--expect %s=%s' % (rel, want[rel]), c)
+
+    def test_dry_run_and_apply_both_carry_it(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('size_only',)).execute()
+        cmds = self.applies(r)
+        self.assertEqual([('--apply' in c) for c in cmds], [False, True])
+        self.assertTrue(all('--expect p1/response_only.bfa=' in c for c in cmds))
+
+    def test_plan_prints_the_flag(self):
+        import cp_main_helper
+        rc, out = cp_main_helper.plan(self.cfg, self.tmp, ['--arms', 'combined', '--run-id', 'c1'])
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.count('--expect p1/response_only.bfa='), 2)       # one bring-up: dry-run + apply
 
 
 class Refusals(Base):
