@@ -32,3 +32,9 @@ READs, OUT_OP_RELEASE 1, zero fallback, port 48/180/181/182 received-vs-good oct
   delay, one gap: not yet a distribution.
 
 Rig restored after the runs (relay slot read back, ping .1 -> .7 ok, NIC flag off).
+
+## Close path on the fixed build (same five runs, from their captures)
+
+`wire_check.py` exit 0 on all five, nothing unmatched in either direction; the outstation FIN returned to the master
+sits at the padded data frontier in every run; one FIN per direction, no retransmission. The close-path and RESET
+fixes (b72285d13) therefore hold on the build that also carries the mirror fix.
