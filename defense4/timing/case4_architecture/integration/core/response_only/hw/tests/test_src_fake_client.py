@@ -49,7 +49,7 @@ class Base(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.manifest = Path(self.tmp.name) / 'manifest.json'
         self.conf = Path(self.tmp.name) / 'daemon.conf'
-        out = (fx.BUILD / 'out').resolve()
+        out = (fx.OUT).resolve()
         self.conf.write_text(json.dumps({'p4_devices': [{'p4_programs': [{
             'program-name': 'response_only', 'bfrt-config': str(out / 'bfrt.json'),
             'p4_pipelines': [dict(p4_pipeline_name=n, context=str(out / n / 'context.json'),
@@ -60,7 +60,7 @@ class Base(unittest.TestCase):
         self.addCleanup(os.environ.pop, 'DEFENSE4_HW_AUTHORIZED', None)
 
     def argv(self, *extra):
-        base = (['--build-out', str(fx.BUILD / 'out'), '--fixed-schema-dir', fx.FIXED, '--manifest-out',
+        base = (['--build-out', str(fx.OUT), '--fixed-schema-dir', fx.FIXED, '--manifest-out',
                  str(self.manifest), '--apply'] + fx.ENDPOINTS)
         for rel in bc.REQUIRED_EXPECT:
             base += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
@@ -338,8 +338,8 @@ class Loopback(Base):
         self.assertEqual(rc, 0, out[-400:])
 
     def test_a_build_that_loops_a_port_in_use_is_refused_before_any_grpc_call(self):
-        out_dir = Path(self.tmp.name) / 'out'
-        fx.shutil.copytree(str(fx.BUILD / 'out'), str(out_dir))
+        out_dir = Path(self.tmp.name) / 'out_copied_build'
+        fx.shutil.copytree(str(fx.OUT), str(out_dir))
         p4pp = out_dir / 'response_only.p4pp'
         text = p4pp.read_text(errors='replace')
         ack = fx.PORTS['n_ack_return']                         # move N's ACK lap onto dev 10, a cabled port

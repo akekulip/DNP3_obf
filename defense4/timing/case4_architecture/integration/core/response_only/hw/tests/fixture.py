@@ -43,7 +43,10 @@ P4PP = '\n'.join([
 
 _TMP = tempfile.TemporaryDirectory(prefix='hw_fixture_')     # removed when the test process exits
 BUILD = Path(_TMP.name)
-_out = BUILD / 'out'
+# Deliberately NOT named `out`: the deploy layout is <aux>/out_<buildname>, and nothing in the installer may
+# assume the compiled directory's name (the first campaign run hit exactly that in the mirror guard).
+OUT = BUILD / 'out_fixture_build'
+_out = OUT
 (_out / 'p0').mkdir(parents=True)
 (_out / 'p1').mkdir()
 (_out / 'response_only.p4pp').write_text(P4PP)
@@ -86,7 +89,7 @@ if PORTS['forward'] == PORTS['relay']:
 
 def args(*extra, sha=None):
     sha = sha or SHA
-    base = ['--build-out', str(BUILD / 'out'), '--fixed-schema-dir', FIXED] + ENDPOINTS
+    base = ['--build-out', str(OUT), '--fixed-schema-dir', FIXED] + ENDPOINTS
     for rel in bc.REQUIRED_EXPECT:
         base += ['--expect', '%s=%s' % (rel, sha[rel])]
     return bc.parse(base + list(extra))

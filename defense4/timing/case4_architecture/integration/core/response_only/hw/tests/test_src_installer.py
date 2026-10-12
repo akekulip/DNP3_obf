@@ -57,7 +57,7 @@ class Refusals(unittest.TestCase):
     def test_an_inconsistent_or_unreadable_build_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(build_ports.read(tmp)[1])                                  # no p4pp at all
-            text = (fx.BUILD / 'out/response_only.p4pp').read_text(errors='replace')
+            text = (fx.OUT / 'response_only.p4pp').read_text(errors='replace')
             for bad in (re.sub(r'(const PortId_t t_T_IN\s*=\s*9w)\d+', r'\g<1>181', text),          # N and T disagree
                         re.sub(r'const PortId_t t_HELD_RETURN[^\n]*\n', '', text),                 # constant missing
                         re.sub(r'(const PortId_t t_PKTGEN_RETURN\s*=\s*9w)\d+', r'\g<1>180', text)):  # generator off 68
@@ -92,7 +92,7 @@ class Refusals(unittest.TestCase):
 
     def test_apply_without_authorization_writes_nothing(self):
         os.environ.pop('DEFENSE4_HW_AUTHORIZED', None)
-        argv = ['--build-out', str(fx.BUILD / 'out'), '--fixed-schema-dir', fx.FIXED, '--apply'] + fx.ENDPOINTS
+        argv = ['--build-out', str(fx.OUT), '--fixed-schema-dir', fx.FIXED, '--apply'] + fx.ENDPOINTS
         for rel in bc.REQUIRED_EXPECT:
             argv += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
         with fx.no_name_check():
@@ -173,11 +173,11 @@ class MirrorGuard(unittest.TestCase):
     """The token_stale_01 compiler-mirror defect must never be loadable: bringup refuses it before any write."""
 
     def setUp(self):
-        self.bfa = fx.BUILD / 'out' / 'p1' / 'response_only.bfa'
+        self.bfa = fx.OUT / 'p1' / 'response_only.bfa'
         self.addCleanup(self.bfa.write_text, fx.BFA_PASS)
 
     def argv(self):
-        argv = ['--build-out', str(fx.BUILD / 'out'), '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS
+        argv = ['--build-out', str(fx.OUT), '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS
         for rel in bc.REQUIRED_EXPECT:
             argv += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
         return argv
@@ -221,4 +221,105 @@ class MirrorGuard(unittest.TestCase):
         self.bfa.unlink()
         rc, out = self.run_main()
         self.assertEqual(rc, 1)
-        self.assertIn('expected one out/p1/*.bfa', out)
+        self.assertIn('expected one p1/*.bfa', out)
+
+
+class GuardedFileIsBound(unittest.TestCase):
+    """The p1 .bfa the mirror guard reads must be hash-bound to the loaded binaries (required --expect)."""
+
+    def argv(self, bfa_sha='keep', apply=False, tmp=None):
+        argv = ['--build-out', str(fx.OUT), '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS
+        for rel in bc.REQUIRED_EXPECT:
+            if rel == 'p1/response_only.bfa':
+                if bfa_sha is None:
+                    continue
+                argv += ['--expect', '%s=%s' % (rel, fx.SHA[rel] if bfa_sha == 'keep' else bfa_sha)]
+            else:
+                argv += ['--expect', '%s=%s' % (rel, fx.SHA[rel])]
+        if apply:
+            argv += ['--apply', '--manifest-out', str(Path(tmp) / 'm.json')]
+        return argv
+
+    def run_main(self, argv):
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with fx.no_name_check(), contextlib.redirect_stdout(buf):
+            rc = bc.main(argv)
+        return rc, buf.getvalue()
+
+    def test_the_bfa_hash_is_required(self):
+        self.assertIn('p1/response_only.bfa', bc.REQUIRED_EXPECT)
+
+    def test_a_missing_bfa_hash_is_refused_in_dry_run_and_apply(self):
+        rc, out = self.run_main(self.argv(bfa_sha=None))
+        self.assertEqual(rc, 1)
+        self.assertIn('--expect p1/response_only.bfa=<sha256> is required', out)
+        os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
+        self.addCleanup(os.environ.pop, 'DEFENSE4_HW_AUTHORIZED', None)
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, out = self.run_main(self.argv(bfa_sha=None, apply=True, tmp=tmp))
+            self.assertFalse((Path(tmp) / 'm.json').exists())
+        self.assertEqual(rc, 1)
+        self.assertIn('--expect p1/response_only.bfa=<sha256> is required', out)
+
+    def test_a_wrong_bfa_hash_is_refused(self):
+        rc, out = self.run_main(self.argv(bfa_sha='0' * 64))
+        self.assertEqual(rc, 1)
+        self.assertIn('p1/response_only.bfa: sha256 %s, expected %s' % (fx.SHA['p1/response_only.bfa'], '0' * 64), out)
+
+    def test_a_bfa_swapped_from_another_build_is_refused(self):
+        bfa = fx.OUT / 'p1' / 'response_only.bfa'
+        self.addCleanup(bfa.write_text, fx.BFA_PASS)
+        bfa.write_text(fx.BFA_PASS + '# another build\n')               # still passes the guard on its own
+        rc, out = self.run_main(self.argv())
+        self.assertEqual(rc, 1)
+        self.assertIn('p1/response_only.bfa: sha256', out)
+
+    def test_the_correct_bfa_hash_passes(self):
+        rc, out = self.run_main(self.argv())
+        self.assertEqual(rc, 0, out[-300:])
+
+
+class OutDirName(unittest.TestCase):
+    """The compiled output directory is used as given, whatever it is called: the campaign deploys builds as
+    <aux>/out_<buildname>. Judged correctly for a passing and a failing assembly under several names."""
+
+    def run_named(self, name, bfa_text):
+        import contextlib
+        import io
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / name
+            shutil.copytree(str(fx.OUT), str(out))
+            (out / 'p1' / 'response_only.bfa').write_text(bfa_text)
+            sha = dict(fx.SHA, **{'p1/response_only.bfa':
+                                  __import__('hashlib').sha256(bfa_text.encode()).hexdigest()})
+            argv = ['--build-out', str(out), '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS
+            for rel in bc.REQUIRED_EXPECT:
+                argv += ['--expect', '%s=%s' % (rel, sha[rel])]
+            buf = io.StringIO()
+            with fx.no_name_check(), contextlib.redirect_stdout(buf):
+                rc = bc.main(argv)
+        return rc, buf.getvalue()
+
+    def test_any_name_with_a_fixed_build_passes(self):
+        for name in ('out_mirror_fix_01', 'out', 'build-under-test'):
+            with self.subTest(name=name):
+                rc, out = self.run_named(name, fx.BFA_PASS)
+                self.assertEqual(rc, 0, out[-300:])
+                self.assertIn(': PASS', out)
+
+    def test_any_name_with_a_defective_build_is_refused_by_the_guard(self):
+        for name in ('out_mirror_fix_01', 'out', 'build-under-test'):
+            with self.subTest(name=name):
+                rc, out = self.run_named(name, fx.BFA_FAIL)
+                self.assertEqual(rc, 1)
+                self.assertIn('mirror guard: FAIL: non-clone mirror entries [0]', out)
+                self.assertNotIn('expected one', out)            # judged on content, not refused for its name
+
+    def test_the_guard_module_reads_the_out_dir_given(self):
+        sys.path.insert(0, str(Path(bc.__file__).resolve().parent.parent))
+        import check_mirror_select as cms
+        self.assertTrue(cms.check_out(fx.OUT)[0])
+        self.assertTrue(cms.check(fx.BUILD)[0] is False)        # check(build) still means <build>/out: absent here

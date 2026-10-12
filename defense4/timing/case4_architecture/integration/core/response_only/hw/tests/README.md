@@ -14,7 +14,8 @@ Two suites, split by file name. Run both from `integration/core/response_only/hw
 Runs on a fresh clone with no skips.
 
 - `test_src_installer.py`: the mirror guard (a synthetic defective `p1/*.bfa` is refused before any write,
-  a fixed one passes, a missing one is refused), identity hashes, the port checks (ports in use, dead recirculation entries,
+  a fixed one passes, a missing one is refused), the required `--expect p1/response_only.bfa` hash (missing,
+  wrong, or a file swapped in from another build: refused), identity hashes, the port checks (ports in use, dead recirculation entries,
   inconsistent or unreadable builds), the refusals, T parameter ranges, write order, the token buffer, the
   ladder and generator app ids, and teardown order.
 - `test_src_fake_client.py`: `apply()`, `switch.py`, the teardown, `set_enabled.py`, shaping, padding policy,
@@ -22,7 +23,8 @@ Runs on a fresh clone with no skips.
 - `test_src_cross_component_pktgen.py`: the installer's generator app ids, turned into real timer headers and
   run through T's P4 source in the interpreter (`read/tests/queue_sim.py`).
 
-The build comes from `fixture.py`: a synthetic build in a temporary directory. Its `response_only.p4pp`
+The build comes from `fixture.py`: a synthetic build in a temporary directory. Its compiled directory is
+deliberately named `out_fixture_build`, not `out`, so no installer code can assume that name again. Its `response_only.p4pp`
 holds only the port constants, taken from `pinned_build.json`'s port map. Its `bfrt.json` and the two
 `tofino.bin` files are placeholders. Because there is no real `bfrt.json` and no schemas, tests that call
 `bringup_composite.main()` replace the offline name check with `fixture.no_name_check()`. The name check is
@@ -80,7 +82,7 @@ What it does NOT prove: anything about silicon. The fixed-table names are checke
 installer's own dry-run on the switch re-checks them against 9.13.2.
 
 The build under test is the entry in `pinned_build.json` (`build_dir`, relative to `integration/`, and its
-three sha256). The current entry is the production build
+four sha256, including the p1 `.bfa`). The current entry is the production build
 `evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132`. `HW_BUILD=<dir holding manifest.json and
 out/>` overrides it. Nothing chooses a build by modification time.
 
@@ -103,6 +105,6 @@ Without the SDE schemas, the 6 tests that need them are skipped. The skip reason
 
 ## When to update the pin
 
-When a new production build is loaded on the switch: set `build_dir` and the three sha256 values from that
+When a new production build is loaded on the switch: set `build_dir` and the four sha256 values (bfrt.json, both tofino.bin, p1 `.bfa`) from that
 build's `manifest.json`, and update the port map if the build's loop ports changed. The pure suite reads the
 port map from the pin, so both suites move together.

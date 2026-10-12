@@ -32,14 +32,17 @@ import build_ports  # noqa: E402
 def oneline(e):
     return ' | '.join(l.strip() for l in str(e).splitlines() if l.strip())[:400]
 
-REQUIRED_EXPECT = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin')
+# p1/response_only.bfa is the file the mirror guard reads; requiring its hash binds the guarded file to the
+# binaries being loaded (a .bfa copied from another build would otherwise be guarded in their place).
+REQUIRED_EXPECT = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
 
 
 def parse(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('--build-out', required=True, help='the compiled out/ directory the daemon loads')
     ap.add_argument('--expect', action='append', default=[], metavar='REL=SHA256',
-                    help='expected sha256 of a file under --build-out; bfrt.json, p0/tofino.bin, p1/tofino.bin required')
+                    help='expected sha256 of a file under --build-out; bfrt.json, p0/tofino.bin, p1/tofino.bin and '
+                         'p1/response_only.bfa (the file the mirror guard reads) are required')
     ap.add_argument('--master-ip')   # defaults filled in parse(): the rig's .1 / .7, only when the dev ports differ
     ap.add_argument('--master-port', type=int, required=True, help='the master must bind this fixed TCP source port')
     ap.add_argument('--master-dev', type=int, default=9)
@@ -97,16 +100,17 @@ def mirror_guard(a):
     """Refuse a build whose compiled T ingress deparser can mirror a non-clone pass (route_ab_01/token_stale_01:
     the mirror_type 0 entry's session id came from a compiler temporary sharing a container with md.cur_gen, so
     every T pass was copied to session cur_gen[9:0]; fixed in mirror_fix_01). Runs Agent 1's
-    core/response_only/check_mirror_select.check() on <build-out>/../out/p1/*.bfa -- the only file it needs.
+    core/response_only/check_mirror_select.check_out(<build-out>) on <build-out>/p1/*.bfa -- the only file it
+    needs. --build-out is used as given: the deploy names it out_<buildname>, the evidence layout names it out.
     Errors (never raises): one per FAIL note, or the read failure."""
     import glob
     import check_mirror_select as cms
-    build = Path(a.build_out).resolve().parent
-    bfas = glob.glob(str(build / 'out' / 'p1' / '*.bfa'))
+    out_dir = Path(a.build_out).resolve()
+    bfas = glob.glob(str(out_dir / 'p1' / '*.bfa'))
     try:
-        ok, notes = cms.check(build)
+        ok, notes = cms.check_out(out_dir)
     except Exception as e:
-        ok, notes = False, ['FAIL: the guard could not parse %s: %s' % (bfas or 'out/p1/*.bfa', oneline(e))]
+        ok, notes = False, ['FAIL: the guard could not parse %s: %s' % (bfas or out_dir / 'p1/*.bfa', oneline(e))]
     sha = hashlib.sha256(Path(bfas[0]).read_bytes()).hexdigest() if len(bfas) == 1 else 'absent'
     print('MIRROR GUARD (check_mirror_select on %s, sha256 %s): %s' % (
         bfas[0] if len(bfas) == 1 else Path(a.build_out) / 'p1/*.bfa', sha, 'PASS' if ok else 'FAIL'))

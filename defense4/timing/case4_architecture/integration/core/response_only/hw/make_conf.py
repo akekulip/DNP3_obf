@@ -74,7 +74,7 @@ def main(argv=None):
         print('FAIL: expected exactly one out/p1/*.bfa, found %d: bringup_composite.py runs the mirror guard on it'
               % len(bfas))
         return 1
-    print('  sha256 %s  p1/%s   (read by the mirror guard at load; pass it as --expect p1/%s=<sha> to bind it)'
+    print('  sha256 %s  p1/%s   (read by the mirror guard at load; --expect p1/%s=<sha> is required)'
           % (hashlib.sha256(bfas[0].read_bytes()).hexdigest(), bfas[0].name, bfas[0].name))
     print('wrote', a.output, '(copy ALL of out/ to %s first, including p1/*.bfa; the paths above must exist there)' % remote)
     return 0

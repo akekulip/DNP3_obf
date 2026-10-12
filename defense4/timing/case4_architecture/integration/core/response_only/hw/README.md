@@ -97,7 +97,8 @@ sudo -E setsid nohup bash -c "tail -f /dev/null | $SDE_INSTALL/bin/bf_switchd --
 python3 framework/control/restore_ports.py response_only live_snapshot_20261006.json.gz --apply --wait 35
 # 4. dry-run on the switch: prints the ports read from the build and which of them it will loop
 cd $R/src/integration/core/response_only/hw
-X="--build-out $R/out --expect bfrt.json=<sha> --expect p0/tofino.bin=<sha> --expect p1/tofino.bin=<sha>"
+X="--build-out $R/out --expect bfrt.json=<sha> --expect p0/tofino.bin=<sha> --expect p1/tofino.bin=<sha> \
+   --expect p1/response_only.bfa=<sha>"
 python3 bringup_composite.py $X <endpoint arguments>
 # 5. apply: loopback first, then everything else; --enable-pktgen enables the two apps last
 export DEFENSE4_HW_AUTHORIZED=1
@@ -129,15 +130,18 @@ Endpoint arguments are plain values and nothing assumes the two dev ports differ
 ### Mirror guard (compiler-mirror defect, route_ab_01/token_stale_01)
 
 Before any plan or write, in dry-run and `--apply` alike, the installer runs
-`core/response_only/check_mirror_select.check(<build-out>/..)`. It refuses (exit 1, the `FAIL:` note in the
+`core/response_only/check_mirror_select.check_out(<build-out>)` on `<build-out>/p1/*.bfa`. `--build-out` is
+used as given: it need not be named `out` (the campaign deploys `out_<buildname>`). It refuses (exit 1, the `FAIL:` note in the
 message) a build whose compiled T ingress deparser could mirror a non-clone pass. That defect copied every T
 pass to the session numbered by the live READ generation; it is fixed from `mirror_fix_01` on. Older builds
 (`sbo_admission_01`, `close_reset_fix_01`) fail the guard and are refused.
 
-At load time the guard needs exactly one file from the build: `out/p1/*.bfa` (the pipe-1 assembly). The
+At load time the guard needs exactly one file from the build: `<build-out>/p1/*.bfa` (the pipe-1 assembly). The
 `rsync -a $E/out/` deploy step already copies it; `check_mirror_select.py` must be in the `src/` copy (above).
-`make_conf.py` refuses an `out/` without exactly one `p1/*.bfa` and prints its sha256; pass it as
-`--expect p1/response_only.bfa=<sha>` to bind the guarded file to the build identity.
+`make_conf.py` refuses an `out/` without exactly one `p1/*.bfa` and prints its sha256.
+`--expect p1/response_only.bfa=<sha>` is REQUIRED (with bfrt.json, p0/tofino.bin and p1/tofino.bin): it binds
+the file the guard reads to the binaries being loaded. A missing or mismatching hash is refused, in dry-run
+and `--apply` alike, before any write.
 
 ### What `--apply` refuses
 

@@ -83,9 +83,16 @@ def unconditional_clone_type(bfa):
 
 
 def check(build):
-    bfas = glob.glob(str(Path(build) / 'out' / 'p1' / '*.bfa'))
+    """A compile directory laid out as <build>/out/p1/*.bfa (the evidence layout)."""
+    return check_out(Path(build) / 'out')
+
+
+def check_out(out_dir):
+    """The compiled output directory itself, whatever it is named (the deploy layout uses out_<buildname>):
+    reads <out_dir>/p1/*.bfa."""
+    bfas = glob.glob(str(Path(out_dir) / 'p1' / '*.bfa'))
     if len(bfas) != 1:
-        return False, ['%s: expected one out/p1/*.bfa, found %d' % (build, len(bfas))]
+        return False, ['%s: expected one p1/*.bfa, found %d' % (out_dir, len(bfas))]
     bfa = Path(bfas[0]).read_text()
     cont = containers(bfa)
     sel, entries = mirror_entries(bfa)
