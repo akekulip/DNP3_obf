@@ -65,6 +65,7 @@ def error(code, text):
 
 
 NO_HW_READ_PORT_CFG = True   # the real switch's behaviour; a test can switch it off
+NO_HW_READ_PKT_BUFFER = True  # measured on 9.13.2: tf1.pktgen.pkt_buffer has no hardware read either
 
 class KeyTuple:
     def __init__(self, name, value=None, mask=None):
@@ -73,6 +74,10 @@ class KeyTuple:
 
 class DataTuple:
     def __init__(self, name, val=None, float_val=None, str_val=None, int_arr_val=None, bool_arr_val=None, bool_val=None):
+        # Strict like the real client (bfrt_grpc/client.py DataTuple.__init__): `val` must be an int, a str or a
+        # bytearray. A list -- or even plain bytes -- raises exactly this TypeError on the switch.
+        if val is not None and not isinstance(val, (bytearray, int, str)):
+            raise TypeError("Please pass an int/long or bytearray. you passed %s" % (type(val)))
         self.name, self.val = name, val
         self.v = next((x for x in (val, str_val, bool_val, int_arr_val) if x is not None), None)
 
@@ -83,13 +88,17 @@ class Target:
 
 
 class Data:
-    def __init__(self, d):
-        self.d = d
-        self.field_dict = {k: DataTuple(k, val=bytearray(v) if isinstance(v, (bytes, bytearray)) else None)
-                           for k, v in d.items()}
+    def __init__(self, d, software=False):
+        self.d, self.software = d, software
+        self.field_dict = {k: DataTuple(k, val=bytearray(v) if isinstance(v, (bytes, bytearray)) and not software
+                                        else None) for k, v in d.items()}
 
     def to_dict(self):
-        return {k: (None if isinstance(v, (bytes, bytearray)) else v) for k, v in self.d.items()}
+        # A repeated bytes field: a hardware read parses it into field_dict[...].val and to_dict() gives None
+        # (9.13.1 client); a software-state read returns it as int_arr_val, so to_dict() gives a LIST of ints
+        # (9.13.2, tf1.pktgen.pkt_buffer -- the form that broke the teardown restore).
+        return {k: ((list(v) if self.software else None) if isinstance(v, (bytes, bytearray)) else v)
+                for k, v in self.d.items()}
 
 
 class Table:
@@ -143,6 +152,8 @@ class Table:
             return
         if EMPTY_READ == self.name:
             return
+        if self.name == 'tf1.pktgen.pkt_buffer' and (flags or {}).get('from_hw') and NO_HW_READ_PKT_BUFFER:
+            raise error('UNIMPLEMENTED', "Entry not found in table:tf1.pktgen.pkt_buffer Operation not supported")
         if self.name == 'tf1.pktgen.port_cfg' and (flags or {}).get('from_hw') and NO_HW_READ_PORT_CFG:
             # measured on the switch, SDE 9.13.2, 2026-10-11: this table has no hardware read
             raise error('UNIMPLEMENTED', "Entry not found in table:tf1.pktgen.port_cfg Operation not supported")
@@ -159,7 +170,7 @@ class Table:
             got = self.e[k]
             if self.name.endswith('n_Ingress.data_connection'):   # measured on the switch: these read 0
                 got = dict(got, index=0, code=0, repeat=0, on=0, off=0)
-            yield Data(got), k
+            yield Data(got, software=not (flags or {}).get('from_hw')), k
 
     def entry_add(self, tgt, keys, datas):
         self.adds += 1

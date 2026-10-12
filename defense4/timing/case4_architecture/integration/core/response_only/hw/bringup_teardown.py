@@ -40,13 +40,30 @@ def decode(value):
     return value
 
 
+def as_bytes(value):
+    """A bytes-valued field read back or stored in any of the forms seen: {'hex': ...} (our manifest encoding),
+    a list of ints (the 9.13.2 software-state read of tf1.pktgen.pkt_buffer, which JSON then keeps as a list),
+    bytearray or bytes. Returns bytes, or the value unchanged if it is none of these (e.g. None)."""
+    value = decode(value)
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    if isinstance(value, list) and all(isinstance(x, int) and 0 <= x <= 255 for x in value):
+        return bytes(value)
+    return value
+
+
 def load(path):
+    """Read a bring-up manifest back into plan values. The ONE place restore values are normalised: a field
+    whose planned (written) value is bytes is a bytes-typed field (only tf1.pktgen.pkt_buffer 'buffer' today),
+    so its pre-bring-up value is converted to bytes here, whatever form the switch read and JSON stored it in.
+    The real bfrt_grpc DataTuple accepts only int / str / bytearray for such a field and rejects a list."""
     m = json.loads(Path(path).read_text())
     for op in m['installed']:
         op['key'] = [tuple(k) for k in op.get('key', [])]
         op['data'] = [(n, decode(v)) for n, v in op['data']]
+        byte_fields = {n for n, v in op['data'] if isinstance(v, (bytes, bytearray))}
         if isinstance(op.get('before'), dict):
-            op['before'] = {k: decode(v) for k, v in op['before'].items()}
+            op['before'] = {k: (as_bytes(v) if k in byte_fields else decode(v)) for k, v in op['before'].items()}
     return m
 
 

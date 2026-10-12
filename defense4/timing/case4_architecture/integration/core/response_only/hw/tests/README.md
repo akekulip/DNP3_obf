@@ -36,7 +36,9 @@ What it does NOT prove:
 - Anything about silicon.
 
 The fake client is more lenient than silicon in these ways:
-- No key or data validation: any table, key or field name is accepted.
+- No key or data validation: any table, key or field name is accepted. Value TYPES are checked like the
+  real client: `DataTuple(val=...)` takes only `int`, `str` or `bytearray` (a `list` or plain `bytes` raises
+  `TypeError: Please pass an int/long or bytearray`).
 - `entry_mod` without an action always works.
 - A fixed table's key always exists (`tf1.tm.*`, `tf1.pktgen.*`, registers).
 - Shaper `max_rate` is quantized only as modelled (below); other fields read back exactly.
@@ -44,7 +46,9 @@ The fake client is more lenient than silicon in these ways:
 
 Hardware-measured facts the fake does model:
 - `tf1.pktgen.port_cfg` and `tf1.pktgen.pkt_buffer` have no hardware read on SDE 9.13.2. `switch.get` falls
-  back to a software-state read.
+  back to a software-state read. That read returns the repeated-bytes `buffer` as a LIST of ints, which the
+  manifest then stores as a list; `bringup_teardown.load` converts it back to bytes before the restore
+  (the first campaign run's teardown failed on exactly this: 35 of 36, exit 1).
 - Action parameters the P4 never reads are not stored and read 0: T's `set_params(cap)` and N's five
   `data_connection` fields.
 - The shaper realizes only a ×4 ladder of rates, burst 1: 58, 232, 930, 3723, 14892, 59570, 238281 PPS. A
@@ -55,7 +59,7 @@ Hardware-measured facts the fake does model:
   always passes, and 1000, 300 and 750 pass. 500, 1500, 2000, 100 and 10000 are refused, as on silicon.
   **Request exact ladder values.**
 - Recirculation `$PORT` entries (69–71, 197–199) do not take a loopback write.
-- The pktgen `buffer` field reads back through `field_dict[...].val`, not `to_dict()`.
+- On a hardware read the pktgen `buffer` field reads back through `field_dict[...].val`, not `to_dict()`.
 
 ## Build-dependent suite (`test_build_*.py`)
 

@@ -485,13 +485,35 @@ class SwitchReads(Base):
         with self.assertRaisesRegex(RuntimeError, 'empty read'):
             sw.get('$mirror.cfg', 0xffff, [('$sid', 7, None)])
 
-    def test_the_packet_buffer_reads_back_as_bytes(self):
+    def test_the_packet_buffer_software_read_is_a_list_of_ints(self):
+        # 9.13.2: no hardware read for pkt_buffer; the software-state read returns the buffer as a list of ints.
+        fake.PRIOR_BUFFER = b'\xaa' * 60
+        sw = switch.Switch('response_only', 1)
+        got = sw.get(BUF, 1, [('pkt_buffer_offset', 0, None), ('pkt_buffer_size', 60, None)])
+        self.assertEqual(got['buffer'], [0xaa] * 60)
+        self.assertIn(BUF, sw.sw_read)
+        self.assertEqual(bt.as_bytes(got['buffer']), b'\xaa' * 60)
+
+    def test_the_packet_buffer_hardware_read_is_bytes(self):
+        # 9.13.1-style hardware read: to_dict() gives None, the stream is in field_dict[...].val.
+        fake.NO_HW_READ_PKT_BUFFER = False
+        self.addCleanup(setattr, fake, 'NO_HW_READ_PKT_BUFFER', True)
         fake.PRIOR_BUFFER = b'\xaa' * 60
         sw = switch.Switch('response_only', 1)
         got = sw.get(BUF, 1, [('pkt_buffer_offset', 0, None), ('pkt_buffer_size', 60, None)])
         self.assertEqual(got['buffer'], b'\xaa' * 60)
 
+    def test_the_fake_rejects_what_the_real_client_rejects(self):
+        for bad in ([1, 2, 3], b'\x01\x02'):                                   # a list, and even plain bytes
+            with self.subTest(type=type(bad).__name__):
+                with self.assertRaisesRegex(TypeError, 'Please pass an int/long or bytearray'):
+                    fake.DataTuple('buffer', bad)
+        for ok in (7, 'PPS', bytearray(b'\x01')):
+            fake.DataTuple('x', ok)
+
     def test_a_write_whose_preread_has_no_value_is_refused(self):
+        fake.NO_HW_READ_PKT_BUFFER = False                                      # hardware read path
+        self.addCleanup(setattr, fake, 'NO_HW_READ_PKT_BUFFER', True)
         sw = switch.Switch('response_only', 1)
         sw.as_dict = lambda d: d.to_dict()                                       # the raw client: buffer reads None
         with self.assertRaisesRegex(RuntimeError, 'pre-read has no value'):
@@ -521,6 +543,22 @@ class Teardown(Base):
         off_write = next(i for i, c in enumerate(calls) if c[0] == 'default_set' and c[2][0]['enabled'] == 0)
         self.assertLess(off_write, first_del)                                    # T switched off before any row goes
         self.assertEqual(calls[first_del][1], N_CONN)
+
+    def test_teardown_restores_a_buffer_the_switch_reported_as_a_list(self):
+        # The campaign.py failure on close_reset_fix_01: the 9.13.2 software-state read gives the pre-bring-up
+        # buffer as a list of ints, JSON keeps it a list, and the restore passed that list to the client, which
+        # rejects it ("Please pass an int/long or bytearray"), so the teardown ended 35 of 36, exit 1.
+        fake.PRIOR_BUFFER = bytes(range(60))
+        self.assertEqual(run(bc.main, self.argv('--enable-pktgen'))[0], 0)
+        stored = next(op for op in json.loads(self.manifest.read_text())['installed'] if op['kind'] == 'pktgen_buffer')
+        self.assertEqual(stored['before']['buffer'], list(range(60)))           # the list form, as on silicon
+        rc, out = self.teardown()
+        self.assertEqual(rc, 0, out[-800:])
+        self.assertNotIn('FAILED', out)
+        m = [l for l in out.splitlines() if l.startswith('UNDONE')][0]
+        n_done, n_all = [int(x) for x in m.split() if x.isdigit()]
+        self.assertEqual(n_done, n_all)
+        self.assertEqual(self.buffer(), bytes(range(60)))                        # restored to its pre-bring-up value
 
     def test_no_row_is_deleted_while_T_has_not_settled(self):
         self.assertEqual(run(bc.main, self.argv())[0], 0)
