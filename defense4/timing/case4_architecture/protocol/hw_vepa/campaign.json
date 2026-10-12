@@ -97,6 +97,19 @@
         "p0/tofino.bin": "e15b6177ddc87ee6e2132bdd5a5e8c720ae4e8850c3b1df2c9a2eaff0bccbe6a",
         "p1/tofino.bin": "7ab242e86b9a30d66b468e6f01e7d4c5142d07b76d17bad26c336b6ff9e302a0"
       }
+    },
+    "mirror_fix_01": {
+      "out_dir": "integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/out",
+      "manifest": "integration/evidence/route_ab_01/mirror_fix_01/hw_compile_switch_9132/manifest.json",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0",
+      "allowed_loop_octet_gap": {},
+      "_note": "Verified on silicon 2026-10-12 (evidence/mirror_fix_silicon_01): one READ trigger per READ, zero stale tokens, port gaps 0. close_reset_fix_01 and sbo_admission_01 are kept as named comparison builds.",
+      "hashes": {
+        "bfrt.json": "4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa",
+        "p0/tofino.bin": "aff15250cc9af232f99c4d759fd801dd3d4a7b750b712fe760dc637550af2edb",
+        "p1/tofino.bin": "296444ce43e28e3228edd8e1d61c52f2a6f233dc4be357e3e96610e896e02309"
+      }
     }
   },
   "expectations": {
@@ -118,10 +131,10 @@
   },
   "padding_installer_flag": "--pad-enable",
   "arms": [
-    {"name": "off",         "T": 0, "padding": 0, "build": "close_reset_fix_01", "role": "feature-off baseline: composite installed, T off, padding policy off"},
-    {"name": "timing_only", "T": 1, "padding": 0, "build": "close_reset_fix_01", "role": "timing only"},
-    {"name": "size_only",   "T": 0, "padding": 1, "build": "close_reset_fix_01", "role": "size (padding) only"},
-    {"name": "combined",    "T": 1, "padding": 1, "build": "close_reset_fix_01", "role": "timing + size"}
+    {"name": "off",         "T": 0, "padding": 0, "build": "mirror_fix_01", "role": "feature-off baseline: composite installed, T off, padding policy off"},
+    {"name": "timing_only", "T": 1, "padding": 0, "build": "mirror_fix_01", "role": "timing only"},
+    {"name": "size_only",   "T": 0, "padding": 1, "build": "mirror_fix_01", "role": "size (padding) only"},
+    {"name": "combined",    "T": 1, "padding": 1, "build": "mirror_fix_01", "role": "timing + size"}
   ],
   "timing_params_ns": {
     "da": 2000000,

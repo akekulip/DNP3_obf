@@ -110,19 +110,29 @@ class ShippedBuilds(unittest.TestCase):
     def setUp(self):
         self.cfg = cp.load_config(str(CONFIG))
 
-    def test_all_four_arms_run_the_silicon_verified_fix_build(self):
-        self.assertEqual({a['build'] for a in self.cfg['arms']}, {'close_reset_fix_01'})
+    def test_all_four_arms_run_the_mirror_fix_build(self):
+        self.assertEqual({a['build'] for a in self.cfg['arms']}, {'mirror_fix_01'})
         self.assertEqual(len(self.cfg['arms']), 4)
 
-    def test_fix_build_requires_a_zero_loop_gap_and_the_pre_fix_build_keeps_its_80(self):
-        self.assertEqual(self.cfg['builds']['close_reset_fix_01']['allowed_loop_octet_gap'], {})
-        self.assertEqual(self.cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'], {'t_in': 80})
+    def test_comparison_builds_are_kept_by_name(self):
+        self.assertIn('close_reset_fix_01', self.cfg['builds'])
+        self.assertIn('sbo_admission_01', self.cfg['builds'])
 
-    def test_fix_build_hashes_are_the_verified_ones(self):
+    def test_loop_gap_allowances(self):
+        b = self.cfg['builds']
+        self.assertEqual(b['mirror_fix_01']['allowed_loop_octet_gap'], {})
+        self.assertEqual(b['close_reset_fix_01']['allowed_loop_octet_gap'], {})
+        self.assertEqual(b['sbo_admission_01']['allowed_loop_octet_gap'], {'t_in': 80})
+
+    def test_mirror_fix_build_hashes_are_the_verified_ones(self):
+        h = self.cfg['builds']['mirror_fix_01']['hashes']
+        self.assertEqual(h['bfrt.json'], '4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa')
+        self.assertEqual(h['p0/tofino.bin'], 'aff15250cc9af232f99c4d759fd801dd3d4a7b750b712fe760dc637550af2edb')
+        self.assertEqual(h['p1/tofino.bin'], '296444ce43e28e3228edd8e1d61c52f2a6f233dc4be357e3e96610e896e02309')
+
+    def test_close_reset_fix_hashes_are_unchanged(self):
         h = self.cfg['builds']['close_reset_fix_01']['hashes']
         self.assertEqual(h['bfrt.json'], '7c7e7f3bbe1220b6abcc7cbc1fdc9cc18d7854428447529f79b6c4ed7808d2e3')
-        self.assertEqual(h['p0/tofino.bin'], 'e15b6177ddc87ee6e2132bdd5a5e8c720ae4e8850c3b1df2c9a2eaff0bccbe6a')
-        self.assertEqual(h['p1/tofino.bin'], '7ab242e86b9a30d66b468e6f01e7d4c5142d07b76d17bad26c336b6ff9e302a0')
 
     @pytest.mark.build_tree
     def test_validate_checks_the_unused_pre_fix_build_too(self):
