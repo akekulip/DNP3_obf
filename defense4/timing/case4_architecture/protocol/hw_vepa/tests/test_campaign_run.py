@@ -662,8 +662,12 @@ class EmittedFlagsExist(Base):
 
     def test_flags_passed_to_reviewed_scripts_are_real(self):
         self.cfg['shaping']['preset'] = 'shape_14892'
+        self.cfg['paired_blocks'] = {'ab': {'arm': 'combined', 'fixture': 'separate_ack', 'repeats': 1,
+                                            'presets': ['shape_14892', 'shape_3723'],
+                                            'conditions': [{'delay_ms': 5, 'gap_ms': 20, 'start_delay_ms': 30, 'seed': 9}]}}
         r = FakeRunner()
         self.campaign(r, arms=('off', 'combined'), flags=('--pad-enable',)).execute()
+        cp.Campaign(self.cfg, r, 'c2', paired='ab', installer_flags=lambda f: True).execute() if 'ab' in self.cfg.get('paired_blocks', {}) else None
         known = {
             'bringup_composite.py': self.help_flags(HWDIR / 'bringup_composite.py') | {'--pad-enable'},
             'snapshot_counters.py': self.help_flags(HWDIR / 'snapshot_counters.py'),
@@ -683,6 +687,9 @@ class EmittedFlagsExist(Base):
                     for f in re.findall(r'(?<=\s)--[a-z0-9][a-z0-9-]*', cmd.split(script, 1)[1]):
                         self.assertIn(f, flags, '%s does not accept %s (in: %s)' % (script, f, cmd))
         self.assertEqual(checked, set(known))               # every reviewed script was actually exercised
+        for _w, cmd in r.calls:
+            if 'snapshot_counters.py' in cmd:
+                self.assertNotIn('--block-burst', cmd)      # the snapshot records rates only; it has no burst flag
 
 
 if __name__ == '__main__':

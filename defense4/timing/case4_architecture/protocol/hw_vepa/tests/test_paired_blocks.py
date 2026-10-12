@@ -72,6 +72,45 @@ class Base(unittest.TestCase):
         return rc, r
 
 
+class Freshness(Base):
+    """vision_run mkdirs runs/<label> and fails on FileExistsError: a label must never be reused."""
+    def test_labels_are_unique_across_the_whole_block(self):
+        c = cp.Campaign(self.cfg, FakeRunner(), 'c1', paired='ab')
+        labels = [c.label(u) for u in c.units()]
+        self.assertEqual(len(labels), 6)
+        self.assertEqual(len(set(labels)), 6)
+
+    def test_labels_are_unique_in_a_default_campaign(self):
+        self.cfg['trials']['trials_per_arm'] = 3
+        c = cp.Campaign(self.cfg, FakeRunner(), 'c1')
+        labels = [c.label(u) for u in c.units()]
+        self.assertEqual(len(set(labels)), len(labels))
+
+    def test_vision_is_checked_for_existing_run_dirs_before_the_switch_is_touched(self):
+        rc, r = self.execute()
+        checks_ = [i for i in r.cmds('test ! -e') if r.calls[i][0] == 'vision']
+        self.assertEqual(len(checks_), 1)
+        cmd = r.calls[checks_[0]][1]
+        for k in range(6):
+            self.assertIn('c1_separate_ack_combined_t%d' % k, cmd)
+        self.assertLess(checks_[0], r.runs('observe_program.py')[0])
+        self.assertLess(checks_[0], r.runs('vision_run.py setup')[0])
+
+    def test_a_reused_run_id_is_refused_before_anything_changes(self):
+        r = FakeRunner(fail_on=['test ! -e'])
+        rc, r = self.execute(r)
+        self.assertEqual(rc, 1)
+        self.assertFalse([c for w, c in r.calls if w == 'switch' and 'observe_program' in c])
+        self.assertFalse(r.cmds('vision_run.py setup'))
+        self.assertFalse(r.swaps())
+
+    def test_an_existing_local_evidence_directory_is_refused_not_a_traceback(self):
+        (Path(self.tmp) / 'ev' / 'c1').mkdir(parents=True)
+        rc, r = self.execute()
+        self.assertEqual(rc, 1)
+        self.assertEqual(r.calls, [])
+
+
 class TrialConditions(Base):
     def test_every_trial_records_its_seeded_start_delay_gap_and_fixture_delay(self):
         rc, r = self.execute(paired=None)

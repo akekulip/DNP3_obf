@@ -396,6 +396,11 @@ class Campaign:
                                     start_seed=c['seeds']['rng_seed'] + len(out)))
         return out
 
+    def label(self, unit):
+        """The run label (and Vision run directory name) of a unit; unique within a campaign and, through the
+        run id, across campaigns."""
+        return '%s_%s_%s_t%d' % (self.run_id, unit['fixture'], unit['arm']['name'], unit['i'])
+
     def ports(self):
         pr = self.cfg['traffic']['master_port_range']
         return list(range(pr['first'], pr['last'] + 1))
@@ -412,6 +417,11 @@ class Campaign:
     def preflight(self):
         """Everything that must stop a real run; `plan` prints the same list as banners and carries on."""
         errs = check_bindings(self.cfg) + self.blocked()
+        labels = [self.label(u) for u in self.units()]
+        if len(set(labels)) != len(labels):
+            errs.append('run labels are not unique (a Vision run directory cannot be reused)')
+        if os.path.exists(self.root):
+            errs.append('evidence directory %s already exists; use a new --run-id' % self.root)
         if len(self.units()) > len(self.ports()):
             errs.append('%d connections need %d distinct master ports but traffic.master_port_range has %d'
                         % (len(self.units()), len(self.units()), len(self.ports())))
@@ -489,6 +499,10 @@ class Campaign:
         r = self.step('vision', 'verify the endpoint lib/ identity',
                       'cd %s && find . -type f | sort | xargs sha256sum | sha256sum' % vr.LIB)
         self.check_hash(r, ep['lib_sha256'], 'endpoint lib %s' % vr.LIB)
+        labels = [self.label(u) for u in self.units()]
+        self.step('vision', 'no run directory for any of these labels may exist yet (vision_run refuses to reuse one)',
+                  'for l in %s; do test ! -e %s/runs/$l || { echo "EXISTS $l"; exit 1; }; done'
+                  % (' '.join(labels), self.V))
         self.record['endpoint_observed'] = {'binary_sha256': ep['binary_sha256'], 'lib_sha256': ep['lib_sha256'],
                                             'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py'))}
 
@@ -592,7 +606,7 @@ class Campaign:
         aux, build, tr = R + '/aux', arm['build'], c['traffic']
         b = c['builds'][build]
         n, out_remote = arm['name'], '%s/out_%s' % (R, build)
-        label = '%s_%s_%s_t%d' % (self.run_id, fixture, n, i)
+        label = self.label(unit)
         conf = '%s/response_only_hw_%s.conf' % (R, label)
         manifest, log = '%s/bringup_manifest_%s.json' % (R, label), '%s/switchd_%s.log' % (R, label)
         rec = self.arm_record(fixture, arm)
