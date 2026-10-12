@@ -65,3 +65,45 @@ def test_root_rejects_forged_filtering_proof(tmp_path):
     path.write_text(json.dumps(value))
     with pytest.raises(ValueError,match='retained replay filtering proof'):
         ce.ExternalIsolationCampaign.verify_current_derivation(raw)
+
+
+def pool_run():
+    original,graceful,rst=configured()
+    evidence=ce.ARCH/'integration/evidence/campaign_hw_vepa'
+    second=evidence/'rearm_fresh_native_fin_01/rearm_fresh_native_fin_01_native_t0'
+    return ce.ExternalIsolationCampaign(original,ce.base.DryRunner(),'external_pool_test',
+        arms=['combined'],fixtures=['separate_ack'],old_graceful=[graceful,second],old_rst=rst),graceful,second
+
+
+def test_pool_takes_first_unambiguous_archive_and_never_relaxes_the_guard(monkeypatch):
+    run,first,second=pool_run()
+    seen=[]
+    def guard(old,new_paths,port,client,server):
+        seen.append(old['isns']['client'])
+        if len(seen)==1:raise ValueError('new client ISN overlaps ambiguous old sequence range')
+        return {'client':client,'server':server}
+    monkeypatch.setattr(ce.replay,'fresh_guard',guard)
+    assert run.choose_archive('graceful','fresh.pcap',59400,{'client':1,'server':2})==1
+    assert run.old_archives['graceful']==second.resolve()
+    assert len(seen)==2
+
+
+def test_pool_fails_closed_when_every_archive_is_ambiguous_and_propagates_other_errors(monkeypatch):
+    run,_,_=pool_run()
+    def ambiguous(*args):raise ValueError('new server ISN overlaps ambiguous old sequence range')
+    monkeypatch.setattr(ce.replay,'fresh_guard',ambiguous)
+    with pytest.raises(ValueError,match='no retained old graceful archive'):
+        run.choose_archive('graceful','fresh.pcap',59400,{'client':1,'server':2})
+    def other(*args):raise ValueError('declared new ISNs do not match fresh same-tuple handshake')
+    monkeypatch.setattr(ce.replay,'fresh_guard',other)
+    with pytest.raises(ValueError,match='declared new ISNs'):
+        run.choose_archive('graceful','fresh.pcap',59400,{'client':1,'server':2})
+
+
+def test_pool_pins_every_member_and_rejects_duplicates():
+    run,first,second=pool_run()
+    assert len(run.record['old_capture_identity']['graceful'])==4
+    original,graceful,rst=configured()
+    with pytest.raises(ValueError,match='distinct'):
+        ce.ExternalIsolationCampaign(original,ce.base.DryRunner(),'dup',arms=['combined'],fixtures=['separate_ack'],
+                                     old_graceful=[graceful,graceful],old_rst=rst)

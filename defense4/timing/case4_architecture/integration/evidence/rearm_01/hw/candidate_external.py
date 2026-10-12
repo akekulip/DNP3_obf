@@ -32,20 +32,29 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
         super().__init__(*args,**kwargs)
         if self.ports()!=[59400]:
             raise ValueError('external archives require the fixed software source port59400')
-        self.old_archives={'graceful':Path(old_graceful).resolve(),'rst':Path(old_rst).resolve()}
+        pools={}
+        for kind,value in (('graceful',old_graceful),('rst',old_rst)):
+            paths=[value] if isinstance(value,(str,Path)) else list(value)
+            if not paths or len({Path(path).resolve() for path in paths})!=len(paths):
+                raise ValueError('old '+kind+' archives must be one or more distinct directories')
+            pools[kind]=[Path(path).resolve() for path in paths]
+        self.old_pools=pools
+        self.old_archives={kind:pool[0] for kind,pool in pools.items()}
         self.record.pop('token_isolation')
         self.record['external_packet_isolation']=self.window
         self.record['external_source_identity']={str(path):base.sha256_file(path) for path in
             (Path(__file__),HERE/'vision_replay.py',HERE/'replay_old_packets.py',HERE/'privileged_python.py')}
         self.record['old_capture_identity']={}
-        for kind,root in self.old_archives.items():
-            manifest,_=replay.collect([root/'out.pcap',root/'in.pcap'],59400,dedupe=True)
-            needed='FIN' if kind=='graceful' else 'RST'
-            if not manifest['counts'][needed] or not any(p['class']=='READ_RESPONSE' and p['payload_bytes']==49
-                                                        for p in manifest['packets']):
-                raise ValueError('old archive must contain native49 and '+needed)
-            self.record['old_capture_identity'][kind]={str(root/name):base.sha256_file(root/name)
-                                                       for name in ('out.pcap','in.pcap')}
+        for kind,pool in self.old_pools.items():
+            self.record['old_capture_identity'][kind]={}
+            for root in pool:
+                manifest,_=replay.collect([root/'out.pcap',root/'in.pcap'],59400,dedupe=True)
+                needed='FIN' if kind=='graceful' else 'RST'
+                if not manifest['counts'][needed] or not any(p['class']=='READ_RESPONSE' and p['payload_bytes']==49
+                                                            for p in manifest['packets']):
+                    raise ValueError('old archive must contain native49 and '+needed)
+                self.record['old_capture_identity'][kind].update({str(root/name):base.sha256_file(root/name)
+                                                                  for name in ('out.pcap','in.pcap')})
 
     def deploy_switch(self):
         cs.CandidateSeriesCampaign.deploy_switch(self)
@@ -54,8 +63,9 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
         cs.CandidateSeriesCampaign.vision_identity(self)
         self._copy_verify('vision',[HERE/'vision_replay.py',HERE/'vision_isolation.py',HERE/'replay_old_packets.py',HERE/'token_window.py',HERE/'snapshot_lifecycle.py'],self.V,
                           'external_vision_identity')
-        for kind,root in self.old_archives.items():
-            remote=self.V+'/old_replay/'+self.run_id+'/'+kind
+        for kind,pool in self.old_pools.items():
+          for index,root in enumerate(pool):
+            remote=self.remote_archive(kind,index)
             self.step('vision','create fresh old '+kind+' archive directory',
                       'test ! -e %s && mkdir -p %s' % (base.q(remote),base.q(remote)))
             self.step('local','copy pinned old '+kind+' captures','scp -q %s %s %s:%s/' %
@@ -67,6 +77,24 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                         if len(line.split())==2}
                 if actual!={name:base.sha256_file(root/name) for name in ('out.pcap','in.pcap')}:
                     raise base.StepFailed('old external capture hash mismatch')
+
+    def remote_archive(self,kind,index):
+        return self.V+'/old_replay/'+self.run_id+'/'+kind+'_'+str(index)
+
+    def choose_archive(self,kind,fresh,port,isns):
+        # The kernel picks the new ISNs after the archives are fixed, and the unchanged
+        # replay guard needs each old frontier safely behind them (a coin flip per
+        # direction). Take the first retained archive that passes; never relax the guard.
+        for index,root in enumerate(self.old_pools[kind]):
+            old,_=replay.collect([root/'out.pcap',root/'in.pcap'],port,dedupe=True)
+            try:
+                replay.fresh_guard(old,[fresh],port,isns['client'],isns['server'])
+            except ValueError as error:
+                if 'ambiguous old sequence range' not in str(error):raise
+                continue
+            self.old_archives[kind]=root
+            return index
+        raise ValueError('no retained old '+kind+' archive is unambiguous against the new ISNs')
 
     def series_vision_cmd(self,label,port,reads,*args,**kwargs):
         if port!=59400 or reads!=1:
@@ -98,10 +126,10 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 'scp -q %s:%s %s' % (self.cfg['hosts']['vision'],base.q(dest+'/in.pcap'),base.q(fresh)),timeout=5)
             current,_=replay.collect([fresh],port,dedupe=True)
             self.window['current_isns']=current['isns']
-            for kind,root in self.old_archives.items():
-                old,_=replay.collect([root/'out.pcap',root/'in.pcap'],port,dedupe=True)
-                replay.fresh_guard(old,[fresh],port,current['isns']['client'],current['isns']['server'])
-                remote=self.V+'/old_replay/'+self.run_id+'/'+kind
+            chosen={kind:self.choose_archive(kind,fresh,port,current['isns']) for kind in self.old_pools}
+            self.window['chosen_archives']={kind:str(self.old_archives[kind]) for kind in chosen}
+            for kind,index in chosen.items():
+                remote=self.remote_archive(kind,index)
                 command=authorized_python(self.V+'/replay_old_packets.py',
                     [remote+'/out.pcap',remote+'/in.pcap','--master-port',port,'--dedupe',
                      '--interface','enp59s0f0np0','--new-pcap',dest+'/in.pcap',
@@ -210,8 +238,8 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode',choices=('plan','run'));parser.add_argument('--config',required=True)
-    parser.add_argument('--run-id',required=True);parser.add_argument('--old-graceful',type=Path,required=True)
-    parser.add_argument('--old-rst',type=Path,required=True);parser.add_argument('--apply',action='store_true')
+    parser.add_argument('--run-id',required=True);parser.add_argument('--old-graceful',type=Path,nargs='+',required=True)
+    parser.add_argument('--old-rst',type=Path,nargs='+',required=True);parser.add_argument('--apply',action='store_true')
     args=parser.parse_args();cfg=base.load_config(args.config)
     if args.mode=='run' and not args.apply:parser.error('run requires --apply')
     runner=base.ShellRunner(cfg['hosts']) if args.mode=='run' else base.DryRunner()
