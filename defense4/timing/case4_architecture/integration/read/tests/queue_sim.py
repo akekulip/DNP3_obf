@@ -8,7 +8,7 @@ test, not a property of the target:
   by qid (7 highest), one packet per `service_ns`; a served packet re-enters ingress on the same
   port `loop_ns` later. This is the strict-priority ladder the control plane must configure
   (qid == priority); the simulator does not prove the switch is configured that way.
-* Mirror + packet generator: a pass that sets `mirror_type == 1` produces (a) the clone, which
+* Mirror + packet generator: a pass that sets `mirror_type == 1` with session CLONE_SESSION_ID produces (a) the clone, which
   recirculates into ingress on PKTGEN_RETURN (ports.p4) and (b) `2 * k` generated tokens
   (recirc-pattern app; key = the low 24 bits of the 4-byte clone tag, packet_id 0..2k-1) that reach
   ingress with ingress_port 0 behind the 6-byte generator header, as the model delivers them
@@ -64,6 +64,7 @@ class QueueSim:
     def __init__(self, k=2, service_ns=30_000, loop_ns=20_000, pktgen_ns=10_000, source=SOURCE, **kw):
         self.src = w.ExtSource(Path(source).read_text(), READ)
         self.src.width.update({'tm.qid': 5, 'md.mirror_type': 3})
+        self.clone_session = self.consts()['CLONE_SESSION_ID']
         self.k, self.service_ns, self.loop_ns, self.pktgen_ns = k, service_ns, loop_ns, pktgen_ns
         self.set_params(**kw)
         self.heap, self.order = [], 0
@@ -165,7 +166,10 @@ class QueueSim:
             return
         src.apply_control('Ingress')
         self.log.append((time, port, raw, list(src.events)))
-        if src.env.get('md.mirror_type', 0) == 1:
+        # The deparser selects a mirror entry on every pass; a copy is made only for a CONFIGURED session. The
+        # control plane configures exactly CLONE_SESSION_ID (to PKTGEN_RETURN); T sets NO_MIRROR_SESSION (0, not
+        # a valid session) on every pass that does not clone (route_ab_01/token_stale_01).
+        if src.env.get('md.mirror_type', 0) == 1 and src.env.get('m.clone_ses', 0) == self.clone_session:
             tag = src.env.get('m.clone_tag', 0)
             self.at(time + self.pktgen_ns // 2, PKTGEN_PORT, struct.pack('!I', tag) + raw)
             pipe_app = PKTGEN_PIPE << 3 | ((tag >> 16) & 0x7)

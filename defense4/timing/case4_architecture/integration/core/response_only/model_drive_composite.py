@@ -491,14 +491,14 @@ def main():
             ip_after_ladder = [s.hex() for s in op_samples if len(s) > 8 and s[8] == 0x45]
             ok_ethertype = [s for s in op_samples if len(s) >= 14 and s[8] != 0x45 and int.from_bytes(s[12:14], 'big') >= 0x0600]
             rep.add('every_loop_frame_has_an_ethertype_at_bytes_12_13', {}, loop_type_violations(reflectors))
-        if sink is not None:
-            time.sleep(1.0)
-            rep.record['meta']['mirror_sink'] = sink.summary()
-            rep.add('no_clone_from_a_pass_that_never_requested_one', 0, sink.frames, **sink.summary())
             rep.add('operate_blocker_on_181_keeps_eth_no_ip_after_ladder', [], ip_after_ladder)
             rep.add('operate_blocker_on_181_has_ethertype_at_offset_12_13',
                     True, bool(op_samples) and not ip_after_ladder and bool(ok_ethertype),
                     op_frames=[s[:14].hex() for s in op_samples])
+        if sink is not None:
+            time.sleep(1.0)
+            rep.record['meta']['mirror_sink'] = sink.summary()
+            rep.add('no_clone_from_a_pass_that_never_requested_one', 0, sink.frames, **sink.summary())
         ok = True
     except BaseException as error:
         rep.record['error'] = type(error).__name__ + ': ' + str(error)

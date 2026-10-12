@@ -23,6 +23,17 @@ const bit<3> MIRROR_TYPE_CLONE = 1;
 // starts with CLONE_MARKER, matched EXACTLY on all 8 bits (Defense 2: a 0x1F mask aliased 0xE1 to app 1).
 const bit<8> CLONE_MARKER = 0xE1;
 const MirrorId_t CLONE_SESSION_ID = 10w7;
+// Every pass that does not clone still goes through the deparser's mirror table, selected by mirror_type. bf-p4c
+// gives the mirror_type == 0 entry a session id from a compiler temporary that no action writes and that it may
+// place in the container of live metadata: in every build up to close_reset_fix_01 it shared md.cur_gen, so each
+// non-cloning pass was mirrored to session cur_gen[9:0], and while the live READ generation was 7 (the configured
+// session) every T pass was copied to PKTGEN_RETURN, the READ-7 clone re-mirrored itself and fired the READ
+// generator thousands of times (route_ab_01/token_stale_01). So entry 0 is never selected: every pass selects the
+// clone entry, with NO_MIRROR_SESSION unless admit_request / hold_operate set CLONE_SESSION_ID. Session 0 is not a
+// valid mirror session, so nothing is copied. The two fields are pinned to containers of their own: bf-p4c drops
+// the initial writes as redundant, so their zero must come from the container itself.
+// core/response_only/check_mirror_select.py verifies this in each compiled build.
+const MirrorId_t NO_MIRROR_SESSION = 10w0;
 
 // Ladder roles (queue_sim.py ROLE dict): 11 ACK blocker, 12 response blocker, 13 OPERATE
 // blocker, 14 held ACK, 15 held response, 16 held OPERATE.
@@ -170,6 +181,8 @@ parser IngressParser(packet_in pkt, out header_t hdr, out metadata_t md,
     state opaque_ethernet { pkt.extract(hdr.eth); transition accept; }
 }
 
+@pa_no_overlay("ingress", "ig_intr_md_for_dprsr.mirror_type")
+@pa_no_overlay("ingress", "md.clone_ses")
 control Ingress(inout header_t hdr, inout metadata_t md,
                 in ingress_intrinsic_metadata_t ig_intr_md,
                 in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,
@@ -853,6 +866,7 @@ control Ingress(inout header_t hdr, inout metadata_t md,
 
     apply {
         ig_tm_md.bypass_egress = 0;
+        ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE; md.clone_ses = NO_MIRROR_SESSION;   // see NO_MIRROR_SESSION
         md.outcome_code = OUT_NONE;
         params.apply(); clock.apply();
         // Prologue: quarantine (T_IN only), then the generation and epoch tables (see gen_access). On a

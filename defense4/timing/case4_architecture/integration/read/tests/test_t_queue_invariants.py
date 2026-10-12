@@ -1110,5 +1110,42 @@ class K_ResetValues(unittest.TestCase):
         self.assertEqual(out(sim, 'OUT_RESP_DUP_DROP'), 0)
 
 
+
+class Q_MirrorSessionOnlyFromCloneActions(unittest.TestCase):
+    """route_ab_01/token_stale_01: the deparser selects a mirror entry on EVERY pass, so a pass that does not clone
+    must still present a defined, non-configured session. Every T pass presents mirror_type = MIRROR_TYPE_CLONE;
+    only admit_request and hold_operate present CLONE_SESSION_ID, every other pass NO_MIRROR_SESSION (0). (On
+    silicon the compiled guarantee is checked by core/response_only/check_mirror_select.py and the model sweep
+    model_drive_mirror_guard.py; this pins the source-level contract.)"""
+
+    def test_only_the_two_clone_actions_select_the_configured_session(self):
+        sim = QueueSim()
+        c = sim.consts()
+        seen = []
+        orig = sim.src.apply_control
+
+        def spy(name):
+            r = orig(name)
+            env = sim.src.env
+            seen.append((env.get('md.mirror_type'), env.get('m.clone_ses'), set(sim.src.events_actions())
+                         if hasattr(sim.src, 'events_actions') else ' '.join(map(str, sim.src.events))))
+            return r
+        sim.src.apply_control = spy
+        sim.read(T0)
+        sim.operate(T0 + 20_000, epoch=2)
+        sim.run(HORIZON)
+        self.assertGreater(len(seen), 10)
+        for mtype, ses, acts in seen:
+            self.assertEqual(mtype, c['MIRROR_TYPE_CLONE'])
+            cloning = 'admit_request' in str(acts) or 'hold_operate' in str(acts)
+            self.assertEqual(ses, c['CLONE_SESSION_ID'] if cloning else c['NO_MIRROR_SESSION'], str(acts)[:200])
+        self.assertTrue(any(ses == c['CLONE_SESSION_ID'] for _, ses, _ in seen), 'no clone at all')
+
+    def test_no_mirror_session_is_not_the_configured_one(self):
+        c = QueueSim().consts()
+        self.assertEqual(c['NO_MIRROR_SESSION'], 0)
+        self.assertNotEqual(c['NO_MIRROR_SESSION'], c['CLONE_SESSION_ID'])
+
+
 if __name__ == '__main__':
     unittest.main()
