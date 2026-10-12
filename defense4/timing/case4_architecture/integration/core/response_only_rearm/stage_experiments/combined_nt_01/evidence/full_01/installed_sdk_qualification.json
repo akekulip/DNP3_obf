@@ -1,0 +1,64 @@
+{
+  "source_sha256": "cad16b85f79d0609ad07e547a9551def720fdfa668c14000b7503a570cae7357",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "installed_manifest_sha256": "b0120e10857408bb00812420e60a5d2216582445edd6767624c7372d46126b82",
+  "offline_qualification_sha256": "1e653fb7e72c40cdad5c217949c44bc50f4e4aedd597a321342d6a683dbf7f8a",
+  "model_qualification_sha256": "0e5c6bf998ce89e8a20a21a2851d12cdbc430cee378bb0ebe6c501bec31efde9",
+  "installed_artifact_sha256": {
+    "bfrt.json": "8d7ee13e9990afb5fd980fe4efed22aa24a614ff6bf8142f40c696cc4fc2ec56",
+    "manifest.json": "cf6ac26e6c4ca6fa6fc87e8e825db7fe5004f2a3b65e307d700b9795f2d8ed0b",
+    "p0/context.json": "43bcf2bc180c5f18e4ffaf72e77fc22e89c666eed3c84aa757aebe8dd0280301",
+    "p0/response_only.bfa": "5fe1cb8e765bdd8b21d7ae383e79fdcae86d3654c1990683f2183460698cb32a",
+    "p0/tofino.bin": "0b8a18327e3e4adf48935e169884e8ddd680d0747822c1e176bb0e5073a6ec57",
+    "p1/context.json": "4556e88c594bb26037d45cb98debc66c177480aa6cf8e892f825f1a53c3357bf",
+    "p1/response_only.bfa": "e5ad31b9ead64bbfa82b0631a7f92d5285250918bd30fe6105795b14f6f69cd7",
+    "p1/tofino.bin": "47b88abb1ef4c13d627aad595d711ca58960c6a418e405c54baecaf20e06bf18",
+    "response_only.conf": "4e3ed4714054c1b4ca63a22e6799d5fdeedcad4fd200b8610465c1b04698c64f"
+  },
+  "resource_stage_summary": {
+    "method": "maximum allocated BFA index plus one",
+    "stages": {
+      "p0": {
+        "ingress": 11,
+        "egress": 12
+      },
+      "p1": {
+        "ingress": 11,
+        "egress": 0
+      }
+    },
+    "full_compile_pass": true
+  },
+  "model_tested_source_match": true,
+  "schema_comparison": {
+    "byte_identical": false,
+    "dataplane_tables_identical": true,
+    "differences": [
+      {
+        "table": "p0.snapshot.cfg",
+        "local_id": 2445733224,
+        "installed_id": 2441585505,
+        "local_depends_on": [
+          2458362721,
+          2462510440
+        ],
+        "installed_depends_on": [
+          2458362721,
+          2462510440
+        ]
+      }
+    ],
+    "additional_difference": "table array ordering",
+    "local_sha256": "33ec1c34e37d833ad0b9c73c090b3a7966bcfb1a77ee45955368d12dce2d23e1",
+    "installed_sha256": "8d7ee13e9990afb5fd980fe4efed22aa24a614ff6bf8142f40c696cc4fc2ec56"
+  },
+  "mirror": {
+    "passed": true,
+    "guard_log_sha256": "340b8db1746153ff2db28cf27ed321c5147b2870e6731e5469b486480bd745d1"
+  },
+  "compiled_model_checks": [
+    491,
+    507
+  ],
+  "hardware_qualified": false
+}

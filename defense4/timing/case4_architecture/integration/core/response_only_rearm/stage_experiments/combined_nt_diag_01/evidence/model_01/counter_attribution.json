@@ -1,0 +1,95 @@
+{
+  "actual_compiled_assertions": [
+    {
+      "expected": 4,
+      "name": "sealed_raw_OP23_exact",
+      "observed": 4,
+      "ok": true
+    },
+    {
+      "expected": 4,
+      "name": "sealed_raw_READ24_exact",
+      "observed": 4,
+      "ok": true
+    },
+    {
+      "expected": 0,
+      "name": "sealed_blocker6_unchanged",
+      "observed": 0,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "reopened_raw_OP23_exact",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "reopened_raw_READ24_exact",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 0,
+      "name": "reopened_blocker6_unchanged",
+      "observed": 0,
+      "ok": true
+    },
+    {
+      "expected": 3,
+      "name": "old_blockers6_exact_three",
+      "observed": 3,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "old_blockers_raw_OP23_unchanged",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "old_blockers_raw_READ24_unchanged",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 10,
+      "name": "sentinel_raw_OP23_exact",
+      "observed": 10,
+      "ok": true
+    },
+    {
+      "expected": 10,
+      "name": "sentinel_raw_READ24_exact",
+      "observed": 10,
+      "ok": true
+    },
+    {
+      "expected": 3,
+      "name": "sentinel_blocker6_unchanged",
+      "observed": 3,
+      "ok": true
+    }
+  ],
+  "aggregate_equivalence": "original outcome6 equals new6+new23+new24; actual-source checks after every injected input; retained model stale assertions read the sum",
+  "layout": {
+    "blocker_stale": 6,
+    "final_raw_counts": {
+      "23": 10,
+      "24": 10,
+      "6": 3
+    },
+    "legacy_diag19to24": false,
+    "original_stale_aggregate": [
+      6,
+      23,
+      24
+    ],
+    "raw_OP_stale": 23,
+    "raw_READ_stale": 24,
+    "size": 25
+  },
+  "physical_scope": "explicit model injections only; hardware raw OP23 and READ24 must be paired with both app packet deltas; quiet OP is not assumed zero"
+}

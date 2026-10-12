@@ -1,0 +1,54 @@
+{
+  "algebra_regression": {
+    "command": "python3 stage_experiments/e_window_fold_classify/tests/test_full03_algebra.py",
+    "result": "3 tests passed: exhaustive original-window thresholds, B boundary/wrap classes, 200000 modular random gap/window cases"
+  },
+  "baseline_sha256": "628af1c66da5b61a7b4062dfae40b3e14320bc5d370d20219d893fef3862b261",
+  "baseline_source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/evidence/incremental_55/response_only.p4",
+  "bfa": "not_generated_compile_failed_before_bfa",
+  "candidate_sha256": "feb31622ea7ba55416b6902545447aabf2606e34364926d476d47c933bf33670",
+  "candidate_source": "response_only.p4",
+  "compile": {
+    "command": [
+      "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+      "--target",
+      "tofino",
+      "--arch",
+      "tna",
+      "-g",
+      "-o",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_03/compile_local/out",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_03/response_only.p4"
+    ],
+    "compile_log_sha256": "fbc93a079faa9cb8487cf094a85ce642f244f502aef1a6bb59eb894d3245924f",
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "elapsed_seconds": 41.948,
+    "exit_code": 3,
+    "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_03/response_only.p4",
+    "source_sha256": "feb31622ea7ba55416b6902545447aabf2606e34364926d476d47c933bf33670"
+  },
+  "compile_diagnostic": [
+    "error: This program violates action constraints imposed by Tofino.",
+    "    action rev_translate() { hdr.tcp.ack = m.q + m.r; m.result = r_OUT_REV_TRANSLATE; m.changed = 1; }",
+    "  PHV allocation requires the following field slices to be packed together, because of the structure of header egress::hdr.tcp",
+    "  Action r_Egress.rev_translate must be rewritten, because it requires too many sources.",
+    "  However, Tofino supports only two PHV sources.",
+    "  Rewrite action r_Egress.rev_translate to use at most 2 PHV sources (and no action data/constant source) or 1 PHV source (if action data/constant is necessary).",
+    "error: Unable to slice the following group of fields due to unsatisfiable constraints: egress::m.ina, egress::hdr.tcp.seq, egress::m.qx, egress::m.s_end, egress::m.leff, $tmp88, $tmp89, egress::m.q, egress::m.p, egress::m.y, egress::m.z, egress::m.pm, egress::m.t, egress::m.ack_inv, egress::hdr.tcp.ack, egress::m.r, egress::hdr.tcp.window, egress::m.ina, egress::hdr.tcp.seq, egress::m.qx, egress::m.s_end, egress::m.leff, $tmp88, $tmp89, egress::m.q, egress::m.p, egress::m.y, egress::m.z, egress::m.pm, egress::m.t, egress::m.ack_inv, egress::hdr.tcp.ack, egress::m.r, egress::hdr.tcp.dport, egress::hdr.tcp.sport"
+  ],
+  "contracts_preserved_by_scope": [
+    "E-only isolated experiment",
+    "canonical incremental_55 source unchanged",
+    "N/T/lifecycle/register banks not edited",
+    "outcome count_t/checksum/CRC source blocks retained in candidate",
+    "no SSH/hardware"
+  ],
+  "decision": "No integration candidate. The arithmetic is sound, but the wider classify_rev key/action set causes Tofino PHV/action source constraints before BFA generation. Per instruction, no fourth E attempt.",
+  "experiment": "e_window_fold_classify/full_03",
+  "preserved_failed_frontend_compile": "compile_actiondata_fail/manifest.json",
+  "preserved_failed_frontend_source": "response_only_actiondata_fail.p4",
+  "stage_result": "no_stage_count_no_reduction",
+  "status": "compile_failed_no_bfa_no_stage_reduction",
+  "transform": "Keep reverse_gap and reverse_window_base unchanged; split classify_rev by original window and B=m.s_end high/low intervals; use constant-immediate exact actions; remove m.s_end+=r, m.wide, and final window_t."
+}

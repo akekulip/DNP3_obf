@@ -1,0 +1,47 @@
+{
+  "baseline_sha256": "628af1c66da5b61a7b4062dfae40b3e14320bc5d370d20219d893fef3862b261",
+  "baseline_source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/evidence/incremental_55/response_only.p4",
+  "baseline_stage11_allocations": "evidence/full_01/baseline_stage11_allocations.json",
+  "candidate_sha256": "ec53c59438cc6682e399e8558e538cec78c276d78526c7eadb8626abae15023f",
+  "candidate_source": "evidence/full_01/response_only.p4",
+  "compile": {
+    "command": [
+      "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+      "--target",
+      "tofino",
+      "--arch",
+      "tna",
+      "-g",
+      "-o",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_01/compile_local/out",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_01/response_only.p4"
+    ],
+    "compile_log_sha256": "2621349bc9b7ef4a307648d795d641a1913e4e30f23a41ed13f1191af25a191d",
+    "compiler": "p4c 9.13.1 (SHA: e558d01)",
+    "compiler_path": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "elapsed_seconds": 34.778,
+    "exit_code": 4,
+    "source": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_01/response_only.p4",
+    "source_sha256": "ec53c59438cc6682e399e8558e538cec78c276d78526c7eadb8626abae15023f"
+  },
+  "compile_diagnostic": [
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/e_window_fold_classify/evidence/full_01/response_only.p4(1022): [--Werror=unsupported] error: add: action spanning multiple stages. Operations on operand 2 (egress::m.s_end[0..31]) in action reverse_window_base require multiple stages for a single action. We currently support only single stage actions. Please rewrite the action to be a single stage action.",
+    "    action reverse_window_base() { m.s_end = m.s_end + widen_win.get({hdr.tcp.window}); m.s_end = m.s_end + m.r; }",
+    "    action reverse_window_base() { m.s_end = m.s_end + widen_win.get({hdr.tcp.window}); m.s_end = m.s_end + m.r; }"
+  ],
+  "conclusion": "The only direct fold that removes final window_t requires precomputing the post-r endpoint before classify_rev. bf-p4c rejects that as a multi-stage action in reverse_window_base, so the bounded E fold is not a safe stage-cut integration candidate.",
+  "experiment": "e_window_fold_classify",
+  "next_safe_research_only": "A two-table repair can precompute the endpoint then classify exact/clamp, but it replaces window_t with another dependency stage and is not a stage-cut candidate without a separate scope decision.",
+  "preserved_contracts_by_construction": [
+    "outcome count_t remains in source",
+    "lifecycle/N/T source untouched",
+    "CRC and checksum blocks untouched",
+    "no canonical/hardware edits"
+  ],
+  "regressions": {
+    "baseline_reverse_window_unittest": "python3 -m unittest defense4.timing.case4_architecture.integration.core.response_only_rearm.tests.test_rearm.EAccounting.test_reverse_window_inverse_boundaries_and_modular_endpoints -> OK",
+    "candidate_row_equivalence": "python3 stage_experiments/e_window_fold_classify/tests/test_window_fold_rows.py -> OK"
+  },
+  "status": "blocked_by_single_stage_action_constraint",
+  "transform": "Precompute reverse endpoint before classify_rev, then classify zero/exact/clamp in classify_rev and remove final window_t."
+}

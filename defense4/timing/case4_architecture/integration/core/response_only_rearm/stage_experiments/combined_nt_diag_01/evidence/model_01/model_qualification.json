@@ -1,0 +1,391 @@
+{
+  "actual_model_config_bindings": {
+    "bfrt-config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/bfrt.json",
+    "model_json_path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/share/response_only/aug_model.json",
+    "p4_pipelines": [
+      {
+        "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/p0/tofino.bin",
+        "context": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/p0/context.json",
+        "p4_pipeline_name": "p0",
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out",
+        "pipe_scope": [
+          0,
+          2
+        ]
+      },
+      {
+        "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/p1/tofino.bin",
+        "context": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out/p1/context.json",
+        "p4_pipeline_name": "p1",
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out",
+        "pipe_scope": [
+          1,
+          3
+        ]
+      }
+    ],
+    "program-name": "response_only"
+  },
+  "candidate": "56",
+  "compile_manifest_sha256": "c39f488b826c7e100d3f8a90298272353e372613eabee936fa738bb636e70de8",
+  "compiled_artifact_sha256": {
+    "bfrt.json": "4c1bfc92eb746d5df80cb6464e777c3b244fb7f792b17c76eb31bb461e1170da",
+    "manifest.json": "1d7af441c6af327ff2e78af2462da66bbef0bd22ce1a639a88a02a43cc9e425f",
+    "p0/context.json": "6f0fb64159f31eb83c81980e1d7a207f865f3014f85be968b1b63cb1d24758aa",
+    "p0/response_only.bfa": "113777e9a945191c6bb5528cfa496b3ab965b393e2f6de6393afb418edd00dce",
+    "p0/tofino.bin": "9159894b0b4ec6b5baaaf5a006ac11e127cb469dc1fa88b62616fc29572fde0e",
+    "p1/context.json": "2f56b25524372dc82af5d3ef7adf8461e6b84d440d8de1ded8758b161694a8bf",
+    "p1/response_only.bfa": "792466f9df636c51fd99dff1f0a219936571ca72195e9476a223490d6fe27900",
+    "p1/tofino.bin": "9c96c1d590e7d836fff19bfaccf48654f6da58da810df6589fc5fc89c8fef54a",
+    "response_only.conf": "1f689e12b404629d571caa71f31dee69ed10d1f640cf555561a63c3030f5c5c1"
+  },
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "counter_layout": {
+    "blocker_stale": 6,
+    "final_raw_counts": {
+      "23": 10,
+      "24": 10,
+      "6": 3
+    },
+    "legacy_diag19to24": false,
+    "original_stale_aggregate": [
+      6,
+      23,
+      24
+    ],
+    "raw_OP_stale": 23,
+    "raw_READ_stale": 24,
+    "size": 25
+  },
+  "coverage": [
+    "491 retained checks rerun unchanged in second run, including289 inverse ACK/window/checksum observations",
+    "Exact pending SYN/SYNACK retries, FIRST arm once, three fresh native/wire TCP mappings",
+    "Bilateral N FIN accounting phases5/101/10b/10f; qualified RST; T firstFIN CLOSE seals once, duplicate/late CLOSE does not bump allocator",
+    "Raw old apps0/1 IDs0..3 on actual196 parserpath before/after reOPEN: no wire or authority changes, exact stale counter increments",
+    "Old Work phases1/2/3, old external ACK/FIN/RST/READresponse and oldRESET fenced",
+    "All6 old held ladder roles OFF; currentowner OFF ACK/READresponse/OPERATE originals flush exactlyonce",
+    "Current READ/SELECT/OPERATE native58 padding, ACK normalization/accounting, OPERATE hold/release",
+    "Bounded OPEN, full sealed raw epoch, no epoch wrap/alias; FFFE-to-FFFF allocator exhaustion does not arm anchors; sentinel tokens drop",
+    "All7 N captured nativeCRC fields independently corrupted; CRCcorrect wrong READ link; eight externaldrops plus unchanged34bank snapshots",
+    "Four raw OP and four raw READ timer rejects independently attributed before and after OPEN; two each live exhausted/sentinel rejects; three old blockers increment only6; all original aggregate stale checks retained"
+  ],
+  "driver_sha256": "b8296fc2321e1e75c3dac378da7c8b109910d5e09b037636308d84bec68edcb3",
+  "exhaustion_fixture": {
+    "initial_value": 65534,
+    "owner_Work_epoch_overrides": false,
+    "registers_initialized": [
+      "gen_alloc_reg",
+      "op_gen_alloc_reg"
+    ],
+    "scope": "private local model only, final isolated T tests"
+  },
+  "experiment": "combined_nt_diag_01",
+  "full_composite_compile_qualification_sha256": "4095352c65a9ae79dbd72cada1f2dabaea8f214a79cca6c2bccffe8a2200e1d1",
+  "hashes": {
+    "counter_attribution.json": "c49b69650b0f40557f4fea0c3f2b92b0b53e9d95c3323a7e02b34484189989bd",
+    "driver_source.py": "b8296fc2321e1e75c3dac378da7c8b109910d5e09b037636308d84bec68edcb3",
+    "launch_command.json": "944d3cb8c97f526bf1ae984110943aa78cff0b3a608a65c655c9042f8cd6b96f",
+    "model_20261012_140501.log": "496a23c0f8e8cc9d72789887616276cb33843d86f1a5e1c223f7d195f8ac361d",
+    "negative_vectors.json": "76f750108b1a42109a3dd96f6e9f3fab2701b0ae084555531d2a559ee8a4dfe5",
+    "noagent.conf": "689740cc18926dbed63d1a1691a841d0e8c7806042e89d3f5a652bd2d31b7a68",
+    "ports.json": "946757d0ec3aaaed3630edb7279ff9cca062b1e0202bbc3466e48765f1576478",
+    "rearm_results.json": "d215f8705d38a1502d9bb44ba5e2c2394e5418281b678544c39528f99c7ae8e9",
+    "session.log": "a6f0a90eddb553c7b3e54bd78fddcd09f0be12d6d9107e1db64a1d9d3df5ee0e"
+  },
+  "helper_sha256": {
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/connection/binding/tests/read_support.py": "7ac8c875b1d965a4dba522c91f795a61e2a2a7e320ce50eb8b18cbaeb576bdcd",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/harness/vectors.py": "16a65e3e890bd1c6e97a156867fb241c9417fd6729abf01984a11fc6e7ad5189",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh": "e17a1335878b039fc5eaf260af1de70186b290e6e4107a35b1d9662f059a5fc2",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py": "6cc77f2f35475dc577aebc3fe472bbf298d1f23e1d3e3b5a83f48178fc008c38",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+    "/home/philip/Projects/DNP3/defense4/timing/framework/size/case4_padding.py": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37"
+  },
+  "hugepages_free_after_run": 196,
+  "internal_port_loop_lines": [],
+  "launch_environment": {
+    "MODEL_EXTRA": "unset",
+    "MODEL_INT_PORT_LOOP": "unset"
+  },
+  "limits": [
+    "Offline9.13.1 model only; installed9.13.2/hardware qualification is root-owned and separate",
+    "Source tests assert bit/byte/emission/enqueue and non-outcome bank parity to immutable combined; model proves retained507 plus12 attribution checks, not a simultaneous binary-vs-binary trace comparison",
+    "Snapshot equality covers selected connection cell0 and34 N/E/T authority banks, not all16 E cells; selected counters checked separately",
+    "Source tests include combined sealed+FFFF sentinel; compiled run separately covers sealed old tokens and live sentinel/exhausted tokens",
+    "Timing/model injection count is not physical pktgen/HOL/host precision evidence; no assumed quiet rawOPzero",
+    "Optional generic config aug_model.json does not exist; actual pinned binaries/context/schema exist and were used",
+    "Canonical55 sources/CP/HW untouched; explicit25 layout reader must retain aggregate6+23+24 and avoid legacydiagnostic19..24 rules"
+  ],
+  "mirror_guard": {
+    "exit_code": 0,
+    "log_sha256": "55c959dbecb2299c65a52dfe26eca57d792e4886e441daae73137a5a7ebddd56",
+    "script_sha256": "94a4e529fde20e1bd2c8c88a86809bec5f26decf74f97356b844cb9c2eb9532d"
+  },
+  "namespace_exit_code": 0,
+  "negative_coverage": [
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 62,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 1,
+        "crc_after": "8b1c",
+        "crc_before": "8a1c",
+        "input_port": 9,
+        "label": "DLhead",
+        "mutated_byte_after": "8b",
+        "mutated_byte_before": "8a",
+        "mutated_byte_index": 62,
+        "payload_crc_offset": 8
+      },
+      "name": "bad_native_dlhead_crc_before_READ"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 80,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 1,
+        "crc_after": "595b",
+        "crc_before": "585b",
+        "input_port": 9,
+        "label": "first",
+        "mutated_byte_after": "59",
+        "mutated_byte_before": "58",
+        "mutated_byte_index": 80,
+        "payload_crc_offset": 26
+      },
+      "name": "bad_native_first_crc_before_READ"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 87,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 1,
+        "crc_after": "015b",
+        "crc_before": "005b",
+        "input_port": 9,
+        "label": "controltail",
+        "mutated_byte_after": "01",
+        "mutated_byte_before": "00",
+        "mutated_byte_index": 87,
+        "payload_crc_offset": 33
+      },
+      "name": "bad_native_controltail_crc_before_READ"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 72,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 1,
+        "crc_after": "5b2c",
+        "crc_before": "5a2c",
+        "input_port": 9,
+        "label": "readrequest",
+        "mutated_byte_after": "5b",
+        "mutated_byte_before": "5a",
+        "mutated_byte_index": 72,
+        "payload_crc_offset": 18
+      },
+      "name": "bad_readrequest_crc_before_READ"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 1,
+        "crc_correct_control": true,
+        "dnp_crc_correct": true,
+        "input_port": 9,
+        "label": "wrong_read_link_address",
+        "link_dst_src": "22223333"
+      },
+      "name": "bad_readrequest_wrong_link_crc_correct_before_READ"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 98,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 0,
+        "crc_after": "54eb",
+        "crc_before": "55eb",
+        "input_port": 9,
+        "label": "second",
+        "mutated_byte_after": "54",
+        "mutated_byte_before": "55",
+        "mutated_byte_index": 98,
+        "payload_crc_offset": 44
+      },
+      "name": "bad_readresponse_second_crc_before_response"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 101,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 0,
+        "crc_after": "51f8",
+        "crc_before": "50f8",
+        "input_port": 9,
+        "label": "readtail",
+        "mutated_byte_after": "51",
+        "mutated_byte_before": "50",
+        "mutated_byte_index": 101,
+        "payload_crc_offset": 47
+      },
+      "name": "bad_readresponse_readtail_crc_before_response"
+    },
+    {
+      "banks_unchanged": true,
+      "drop_ok": true,
+      "mutation": {
+        "absolute_crc_offset": 89,
+        "bankscope": "N private banks plus N/E/T authority snapshot",
+        "captured_external_frames": 0,
+        "captured_n_ack_return_frames": 0,
+        "crc_after": "015b",
+        "crc_before": "005b",
+        "input_port": 9,
+        "label": "responsetail",
+        "mutated_byte_after": "01",
+        "mutated_byte_before": "00",
+        "mutated_byte_index": 89,
+        "payload_crc_offset": 35
+      },
+      "name": "bad_control_response_responsetail_crc_before_SELECT_response"
+    }
+  ],
+  "new_counter_assertions": [
+    {
+      "expected": 4,
+      "name": "sealed_raw_OP23_exact",
+      "observed": 4,
+      "ok": true
+    },
+    {
+      "expected": 4,
+      "name": "sealed_raw_READ24_exact",
+      "observed": 4,
+      "ok": true
+    },
+    {
+      "expected": 0,
+      "name": "sealed_blocker6_unchanged",
+      "observed": 0,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "reopened_raw_OP23_exact",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "reopened_raw_READ24_exact",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 0,
+      "name": "reopened_blocker6_unchanged",
+      "observed": 0,
+      "ok": true
+    },
+    {
+      "expected": 3,
+      "name": "old_blockers6_exact_three",
+      "observed": 3,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "old_blockers_raw_OP23_unchanged",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 8,
+      "name": "old_blockers_raw_READ24_unchanged",
+      "observed": 8,
+      "ok": true
+    },
+    {
+      "expected": 10,
+      "name": "sentinel_raw_OP23_exact",
+      "observed": 10,
+      "ok": true
+    },
+    {
+      "expected": 10,
+      "name": "sentinel_raw_READ24_exact",
+      "observed": 10,
+      "ok": true
+    },
+    {
+      "expected": 3,
+      "name": "sentinel_blocker6_unchanged",
+      "observed": 3,
+      "ok": true
+    }
+  ],
+  "observed_inverse_ACK_window_cases": 289,
+  "port_enable_refusals": {
+    "196": "BfruntimeReadWriteRpcException: Error(s):",
+    "68": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map_path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/combined_nt_diag_01/evidence/full_01/response_only.inputs.json",
+  "port_map_sha256": "5cfdd8af36a983d20d68951c88c93ad8976fa067aa998d5c76e475f12800afe7",
+  "private_model_ports": [
+    9,
+    48,
+    68,
+    180,
+    181,
+    182,
+    196
+  ],
+  "raw_epoch_encoding": {
+    "E": "raw bit31 FIRST latch; raw & 0x7fffffff epoch, physical pipe 0",
+    "N": "bare bounded epoch, physical pipe 0",
+    "T": "raw bit31 sealed; low31 bounded epoch, physical pipe 1"
+  },
+  "retained_model_checks": {
+    "baseline_results_sha256": "bbb2c7740fc2a5a5d9fc629711077882781abe05f184de6b1f2573e2ac69d01f",
+    "count": 507,
+    "names_and_order_exact": true
+  },
+  "source_sha256": "13b21e3c34072b9a113acaf5bda5a1210d9a70cbe787d30fb722ad3c3dcbf5bd",
+  "stages_from_bfa": {
+    "p0": {
+      "egress": 12,
+      "ingress": 11
+    },
+    "p1": {
+      "egress": 0,
+      "ingress": 11
+    }
+  },
+  "summary": {
+    "failed": [],
+    "passed": 519,
+    "total": 519
+  }
+}

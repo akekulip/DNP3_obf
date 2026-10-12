@@ -1,0 +1,67 @@
+{
+  "method": "retained BFA stage headers: max `stage N <gress>:` index plus one",
+  "p0": {
+    "ingress": {
+      "allocated_stage_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "stage_count": 11
+    },
+    "egress": {
+      "allocated_stage_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "stage_count": 12
+    }
+  },
+  "p1": {
+    "ingress": {
+      "allocated_stage_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "stage_count": 10
+    }
+  },
+  "role_map": {
+    "p0.ingress": "N",
+    "p0.egress": "E",
+    "p1.ingress": "T",
+    "p1.egress": "empty"
+  },
+  "role_stage_counts": {
+    "N": 11,
+    "E": 12,
+    "T": 10,
+    "empty": 0
+  }
+}
