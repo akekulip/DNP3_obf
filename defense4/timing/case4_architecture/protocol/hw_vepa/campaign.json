@@ -107,6 +107,8 @@
       "pcie": "0000:04:00.0",
       "allowed_loop_octet_gap": {},
       "mirror_fix": true,
+      "max_token_stale": 0,
+      "_max_token_stale_note": "Bound on the OUT_TOKEN_STALE delta of a T-on trial (default 0). One of ~10 shaped runs showed 5 at a 3 ms fixture / 3,723 PPS; the T owner is analysing it, so raise this only deliberately. The observed value is recorded in every trial.",
       "_note": "Verified on silicon 2026-10-12 (evidence/mirror_fix_silicon_01): one READ trigger per READ, zero stale tokens, port gaps 0. close_reset_fix_01 and sbo_admission_01 are kept as named comparison builds.",
       "hashes": {
         "bfrt.json": "4e24bc8a84313b16bfb268aa640bc005548a93bfd63f392abaa8a96909070caa",
@@ -121,8 +123,8 @@
     "common": {"read_points": 23},
     "native_len": {"READ": 49, "SELECT": 37, "OPERATE": 37},
     "mirror_fix": {
-      "_note": "Applies only to a T-on/T-off trial on a build flagged mirror_fix:true in `builds` (the builds before the compiler-mirror fix selected T's deparser mirror entry 0, giving several READ triggers per READ and thousands of stale tokens, so these counts do not hold on them; the check is skipped there). Deltas are after minus before from the snapshot pktgen block and outcomes. T1: READ trigger delta == READs; generated READ packets == 2k * READs (k = service.k, installer --k, 2k tokens per trigger); OPERATE trigger delta == SBOs run; OPERATE packets == 2k * SBOs; zero_outcomes deltas == 0. T0 (as the T-off silicon evidence shows, evidence/milestone_sbo_01/toff): READ and OPERATE trigger and packet deltas == 0.",
-      "T1": {"zero_outcomes": ["OUT_TOKEN_STALE"]},
+      "_note": "Applies only to a T-on/T-off trial on a build flagged mirror_fix:true in `builds` (the builds before the compiler-mirror fix selected T's deparser mirror entry 0, giving several READ triggers per READ and thousands of stale tokens, so these counts do not hold on them; the check is skipped there). Deltas are after minus before from the snapshot pktgen block and outcomes. T1: READ trigger delta == READs; generated READ packets == 2k * READs (k = service.k, installer --k, 2k tokens per trigger); OPERATE trigger delta == SBOs run; OPERATE packets == 2k * SBOs; OUT_TOKEN_STALE delta <= the build's max_token_stale (default 0). T0 (as the T-off silicon evidence shows, evidence/milestone_sbo_01/toff): READ and OPERATE trigger and packet deltas == 0.",
+      "T1": {"note": "OUT_TOKEN_STALE is bounded per build by builds.<name>.max_token_stale (default 0) and its observed delta is recorded in every trial."},
       "T0": {"zero_triggers": ["READ", "OPERATE"]}
     },
     "padding": {

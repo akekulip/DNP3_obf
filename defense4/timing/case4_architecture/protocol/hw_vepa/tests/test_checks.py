@@ -62,8 +62,8 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
                                'OPERATE': kind(1, sbo_len)}, 'exchanges': ex}}
 
 
-def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None, mirror_k=None):
-    return checks.evaluate(exp or EXP, {'T': T, 'padding': padding}, fixture, reads, ev, allowed, mirror_k)
+def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None, mirror_k=None, max_stale=0):
+    return checks.evaluate(exp or EXP, {'T': T, 'padding': padding}, fixture, reads, ev, allowed, mirror_k, max_stale)
 
 
 class IdealTrials(unittest.TestCase):
@@ -262,7 +262,41 @@ class MirrorFix(unittest.TestCase):
 
     def test_table_documents_the_mirror_section(self):
         self.assertIn('mirror_fix', EXP)
-        self.assertEqual(EXP['mirror_fix']['T1']['zero_outcomes'], ['OUT_TOKEN_STALE'])
+        self.assertNotIn('zero_outcomes', EXP['mirror_fix']['T1'])         # stale is a per-build bound now
+
+    def test_stale_bound_is_configurable_and_fails_only_above_it(self):
+        ev = evidence()
+        ev['after']['outcomes']['OUT_TOKEN_STALE'] += 5
+        self.assertEqual(run(ev, mirror_k=2, max_stale=5)[0], [])
+        fails, _ = run(ev, mirror_k=2, max_stale=4)
+        self.assertTrue(any('OUT_TOKEN_STALE' in f and '5' in f and '4' in f for f in fails), fails)
+        self.assertTrue(any('OUT_TOKEN_STALE' in f for f in run(ev, mirror_k=2)[0]))      # default bound 0
+
+    def test_observed_stale_is_recorded_in_every_trial_result(self):
+        ev = evidence()
+        ev['after']['outcomes']['OUT_TOKEN_STALE'] += 5
+        for mk in (None, 2):
+            self.assertEqual(run(ev, mirror_k=mk, max_stale=9)[1]['token_stale'], 5)
+        self.assertEqual(run(evidence(1, 0), 1, 0)[1]['token_stale'], 0)
+
+    def test_stale_recorded_even_when_the_bound_is_not_enforced(self):
+        ev = evidence()
+        ev['after']['outcomes']['OUT_TOKEN_STALE'] += 9000
+        fails, obs = run(ev)
+        self.assertEqual(obs['token_stale'], 9000)
+        self.assertEqual(fails, [])                                       # no mirror_fix flag, nothing enforced
+
+    def test_build_max_token_stale_defaults_to_zero_and_is_validated(self):
+        b = cp.load_config(str(CONFIG))['builds']
+        self.assertEqual(checks.max_token_stale(b['mirror_fix_01']), 0)
+        cfg = copy.deepcopy(cp.load_config(str(CONFIG)))
+        cfg['builds']['mirror_fix_01']['max_token_stale'] = 5
+        cp.validate_profile(cfg)
+        self.assertEqual(checks.max_token_stale(cfg['builds']['mirror_fix_01']), 5)
+        for bad in (-1, 'x', True, 1.5):
+            cfg['builds']['mirror_fix_01']['max_token_stale'] = bad
+            with self.assertRaises(ValueError):
+                cp.validate_profile(cfg)
 
 
 class ConfigTable(unittest.TestCase):

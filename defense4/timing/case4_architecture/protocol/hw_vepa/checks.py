@@ -21,6 +21,17 @@ def allowed_gap(build):
     return dict(build.get('allowed_loop_octet_gap', {}))
 
 
+def max_token_stale(build):
+    """Per-build bound on the OUT_TOKEN_STALE delta of a trial (default 0)."""
+    return build.get('max_token_stale', 0)
+
+
+def validate_max_token_stale(build, name):
+    v = build.get('max_token_stale', 0)
+    if not isinstance(v, int) or isinstance(v, bool) or v < 0:
+        raise ValueError('build %s: max_token_stale must be an integer >= 0' % name)
+
+
 def validate_allowed_gap(build, name):
     for role, v in build.get('allowed_loop_octet_gap', {}).items():
         if role not in LOOP_ROLES:
@@ -58,7 +69,7 @@ def _loop_gap(before, after):
     return out
 
 
-def _mirror_checks(mx, arm, reads, o, b, a, k, fails, obs):
+def _mirror_checks(mx, arm, reads, o, b, a, k, fails, obs, max_stale=0):
     """Generator counters (snapshot pktgen block, after minus before) on a build carrying the compiler-mirror
     fix: T on -> READ triggers == READs, READ packets == 2k per trigger, OPERATE triggers == SBOs, stale == 0;
     T off -> no generator activity at all (what the T-off silicon evidence shows)."""
@@ -80,10 +91,10 @@ def _mirror_checks(mx, arm, reads, o, b, a, k, fails, obs):
             if d[app]['pkts'] != pkts:
                 fails.append('T on: generated %s packets delta %d, expected %d (2k = %d per trigger)'
                              % (app, d[app]['pkts'], pkts, 2 * k))
-        outs = obs.get('outcomes') or {}
-        for key in mx['T1']['zero_outcomes']:
-            if outs.get(key):
-                fails.append('T on, mirror_fix build: %s delta %s, expected 0' % (key, outs[key]))
+        stale = (obs.get('outcomes') or {}).get('OUT_TOKEN_STALE') or 0
+        if stale > max_stale:
+            fails.append('T on, mirror_fix build: OUT_TOKEN_STALE delta %d exceeds the build bound %d'
+                         % (stale, max_stale))
     else:
         for app in mx['T0']['zero_triggers']:
             if d[app]['triggers'] or d[app]['pkts']:
@@ -91,7 +102,7 @@ def _mirror_checks(mx, arm, reads, o, b, a, k, fails, obs):
                              % (app, d[app]['triggers'], d[app]['pkts']))
 
 
-def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None):
+def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None."""
     allowed = allowed or {}
     fails, obs = [], {}
@@ -171,6 +182,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None):
             fails.append('snapshots carry no outcomes block')
         if d is not None:
             obs['outcomes'] = d
+            obs['token_stale'] = d.get('OUT_TOKEN_STALE') or 0      # recorded for every trial, bounded per build
             if arm['T']:
                 te = exp['T']['1']
                 for k in ('OUT_ACK_COMMIT', 'OUT_RESP_RELEASE'):
@@ -189,7 +201,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None):
                     if d.get(k):
                         fails.append('T off but %s=%s (expected 0)' % (k, d[k]))
         if mirror_k is not None:
-            _mirror_checks(exp['mirror_fix'], arm, reads, o, b, a, mirror_k, fails, obs)
+            _mirror_checks(exp['mirror_fix'], arm, reads, o, b, a, mirror_k, fails, obs, max_stale)
         gaps = _loop_gap(b, a)
         obs['loop_octet_gap'] = {r: g for r, (g, e) in gaps.items()}
         for role, (g, err) in gaps.items():

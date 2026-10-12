@@ -449,6 +449,28 @@ class OutcomeGate(Base):
         self.assertEqual(obs['piggyback_fraction'], 0.0)
 
 
+class StaleBound(Base):
+    class Stale(FakeRunner):
+        def evidence(self, text):
+            ev = super().evidence(text)
+            ev['after']['outcomes']['OUT_TOKEN_STALE'] = ev['after']['outcomes'].get('OUT_TOKEN_STALE', 0) + 5
+            return ev
+
+    def build(self):
+        return self.cfg['builds'][self.cfg['arms'][0]['build']]
+
+    def test_five_stale_fails_the_default_bound_on_a_mirror_fix_build(self):
+        self.build()['mirror_fix'] = True
+        self.assertEqual(self.campaign(self.Stale(), arms=('combined',)).execute(), 1)
+
+    def test_a_configured_bound_lets_it_through_and_the_value_is_recorded(self):
+        self.build()['mirror_fix'] = True
+        self.build()['max_token_stale'] = 5
+        self.assertEqual(self.campaign(self.Stale(), arms=('combined',)).execute(), 0)
+        rec = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
+        self.assertEqual(rec['arms'][0]['trials'][0]['observed']['token_stale'], 5)
+
+
 class RestoreTarget(Base):
     """The state restored is the one observed before the run: program case4_response_path via its own launch
     script, ports from a snapshot taken at the START of the campaign, the relay slot, Vision, then a ping."""
