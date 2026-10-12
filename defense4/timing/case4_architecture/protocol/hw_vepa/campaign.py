@@ -206,7 +206,7 @@ def check_bindings(cfg):
     or a 64-hex sha256 equal to the manifest; the files on disk must equal the manifest. A placeholder or
     malformed value is an error, not a warning."""
     errs = []
-    for name in sorted({a['build'] for a in cfg['arms']}):
+    for name in sorted(cfg['builds']):                     # every configured build, used by an arm or not
         b = cfg['builds'][name]
         mpath = path_of(b.get('manifest', ''))
         try:

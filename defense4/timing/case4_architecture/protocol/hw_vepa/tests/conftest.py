@@ -6,13 +6,24 @@
 HW_VEPA_EVIDENCE_ROOT points at the evidence root (default: <case4_architecture>/integration/evidence); the tests
 skip, rather than fail, when what they need is not under it.
 """
+import json
 import os
 from pathlib import Path
 
 import pytest
 
 ARCH = Path(__file__).resolve().parents[3]
-NEEDS = {'build_tree': Path('route_ab_01/sbo_admission_01/hw_compile_switch_9132/manifest.json'),
+EVIDENCE = Path('integration/evidence')
+
+
+def _shipped_manifest():
+    """The compile manifest of the build the shipped campaign.json arms run on, relative to the evidence root."""
+    cfg = json.load(open(ARCH / 'protocol' / 'hw_vepa' / 'campaign.json'))
+    rel = Path(cfg['builds'][cfg['arms'][0]['build']]['manifest'])
+    return rel.relative_to(EVIDENCE)
+
+
+NEEDS = {'build_tree': _shipped_manifest(),
          'evidence_tree': Path('p2_production_01/p_unshaped/sna_p_unshaped.json')}
 
 

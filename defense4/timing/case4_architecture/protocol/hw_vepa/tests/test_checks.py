@@ -209,14 +209,14 @@ class ConfigTable(unittest.TestCase):
 
     def test_allowed_loop_gap_defaults_to_zero_per_build(self):
         cfg = cp.load_config(str(CONFIG))
-        self.assertEqual(checks.allowed_gap(cfg['builds']['sbo_admission_01']), {})
+        self.assertEqual(checks.allowed_gap(cfg['builds'][cfg['arms'][0]['build']]), {})
 
     def test_bad_allowed_gap_is_rejected(self):
         cfg = copy.deepcopy(cp.load_config(str(CONFIG)))
-        cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'] = {'t_in': -1}
+        cfg['builds'][cfg['arms'][0]['build']]['allowed_loop_octet_gap'] = {'t_in': -1}
         with self.assertRaises(ValueError):
             cp.validate_profile(cfg)
-        cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'] = {'nope': 1}
+        cfg['builds'][cfg['arms'][0]['build']]['allowed_loop_octet_gap'] = {'nope': 1}
         with self.assertRaises(ValueError):
             cp.validate_profile(cfg)
 

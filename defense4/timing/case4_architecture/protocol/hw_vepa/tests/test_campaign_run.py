@@ -200,7 +200,7 @@ class Sequence(Base):
         self.assertEqual(rec['effective']['shaping_requested']['preset'], 'shape_3723')
         self.assertEqual(rec['effective']['shaping_requested']['hold_pps']['ack'], 3723)
         self.assertEqual(rec['arms'][0]['achieved_shaping']['ACK_HOLD']['achieved_pps'], 281)
-        self.assertEqual(set(rec['builds']['sbo_admission_01']), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
+        self.assertEqual(set(rec['builds'][self.cfg['arms'][0]['build']]), {'bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin'})
         self.assertEqual(rec['endpoint_observed']['binary_sha256'], H64)
 
 
@@ -427,7 +427,7 @@ class OutcomeGate(Base):
         self.assertEqual(rec['arms'][0]['trials'][0]['observed']['loop_octet_gap']['t_in'], 80)
 
     def test_per_build_allowed_gap_lets_the_known_gap_through(self):
-        self.cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'] = {'t_in': 80}
+        self.cfg['builds'][self.cfg['arms'][0]['build']]['allowed_loop_octet_gap'] = {'t_in': 80}
         self.assertEqual(self.campaign(self.Gap(), arms=('combined',)).execute(), 0)
 
     def test_padding_violation_fails_the_trial(self):
@@ -581,7 +581,7 @@ class FailurePropagation(Base):
 
     def test_switch_is_not_swapped_to_production_if_it_was_never_touched(self):
         r = FakeRunner(fail_on=['pcie'])                            # fails at the first switch command? use PCI check
-        self.cfg['builds']['sbo_admission_01']['pcie'] = '0000:04:00.0'
+        self.cfg['builds'][self.cfg['arms'][0]['build']]['pcie'] = '0000:04:00.0'
         r = FakeRunner(fail_on=['/sys/bus/pci/devices'])
         self.assertEqual(self.campaign(r).execute(), 1)
         self.assertEqual(len(r.swaps()), 0)          # daemon never stopped, nothing to restore

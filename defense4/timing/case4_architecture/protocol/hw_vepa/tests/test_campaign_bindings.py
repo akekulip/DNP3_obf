@@ -33,10 +33,16 @@ def fake_build(root, tamper=None):
     return man['artifact_sha256']
 
 
+def build_name(cfg):
+    """The build the shipped arms run on (tests follow the config rather than naming one)."""
+    return cfg['arms'][0]['build']
+
+
 def cfg_for(root, hashes, tamper=None):
     cfg = json.load(open(CONFIG))
     sha = fake_build(root, tamper)
-    b = cfg['builds'][next(iter(cfg['builds']))]
+    b = cfg['builds'][build_name(cfg)]
+    b['allowed_loop_octet_gap'] = {}                       # a fake build has no known gap, whatever the shipped one has
     b['out_dir'], b['manifest'] = str(Path(root) / 'out'), str(Path(root) / 'manifest.json')
     b['hashes'] = {r: (sha[r] if hashes == 'match' else hashes) for r in sha}
     cfg['endpoint'].update(binary_sha256=H64, lib_sha256=H64)
@@ -97,6 +103,33 @@ class Bindings(unittest.TestCase):
     @pytest.mark.build_tree
     def test_validate_passes_with_the_real_pins(self):
         self.assertEqual(cp.main(['validate', '--config', str(CONFIG)]), 0)
+
+
+class ShippedBuilds(unittest.TestCase):
+    """What the shipped config deliberately says (the one place tests name builds)."""
+    def setUp(self):
+        self.cfg = cp.load_config(str(CONFIG))
+
+    def test_all_four_arms_run_the_silicon_verified_fix_build(self):
+        self.assertEqual({a['build'] for a in self.cfg['arms']}, {'close_reset_fix_01'})
+        self.assertEqual(len(self.cfg['arms']), 4)
+
+    def test_fix_build_requires_a_zero_loop_gap_and_the_pre_fix_build_keeps_its_80(self):
+        self.assertEqual(self.cfg['builds']['close_reset_fix_01']['allowed_loop_octet_gap'], {})
+        self.assertEqual(self.cfg['builds']['sbo_admission_01']['allowed_loop_octet_gap'], {'t_in': 80})
+
+    def test_fix_build_hashes_are_the_verified_ones(self):
+        h = self.cfg['builds']['close_reset_fix_01']['hashes']
+        self.assertEqual(h['bfrt.json'], '7c7e7f3bbe1220b6abcc7cbc1fdc9cc18d7854428447529f79b6c4ed7808d2e3')
+        self.assertEqual(h['p0/tofino.bin'], 'e15b6177ddc87ee6e2132bdd5a5e8c720ae4e8850c3b1df2c9a2eaff0bccbe6a')
+        self.assertEqual(h['p1/tofino.bin'], '7ab242e86b9a30d66b468e6f01e7d4c5142d07b76d17bad26c336b6ff9e302a0')
+
+    @pytest.mark.build_tree
+    def test_validate_checks_the_unused_pre_fix_build_too(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['builds']['sbo_admission_01']['hashes']['bfrt.json'] = H64
+        self.assertTrue(any('sbo_admission_01' in e for e in cp.check_bindings(cfg)))
+        self.assertEqual(cp.check_bindings(self.cfg), [])
 
 
 class Profile(unittest.TestCase):

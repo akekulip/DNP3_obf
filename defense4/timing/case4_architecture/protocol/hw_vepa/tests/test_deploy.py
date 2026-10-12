@@ -43,7 +43,7 @@ class NoScratchPaths(unittest.TestCase):
         import io
         with contextlib.redirect_stdout(io.StringIO()):
             cp.Campaign(cfg, dry, 'c1', arms=['combined'], installer_flags=lambda f: True).execute()
-        allowed = (cfg['hosts']['switch_remote_dir'], cfg['builds']['sbo_admission_01']['sde'],
+        allowed = (cfg['hosts']['switch_remote_dir'], cfg['builds'][cfg['arms'][0]['build']]['sde'],
                    cfg['production']['launch_script'], cfg['hosts']['switch_remote_dir'] + '/')
         for where, cmd in dry.calls:
             self.assertNotIn(SCRATCH, cmd)
