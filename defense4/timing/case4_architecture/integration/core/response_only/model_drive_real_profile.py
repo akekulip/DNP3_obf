@@ -141,9 +141,10 @@ def main():
         one('master_FIN_forwarded_once_and_closes_N', True, fin, PHASE_CLOSED)
         one('relay_ACK_of_FIN', False, rfa, PHASE_CLOSED)
         one('relay_FIN', False, rfin, PHASE_CLOSED)
-        # N is terminal after a qualified close (phase 7) and has no rearm yet: the master's last ACK is refused,
-        # as on the clean profile and in the source-level replay. Recorded, not hidden.
-        one('master_last_ACK_after_close', True, last, PHASE_CLOSED, delivered=False)
+        # The master's ACK of the outstation FIN acknowledges both FINs' sequence bytes (diffs (1,1)); since the
+        # close-path fix (make_n edits 11-12, b72285d13) N forwards it in phase 7 so the outstation's FIN is
+        # acknowledged. Before that fix it was refused and the outstation retransmitted its FIN.
+        one('master_last_ACK_after_close', True, last, PHASE_CLOSED)
         if reflectors:
             seen = {str(r.port): r.summary() for r in reflectors}
             rep.record['meta']['loopback_frames'] = seen

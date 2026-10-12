@@ -1,0 +1,50 @@
+=== production_9132 (evidence/route_ab_01/close_reset_fix_01/hw_compile_switch_9132)
+  mirror:
+    select: W1(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H2(0..9)  # bit[9..0]: ingress::$tmp4
+    1:
+      - H1(0..9)  # bit[9..0]: ingress::md.clone_ses
+      - H10  # ingress::md.clone_tag.16-31
+      - H7  # ingress::md.clone_tag.0-15
+parser egress:
+=== falsified_pin_mirror_fields (/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix2/fix_hw_out)
+  mirror:
+    select: B0(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H2(0..9)  # bit[9..0]: ingress::$tmp4
+    1:
+      - H1(0..9)  # bit[9..0]: ingress::md.clone_ses
+      - H12  # ingress::md.clone_tag.16-31
+      - H7  # ingress::md.clone_tag.0-15
+parser egress:
+=== falsified_pin_cur_gen (/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix3/fix_hw_out)
+  mirror:
+    select: W1(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H2(0..9)  # bit[9..0]: ingress::$tmp4
+    1:
+      - H1(0..9)  # bit[9..0]: ingress::md.clone_ses
+      - H10  # ingress::md.clone_tag.16-31
+      - H7  # ingress::md.clone_tag.0-15
+parser egress:
+=== type1_fix_local (/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/fix_hw_out)
+  mirror:
+    select: B0(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H2(0..9)  # bit[9..0]: ingress::$tmp4
+    1:
+      - H1(0..9)  # bit[9..0]: ingress::md.clone_ses
+      - H8  # ingress::md.clone_tag.16-31
+      - H7  # ingress::md.clone_tag.0-15
+parser egress:
+=== type1_fix_9132 (/tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/fix_hw_9132)
+  mirror:
+    select: B0(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H2(0..9)  # bit[9..0]: ingress::$tmp4
+    1:
+      - H1(0..9)  # bit[9..0]: ingress::md.clone_ses
+      - H8  # ingress::md.clone_tag.16-31
+      - H7  # ingress::md.clone_tag.0-15
+parser egress:

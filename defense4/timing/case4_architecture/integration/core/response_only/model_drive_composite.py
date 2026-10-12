@@ -106,6 +106,30 @@ def loop_type_violations(reflectors):
     return bad
 
 
+class Sink(threading.Thread):
+    """MIRROR_SINK probe: counts every frame the model sends to `port` (not reflected) and keeps each distinct
+    first-32-bit value with a sample. Used to see whether T's deparser really emits clones on passes that never
+    set mirror_type (sessions 1-6 are pointed here, 0 is not a valid session; the real session 7 stays on
+    PKTGEN_RETURN)."""
+
+    def __init__(self, port):
+        super().__init__(daemon=True)
+        self.port, self.frames, self.heads = port, 0, {}
+        self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+        self.sock.bind(('veth%d' % (2 * port + 1), 0))
+
+    def run(self):
+        while True:
+            frame, addr = self.sock.recvfrom(65535)
+            if addr[2] == socket.PACKET_OUTGOING:
+                continue
+            self.frames += 1
+            self.heads.setdefault(frame[:4].hex(), [0, frame[:24].hex()])[0] += 1
+
+    def summary(self):
+        return dict(frames=self.frames, first_32_bits={k: dict(count=v[0], sample=v[1]) for k, v in sorted(self.heads.items())})
+
+
 class Reflector(threading.Thread):
     """Stand-in for a front-panel port in MAC loopback: every frame the model transmits on dev_port comes
     straight back in on it, unchanged. Counts the frames, keeps the shortest and longest length, and records
@@ -190,6 +214,16 @@ def main():
             gc.DataTuple('$ucast_egress_port_valid', bool_val=True), gc.DataTuple('$session_enable', bool_val=True)],
             '$normal')])
         rep.record['meta']['rows'] = [[t, list(k), a, list(d), p] for t, k, a, d, p in installed]
+        sink = None
+        if os.environ.get('MIRROR_SINK'):
+            sink_port = int(os.environ['MIRROR_SINK'])
+            for sid in range(1, 7):     # every valid session id T's deparser could read as garbage, except the real 7 (0 is not a valid session)
+                mc.entry_add(gc.Target(device_id=0, pipe_id=0xffff), [mc.make_key([gc.KeyTuple('$sid', sid)])], [mc.make_data([
+                    gc.DataTuple('$direction', str_val='INGRESS'), gc.DataTuple('$ucast_egress_port', sink_port),
+                    gc.DataTuple('$ucast_egress_port_valid', bool_val=True), gc.DataTuple('$session_enable', bool_val=True)],
+                    '$normal')])
+            sink = Sink(sink_port)
+            sink.start()
 
         counter = m.table('p0.r_Egress.outcome')
 
@@ -457,6 +491,10 @@ def main():
             ip_after_ladder = [s.hex() for s in op_samples if len(s) > 8 and s[8] == 0x45]
             ok_ethertype = [s for s in op_samples if len(s) >= 14 and s[8] != 0x45 and int.from_bytes(s[12:14], 'big') >= 0x0600]
             rep.add('every_loop_frame_has_an_ethertype_at_bytes_12_13', {}, loop_type_violations(reflectors))
+        if sink is not None:
+            time.sleep(1.0)
+            rep.record['meta']['mirror_sink'] = sink.summary()
+            rep.add('no_clone_from_a_pass_that_never_requested_one', 0, sink.frames, **sink.summary())
             rep.add('operate_blocker_on_181_keeps_eth_no_ip_after_ladder', [], ip_after_ladder)
             rep.add('operate_blocker_on_181_has_ethertype_at_offset_12_13',
                     True, bool(op_samples) and not ip_after_ladder and bool(ok_ethertype),

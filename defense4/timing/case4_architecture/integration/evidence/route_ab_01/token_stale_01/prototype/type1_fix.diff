@@ -1,0 +1,19 @@
+--- read/read_queue_timing.p4	2026-10-11 19:43:21.240146803 -0400
++++ /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/read/read_queue_timing.p4	2026-10-12 02:40:34.718571397 -0400
+@@ -170,6 +170,8 @@
+     state opaque_ethernet { pkt.extract(hdr.eth); transition accept; }
+ }
+ 
++@pa_no_overlay("ingress", "ig_intr_md_for_dprsr.mirror_type")
++@pa_no_overlay("ingress", "md.clone_ses")
+ control Ingress(inout header_t hdr, inout metadata_t md,
+                 in ingress_intrinsic_metadata_t ig_intr_md,
+                 in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,
+@@ -853,6 +855,7 @@
+ 
+     apply {
+         ig_tm_md.bypass_egress = 0;
++        ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE; md.clone_ses = 0;   // PROTOTYPE: never select deparser mirror entry 0
+         md.outcome_code = OUT_NONE;
+         params.apply(); clock.apply();
+         // Prologue: quarantine (T_IN only), then the generation and epoch tables (see gen_access). On a

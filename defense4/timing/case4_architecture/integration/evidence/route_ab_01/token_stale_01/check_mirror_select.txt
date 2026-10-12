@@ -1,0 +1,35 @@
+FAIL evidence/route_ab_01/close_reset_fix_01/hw_compile_switch_9132
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1 shared with ['md.lgen_diff', 'md.rd_tok_diff']
+   unconditional mirror_type=1: none
+   FAIL: non-clone mirror entries [0] can be selected with a session id another field writes
+FAIL evidence/route_ab_01/close_reset_fix_01/hw_compile_local
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1 shared with ['md.lgen_diff', 'md.rd_tok_diff']
+   unconditional mirror_type=1: none
+   FAIL: non-clone mirror entries [0] can be selected with a session id another field writes
+FAIL /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix2/fix_hw_out
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1
+   unconditional mirror_type=1: none
+   FAIL: non-clone mirror entries [0] can be selected with a session id another field writes
+FAIL /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix3/fix_hw_out
+   select 0: session $tmp4 from H2 shared with ['md.new_gen']
+   select 1: session md.clone_ses from H1 shared with ['md.lgen_diff', 'md.rd_tok_diff']
+   unconditional mirror_type=1: none
+   FAIL: non-clone mirror entries [0] can be selected with a session id another field writes
+PASS /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/fix_hw_out
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1
+   unconditional mirror_type=1: tbl_fix_hw1971
+   non-clone entries [0] are unreachable; clone session and select containers are solitary
+PASS /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/fix_default_out
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1
+   unconditional mirror_type=1: tbl_fix_default1971
+   non-clone entries [0] are unreachable; clone session and select containers are solitary
+PASS /tmp/claude-1002/-home-philip-Projects-DNP3/db04a002-eb4e-45b0-ac5b-b5c1bc10aaf5/scratchpad/mirrorfix4/fix_hw_9132
+   select 0: session $tmp4 from H2 shared with ['md.cur_gen']
+   select 1: session md.clone_ses from H1
+   unconditional mirror_type=1: tbl_fix_hw1971
+   non-clone entries [0] are unreachable; clone session and select containers are solitary
