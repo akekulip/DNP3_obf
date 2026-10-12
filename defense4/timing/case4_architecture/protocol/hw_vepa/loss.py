@@ -189,3 +189,165 @@ class LossRule:
                 'remove_errors': self.remove_errors, 'state_before': self.state_before,
                 'state_after': self.state_after,
                 'state_restored': self.state_before is not None and self.state_before == self.state_after}
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Capture-side identification and the loss-trial gate (workstation side; uses wire_check's pcap reader)
+
+FLAG_BITS = {'ACK': 0x10, 'PSH': 0x08}
+FLAG_MASK_BITS = 0x01 | 0x02 | 0x04 | 0x08 | 0x10          # FIN SYN RST PSH ACK, as in FLAGS_MASK
+MASTER_IP, OUTSTATION_IP = '192.168.10.61', '192.168.10.62'
+NATIVE = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
+
+
+def _flags_value(text):
+    v = 0
+    for f in text.split(','):
+        v |= FLAG_BITS[f]
+    return v
+
+
+def _matches(seg, spec, master_port, outstation_port):
+    src, sport, dport = ((MASTER_IP, master_port, outstation_port) if spec['dir'] == 'M>O'
+                         else (OUTSTATION_IP, outstation_port, master_port))
+    ip_len = int.from_bytes(seg['frame'][16:18], 'big')
+    return (seg['src'] == src and seg['sport'] == sport and seg['dport'] == dport and ip_len == spec['ip_len'] and
+            (seg['flags'] & FLAG_MASK_BITS) == _flags_value(spec['flags']))
+
+
+def _seg_view(s):
+    return {'index': s['index'], 'seq': s['seq'], 'ack': s['ack'], 'len': s['len'],
+            'ip_len': int.from_bytes(s['frame'][16:18], 'big'), 't_us': s['t_us']}
+
+
+def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
+    """Which packet did the rule drop? The iptables counters prove a rule fired, not which packet it hit, and tcpdump
+    taps the NIC before netfilter, so the dropped frame is still in in.pcap. Candidates are the in.pcap frames of the
+    configured class (direction, ports, IP length, flags) in arrival order; the target is the spec's occurrence.
+    A dropped data frame is found again as a later copy with the same sequence number (the retransmission):
+    recovery is the arrival of that copy (response classes) or of the next outstation data frame (request classes).
+    A dropped pure ACK has no retransmission; progress is the delay to the next outstation data frame."""
+    import wire_check as wc
+    ins, _ = wc.parse(in_pcap)
+    outs, _ = wc.parse(out_pcap)
+    flow_ok = lambda s: {s['sport'], s['dport']} == {master_port, outstation_port}
+    ins = sorted((s for s in ins if flow_ok(s)), key=lambda s: (s['t_us'], s['index']))
+    cands = [s for s in ins if _matches(s, spec, master_port, outstation_port)]
+    res = {'identified': False, 'candidates': len(cands), 'packet': None, 'copies_returned': None,
+           'retransmitted': None, 'first_retx_delay_us': None, 'recovery_us': None, 'progress_us': None,
+           'retransmissions_sent': None}
+    seen = {}
+    for s in outs:
+        if flow_ok(s) and s['len'] > 0:
+            seen.setdefault((s['src'], s['seq']), []).append(s)
+    res['retransmissions_sent'] = sum(len(v) - 1 for v in seen.values())
+    if len(cands) < spec['occurrence']:
+        return res
+    t = cands[spec['occurrence'] - 1]
+    res['identified'], res['packet'] = True, _seg_view(t)
+    if t['len'] == 0:
+        nxt = next((s for s in ins if s['t_us'] > t['t_us'] and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
+        res['progress_us'] = nxt['t_us'] - t['t_us'] if nxt else None
+        return res
+    copies = [s for s in ins if s['src'] == t['src'] and s['seq'] == t['seq'] and s['len'] > 0]
+    res['copies_returned'] = len(copies)
+    res['retransmitted'] = len(copies) > 1
+    if res['retransmitted']:
+        res['first_retx_delay_us'] = copies[1]['t_us'] - copies[0]['t_us']
+        if spec['dir'] == 'O>M':
+            res['recovery_us'] = copies[1]['t_us'] - t['t_us']
+        else:
+            nxt = next((s for s in ins if s['t_us'] > copies[1]['t_us'] - 1 and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
+            res['recovery_us'] = nxt['t_us'] - t['t_us'] if nxt else None
+    return res
+
+
+def _growth(timing, padded):
+    """(observed growth bytes over native, expected from the exchanges that actually completed)."""
+    ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
+    obs = sum(e['resp_len'] - NATIVE.get(e['kind'], e['resp_len']) for e in ex)
+    exp = (9 * sum(1 for e in ex if e['kind'] == 'READ') +
+           21 * sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
+    return obs, exp
+
+
+def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wire, timing, exp,
+                  baseline_completion_s=None):
+    """The gate for a loss trial -> (failures, result). A failed recovery is a recorded result, never an exception.
+
+    Required: the rule counters exact and the rules removed; the dropped packet found in the capture; for a dropped
+    data frame a retransmission and recovery within `max_recovery_s`; the master completed every READ and matched
+    the seed; exactly one real SELECT and one real OPERATE callback and no decoy; no CRC/checksum error and no
+    spurious unmatched frame on the returned side; master-visible growth exactly 9 B per READ response and 21 B per
+    control response delivered (0 with padding off). Retransmissions are allowed and counted."""
+    fails = []
+    res = {'class': spec['class'], 'n': spec['n'], 'occurrence': spec['occurrence'], 'dir': spec['dir'],
+           'ip_len': spec['ip_len'], 'max_recovery_s': max_recovery_s}
+    if rule is None:
+        fails.append('no loss record from Vision (the rule was not installed or the run died before recording it)')
+    else:
+        res['rule'] = {k: rule.get(k) for k in ('exact', 'dropped_packets', 'dropped_bytes', 'removed', 'state_restored',
+                                                'remove_errors')}
+        if not rule.get('exact'):
+            fails.append('loss rule counters not exact (dropped_packets=%s, dropped_bytes=%s, wanted 1 packet of %d B '
+                         'after %d earlier matches)' % (rule.get('dropped_packets'), rule.get('dropped_bytes'),
+                                                        spec['ip_len'], spec['occurrence'] - 1))
+        if not rule.get('removed') or rule.get('remove_errors') or not rule.get('state_restored'):
+            fails.append('loss rules not removed cleanly: %s' % (rule.get('remove_errors') or 'chain differs from before'))
+    res['packet'] = ident.get('packet') if ident else None
+    res['identified'] = bool(ident and ident.get('identified'))
+    if not res['identified']:
+        fails.append('dropped packet not found in the capture (%s candidates of the class, wanted occurrence %d)'
+                     % (ident.get('candidates') if ident else None, spec['occurrence']))
+    else:
+        for k in ('copies_returned', 'retransmitted', 'progress_us', 'candidates'):
+            res[k] = ident.get(k)
+        res['retransmissions'] = ident.get('retransmissions_sent')
+        res['first_retx_delay_ms'] = round(ident['first_retx_delay_us'] / 1000.0, 3) \
+            if ident.get('first_retx_delay_us') is not None else None
+        if ident['packet']['len'] > 0:
+            if not ident.get('retransmitted'):
+                fails.append('dropped data packet (seq %d) was never retransmitted' % ident['packet']['seq'])
+            elif ident.get('recovery_us') is None:
+                fails.append('no recovery observed after the retransmission')
+        if ident.get('recovery_us') is not None:
+            res['recovery_s'] = round(ident['recovery_us'] / 1e6, 6)
+            if res['recovery_s'] > max_recovery_s:
+                fails.append('recovery %.3f s exceeds the %.3f s bound' % (res['recovery_s'], max_recovery_s))
+    m = master or {}
+    res['completed'] = bool(m.get('success') and m.get('reads_completed') == reads and m.get('all_reads_match_seed'))
+    if not res['completed']:
+        fails.append('master did not complete: success=%r, %r of %d READs, seed match %r'
+                     % (m.get('success'), m.get('reads_completed'), reads, m.get('all_reads_match_seed')))
+    if m.get('issued_ns') and m.get('completed_ns'):
+        res['completion_s'] = round((m['completed_ns'] - m['issued_ns']) / 1e9, 3)
+        if baseline_completion_s is not None:
+            res['baseline_completion_s'] = baseline_completion_s
+            res['completion_delta_s'] = round(res['completion_s'] - baseline_completion_s, 3)
+    o = ost or {}
+    res['callbacks'] = {k: o.get(k) for k in ('select_real', 'select_decoy', 'operate_real', 'operate_decoy')}
+    once = True
+    for k in ('select_real', 'operate_real'):
+        if o.get(k) != 1:
+            once = False
+            fails.append('exactly-once violated: %s=%r, expected exactly 1' % (k, o.get(k)))
+    for k in ('select_decoy', 'operate_decoy'):
+        if o.get(k):
+            once = False
+            fails.append('decoy callback: %s=%r' % (k, o.get(k)))
+    res['exactly_once'] = once
+    w = wire or {}
+    ri = w.get('returned_integrity', {})
+    if ri.get('tcp_checksum_bad'):
+        fails.append('returned frames with a bad IP/TCP checksum: %s' % ri['tcp_checksum_bad'])
+    if ri.get('dnp3_crc_bad'):
+        fails.append('returned frames with a bad DNP3 CRC: %s' % ri['dnp3_crc_bad'])
+    if w.get('unmatched_returned'):
+        fails.append('%d unmatched returned segment(s): a frame the switch emitted that no sender frame explains'
+                     % len(w['unmatched_returned']))
+    res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
+    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']))
+    if res['growth_bytes'] != res['expected_growth_bytes']:
+        fails.append('growth %d B != %d B expected from the responses delivered (9 per READ, 21 per control response)'
+                     % (res['growth_bytes'], res['expected_growth_bytes']))
+    return fails, res
