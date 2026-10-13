@@ -16,6 +16,14 @@ PROFILES = {
     '21275f3befdf6260ad24253b5432b8005743e5cc78f0266d87251f80d2c959bf': {
         '095db5023e7a011de7a48994cabe1208bc441d352bc2d6a50334f2c3c4dde36a',
     },
+    # rearm_57s (dup_hold_01 full_02_strict: conforming READ re-encoding, strict controls, duplicate-OPERATE
+    # hold): installed SDK 9.13.2, then local 9.13.1.
+    '22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6': {
+        '2052c564cc77938f3b13001ed94abe089b93e0cdb040c0b259161270dcf3c0d9',
+    },
+    '2a22b713f5f0e767d4f635aaf908fc4e9bf5ccb9a5aa247a39f49fe893f5f92a': {
+        'e784485bfbde211d74929ea8e4d514bd219714798c55afaf6237b6cdb26d8480',
+    },
 }
 
 

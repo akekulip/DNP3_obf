@@ -1,0 +1,1075 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "A10_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_READ",
+   "observed": "1 frames at [0.0871]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "1 copy, >= 0.8*op_j after the original send and after the duplicate send; outcomes5 +1; outcomes16 +1",
+   "name": "A10_dup_hold",
+   "observed": "copies=1 at [0.8887]; dup sent at [0.1011]; outcomes5_delta=1; outcomes16_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "exactly one OPERATE copy at >=op_j (dup not forwarded before deadline); outcomes5 +1",
+   "name": "A10_no_early_copy_and_one_release",
+   "observed": "copies=1 at [0.8887]; early=0; outcomes5_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A10_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_READ",
+   "observed": "1 frames at [0.0802]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "1 copy, >= 0.8*op_j after the original send and after the duplicate send; outcomes5 +1; outcomes16 +1",
+   "name": "A50_dup_hold",
+   "observed": "copies=1 at [0.8907]; dup sent at [0.5008]; outcomes5_delta=1; outcomes16_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "exactly one OPERATE copy at >=op_j (dup not forwarded before deadline); outcomes5 +1",
+   "name": "A50_no_early_copy_and_one_release",
+   "observed": "copies=1 at [0.8907]; early=0; outcomes5_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "A50_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_READ",
+   "observed": "1 frames at [0.0843]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "2 copies: original before the first duplicate, each duplicate after its send; outcomes16 +0; outcomes5 +1",
+   "name": "B_after_release_dup_hold",
+   "observed": "copies=2 at [0.9079, 3.3031]; dup sent at [3.2179]; outcomes5_delta=1; outcomes16_delta=0",
+   "ok": true
+  },
+  {
+   "expected": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+   "name": "B_after_release_no_early_copy_and_one_release",
+   "observed": "copies=2 at [0.9079, 3.3031]; early=0; outcomes5_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "B_after_release_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_READ",
+   "observed": "1 frames at [0.0758]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "T off: 2 copies (original, then duplicate after its send); outcomes16 +0; outcomes5 +0",
+   "name": "D_T_off_dup_hold",
+   "observed": "copies=2 at [0.0913, 0.3992]; dup sent at [0.3038]; outcomes5_delta=0; outcomes16_delta=0",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "D_T_off_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_READ",
+   "observed": "1 frames at [0.0744]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "3 copies: original before the first duplicate, each duplicate after its send; outcomes16 +0; outcomes5 +1",
+   "name": "F_two_after_release_dup_hold",
+   "observed": "copies=3 at [0.8986, 3.3072, 3.6149]; dup sent at [3.2113, 3.5096]; outcomes5_delta=1; outcomes16_delta=0",
+   "ok": true
+  },
+  {
+   "expected": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+   "name": "F_two_after_release_no_early_copy_and_one_release",
+   "observed": "copies=3 at [0.8986, 3.3072, 3.6149]; early=0; outcomes5_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "F_two_after_release_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_READ",
+   "observed": "1 frames at [0.0818]",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_READ_padded_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_READ_wire_ACK_commit",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_SELECT",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_SELECT_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "1 copies: original before the first duplicate, each duplicate after its send; outcomes16 +0; outcomes5 +1",
+   "name": "E_old_epoch_setup_txn_dup_hold",
+   "observed": "copies=1 at [0.9102]; dup sent at []; outcomes5_delta=1; outcomes16_delta=0",
+   "ok": true
+  },
+  {
+   "expected": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+   "name": "E_old_epoch_setup_txn_no_early_copy_and_one_release",
+   "observed": "copies=1 at [0.9102]; early=0; outcomes5_delta=1",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_OPERATE_response_58",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_setup_txn_qualified_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_new_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_new_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_new_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "E_old_epoch_epoch_advanced",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "nothing out; registers unchanged; outcomes16/5 +0",
+   "name": "E_old_epoch_E1_wire_copy",
+   "observed": "{'frames_out': 0, 'outcomes14_delta': 0, 'outcomes16_delta': 0, 'outcomes5_delta': 0, 'registers_unchanged': True}",
+   "ok": true
+  },
+  {
+   "expected": "nothing out; registers unchanged; outcomes16/5 +0; outcomes14 +1",
+   "name": "E_old_epoch_E2_t_event_old_epoch",
+   "observed": "{'frames_out': 0, 'outcomes14_delta': 1, 'outcomes16_delta': 0, 'outcomes5_delta': 0, 'registers_unchanged': True}",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "E_old_epoch_new_RST",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_read_dup_SYN",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_read_dup_SYNACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_read_dup_ACK",
+   "observed": "1 frames",
+   "ok": true
+  },
+  {
+   "expected": "one READ copy, none before the held release",
+   "name": "C_read_dup_no_early_READ_copy",
+   "observed": "copies=2 early=1",
+   "ok": false
+  },
+  {
+   "expected": "informational",
+   "name": "C_read_dup_READ_request_hold_observed",
+   "observed": "first READ copy at 0.093 s; copies=2 at [0.093, 0.2724]",
+   "ok": true
+  }
+ ],
+ "meta": {
+  "capture_ports": [
+   9
+  ],
+  "deadline_tolerance": null,
+  "driver_sha256": "4c4bac62a8145502301fa6eef7e4532a614c785f93d7c882087963af57dbb059",
+  "dup_cases": {
+   "A10": {
+    "case": "A10",
+    "client_isn": 1000,
+    "copies_exact_wire_image": [
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 0.1,
+    "duplicate_sent_at_s": [
+     0.1011
+    ],
+    "early_copies_before_deadline": 0,
+    "expected_if_correct": "exactly one OPERATE copy at >=op_j (dup not forwarded before deadline); outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 0.1011
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000420000013df501810007e8c000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 1056,
+      "t": 0.8887
+     }
+    ],
+    "model_clock_ratio_host_per_model": 0.8887,
+    "observed_release_s": 0.8887,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.8887
+    ],
+    "operate_copies_to_outstation": 1,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000420000013fd501810007e6e000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "other_frames": [],
+    "outcomes16_delta": 1,
+    "outcomes16_total": 1,
+    "outcomes5_delta": 1,
+    "outcomes5_total": 1,
+    "property_pass": true,
+    "read_request_latency_T_off_s": 0.0871,
+    "server_isn": 5000,
+    "setup_ok": true,
+    "t_enabled": 1
+   },
+   "A50": {
+    "case": "A50",
+    "client_isn": 2000,
+    "copies_exact_wire_image": [
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 0.5,
+    "duplicate_sent_at_s": [
+     0.5008
+    ],
+    "early_copies_before_deadline": 0,
+    "expected_if_correct": "exactly one OPERATE copy at >=op_j (dup not forwarded before deadline); outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 0.5008
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000808000017c75018100076bc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 2056,
+      "t": 0.8907
+     }
+    ],
+    "model_clock_ratio_host_per_model": 0.8907,
+    "observed_release_s": 0.8907,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.8907
+    ],
+    "operate_copies_to_outstation": 1,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000808000017e550181000769e000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "other_frames": [],
+    "outcomes16_delta": 1,
+    "outcomes16_total": 2,
+    "outcomes5_delta": 1,
+    "outcomes5_total": 2,
+    "property_pass": true,
+    "read_request_latency_T_off_s": 0.0802,
+    "server_isn": 6000,
+    "setup_ok": true,
+    "t_enabled": 1
+   },
+   "B_after_release": {
+    "case": "B_after_release",
+    "client_isn": 3000,
+    "copies_exact_wire_image": [
+     true,
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 3.2146,
+    "duplicate_sent_at_s": [
+     3.2179
+    ],
+    "early_copies_before_deadline": 0,
+    "expected_if_correct": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000bf000001baf501810006eec000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 3056,
+      "t": 0.9079
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 3.2179
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000bf000001baf501810006eec000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 3056,
+      "t": 3.3031
+     }
+    ],
+    "observed_release_s": 0.9079,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.9079,
+     3.3031
+    ],
+    "operate_copies_to_outstation": 2,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000bf000001bcd501810006ece000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "original_release_seen_at_s": 0.9079,
+    "other_frames": [],
+    "outcomes16_delta": 0,
+    "outcomes16_total": 2,
+    "outcomes5_after_release_before_dup": 1,
+    "outcomes5_delta": 1,
+    "outcomes5_total": 3,
+    "property_pass": true,
+    "read_request_latency_T_off_s": 0.0843,
+    "server_isn": 7000,
+    "setup_ok": true,
+    "t_enabled": 1
+   },
+   "C_read_dup": {
+    "case": "C_read_dup",
+    "client_isn": 23000,
+    "copies_exact": [
+     true,
+     true
+    ],
+    "early_copies_before_release": 1,
+    "log": [
+     {
+      "event": "original_READ_sent",
+      "t": 0.0
+     },
+     {
+      "event": "duplicate_READ_sent_20ms",
+      "t": 0.0238
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 1,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000059d90000659150181000e33c000005640dc400000100f387c0c0010a020000165a2c",
+      "plen": 20,
+      "port": 9,
+      "seq": 23001,
+      "t": 0.093
+     },
+     {
+      "event": "duplicate_READ_sent_200ms",
+      "t": 0.2043
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 1,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000059d90000659150181000e33c000005640dc400000100f387c0c0010a020000165a2c",
+      "plen": 20,
+      "port": 9,
+      "seq": 23001,
+      "t": 0.2724
+     }
+    ],
+    "original_read_latency_s": 0.093,
+    "other_frames": [],
+    "outcomes5_delta": 0,
+    "read_arrivals_to_outstation_s": [
+     0.093,
+     0.2724
+    ],
+    "read_copies_to_outstation": 2,
+    "read_request_held": true,
+    "server_isn": 26000,
+    "setup_ok": true
+   },
+   "D_T_off": {
+    "case": "D_T_off",
+    "client_isn": 13000,
+    "copies_exact_wire_image": [
+     true,
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 0.3,
+    "duplicate_sent_at_s": [
+     0.3038
+    ],
+    "early_copies_before_deadline": 1,
+    "expected_if_correct": "exactly one OPERATE copy at >=op_j (dup not forwarded before deadline); outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000003300000042bf5018100020cc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 13056,
+      "t": 0.0913
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 0.3038
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000003300000042bf5018100020cc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 13056,
+      "t": 0.3992
+     }
+    ],
+    "observed_release_s": 0.3992,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.0913,
+     0.3992
+    ],
+    "operate_copies_to_outstation": 2,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000003300000042dd5018100020ae000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "other_frames": [],
+    "outcomes16_delta": 0,
+    "outcomes16_total": 2,
+    "outcomes5_delta": 0,
+    "outcomes5_total": 3,
+    "property_pass": false,
+    "read_request_latency_T_off_s": 0.0758,
+    "server_isn": 17000,
+    "setup_ok": true,
+    "t_enabled": 0
+   },
+   "E_old_epoch": {
+    "E1_wire_copy": {
+     "frames_out": 0,
+     "outcomes14_delta": 0,
+     "outcomes16_delta": 0,
+     "outcomes5_delta": 0,
+     "registers_unchanged": true
+    },
+    "E2_t_event_old_epoch": {
+     "frames_out": 0,
+     "outcomes14_delta": 1,
+     "outcomes16_delta": 0,
+     "outcomes5_delta": 0,
+     "registers_unchanged": true
+    },
+    "case": "E_old_epoch",
+    "new_epoch": 73,
+    "old_epoch": 62,
+    "setup_ok": true,
+    "t_cur_epoch_reg": 73
+   },
+   "E_old_epoch_setup_txn": {
+    "case": "E_old_epoch_setup_txn",
+    "client_isn": 15000,
+    "copies_exact_wire_image": [
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 3.2152,
+    "duplicate_sent_at_s": [],
+    "early_copies_before_deadline": 0,
+    "expected_if_correct": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000003ad000004a8f50181000112c000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 15056,
+      "t": 0.9102
+     }
+    ],
+    "observed_release_s": 0.9102,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.9102
+    ],
+    "operate_copies_to_outstation": 1,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000003ad000004aad50181000110e000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "original_release_seen_at_s": 0.9102,
+    "other_frames": [],
+    "outcomes16_delta": 0,
+    "outcomes16_total": 2,
+    "outcomes5_after_release_before_dup": 1,
+    "outcomes5_delta": 1,
+    "outcomes5_total": 5,
+    "property_pass": true,
+    "read_request_latency_T_off_s": 0.0818,
+    "server_isn": 19000,
+    "setup_ok": true,
+    "t_enabled": 1
+   },
+   "F_two_after_release": {
+    "case": "F_two_after_release",
+    "client_isn": 14000,
+    "copies_exact_wire_image": [
+     true,
+     true,
+     true
+    ],
+    "dup_hold_pass": true,
+    "dup_planned_at_s": 3.2077,
+    "duplicate_sent_at_s": [
+     3.2113,
+     3.5096
+    ],
+    "early_copies_before_deadline": 0,
+    "expected_if_correct": "original at >=op_j; dup forwarded once after release; 2 copies total; outcomes5 +1",
+    "log": [
+     {
+      "event": "original_OPERATE_sent",
+      "t": 0.0
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000036e8000046a75018100018fc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 14056,
+      "t": 0.8986
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 3.2113
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000036e8000046a75018100018fc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 14056,
+      "t": 3.3072
+     },
+     {
+      "event": "duplicate_OPERATE_sent",
+      "t": 3.5096
+     },
+     {
+      "dir": "to_outstation",
+      "fc": 4,
+      "flags": 24,
+      "frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000036e8000046a75018100018fc000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+      "plen": 35,
+      "port": 9,
+      "seq": 14056,
+      "t": 3.6149
+     }
+    ],
+    "observed_release_s": 0.8986,
+    "op_j_s": 1.0,
+    "operate_arrivals_to_outstation_s": [
+     0.8986,
+     3.3072,
+     3.6149
+    ],
+    "operate_copies_to_outstation": 3,
+    "operate_frame": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000036e8000046c55018100018de000005641ac40a0001008a1cc0c1040c012801000100010164000000908d6400000000005b",
+    "original_release_seen_at_s": 0.8986,
+    "other_frames": [],
+    "outcomes16_delta": 0,
+    "outcomes16_total": 2,
+    "outcomes5_after_release_before_dup": 1,
+    "outcomes5_delta": 1,
+    "outcomes5_total": 4,
+    "property_pass": true,
+    "read_request_latency_T_off_s": 0.0744,
+    "server_isn": 18000,
+    "setup_ok": true,
+    "t_enabled": 1
+   }
+  },
+  "params": {
+   "budget": 240000,
+   "cap": 16000000,
+   "da": 50000000,
+   "enabled": 0,
+   "gap": 50000000,
+   "op_j": 1000000000,
+   "readiness": 400000000
+  },
+  "physical": false,
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000013898d576600e6090000",
+     "0xe60c": "00000001000013fd0479e800e60c0000",
+     "0xe60f": "00000001000013fd0ce53500e60f0000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000013c300000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "000000010000138900000000e1000000"
+    },
+    "frames": 75,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0800": "00000000000000000000000008004500",
+     "0x0900": "00000001000013898d57660009000000",
+     "0x0a00": "0000000100000000b18d1d000a000000",
+     "0x0b00": "0000000100000000c0f953000b000000",
+     "0x0c00": "00000001000013fd0479e8000c000000",
+     "0x0d01": "0000000100001437000000000d010000",
+     "0x0e00": "0000000100000000000000000e000000",
+     "0x0f00": "00000001000013fd0ce535000f000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000013fd0479e8000c000000",
+     "119": "0000000100000000c0f953000b000000",
+     "66": "00000000000000000000000008004500",
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000013898d57660009000000",
+     "98": "00000000000000000000000008004500"
+    },
+    "frames": 48,
+    "longest": 119,
+    "shortest": 66
+   },
+   "181": {
+    "bytes_12_13_seen": {
+     "0x0800": "00000000000000000000000008004500",
+     "0x4455": "0d0000020003a980001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "66": "00000000000000000000000008004500",
+     "97": "0d0000020003a980001122334455aabb"
+    },
+    "frames": 647,
+    "longest": 97,
+    "shortest": 66
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x0800": "00000000000000000000000008004500"
+    },
+    "first_16_bytes_by_length": {
+     "66": "00000000000000000000000008004500",
+     "98": "00000000000000000000000008004500"
+    },
+    "frames": 2,
+    "longest": 98,
+    "shortest": 66
+   }
+  },
+  "scope": "dup_hold_01: OPERATE duplicate held in T (kind 15); compiled model"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "C_read_dup_no_early_READ_copy"
+  ],
+  "passed": 88,
+  "total": 89
+ }
+}
