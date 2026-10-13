@@ -148,3 +148,20 @@ option bytes copied from the SEL-751 capture).** The conclusion holds; the mecha
 Real-relay operation therefore needs, at minimum:
 1. a native pass for any handshake that does not exactly match a supported template, without wedging the tuple;
 2. admission of 0x19 closes.
+
+**CORRECTION (2026-10-13): two `realrelay_01` claims above are unsupported.** In `realrelay_01/model_drive_ts.py`
+(modes `ts` and `variants`), every TS SYN-ACK was built without `reverse=True`, so it carried the master's addresses.
+The following claims therefore rest on mis-addressed frames and are withdrawn:
+- "N drops the relay's TS SYN-ACK (offset 11)";
+- "the tuple stays wedged".
+The audit's original arm-then-drop path remains untested on the original candidate. What stands comes from correctly
+addressed frames in `established_model_01`: on a flow armed by a clean handshake, offset-8 TS segments, SACK-bearing
+master ACKs and the relay's FIN|PSH|ACK are dropped. A correctly addressed baseline on rearm_57s is being run with
+`realrelay_native_01/model_drive_native.py` (`realrelay_native_01/evidence/baseline_rearm57s_01`).
+Correctly addressed baseline result: on rearm_57s, `realrelay_native_01/model_drive_native.py` passes 17/99
+(`baseline_rearm57s_01`). Two things fail:
+- **The clean flow's close.** The relay's FIN|PSH|ACK is dropped, so the clean flow never reaches phase 0x10f.
+- **The whole TS connection that follows.** The SYN (offset 10), the SYN-ACK (offset 11), and every offset-8 ACK,
+  request, relay ACK and response are dropped, and registers change.
+So rearm_57s cannot carry a real-relay TS connection at all. The fixed build (`realrelay_native_01`, under review)
+passes the same driver 99/99.
