@@ -9,6 +9,13 @@ PROFILES = {
         '6dab48d4ad2bdc9db993825fe57117e0fd27c57951e8c1b1578333ee37b256dc',
         '25244d805cfbc05c39c14a7f3f947ec049826a6108ea0737ed717df3e4634fb1',
     },
+    # retx_passthrough_01 (candidate56 + retransmission pass-through): installed SDK 9.13.2, then local 9.13.1.
+    'fbb1f2c0111342dd6808381e32a22df04e3ad2cfde3d7d340a113a2acc4e899e': {
+        '62de2c19001b2fbb42742974b8a5e61813037be3a5efb06f0acc6dac5c37d6c6',
+    },
+    '21275f3befdf6260ad24253b5432b8005743e5cc78f0266d87251f80d2c959bf': {
+        '095db5023e7a011de7a48994cabe1208bc441d352bc2d6a50334f2c3c4dde36a',
+    },
 }
 
 
