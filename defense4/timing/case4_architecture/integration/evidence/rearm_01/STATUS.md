@@ -26,7 +26,20 @@ Retained failures, each with its cause (harness or fixture, none in the data pla
 - **old_tokens_01/_02 and old_external_01/_02:** the isolation Vision helpers and local re-evaluation still expected 58-octet SBO responses (`--control-padding` added).
 - **old_external_03:** no retained RST archive was unambiguous against that draw's ISNs (documented pool coverage).
 
-The all-58 profile (`rearm_57a`, endpoint-specific, Rule 8 non-conformant) has not been run on silicon yet.
+**All-58 profile `rearm_57a` (2026-10-13)** = `dup_hold_01/evidence/full_01`: the READ re-encoding plus the endpoint-specific
+control G41 padding plus the duplicate-OPERATE hold. Installed 9.13.2 at N12/E12/T11, mirror guard PASS; `candidate57a_*` configs.
+
+Silicon PASS, every restore ok:
+- `candidate57a_graceful_800_01`
+- `candidate57a_rst_950_01`
+- `candidate57a_fourarm_smoke_01`
+- `candidate57a_single_loss_01`: core preset, data-ACK at n=1
+- `candidate57a_dup_hold_350_01`
+- `candidate57a_old_tokens_01`
+- `candidate57a_old_external_02`. The retained `_01` found no unambiguous RST archive.
+
+`check_capture.py`: every READ is conformant. Every padded SELECT/OPERATE response fails the Rule 8 exact echo, the disclosed
+non-conformance of this profile, which the tested OpenDNP3 accepts.
 
 **Repeated four-arm evaluation, rearm_57s (2026-10-13).** Runs `candidate57s_eval_b1_01`..`b3_01`.
 
