@@ -256,7 +256,7 @@ def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
         nxt = next((s for s in ins if s['t_us'] > t['t_us'] and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
         res['progress_us'] = nxt['t_us'] - t['t_us'] if nxt else None
         if t['src'] == MASTER_IP:
-            res.update(data_ack_facts(ins, t))
+            res.update(data_ack_facts(ins, [x for x in outs if flow_ok(x)], t))
         return res
     copies = [s for s in ins if s['src'] == t['src'] and s['seq'] == t['seq'] and s['len'] > 0]
     res['copies_returned'] = len(copies)
@@ -275,27 +275,43 @@ def _seq_ge(a, b):
     return ((a - b) & 0xFFFFFFFF) < 0x80000000
 
 
-def data_ack_facts(ins, t):
+def data_ack_facts(ins, outs, t):
     """What a dropped master pure ACK `t` acknowledged, and how the connection recovered from its loss.
-    covers_padded_frontier: its ACK equals the end of an earlier outstation data segment of PADDED_LEN octets.
-    before_fin: no FIN from either side up to and including it. Recovery is a later master segment whose ACK covers
-    the same frontier (cumulative_ack; no retransmission is then needed) or a later outstation copy of the covered
-    segment (retransmission); the earlier of the two is recorded with its delay."""
-    before = [s for s in ins if (s['t_us'], s['index']) < (t['t_us'], t['index'])]
-    covered = next((s for s in reversed(before) if s['src'] == OUTSTATION_IP and s['len'] > 0
-                    and (s['seq'] + s['len']) & 0xFFFFFFFF == t['ack']), None)
-    fin_seen = any(s['flags'] & 0x01 for s in before + [t])
+
+    in.pcap holds what the switch emitted toward each endpoint, so `t` (a master packet heading to the outstation)
+    carries the reverse-translated, NATIVE acknowledgment, while outstation data in in.pcap is in the padded
+    (wire) sequence space. The covered segment is therefore found in out.pcap (the outstation's native stream):
+    the data segment whose end equals t's ACK. It is a padded frontier when the switch delivered that same
+    segment (same position among the outstation's distinct data segments) to the master as PADDED_LEN octets.
+    before_fin: no FIN from either side up to and including `t`. Recovery is a later master segment whose
+    (native) ACK covers the same frontier (cumulative_ack; no retransmission needed) or a later outstation
+    retransmission of the covered native segment; the earlier of the two is recorded with its delay."""
+    def distinct_data(segs):
+        seen, out = set(), []
+        for s in segs:
+            if s['src'] == OUTSTATION_IP and s['len'] > 0 and s['seq'] not in seen:
+                seen.add(s['seq'])
+                out.append(s)
+        return out
+    native, wire = distinct_data(outs), distinct_data(ins)
+    k = next((i for i, s in enumerate(native) if (s['seq'] + s['len']) & 0xFFFFFFFF == t['ack']), None)
+    covered = native[k] if k is not None else None
+    delivered = wire[k] if k is not None and k < len(wire) else None
+    upto = [s for s in ins if (s['t_us'], s['index']) <= (t['t_us'], t['index'])]
+    fin_seen = any(s['flags'] & 0x01 for s in upto)
     after = [s for s in ins if (s['t_us'], s['index']) > (t['t_us'], t['index'])]
     cum = next((s for s in after if s['src'] == MASTER_IP and s['flags'] & 0x10 and _seq_ge(s['ack'], t['ack'])), None)
-    retx = next((s for s in after if covered and s['src'] == OUTSTATION_IP and s['seq'] == covered['seq']
-                 and s['len'] > 0), None)
+    retx = next((s for s in outs if covered and s['src'] == OUTSTATION_IP and s['seq'] == covered['seq']
+                 and s['len'] > 0 and s['t_us'] > t['t_us']), None)
     events = sorted([e for e in (('cumulative_ack', cum), ('retransmission', retx)) if e[1]],
-                    key=lambda e: (e[1]['t_us'], e[1]['index']))
+                    key=lambda e: e[1]['t_us'])
     mech, by = events[0] if events else (None, None)
-    return {'covers_padded_frontier': bool(covered and covered['len'] == PADDED_LEN),
-            'covered_segment': _seg_view(covered) if covered else None, 'before_fin': not fin_seen,
-            'recovery_mechanism': mech, 'cover_us': by['t_us'] - t['t_us'] if by else None,
-            'covered_retransmitted': retx is not None}
+    return {'covers_padded_frontier': bool(delivered and delivered['len'] == PADDED_LEN
+                                           and covered['len'] < PADDED_LEN),
+            'covered_segment': _seg_view(covered) if covered else None,
+            'delivered_segment': _seg_view(delivered) if delivered else None,
+            'before_fin': not fin_seen, 'recovery_mechanism': mech,
+            'cover_us': by['t_us'] - t['t_us'] if by else None, 'covered_retransmitted': retx is not None}
 
 
 def _growth(timing, padded, control_padding=True):

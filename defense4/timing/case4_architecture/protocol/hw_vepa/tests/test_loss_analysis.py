@@ -250,34 +250,56 @@ if __name__ == '__main__':
     unittest.main()
 
 
+def translated(reads=3, close=True, retx_covered=None):
+    """(out, in) as the rig records them. out.pcap: native stream (49 B READ responses). in.pcap: what the switch
+    emitted toward each endpoint: outstation responses padded to 58 B in the padded sequence space, and master
+    segments reverse-translated, so their ACKs are NATIVE. Each READ response is acknowledged by a master pure ACK
+    (as the master does early in a connection), the next READ request carries the same ACK."""
+    out, inn = [], []
+    sseq, nseq, wseq = 1000, 5000, 5000
+    for i in range(reads):
+        t = 1_000_000 * (i + 1)
+        req = tk.frame(M, O, MP, OP, sseq, nseq, PSHACK, tk.read_request(i))
+        out.append((t, req)); inn.append((t + 50, req))
+        sseq += 20
+        native = tk.read_response(i, body_len=28)
+        padded = tk.read_response(i, body_len=37)
+        out.append((t + 5_000, tk.frame(O, M, OP, MP, nseq, sseq, PSHACK, native)))
+        inn.append((t + 5_050, tk.frame(O, M, OP, MP, wseq, sseq, PSHACK, padded)))
+        if retx_covered == i:
+            out.append((t + 205_000, tk.frame(O, M, OP, MP, nseq, sseq, PSHACK, native)))
+            inn.append((t + 205_050, tk.frame(O, M, OP, MP, wseq, sseq, PSHACK, padded)))
+        nseq += len(native); wseq += len(padded)
+        ack = tk.frame(M, O, MP, OP, sseq, nseq, ACK)          # master's ACK of the padded response, translated
+        out.append((t + 5_500, ack)); inn.append((t + 5_550, ack))
+    if close:
+        t = 1_000_000 * (reads + 1)
+        for fr, dt in ((tk.frame(O, M, OP, MP, nseq, sseq, tk.FIN | ACK), 0),
+                       (tk.frame(M, O, MP, OP, sseq, nseq + 1, ACK), 300)):
+            out.append((t + dt, fr)); inn.append((t + dt + 50, fr))
+    return out, inn
+
+
 class DataAck(unittest.TestCase):
-    """master_ack_of_padded_data: the dropped packet must be an in-session master pure ACK of a padded frontier."""
+    """master_ack_of_padded_data: the dropped packet must be an in-session master pure ACK of a padded frontier,
+    on captures translated as the rig records them (native ACKs and padded outstation data in in.pcap)."""
 
     def setUp(self):
         td = tempfile.TemporaryDirectory()
         self.addCleanup(td.cleanup)
         self.tmp = td.name
 
-    def with_close(self, reads=3):
-        out, inn = conversation(reads=reads, resp_len=58)
-        t = 1_000_000 * (reads + 1)
-        sseq, rseq = 1000 + 20 * reads, 5000 + 37 * reads      # read_response body is 37 octets at resp_len 58
-        for fr, dt in ((tk.frame(O, M, OP, MP, rseq, sseq, tk.FIN | ACK), 0),
-                       (tk.frame(M, O, MP, OP, sseq, rseq + 1, ACK), 300)):
-            out.append((t + dt, fr))
-            inn.append((t + dt + 50, fr))
-        return out, inn
-
     def ident(self, text, out, inn):
         spec = loss.parse_drop(text, reads=3)
         return spec, loss.identify(*write(self.tmp, out, inn), spec, MP, OP)
 
     def test_in_session_data_ack_is_identified_and_covered(self):
-        spec, ident = self.ident('master_ack_of_padded_data:1', *self.with_close())
+        spec, ident = self.ident('master_ack_of_padded_data:1', *translated())
         self.assertTrue(spec['data_ack'])
         self.assertTrue(ident['identified'])
         self.assertTrue(ident['covers_padded_frontier'])
-        self.assertEqual(ident['covered_segment']['ip_len'], 98)
+        self.assertEqual(ident['covered_segment']['ip_len'], 89)
+        self.assertEqual(ident['delivered_segment']['ip_len'], 98)
         self.assertTrue(ident['before_fin'])
         self.assertEqual(ident['recovery_mechanism'], 'cumulative_ack')
         self.assertFalse(ident['covered_retransmitted'])
@@ -286,9 +308,13 @@ class DataAck(unittest.TestCase):
         self.assertEqual(fails, [])
         self.assertEqual(res['recovery_mechanism'], 'cumulative_ack')
 
+    def test_untranslated_comparison_would_miss(self):
+        # The ACK equals the end of the NATIVE segment, not of the padded one delivered in in.pcap.
+        _, ident = self.ident('master_ack_of_padded_data:1', *translated())
+        self.assertNotEqual(ident['packet']['ack'], (ident['delivered_segment']['seq'] + 58) & 0xFFFFFFFF)
+
     def test_ack_of_fin_is_rejected(self):
-        # occurrence 4 of master_ack here is the ACK of the outstation FIN (as in candidate56r_single_loss_03)
-        spec, ident = self.ident('master_ack_of_padded_data:3', *self.with_close())
+        spec, ident = self.ident('master_ack_of_padded_data:3', *translated())
         self.assertTrue(ident['identified'])
         self.assertFalse(ident['covers_padded_frontier'])
         self.assertFalse(ident['before_fin'])
@@ -296,17 +322,23 @@ class DataAck(unittest.TestCase):
         self.assertTrue(any('padded data frontier' in f for f in fails), fails)
         self.assertTrue(any('not in session' in f for f in fails), fails)
 
+    def test_unpadded_delivery_is_not_a_padded_frontier(self):
+        out, inn = translated()
+        inn = [(t, f) for t, f in out]          # switch delivered native bytes: padding off
+        _, ident = self.ident('master_ack_of_padded_data:1', out, inn)
+        self.assertTrue(ident['identified'])
+        self.assertFalse(ident['covers_padded_frontier'])
+
+    def test_retransmission_recovery_is_recorded(self):
+        spec, ident = self.ident('master_ack_of_padded_data:1', *translated(retx_covered=1))   # n=1 is the 2nd master pure ACK (offset 1 skips the handshake ACK)
+        self.assertTrue(ident['covers_padded_frontier'])
+        self.assertTrue(ident['covered_retransmitted'])
+
     def test_old_class_keeps_occurrence_only_semantics(self):
-        spec, ident = self.ident('master_ack_of_padded:3', *self.with_close())
+        spec, ident = self.ident('master_ack_of_padded:3', *translated())
         self.assertFalse(spec['data_ack'])
         fails, _ = gate(spec=spec, ident=ident, rule=dict(good_inputs()['rule'], dropped_bytes=40))
         self.assertFalse(any('padded data frontier' in f for f in fails), fails)
-
-    def test_ack_of_native_response_is_not_a_padded_frontier(self):
-        spec, ident = self.ident('master_ack_of_padded_data:1', *conversation(reads=3, resp_len=49))
-        self.assertTrue(ident['identified'])
-        self.assertEqual(ident['covered_segment']['ip_len'], 89)
-        self.assertFalse(ident['covers_padded_frontier'])
 
 
 class StrictControls(unittest.TestCase):
