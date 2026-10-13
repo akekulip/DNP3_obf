@@ -40,7 +40,23 @@ def derive(base, b):
     return cfg
 
 
+def dup_hold(base):
+    """candidate57s_dup_hold_500: the strict graceful same-tuple series with the OPERATE hold op_j raised to 500 ms,
+    above the master's kernel RTO (~200 ms). The outstation cannot acknowledge a held OPERATE, so the master's TCP
+    itself retransmits it while the original is held: a genuine early duplicate on silicon. Expected with
+    dup_hold_01: the copy is dropped (OUT_OP_DUP_DROP +1 per connection), the original is released once at the
+    deadline, exactly one real OPERATE callback per connection."""
+    cfg = json.loads(json.dumps(base))
+    cfg['timing_params_ns']['op_j'] = 500000000
+    cfg['_notes'] = ['candidate57s_dup_hold_500 (make_candidate57s_eval.py): graceful series with op_j 500 ms > RTO, '
+                     'so the master retransmits the held OPERATE; tests dup_hold_01 on silicon.'] + cfg.get('_notes', [])
+    return cfg
+
+
 if __name__ == '__main__':
+    graceful = json.loads((HERE / 'candidate57s_graceful_800.json').read_text())
+    (HERE / 'candidate57s_dup_hold_500.json').write_text(json.dumps(dup_hold(graceful), indent=2) + '\n')
+    print('wrote candidate57s_dup_hold_500.json')
     base = json.loads((HERE / 'candidate57s_fourarm_smoke.json').read_text())
     for b in range(3):
         name = 'candidate57s_eval_b%d.json' % (b + 1)

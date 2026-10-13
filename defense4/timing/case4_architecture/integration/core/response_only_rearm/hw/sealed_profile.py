@@ -49,6 +49,11 @@ def read_diagnostics(read_outcome, outcomes, expected=False):
         raise ValueError('missing or malformed raw timer/blocker rejection counters')
     outcomes.update(STALE_BLOCKER=blocker, RAW_OPERATE_TIMER_STALE=op, RAW_READ_TIMER_STALE=read,
                     OUT_TOKEN_STALE=blocker+op+read)
+    # dup_hold_01 builds count an early duplicate OPERATE dropped while its original is held at index 16
+    # (t_OUT_OP_DUP_DROP). Recorded only; it is not stale and never enters stale_total. Older sealed builds
+    # leave index 16 unused (0).
+    dup = read_outcome(16)
+    outcomes.update(OUT_OP_DUP_DROP=dup if type(dup) is int and dup >= 0 else None)
     # This is not make_diag_t's layout: index14/15 remain lifecycle/exhaustion,
     # and a readable unused index16 must not switch to legacy stale accounting.
     return dict(present=False, layout='split_raw_timer_23_24',
