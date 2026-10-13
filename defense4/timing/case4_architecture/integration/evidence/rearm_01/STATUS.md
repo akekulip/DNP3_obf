@@ -103,3 +103,20 @@ Conditions:
 - SBO uses the software handler only. Physical relay OPERATE is not authorized (attended-only).
 - `case4_response_path` is restored and verified after every block.
 - No SDK change, no push, no default promotion.
+
+**Real-relay compatibility audit (2026-10-13, directive §5; source reading plus offline capture decode, NOT yet run).**
+Every qualification above used namespace endpoints with timestamps, SACK and window scaling OFF. Against the captured
+SEL-751 / Linux-master handshake (`protocol/evidence/hw_range_read_01/native_ip_retest_20261010.pcap`: MSS, sackOK, TS,
+wscale 7 / 0), the rearm composites (rearm_56r, rearm_57s, rearm_57a) are predicted to fail:
+- **Arming.** N admits the TS-profile SYN and SYN-ACK; it checks MSS only, so `tso`/`oa`/`ob` are opaque.
+  `response_only_rearm/make_e.py` rekeyed E's `mode_t` on N's SYN-ACK kind (0xe7) alone, not on E's SH_SYNACK_OK
+  shape. So the flow arms (mode=1) while the image registers stay unarmed.
+- **Then every offset-8 TS segment hits E's `drop_odd`, in both directions.** This is the reverted `syn_ack_arm_01`
+  failure reached by a new path. "Unknown negotiation stays native from the first packet" does NOT hold.
+- **E has no native pass on a configured tuple.** Unqualified kinds go to `reject_lifetime`. SACK-bearing ACKs and the
+  relay's FIN|PSH|ACK (0x19) close are not admitted by N and would be dropped.
+- **Window scaling is not handled on mapped flows.** The reverse-window rows treat raw values as bytes.
+Consequence: no candidate may be run against the real relay until this is fixed. The minimal safe step is to arm only
+on an exact clean-profile handshake and pass every other tuple native. The bounded P1 profile (exact TS templates,
+wscale {0, 7}, SACK neutralized to NOPs) is the follow-up. A model replay of the captured handshake is the first
+confirmation.
