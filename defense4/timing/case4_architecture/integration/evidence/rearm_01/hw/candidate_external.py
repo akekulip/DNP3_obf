@@ -186,7 +186,8 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 self.save(str(analysis),script+'.log',result)
                 if result.rc:failures.append(cn+': '+script+' failed rc'+str(result.rc))
             cfail=vc.evaluate(analysis,59400,'rst',1,cs._load_json(raw/'result.json') or {},
-                              rst_grace_ms=1000,reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0)
+                              rst_grace_ms=1000,reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0,
+                              control_padding=self._control_padding())
             fresh=None
             try:
                 fresh=cs.freshness_gate(cs.wc.parse(analysis/'out.pcap')[0],cs.wc.parse(analysis/'in.pcap')[0],59400,previous)

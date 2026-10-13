@@ -237,7 +237,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             import vision_candidate as vc
             cfail.extend(vc.evaluate(root,trial['master_port'],'rst',1,
                                      cs._load_json(root/'result.json') or {},rst_grace_ms=1000,
-                                     reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0))
+                                     reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0,
+                                     control_padding=self._control_padding()))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
             failures.extend(cn+': '+failure for failure in cfail)
         if v.rc or scenario.get('ok') is not True:
