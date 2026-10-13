@@ -1,0 +1,916 @@
+{
+ "cases": [
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "native": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "forwarded",
+   "name": "V_TS_SYN_master_off10",
+   "observed": "forwarded",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307"
+    ]
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "V_TS_SYNACK_off11_as_ts_model_01",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "V_TS_SYNACK_off11_pcap_ip_noDF_id37_win8688",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "V_SYNACK_off11_MSS_plus_NOPs",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "arm_map": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "forwarded",
+   "name": "V_clean_SYNACK_off6_after_TS_SYN",
+   "observed": "forwarded",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": 1,
+   "name": "V_mode_after_clean_SYNACK",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 901,
+   "name": "V_front_after_clean_SYNACK",
+   "observed": 901,
+   "ok": true
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "DROP_ODD": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_TS_third_ACK_master_off8_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "DROP_ODD": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_TS_READ_request_master_off8_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_TS_relay_ACK_off8_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_TS_READ_response49_off8_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "DROP_ODD": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_SACK_ACK_master_off11_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "dropped",
+   "name": "V_FIN_PSH_ACK_0x19_relay_off8_mode1",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 901
+    },
+    "epoch": 2147483649,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 843,
+    "img_wend": 901,
+    "master_isn": 100,
+    "mode": 1
+   },
+   "E_outcome_delta": {
+    "rev_translate": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x40001",
+    "owner_phase": "0x4",
+    "server": 901
+   },
+   "expected": "forwarded",
+   "name": "V_clean_off5_READ_after_TS_drops",
+   "observed": "dropped",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  }
+ ],
+ "meta": {
+  "driver_sha256": "3da08918f4ff09400e287b552926418ffe969d644f49318ce13800737c0cae39",
+  "initial_state": {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 0,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 0,
+    "mode": 0
+   },
+   "N": {
+    "client": 0,
+    "epoch": 0,
+    "owner": "0x0",
+    "owner_phase": "0x0",
+    "server": 0
+   }
+  },
+  "mode": "variants",
+  "payload_lengths": {
+   "read_request": 20,
+   "read_response": 49
+  },
+  "physical": false,
+  "port_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000"
+    },
+    "first_16_bytes_by_length": {
+     "90": "000000000000000000000000e1000000",
+     "94": "000000010000006500000000e1000000"
+    },
+    "frames": 5,
+    "longest": 94,
+    "shortest": 90
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "90": "0000000100000000000000000e000000"
+    },
+    "frames": 1,
+    "longest": 90,
+    "shortest": 90
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   }
+  },
+  "scope": "realrelay_01 TCP-option probe (variants) on rearm_57s local compile",
+  "steps": [
+   {
+    "E_outcome_delta": {
+     "native": 2
+    },
+    "case": 1,
+    "directions": [
+     "to_relay"
+    ],
+    "predicted": "forwarded",
+    "received": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307"
+    ],
+    "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307",
+    "sent_len": 74,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "V_TS_SYN_master_off10",
+    "verdict": "forwarded"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 2
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000014000400626b50a0000010a00000275314e200000038400000065b012100022b80000020405b401030300010104020101080a045f6ae652a36613",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "V_TS_SYNACK_off11_as_ts_model_01",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 2
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000250000400666910a0000010a00000275314e200000038400000065b01221f010c80000020405b401030300010104020101080a045f6ae652a36613",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "V_TS_SYNACK_off11_pcap_ip_noDF_id37_win8688",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 2
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000014000400626b50a0000010a00000275314e200000038400000065b012100052bb0000020405b40101010101010101010101010101010101010101",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "V_SYNACK_off11_MSS_plus_NOPs",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "arm_map": 1
+    },
+    "case": 1,
+    "directions": [
+     "to_master"
+    ],
+    "predicted": "forwarded",
+    "received": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ],
+    "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4",
+    "sent_len": 58,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_clean_SYNACK_off6_after_TS_SYN",
+    "verdict": "forwarded"
+   },
+   {
+    "E_outcome_delta": {
+     "DROP_ODD": 1
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000010a00000275314e20000000650000038580101000638200000101080a52a36614045f6ae6",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_TS_third_ACK_master_off8_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "DROP_ODD": 1
+    },
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004800014000400626ad0a0000010a00000275314e200000006500000385801810003da900000101080a52a36614045f6ae605640dc400000100f387c0c0010a020000165a2c",
+    "sent_len": 86,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_TS_READ_request_master_off8_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000020a0000014e207531000003850000007980101000636e00000101080a045f6ae652a36614",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_TS_relay_ACK_off8_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007980181000eb3e00000101080a045f6b0452a3661405642644010000002f77c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1650f8",
+    "sent_len": 115,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_TS_READ_response49_off8_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "DROP_ODD": 1
+    },
+    "case": 3,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000014000400626b50a0000010a00000275314e2000000079000003b6b0101000255a00000101050a000003c0000003d40101080a52a3662e045f6b04",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_SACK_ACK_master_off11_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 4,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000020a0000014e207531000003b60000007980191000341500000101080a045f827452a37da5",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_FIN_PSH_ACK_0x19_relay_off8_mode1",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "rev_translate": 1
+    },
+    "case": 5,
+    "directions": [],
+    "predicted": "forwarded",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c",
+    "sent_len": 74,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 901
+      },
+      "epoch": 2147483649,
+      "front": 901,
+      "img_end": 901,
+      "img_start": 843,
+      "img_wend": 901,
+      "master_isn": 100,
+      "mode": 1
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x40001",
+      "owner_phase": "0x4",
+      "server": 901
+     }
+    },
+    "step": "V_clean_off5_READ_after_TS_drops",
+    "verdict": "dropped"
+   }
+  ]
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "V_clean_off5_READ_after_TS_drops"
+  ],
+  "passed": 13,
+  "total": 14
+ }
+}

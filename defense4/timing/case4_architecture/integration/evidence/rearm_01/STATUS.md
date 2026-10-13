@@ -120,3 +120,18 @@ Consequence: no candidate may be run against the real relay until this is fixed.
 on an exact clean-profile handshake and pass every other tuple native. The bounded P1 profile (exact TS templates,
 wscale {0, 7}, SACK neutralized to NOPs) is the follow-up. A model replay of the captured handshake is the first
 confirmation.
+
+**Model check of the audit (2026-10-13, `stage_experiments/realrelay_01`, local 9.13.1 model of rearm_57s,
+option bytes copied from the SEL-751 capture).** The conclusion holds; the mechanism differs:
+- **N drops the relay's TS SYN-ACK (offset 11) itself.** The cause is the offset-11 shape; MSS + NOP padding at
+  offset 11 is dropped too. E never arms; the TS SYN passes native (`ts_model_01`).
+- **After that the tuple is stuck.** A later clean RST and a clean SYN with new ISNs, and its ACK and READ, are all
+  dropped, with N still at phase 2. This is worse than the audit predicted.
+- **On a flow that is armed (clean handshake), offset-8 TS segments are dropped by `drop_odd` in both directions**
+  (`established_model_01`). N closes a TS READ as answered although E dropped the response.
+- **Also dropped:** a SACK-bearing master ACK (`drop_odd`) and the relay's FIN|PSH|ACK. The FIN drop is not `drop_odd`;
+  0x19 without options at offset 5 is dropped too.
+- **Control:** the clean MSS-only handshake plus READ passes 15/15 (`control_model_02_oracle`).
+Real-relay operation therefore needs, at minimum:
+1. a native pass for any handshake that does not exactly match a supported template, without wedging the tuple;
+2. admission of 0x19 closes.

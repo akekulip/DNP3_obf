@@ -1,0 +1,1226 @@
+{
+ "cases": [
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "native": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "forwarded",
+   "name": "TS_SYN_master_off10",
+   "observed": "forwarded",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307"
+    ]
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "forwarded",
+   "name": "TS_SYNACK_relay_off11",
+   "observed": "dropped",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": 1,
+   "name": "P_mode_armed_1_by_TS_SYNACK",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "P_front_unarmed_after_TS_SYNACK",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": {
+    "hi": 0,
+    "lo": 0
+   },
+   "name": "P_acct_unarmed_after_TS_SYNACK",
+   "observed": {
+    "hi": 0,
+    "lo": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": [
+    0,
+    0,
+    0
+   ],
+   "name": "P_img_unarmed_after_TS_SYNACK",
+   "observed": [
+    0,
+    0,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "TS_third_ACK_master_off8",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "TS_READ_request_master_off8",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "TS_relay_separate_ACK_off8",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "TS_READ_response49_relay_off8",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "SACK_ACK_master_off11",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": "dropped",
+   "name": "FIN_PSH_ACK_0x19_relay_off8",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "INFO_master_RST_ACK_off5",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_SYN_4000",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_SYN_4000_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_SYNACK_7000",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_SYNACK_7000_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_ACK_4000",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_ACK_4000_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "expected": 7001,
+   "name": "C_front_armed_7000",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "C_mode_mapped_7000",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {
+    "unparsed/other": 1
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_READ_4000",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_READ_4000_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_READ_relay_ACK",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_READ_relay_ACK_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "E_outcome_delta": {},
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   },
+   "expected": null,
+   "name": "C_READ_response_padded58",
+   "observed": "dropped",
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "C_READ_response_padded58_exact",
+   "observed": "dropped",
+   "ok": false
+  },
+  {
+   "expected": "recorded",
+   "name": "INFO_in_run_clean_reconnect_after_RST",
+   "observed": "failed",
+   "ok": true
+  }
+ ],
+ "meta": {
+  "after_RST_state": {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 1,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 100,
+    "mode": 2
+   },
+   "N": {
+    "client": 101,
+    "epoch": 1,
+    "owner": "0x20001",
+    "owner_phase": "0x2",
+    "server": 0
+   }
+  },
+  "driver_sha256": "6610793263b094ba3cf8480409b50e902ff4366fb8695139214828819f783dc0",
+  "in_run_control_after_RST_worked": false,
+  "initial_state": {
+   "E": {
+    "acct": {
+     "hi": 0,
+     "lo": 0
+    },
+    "epoch": 0,
+    "front": 0,
+    "img_end": 0,
+    "img_start": 0,
+    "img_wend": 0,
+    "master_isn": 0,
+    "mode": 0
+   },
+   "N": {
+    "client": 0,
+    "epoch": 0,
+    "owner": "0x0",
+    "owner_phase": "0x0",
+    "server": 0
+   }
+  },
+  "mode": "ts",
+  "payload_lengths": {
+   "read_request": 20,
+   "read_response": 49
+  },
+  "physical": false,
+  "port_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000"
+    },
+    "first_16_bytes_by_length": {
+     "102": "000000010000038500000000e1000000",
+     "76": "000000010000038500000000e1000000",
+     "82": "000000010000038500000000e1000000",
+     "90": "000000000000000000000000e1000000",
+     "94": "000000010000006500000000e1000000"
+    },
+    "frames": 9,
+    "longest": 102,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "90": "0000000100000000000000000e000000"
+    },
+    "frames": 1,
+    "longest": 90,
+    "shortest": 90
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   }
+  },
+  "scope": "realrelay_01 TCP-option probe (ts) on rearm_57s local compile",
+  "steps": [
+   {
+    "E_outcome_delta": {
+     "native": 2
+    },
+    "case": 1,
+    "directions": [
+     "to_relay"
+    ],
+    "predicted": "forwarded",
+    "received": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307"
+    ],
+    "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006400000000a002100099cc0000020405b40402080a52a36613045f096601030307",
+    "sent_len": 74,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_SYN_master_off10",
+    "verdict": "forwarded"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 2
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": "forwarded",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000014000400626b50a0000010a00000275314e200000038400000065b012100022b80000020405b401030300010104020101080a045f6ae652a36613",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_SYNACK_relay_off11",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 1,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000010a00000275314e20000000650000038580101000638200000101080a52a36614045f6ae6",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_third_ACK_master_off8",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004800014000400626ad0a0000010a00000275314e200000006500000385801810003da900000101080a52a36614045f6ae605640dc400000100f387c0c0010a020000165a2c",
+    "sent_len": 86,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_READ_request_master_off8",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000020a0000014e207531000003850000007980101000636e00000101080a045f6ae652a36614",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_relay_separate_ACK_off8",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 2,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007980181000eb3e00000101080a045f6b0452a3661405642644010000002f77c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1650f8",
+    "sent_len": 115,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "TS_READ_response49_relay_off8",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 2
+    },
+    "case": 3,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500004000014000400626b50a0000010a00000275314e2000000079000003b6b0101000255a00000101050a000003c0000003d40101080a52a3662e045f6b04",
+    "sent_len": 78,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "SACK_ACK_master_off11",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 4,
+    "directions": [],
+    "predicted": "dropped",
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003400014000400626c10a0000020a0000014e207531000003b60000007980191000341500000101080a045f827452a37da5",
+    "sent_len": 66,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "FIN_PSH_ACK_0x19_relay_off8",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 6,
+    "directions": [],
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000790000038550141000c47e0000",
+    "sent_len": 54,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "INFO_master_RST_ACK_off5",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000000fa00000000060021000a1320000020405b4",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000000fa00000000060021000a1320000020405b4",
+    "sent_len": 58,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_SYN_4000",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001b5800000fa16012100085c90000020405b4",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100001b5800000fa16012100085c90000020405b4",
+    "sent_len": 58,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_SYNACK_7000",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000fa100001b59501010009d860000",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000fa100001b59501010009d860000",
+    "sent_len": 54,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_ACK_4000",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {
+     "unparsed/other": 1
+    },
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000fa100001b595018100077ad000005640dc400000100f387c0c0010a020000165a2c",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000fa100001b595018100077ad000005640dc400000100f387c0c0010a020000165a2c",
+    "sent_len": 74,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_READ_4000",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001b5900000fb5501010009d720000",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100001b5900000fb5501010009d720000",
+    "sent_len": 54,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_READ_relay_ACK",
+    "verdict": "dropped"
+   },
+   {
+    "E_outcome_delta": {},
+    "case": 6,
+    "directions": [],
+    "exact_expected": "001122334455aabbccddeeff08004500006200014000400626930a0000020a0000014e20753100001b5900000fb5501810008b78000005642f44010000001458c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1629010629020629030670ef",
+    "exact_match": false,
+    "predicted": null,
+    "received": [],
+    "sent": "001122334455aabbccddeeff080045000059000140004006269c0a0000020a0000014e20753100001b5900000fb5501810002561000005642644010000002f77c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1650f8",
+    "sent_len": 103,
+    "state": {
+     "E": {
+      "acct": {
+       "hi": 0,
+       "lo": 0
+      },
+      "epoch": 1,
+      "front": 0,
+      "img_end": 0,
+      "img_start": 0,
+      "img_wend": 0,
+      "master_isn": 100,
+      "mode": 2
+     },
+     "N": {
+      "client": 101,
+      "epoch": 1,
+      "owner": "0x20001",
+      "owner_phase": "0x2",
+      "server": 0
+     }
+    },
+    "step": "C_READ_response_padded58",
+    "verdict": "dropped"
+   }
+  ]
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "TS_SYNACK_relay_off11",
+   "P_mode_armed_1_by_TS_SYNACK",
+   "C_SYN_4000_exact",
+   "C_SYNACK_7000_exact",
+   "C_ACK_4000_exact",
+   "C_front_armed_7000",
+   "C_mode_mapped_7000",
+   "C_READ_4000_exact",
+   "C_READ_relay_ACK_exact",
+   "C_READ_response_padded58_exact"
+  ],
+  "passed": 18,
+  "total": 28
+ }
+}
