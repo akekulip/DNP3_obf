@@ -9,6 +9,12 @@ settings.local.json
 credentials.json
 *_secret*
 *_token*
+# Exception: Case 4 "old-token" evidence. These tokens are DNP3 timer tokens, not credentials; the
+# rearm gate evidence must be tracked (directive f813bc089 §4). Scanned for secrets 2026-10-13.
+!defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate5*_old_tokens_*/
+!defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate5*_old_tokens_*/**
+!defense4/timing/case4_architecture/integration/evidence/rearm_01/candidate55_old_tokens_*
+!defense4/timing/case4_architecture/integration/evidence/rearm_01/config/candidate5*_old_tokens.json
 
 # --- Databases / user data ---
 *.sqlite

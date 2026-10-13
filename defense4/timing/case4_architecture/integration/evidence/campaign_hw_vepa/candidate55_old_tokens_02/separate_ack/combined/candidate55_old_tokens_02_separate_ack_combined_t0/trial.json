@@ -1,0 +1,151 @@
+{
+  "fixture": "separate_ack",
+  "label": "candidate55_old_tokens_02_separate_ack_combined_t0",
+  "master_port": 59412,
+  "reads": 1,
+  "ok": false,
+  "failures": [
+    "banks: missing quiet snapshots",
+    "window: missing token window",
+    "switch: T on: generated READ packets delta 9, expected 12 (2k = 4 per trigger)",
+    "switch: T on: generated OPERATE packets delta 9, expected 12 (2k = 4 per trigger)",
+    "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 15 exceeds the build bound 3",
+    "missing full-run rejection evidence: raw timer rejection count must equal exactly the three delayed c1 tokens",
+    "restore READ IPG after exactly one old batch failed (rc 1) on switch: DEFENSE4_HW_AUTHORIZED=1 python3 /home/decps/Philip_repo/dnp3-defense4/response_only_composite/aux/delay_read_tokens.py --build-out /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_rearm_55 --expected-bfrt-sha256 52fa08c7c5a92363178e75c659316ad6dc0bbb98c038077eac348758b0e5eb3a --swi | Subscribe attempt #1\nSubscribe response received 0\nBinding with p4_name response_only\nBinding with p4_name response_only successful!!\nReceived response_only on GetForwarding on client 216, device 0"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 5,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "scenario": {
+    "policy": "real_old_token_isolation",
+    "connections": {
+      "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 1307343322,
+          "server_isn": 3316510499,
+          "frontiers": {
+            "client": 1307343413,
+            "server": 3316510623
+          }
+        }
+      },
+      "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 1389255283,
+          "server_isn": 3398423349,
+          "frontiers": {
+            "client": 1389255374,
+            "server": 3398423473
+          }
+        }
+      },
+      "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 1549249050,
+          "server_isn": 3558416567,
+          "frontiers": {
+            "client": 1549249141,
+            "server": 3558416691
+          }
+        }
+      }
+    }
+  },
+  "observed": {
+    "bank_isolation": {
+      "ok": false,
+      "failures": [
+        "missing quiet snapshots"
+      ]
+    },
+    "old_token_window": {
+      "ok": false,
+      "failures": [
+        "missing token window"
+      ]
+    },
+    "old_rejection_delta": null,
+    "quiet_rejections": null,
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 1602,
+        "OUT_ACK_COMMIT": 3,
+        "OUT_RESP_RELEASE": 3,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 15,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0
+      },
+      "token_stale": 15,
+      "pktgen": {
+        "READ": {
+          "triggers": 3,
+          "pkts": 9
+        },
+        "OPERATE": {
+          "triggers": 3,
+          "pkts": 9
+        }
+      },
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 51,
+      "external_growth_expected": 51,
+      "unacked": 0
+    },
+    "lifecycle": {
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 29,
+          "E": 29,
+          "T": 29
+        },
+        "E_raw": 2147483677,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 42
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "precision_qualified": false
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "note": "intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; timestamps are integer microseconds at the capture resolution",
+  "sent": 15,
+  "returned": 15,
+  "sent_integrity": {
+    "dnp3_crc_bad": [],
+    "tcp_checksum_bad": "not validated (sender capture)",
+    "tcp_checksum_offloaded": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "returned_integrity": {
+    "dnp3_crc_bad": [],
+    "tcp_checksum_bad": [],
+    "tcp_checksum_offloaded": []
+  },
+  "matched": 15,
+  "unmatched_sent": [],
+  "unmatched_returned": [],
+  "duplicate_returned": [],
+  "reordered_returned_indices": [],
+  "reference_mapping": {
+    "0": 0,
+    "2": 2,
+    "3": 3,
+    "6": 6,
+    "7": 7,
+    "10": 10,
+    "13": 13,
+    "14": 14,
+    "1": 1,
+    "4": 4,
+    "5": 5,
+    "8": 8,
+    "9": 9,
+    "11": 11,
+    "12": 12
+  },
+  "M->O sent payload lengths": [
+    20,
+    35
+  ],
+  "M->O returned payload lengths": [
+    20,
+    35
+  ],
+  "M->O matched": 8,
+  "M->O seq delta set": [
+    0
+  ],
+  "M->O ack delta set": [
+    0,
+    4294967245,
+    4294967266,
+    4294967287
+  ],
+  "M->O payload identical count": 8,
+  "O->M sent payload lengths": [
+    37,
+    49
+  ],
+  "O->M returned payload lengths": [
+    58
+  ],
+  "O->M matched": 7,
+  "O->M seq delta set": [
+    0,
+    9,
+    30
+  ],
+  "O->M ack delta set": [
+    0
+  ],
+  "O->M payload identical count": 4,
+  "reflect latency us min/median/max": [
+    32,
+    91,
+    5455
+  ],
+  "O->M reflected images": [
+    {
+      "sent_len": 49,
+      "returned_len": 58,
+      "sent_tp_app_func": "c0c081",
+      "returned_tp_app_func": "c0c081"
+    },
+    {
+      "sent_len": 37,
+      "returned_len": 58,
+      "sent_tp_app_func": "c1c181",
+      "returned_tp_app_func": "c1c181"
+    },
+    {
+      "sent_len": 37,
+      "returned_len": 58,
+      "sent_tp_app_func": "c2c281",
+      "returned_tp_app_func": "c2c281"
+    }
+  ]
+}
