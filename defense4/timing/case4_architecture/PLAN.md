@@ -1,6 +1,19 @@
 # Case 4 architecture execution
 
-**2026-10-12 late: the rearm plan's silicon gates are complete on build `rearm_56r`** (candidate56 + retransmission pass-through, `stage_experiments/retx_passthrough_01`): seven single-loss classes, RST 950us, graceful 800us, four-arm smoke, old-token and old-external isolation all PASS with every baseline restore. Table and run ids: [rearm STATUS](integration/evidence/rearm_01/STATUS.md). The production switch program is still `case4_response_path`; promoting `rearm_56r` to production, and the OPERATE-path items below (35→55, carve 57→[28,29], extended M mapper, fragments), remain open.
+> **ACTIVE DIRECTION (2026-10-13), supersedes every instruction below that conflicts with it.** Source:
+> `defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md`. Requests stay native; no request
+> padding (35→55), no response splitting or carving (57→[28,29]), no extended M mapper, no request-side
+> decoys. Those sections below are kept as **historical** engineering record only.
+> IEEE 1815-2012 checks (Table 4-8 p.35; Rule 8 p.51; Tables 12-6/12-8 p.354; Table 14-2 p.398) show the
+> deployed all-58 filler is not conformant: the READ tail uses qualifier 0x06 in a response, and any
+> padding of a SELECT/OPERATE response breaks the exact echo. Active work: replace the READ filler with the
+> two-range G10V2 re-encoding (49→58, same points) in
+> `integration/core/response_only_rearm/stage_experiments/read_reencode_01/`; keep control responses native
+> under the strict policy (READ=58, SBO=native), which does **not** meet the equal-size target; the
+> equal-size SBO contract is Philip's open decision. The existing all-58 build stays as a labelled
+> endpoint-specific (OpenDNP3-accepted) profile.
+
+**2026-10-12 late: the rearm plan's silicon gates are complete on build `rearm_56r`** (candidate56 + retransmission pass-through, `stage_experiments/retx_passthrough_01`): seven single-loss classes, RST 950us, graceful 800us, four-arm smoke, old-token and old-external isolation all PASS with every baseline restore. Table and run ids: [rearm STATUS](integration/evidence/rearm_01/STATUS.md). The production switch program is still `case4_response_path`; promoting `rearm_56r` to production remains a separate decision. The OPERATE-path items below (35→55, carve 57→[28,29], extended M mapper, fragments) are HISTORICAL as of 2026-10-13 and are not active instructions (see the banner above).
 
 Resumed from commit190a4c603. Stage reductions are qualified offline at **N11/E12/T11** on local9.13.1 and installed9.13.2, compiledmodel519PASS. Optimized candidate56 RST95002 silicon same-tuple20READ+SBO×3 alsoPASS, READp99abs13/50/17us, strictstale0, freshmapper/padding/integrity and allfive restoresPASS. Old token/external10s isolation gates and seven-loss regression remain to run. Preserve candidate55 and the frozen baseline; stage experiments stay isolated until parity, compiler, mirror and silicon evidence agree. See [stage ledger](integration/evidence/rearm_01/STAGE_REDUCTION.md) and [current checkpoint](integration/evidence/rearm_01/CHECKPOINT.md).
 
