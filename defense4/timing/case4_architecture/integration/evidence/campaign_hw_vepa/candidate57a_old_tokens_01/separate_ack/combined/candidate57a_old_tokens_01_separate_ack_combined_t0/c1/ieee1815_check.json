@@ -1,0 +1,35 @@
+{
+  "run_dir": "candidate57a_old_tokens_01/separate_ack/combined/candidate57a_old_tokens_01_separate_ack_combined_t0/c1",
+  "master_port": 59412,
+  "responses": 3,
+  "verdicts": [
+    {
+      "index": 0,
+      "native_len": 49,
+      "wire_len": 58,
+      "kind": "READ",
+      "ok": true
+    },
+    {
+      "index": 1,
+      "native_len": 37,
+      "wire_len": 58,
+      "kind": "SELECT",
+      "ok": false,
+      "error": "control echo differs: request 18 octets, response 37 octets"
+    },
+    {
+      "index": 2,
+      "native_len": 37,
+      "wire_len": 58,
+      "kind": "OPERATE",
+      "ok": false,
+      "error": "control echo differs: request 18 octets, response 37 octets"
+    }
+  ],
+  "failures": [
+    "SELECT #1: control echo differs: request 18 octets, response 37 octets",
+    "OPERATE #2: control echo differs: request 18 octets, response 37 octets"
+  ],
+  "conformant": false
+}
