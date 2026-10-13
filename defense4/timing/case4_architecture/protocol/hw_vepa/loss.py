@@ -51,7 +51,13 @@ ALIASES = {
     'select_req': ('control_req', lambda reads: 0),
     'operate_req': ('control_req', lambda reads: 1),
     'master_ack_of_padded': ('master_ack', lambda reads: 1),
+    'master_ack_of_padded_data': ('master_ack', lambda reads: 1),
 }
+# Classes whose dropped packet must be shown, from the capture, to be an in-session master pure ACK that newly
+# acknowledges a padded data frontier (not the handshake ACK, not the ACK of a FIN). `master_ack_of_padded` selects
+# by occurrence only; on candidate56r_single_loss_03 its n=2 hit the ACK of the outstation FIN.
+DATA_ACK = {'master_ack_of_padded_data'}
+PADDED_LEN = 58
 
 
 def names():
@@ -78,7 +84,8 @@ def parse_drop(text, reads):
     if not 1 <= n <= MAX_N:
         raise ValueError('--drop %s: N must be 1..%d' % (text, MAX_N))
     base, off = (name, 0) if name in CLASSES else (ALIASES[name][0], ALIASES[name][1](reads))
-    spec = dict(CLASSES[base], **{'class': name, 'n': n, 'base': base, 'occurrence': n + off})
+    spec = dict(CLASSES[base], **{'class': name, 'n': n, 'base': base, 'occurrence': n + off,
+                                  'data_ack': name in DATA_ACK})
     if spec['occurrence'] > MAX_OCCURRENCE:
         raise ValueError('--drop %s: occurrence %d beyond %d' % (text, spec['occurrence'], MAX_OCCURRENCE))
     return spec
@@ -248,6 +255,8 @@ def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
     if t['len'] == 0:
         nxt = next((s for s in ins if s['t_us'] > t['t_us'] and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
         res['progress_us'] = nxt['t_us'] - t['t_us'] if nxt else None
+        if t['src'] == MASTER_IP:
+            res.update(data_ack_facts(ins, t))
         return res
     copies = [s for s in ins if s['src'] == t['src'] and s['seq'] == t['seq'] and s['len'] > 0]
     res['copies_returned'] = len(copies)
@@ -260,6 +269,33 @@ def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
             nxt = next((s for s in ins if s['t_us'] > copies[1]['t_us'] - 1 and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
             res['recovery_us'] = nxt['t_us'] - t['t_us'] if nxt else None
     return res
+
+
+def _seq_ge(a, b):
+    return ((a - b) & 0xFFFFFFFF) < 0x80000000
+
+
+def data_ack_facts(ins, t):
+    """What a dropped master pure ACK `t` acknowledged, and how the connection recovered from its loss.
+    covers_padded_frontier: its ACK equals the end of an earlier outstation data segment of PADDED_LEN octets.
+    before_fin: no FIN from either side up to and including it. Recovery is a later master segment whose ACK covers
+    the same frontier (cumulative_ack; no retransmission is then needed) or a later outstation copy of the covered
+    segment (retransmission); the earlier of the two is recorded with its delay."""
+    before = [s for s in ins if (s['t_us'], s['index']) < (t['t_us'], t['index'])]
+    covered = next((s for s in reversed(before) if s['src'] == OUTSTATION_IP and s['len'] > 0
+                    and (s['seq'] + s['len']) & 0xFFFFFFFF == t['ack']), None)
+    fin_seen = any(s['flags'] & 0x01 for s in before + [t])
+    after = [s for s in ins if (s['t_us'], s['index']) > (t['t_us'], t['index'])]
+    cum = next((s for s in after if s['src'] == MASTER_IP and s['flags'] & 0x10 and _seq_ge(s['ack'], t['ack'])), None)
+    retx = next((s for s in after if covered and s['src'] == OUTSTATION_IP and s['seq'] == covered['seq']
+                 and s['len'] > 0), None)
+    events = sorted([e for e in (('cumulative_ack', cum), ('retransmission', retx)) if e[1]],
+                    key=lambda e: (e[1]['t_us'], e[1]['index']))
+    mech, by = events[0] if events else (None, None)
+    return {'covers_padded_frontier': bool(covered and covered['len'] == PADDED_LEN),
+            'covered_segment': _seg_view(covered) if covered else None, 'before_fin': not fin_seen,
+            'recovery_mechanism': mech, 'cover_us': by['t_us'] - t['t_us'] if by else None,
+            'covered_retransmitted': retx is not None}
 
 
 def _growth(timing, padded):
@@ -305,6 +341,21 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
         res['retransmissions'] = ident.get('retransmissions_sent')
         res['first_retx_delay_ms'] = round(ident['first_retx_delay_us'] / 1000.0, 3) \
             if ident.get('first_retx_delay_us') is not None else None
+        if spec.get('data_ack'):
+            for k in ('covers_padded_frontier', 'before_fin', 'recovery_mechanism', 'covered_retransmitted'):
+                res[k] = ident.get(k)
+            res['cover_ms'] = round(ident['cover_us'] / 1000.0, 3) if ident.get('cover_us') is not None else None
+            if not ident.get('covers_padded_frontier'):
+                fails.append('dropped ACK does not newly acknowledge a padded data frontier (ack %s)'
+                             % ident['packet'].get('ack'))
+            if not ident.get('before_fin'):
+                fails.append('dropped ACK is not in session: a FIN precedes it')
+            if ident.get('recovery_mechanism') is None:
+                fails.append('no later cumulative ACK or retransmission covers the dropped ACK')
+            elif ident['cover_us'] / 1e6 > max_recovery_s:
+                fails.append('cover %.3f s exceeds the %.3f s bound' % (ident['cover_us'] / 1e6, max_recovery_s))
+            if ident.get('progress_us') is None:
+                fails.append('no outstation data after the dropped ACK: no progress shown')
         if ident['packet']['len'] > 0:
             if not ident.get('retransmitted'):
                 fails.append('dropped data packet (seq %d) was never retransmitted' % ident['packet']['seq'])

@@ -248,3 +248,62 @@ class Gate(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class DataAck(unittest.TestCase):
+    """master_ack_of_padded_data: the dropped packet must be an in-session master pure ACK of a padded frontier."""
+
+    def setUp(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
+
+    def with_close(self, reads=3):
+        out, inn = conversation(reads=reads, resp_len=58)
+        t = 1_000_000 * (reads + 1)
+        sseq, rseq = 1000 + 20 * reads, 5000 + 37 * reads      # read_response body is 37 octets at resp_len 58
+        for fr, dt in ((tk.frame(O, M, OP, MP, rseq, sseq, tk.FIN | ACK), 0),
+                       (tk.frame(M, O, MP, OP, sseq, rseq + 1, ACK), 300)):
+            out.append((t + dt, fr))
+            inn.append((t + dt + 50, fr))
+        return out, inn
+
+    def ident(self, text, out, inn):
+        spec = loss.parse_drop(text, reads=3)
+        return spec, loss.identify(*write(self.tmp, out, inn), spec, MP, OP)
+
+    def test_in_session_data_ack_is_identified_and_covered(self):
+        spec, ident = self.ident('master_ack_of_padded_data:1', *self.with_close())
+        self.assertTrue(spec['data_ack'])
+        self.assertTrue(ident['identified'])
+        self.assertTrue(ident['covers_padded_frontier'])
+        self.assertEqual(ident['covered_segment']['ip_len'], 98)
+        self.assertTrue(ident['before_fin'])
+        self.assertEqual(ident['recovery_mechanism'], 'cumulative_ack')
+        self.assertFalse(ident['covered_retransmitted'])
+        self.assertIsNotNone(ident['progress_us'])
+        fails, res = gate(spec=spec, ident=ident, rule=dict(good_inputs()['rule'], dropped_bytes=40))
+        self.assertEqual(fails, [])
+        self.assertEqual(res['recovery_mechanism'], 'cumulative_ack')
+
+    def test_ack_of_fin_is_rejected(self):
+        # occurrence 4 of master_ack here is the ACK of the outstation FIN (as in candidate56r_single_loss_03)
+        spec, ident = self.ident('master_ack_of_padded_data:3', *self.with_close())
+        self.assertTrue(ident['identified'])
+        self.assertFalse(ident['covers_padded_frontier'])
+        self.assertFalse(ident['before_fin'])
+        fails, _ = gate(spec=spec, ident=ident, rule=dict(good_inputs()['rule'], dropped_bytes=40))
+        self.assertTrue(any('padded data frontier' in f for f in fails), fails)
+        self.assertTrue(any('not in session' in f for f in fails), fails)
+
+    def test_old_class_keeps_occurrence_only_semantics(self):
+        spec, ident = self.ident('master_ack_of_padded:3', *self.with_close())
+        self.assertFalse(spec['data_ack'])
+        fails, _ = gate(spec=spec, ident=ident, rule=dict(good_inputs()['rule'], dropped_bytes=40))
+        self.assertFalse(any('padded data frontier' in f for f in fails), fails)
+
+    def test_ack_of_native_response_is_not_a_padded_frontier(self):
+        spec, ident = self.ident('master_ack_of_padded_data:1', *conversation(reads=3, resp_len=49))
+        self.assertTrue(ident['identified'])
+        self.assertEqual(ident['covered_segment']['ip_len'], 89)
+        self.assertFalse(ident['covers_padded_frontier'])

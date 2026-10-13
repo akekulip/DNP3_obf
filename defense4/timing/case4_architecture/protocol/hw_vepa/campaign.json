@@ -200,13 +200,14 @@
       "operate_req":         [{"class": "operate_req", "n": 1}],
       "operate_resp_padded": [{"class": "operate_resp_padded", "n": 1}],
       "master_ack_of_padded_3": [{"class": "master_ack_of_padded", "n": 3}],
+      "master_ack_of_padded_data_1": [{"class": "master_ack_of_padded_data", "n": 1}],
       "core": [
         {"class": "request", "n": 3}, {"class": "ack_sep", "n": 3}, {"class": "read_resp_padded", "n": 3},
         {"class": "select_resp_padded", "n": 1}, {"class": "operate_req", "n": 1},
         {"class": "operate_resp_padded", "n": 1}, {"class": "master_ack_of_padded", "n": 3}
       ]
     },
-    "_note": "A preset is a list of {class, n}; `--loss NAME` runs one trial per entry per arm/fixture, each its own cold bring-up with `vision_run.py --drop CLASS:N` (classes and wire shapes: loss.py). The padded classes assume a padding-on arm; use the native classes (read_resp_native, select_resp_native, operate_resp_native) with padding off. max_recovery_s is the bound on recovery after the drop; exceeding it fails the trial, which is recorded and does not stop the campaign. n counts packets of the class on the connection (the handshake ACK is master_ack #1)."
+    "_note": "A preset is a list of {class, n}; `--loss NAME` runs one trial per entry per arm/fixture, each its own cold bring-up with `vision_run.py --drop CLASS:N` (classes and wire shapes: loss.py). The padded classes assume a padding-on arm; use the native classes (read_resp_native, select_resp_native, operate_resp_native) with padding off. max_recovery_s is the bound on recovery after the drop; exceeding it fails the trial, which is recorded and does not stop the campaign. n counts packets of the class on the connection (the handshake ACK is master_ack #1). master_ack_of_padded selects by occurrence only (on candidate56r_single_loss_03 it hit the ACK of the outstation FIN); master_ack_of_padded_data additionally requires, from the capture, an in-session master pure ACK of a 58-octet response and a later cumulative ACK or retransmission. It needs a fixture whose READ gap exceeds the master delayed-ACK timer, otherwise the ACK rides on the next request and no pure ACK exists to drop."
   },
   "scenarios": {
     "reconnect": {"arm": "combined", "fixture": "separate_ack", "reconnect_port_offset": 1000,
