@@ -20,6 +20,11 @@ PROFILES = {
     # hold): installed SDK 9.13.2, then local 9.13.1.
     '22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6': {
         '2052c564cc77938f3b13001ed94abe089b93e0cdb040c0b259161270dcf3c0d9',
+        # rearm_57a (dup_hold_01 full_01, all-58 profile): same table schema, so the same bfrt.json.
+        '4ea609f6faab5dc2acf7f24b016054ccdb4063133f2fca88b1d1575bc4d11cd4',
+    },
+    '029f9e18e4c5473484d74b7cb126186332876ed9d935f908d413b19d3b800adb': {
+        '9369d239a9093534d9f43c80c1196730d97ba3a5791e21d18b37f43a976dee56',
     },
     '2a22b713f5f0e767d4f635aaf908fc4e9bf5ccb9a5aa247a39f49fe893f5f92a': {
         'e784485bfbde211d74929ea8e4d514bd219714798c55afaf6237b6cdb26d8480',

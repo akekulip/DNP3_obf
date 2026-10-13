@@ -58,10 +58,14 @@ def dup_hold(base, op_j_ms=500):
 
 
 if __name__ == '__main__':
-    graceful = json.loads((HERE / 'candidate57s_graceful_800.json').read_text())
-    for ms in (350,):
-        (HERE / ('candidate57s_dup_hold_%d.json' % ms)).write_text(json.dumps(dup_hold(graceful, ms), indent=2) + '\n')
-        print('wrote candidate57s_dup_hold_%d.json' % ms)
+    for prefix in ('candidate57s', 'candidate57a'):          # strict and all-58 profiles
+        if not (HERE / ('%s_graceful_800.json' % prefix)).exists():
+            continue
+        graceful = json.loads((HERE / ('%s_graceful_800.json' % prefix)).read_text())
+        for ms in (350,):
+            name = '%s_dup_hold_%d.json' % (prefix, ms)
+            (HERE / name).write_text(json.dumps(dup_hold(graceful, ms), indent=2) + '\n')
+            print('wrote', name)
     base = json.loads((HERE / 'candidate57s_fourarm_smoke.json').read_text())
     for b in range(3):
         name = 'candidate57s_eval_b%d.json' % (b + 1)
