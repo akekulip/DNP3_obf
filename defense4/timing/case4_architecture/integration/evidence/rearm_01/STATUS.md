@@ -4,7 +4,7 @@
 
 | gate | run | result |
 |---|---|---|
-| seven single-loss classes | candidate56r_single_loss_02 (six) + _03 (master_ack_of_padded, n=2) | PASS, recovery 0.20–0.23 s, exactly once |
+| six single-loss classes + one close-recovery case | candidate56r_single_loss_02 (six) + _03 (`master_ack_of_padded`, n=2) | PASS, recovery 0.20–0.23 s, exactly once. **_03 dropped the master's ACK of the outstation FIN (packet 73), not an in-session ACK of padded data**; it is close-recovery evidence. The data-ACK case is the new `master_ack_of_padded_data` class (loss.py, 2026-10-13), not yet run on silicon. |
 | RST 950us, 3 same-tuple connections | candidate56r_rst_950_01 | PASS |
 | graceful 800us | candidate56r_graceful_800_01 | PASS |
 | four-arm smoke | candidate56r_fourarm_smoke_01 | PASS |
@@ -26,3 +26,18 @@ The original campaign rc1 is the known per-function-length bug: native SELECT/OP
 Five restoration steps passed; case4_response_path was read-only confirmed restored. Independent baseline timing/four-arm/native experiments are complete, including an actual native RST archive. Latest restoration is retained in baseline_restored_after_native_rst03.txt. Their strict failures remain retained in CHECKPOINT.md and campaign evidence.
 
 Rearm implementation remains in progress. Candidate-only installer and snapshot adapters preserve baseline port/loopback checks. Delayed app reconfiguration now disables the idle/completed app, replays its full action-selected configuration, reenables it and verifies all other fields/counters unchanged. Fresh endpoint run directories are created while run-label reuse still refuses. All142 helper tests pass; syntax and diff checks pass. Model behavior does not establish hardware timing. Separate N/T experiments preserve candidate55.
+
+**What the old-external replay gate shows, and what it does not (2026-10-13, directive f813bc089 §4).** `candidate56r_old_external_01` replays retained native frames into a quiet current lifetime.
+
+- **Pool.** The candidate archives are the native reference runs (`rearm_native_reference_0*`, listed with sha256 under `old_capture_identity` in its `campaign_run.json`).
+- **Selection.** `candidate_external.py::choose_archive` takes the first archive whose old sequence range `fresh_guard` accepts as unambiguous against the new connection's ISNs. It never relaxes the guard.
+- **What was used in this run.** The replay logs name `graceful_0` (old ISNs client 1516364257 / server 3420359121) and `rst_0` (2394794731 / 3822847). New ISNs: c1 3204684138 / 813712543, c2 3286275157 / 895302162, c3 3524363339 / 1133390963. That `graceful_0` and `rst_0` were the first pool entries is read from their paths; no rejected candidates are recorded for this run.
+
+The pool is needed because the guard passes a single archive only when the new ISN lands outside the old range. That is roughly a coin flip per direction, and the kernel ISN wraps in about 275 s. The gate therefore shows rejection of an old frame whose range is unambiguous against the current one. It does **not** give universal replay resistance for every random new ISN: an old segment inside the current window, with identical bytes and coordinates, cannot be told apart from a current one (README, "indistinguishable segment").
+
+**Rearm limits.**
+- A same-tuple reconnect is admitted only after both FINs and their qualified ACKs, or a qualified RST, with the new client ISN at least two octets ahead of the previous native frontier in the forward half-space.
+- Overlap, a half-space jump and an identical ISN all fail closed.
+- There is no timeout-based retirement. A lost producer or an exhausted generation (16-bit owner tag, `op_gen`/`gen_alloc` at 0xffff) keeps the tuple closed until a cold reset and redeployment.
+
+This is bounded transparent reconnect, not unrestricted reconnect.
