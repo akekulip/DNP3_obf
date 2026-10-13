@@ -1,0 +1,256 @@
+{
+ "fixture": "separate_ack",
+ "label": "candidate57s_eval_b1_01_separate_ack_timing_only_t0",
+ "master_port": 59431,
+ "reads": 500,
+ "ok": true,
+ "failures": [],
+ "max_token_stale": 0,
+ "reconnect_policy": "characterize",
+ "diagnostic": false,
+ "preset": "shape_59570",
+ "conditions": {
+  "delay_ms": 5,
+  "gap_ms": 0,
+  "start_delay_ms": 50,
+  "start_seed": 57102
+ },
+ "vision": {
+  "label": "candidate57s_eval_b1_01_separate_ack_timing_only_t0",
+  "master_port": 59431,
+  "reads": 500,
+  "range": 8,
+  "gap_ms": 0,
+  "start_delay_ms_max": 50,
+  "start_seed": 57102,
+  "start_delay_ms_applied": 44,
+  "endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "capture_immediate": false,
+  "capture_commands": {
+   "out": [
+    "tcpdump",
+    "-i",
+    "enp59s0f0np0",
+    "-Q",
+    "out",
+    "-s0",
+    "-U",
+    "-n",
+    "-w",
+    "/home/decps/pad58b_rearm_controls_20261012/runs/candidate57s_eval_b1_01_separate_ack_timing_only_t0/out.pcap",
+    "tcp and host 192.168.10.61 and host 192.168.10.62"
+   ],
+   "in": [
+    "tcpdump",
+    "-i",
+    "enp59s0f0np0",
+    "-Q",
+    "in",
+    "-s0",
+    "-U",
+    "-n",
+    "-w",
+    "/home/decps/pad58b_rearm_controls_20261012/runs/candidate57s_eval_b1_01_separate_ack_timing_only_t0/in.pcap",
+    "tcp and host 192.168.10.61 and host 192.168.10.62"
+   ]
+  },
+  "source_port_wait": {
+   "port": 59431,
+   "polls": 1,
+   "elapsed_s": 0.033,
+   "result": "free"
+  },
+  "outstation_ready": true,
+  "master_rc": 0,
+  "master_wall_s": 16.942,
+  "tcpdump": {
+   "out": {
+    "captured": 1514,
+    "received": 3028,
+    "dropped_kernel": 0
+   },
+   "in": {
+    "captured": 1514,
+    "received": 3028,
+    "dropped_kernel": 0
+   }
+  },
+  "frames_out": 1514,
+  "frames_in": 1514,
+  "ok": true
+ },
+ "wire_rc": 0,
+ "clrt_rc": 0,
+ "achieved_shaping": {
+  "ACK_BLOCK": {
+   "dev_port": 182,
+   "qid": 7,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "ACK_HOLD": {
+   "dev_port": 182,
+   "qid": 6,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  },
+  "RESP_BLOCK": {
+   "dev_port": 182,
+   "qid": 5,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "RESP_HOLD": {
+   "dev_port": 182,
+   "qid": 4,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  },
+  "OP_BLOCK": {
+   "dev_port": 181,
+   "qid": 3,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 64
+  },
+  "OP_HOLD": {
+   "dev_port": 181,
+   "qid": 2,
+   "max_rate_enable": true,
+   "unit": "PPS",
+   "requested_pps": 59570,
+   "achieved_pps": 59570,
+   "max_burst_size": 1
+  }
+ },
+ "observed": {
+  "piggyback_fraction": 0.0,
+  "growth_bytes": 0,
+  "read_precision": {
+   "gap_us": 950.0,
+   "read_rows": 500,
+   "eligible": 500,
+   "excluded": {
+    "incomplete": 0,
+    "piggyback": 0,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": {
+    "n": 500,
+    "min": 1.0,
+    "median": 51,
+    "iqr": 2.0,
+    "p95": 60.0,
+    "p99": 72.0,
+    "max": 93.0,
+    "sd_population": 6.4,
+    "sd_sample": 6.4
+   },
+   "signed_error_us": {
+    "n": 500,
+    "min": -2.0,
+    "median": 51,
+    "iqr": 2.0,
+    "p95": 60.0,
+    "p99": 72.0,
+    "max": 93.0,
+    "sd_population": 6.5,
+    "sd_sample": 6.5
+   },
+   "tails": [
+    {
+     "t_req": 1791930771379513,
+     "clrt_us": 1043,
+     "error_us": 93.0
+    },
+    {
+     "t_req": 1791930772225022,
+     "clrt_us": 1034,
+     "error_us": 84.0
+    },
+    {
+     "t_req": 1791930769148537,
+     "clrt_us": 1027,
+     "error_us": 77.0
+    },
+    {
+     "t_req": 1791930762351249,
+     "clrt_us": 1022,
+     "error_us": 72.0
+    },
+    {
+     "t_req": 1791930766679988,
+     "clrt_us": 1022,
+     "error_us": 72.0
+    }
+   ],
+   "pass": true,
+   "gated": true
+  },
+  "outcomes": {
+   "OUT_UNMATCHED": 0,
+   "OUT_HELD_REWAIT": 186215,
+   "OUT_ACK_COMMIT": 500,
+   "OUT_RESP_RELEASE": 500,
+   "OUT_RESP_DUP_DROP": 0,
+   "OUT_OP_RELEASE": 1,
+   "OUT_TOKEN_STALE": 0,
+   "OUT_HELD_STALE_FLUSH": 0,
+   "OUT_ACK_FALLBACK": 0,
+   "OUT_RESP_FALLBACK": 0,
+   "OUT_TOKEN_TMO": 0,
+   "OUT_HELD_OFF_FLUSH": 0,
+   "OUT_TOKEN_OFF": 0,
+   "OUT_REQ_BYPASS": 0,
+   "index_14": 0,
+   "index_15": 0,
+   "STALE_BLOCKER": 0,
+   "RAW_OPERATE_TIMER_STALE": 0,
+   "RAW_READ_TIMER_STALE": 0,
+   "OUT_OP_DUP_DROP": 0
+  },
+  "token_stale": 0,
+  "pktgen": {
+   "READ": {
+    "triggers": 500,
+    "pkts": 2000
+   },
+   "OPERATE": {
+    "triggers": 1,
+    "pkts": 4
+   }
+  },
+  "loop_octet_gap": {
+   "n_ack_return": 0,
+   "t_in": 0,
+   "hb_return": 0,
+   "held_return": 0
+  }
+ },
+ "continuation": {
+  "purpose": "timing_precision_characterization",
+  "allowed": false,
+  "reason": "trial passed"
+ }
+}

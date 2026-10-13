@@ -28,6 +28,29 @@ Retained failures, each with its cause (harness or fixture, none in the data pla
 
 The all-58 profile (`rearm_57a`, endpoint-specific, Rule 8 non-conformant) has not been run on silicon yet.
 
+**Repeated four-arm evaluation, rearm_57s (2026-10-13).** Runs `candidate57s_eval_b1_01`..`b3_01`.
+
+- **Design.** Three blocks of four arms × 500 completed READs, plus one software-handler SBO per arm. Arm order is rotated per block (Latin square). Fixture delays are 5, 3 and 8 ms with seeded start phase, on the emulated separate-ACK fixture, shaping 59,570 PPS and gap 950 us.
+- **Gates.** All 12 trials pass every hard gate. Exclusions are 0 by every reason (incomplete, retransmitted, piggyback, missing CLRT). All 12 connections are IEEE 1815 conformant.
+- **Precision.** From `eval_summary.py`; the summary is in `eval_57s_summary.json`. The 100 us bound is provisional.
+
+| arm | metric | n | min | median | p99 | max | abs p99 [95% CI] | abs > 100 us |
+|---|---|---|---|---|---|---|---|---|
+| timing_only | CLRT − gap (us) | 1500 | −923 | 35 | 88 | 93 | 88 [86, 89] | 2 |
+| combined | CLRT − gap (us) | 1500 | −923 | 14 | 59 | 1145 | 60 [57, 63] | 4 |
+| off | raw CLRT (us) | 1500 | 2189 | 5356 | 8378 | 8523 | n/a | n/a |
+| size_only | raw CLRT (us) | 1500 | 2226 | 5358 | 8371 | 8396 | n/a | n/a |
+
+- **Overhead per 500-READ arm.** Loop packets / bytes are about 2.5 k / 0.24 MB with T off, and 0.43 M–0.88 M / 32–64 MB with T on, varying by block with the fixture delay. Master-visible growth is 4,500 octets on padded arms (500 × 9).
+
+**Open finding: sporadic ~1.1 ms release overshoot of one held packet.** There are 6 of 3,000 timed READs (0.2%), and none in block 3.
+
+- In block 2 (3 ms delay), READs 127 and 255 in both timed arms had their ACK about 1.1 ms late (4.63 ms vs median 3.52 ms) while the response left on time, so CLRT collapsed to about 27 us. READ 383 has the same app sequence and was normal.
+- In block 1 (combined), READs 237 and 374 had their response about 1.1 ms late, with ACKs on time.
+- All commits were genuine: OUT_ACK_COMMIT = OUT_RESP_RELEASE = 500, fallback 0, stale 0.
+
+Not yet attributed. It may be pre-existing; earlier runs had at most 50 READs per connection. A matched rearm_56r block is needed before attributing it, and it is not authorized yet. The 14,892 vs 59,570 PPS comparison has not been run on this candidate.
+
 
 **Current status (2026-10-12, late): candidate56r passes every rearm gate on silicon.** Build `rearm_56r` is candidate56 plus `stage_experiments/retx_passthrough_01` (N table rows only; E/T byte-identical; installed 9.13.2 N11/E12/T11, mirror guard PASS; compiled model 519/519 retained + 37/37 retransmission checks). Silicon, every run restoring all five baseline steps:
 
