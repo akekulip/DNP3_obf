@@ -43,8 +43,19 @@ HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
 NAMES = ('fourarm_smoke', 'graceful_800', 'old_external', 'old_tokens', 'rst_950', 'single_loss')
 
 
+def artifact_hashes(build):
+    """The four installer-checked artifact hashes, from the committed compile manifest (out/ is git-ignored, so a
+    fresh checkout can still regenerate). When out/ is present each hash is re-checked against the file."""
+    recorded = json.loads((C4 / build / 'manifest.json').read_text())['artifact_sha256']
+    hashes = {name: recorded[name] for name in HASHED}
+    for name, digest in hashes.items():
+        path = C4 / build / 'out' / name
+        if path.exists():
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, ('artifact differs from manifest', name)
+    return hashes
+
+
 def build_entry(old, prof):
-    out = C4 / prof['build'] / 'out'
     note = prof.get('build_note') or (
         'rearm_56r + read_reencode_01 READ two-range re-encoding (IEEE 1815 conforming 58-octet READ) + %s + '
         'dup_hold_01 early-duplicate OPERATE hold. Installed SDK 9.13.2, mirror guard run before use; '
@@ -52,7 +63,7 @@ def build_entry(old, prof):
     entry = dict(old)
     entry.update(out_dir=prof['build'] + '/out', manifest=prof['build'] + '/manifest.json',
                  control_padding=prof['control_padding'],
-                 hashes={name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in HASHED},
+                 hashes=artifact_hashes(prof['build']),
                  _note=note)
     return entry
 
