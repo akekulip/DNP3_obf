@@ -207,6 +207,36 @@ def test_series_switch_gate_strict_build_expects_read_growth_only():
     assert observed['external_growth_expected'] == 180
     assert not any('last generation only' in f for f in failures), failures
 
+
+def _dup_gate(module, cfg, dup_after, declared):
+    cfg['traffic']['expect_held_operate_dup'] = declared
+    before = {'outcomes': {'OUT_ACK_COMMIT': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_RELEASE': 0, 'OUT_RESP_FALLBACK': 0,
+                           'OUT_OP_RELEASE': 0, 'OUT_TOKEN_STALE': 0, 'OUT_OP_DUP_DROP': 0},
+              'pktgen': {'READ': {'trigger_counter': 0, 'pkt_counter': 0},
+                         'OPERATE': {'trigger_counter': 0, 'pkt_counter': 0}},
+              'loop_ports': {role: {'$OctetsReceived': 0, '$OctetsReceivedinGoodFrames': 0}
+                             for role in module.checks.LOOP_ROLES},
+              'regs': {'acct': {'acct.lo': [222], 'acct.hi': [0]}, 'front': {'front': [0]}}}
+    after = json.loads(json.dumps(before))
+    after['outcomes'].update(OUT_ACK_COMMIT=60, OUT_RESP_RELEASE=60, OUT_OP_RELEASE=3, OUT_OP_DUP_DROP=dup_after)
+    after['pktgen']['READ'] = {'trigger_counter': 60, 'pkt_counter': 240}
+    after['pktgen']['OPERATE'] = {'trigger_counter': 3, 'pkt_counter': 12}
+    lifecycle = actual_lifecycle()
+    lifecycle['registers']['p0.r_Egress.acct']['r_Egress.acct.lo'] = [1222]
+    return module.series_switch_gate(cfg, cfg['arms'][0], 20, {'before': before, 'after': after}, lifecycle)
+
+
+def test_series_switch_gate_held_operate_duplicates():
+    module, cfg = configured()
+    failures, observed = _dup_gate(module, cfg, 3, True)
+    assert observed['held_operate_dup_drops'] == 3 and not any('held-OPERATE' in f for f in failures), failures
+    failures, _ = _dup_gate(module, cfg, 0, True)
+    assert any('held-OPERATE duplicate expected' in f for f in failures)
+    failures, _ = _dup_gate(module, cfg, 1, False)
+    assert any('unexpected held-OPERATE duplicate' in f for f in failures)
+    failures, _ = _dup_gate(module, cfg, 0, False)
+    assert not any('held-OPERATE' in f for f in failures)
+
 def actual_lifecycle(epoch=145):
     return {'valid': True, 'errors': {}, 'software_read_fallbacks': [], 'registers': {
         'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [216], 'n_Ingress.work.work.phase': [4]},

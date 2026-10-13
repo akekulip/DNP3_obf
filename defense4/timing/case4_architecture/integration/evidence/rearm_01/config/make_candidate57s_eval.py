@@ -48,6 +48,8 @@ def dup_hold(base, op_j_ms=500):
     deadline, exactly one real OPERATE callback per connection."""
     cfg = json.loads(json.dumps(base))
     cfg['timing_params_ns']['op_j'] = op_j_ms * 1000000
+    if op_j_ms != 500:            # dup_hold_500_01 ran without the declaration; it is kept as it ran
+        cfg['traffic']['expect_held_operate_dup'] = True
     cfg['_notes'] = ['candidate57s_dup_hold_%d (make_candidate57s_eval.py): graceful series with op_j %d ms > RTO, '
                      'so the master retransmits the held OPERATE; tests dup_hold_01 on silicon. op_j must stay below '
                      'the endpoints\' 500 ms OPERATE response timeout and select retention (dup_hold_500_01 hit both).'
@@ -57,7 +59,7 @@ def dup_hold(base, op_j_ms=500):
 
 if __name__ == '__main__':
     graceful = json.loads((HERE / 'candidate57s_graceful_800.json').read_text())
-    for ms in (500, 350):
+    for ms in (350,):
         (HERE / ('candidate57s_dup_hold_%d.json' % ms)).write_text(json.dumps(dup_hold(graceful, ms), indent=2) + '\n')
         print('wrote candidate57s_dup_hold_%d.json' % ms)
     base = json.loads((HERE / 'candidate57s_fourarm_smoke.json').read_text())

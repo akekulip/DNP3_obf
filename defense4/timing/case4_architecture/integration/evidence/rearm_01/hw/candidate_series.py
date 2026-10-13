@@ -223,6 +223,15 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
             failures.append('E mapper unacked must be zero after c3 close, observed %d' % unacked)
     except (KeyError, IndexError, TypeError, ValueError) as error:
         failures.append('missing or malformed mapper counter evidence: %s' % error)
+    # dup_hold_01: an early duplicate OPERATE dropped while held is counted at OUT_OP_DUP_DROP. Required (>= 1)
+    # only when the fixture declares it; otherwise any such drop is unexpected.
+    dup = (observed.get('outcomes') or {}).get('OUT_OP_DUP_DROP')
+    observed['held_operate_dup_drops'] = dup
+    if cfg['traffic'].get('expect_held_operate_dup'):
+        if type(dup) is not int or dup < 1:
+            failures.append('held-OPERATE duplicate expected but OUT_OP_DUP_DROP delta is %r' % (dup,))
+    elif dup:
+        failures.append('unexpected held-OPERATE duplicate drops: OUT_OP_DUP_DROP delta %d' % dup)
     return failures, observed
 
 
@@ -310,7 +319,9 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
         return authorized_python(base.runner.V_RUN+'/vision_candidate.py',
             [label,'--master-port',master_port,'--padding',self._series_padding,
-             '--control-padding',self._series_control_padding,'--close-mode',self.close_mode,
+             '--control-padding',self._series_control_padding,
+             '--expect-held-operate-dup',int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
+             '--close-mode',self.close_mode,
              '--rst-grace-ms',self.rst_grace_ms,'--reads',reads,'--apply'])
 
     def run_unit(self, unit, port):

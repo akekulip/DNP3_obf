@@ -219,7 +219,26 @@ def close_proof(dest, port, mode):
     return all(any(exact(s, port, reverse) and s['flags'] & wc.FIN for s in returned) for reverse in (False, True))
 
 
-def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1):
+def held_operate_duplicates(out_pcap, unmatched):
+    """Split unmatched sent frames into (excused, remaining). Excused: a master 35-octet segment that repeats an
+    earlier sent master segment's sequence number and payload, i.e. a TCP retransmission of the held OPERATE that
+    dup_hold_01 drops while the original is held. Anything else stays a wire-mapping failure."""
+    segs = wc.parse(out_pcap)[0]
+    by_index = {s['index']: s for s in segs}
+    excused, remaining = [], []
+    for u in unmatched:
+        s = by_index.get(u.get('sent_index'))
+        earlier = s is not None and any(e['src'] == s['src'] and e['seq'] == s['seq'] and e['payload'] == s['payload']
+                                        and e['t_us'] < s['t_us'] for e in segs)
+        if s is not None and s['src'] == MASTER and s['len'] == 35 and earlier:
+            excused.append(dict(u, seq=s['seq'], t_us=s['t_us']))
+        else:
+            remaining.append(u)
+    return excused, remaining
+
+
+def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1,
+             expect_held_operate_dup=0):
     failures, ev = [], {}
     required = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt')
     for name in required:
@@ -246,8 +265,13 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
             failures.append('master must report exactly one connection open')
         if result.get('ok') is not True or result.get('master_rc') != 0 or result.get('endpoint_controls') != controls:
             failures.append('connection result or effective controls failed')
-        for key in ('unmatched_sent', 'unmatched_returned', 'duplicate_returned'):
-            if ev['wire'].get(key) != []:
+        unmatched_sent = ev['wire'].get('unmatched_sent')
+        if expect_held_operate_dup and unmatched_sent:
+            excused, unmatched_sent = held_operate_duplicates(Path(dest) / 'out.pcap', unmatched_sent)
+            write_json(Path(dest) / 'held_operate_duplicates.json', {'excused': excused, 'remaining': unmatched_sent})
+        for key, value in (('unmatched_sent', unmatched_sent), ('unmatched_returned', ev['wire'].get('unmatched_returned')),
+                           ('duplicate_returned', ev['wire'].get('duplicate_returned'))):
+            if value != []:
                 failures.append('wire mapping failure: ' + key)
         for direction in ('out', 'in'):
             stats = result.get('tcpdump', {}).get(direction, {})
@@ -261,7 +285,7 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
 
 
 def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
-             control_padding=1):
+             control_padding=1, expect_held_operate_dup=0):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -316,7 +340,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                         connection['failures'].append('kernel RST observer failed')
             connection['failures'] += evaluate(dest, port, mode, padding, result, rst_grace_ms=rst_grace_ms,
                                                reads=reads, pre_read_grace_ms=pre_read_grace_ms,
-                                               control_padding=control_padding)
+                                               control_padding=control_padding,
+                                               expect_held_operate_dup=expect_held_operate_dup)
             connection['pre_read_hook'] = pre_read_evidence(dest, pre_read_grace_ms)[1]
             connection['ok'] = not connection['failures']
             write_json(dest / 'verdict.json', connection)
@@ -341,6 +366,8 @@ def main(argv=None):
     parser.add_argument('--master-port', type=int, required=True)
     parser.add_argument('--close-mode', choices=('graceful', 'rst'), default='graceful')
     parser.add_argument('--padding', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--expect-held-operate-dup', type=int, choices=(0, 1), default=0,
+                        help='1 when the fixture makes the master retransmit a held OPERATE (dup_hold_01 drops it)')
     parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--rst-grace-ms', type=int, default=5000)
@@ -350,7 +377,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.close_mode, args.padding, args.apply,
                       rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms,
-                      control_padding=args.control_padding)
+                      control_padding=args.control_padding, expect_held_operate_dup=args.expect_held_operate_dup)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

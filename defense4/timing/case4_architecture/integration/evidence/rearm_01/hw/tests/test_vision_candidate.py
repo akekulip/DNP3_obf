@@ -214,7 +214,8 @@ class VisionCandidate(unittest.TestCase):
         self.assertTrue(record['ok']); self.assertEqual(len(calls), 3)
         self.assertTrue(all(row[1][0] == 1 and row[2]['close_grace_ms'] == 1000 for row in calls))
         self.assertTrue(all(row[2]['capture_immediate'] is True for row in calls))
-        self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0, control_padding=1)
+        self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0, control_padding=1,
+                                        expect_held_operate_dup=0)
                             for row in gates))
 
     def test_strict_control_padding_propagates_to_gate(self):
@@ -351,3 +352,29 @@ class VisionCandidate(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+import sys  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[5] / 'protocol/hw_vepa/tests'))
+
+
+class HeldOperateDuplicates(unittest.TestCase):
+    """Only a master 35-octet retransmission of an earlier sent segment is excused as a dropped held duplicate."""
+
+    def write(self, tmp, frames):
+        import pcaptk as tk
+        tk.write_pcap(str(Path(tmp) / 'out.pcap'), frames)
+        return Path(tmp) / 'out.pcap'
+
+    def test_only_true_retransmissions_are_excused(self):
+        import tempfile
+        import pcaptk as tk
+        with tempfile.TemporaryDirectory() as tmp:
+            op = tk.frame(vc.MASTER, vc.OUTSTATION, 59420, 20000, 1000, 5000, tk.PSH | tk.ACK, b'\x05' * 35)
+            other = tk.frame(vc.MASTER, vc.OUTSTATION, 59420, 20000, 1035, 5000, tk.PSH | tk.ACK, b'\x06' * 35)
+            path = self.write(tmp, [(1000, op), (208000, op), (300000, other)])
+            excused, remaining = vc.held_operate_duplicates(path, [{'sent_index': 1}, {'sent_index': 2},
+                                                                  {'sent_index': 0}])
+            self.assertEqual([e['sent_index'] for e in excused], [1])
+            self.assertEqual([r['sent_index'] for r in remaining], [2, 0])
