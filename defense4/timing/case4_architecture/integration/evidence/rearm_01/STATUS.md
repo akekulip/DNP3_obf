@@ -1,6 +1,19 @@
 # Generation-safe rearm evidence
 
-Current resume status (2026-10-12): candidate55 graceful/RST same-tuple hardware gates and four-arm smoke PASS; each restoration passed. Candidate56 preserves all counters while reducing stages to **N11/E12/T11** on local9.13.1 and installed9.13.2. Mirror/artifact checks and **519/519 compiled-model assertions PASS**; silicon qualification is separate and active. First56RST attempt stopped before traffic on an omitted Vision transitive helper; failed evidence and all five successful restores retained, deployment repaired. A fresh56RST retry is active. Separate bounded10s endpoint fixture is built and pinned; old-token gates now require split READ24/OP23 packet attribution, complete old batches, unchanged current authority and strict zero rejection suffix after the quiet window. Helper tests142PASS. Old external/token and seven-loss hardware gates remain pending. Counter-elision T10 is excluded from integration. Root alone owns hardware; frozen baseline, candidate55, historical evidence and paper preserved. No push.
+**Current status (2026-10-12, late): candidate56r passes every rearm gate on silicon.** Build `rearm_56r` is candidate56 plus `stage_experiments/retx_passthrough_01` (N table rows only; E/T byte-identical; installed 9.13.2 N11/E12/T11, mirror guard PASS; compiled model 519/519 retained + 37/37 retransmission checks). Silicon, every run restoring all five baseline steps:
+
+| gate | run | result |
+|---|---|---|
+| seven single-loss classes | candidate56r_single_loss_02 (six) + _03 (master_ack_of_padded, n=2) | PASS, recovery 0.20–0.23 s, exactly once |
+| RST 950us, 3 same-tuple connections | candidate56r_rst_950_01 | PASS |
+| graceful 800us | candidate56r_graceful_800_01 | PASS |
+| four-arm smoke | candidate56r_fourarm_smoke_01 | PASS |
+| old-token isolation | candidate56r_old_tokens_01 (untracked: `*_token*` gitignore) | PASS |
+| old external replay | candidate56r_old_external_01 | PASS |
+
+Why the loss gate needed a data-plane change: candidate56 and the frozen mirror_fix_01 both failed 6/7 identically (`candidate56_single_loss_01`, `baseline_single_loss_01`) because N refused a retransmitted copy of a segment it had already forwarded (no `sequence_guard` row → `first_event` count_* → kind 255 → `read_terminal_t` drop). The external replay gate needed an archive pool (`candidate_external.py`), because the unchanged `fresh_guard` passes a single archive only by chance. `master_ack_of_padded:3` asked for a fourth master ACK that the fixture never sends; n=2 is the reachable occurrence. Not claimed: exactly-once beyond these seven single drops; OPERATE retransmission while the original is still held in T (RTO ≈200 ms ≫ J here).
+
+Earlier resume status (2026-10-12): candidate55 graceful/RST same-tuple hardware gates and four-arm smoke PASS; each restoration passed. Candidate56 preserves all counters while reducing stages to **N11/E12/T11** on local9.13.1 and installed9.13.2. Mirror/artifact checks and **519/519 compiled-model assertions PASS**; silicon qualification is separate and active. First56RST attempt stopped before traffic on an omitted Vision transitive helper; failed evidence and all five successful restores retained, deployment repaired. A fresh56RST retry is active. Separate bounded10s endpoint fixture is built and pinned; old-token gates now require split READ24/OP23 packet attribution, complete old batches, unchanged current authority and strict zero rejection suffix after the quiet window. Helper tests142PASS. Old external/token and seven-loss hardware gates remain pending. Counter-elision T10 is excluded from integration. Root alone owns hardware; frozen baseline, candidate55, historical evidence and paper preserved. No push.
 
 The unchanged mirror_fix_01 silicon failure was captured before implementation started. Run: ../campaign_hw_vepa/same_tuple_failure_01/. c1/c2 completed20READ+SBO each; c3 repeated the installed tuple after TIME_WAIT and produced5SYNs with no returned packets, rc2 in5.015s. N remained closed phase7/epoch1.
 

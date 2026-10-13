@@ -1,5 +1,7 @@
 # Case 4 architecture execution
 
+**2026-10-12 late: the rearm plan's silicon gates are complete on build `rearm_56r`** (candidate56 + retransmission pass-through, `stage_experiments/retx_passthrough_01`): seven single-loss classes, RST 950us, graceful 800us, four-arm smoke, old-token and old-external isolation all PASS with every baseline restore. Table and run ids: [rearm STATUS](integration/evidence/rearm_01/STATUS.md). The production switch program is still `case4_response_path`; promoting `rearm_56r` to production, and the OPERATE-path items below (35→55, carve 57→[28,29], extended M mapper, fragments), remain open.
+
 Resumed from commit190a4c603. Stage reductions are qualified offline at **N11/E12/T11** on local9.13.1 and installed9.13.2, compiledmodel519PASS. Optimized candidate56 RST95002 silicon same-tuple20READ+SBO×3 alsoPASS, READp99abs13/50/17us, strictstale0, freshmapper/padding/integrity and allfive restoresPASS. Old token/external10s isolation gates and seven-loss regression remain to run. Preserve candidate55 and the frozen baseline; stage experiments stay isolated until parity, compiler, mirror and silicon evidence agree. See [stage ledger](integration/evidence/rearm_01/STAGE_REDUCTION.md) and [current checkpoint](integration/evidence/rearm_01/CHECKPOINT.md).
 
 Binding assignment: `../../Codex_Case4_Hardware_Architecture_Prompt.md`.
