@@ -1698,3 +1698,42 @@ Preserved candidate55 hardware completes three protected same-tuple20READ+SBO co
 ## 2026-10-12 — stage cuts and candidate56 qualification
 
 Current resume status (2026-10-12): candidate55 graceful/RST same-tuple hardware gates and four-arm smoke PASS; each restoration passed. Candidate56 preserves all counters while reducing stages to **N11/E12/T11** on local9.13.1 and installed9.13.2. Mirror/artifact checks and **519/519 compiled-model assertions PASS**; silicon qualification is separate and active. First56RST attempt stopped before traffic on an omitted Vision transitive helper; failed evidence and all five successful restores retained, deployment repaired. A fresh56RST retry is active. Separate bounded10s endpoint fixture is built and pinned; old-token gates now require split READ24/OP23 packet attribution, complete old batches, unchanged current authority and strict zero rejection suffix after the quiet window. Helper tests142PASS. Old external/token and seven-loss hardware gates remain pending. Counter-elision T10 is excluded from integration. Root alone owns hardware; frozen baseline, candidate55, historical evidence and paper preserved. No push.
+
+## 2026-10-13 — directive f813bc089 (IEEE 1815 + completion): CURRENT CHECKPOINT
+
+HEAD 0d3691501 (gate 1 committed). Plan: ~/.claude/plans/optimized-questing-moler.md. Loaded image on the switch: unchanged
+(production `case4_response_path`; no hardware touched this session). Work dir:
+`defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_reencode_01/`.
+- Gate 1 DONE: IEEE checker + READ two-range oracle (18 tests), pinned OpenDNP3 endpoint PASS (evidence/endpoint_01).
+  PDF verified: Table 4-8 p.35, Rule 8 p.51, Tables 12-6/12-8 p.354, 14-2 p.398, Annex E, A.20.1.
+- P4 READ re-encoding (generate.py, E only; split native READ into 10 headers so no bytes move):
+  full_01 (CRCs early) compiles N12/E12/T11 — N regressed; model 519/519 + 37/37 PASS with the re-encoding oracle.
+  full_02 (--late CRCs after derive_t) compiles N11/E12/T11 = rearm_56r stages. Model suites running.
+  full_03 (--late --strict: ctl_profile never matches -> controls native) compiling; oracle env CASE4_STRICT_CONTROLS=1.
+- DEFECT REPRODUCED on model (rearm_56r): early duplicate OPERATE bypasses T (evidence/dup_model_01,_02). Recorded in
+  rearm_01/STATUS.md. Builder subagent implementing fix in stage_experiments/dup_hold_01 on top of full_02 source
+  (new N->T dup kind; T drops while held, forwards after release).
+- Loss: loss.py class master_ack_of_padded_data (semantic data-ACK gate) + 4 tests; campaign preset added; 405 hw_vepa tests PASS.
+- .gitignore exception for old-token evidence (secret scan clean); not yet committed.
+NEXT: full_02/full_03 model results -> README; review builder diff (code-reviewer) -> compose candidate -> installed 9.13.2
+compile -> pin sealed_profile -> silicon under existing authorization (restore after each block).
+**2026-10-13 later — HW ACTIVE.** Philip authorized 9.13.2 compile + bounded silicon (strict first, then all-58), software
+SBO only, restore after every block (recorded in rearm_01/STATUS.md). Build rearm_57s (dup_hold_01/evidence/full_02_strict,
+commit ac1badc50) pinned; configs rearm_01/config/candidate57s_*.json. RUNNING: candidate_series graceful run-id
+candidate57s_graceful_800_01 (log scratchpad hw_graceful_01.out). If interrupted: confirm restore (campaign_run.json restore[],
+switch observe_program shows case4_response_path). Next blocks: rst_950, fourarm_smoke, single_loss (core preset incl.
+master_ack_of_padded_data), old_tokens, old_external; then check_capture.py on every in.pcap; then all-58 candidate.
+**2026-10-13 silicon progress (rearm_57s strict).** PASS: graceful_800_01, rst_950_01, fourarm_smoke_01, single_loss_01 (6 classes;
+data-ACK n=2 hit FIN-ACK -> gate rejected as designed), single_loss_02 (data-ACK n=1 PASS, cumulative ACK 26.8 ms). Every capture IEEE
+conformant (check_capture.py). dup_hold_500_01 retained FAIL (fixture: 500 ms hold > endpoint 500 ms timeouts) but early duplicate
+dropped on silicon (OUT_OP_DUP_DROP 0->1). RUNNING: dup_hold_350_01. Then: old_tokens, old_external (pool args in Explore report /
+campaign_run old_capture_identity of candidate56r_old_external_01), eval blocks b1..b3 (candidate57s_eval_b*.json), then all-58
+(rearm_57a: compile dup_hold full_01 on switch, make_candidate57s.py --all58).
+**2026-10-13 late checkpoint.** HEAD b7f22b952. Switch idle, production case4_response_path restored (every run verified).
+DONE on silicon: rearm_57s (strict, IEEE-conformant) and rearm_57a (all-58, SBO Rule 8 non-conformant) pass every rearm gate
+incl. dup-hold; repeated 3x4x500 eval on rearm_57s (|err| p99 88/60 us timed arms; open: sporadic ~1.1 ms one-packet release
+overshoot, 6/3000, needs matched rearm_56r block -> NOT authorized yet, ask Philip). Real relay: BOTH candidates cannot carry a TS
+connection (model, baseline 17/99). realrelay_native_01 full_01 passes native (99/99) but review BLOCKS hardware (wedge via stuck
+phase, network-validation bypass, no-TS option profile). Builder fixing into full_02. Then: cold review -> switch compile -> pin ->
+real-relay READ only with Philip's go (physical relay; SBO attended-only). Remaining directive items: §6 writing notes (audit
+folder, not paper/rewrite), release entry point + fresh-checkout offline verification.
