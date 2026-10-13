@@ -1,9 +1,11 @@
 # read_reencode_01: standards-conforming READ padding
 
 Replaces the deployed READ filler with a re-encoding of the same points. The work follows
-`defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md` §2. Status on 2026-10-13: gate 1
-(standards regression, software oracle and real endpoint) passes. The P4 implementation has not been
-started.
+`defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md` §2. Status on 2026-10-13:
+
+- Gate 1 (standards regression, software oracle and real endpoint) passes.
+- The P4 re-encoding in E compiles and passes the compiled model (`full_01`).
+- Silicon has not been run.
 
 ## Findings
 
@@ -86,3 +88,57 @@ size for SBO needs Philip to decide on a changed endpoint contract or protection
 
   No P4, switch or physical endpoint was involved. This endpoint run used the alternating
   0x81/0x01 seed. Varied status patterns are tested offline only.
+
+## P4 implementation (`generate.py`, E only)
+
+Every status octet keeps its order, so the parser splits the native READ response at every boundary
+that either layout needs (rh, robj, p03, p45, c0, p612, p1321, c1, p22, c2). Padding then moves no
+data. It:
+
+- validates the constant headers `ra`/`rbh` and their CRC headers `ca`/`cb`;
+- invalidates `robj`, `c0` and `c1`;
+- rewrites `c2` with the third block's CRC.
+
+The input CRC validation of the native blocks is unchanged. The padded-case TCP checksum list names
+exactly the emitted headers, because absent headers would add whatever shares their containers. The
+image, accounting and reverse partition are unchanged: the frame grows by +9 octets and stays 58.
+
+Input: the `rearm_56r` composite, `retx_passthrough_01/evidence/full_01/response_only.p4`
+(sha256 `ec0dd7af…`). N and T are asserted byte-identical.
+
+| build | options | local 9.13.1 stages (N / E / T) | diag model (519) | retx model (37) |
+|---|---|---|---|---|
+| `full_01` | block CRCs in stage 0 | 12 / 12 / 11 | **519/519** | **37/37** |
+| `full_02` | `--late` (block CRCs after `derive_t`) | 11 / 12 / 11 | 154/519: SYN-ACK dropped | 15/37 |
+| `full_03` | `--late --strict` | compiled, not run (inherits `full_02`'s defect) | | |
+| `full_04` | `--strict` (controls native) | 12 / 12 / 11 | **519/519** (strict-frontier driver) | **37/37** (strict-frontier driver) |
+
+The model runs use `model_drive_oracle.py` around the retained drivers. The wrapper swaps only the READ
+oracle, so every padded-READ byte comparison checks the re-encoding. With
+`CASE4_STRICT_CONTROLS=1` the control oracle returns the native frame.
+
+**Strict policy (`full_04`).** Under the retained drivers unchanged, the strict build scores 498/519 and
+32/37 (`model_diag_04`, `model_retx_04`). Every failure starts at the OPERATE: those drivers hardcode the
+master's frontier after a 58-octet control image (7117/7175 and 1017). `model_drive_diag_strict.py` and
+`model_drive_retx_strict.py` replace exactly those literals with the native-control frontier (7096/7133 and
+996), asserting each one is found, and change nothing else. With them the strict build passes 519/519
+and 37/37 (`model_diag_04_strict`, `model_retx_04_strict`). The native 37-octet SELECT and OPERATE
+responses are sequence-translated behind the padded READs and are not padded. The strict policy keeps
+Rule 8 echoes exact, but it does not give equal response sizes.
+
+**N's stage count (12 vs 11).** `full_01` moves pipe-0 ingress (N, whose source is byte-identical) from
+11 to 12 stages. N shares pipe 0's PHV and stage resources with E. Moving the two block-CRC hashes
+later (`full_02`) restores 11, but that build is unsafe.
+
+**Why `full_02` fails.** The SYN-ACK is aborted in N. The cause is the `epoch_t` stateful-ALU output's
+action-bus layout in the compiled `.bfa`.
+
+- `full_01` (line 9264) uses a single 32-bit slot: `112..115 : epoch(0..31)`.
+- `full_02` (line 9506) mixes 8-bit, 16-bit and 32-bit slices over bytes 32..35, and the model loads
+  `m.epoch` as `0x10000` instead of `0x1`.
+- Moving only the egress applies re-ran pipe-wide PHV allocation, which split `m.epoch_diff` into
+  B4/B5/H95.
+
+Traces: model logs `model_diag_01` line 9859 vs `model_diag_02` line 9886. Whether silicon misreads
+this layout is unknown. `full_02` and `full_03` are not candidates. A pinned 32-bit `m.epoch_diff`
+could make the late placement safe, but that is untested.
