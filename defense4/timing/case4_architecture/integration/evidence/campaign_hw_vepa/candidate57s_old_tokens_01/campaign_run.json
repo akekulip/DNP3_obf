@@ -1,0 +1,505 @@
+{
+ "run_id": "candidate57s_old_tokens_01",
+ "ok": false,
+ "failure": "candidate57s_old_tokens_01_separate_ack_combined_t0 failed: c1: Vision application/RST/hook verdict failed; c1: SELECT response length [37] on the master side, expected [58] (padding 1); c1: OPERATE response length [37] on the master side, expected [58] (padding 1); c2: wire_check.py failed rc1; c2: clrt_check.py failed rc1; c2: missing or malformed evidence: master; c2: missing or malformed evidence: outstation; c2: missing or malformed evidence: wire; c2: missing or malformed evidence: timing; c2: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/out.pcap'; c2: Vision application/RST/hook verdict failed; c2: missing or empty evidence: out.pcap; c2: missing or empty evidence: in.pcap; c2: missing or empty evidence: master.json; c2: missing or empty evidence: outstation.json; c2: missing or empty evidence: result.json; c2: missing or empty evidence: state.txt; c2: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/master.json'; c3: wire_check.py failed rc1; c3: clrt_check.py failed rc1; c3: missing or malformed evidence: master; c3: missing or malformed evidence: outstation; c3: missing or malformed evidence: wire; c3: missing or malformed evidence: timing; c3: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/out.pcap'; c3: Vision application/RST/hook verdict failed; c3: missing or empty evidence: out.pcap; c3: missing or empty evidence: in.pcap; c3: missing or empty evidence: master.json; c3: missing or empty evidence: outstation.json; c3: missing or empty evidence: result.json; c3: missing or empty evidence: state.txt; c3: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/master.json'; Vision isolation series failed; banks: missing quiet snapshots; window: missing token window; missing full-run rejection evidence: 'after'; switch: T on: OUT_ACK_COMMIT=1, expected 3 (complete READs=3, piggyback=0); switch: T on: OUT_RESP_RELEASE=1, expected 3 (complete READs=3, piggyback=0); switch: T on: OUT_OP_RELEASE=1, expected 3; switch: T on: READ trigger delta 1, expected 3; switch: T on: generated READ packets delta 2, expected 12 (2k = 4 per trigger); switch: T on: OPERATE trigger delta 1, expected 3; switch: T on: generated OPERATE packets delta 1, expected 12 (2k = 4 per trigger); switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 1 exceeds the build bound 0; lifecycle: N owner must be retired with current connection generation3; c2 marker did not arrive before bounded observer deadline",
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_57s",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+     "master_port": 59412,
+     "reads": 1,
+     "ok": false,
+     "failures": [
+      "c1: Vision application/RST/hook verdict failed",
+      "c1: SELECT response length [37] on the master side, expected [58] (padding 1)",
+      "c1: OPERATE response length [37] on the master side, expected [58] (padding 1)",
+      "c2: wire_check.py failed rc1",
+      "c2: clrt_check.py failed rc1",
+      "c2: missing or malformed evidence: master",
+      "c2: missing or malformed evidence: outstation",
+      "c2: missing or malformed evidence: wire",
+      "c2: missing or malformed evidence: timing",
+      "c2: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/out.pcap'",
+      "c2: Vision application/RST/hook verdict failed",
+      "c2: missing or empty evidence: out.pcap",
+      "c2: missing or empty evidence: in.pcap",
+      "c2: missing or empty evidence: master.json",
+      "c2: missing or empty evidence: outstation.json",
+      "c2: missing or empty evidence: result.json",
+      "c2: missing or empty evidence: state.txt",
+      "c2: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/master.json'",
+      "c3: wire_check.py failed rc1",
+      "c3: clrt_check.py failed rc1",
+      "c3: missing or malformed evidence: master",
+      "c3: missing or malformed evidence: outstation",
+      "c3: missing or malformed evidence: wire",
+      "c3: missing or malformed evidence: timing",
+      "c3: fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/out.pcap'",
+      "c3: Vision application/RST/hook verdict failed",
+      "c3: missing or empty evidence: out.pcap",
+      "c3: missing or empty evidence: in.pcap",
+      "c3: missing or empty evidence: master.json",
+      "c3: missing or empty evidence: outstation.json",
+      "c3: missing or empty evidence: result.json",
+      "c3: missing or empty evidence: state.txt",
+      "c3: evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/master.json'",
+      "Vision isolation series failed",
+      "banks: missing quiet snapshots",
+      "window: missing token window",
+      "missing full-run rejection evidence: 'after'",
+      "switch: T on: OUT_ACK_COMMIT=1, expected 3 (complete READs=3, piggyback=0)",
+      "switch: T on: OUT_RESP_RELEASE=1, expected 3 (complete READs=3, piggyback=0)",
+      "switch: T on: OUT_OP_RELEASE=1, expected 3",
+      "switch: T on: READ trigger delta 1, expected 3",
+      "switch: T on: generated READ packets delta 2, expected 12 (2k = 4 per trigger)",
+      "switch: T on: OPERATE trigger delta 1, expected 3",
+      "switch: T on: generated OPERATE packets delta 1, expected 12 (2k = 4 per trigger)",
+      "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 1 exceeds the build bound 0",
+      "lifecycle: N owner must be retired with current connection generation3",
+      "c2 marker did not arrive before bounded observer deadline"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "scenario": {
+      "policy": "real_old_token_isolation",
+      "connections": {
+       "c1": {
+        "ok": false,
+        "failures": [
+         "Vision application/RST/hook verdict failed",
+         "SELECT response length [37] on the master side, expected [58] (padding 1)",
+         "OPERATE response length [37] on the master side, expected [58] (padding 1)"
+        ],
+        "fresh_mapping": {
+         "client_isn": 2553583407,
+         "server_isn": 267784109,
+         "frontiers": {
+          "client": 2553583498,
+          "server": 267784233
+         }
+        }
+       },
+       "c2": {
+        "ok": false,
+        "failures": [
+         "missing or malformed evidence: master",
+         "missing or malformed evidence: outstation",
+         "missing or malformed evidence: wire",
+         "missing or malformed evidence: timing",
+         "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/out.pcap'",
+         "Vision application/RST/hook verdict failed",
+         "missing or empty evidence: out.pcap",
+         "missing or empty evidence: in.pcap",
+         "missing or empty evidence: master.json",
+         "missing or empty evidence: outstation.json",
+         "missing or empty evidence: result.json",
+         "missing or empty evidence: state.txt",
+         "evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c2/master.json'"
+        ],
+        "fresh_mapping": null
+       },
+       "c3": {
+        "ok": false,
+        "failures": [
+         "missing or malformed evidence: master",
+         "missing or malformed evidence: outstation",
+         "missing or malformed evidence: wire",
+         "missing or malformed evidence: timing",
+         "fresh mapping: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/out.pcap'",
+         "Vision application/RST/hook verdict failed",
+         "missing or empty evidence: out.pcap",
+         "missing or empty evidence: in.pcap",
+         "missing or empty evidence: master.json",
+         "missing or empty evidence: outstation.json",
+         "missing or empty evidence: result.json",
+         "missing or empty evidence: state.txt",
+         "evidence extraction failed: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/candidate57s_old_tokens_01/separate_ack/combined/candidate57s_old_tokens_01_separate_ack_combined_t0/c3/master.json'"
+        ],
+        "fresh_mapping": null
+       }
+      }
+     },
+     "observed": {
+      "bank_isolation": {
+       "ok": false,
+       "failures": [
+        "missing quiet snapshots"
+       ]
+      },
+      "old_token_window": {
+       "ok": false,
+       "failures": [
+        "missing token window"
+       ]
+      },
+      "old_rejection_delta": null,
+      "quiet_rejections": null,
+      "switch": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 524,
+        "OUT_ACK_COMMIT": 1,
+        "OUT_RESP_RELEASE": 1,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 1,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 1,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 1,
+       "pktgen": {
+        "READ": {
+         "triggers": 1,
+         "pkts": 2
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 1
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       },
+       "external_growth_bytes": 9,
+       "external_growth_expected": 9,
+       "unacked": 0,
+       "held_operate_dup_drops": 0
+      },
+      "lifecycle": {
+       "epochs": {
+        "registers": {
+         "N": "p0.n_Ingress.epoch",
+         "E": "p0.r_Egress.epoch",
+         "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+         "N": 1,
+         "E": 1,
+         "T": 1
+        },
+        "E_raw": 2147483649,
+        "T_raw": 2147483649,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+       },
+       "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 14
+       },
+       "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554433,
+        "phase": 512,
+        "generation": 1
+       }
+      },
+      "precision_qualified": false
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59412,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate57s_old_tokens_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "before lifecycle snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate57s_old_tokens_01_separate_ack_combined_t0",
+   "what": "after lifecycle snapshot",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "cc8904b0791da11bce35c4ea80e04d53e2b1f725e83a88b5a22790ce449ddcf3"
+ },
+ "candidate_series": {
+  "close_mode": "rst",
+  "rst_grace_ms": 1000,
+  "connections": 3,
+  "effective_endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "limitations": [
+   "old retained packet replay is proven by replay_old_packets.py, not this series harness",
+   "delayed internal token proof is a separate IPG diagnostic, not a precision qualification"
+  ]
+ },
+ "token_isolation": {
+  "delay_remote": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/candidate57s_old_tokens_01_separate_ack_combined_t0_before_token_delay.json",
+  "monitor_ok": false,
+  "error": "c2 marker did not arrive before bounded observer deadline"
+ },
+ "isolation_source_identity": {
+  "integration/evidence/rearm_01/hw/candidate_isolation.py": "8c5562a74ad87a045f535180ee240491f8514895a9a483c74857315d9818cc5e",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/isolation_gate.py": "390985bd717440ee60183e862236560a4974520f27b06e608d54356da5efaa26",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_series.py": "3bd7e902b4f6ab25755f42a6c2dada1762b9e792b2f8b66d594c2bb5a51b3410",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py": "6405b89606386ebff58622e69e97fb600efec39945036eeb2727b543140ad870",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/lib",
+  "vision_run_sha256": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+  "loss_sha256": "b5ed2d2b2475fb573bb6e174c0b3109b6418d8213f3957b97349b2ff8086d781"
+ },
+ "candidate_series_vision_identity": {
+  "token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "vision_candidate.py": "f935043448c4f334ff18ecf97fec508009612a4885c14859cf45674cfd0e5ea7",
+  "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453",
+  "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+  "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672"
+ },
+ "isolation_vision_identity": {
+  "vision_isolation.py": "6c1cddd65ea532869c4045b0ec09d7f7b6a86a68ee4ba04de629d76dc15fdc86",
+  "token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "candidate_series_switch_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "isolation_switch_identity": {
+  "delay_read_tokens.py": "18720547bbb9404ce5e7fb1852d8b399e902cfb715bd78cedcf089805224055f"
+ },
+ "pre_run_program": "case4_response_path",
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 1,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59412,
+    "last": 59412
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "stale_source_characterization",
+   "read_precision": false
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "rearm_57s": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "f892c9a7753b2c207ae7433177d07422575b3d0bcffe8a599e044d6576f9c342",
+   "source_files": {
+    "SocketGatePad58B.cpp": "f892c9a7753b2c207ae7433177d07422575b3d0bcffe8a599e044d6576f9c342",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012"
+ },
+ "config_sha256": "2d9239a11a9d39706f4138c7539517ec82f6b460797d0d686b626e95942bc564",
+ "config_file_sha256": "f3d66b27e1b48a0673d8501074725a318282bd6bbee047ca2d9255affeb6cd03",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "656a8211773b3a6ee2c2347a17cb69f2ec2ad1a3758abcff74fbc17ddc897d16",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453"
+  },
+  "build_sources": {
+   "rearm_57s": {
+    "source_sha256": "2ad71761399e023b0d3b6b72f9fb71257da012499ffe30ac4758b395fc1bd97c",
+    "source_files": {
+     "response_only.p4": "2ad71761399e023b0d3b6b72f9fb71257da012499ffe30ac4758b395fc1bd97c"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_57s": {
+   "bfrt.json": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+   "p0/tofino.bin": "fbb514713643a327243999ba5ddaf9ec244b5d362a71d045cb2a697cbc9fd426",
+   "p1/tofino.bin": "daef693337dce7af6bcdec07b884c05aa63efbf74a0633209b162550867ee28e",
+   "p1/response_only.bfa": "c7f40eb1e27075b043e2be5d1d779df2867e75becf1bafd0612ba2722e6e2c3f"
+  }
+ },
+ "paired_block": null,
+ "time": 1791929296.5750072
+}

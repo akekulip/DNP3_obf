@@ -88,7 +88,13 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if reads!=1 or any(kwargs.get(key) for key in ('connect_must_fail','drop','scenario','reconnect_port')):
             raise ValueError('isolation requires a protected one-READ tuple')
         return authorized_python(base.runner.V_RUN+'/vision_isolation.py',
-            [label,'--master-port',master_port,'--padding',1,'--apply'])
+            [label,'--master-port',master_port,'--padding',1,'--control-padding',self._control_padding(),'--apply'])
+
+    def _control_padding(self):
+        builds={arm['build'] for arm in self.cfg['arms']}
+        if len(builds)!=1:
+            raise ValueError('isolation expects one build')
+        return int(self.cfg['builds'][builds.pop()].get('control_padding',True))
 
     def run_unit(self,unit,port):
         self.active_unit=(unit,port,self.label(unit))

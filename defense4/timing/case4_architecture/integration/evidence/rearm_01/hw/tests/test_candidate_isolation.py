@@ -38,8 +38,17 @@ def test_fixed_isolation_command_has_one_read_and_no_external_replay():
     run=ci.TokenIsolationCampaign(config(),ci.base.DryRunner(),'token_cmd',arms=['combined'],fixtures=['separate_ack'])
     run._series_padding=1
     command=run.series_vision_cmd('fixed',59412,1,8,0)
-    assert 'vision_isolation.py fixed --master-port 59412 --padding 1 --apply' in command
+    assert 'vision_isolation.py fixed --master-port 59412 --padding 1 --control-padding 1 --apply' in command
     assert 'vision_candidate.py' not in command and 'replay' not in command
+
+
+def test_strict_build_passes_native_control_expectation():
+    cfg=config()
+    for build in cfg['builds'].values():
+        build['control_padding']=False
+    run=ci.TokenIsolationCampaign(cfg,ci.base.DryRunner(),'token_cmd',arms=['combined'],fixtures=['separate_ack'])
+    run._series_padding=1
+    assert '--padding 1 --control-padding 0 --apply' in run.series_vision_cmd('fixed',59412,1,8,0)
 
 
 def test_marker_reader_command_never_prints_arbitrary_files():

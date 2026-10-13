@@ -99,7 +99,8 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
     def series_vision_cmd(self,label,port,reads,*args,**kwargs):
         if port!=59400 or reads!=1:
             raise ValueError('external replay requires source59400 and one READ per incarnation')
-        return authorized_python(base.runner.V_RUN+'/vision_replay.py',[label,'--master-port',port,'--padding',1,'--apply'])
+        return authorized_python(base.runner.V_RUN+'/vision_replay.py',[label,'--master-port',port,'--padding',1,
+                                 '--control-padding',self._control_padding(),'--apply'])
 
     def snapshot(self,out_remote,name,check=True,preset=None):
         return cs.CandidateSeriesCampaign.snapshot(self,out_remote,name,check,preset)

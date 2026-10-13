@@ -168,7 +168,7 @@ def derive_current(dest):
     return result
 
 
-def scenario(label, port=PORT, padding=1, apply=False):
+def scenario(label, port=PORT, padding=1, apply=False, control_padding=1):
     vc.guard(port, apply)
     if port != PORT:
         raise ValueError('external replay requires fixed master source port59400')
@@ -211,7 +211,8 @@ def scenario(label, port=PORT, padding=1, apply=False):
                     evidence = Path(connection['replay_filter']['evidence_dir'])
                 connection['evidence_dir'] = str(evidence)
                 connection['failures'] += vc.evaluate(evidence, PORT, 'rst', padding, result,
-                    rst_grace_ms=1000, reads=1, pre_read_grace_ms=leg['pre_read_grace_ms'])
+                    rst_grace_ms=1000, reads=1, pre_read_grace_ms=leg['pre_read_grace_ms'],
+                    control_padding=control_padding)
             except Exception as error:
                 connection['failures'].append('replay evidence failed: ' + str(error))
             connection['pre_read_hook'] = vc.pre_read_evidence(dest, leg['pre_read_grace_ms'])[1]
@@ -234,9 +235,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('label'); parser.add_argument('--master-port', type=int, default=PORT)
     parser.add_argument('--padding', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
+                        help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
-    record = scenario(args.label, args.master_port, args.padding, args.apply)
+    record = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding)
     print(json.dumps(record, indent=2)); return 0 if record['ok'] else 1
 
 

@@ -29,7 +29,7 @@ def test_constructor_binds_real_native_fin_rst_archives_and_fixed_port():
     run=make_run()
     assert set(run.record['old_capture_identity'])=={'graceful','rst'}
     assert 'token_isolation' not in run.record
-    assert run.series_vision_cmd('fixed',59400,1).endswith('fixed --master-port 59400 --padding 1 --apply')
+    assert run.series_vision_cmd('fixed',59400,1).endswith('fixed --master-port 59400 --padding 1 --control-padding 1 --apply')
     cfg,_,_=configured();cfg['traffic']['master_port_range']=dict(first=59401,last=59401)
     with pytest.raises(ValueError,match='59400'):make_run(cfg)
 
