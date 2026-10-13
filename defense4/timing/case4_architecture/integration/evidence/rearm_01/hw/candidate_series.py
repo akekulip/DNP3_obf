@@ -214,7 +214,7 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
-        expected = reads * 9 + 42 if arm['padding'] else 0
+        expected = reads * 9 + (42 if build.get('control_padding', True) else 0) if arm['padding'] else 0
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
             failures.append('E mapper growth must reflect last generation only: observed %d, expected %d' %
@@ -309,12 +309,14 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         if connect_must_fail or drop or scenario or reconnect_port is not None:
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
         return authorized_python(base.runner.V_RUN+'/vision_candidate.py',
-            [label,'--master-port',master_port,'--padding',self._series_padding,'--close-mode',self.close_mode,
+            [label,'--master-port',master_port,'--padding',self._series_padding,
+             '--control-padding',self._series_control_padding,'--close-mode',self.close_mode,
              '--rst-grace-ms',self.rst_grace_ms,'--reads',reads,'--apply'])
 
     def run_unit(self, unit, port):
         old = base.runner.vision_cmd
         self._series_padding = unit['arm']['padding']
+        self._series_control_padding = int(self.cfg['builds'][unit['arm']['build']].get('control_padding', True))
         base.runner.vision_cmd = self.series_vision_cmd
         try:
             return super().run_unit(unit, port)

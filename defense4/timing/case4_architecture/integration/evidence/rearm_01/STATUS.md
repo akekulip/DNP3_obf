@@ -41,3 +41,13 @@ The pool is needed because the guard passes a single archive only when the new I
 - There is no timeout-based retirement. A lost producer or an exhausted generation (16-bit owner tag, `op_gen`/`gen_alloc` at 0xffff) keeps the tuple closed until a cold reset and redeployment.
 
 This is bounded transparent reconnect, not unrestricted reconnect.
+
+**Authorization recorded 2026-10-13 (Philip, this session).** Authorized:
+- the installed-SDK 9.13.2 compile on the switch host;
+- loading the corrected candidates (READ two-range re-encoding plus the duplicate-OPERATE hold fix) for bounded silicon runs with software endpoints: persistent READ and SBO, close/rearm, the `master_ack_of_padded_data` loss case, and duplicate OPERATE;
+- both control policies, strict first (native SELECT/OPERATE), then all-58.
+
+Conditions:
+- SBO uses the software handler only. Physical relay OPERATE is not authorized (attended-only).
+- `case4_response_path` is restored and verified after every block.
+- No SDK change, no push, no default promotion.

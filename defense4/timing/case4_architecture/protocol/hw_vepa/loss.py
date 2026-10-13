@@ -298,12 +298,13 @@ def data_ack_facts(ins, t):
             'covered_retransmitted': retx is not None}
 
 
-def _growth(timing, padded):
-    """(observed growth bytes over native, expected from the exchanges that actually completed)."""
+def _growth(timing, padded, control_padding=True):
+    """(observed growth bytes over native, expected from the exchanges that actually completed). Under the
+    strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing."""
     ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
     obs = sum(e['resp_len'] - NATIVE.get(e['kind'], e['resp_len']) for e in ex)
     exp = (9 * sum(1 for e in ex if e['kind'] == 'READ') +
-           21 * sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
+           (21 if control_padding else 0) * sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
     return obs, exp
 
 
@@ -397,8 +398,9 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
         fails.append('%d unmatched returned segment(s): a frame the switch emitted that no sender frame explains'
                      % len(w['unmatched_returned']))
     res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
-    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']))
+    ctl = bool(arm.get('control_padding', True))
+    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl)
     if res['growth_bytes'] != res['expected_growth_bytes']:
-        fails.append('growth %d B != %d B expected from the responses delivered (9 per READ, 21 per control response)'
-                     % (res['growth_bytes'], res['expected_growth_bytes']))
+        fails.append('growth %d B != %d B expected from the responses delivered (9 per READ, %d per control response)'
+                     % (res['growth_bytes'], res['expected_growth_bytes'], 21 if ctl else 0))
     return fails, res

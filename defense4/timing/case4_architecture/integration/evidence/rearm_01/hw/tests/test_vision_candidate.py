@@ -214,7 +214,21 @@ class VisionCandidate(unittest.TestCase):
         self.assertTrue(record['ok']); self.assertEqual(len(calls), 3)
         self.assertTrue(all(row[1][0] == 1 and row[2]['close_grace_ms'] == 1000 for row in calls))
         self.assertTrue(all(row[2]['capture_immediate'] is True for row in calls))
-        self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0) for row in gates))
+        self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0, control_padding=1)
+                            for row in gates))
+
+    def test_strict_control_padding_propagates_to_gate(self):
+        gates = []
+        def connect(dest, label, port, *args, **kwargs):
+            Path(dest).mkdir(); return {'ok': True}
+        def evaluate(*args, **kwargs):
+            gates.append(kwargs); return []
+        with patch.object(vc.vr, 'RUNS', str(self.root)), patch.object(vc, 'preflight', return_value=[]), \
+             patch.object(vc, 'observe', return_value={'ok': True}), patch.object(vc.vr, 'run_connection', side_effect=connect), \
+             patch.object(vc, 'evaluate', side_effect=evaluate):
+            vc.scenario('test', self.port, 'graceful', 1, apply=True, control_padding=0)
+        self.assertEqual([g['control_padding'] for g in gates], [0, 0, 0])
+        self.assertEqual(vc.EXPECT_STRICT['padding']['1'], {'read_resp_len': [58], 'sbo_resp_len': [37]})
 
     def test_rst_grace_and_read_bounds_are_enforced_offline(self):
         for value in (499, 5001, True, '1000'):

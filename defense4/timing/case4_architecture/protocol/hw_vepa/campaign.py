@@ -984,6 +984,7 @@ class Campaign:
         except Exception as e:                       # an unreadable capture is a recorded failure, not a crash
             ident = {'identified': False, 'candidates': None, 'packet': None, 'error': str(e)}
         base = self._baseline_completion_s(fixture, arm['name'])
+        arm = dict(arm, control_padding=c['builds'][arm['build']].get('control_padding', True))
         fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
                                         result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
                                         ev['timing'], c['expectations'], base)

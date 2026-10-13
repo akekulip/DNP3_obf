@@ -45,6 +45,10 @@ NAMESPACE_M, NAMESPACE_O, NIC = 'ns_vepa_a', 'ns_vepa_b', 'enp59s0f0np0'
 EXPECT = {'common': {'read_points': 23}, 'padding': {
     '0': {'read_resp_len': [49], 'sbo_resp_len': [37]},
     '1': {'read_resp_len': [58], 'sbo_resp_len': [58]}}}
+# Strict-response builds (control_padding 0): READ still 58, SELECT/OPERATE responses stay native.
+EXPECT_STRICT = {'common': {'read_points': 23}, 'padding': {
+    '0': {'read_resp_len': [49], 'sbo_resp_len': [37]},
+    '1': {'read_resp_len': [58], 'sbo_resp_len': [37]}}}
 
 
 def guard(port, apply=False):
@@ -215,7 +219,7 @@ def close_proof(dest, port, mode):
     return all(any(exact(s, port, reverse) and s['flags'] & wc.FIN for s in returned) for reverse in (False, True))
 
 
-def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0):
+def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1):
     failures, ev = [], {}
     required = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt')
     for name in required:
@@ -229,7 +233,8 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
         ev['wire'] = wc.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
         ev['timing'] = clrt.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
         write_json(Path(dest) / 'wire.json', ev['wire']); write_json(Path(dest) / 'timing.json', ev['timing'])
-        failures += checks.application_checks(EXPECT, padding, reads, ev, run_sbo=True)
+        failures += checks.application_checks(EXPECT if control_padding else EXPECT_STRICT, padding, reads, ev,
+                                              run_sbo=True)
         master = ev['master'] or {}
         controls = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=rst_grace_ms if mode == 'rst' else 0)
         if any(type(master.get(key)) is not type(value) or master.get(key) != value for key, value in controls.items()):
@@ -255,7 +260,8 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
     return failures
 
 
-def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0):
+def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
+             control_padding=1):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -309,7 +315,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                     if observer.get('ok') is not True:
                         connection['failures'].append('kernel RST observer failed')
             connection['failures'] += evaluate(dest, port, mode, padding, result, rst_grace_ms=rst_grace_ms,
-                                               reads=reads, pre_read_grace_ms=pre_read_grace_ms)
+                                               reads=reads, pre_read_grace_ms=pre_read_grace_ms,
+                                               control_padding=control_padding)
             connection['pre_read_hook'] = pre_read_evidence(dest, pre_read_grace_ms)[1]
             connection['ok'] = not connection['failures']
             write_json(dest / 'verdict.json', connection)
@@ -334,13 +341,16 @@ def main(argv=None):
     parser.add_argument('--master-port', type=int, required=True)
     parser.add_argument('--close-mode', choices=('graceful', 'rst'), default='graceful')
     parser.add_argument('--padding', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
+                        help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--rst-grace-ms', type=int, default=5000)
     parser.add_argument('--reads', type=int, default=20)
     parser.add_argument('--pre-read-grace-ms', type=int, default=0)
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.close_mode, args.padding, args.apply,
-                      rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms)
+                      rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms,
+                      control_padding=args.control_padding)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

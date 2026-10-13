@@ -186,6 +186,27 @@ def test_series_switch_gate_uses_three_t_counts_but_last_leg_mapper_growth_only(
     assert any('last generation only' in f for f in failures)
 
 
+
+def test_series_switch_gate_strict_build_expects_read_growth_only():
+    module, cfg = configured()
+    cfg['builds'][cfg['arms'][0]['build']]['control_padding'] = False
+    before = {'outcomes': {'OUT_ACK_COMMIT': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_RELEASE': 0,
+                           'OUT_RESP_FALLBACK': 0, 'OUT_OP_RELEASE': 0, 'OUT_TOKEN_STALE': 0},
+              'pktgen': {'READ': {'trigger_counter': 0, 'pkt_counter': 0},
+                         'OPERATE': {'trigger_counter': 0, 'pkt_counter': 0}},
+              'loop_ports': {role: {'$OctetsReceived': 0, '$OctetsReceivedinGoodFrames': 0}
+                             for role in module.checks.LOOP_ROLES},
+              'regs': {'acct': {'acct.lo': [180], 'acct.hi': [0]}, 'front': {'front': [0]}}}
+    after = json.loads(json.dumps(before))
+    after['outcomes'].update(OUT_ACK_COMMIT=60, OUT_RESP_RELEASE=60, OUT_OP_RELEASE=3)
+    after['pktgen']['READ'] = {'trigger_counter': 60, 'pkt_counter': 240}
+    after['pktgen']['OPERATE'] = {'trigger_counter': 3, 'pkt_counter': 12}
+    lifecycle = actual_lifecycle()
+    lifecycle['registers']['p0.r_Egress.acct']['r_Egress.acct.lo'] = [1180]
+    failures, observed = module.series_switch_gate(cfg, cfg['arms'][0], 20, {'before': before, 'after': after}, lifecycle)
+    assert observed['external_growth_expected'] == 180
+    assert not any('last generation only' in f for f in failures), failures
+
 def actual_lifecycle(epoch=145):
     return {'valid': True, 'errors': {}, 'software_read_fallbacks': [], 'registers': {
         'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [216], 'n_Ingress.work.work.phase': [4]},

@@ -307,3 +307,28 @@ class DataAck(unittest.TestCase):
         self.assertTrue(ident['identified'])
         self.assertEqual(ident['covered_segment']['ip_len'], 89)
         self.assertFalse(ident['covers_padded_frontier'])
+
+
+class StrictControls(unittest.TestCase):
+    """control_padding False (strict-response builds): SELECT/OPERATE responses stay native and add no growth."""
+
+    def strict_timing(self):
+        t = clean_timing()
+        for e in t['exchanges']:
+            if e['kind'] in ('SELECT', 'OPERATE'):
+                e['resp_len'] = 37
+        return t
+
+    def test_growth_counts_reads_only(self):
+        self.assertEqual(loss._growth(self.strict_timing(), True, control_padding=False), (27, 27))
+        self.assertEqual(loss._growth(self.strict_timing(), True)[1], 27 + 42)
+
+    def test_gate_accepts_native_controls_only_when_declared(self):
+        d = good_inputs()
+        arm = {'padding': 1, 'control_padding': 0}
+        fails, res = loss.evaluate_loss(arm, 3, 5.0, d['spec'], d['rule'], d['ident'], d['master'], d['ost'],
+                                        d['wire'], self.strict_timing(), EXP, baseline_completion_s=2.5)
+        self.assertFalse(any('growth' in f for f in fails), fails)
+        fails, _ = loss.evaluate_loss({'padding': 1}, 3, 5.0, d['spec'], d['rule'], d['ident'], d['master'], d['ost'],
+                                      d['wire'], self.strict_timing(), EXP, baseline_completion_s=2.5)
+        self.assertTrue(any('growth 27 B != 69 B' in f for f in fails), fails)
