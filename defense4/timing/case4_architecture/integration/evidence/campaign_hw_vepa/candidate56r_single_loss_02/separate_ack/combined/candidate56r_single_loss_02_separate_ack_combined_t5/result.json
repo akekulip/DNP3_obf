@@ -1,0 +1,253 @@
+{
+ "label": "candidate56r_single_loss_02_separate_ack_combined_t5",
+ "master_port": 59445,
+ "reads": 20,
+ "range": 8,
+ "gap_ms": 0,
+ "start_delay_ms_max": 0,
+ "start_seed": 12350,
+ "start_delay_ms_applied": 0,
+ "endpoint_controls": {
+  "read_pause_ms": 25,
+  "run_sbo": true,
+  "close_grace_ms": 0
+ },
+ "capture_immediate": false,
+ "capture_commands": {
+  "out": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "out",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t5/out.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ],
+  "in": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "in",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t5/in.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ]
+ },
+ "source_port_wait": {
+  "port": 59445,
+  "polls": 1,
+  "elapsed_s": 0.033,
+  "result": "free"
+ },
+ "outstation_ready": true,
+ "master_rc": 0,
+ "master_wall_s": 0.935,
+ "loss": {
+  "class": "operate_resp_padded",
+  "n": 1,
+  "occurrence": 22,
+  "base": "resp_padded",
+  "dir": "O>M",
+  "ip_len": 98,
+  "flags": "ACK,PSH",
+  "ns": "ns_vepa_a",
+  "chain": "INPUT",
+  "mode": "limit-burst-1 chain (kernel-atomic)",
+  "rules": [
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+   "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+  ],
+  "counters": [
+   {
+    "pos": 1,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 2,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 3,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 4,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 5,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 6,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 7,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 8,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 9,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 10,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 11,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 12,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 13,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 14,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 15,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 16,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 17,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 18,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 19,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 20,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 21,
+    "target": "ACCEPT",
+    "pkts": 1,
+    "bytes": 98
+   },
+   {
+    "pos": 22,
+    "target": "DROP",
+    "pkts": 1,
+    "bytes": 98
+   }
+  ],
+  "counter_error": null,
+  "dropped_packets": 1,
+  "dropped_bytes": 98,
+  "earlier_matches": 21,
+  "exact": true,
+  "removed": true,
+  "remove_errors": [],
+  "state_before": [
+   "-P INPUT ACCEPT"
+  ],
+  "state_after": [
+   "-P INPUT ACCEPT"
+  ],
+  "state_restored": true
+ },
+ "tcpdump": {
+  "out": {
+   "captured": 75,
+   "received": 150,
+   "dropped_kernel": 0
+  },
+  "in": {
+   "captured": 75,
+   "received": 150,
+   "dropped_kernel": 0
+  }
+ },
+ "frames_out": 75,
+ "frames_in": 75,
+ "ok": true,
+ "loss_exact": true
+}

@@ -1,0 +1,1504 @@
+{
+ "run_id": "candidate56r_old_external_01",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_56r",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_old_external_01_separate_ack_combined_t0",
+     "master_port": 59400,
+     "reads": 1,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "scenario": {
+      "policy": "exact_old_external_replay",
+      "connections": {
+       "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+         "client_isn": 3204684138,
+         "server_isn": 813712543,
+         "frontiers": {
+          "client": 3204684229,
+          "server": 813712667
+         }
+        }
+       },
+       "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+         "client_isn": 3286275157,
+         "server_isn": 895302162,
+         "frontiers": {
+          "client": 3286275248,
+          "server": 895302286
+         }
+        }
+       },
+       "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+         "client_isn": 3524363339,
+         "server_isn": 1133390963,
+         "frontiers": {
+          "client": 3524363430,
+          "server": 1133391087
+         }
+        }
+       }
+      }
+     },
+     "observed": {
+      "bank_isolation": {
+       "ok": true,
+       "failures": [],
+       "allowed_changes": [
+        {
+         "register": "p0.n_Ingress.count_busy",
+         "before": 0,
+         "after": 19,
+         "reason": "N diagnostic packet counter"
+        },
+        {
+         "register": "p0.n_Ingress.count_first",
+         "before": 0,
+         "after": 2,
+         "reason": "N diagnostic packet counter"
+        },
+        {
+         "register": "p0.n_Ingress.counter",
+         "before": 17,
+         "after": 68,
+         "reason": "N diagnostic packet counter"
+        },
+        {
+         "register": "p0.n_Ingress.work.work",
+         "before": [
+          17
+         ],
+         "after": [
+          67
+         ],
+         "reason": "genuine free packet allocator"
+        }
+       ],
+       "observed": {
+        "before": {
+         "epochs": {
+          "N": 15,
+          "E": 15,
+          "T": 15
+         },
+         "work_phase": 4,
+         "work_generation": 17,
+         "owner": 327682,
+         "mapper": {
+          "front": 895302163,
+          "lo": 895302163,
+          "hi": 0
+         }
+        },
+        "after": {
+         "epochs": {
+          "N": 15,
+          "E": 15,
+          "T": 15
+         },
+         "work_phase": 4,
+         "work_generation": 67,
+         "owner": 327682,
+         "mapper": {
+          "front": 895302163,
+          "lo": 895302163,
+          "hi": 0
+         }
+        }
+       }
+      },
+      "switch": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 1593,
+        "OUT_ACK_COMMIT": 3,
+        "OUT_RESP_RELEASE": 3,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0
+       },
+       "token_stale": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 3,
+         "pkts": 12
+        },
+        "OPERATE": {
+         "triggers": 3,
+         "pkts": 12
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       },
+       "external_growth_bytes": 51,
+       "external_growth_expected": 51,
+       "unacked": 0
+      },
+      "lifecycle": {
+       "epochs": {
+        "registers": {
+         "N": "p0.n_Ingress.epoch",
+         "E": "p0.r_Egress.epoch",
+         "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+         "N": 80,
+         "E": 80,
+         "T": 80
+        },
+        "E_raw": 2147483728,
+        "T_raw": 2147483728,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+       },
+       "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 93
+       },
+       "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+       }
+      },
+      "precision_qualified": false
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59400,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_old_external_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "before lifecycle snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_old_external_01_separate_ack_combined_t0",
+   "what": "after lifecycle snapshot",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "db0c450d62cdb9144de374adc8eda9d85543bf347811094717c11f73577b3548"
+ },
+ "candidate_series": {
+  "close_mode": "rst",
+  "rst_grace_ms": 1000,
+  "connections": 3,
+  "effective_endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "limitations": [
+   "old retained packet replay is proven by replay_old_packets.py, not this series harness",
+   "delayed internal token proof is a separate IPG diagnostic, not a precision qualification"
+  ]
+ },
+ "isolation_source_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_isolation.py": "8c5562a74ad87a045f535180ee240491f8514895a9a483c74857315d9818cc5e",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/isolation_gate.py": "390985bd717440ee60183e862236560a4974520f27b06e608d54356da5efaa26",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_series.py": "2d1b7995712b3cac9893eaeecbfd1bbca2bc1ad71985564e652727f542785c61",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py": "6405b89606386ebff58622e69e97fb600efec39945036eeb2727b543140ad870",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf"
+ },
+ "external_packet_isolation": {
+  "marker_observation": {
+   "marker": {
+    "pre_read_grace_ms": 10000,
+    "pre_read_ready_ns": 625645558395578,
+    "first_read_issued_ns": 0,
+    "tcp_open": true,
+    "opens": 1
+   },
+   "marker_status": "complete",
+   "vision_ns": 625645945155020
+  },
+  "before": {
+   "time": 1791853724.0699935,
+   "program": "response_only",
+   "bfrt_sha256": "fbb1f2c0111342dd6808381e32a22df04e3ad2cfde3d7d340a113a2acc4e899e",
+   "context_sha256": {
+    "p0": "0efb9c8e3c2665b0c15dd62910c2245c0a45b99481b4b3549a0507636a9faadf",
+    "p1": "724dec2c9ed23df8d2edc68a0e1980adad974cd57dd3beab6a55f5aec6b61b86"
+   },
+   "optimized_away": [
+    "p0.n_Ingress.count_term"
+   ],
+   "slot": 0,
+   "registers": {
+    "p0.n_Ingress.work.work": {
+     "n_Ingress.work.work.generation": [
+      17
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.counter": {
+     "n_Ingress.counter.f1": [
+      17
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.owner": {
+     "n_Ingress.owner.f1": [
+      327682
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.count_first": {
+     "n_Ingress.count_first.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.count_busy": {
+     "n_Ingress.count_busy.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.epoch": {
+     "n_Ingress.epoch.f1": [
+      15
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.client": {
+     "n_Ingress.client.f1": [
+      3286275158
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.server": {
+     "n_Ingress.server.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.application": {
+     "n_Ingress.application.f1": [
+      194
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_links_real_tcp_src": {
+     "n_Ingress.pair_real_links_real_tcp_src.first": [
+      167772416
+     ],
+     "n_Ingress.pair_real_links_real_tcp_src.second": [
+      3232238141
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_tcp_dst_real_tcp_ports": {
+     "n_Ingress.pair_real_tcp_dst_real_tcp_ports.first": [
+      3232238142
+     ],
+     "n_Ingress.pair_real_tcp_dst_real_tcp_ports.second": [
+      3892858400
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_object_real_on": {
+     "n_Ingress.pair_real_object_real_on.first": [
+      16777473
+     ],
+     "n_Ingress.pair_real_object_real_on.second": [
+      1677721600
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_off_native_start": {
+     "n_Ingress.pair_real_off_native_start.first": [
+      1677721600
+     ],
+     "n_Ingress.pair_real_off_native_start.second": [
+      3204684194
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_native_end_server_start": {
+     "n_Ingress.pair_native_end_server_start.first": [
+      3204684229
+     ],
+     "n_Ingress.pair_native_end_server_start.second": [
+      813712630
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.read_app": {
+     "n_Ingress.read_app.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.epoch": {
+     "r_Egress.epoch.f1": [
+      2147483663
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.master_isn": {
+     "r_Egress.master_isn.f1": [
+      3286275157
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.mode": {
+     "r_Egress.mode.f1": [
+      1
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.front": {
+     "r_Egress.front.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.acct": {
+     "r_Egress.acct.hi": [
+      0
+     ],
+     "r_Egress.acct.lo": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_end": {
+     "r_Egress.img_end.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_start": {
+     "r_Egress.img_start.f1": [
+      895302105
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_wend": {
+     "r_Egress.img_wend.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.cur_epoch_reg": {
+     "t_Ingress.cur_epoch_reg.f1": [
+      15
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.gen_alloc_reg": {
+     "t_Ingress.gen_alloc_reg.f1": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.t0_reg": {
+     "t_Ingress.t0_reg.f1": [
+      2737426688
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_done_reg": {
+     "t_Ingress.ack_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_commit_at_reg": {
+     "t_Ingress.ack_commit_at_reg.f1": [
+      2742956544
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_commit_gen_reg": {
+     "t_Ingress.ack_commit_gen_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.resp_done_reg": {
+     "t_Ingress.resp_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen0_reg": {
+     "t_Ingress.child_seen0_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen1_reg": {
+     "t_Ingress.child_seen1_reg.f1": [
+      4294967295
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen2_reg": {
+     "t_Ingress.child_seen2_reg.f1": [
+      4294967295
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_gen_alloc_reg": {
+     "t_Ingress.op_gen_alloc_reg.f1": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_done_reg": {
+     "t_Ingress.op_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_t0_reg": {
+     "t_Ingress.op_t0_reg.f1": [
+      2776720897
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.outcomes": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "errors": {},
+   "T_epoch_sealed_encoding": true,
+   "timer_rejection_layout": "split_raw_timer_23_24",
+   "expected_registers": [
+    "p0.n_Ingress.application",
+    "p0.n_Ingress.client",
+    "p0.n_Ingress.count_busy",
+    "p0.n_Ingress.count_first",
+    "p0.n_Ingress.counter",
+    "p0.n_Ingress.epoch",
+    "p0.n_Ingress.owner",
+    "p0.n_Ingress.pair_native_end_server_start",
+    "p0.n_Ingress.pair_real_links_real_tcp_src",
+    "p0.n_Ingress.pair_real_object_real_on",
+    "p0.n_Ingress.pair_real_off_native_start",
+    "p0.n_Ingress.pair_real_tcp_dst_real_tcp_ports",
+    "p0.n_Ingress.read_app",
+    "p0.n_Ingress.server",
+    "p0.n_Ingress.work.work",
+    "p0.r_Egress.acct",
+    "p0.r_Egress.epoch",
+    "p0.r_Egress.front",
+    "p0.r_Egress.img_end",
+    "p0.r_Egress.img_start",
+    "p0.r_Egress.img_wend",
+    "p0.r_Egress.master_isn",
+    "p0.r_Egress.mode",
+    "p1.t_Ingress.ack_commit_at_reg",
+    "p1.t_Ingress.ack_commit_gen_reg",
+    "p1.t_Ingress.ack_done_reg",
+    "p1.t_Ingress.child_seen0_reg",
+    "p1.t_Ingress.child_seen1_reg",
+    "p1.t_Ingress.child_seen2_reg",
+    "p1.t_Ingress.cur_epoch_reg",
+    "p1.t_Ingress.gen_alloc_reg",
+    "p1.t_Ingress.op_done_reg",
+    "p1.t_Ingress.op_gen_alloc_reg",
+    "p1.t_Ingress.op_t0_reg",
+    "p1.t_Ingress.outcomes",
+    "p1.t_Ingress.resp_done_reg",
+    "p1.t_Ingress.t0_reg"
+   ],
+   "read_app_before": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774873600,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "operate_app_before": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774939136,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "old_reject_before": {
+    "6": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "14": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "23": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "24": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "read_app_after": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774873600,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "operate_app_after": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774939136,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "old_reject_after": {
+    "6": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "14": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "23": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "24": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "completed_time": 1791853724.3557866,
+   "software_read_fallbacks": [],
+   "valid": true
+  },
+  "current_isns": {
+   "client": 3286275157,
+   "server": 895302162
+  },
+  "chosen_archives": {
+   "graceful": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_01/rearm_native_reference_01_native_t0",
+   "rst": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c1"
+  },
+  "after": {
+   "time": 1791853727.3343465,
+   "program": "response_only",
+   "bfrt_sha256": "fbb1f2c0111342dd6808381e32a22df04e3ad2cfde3d7d340a113a2acc4e899e",
+   "context_sha256": {
+    "p0": "0efb9c8e3c2665b0c15dd62910c2245c0a45b99481b4b3549a0507636a9faadf",
+    "p1": "724dec2c9ed23df8d2edc68a0e1980adad974cd57dd3beab6a55f5aec6b61b86"
+   },
+   "optimized_away": [
+    "p0.n_Ingress.count_term"
+   ],
+   "slot": 0,
+   "registers": {
+    "p0.n_Ingress.work.work": {
+     "n_Ingress.work.work.generation": [
+      67
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.counter": {
+     "n_Ingress.counter.f1": [
+      68
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.owner": {
+     "n_Ingress.owner.f1": [
+      327682
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.count_first": {
+     "n_Ingress.count_first.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.count_busy": {
+     "n_Ingress.count_busy.f1": [
+      19
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.epoch": {
+     "n_Ingress.epoch.f1": [
+      15
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.client": {
+     "n_Ingress.client.f1": [
+      3286275158
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.server": {
+     "n_Ingress.server.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.application": {
+     "n_Ingress.application.f1": [
+      194
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_links_real_tcp_src": {
+     "n_Ingress.pair_real_links_real_tcp_src.first": [
+      167772416
+     ],
+     "n_Ingress.pair_real_links_real_tcp_src.second": [
+      3232238141
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_tcp_dst_real_tcp_ports": {
+     "n_Ingress.pair_real_tcp_dst_real_tcp_ports.first": [
+      3232238142
+     ],
+     "n_Ingress.pair_real_tcp_dst_real_tcp_ports.second": [
+      3892858400
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_object_real_on": {
+     "n_Ingress.pair_real_object_real_on.first": [
+      16777473
+     ],
+     "n_Ingress.pair_real_object_real_on.second": [
+      1677721600
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_real_off_native_start": {
+     "n_Ingress.pair_real_off_native_start.first": [
+      1677721600
+     ],
+     "n_Ingress.pair_real_off_native_start.second": [
+      3204684194
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.pair_native_end_server_start": {
+     "n_Ingress.pair_native_end_server_start.first": [
+      3204684229
+     ],
+     "n_Ingress.pair_native_end_server_start.second": [
+      813712630
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.n_Ingress.read_app": {
+     "n_Ingress.read_app.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.epoch": {
+     "r_Egress.epoch.f1": [
+      2147483663
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.master_isn": {
+     "r_Egress.master_isn.f1": [
+      3286275157
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.mode": {
+     "r_Egress.mode.f1": [
+      1
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.front": {
+     "r_Egress.front.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.acct": {
+     "r_Egress.acct.hi": [
+      0
+     ],
+     "r_Egress.acct.lo": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_end": {
+     "r_Egress.img_end.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_start": {
+     "r_Egress.img_start.f1": [
+      895302105
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p0.r_Egress.img_wend": {
+     "r_Egress.img_wend.f1": [
+      895302163
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.cur_epoch_reg": {
+     "t_Ingress.cur_epoch_reg.f1": [
+      15
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.gen_alloc_reg": {
+     "t_Ingress.gen_alloc_reg.f1": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.t0_reg": {
+     "t_Ingress.t0_reg.f1": [
+      2737426688
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_done_reg": {
+     "t_Ingress.ack_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_commit_at_reg": {
+     "t_Ingress.ack_commit_at_reg.f1": [
+      2742956544
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.ack_commit_gen_reg": {
+     "t_Ingress.ack_commit_gen_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.resp_done_reg": {
+     "t_Ingress.resp_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen0_reg": {
+     "t_Ingress.child_seen0_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen1_reg": {
+     "t_Ingress.child_seen1_reg.f1": [
+      4294967295
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.child_seen2_reg": {
+     "t_Ingress.child_seen2_reg.f1": [
+      4294967295
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_gen_alloc_reg": {
+     "t_Ingress.op_gen_alloc_reg.f1": [
+      4
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_done_reg": {
+     "t_Ingress.op_done_reg.f1": [
+      2
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.op_t0_reg": {
+     "t_Ingress.op_t0_reg.f1": [
+      2776720897
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "p1.t_Ingress.outcomes": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "errors": {},
+   "T_epoch_sealed_encoding": true,
+   "timer_rejection_layout": "split_raw_timer_23_24",
+   "expected_registers": [
+    "p0.n_Ingress.application",
+    "p0.n_Ingress.client",
+    "p0.n_Ingress.count_busy",
+    "p0.n_Ingress.count_first",
+    "p0.n_Ingress.counter",
+    "p0.n_Ingress.epoch",
+    "p0.n_Ingress.owner",
+    "p0.n_Ingress.pair_native_end_server_start",
+    "p0.n_Ingress.pair_real_links_real_tcp_src",
+    "p0.n_Ingress.pair_real_object_real_on",
+    "p0.n_Ingress.pair_real_off_native_start",
+    "p0.n_Ingress.pair_real_tcp_dst_real_tcp_ports",
+    "p0.n_Ingress.read_app",
+    "p0.n_Ingress.server",
+    "p0.n_Ingress.work.work",
+    "p0.r_Egress.acct",
+    "p0.r_Egress.epoch",
+    "p0.r_Egress.front",
+    "p0.r_Egress.img_end",
+    "p0.r_Egress.img_start",
+    "p0.r_Egress.img_wend",
+    "p0.r_Egress.master_isn",
+    "p0.r_Egress.mode",
+    "p1.t_Ingress.ack_commit_at_reg",
+    "p1.t_Ingress.ack_commit_gen_reg",
+    "p1.t_Ingress.ack_done_reg",
+    "p1.t_Ingress.child_seen0_reg",
+    "p1.t_Ingress.child_seen1_reg",
+    "p1.t_Ingress.child_seen2_reg",
+    "p1.t_Ingress.cur_epoch_reg",
+    "p1.t_Ingress.gen_alloc_reg",
+    "p1.t_Ingress.op_done_reg",
+    "p1.t_Ingress.op_gen_alloc_reg",
+    "p1.t_Ingress.op_t0_reg",
+    "p1.t_Ingress.outcomes",
+    "p1.t_Ingress.resp_done_reg",
+    "p1.t_Ingress.t0_reg"
+   ],
+   "read_app_before": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774873600,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "operate_app_before": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774939136,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "old_reject_before": {
+    "6": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "14": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "23": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "24": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "read_app_after": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774873600,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "operate_app_after": {
+    "app_enable": true,
+    "batch_count_cfg": 0,
+    "batch_counter": 1,
+    "ibg": 0,
+    "ibg_jitter": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "ipg_jitter": 0,
+    "packets_per_batch_cfg": 3,
+    "pattern_mask": 4294901760,
+    "pattern_value": 3774939136,
+    "pipe_local_source_port": 68,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 4,
+    "pkt_len": 60,
+    "trigger_counter": 1,
+    "action_name": "trigger_recirc_pattern",
+    "is_default_entry": false
+   },
+   "old_reject_after": {
+    "6": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "14": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "23": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    },
+    "24": {
+     "t_Ingress.outcomes.f1": [
+      0
+     ],
+     "action_name": null,
+     "is_default_entry": false
+    }
+   },
+   "completed_time": 1791853727.628853,
+   "software_read_fallbacks": [],
+   "valid": true
+  },
+  "completed_vision_ns": 625651680862673,
+  "monitor_ok": true
+ },
+ "external_source_identity": {
+  "hw/candidate_external.py": "4c666fe3fa25069908f4493427774decb1615f470b444e4e4c5e12a0998ae419",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_replay.py": "bb6b498b32e800449476cfb7d8b14ebcd8fe735d77071a2944ec4a73ba6e295f",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/replay_old_packets.py": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf"
+ },
+ "old_capture_identity": {
+  "graceful": {
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_01/rearm_native_reference_01_native_t0/out.pcap": "13c98880b7910c1bd871efcfdd3081389b2274ea7fb01953b3bfd0dd14645df8",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_01/rearm_native_reference_01_native_t0/in.pcap": "fc568efec3d1400fbb7b5d4823eaa824b51205de3393028c0f0fd6f127b77458",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_02/rearm_native_reference_02_native_t0/out.pcap": "7fcad596913261042013669723f06c5d706f7dad910d062874c2892de7ff6d91",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_02/rearm_native_reference_02_native_t0/in.pcap": "348984199d246b03f4a99caaa7f476093a05c972df7441dc547f0413ac72d63a",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_03/rearm_native_reference_03_native_t0/out.pcap": "9e869f0dfa01799c0c5725f73e94b30ce90e230e23e6d265b2fe430d5bc8de76",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_03/rearm_native_reference_03_native_t0/in.pcap": "f44752f64d35da7fb9f65651ba67ceec5a5d66b7814174405bbded496adc5b3b",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_04/rearm_native_reference_04_native_t0/out.pcap": "ae31e2507ae9b621a4a0a6fea904157a5a13ffd24bcee2a5314dff32a51f118e",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_reference_04/rearm_native_reference_04_native_t0/in.pcap": "d98c01f452bc21ebdde1bbd393c08a4d5469290e4f63ea8c49bf818a084d6fc5",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_fin_01/rearm_fresh_native_fin_01_native_t0/out.pcap": "01958b47659eedc646a396e43a03b213b358672d7ae182cdb14a74329fe0749f",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_fin_01/rearm_fresh_native_fin_01_native_t0/in.pcap": "4eb02904a380b27a51ff9c4e05f6537f5274a5eeb699abe1c76f88317534434f",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_02/series/c2/out.pcap": "c5ec10fb7efba53fc168bad2c2f4678ec2f614c992699c3aa76d50733af7c0ac",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_02/series/c2/in.pcap": "6b2978727e78bc906e03ca3dc23992485fb5b3faadc0673e7c77f20bb4f228b1"
+  },
+  "rst": {
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c1/out.pcap": "d7af5e95978a8867065a0b0c56b056049305405cf3feacc41378d9f601bdac90",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c1/in.pcap": "2e4a4834c650a7beb53a97bf115ebf27372c46294992a1422e4a034f40a47366",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c2/out.pcap": "d11cde54bf37bf0adb48a1e70f538ead17d5a67a71e43562dc8e6471b0e3c08e",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c2/in.pcap": "07d0b1671b1bbbd3ac834adf482ba2bd177cabf600e33178e58d44f29d4bff7e",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c3/out.pcap": "db45a03ff2522306f3ad693ed6b1757e6f070d85776c7d1ee399a7cbc6f67163",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_03/series/c3/in.pcap": "d0af75100a566feb2d952f6f324a58c7c44a860ccf86ffbffb44f237c9d961b9",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_02/series/c1/out.pcap": "80adc96ead64bb286204ab82d5da902812e809fb48a6ce2fe5a4aa9453b4342b",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_native_rst_archive_02/series/c1/in.pcap": "9c51c52811231d4d41ae54ca39d88bc5d080d2b4f86749081f1b51b017cca02e",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c1/out.pcap": "fce88df247bd4c6f4913537ff3bf919a037e1d6f7b48e45e4e6ef27a885d0c5f",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c1/in.pcap": "ecf92460ddfdb1cfccdade54f711ce4ab0dcbb8cdec037e0a5a023928bfa90e5",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c2/out.pcap": "e460f1b6733b85d254ac677d63e685f12d8d99fa5d845eea216b74d90cc6981a",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c2/in.pcap": "16de5216681e652b1f612a70a62f6864060163ae4fc8c2b4ba6b32056d96967c",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c3/out.pcap": "43de2681d5d4cc879858d6bc77b00857df026a510152e74795b67ec8b8bedbc6",
+   "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/campaign_hw_vepa/rearm_fresh_native_rst_01/series/c3/in.pcap": "1623ae0e41e5af49f3ecf6c86299d8fb74ba0871f775020cc2123767eb86d267"
+  }
+ },
+ "endpoint_observed": {
+  "binary_sha256": "8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/lib",
+  "vision_run_sha256": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+  "loss_sha256": "4f4d205fbc5c037a31168b38dab5178bf95e16ef6cb5fcf12eb4d7ebfaf159cd"
+ },
+ "candidate_series_vision_identity": {
+  "token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "vision_candidate.py": "1ceb80b364f09ae9525b185dd854010a390079e36e4bc7c7c4fd9a17fea954e4",
+  "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453",
+  "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+  "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672"
+ },
+ "external_vision_identity": {
+  "vision_replay.py": "bb6b498b32e800449476cfb7d8b14ebcd8fe735d77071a2944ec4a73ba6e295f",
+  "vision_isolation.py": "6c1cddd65ea532869c4045b0ec09d7f7b6a86a68ee4ba04de629d76dc15fdc86",
+  "replay_old_packets.py": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+  "token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "candidate_series_switch_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "pre_run_program": "case4_response_path",
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 1,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59400,
+    "last": 59400
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "stale_source_characterization",
+   "read_precision": false
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "rearm_56r": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "f892c9a7753b2c207ae7433177d07422575b3d0bcffe8a599e044d6576f9c342",
+   "source_files": {
+    "SocketGatePad58B.cpp": "f892c9a7753b2c207ae7433177d07422575b3d0bcffe8a599e044d6576f9c342",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012"
+ },
+ "config_sha256": "5221326ff34578f21d4c56a93f6125063897603783b29c1f454747846f19aeea",
+ "config_file_sha256": "8b2a1737360328f040c071a981d75b85ee8db913e8855ffc0ad0c2f332f3daac",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "44db67570d4e085ab5409305ef48b21e992113654acf2da1ed9897a6d65d7cd4",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453"
+  },
+  "build_sources": {
+   "rearm_56r": {
+    "source_sha256": "ec0dd7af81b7f8667f6a00277230ececcd1f351ebc3c1d5bbf87cd1a92ead199",
+    "source_files": {
+     "response_only.p4": "ec0dd7af81b7f8667f6a00277230ececcd1f351ebc3c1d5bbf87cd1a92ead199"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_56r": {
+   "bfrt.json": "fbb1f2c0111342dd6808381e32a22df04e3ad2cfde3d7d340a113a2acc4e899e",
+   "p0/tofino.bin": "0e3c39496edd8562602c98f85a7573915ed86a04ea6ea9c967f808ceaff3c757",
+   "p1/tofino.bin": "ce5e4f0c14fbcc469b1b52d7af1d4e6b195a8dc9c37738566ff716bd20abeece",
+   "p1/response_only.bfa": "c3b6503d69e576c8a55c590bd649b77a51b04027db2a571ed785ddce2ca472af"
+  }
+ },
+ "paired_block": null,
+ "time": 1791853813.8874543
+}

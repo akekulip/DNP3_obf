@@ -1,0 +1,2792 @@
+{
+ "run_id": "candidate56r_single_loss_02",
+ "ok": false,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_56r",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t0",
+     "master_port": 59440,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.014,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t0",
+      "master_port": 59440,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12345,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59440,
+       "polls": 1,
+       "elapsed_s": 0.028,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.906,
+      "loss": {
+       "class": "request",
+       "n": 3,
+       "occurrence": 3,
+       "base": "request",
+       "dir": "M>O",
+       "ip_len": 60,
+       "flags": "ACK,PSH",
+       "ns": "ns_vepa_b",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59440 --dport 20000 -m length --length 60 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59440 --dport 20000 -m length --length 60 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59440 --dport 20000 -m length --length 60 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 60
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 60
+        },
+        {
+         "pos": 3,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 60
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 60,
+       "earlier_matches": 2,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 78,
+        "received": 155,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 77,
+        "received": 155,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 78,
+      "frames_in": 77,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "request",
+      "n": 3,
+      "occurrence": 3,
+      "dir": "M>O",
+      "ip_len": 60,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 60,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 10,
+       "seq": 2058172834,
+       "ack": 92732176,
+       "len": 20,
+       "ip_len": 60,
+       "t_us": 1791851856558741
+      },
+      "identified": true,
+      "copies_returned": 2,
+      "retransmitted": true,
+      "progress_us": null,
+      "candidates": 21,
+      "retransmissions": 2,
+      "first_retx_delay_ms": 202.518,
+      "recovery_s": 0.207921,
+      "completed": true,
+      "completion_s": 0.014,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7269,
+       "OUT_ACK_COMMIT": 19,
+       "OUT_RESP_RELEASE": 19,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 1,
+       "OUT_RESP_FALLBACK": 1,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t1",
+     "master_port": 59441,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12346
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.014,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t1",
+      "master_port": 59441,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12346,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t1/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t1/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59441,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.705,
+      "loss": {
+       "class": "ack_sep",
+       "n": 3,
+       "occurrence": 3,
+       "base": "ack_sep",
+       "dir": "O>M",
+       "ip_len": 40,
+       "flags": "ACK",
+       "ns": "ns_vepa_a",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59441 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59441 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59441 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 40
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 40
+        },
+        {
+         "pos": 3,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 40
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 40,
+       "earlier_matches": 2,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 74,
+        "received": 148,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 74,
+        "received": 148,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 74,
+      "frames_in": 74,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "ack_sep",
+      "n": 3,
+      "occurrence": 3,
+      "dir": "O>M",
+      "ip_len": 40,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 40,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 11,
+       "seq": 2772437267,
+       "ack": 843973843,
+       "len": 0,
+       "ip_len": 40,
+       "t_us": 1791851930120888
+      },
+      "identified": true,
+      "copies_returned": null,
+      "retransmitted": null,
+      "progress_us": 948,
+      "candidates": 23,
+      "retransmissions": 0,
+      "first_retx_delay_ms": null,
+      "completed": true,
+      "completion_s": 0.014,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7628,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t2",
+     "master_port": 59442,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12347
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.014,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t2",
+      "master_port": 59442,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12347,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t2/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t2/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59442,
+       "polls": 1,
+       "elapsed_s": 0.033,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.917,
+      "loss": {
+       "class": "read_resp_padded",
+       "n": 3,
+       "occurrence": 3,
+       "base": "resp_padded",
+       "dir": "O>M",
+       "ip_len": 98,
+       "flags": "ACK,PSH",
+       "ns": "ns_vepa_a",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59442 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59442 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59442 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 3,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 98
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "earlier_matches": 2,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 75,
+      "frames_in": 75,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "read_resp_padded",
+      "n": 3,
+      "occurrence": 3,
+      "dir": "O>M",
+      "ip_len": 98,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 12,
+       "seq": 3177725570,
+       "ack": 4057769555,
+       "len": 58,
+       "ip_len": 98,
+       "t_us": 1791852003619084
+      },
+      "identified": true,
+      "copies_returned": 2,
+      "retransmitted": true,
+      "progress_us": null,
+      "candidates": 23,
+      "retransmissions": 1,
+      "first_retx_delay_ms": 211.275,
+      "recovery_s": 0.211275,
+      "completed": true,
+      "completion_s": 0.014,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7675,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t3",
+     "master_port": 59443,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12348
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.246,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t3",
+      "master_port": 59443,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12348,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t3/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t3/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59443,
+       "polls": 1,
+       "elapsed_s": 0.038,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.94,
+      "loss": {
+       "class": "select_resp_padded",
+       "n": 1,
+       "occurrence": 21,
+       "base": "resp_padded",
+       "dir": "O>M",
+       "ip_len": 98,
+       "flags": "ACK,PSH",
+       "ns": "ns_vepa_a",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59443 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 3,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 4,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 5,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 6,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 7,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 8,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 9,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 10,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 11,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 12,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 13,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 14,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 15,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 16,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 17,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 18,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 19,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 20,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 21,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 98
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "earlier_matches": 20,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 75,
+      "frames_in": 75,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "select_resp_padded",
+      "n": 1,
+      "occurrence": 21,
+      "dir": "O>M",
+      "ip_len": 98,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 66,
+       "seq": 745352375,
+       "ack": 2839743227,
+       "len": 58,
+       "ip_len": 98,
+       "t_us": 1791852077926016
+      },
+      "identified": true,
+      "copies_returned": 2,
+      "retransmitted": true,
+      "progress_us": null,
+      "candidates": 23,
+      "retransmissions": 1,
+      "first_retx_delay_ms": 232.365,
+      "recovery_s": 0.232365,
+      "completed": true,
+      "completion_s": 0.246,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7682,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t4",
+     "master_port": 59444,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12349
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.221,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t4",
+      "master_port": 59444,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12349,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t4/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t4/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59444,
+       "polls": 1,
+       "elapsed_s": 0.037,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.915,
+      "loss": {
+       "class": "operate_req",
+       "n": 1,
+       "occurrence": 2,
+       "base": "control_req",
+       "dir": "M>O",
+       "ip_len": 75,
+       "flags": "ACK,PSH",
+       "ns": "ns_vepa_b",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59444 --dport 20000 -m length --length 75 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59444 --dport 20000 -m length --length 75 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 75
+        },
+        {
+         "pos": 2,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 75
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 75,
+       "earlier_matches": 1,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 75,
+      "frames_in": 75,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "operate_req",
+      "n": 1,
+      "occurrence": 2,
+      "dir": "M>O",
+      "ip_len": 75,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 75,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 67,
+       "seq": 2321197359,
+       "ack": 2583673315,
+       "len": 35,
+       "ip_len": 75,
+       "t_us": 1791852151961979
+      },
+      "identified": true,
+      "copies_returned": 2,
+      "retransmitted": true,
+      "progress_us": null,
+      "candidates": 3,
+      "retransmissions": 1,
+      "first_retx_delay_ms": 207.298,
+      "recovery_s": 0.212738,
+      "completed": true,
+      "completion_s": 0.221,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7664,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t5",
+     "master_port": 59445,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12350
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.245,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t5",
+      "master_port": 59445,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12350,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t5/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t5/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59445,
+       "polls": 1,
+       "elapsed_s": 0.033,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.935,
+      "loss": {
+       "class": "operate_resp_padded",
+       "n": 1,
+       "occurrence": 22,
+       "base": "resp_padded",
+       "dir": "O>M",
+       "ip_len": 98,
+       "flags": "ACK,PSH",
+       "ns": "ns_vepa_a",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.62 -d 192.168.10.61 --sport 20000 --dport 59445 -m length --length 98 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 3,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 4,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 5,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 6,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 7,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 8,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 9,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 10,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 11,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 12,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 13,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 14,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 15,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 16,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 17,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 18,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 19,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 20,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 21,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 98
+        },
+        {
+         "pos": 22,
+         "target": "DROP",
+         "pkts": 1,
+         "bytes": 98
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "earlier_matches": 21,
+       "exact": true,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 75,
+        "received": 150,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 75,
+      "frames_in": 75,
+      "ok": true,
+      "loss_exact": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "operate_resp_padded",
+      "n": 1,
+      "occurrence": 22,
+      "dir": "O>M",
+      "ip_len": 98,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": true,
+       "dropped_packets": 1,
+       "dropped_bytes": 98,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": {
+       "index": 69,
+       "seq": 2630170002,
+       "ack": 3075788006,
+       "len": 58,
+       "ip_len": 98,
+       "t_us": 1791852225695649
+      },
+      "identified": true,
+      "copies_returned": 2,
+      "retransmitted": true,
+      "progress_us": null,
+      "candidates": 23,
+      "retransmissions": 1,
+      "first_retx_delay_ms": 230.86,
+      "recovery_s": 0.23086,
+      "completed": true,
+      "completion_s": 0.245,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7706,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    },
+    {
+     "fixture": "separate_ack",
+     "label": "candidate56r_single_loss_02_separate_ack_combined_t6",
+     "master_port": 59446,
+     "reads": 20,
+     "ok": false,
+     "failures": [
+      "loss rule counters not exact (dropped_packets=0, dropped_bytes=0, wanted 1 packet of 40 B after 3 earlier matches)",
+      "dropped packet not found in the capture (3 candidates of the class, wanted occurrence 4)"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12351
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "master_completion_s": 0.014,
+     "vision": {
+      "label": "candidate56r_single_loss_02_separate_ack_combined_t6",
+      "master_port": 59446,
+      "reads": 20,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 0,
+      "start_seed": 12351,
+      "start_delay_ms_applied": 0,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t6/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/candidate56r_single_loss_02_separate_ack_combined_t6/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59446,
+       "polls": 1,
+       "elapsed_s": 0.035,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 0.708,
+      "loss": {
+       "class": "master_ack_of_padded",
+       "n": 3,
+       "occurrence": 4,
+       "base": "master_ack",
+       "dir": "M>O",
+       "ip_len": 40,
+       "flags": "ACK",
+       "ns": "ns_vepa_b",
+       "chain": "INPUT",
+       "mode": "limit-burst-1 chain (kernel-atomic)",
+       "rules": [
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59446 --dport 20000 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59446 --dport 20000 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59446 --dport 20000 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j ACCEPT",
+        "-p tcp -s 192.168.10.61 -d 192.168.10.62 --sport 59446 --dport 20000 -m length --length 40 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m limit --limit 1/hour --limit-burst 1 -j DROP"
+       ],
+       "counters": [
+        {
+         "pos": 1,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 40
+        },
+        {
+         "pos": 2,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 40
+        },
+        {
+         "pos": 3,
+         "target": "ACCEPT",
+         "pkts": 1,
+         "bytes": 40
+        },
+        {
+         "pos": 4,
+         "target": "DROP",
+         "pkts": 0,
+         "bytes": 0
+        }
+       ],
+       "counter_error": null,
+       "dropped_packets": 0,
+       "dropped_bytes": 0,
+       "earlier_matches": 3,
+       "exact": false,
+       "removed": true,
+       "remove_errors": [],
+       "state_before": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_after": [
+        "-P INPUT ACCEPT"
+       ],
+       "state_restored": true
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 74,
+        "received": 148,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 74,
+        "received": 148,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 74,
+      "frames_in": 74,
+      "ok": true,
+      "loss_exact": false
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "loss": {
+      "class": "master_ack_of_padded",
+      "n": 3,
+      "occurrence": 4,
+      "dir": "M>O",
+      "ip_len": 40,
+      "max_recovery_s": 5.0,
+      "rule": {
+       "exact": false,
+       "dropped_packets": 0,
+       "dropped_bytes": 0,
+       "removed": true,
+       "state_restored": true,
+       "remove_errors": []
+      },
+      "packet": null,
+      "identified": false,
+      "completed": true,
+      "completion_s": 0.014,
+      "callbacks": {
+       "select_real": 1,
+       "select_decoy": 0,
+       "operate_real": 1,
+       "operate_decoy": 0
+      },
+      "exactly_once": true,
+      "duplicate_returned": 0,
+      "growth_bytes": 222,
+      "expected_growth_bytes": 222
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 222,
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 7667,
+       "OUT_ACK_COMMIT": 20,
+       "OUT_RESP_RELEASE": 20,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 20,
+        "pkts": 80
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59440,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t0.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 1,
+   "master_port": 59441,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t1.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 2,
+   "master_port": 59442,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t2.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 3,
+   "master_port": 59443,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t3.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 4,
+   "master_port": 59444,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t4.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 5,
+   "master_port": 59445,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t5.json"
+  },
+  {
+   "label": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 6,
+   "master_port": 59446,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate56r_single_loss_02_separate_ack_combined_t6.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t1",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t2",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t3",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t4",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t5",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate56r_single_loss_02_separate_ack_combined_t6",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "db0c450d62cdb9144de374adc8eda9d85543bf347811094717c11f73577b3548"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_run_sha256": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+  "loss_sha256": "4f4d205fbc5c037a31168b38dab5178bf95e16ef6cb5fcf12eb4d7ebfaf159cd"
+ },
+ "pre_run_program": "case4_response_path",
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 20,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59440,
+    "last": 59446
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "rearm_56r": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "c86241af31bd30d8d98c0b662ab423b6e7dc51406a0dcff99ed8435048a989f3",
+ "config_file_sha256": "85aa96aa923d7b3d0df82b0e6d51a3b4ac2a4fa645c1ed1067522aa03fe595f1",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "44db67570d4e085ab5409305ef48b21e992113654acf2da1ed9897a6d65d7cd4",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "4ecc5f7c7a7cb3694c62fbc84d5846a6216e7456ed9f31187b5751aa1f2a2f1f",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "f14b8a610328a5a9e29d7b961bebc038a8426fd6e414b04c52c9d421a63d9453"
+  },
+  "build_sources": {
+   "rearm_56r": {
+    "source_sha256": "ec0dd7af81b7f8667f6a00277230ececcd1f351ebc3c1d5bbf87cd1a92ead199",
+    "source_files": {
+     "response_only.p4": "ec0dd7af81b7f8667f6a00277230ececcd1f351ebc3c1d5bbf87cd1a92ead199"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_56r": {
+   "bfrt.json": "fbb1f2c0111342dd6808381e32a22df04e3ad2cfde3d7d340a113a2acc4e899e",
+   "p0/tofino.bin": "0e3c39496edd8562602c98f85a7573915ed86a04ea6ea9c967f808ceaff3c757",
+   "p1/tofino.bin": "ce5e4f0c14fbcc469b1b52d7af1d4e6b195a8dc9c37738566ff716bd20abeece",
+   "p1/response_only.bfa": "c3b6503d69e576c8a55c590bd649b77a51b04027db2a571ed785ddce2ca472af"
+  }
+ },
+ "paired_block": null,
+ "time": 1791852372.736349,
+ "soft_failures": [
+  "candidate56r_single_loss_02_separate_ack_combined_t6"
+ ]
+}
