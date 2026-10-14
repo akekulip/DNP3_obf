@@ -293,5 +293,52 @@ class CaptureObservation(unittest.TestCase):
             self.assertFalse(proc.terminated, proc.argv)
 
 
+    def test_calibration_sends_once_both_captures_are_active_without_fixed_one_second_sleeps(self):
+        """candidate61_stale_tokens_950_01: two fixed 1 s sleeps delayed the next connection past the old tokens.
+        Readiness is the pcap header tcpdump writes once the capture is active; exit is the -c count."""
+        root = Path(self.tmpdir()) / 'cal_ready'
+        root.mkdir()
+        events, procs = [], []
+
+        class Proc(FakeProcess):
+            def __init__(self, argv):
+                super().__init__(argv)
+                self.path = Path(argv[argv.index('-w') + 1])
+                self.sent = False
+
+            def poll(self):
+                if self.sent and self.returncode is None:
+                    self.returncode = 0
+                return self.returncode
+
+        def run(argv, **kw):
+            if argv[:4] == ['ip', 'netns', 'exec', 'ns_vepa_b']:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([{'address': '02:00:00:00:00:02'}]), stderr='')
+            if argv[:4] == ['ip', 'netns', 'exec', 'ns_vepa_a']:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([{'address': '02:00:00:00:00:01'}]), stderr='')
+            return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+        def popen(argv, **kw):
+            proc = Proc(argv)
+            procs.append(proc)
+            return proc
+
+        def sleep(seconds):
+            events.append(('sleep', seconds))
+            if len([e for e in events if e[0] == 'sleep']) == 3:     # captures become active after a few polls
+                for proc in procs:
+                    proc.path.write_bytes(b'\xd4\xc3\xb2\xa1' + b'\0' * 20)
+
+        def send(expected):
+            events.append(('send', all(p.path.is_file() and p.path.stat().st_size >= 24 for p in procs)))
+            for proc in procs:
+                proc.sent = True
+
+        co.run_calibration(root, 'enp59s0f0np0', run=run, popen=popen, send_calibration=send, sleep=sleep)
+        sends = [e for e in events if e[0] == 'send']
+        self.assertEqual(sends, [('send', True)])
+        self.assertFalse([e for e in events if e == ('sleep', 1.0)], events)
+
+
 if __name__ == '__main__':
     unittest.main()

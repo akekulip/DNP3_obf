@@ -28,6 +28,13 @@ from token_window import PRE_READ_GRACE_MS
 GRACES = (0, PRE_READ_GRACE_MS, 0)
 
 
+def source_paths():
+    """Every Vision-side file this scenario runs; candidate_isolation.verdict pins exactly these names."""
+    return (Path(__file__), Path(vc.__file__), Path(vc.vr.__file__), Path(vc.wc.__file__), Path(vc.clrt.__file__),
+            Path(vc.checks.__file__), Path(vc.vr.capture_observation.__file__),
+            HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')
+
+
 def scenario(label, port, padding, apply=False, control_padding=1, image_len=58, qualify_capture=False):
     vc.guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
@@ -99,10 +106,8 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58,
     except Exception as error:
         record['error'] = str(error)
     finally:
-        record['source_sha256'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in
-                                  (Path(__file__), Path(vc.__file__), Path(vc.vr.__file__),
-                                   Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
-                                   HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')}
+        record['source_sha256'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
+                                  for path in source_paths()}
         record['hashes'] = {str(path.relative_to(parent)): hashlib.sha256(path.read_bytes()).hexdigest()
                             for path in parent.rglob('*') if path.is_file()}
         vc.write_json(parent / 'scenario.json', record)

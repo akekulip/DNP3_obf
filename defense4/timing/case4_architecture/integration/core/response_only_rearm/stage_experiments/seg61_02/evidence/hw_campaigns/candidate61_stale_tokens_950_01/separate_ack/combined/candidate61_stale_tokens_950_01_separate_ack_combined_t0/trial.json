@@ -1,0 +1,213 @@
+{
+  "fixture": "separate_ack",
+  "label": "candidate61_stale_tokens_950_01_separate_ack_combined_t0",
+  "master_port": 59412,
+  "reads": 1,
+  "ok": false,
+  "failures": [
+    "collected Vision scenario source pins differ from deployed helpers",
+    "banks: missing quiet snapshots",
+    "window: missing token window",
+    "missing full-run rejection evidence: 'after'",
+    "switch: T on: generated READ packets delta 10, expected 12 (2k = 4 per trigger)",
+    "switch: T on: generated OPERATE packets delta 9, expected 12 (2k = 4 per trigger)",
+    "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 15 exceeds the build bound 0",
+    "c2 became ready after all old tokens; isolation cannot qualify"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 5,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65509,
+      "read": 65509
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": 25,
+    "snapshot": {
+      "bfrt_sha256": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1791994509.6689377,
+      "valid": true
+    },
+    "time": 1791994509.6766798,
+    "budget": {
+      "reads": 1,
+      "connections": 3,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "source": "verified T allocator lifecycle counts"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/candidate61_stale_tokens_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+  },
+  "scenario": {
+    "policy": "real_old_token_isolation",
+    "connections": {
+      "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 615414186,
+          "server_isn": 2624581145,
+          "frontiers": {
+            "client": 615414277,
+            "server": 2624581269
+          }
+        }
+      },
+      "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 730419695,
+          "server_isn": 2739588094,
+          "frontiers": {
+            "client": 730419786,
+            "server": 2739588218
+          }
+        }
+      },
+      "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 1001496088,
+          "server_isn": 3010664003,
+          "frontiers": {
+            "client": 1001496179,
+            "server": 3010664127
+          }
+        }
+      }
+    }
+  },
+  "observed": {
+    "bank_isolation": {
+      "ok": false,
+      "failures": [
+        "missing quiet snapshots"
+      ]
+    },
+    "old_token_window": {
+      "ok": false,
+      "failures": [
+        "missing token window"
+      ]
+    },
+    "old_rejection_delta": null,
+    "quiet_rejections": null,
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 1587,
+        "OUT_ACK_COMMIT": 3,
+        "OUT_RESP_RELEASE": 3,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 15,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 8,
+        "RAW_READ_TIMER_STALE": 7,
+        "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 15,
+      "pktgen": {
+        "READ": {
+          "triggers": 3,
+          "pkts": 10
+        },
+        "OPERATE": {
+          "triggers": 3,
+          "pkts": 9
+        }
+      },
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 60,
+      "external_growth_expected": 60,
+      "unacked": 0,
+      "held_operate_dup_drops": 0
+    },
+    "lifecycle": {
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 29,
+          "E": 29,
+          "T": 29
+        },
+        "E_raw": 2147483677,
+        "T_raw": 2147483677,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 42
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "precision_qualified": false
+  }
+}

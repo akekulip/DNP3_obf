@@ -31,6 +31,13 @@ MANIFESTS = ('replay_graceful.json', 'replay_rst.json')
 COPIES = ('in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt', 'pre_read_ready.json')
 
 
+def source_paths():
+    """Every Vision-side file this replay runs; candidate_external.verdict pins exactly these names."""
+    return (Path(__file__), Path(vi.__file__), Path(vc.__file__), Path(rp.__file__), Path(vc.vr.__file__),
+            Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
+            Path(vc.vr.capture_observation.__file__), HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')
+
+
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -227,10 +234,7 @@ def scenario(label, port=PORT, padding=1, apply=False, control_padding=1, image_
     except Exception as error:
         record['error'] = str(error)
     finally:
-        record['source_sha256'] = {str(path): sha(path) for path in
-            (Path(__file__), Path(vi.__file__), Path(vc.__file__), Path(rp.__file__), Path(vc.vr.__file__),
-             Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
-             HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')}
+        record['source_sha256'] = {str(path): sha(path) for path in source_paths()}
         record['hashes'] = {str(path.relative_to(parent)): sha(path) for path in parent.rglob('*') if path.is_file()}
         vc.write_json(parent / 'scenario.json', record)
     return record

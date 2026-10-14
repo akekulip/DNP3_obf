@@ -26,6 +26,7 @@ CAL_SRC_PORT, CAL_DST_PORT = 20001, 61998
 CAL_PAYLOAD_LEN = 256
 MANAGED_OFFLOADS = ('gro', 'lro', 'rx-gro-hw', 'rx-gro-list')
 CAL_EXIT_POLLS = 50                   # up to 5 s for the -c bounded calibration captures to exit
+CAL_READY_POLLS = 60                  # up to 3 s for both calibration captures to become active
 FEATURE_ALIASES = {
     'generic-receive-offload': 'gro',
     'large-receive-offload': 'lro',
@@ -265,6 +266,11 @@ def _start_tcpdump(popen, command):
     return proc
 
 
+def _pcap_header_written(command):
+    path = Path(command[command.index('-w') + 1])
+    return path.is_file() and path.stat().st_size >= 24
+
+
 def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Popen,
                     send_calibration=None, sleep=time.sleep):
     evidence_dir = Path(evidence_dir)
@@ -282,12 +288,16 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
         commands[direction] = command
         procs[direction] = _start_tcpdump(popen, command)
     try:
-        sleep(1.0)
+        # tcpdump writes the 24-octet pcap header once its capture is active; send only after both have
+        # (fixed 1 s sleeps here delayed the next connection past candidate61_stale_tokens' old tokens)
+        for _ in range(CAL_READY_POLLS):
+            if all(_pcap_header_written(command) for command in commands.values()):
+                break
+            sleep(0.05)
         if send_calibration is None:
             _run_checked(run, expected['send_command'], [])
         else:
             send_calibration(expected)
-        sleep(1.0)
         for _ in range(CAL_EXIT_POLLS):        # each capture is bounded by -c: let it finish its count
             if all(proc.poll() is not None for proc in procs.values()):
                 break

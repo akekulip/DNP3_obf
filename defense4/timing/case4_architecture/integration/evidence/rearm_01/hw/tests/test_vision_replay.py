@@ -187,7 +187,7 @@ class VisionReplay(unittest.TestCase):
         self.assertEqual(gates, [self.root / 'series/c1', self.root / 'series/c2/current', self.root / 'series/c3'])
         self.assertEqual(result['connections'][1]['replay_filter']['removed'], 12)
         self.assertEqual(set(result['source_sha256']), {str(Path(module.__file__)) for module in
-            (vp, vp.vi, vp.vc, vp.rp, vp.vc.vr, vp.vc.wc, vp.vc.clrt, vp.vc.checks)} |
+            (vp, vp.vi, vp.vc, vp.rp, vp.vc.vr, vp.vc.wc, vp.vc.clrt, vp.vc.checks, vp.vc.vr.capture_observation)} |
             {str(HW / 'token_window.py'), str(HW / 'snapshot_lifecycle.py')})
         verdict = json.loads((self.root / 'series/c2/verdict.json').read_text())
         self.assertEqual(verdict['replay_filter'], result['connections'][1]['replay_filter'])
@@ -240,3 +240,12 @@ class VisionReplay(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SourcePins(unittest.TestCase):
+    def test_recorded_source_names_equal_the_names_candidate_external_pins(self):
+        import candidate_series as cs
+        expected = set(cs.VISION_EXTRA) | {'vision_run.py', 'vision_isolation.py', 'vision_replay.py',
+                                           'replay_old_packets.py', 'token_window.py', 'snapshot_lifecycle.py'}
+        self.assertEqual({path.name for path in vp.source_paths()}, expected)
+        self.assertTrue(all(path.is_file() for path in vp.source_paths()))

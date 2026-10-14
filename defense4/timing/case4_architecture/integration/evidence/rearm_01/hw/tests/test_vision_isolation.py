@@ -121,3 +121,14 @@ class VisionIsolation(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SourcePins(unittest.TestCase):
+    def test_recorded_source_names_equal_the_names_candidate_isolation_pins(self):
+        """candidate61_stale_tokens_950_01: capture_observation.py was deployed and pinned by the verdict but not
+        recorded by the scenario, so a correct run failed 'source pins differ'."""
+        import candidate_series as cs
+        expected = set(cs.VISION_EXTRA) | {'vision_isolation.py', 'vision_run.py', 'token_window.py',
+                                           'snapshot_lifecycle.py'}
+        self.assertEqual({path.name for path in vi.source_paths()}, expected)
+        self.assertTrue(all(path.is_file() for path in vi.source_paths()))
