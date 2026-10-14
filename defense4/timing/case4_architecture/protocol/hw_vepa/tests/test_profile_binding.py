@@ -18,7 +18,9 @@ READ_REENCODE = C4 / 'integration/core/response_only_rearm/stage_experiments/rea
 SMOKE = (C4 / 'integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/'
          'candidate61_fourarm_smoke_03/separate_ack')
 CHECKER = READ_REENCODE / 'profile_check.py'
-pytestmark = pytest.mark.skipif(not (SMOKE / 'combined').exists(), reason='retained candidate61 smoke absent')
+pytestmark = pytest.mark.skipif(
+    not (SMOKE / 'combined/candidate61_fourarm_smoke_03_separate_ack_combined_t0/in.pcap').is_file(),
+    reason='retained candidate61 smoke captures absent (source-only export)')
 sys.path.insert(0, str(READ_REENCODE / 'tests'))
 
 
