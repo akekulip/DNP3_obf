@@ -1,0 +1,1939 @@
+{
+ "run_id": "strict_comparison_59570_950_b2",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "strict_dup_hold_full02",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+     "master_port": 59660,
+     "reads": 500,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57202
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65016,
+       "read": 65016
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 518,
+      "snapshot": {
+       "bfrt_sha256": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791997202.1342669,
+       "valid": true
+      },
+      "time": 1791997202.14667,
+      "budget": {
+       "reads": 500,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/strict_comparison_59570_950_b2_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+      "master_port": 59660,
+      "reads": 500,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57202,
+      "start_delay_ms_applied": 16,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_combined_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_combined_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59660,
+       "polls": 1,
+       "elapsed_s": 0.03,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 15.864,
+      "tcpdump": {
+       "out": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 1514,
+      "frames_in": 1514,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 4500,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 500,
+       "eligible": 500,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 500,
+        "min": 0.0,
+        "median": 4,
+        "iqr": 5.0,
+        "p95": 11.0,
+        "p99": 26.0,
+        "max": 924.0,
+        "sd_population": 57.8,
+        "sd_sample": 57.9
+       },
+       "signed_error_us": {
+        "n": 500,
+        "min": -924.0,
+        "median": 1,
+        "iqr": 9.0,
+        "p95": 11.0,
+        "p99": 14.0,
+        "max": 62.0,
+        "sd_population": 58.5,
+        "sd_sample": 58.5
+       },
+       "tails": [
+        {
+         "t_req": 1791997213315004,
+         "clrt_us": 26,
+         "error_us": -924.0
+        },
+        {
+         "t_req": 1791997209261198,
+         "clrt_us": 38,
+         "error_us": -912.0
+        },
+        {
+         "t_req": 1791997207297333,
+         "clrt_us": 1012,
+         "error_us": 62.0
+        },
+        {
+         "t_req": 1791997212206315,
+         "clrt_us": 1007,
+         "error_us": 57.0
+        },
+        {
+         "t_req": 1791997216988743,
+         "clrt_us": 990,
+         "error_us": 40.0
+        }
+       ],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 128320,
+       "OUT_ACK_COMMIT": 500,
+       "OUT_RESP_RELEASE": 500,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 500,
+        "pkts": 2000
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "off",
+   "T": 0,
+   "padding": 0,
+   "build": "strict_dup_hold_full02",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+     "master_port": 59661,
+     "reads": 500,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57203
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65016,
+       "read": 65016
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 518,
+      "snapshot": {
+       "bfrt_sha256": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791997292.7549975,
+       "valid": true
+      },
+      "time": 1791997292.7626002,
+      "budget": {
+       "reads": 500,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/strict_comparison_59570_950_b2_separate_ack_off_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+      "master_port": 59661,
+      "reads": 500,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57203,
+      "start_delay_ms_applied": 1,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_off_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_off_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59661,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 14.772,
+      "tcpdump": {
+       "out": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 1514,
+      "frames_in": 1514,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 500,
+       "eligible": 500,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 500,
+        "min": 1309.0,
+        "median": 2387,
+        "iqr": 27.0,
+        "p95": 2415.0,
+        "p99": 2429.0,
+        "max": 2443.0,
+        "sd_population": 70.5,
+        "sd_sample": 70.6
+       },
+       "signed_error_us": {
+        "n": 500,
+        "min": 1309.0,
+        "median": 2387,
+        "iqr": 27.0,
+        "p95": 2415.0,
+        "p99": 2429.0,
+        "max": 2443.0,
+        "sd_population": 70.5,
+        "sd_sample": 70.6
+       },
+       "tails": [
+        {
+         "t_req": 1791997295969886,
+         "clrt_us": 3393,
+         "error_us": 2443.0
+        },
+        {
+         "t_req": 1791997304051141,
+         "clrt_us": 3384,
+         "error_us": 2434.0
+        },
+        {
+         "t_req": 1791997300628848,
+         "clrt_us": 3382,
+         "error_us": 2432.0
+        },
+        {
+         "t_req": 1791997297709828,
+         "clrt_us": 3381,
+         "error_us": 2431.0
+        },
+        {
+         "t_req": 1791997304227900,
+         "clrt_us": 3380,
+         "error_us": 2430.0
+        }
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "T": 1,
+   "padding": 0,
+   "build": "strict_dup_hold_full02",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+     "master_port": 59662,
+     "reads": 500,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57204
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65016,
+       "read": 65016
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 518,
+      "snapshot": {
+       "bfrt_sha256": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791997382.09817,
+       "valid": true
+      },
+      "time": 1791997382.1055293,
+      "budget": {
+       "reads": 500,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/strict_comparison_59570_950_b2_separate_ack_timing_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+      "master_port": 59662,
+      "reads": 500,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57204,
+      "start_delay_ms_applied": 18,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_timing_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_timing_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59662,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 15.857,
+      "tcpdump": {
+       "out": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 1514,
+      "frames_in": 1514,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 500,
+       "eligible": 500,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 500,
+        "min": 0.0,
+        "median": 4,
+        "iqr": 5.0,
+        "p95": 48.0,
+        "p99": 54.0,
+        "max": 925.0,
+        "sd_population": 58.9,
+        "sd_sample": 58.9
+       },
+       "signed_error_us": {
+        "n": 500,
+        "min": -925.0,
+        "median": 0,
+        "iqr": 9.0,
+        "p95": 45.0,
+        "p99": 50.0,
+        "max": 55.0,
+        "sd_population": 60.1,
+        "sd_sample": 60.1
+       },
+       "tails": [
+        {
+         "t_req": 1791997393254964,
+         "clrt_us": 25,
+         "error_us": -925.0
+        },
+        {
+         "t_req": 1791997389202833,
+         "clrt_us": 41,
+         "error_us": -909.0
+        },
+        {
+         "t_req": 1791997396610657,
+         "clrt_us": 1005,
+         "error_us": 55.0
+        },
+        {
+         "t_req": 1791997386892227,
+         "clrt_us": 896,
+         "error_us": -54.0
+        },
+        {
+         "t_req": 1791997390722427,
+         "clrt_us": 896,
+         "error_us": -54.0
+        }
+       ],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 127967,
+       "OUT_ACK_COMMIT": 500,
+       "OUT_RESP_RELEASE": 500,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 1,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 500,
+        "pkts": 2000
+       },
+       "OPERATE": {
+        "triggers": 1,
+        "pkts": 4
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "build": "strict_dup_hold_full02",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+     "master_port": 59663,
+     "reads": 500,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57205
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65016,
+       "read": 65016
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 518,
+      "snapshot": {
+       "bfrt_sha256": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791997472.583242,
+       "valid": true
+      },
+      "time": 1791997472.5908163,
+      "budget": {
+       "reads": 500,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/strict_comparison_59570_950_b2_separate_ack_size_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+      "master_port": 59663,
+      "reads": 500,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57205,
+      "start_delay_ms_applied": 24,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_size_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/strict_comparison_59570_950_b2_separate_ack_size_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59663,
+       "polls": 1,
+       "elapsed_s": 0.037,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 14.772,
+      "tcpdump": {
+       "out": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 1514,
+        "received": 3028,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 1514,
+      "frames_in": 1514,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 4500,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 500,
+       "eligible": 500,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 500,
+        "min": 1223.0,
+        "median": 2396,
+        "iqr": 36.0,
+        "p95": 2433.0,
+        "p99": 2452.0,
+        "max": 2589.0,
+        "sd_population": 77.0,
+        "sd_sample": 77.0
+       },
+       "signed_error_us": {
+        "n": 500,
+        "min": 1223.0,
+        "median": 2396,
+        "iqr": 36.0,
+        "p95": 2433.0,
+        "p99": 2452.0,
+        "max": 2589.0,
+        "sd_population": 77.0,
+        "sd_sample": 77.0
+       },
+       "tails": [
+        {
+         "t_req": 1791997475677572,
+         "clrt_us": 3539,
+         "error_us": 2589.0
+        },
+        {
+         "t_req": 1791997485674891,
+         "clrt_us": 3409,
+         "error_us": 2459.0
+        },
+        {
+         "t_req": 1791997479067833,
+         "clrt_us": 3408,
+         "error_us": 2458.0
+        },
+        {
+         "t_req": 1791997485792822,
+         "clrt_us": 3407,
+         "error_us": 2457.0
+        },
+        {
+         "t_req": 1791997477121850,
+         "clrt_us": 3403,
+         "error_us": 2453.0
+        }
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59660,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_strict_comparison_59570_950_b2_separate_ack_combined_t0.json"
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "fixture": "separate_ack",
+   "arm": "off",
+   "trial": 0,
+   "master_port": 59661,
+   "padding": 0,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_strict_comparison_59570_950_b2_separate_ack_off_t0.json"
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "trial": 0,
+   "master_port": 59662,
+   "padding": 0,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_strict_comparison_59570_950_b2_separate_ack_timing_only_t0.json"
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "trial": 0,
+   "master_port": 59663,
+   "padding": 1,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_strict_comparison_59570_950_b2_separate_ack_size_only_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "b8c046268596986958a31d122b8870df03ea76553626786218560f29038575e9",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "00a0e4f2928fc9f5e86168687a0a7878c11171e18c5659d8860bd40fc586fc44"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "e0a2fdea9e13e71f3c5142169a481dc0c9c9a6e5ec7f85c046026680ea0154e8",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": 518,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65016,
+    "read": 65016
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_off_t0",
+   "ok": true,
+   "reserve": 518,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65016,
+    "read": 65016
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_timing_only_t0",
+   "ok": true,
+   "reserve": 518,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65016,
+    "read": 65016
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "strict_comparison_59570_950_b2_separate_ack_size_only_t0",
+   "ok": true,
+   "reserve": 518,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65016,
+    "read": 65016
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 3,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 500,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59660,
+    "last": 59663
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 50,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "timing_precision_characterization",
+   "read_precision": true,
+   "candidate61_label": "strict_baseline_comparison_59570_950",
+   "block": 2,
+   "arm_order": [
+    "combined",
+    "off",
+    "timing_only",
+    "size_only"
+   ]
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "strict_dup_hold_full02": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "02c8f11a8e705a5f87fafafb6cf4bf70cc0a3f7d2e48ee82d18a40b5c25031e5",
+ "config_file_sha256": "56dbe4521b0bf7586e2ec6c576e63f08f24d373a83929307eb92a821f7341c1f",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "b1769a281fdbd692f33a2b5992a1661f627c7df09cefb83876464fbc886a79db",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "build_sources": {
+   "strict_dup_hold_full02": {
+    "source_sha256": "2ad71761399e023b0d3b6b72f9fb71257da012499ffe30ac4758b395fc1bd97c",
+    "source_files": {
+     "response_only.p4": "2ad71761399e023b0d3b6b72f9fb71257da012499ffe30ac4758b395fc1bd97c"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "strict_dup_hold_full02": {
+   "bfrt.json": "22d666b23d2d63bf76d62b7d2b6643a5aac6e303abe9ac6b4f1392ed38f437f6",
+   "p0/tofino.bin": "fbb514713643a327243999ba5ddaf9ec244b5d362a71d045cb2a697cbc9fd426",
+   "p1/tofino.bin": "daef693337dce7af6bcdec07b884c05aa63efbf74a0633209b162550867ee28e",
+   "p1/response_only.bfa": "c7f40eb1e27075b043e2be5d1d779df2867e75becf1bafd0612ba2722e6e2c3f"
+  }
+ },
+ "paired_block": null,
+ "time": 1791997563.0787115
+}

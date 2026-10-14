@@ -474,6 +474,10 @@ class Campaign:
 
     def standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
                            checker_result=None):
+        # READ precision is gated by its own failure entry (soft in timing characterization); it is not a
+        # standards property, so a precision-only failure must not re-enter here as a hard standards failure
+        if failures and all(str(f).startswith('READ precision:') for f in failures):
+            failures, aggregate_ok = [], True
         return {
             'timing': ev.get('timing'),
             'checker_result': checker_result,

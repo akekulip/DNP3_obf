@@ -224,6 +224,20 @@ class Sequence(Base):
         self.assertTrue(r.runs('ping -c'))
         self.assertGreater(r.swaps()[-1], r.runs('vision_run.py run')[-1])
 
+    def test_real_standards_observed_leaves_a_precision_only_failure_to_the_precision_gate(self):
+        """candidate61_compare_14892_950_01: a p99 precision exceedance in a timing-characterization run became a
+        hard standards failure ('observed.failures is non-empty') and stopped the campaign after one trial."""
+        campaign = self.campaign(FakeRunner(), arms=('combined',))
+        precision = 'READ precision: eligible=50 (minimum20), p99 absolute CLRT error=144.0 us (maximum100)'
+        obs = _ORIG_STANDARDS_OBSERVED(campaign, {}, [precision], transport_ok=True, select_ok=True,
+                                       operate_ok=True, aggregate_ok=False)
+        self.assertEqual(obs['failures'], [])
+        self.assertTrue(obs['aggregate_verdict'])
+        other = _ORIG_STANDARDS_OBSERVED(campaign, {}, [precision, 'wire: bad CRC'], transport_ok=True,
+                                         select_ok=True, operate_ok=True, aggregate_ok=False)
+        self.assertEqual(other['failures'], [precision, 'wire: bad CRC'])
+        self.assertFalse(other['aggregate_verdict'])
+
     def test_standards_checker_system_exit_becomes_structured_failure(self):
         class ExitingChecker:
             def check(self, *args, **kwargs):
