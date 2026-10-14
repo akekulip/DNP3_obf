@@ -73,8 +73,9 @@ def repeated_sbo_checks(master, outstation, cycles):
     fails = []
     rows = (master or {}).get('cycles')
     if (master or {}).get('sbo_cycles') != cycles or not isinstance(rows, list) or len(rows) != cycles:
-        return ['master did not report %d SBO cycle records (sbo_cycles=%r)' % (cycles, (master or {}).get('sbo_cycles'))]
-    for c, row in enumerate(rows):
+        fails.append('master did not report %d SBO cycle records (sbo_cycles=%r, records=%r)'
+                     % (cycles, (master or {}).get('sbo_cycles'), len(rows) if isinstance(rows, list) else rows))
+    for c, row in enumerate(rows if isinstance(rows, list) else []):
         want = {'cycle': c, 'on_time_ms': 100 + c, 'callbacks': 1, 'ok': True, 'index': 1, 'status': 0,
                 'points': 1, 'read_matches_seed': True}
         bad = {k: row.get(k) for k, v in want.items() if row.get(k) != v}
@@ -83,8 +84,11 @@ def repeated_sbo_checks(master, outstation, cycles):
     events = (outstation or {}).get('events')
     if not isinstance(events, list):
         return fails + ['outstation did not report per-callback events']
-    if (outstation or {}).get('actuation') != 'software_handler' or (outstation or {}).get('physical_actuations') != 0:
-        fails.append('outstation callbacks are not marked software_handler with zero physical actuations')
+    # The handler counts OPERATEs delivered to its one wired point; with no output driver they actuate nothing.
+    if ((outstation or {}).get('actuation'), (outstation or {}).get('output_driver')) != ('software_handler', 'none'):
+        fails.append('outstation is not the software handler with no output driver')
+    if (outstation or {}).get('wired_point_operates') != cycles:
+        fails.append('outstation wired_point_operates=%r, expected %d' % ((outstation or {}).get('wired_point_operates'), cycles))
     want_kinds = ['SELECT', 'OPERATE'] * cycles
     if [e.get('kind') for e in events] != want_kinds:
         fails.append('outstation callbacks are not one SELECT then one OPERATE per cycle (%d events)' % len(events))
@@ -96,9 +100,10 @@ def repeated_sbo_checks(master, outstation, cycles):
     return fails
 
 
-def application_checks(exp, padding, reads, ev, run_sbo=True):
+def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False):
     """Endpoint semantics and per-function wire checks, shared by ordinary and reconnect trials. run_sbo is the
-    number of SELECT/OPERATE pairs expected (a boolean means 0 or 1)."""
+    number of SELECT/OPERATE pairs expected (a boolean means 0 or 1); repeated (from the configuration, not the
+    endpoint's report) requires per-cycle records for every one of them."""
     fails = []
     m, o, w, t = (ev.get(k) for k in ('master', 'outstation', 'wire', 'timing'))
     for key, value in (('master', m), ('outstation', o), ('wire', w), ('timing', t)):
@@ -117,7 +122,7 @@ def application_checks(exp, padding, reads, ev, run_sbo=True):
                 or r.get('matches_seed') is not True or r.get('completed') is not True for r in rs):
             fails.append('READs did not return all %d seed values' % exp['common']['read_points'])
     if isinstance(o, dict) and o:
-        if isinstance(m, dict) and (m.get('sbo_cycles') or 0) > 0:
+        if repeated or (isinstance(m, dict) and (m.get('sbo_cycles') or 0) > 0):
             fails += repeated_sbo_checks(m, o, int(run_sbo))
         for key in ('select_real', 'operate_real'):
             if o.get(key) != int(run_sbo):
@@ -267,14 +272,15 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0):
                              % (app, d[app]['triggers'], d[app]['pkts']))
 
 
-def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, gap_ns=None, precision=True, run_sbo=True):
+def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, gap_ns=None, precision=True, run_sbo=True,
+             repeated=False):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None."""
     allowed = allowed or {}
     fails, obs = [], {}
     need = [k for k in ('before', 'after', 'master', 'outstation', 'wire', 'timing') if not ev.get(k)]
     for k in need:
         fails.append('missing evidence: %s' % ('%s snapshot' % k if k in ('before', 'after') else k))
-    fails += application_checks(exp, arm['padding'], reads, ev, run_sbo)
+    fails += application_checks(exp, arm['padding'], reads, ev, run_sbo, repeated)
     t = ev.get('timing')
     summary = t.get('summary', {}) if isinstance(t, dict) else {}
     summary = summary if isinstance(summary, dict) else {}

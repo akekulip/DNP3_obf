@@ -85,6 +85,31 @@ class Candidate61SourceOnlyTests(unittest.TestCase):
         self.assertTrue(any('on disk is missing' in e for e in errs), errs)
 
 
+class RepeatEndpointPins(unittest.TestCase):
+    """The repeated-SBO configs pin the endpoint fork's committed sources, and its build when present."""
+    ENDPOINT = REPO / 'defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint'
+
+    def test_repeat_configs_pin_the_committed_endpoint_sources(self):
+        configs = sorted(CFG.glob('candidate61_repeat_sbo_*.json'))
+        self.assertEqual(len(configs), 3)
+        for path in configs:
+            data = load_path(path)
+            self.assertEqual(data['traffic']['sbo_cycles'], 64, path.name)
+            self.assertEqual(data['trials']['reads_per_trial'], 65, path.name)
+            for name, digest in data['endpoint']['source_files'].items():
+                self.assertEqual(sha_file(self.ENDPOINT / 'sources' / name), digest, (path.name, name))
+            self.assertEqual(data['endpoint']['source_sha256'], data['endpoint']['source_files']['SocketGatePad58B.cpp'])
+
+    @unittest.skipUnless((ENDPOINT / 'build/build_manifest.json').is_file(), 'endpoint build tree absent')
+    def test_repeat_configs_pin_the_built_binary(self):
+        manifest = json.loads((self.ENDPOINT / 'build/build_manifest.json').read_text())
+        for path in sorted(CFG.glob('candidate61_repeat_sbo_*.json')):
+            endpoint = load_path(path)['endpoint']
+            self.assertEqual(endpoint['binary_sha256'], manifest['binary_sha256'], path.name)
+            self.assertEqual(endpoint['lib_sha256'], manifest['library_directory_sha256'], path.name)
+            self.assertEqual(endpoint['source_files'], manifest['source_hashes'], path.name)
+
+
 class Candidate61HardwareConfigTests(unittest.TestCase):
     @unittest.skipUnless(BUILD_PRESENT, 'compiler build tree absent (source-only checkout):\n' + BUILD_MISSING)
     def test_generator_is_reproducible(self):

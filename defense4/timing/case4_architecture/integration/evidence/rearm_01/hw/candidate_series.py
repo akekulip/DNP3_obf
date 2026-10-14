@@ -272,6 +272,8 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series reads_per_trial must be 20')
         if self.cfg['traffic'].get('run_sbo', True) is not True:
             raise ValueError('candidate series requires SBO enabled')
+        if 'sbo_cycles' in self.cfg['traffic']:
+            raise ValueError('candidate series does not carry traffic.sbo_cycles (vision_candidate runs one SBO)')
         traffic = self.cfg['traffic']
         if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
                 traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):

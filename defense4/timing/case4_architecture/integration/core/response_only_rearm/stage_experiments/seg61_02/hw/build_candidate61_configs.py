@@ -332,19 +332,20 @@ for filename, template, order, block in orders:
 # own Vision directory. reads counts every READ: 1 before the first cycle, then 64 x (SELECT, OPERATE, READ).
 REPEAT_ENDPOINT = {
     'opendnp3_commit': '4648fcb898456d1cb70b5baecc38cc256c859c2e',
-    'binary_sha256': 'e8f7694d98d5aad8bcfd0a4423e634a5a740e945d296df053cac6aa386d8e793',
+    'binary_sha256': '8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553',
     'lib_sha256': 'a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba',
     '_pinned': 'repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.',
     '_pin_with': 'sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory',
     '_lib_note': 'lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/',
-    'source_sha256': 'dc3985033d00d3d38dec74a3bf71574f56ade7ea49fc5a0162da5d95fb39384e',
+    'source_sha256': '84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22',
     'source_files': {
-        'SocketGatePad58B.cpp': 'dc3985033d00d3d38dec74a3bf71574f56ade7ea49fc5a0162da5d95fb39384e',
+        'SocketGatePad58B.cpp': '84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22',
         'DecoyGateCommandHandler.h': 'e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2',
     },
     'build_recipe': 'integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py',
 }
-REPEAT_VISION_DIR = '/home/decps/pad58b_repeat_sbo_20261014b'   # _20261014 held a stale build
+# _20261014 held a stale build; _20261014b ran blocks b1_02..b3 (endpoint e8f7694d, source dc398503)
+REPEAT_VISION_DIR = '/home/decps/pad58b_repeat_sbo_20261014c'
 repeat_orders = [
     ('candidate61_repeat_sbo_950_b1.json', 'candidate57s_eval_b1.json', ['off', 'timing_only', 'size_only', 'combined'], 1),
     ('candidate61_repeat_sbo_950_b2.json', 'candidate57s_eval_b2.json', ['combined', 'off', 'timing_only', 'size_only'], 2),

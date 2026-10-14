@@ -437,6 +437,8 @@ class Campaign:
         if loss is not None and loss not in cfg['loss'].get('presets', {}):
             raise ValueError('unknown loss preset %r; the config defines %s' % (loss, sorted(cfg['loss'].get('presets', {}))))
         if scenario is not None:
+            if 'sbo_cycles' in cfg['traffic']:
+                raise ValueError('scenario %r is not supported with traffic.sbo_cycles (unsupported shape)' % scenario)
             if scenario not in cfg.get('scenarios', {}):
                 raise ValueError('unknown scenario %r; the config defines %s' % (scenario, sorted(cfg.get('scenarios', {}))))
             want = [cfg['scenarios'][scenario]['arm']]
@@ -1097,7 +1099,8 @@ class Campaign:
                                      diagnostic=self.cfg['builds'][arm['build']].get('diagnostic', False),
                                      gap_ns=self.cfg['timing_params_ns']['gap'],
                                      precision=self.cfg.get('evaluation', {}).get('read_precision', True),
-                                     run_sbo=checks.sbo_count(self.cfg['traffic']))
+                                     run_sbo=checks.sbo_count(self.cfg['traffic']),
+                                     repeated='sbo_cycles' in self.cfg['traffic'])
         cfail += self.endpoint_control_checks(ev['master'])
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail

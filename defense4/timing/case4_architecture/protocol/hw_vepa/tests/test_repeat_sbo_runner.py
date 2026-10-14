@@ -33,7 +33,7 @@ def outstation_record(cycles, events=None):
         dict(seq=i, kind=('SELECT', 'OPERATE')[i % 2], index=1, status=0, on_time_ms=100 + i // 2, off_time_ms=100)
         for i in range(2 * cycles)]
     return {'select_real': cycles, 'operate_real': cycles, 'select_decoy': 0, 'operate_decoy': 0,
-            'actuation': 'software_handler', 'physical_actuations': 0, 'events': events}
+            'actuation': 'software_handler', 'output_driver': 'none', 'wired_point_operates': cycles, 'events': events}
 
 
 class SboCount(unittest.TestCase):
@@ -71,12 +71,18 @@ class RepeatedRecords(unittest.TestCase):
                 dict(kind='SELECT', index=1, status=0, on_time_ms=101), dict(kind='OPERATE', index=1, status=0, on_time_ms=101)])),
             'decoy index': (master_record(1), outstation_record(1, [
                 dict(kind='SELECT', index=201, status=0, on_time_ms=100), dict(kind='OPERATE', index=201, status=0, on_time_ms=100)])),
-            'physical actuation': (master_record(1), dict(outstation_record(1), physical_actuations=1)),
+            'wired point count wrong': (master_record(2), dict(outstation_record(2), wired_point_operates=3)),
+            'output driver present': (master_record(1), dict(outstation_record(1), output_driver='relay')),
             'no events': (master_record(1), {k: v for k, v in outstation_record(1).items() if k != 'events'}),
         }
         for name, (master, outstation) in cases.items():
             with self.subTest(name):
                 self.assertTrue(checks.repeated_sbo_checks(master, outstation, master['sbo_cycles']), name)
+
+    def test_configured_repetition_is_checked_even_if_the_endpoint_omits_it(self):
+        master = {k: v for k, v in master_record(3).items() if k != 'sbo_cycles'}
+        fails = checks.repeated_sbo_checks(master, outstation_record(3), 3)
+        self.assertTrue(any('did not report 3 SBO cycle records' in f for f in fails), fails)
 
     def test_application_checks_count_every_cycle(self):
         exp = json.load(open(CONFIG))['expectations']
@@ -101,6 +107,10 @@ class RepeatedRecords(unittest.TestCase):
         dup = copy.deepcopy(ev)
         dup['master']['cycles'][10]['callbacks'] = 2
         self.assertTrue(any('SBO cycle 10' in f for f in checks.application_checks(exp, 1, reads, dup, 64)))
+        silent = copy.deepcopy(ev)
+        del silent['master']['sbo_cycles']                                   # endpoint stops claiming cycles
+        self.assertEqual(checks.application_checks(exp, 1, reads, silent, 64), [])          # not configured: legacy
+        self.assertTrue(checks.application_checks(exp, 1, reads, silent, 64, repeated=True))  # configured: checked
 
 
 class ConfigValidation(unittest.TestCase):
@@ -146,6 +156,12 @@ class ConfigValidation(unittest.TestCase):
             self.load(lambda cfg: (self.repeat()(cfg), cfg['traffic'].update(run_sbo=False)))
         with self.assertRaises(ValueError):
             self.load(lambda cfg: (self.repeat()(cfg), cfg['loss'].update(presets={'core': [{'class': 'x', 'n': 1}]})))
+
+    def test_scenarios_reject_repeated_cycles(self):
+        cfg = self.load(self.repeat())
+        for scenario in cfg.get('scenarios', {}) or ['reconnect']:
+            with self.subTest(scenario), self.assertRaisesRegex(ValueError, 'sbo_cycles'):
+                cp.Campaign(cfg, cp.DryRunner(), 'x', arms=[cfg['arms'][0]['name']], scenario=scenario)
 
 
 class VisionRunValidation(unittest.TestCase):

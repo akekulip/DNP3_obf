@@ -122,6 +122,9 @@ class RepeatSbo(unittest.TestCase):
         responses = [user_data(bytes.fromhex(r['native_frame_hex'])) for r in rows if r['direction'] == 'outstation_to_master']
         kinds = [FUNC.get(u[2], u[2]) for u in requests]
         self.assertEqual(kinds, ['READ'] + ['SELECT', 'OPERATE', 'READ'] * cycles)
+        m_seqs = [u[0] & 0x3F for u in requests]                                 # master transport octet
+        self.assertTrue(all(u[0] & 0xC0 == 0xC0 for u in requests))
+        self.assertEqual(m_seqs, [(m_seqs[0] + i) % 64 for i in range(len(m_seqs))])
         app_seqs = [u[1] & 0x0F for u in requests]
         self.assertEqual(app_seqs, [(app_seqs[0] + i) % 16 for i in range(len(app_seqs))])
         self.assertGreaterEqual(len(app_seqs) // 16, 12)                         # many application wraps
@@ -145,7 +148,7 @@ class RepeatSbo(unittest.TestCase):
         self.assertEqual([station[k] for k in ('select_real', 'operate_real', 'select_decoy', 'operate_decoy')],
                          [cycles, cycles, 0, 0])
         self.assertEqual(station['actuation'], 'software_handler')
-        self.assertEqual(station['physical_actuations'], 0)
+        self.assertEqual((station['output_driver'], station['wired_point_operates']), ('none', cycles))
         events = station['events']
         self.assertEqual([e['kind'] for e in events], ['SELECT', 'OPERATE'] * cycles)
         self.assertEqual([e['seq'] for e in events], list(range(2 * cycles)))
@@ -164,6 +167,14 @@ class RepeatSbo(unittest.TestCase):
         self.assertEqual(kinds, ['READ', 'READ', 'SELECT', 'OPERATE'])
         self.assertEqual([station[k] for k in ('select_real', 'operate_real')], [1, 1])
         self.assertEqual(len(station['events']), 2)
+
+    def test_cycles_without_a_leading_read_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            stop = Path(temp) / 'stop'; stop.touch()
+            run = subprocess.run([str(BINARY), 'master', '127.0.0.1', str(free_port()), str(stop), '0'],
+                                 env=environment(CASE4_SBO_CYCLES='4'), capture_output=True, text=True, timeout=5)
+        self.assertEqual(run.returncode, 64, run.stdout + run.stderr)
+        self.assertIn('leading READ', run.stderr)
 
     def test_build_matches_the_current_source(self):
         # 2026-10-14: a binary built before a source edit was deployed and failed on silicon; never again.

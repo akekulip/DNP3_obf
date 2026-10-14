@@ -210,6 +210,7 @@ int main(int argc, char** argv) {
     // CASE4_SBO_CYCLES=0 (default) keeps the single trailing SBO. N>0 runs N cycles of SELECT->OPERATE then one
     // READ on the same connection after the initial READs, i.e. READ->SELECT->OPERATE->READ repeated N times.
     if (sbo_cycles && !run_sbo) { std::cerr << "CASE4_SBO_CYCLES requires CASE4_RUN_SBO=1\n"; return 64; }
+    if (sbo_cycles && role == "master" && reads < 1) { std::cerr << "CASE4_SBO_CYCLES requires at least one leading READ\n"; return 64; }
     DNP3Manager manager(1); auto listener = std::make_shared<Listener>();
     if (role == "outstation") {
         if (lifetime_s <= 0) return 64;
@@ -233,7 +234,8 @@ int main(int argc, char** argv) {
                    << ",\"operate_real\":" << handler->gate.operates(1) << ",\"operate_decoy\":" << handler->gate.operates(201)
                    << ",\"opens\":" << listener->opens << ",\"select_accept_ns\":" << handler->selected_ns
                    << ",\"operate_accept_ns\":" << handler->operated_ns
-                   << ",\"actuation\":\"software_handler\",\"physical_actuations\":0"
+                   << ",\"actuation\":\"software_handler\",\"output_driver\":\"none\""
+                   << ",\"wired_point_operates\":" << handler->gate.physicalActuations
                    << ",\"events\":" << eventsJson(handler->events) << "}\n";
         return 0;
     }
