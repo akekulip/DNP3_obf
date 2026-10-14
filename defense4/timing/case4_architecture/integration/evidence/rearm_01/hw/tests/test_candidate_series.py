@@ -317,3 +317,41 @@ def test_deployed_vision_helper_imports_from_only_its_pinned_files(tmp_path):
         str(tmp_path)], capture_output=True, text=True, cwd=tmp_path)
     assert result.returncode == 0, result.stderr
     assert '--pre-read-grace-ms' in result.stdout
+
+
+INJECTED = 'standards: packet_boundary: injected rejection'
+
+
+@pytest.mark.parametrize('rejection', [[], [INJECTED]])
+def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatch, tmp_path, rejection):
+    module, cfg = configured()
+    runner = module.base.DryRunner(); runner.dry = False
+    campaign = module.CandidateSeriesCampaign(cfg, runner, 'series_standards', arms=['combined'],
+                                              fixtures=['separate_ack'], out=lambda *_: None)
+    for cn in ('c1', 'c2', 'c3'):
+        (tmp_path / cn).mkdir()
+        (tmp_path / cn / 'verdict.json').write_text(json.dumps({'ok': True}))
+    # Every other collaborator passes, so the standards wrapper is the only possible failure.
+    monkeypatch.setattr(module.checks, 'application_checks', lambda *a, **kw: [])
+    monkeypatch.setattr(module.checks, 'read_precision',
+                        lambda *a, **kw: {'pass': True, 'eligible': 20, 'absolute_error_us': {}})
+    monkeypatch.setattr(module.wc, 'parse', lambda path: ([], []))
+    monkeypatch.setattr(module, 'freshness_gate', lambda *a, **kw: {'server_isn': 1})
+    monkeypatch.setattr(module, 'series_switch_gate', lambda *a, **kw: ([], {}))
+    monkeypatch.setattr(module, 'lifecycle_gate', lambda *a, **kw: ([], {}))
+    monkeypatch.setattr(campaign, 'run_standards_checker', lambda *a, **kw: {'ok': True})
+    calls = []
+    monkeypatch.setattr(campaign, 'validate_standards_file',
+                        lambda *a, **kw: calls.append(kw['connection_id']) or list(rejection))
+    vision = module.base.Result(0, json.dumps({'scenario': 'candidate_same_tuple', 'ok': True}), '')
+    trial = {'reads': 20, 'master_port': 59420}
+    arm = campaign.arms[0]
+    if not rejection:
+        campaign.verdict(trial, {}, 'series_standards', str(tmp_path), vision, arm, 'separate_ack')
+        assert trial['ok'] is True and trial['failures'] == []
+    else:
+        with pytest.raises(module.base.StepFailed, match='injected rejection'):
+            campaign.verdict(trial, {}, 'series_standards', str(tmp_path), vision, arm, 'separate_ack')
+        assert trial['ok'] is False
+        assert 'c1: ' + INJECTED in trial['failures']
+    assert calls == ['c1', 'c2', 'c3']

@@ -119,3 +119,47 @@ def test_pool_pins_every_member_and_rejects_duplicates():
     with pytest.raises(ValueError,match='distinct'):
         ce.ExternalIsolationCampaign(original,ce.base.DryRunner(),'dup',arms=['combined'],fixtures=['separate_ack'],
                                      old_graceful=[graceful,graceful],old_rst=rst)
+
+
+INJECTED='standards: packet_boundary: injected rejection'
+
+
+@pytest.mark.parametrize('rejection',[[],[INJECTED]])
+def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatch,tmp_path,rejection):
+    import json
+    import vision_candidate
+    run=make_run();run.rn.dry=False;run.out=lambda *_:None
+    pins={run.V+'/'+name:ce.base.sha256_file(path) for name,path in ce.cs.VISION_EXTRA.items()}
+    pins.update({run.V+'/'+name:ce.base.sha256_file(path) for name,path in (
+        ('vision_run.py',ce.ARCH/'protocol/hw_vepa/vision_run.py'),('vision_isolation.py',ce.HERE/'vision_isolation.py'),
+        ('vision_replay.py',ce.HERE/'vision_replay.py'),('replay_old_packets.py',ce.HERE/'replay_old_packets.py'),
+        ('token_window.py',ce.HERE/'token_window.py'),('snapshot_lifecycle.py',ce.HERE/'snapshot_lifecycle.py'))})
+    (tmp_path/'scenario.json').write_text(json.dumps(dict(
+        ok=True,source_sha256=pins,scenario='candidate_same_tuple_replay',applied=True,padding=1,reads=1,
+        master_port=59400,read_pause_ms=25,close_mode='rst',close_grace_ms=1000,
+        tuple=['192.168.10.61',59400,'192.168.10.62',20000],namespaces=['ns_vepa_a','ns_vepa_b'],
+        nic='enp59s0f0np0',switch_mutations=False)))
+    for cn in ('c1','c2','c3'):
+        (tmp_path/cn).mkdir();(tmp_path/cn/'verdict.json').write_text(json.dumps(dict(ok=True)))
+    (tmp_path/'c2/current').mkdir();(tmp_path/'c2/master.json').write_text(json.dumps(dict(first_read_issued_ns=2)))
+    run.window.update(monitor_ok=True,before={},after={},current_isns=dict(client=1,server=2),completed_vision_ns=1)
+    # Every other collaborator passes, so the standards wrapper is the only possible failure.
+    monkeypatch.setattr(run,'verify_current_derivation',lambda raw:{})
+    monkeypatch.setattr(vision_candidate,'evaluate',lambda *a,**kw:[])
+    monkeypatch.setattr(ce.cs.wc,'parse',lambda path:([],[]))
+    monkeypatch.setattr(ce.cs,'freshness_gate',lambda *a,**kw:dict(server_isn=2))
+    monkeypatch.setattr(ce,'compare_quiet_generation',lambda *a,**kw:dict(ok=True,failures=[]))
+    monkeypatch.setattr(ce.cs,'series_switch_gate',lambda *a,**kw:([],{}))
+    monkeypatch.setattr(ce.cs,'lifecycle_gate',lambda *a,**kw:([],{}))
+    monkeypatch.setattr(run,'run_standards_checker',lambda *a,**kw:dict(ok=True))
+    calls=[]
+    monkeypatch.setattr(run,'validate_standards_file',lambda *a,**kw:calls.append(kw['connection_id']) or list(rejection))
+    trial=dict(reads=1,master_port=59400);arm=run.arms[0];vision=ce.base.Result(0,'','')
+    if not rejection:
+        run.verdict(trial,{},'ext_standards',str(tmp_path),vision,arm,'separate_ack')
+        assert trial['ok'] is True and trial['failures']==[]
+    else:
+        with pytest.raises(ce.base.StepFailed,match='injected rejection'):
+            run.verdict(trial,{},'ext_standards',str(tmp_path),vision,arm,'separate_ack')
+        assert trial['ok'] is False and 'c1: '+INJECTED in trial['failures']
+    assert calls==['c1','c2','c3']
