@@ -1737,3 +1737,17 @@ connection (model, baseline 17/99). realrelay_native_01 full_01 passes native (9
 phase, network-validation bypass, no-TS option profile). Builder fixing into full_02. Then: cold review -> switch compile -> pin ->
 real-relay READ only with Philip's go (physical relay; SBO attended-only). Remaining directive items: §6 writing notes (audit
 folder, not paper/rewrite), release entry point + fresh-checkout offline verification.
+**2026-10-14 overnight checkpoint (61-octet compliant equal-size experiment).** HEAD 02f051445. Switch idle, production
+case4_response_path restored (last hardware block today ended with a verified restore); no hardware run for seg61.
+- Gate 1 (offline proof) PASS, commit 888c7783c: READ 61 (three G10V2 ranges q00/q00/q01, one frame) and SELECT/OPERATE as
+  three transport segments (28+19+14) with byte-identical application octets; Clause 8 reassembly, all 64 seq incl. wrap,
+  every LEN/CRC, Rule 8 exact vs real requests; mutations caught.
+- Gate 2 (pinned OpenDNP3 endpoint) PASS, commit 4c0db6aa5: 20 persistent READs at 61, 3-segment SBO reassembled, one
+  real callback each, 0 Clause 8 / Rule 8 failures. SBO completion 0.60 ms vs 0.79 ms strict (single runs).
+- Tooling ready for a 61-octet build: image_len in loss/campaign/series/report (4c0db6aa5), multi-frame wire_check
+  (14eae68b6), Vision --image-len (02f051445).
+- Gate 3 (P4 in E) PAUSED: a safety classifier stopped the builder and then the main session while working on this step;
+  per instruction the withheld content is not retried. Needs Philip's direction. Input pinned: dup_hold_01/evidence/
+  full_01 sha256 c0ad6b4e...; known 58-specific E constants: r_IMAGE_LEN, start_arm (ISN+1-58), fwd_prep (p-58),
+  classify_rev rows for -1..-58, acct leff rows 49/37, read/ctl pad actions (+9/+21, LEN, header-CRC XOR).
+Strict rearm_57s remains the IEEE-conformant silicon-qualified baseline (READ 58, SBO native 37).
