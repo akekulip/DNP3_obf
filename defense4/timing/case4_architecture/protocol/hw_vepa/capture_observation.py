@@ -25,6 +25,7 @@ IP_M, IP_O = '192.168.10.61', '192.168.10.62'
 CAL_SRC_PORT, CAL_DST_PORT = 20001, 61998
 CAL_PAYLOAD_LEN = 256
 MANAGED_OFFLOADS = ('gro', 'lro', 'rx-gro-hw', 'rx-gro-list')
+CAL_EXIT_POLLS = 50                   # up to 5 s for the -c bounded calibration captures to exit
 FEATURE_ALIASES = {
     'generic-receive-offload': 'gro',
     'large-receive-offload': 'lro',
@@ -274,7 +275,9 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
     commands = {}
     procs = {}
     for direction in ('out', 'in'):
-        command = ['tcpdump', '-i', interface, '-Q', direction, '-s0', '-U', '-n', '-c',
+        # --immediate-mode: TPACKET_V3 otherwise holds packets in a ring block until it retires, and a
+        # terminate before that loses them (smoke_02 combined: received 4, captured 0)
+        command = ['tcpdump', '--immediate-mode', '-i', interface, '-Q', direction, '-s0', '-U', '-n', '-c',
                    str(len(expected['payloads'])), '-w', str(evidence_dir / ('calibration_%s.pcap' % direction)), flt]
         commands[direction] = command
         procs[direction] = _start_tcpdump(popen, command)
@@ -285,6 +288,10 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
         else:
             send_calibration(expected)
         sleep(1.0)
+        for _ in range(CAL_EXIT_POLLS):        # each capture is bounded by -c: let it finish its count
+            if all(proc.poll() is not None for proc in procs.values()):
+                break
+            sleep(0.1)
     finally:
         stats = {}
         for direction, proc in procs.items():

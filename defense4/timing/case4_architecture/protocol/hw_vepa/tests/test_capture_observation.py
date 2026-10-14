@@ -250,5 +250,48 @@ class CaptureObservation(unittest.TestCase):
         self.assertTrue((root / 'calibration_result.json').is_file())
 
 
+    def test_calibration_capture_is_immediate_and_bounded_captures_exit_on_their_own(self):
+        """smoke_02 combined: tcpdump reported received 4 / captured 0 after a fixed 1 s then terminate.
+        Calibration captures must use --immediate-mode and be allowed to finish their -c count."""
+        root = Path(self.tmpdir()) / 'cal'
+        root.mkdir()
+        procs = []
+
+        class SelfExiting(FakeProcess):
+            def __init__(self, argv):
+                super().__init__(argv)
+                self.polls = 0
+                self.terminated = False
+
+            def poll(self):
+                self.polls += 1
+                if self.polls >= 3 and self.returncode is None:
+                    self.returncode = 0
+                return self.returncode
+
+            def terminate(self):
+                self.terminated = True
+                super().terminate()
+
+        def run(argv, **kw):
+            if argv[:4] == ['ip', 'netns', 'exec', 'ns_vepa_b']:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([{'address': '02:00:00:00:00:02'}]), stderr='')
+            if argv[:4] == ['ip', 'netns', 'exec', 'ns_vepa_a']:
+                return SimpleNamespace(returncode=0, stdout=json.dumps([{'address': '02:00:00:00:00:01'}]), stderr='')
+            return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+        def popen(argv, **kw):
+            proc = SelfExiting(argv)
+            procs.append(proc)
+            return proc
+
+        co.run_calibration(root, 'enp59s0f0np0', run=run, popen=popen,
+                           send_calibration=lambda expected: None, sleep=lambda _: None)
+        self.assertEqual(len(procs), 2)
+        for proc in procs:
+            self.assertIn('--immediate-mode', proc.argv)
+            self.assertFalse(proc.terminated, proc.argv)
+
+
 if __name__ == '__main__':
     unittest.main()
