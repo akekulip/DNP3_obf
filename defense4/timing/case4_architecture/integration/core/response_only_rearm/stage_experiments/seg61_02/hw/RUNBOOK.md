@@ -1,6 +1,6 @@
 # candidate61 hardware preparation
 
-> **Stopped before silicon on 2026-10-14 at Philip's request.** The candidate compiled and all five model suites passed (30/30, 30/30, 622/622, 399/399, 102/102). No hardware campaign ran. Sealed-profile registration is now present; final integration tests and interrupted smoke-path review remain pending. Latest config test: 8 passed, one obsolete `candidate61-only` status assertion failed. Resume from the execution checkpoint in the root implementation directive before running these commands.
+> **Four-arm smoke PASSED on silicon on 2026-10-14 (`candidate61_fourarm_smoke_03`).** Off/timing_only READ 49 and SBO 37; size_only/combined READ, SELECT and OPERATE 61, each one received TCP segment. Earlier attempts `_01` and `_02` failed closed on harness defects (fixed, retained). The commands below for persistence, loss, reconnect, isolation, held-OPERATE and timing have not been run.
 
 This directory is a staging surface for the `seg61_02` candidate61 silicon campaigns. It does not change production defaults, shared campaign entry points, or `response_only_rearm/hw/sealed_profile.py`.
 

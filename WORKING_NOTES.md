@@ -1751,3 +1751,51 @@ case4_response_path restored (last hardware block today ended with a verified re
   full_01 sha256 c0ad6b4e...; known 58-specific E constants: r_IMAGE_LEN, start_arm (ISN+1-58), fwd_prep (p-58),
   classify_rev rows for -1..-58, acct leff rows 49/37, read/ctl pad actions (+9/+21, LEN, header-CRC XOR).
 Strict rearm_57s remains the IEEE-conformant silicon-qualified baseline (READ 58, SBO native 37).
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-14T04:22:22Z -->
+### Compaction handoff — 2026-10-14T04:22:22Z
+- Git: branch `main`, 635 uncommitted file(s): .drawio-tmp/ DNP3_Codex_Handoff_b066ec95a.md DNP3_Combined_Hardware_Debug_and_Reproducibility_Prompt.md DNP3_Shaping_Timing_Precision_Correction_Prompt.md bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py defense4/timing/case4_architecture/integration/core/response_only/scratch_efficiency_01/ defense4/timing/case4_architecture/integration/core/response_only_rearm/evidence/incremental_55/model_01/bf_drivers.log 
+- Last verification run recorded: 2026-10-14T03:28:21Z	cat >> WORKING_NOTES.md <<'EOF' **2026-10-14 overnight checkpoint (61-octet compliant equal-size experiment).** HEAD 02f
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+
+## 2026-10-14 — candidate61 checkpoint: stopped before silicon
+
+Philip requested stopping execution and updating the plan/working notes. **No candidate61 silicon run occurred in this session.** Latest read-only switch observation: production/restore `case4_response_path`, PID 537002. No switch/offload settings were changed. No push or default promotion; changes remain uncommitted.
+
+- Branch: `implement/seg61-qualified-20261014`; baseline `49201301439b260ba08455e192e1302a7663e92b`.
+- Candidate: `defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/full_04/response_only.p4`, SHA256 `1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa`. E-only change against pinned strict source; N/T unchanged, replace-back equality verified.
+- Whole-composite SDK9.13.1 and installed SDK9.13.2 compiles PASS **N11/E12/T11**; actual PHV/table/hash/mirror placement reviewed (`full_04/resource_review.json`). Earlier compiler failures retained.
+- Compiled model PASS: padding-on smoke30/30 (`model_smoke_02`), padding-off/native30/30 (`model_native_01`), transport622/622 (`model_packets_04`), reverse-map/rearm399/399 (`model_rearm_02`), duplicates102/102 (`model_dup_02`). READ49→61 and SBO37→61 work in the model; each SBO image contains 28/19/14-byte frames with unchanged application bytes. **Silicon remains unverified.**
+- Duplicate READ fixture C now sends actual server ACK/response after observing request delivery, proves their hold/release, and checks no repeated allocation/growth. Late duplicate READ correctly forwards with normalized ACK/window and only the expected reverse pending-distance marker change. Failed fixture `model_dup_01` retained.
+- Checker repairs, shared `validate_standards`, physical capture/offload calibration, generation-headroom helper, sealed-profile registration and 17 hardware configs are implemented. Final review/testing is unfinished. Earlier integrated671PASS; latest broad687PASS/3FAIL during strict config alignment; subsequent config subset8PASS/1FAIL on stale `candidate61-only` status-string expectation. Do not claim the final tree is green. Independent smoke review was interrupted on the stop request.
+- NEXT on resume: fix that obsolete test assertion, verify strict profile/capture flags, regenerate configs with final model refs, rerun integrated tests and finish smoke review; then bounded four-arm silicon smoke (20 READs + SELECT/OPERATE per arm) with qualified physical packet boundaries, headroom and verified restoration. Hardware plan commands: `seg61_02/hw/RUNBOOK.md`.
+- Full remaining timing+size plan is now in `DNP3_Implementation_Directive_492013014.md` under “Execution checkpoint and remaining plan”: persistence, loss/reconnect, stale/held duplicates; repeated three-block four-arm and matched strict comparison at59570PPS/950µs; separate piggyback; repeated SBO timing where needed; then14892-vs59570PPS trade-off. Preserve tails/exclusions/callbacks/recovery/internal packets+bytes/external growth. These campaigns are planned, not executed. Real-relay support remains separate.
+
+## 2026-10-14 (resumed) — candidate61 four-arm silicon smoke PASS
+
+Philip authorized PLAN step 1 (offline) + step 2 (bounded four-arm smoke) and staying on branch
+`implement/seg61-qualified-20261014`; no push.
+
+- Offline: obsolete strict-status assertion fixed (now asserts profile/packet_boundary/scope on all three strict
+  configs); 17 configs regenerate byte-identical and every pinned hash matches the on-disk build files; a
+  `RESEARCH_PYTHON`-dependent interpreter filter in test_campaign.py fixed; new end-to-end fail-closed test
+  (mutant-killing). code-reviewer: no blockers; fixed MAJOR (campaign-level Vision receive-offload baseline,
+  restore re-applies + verifies, nonzero on mismatch; only differing keys written because lro/rx-gro-hw are
+  `off [fixed]`), MAJOR (report padding coverage None for native-target arms), MINOR (READ answered by a
+  non-G10V2 response now fails). Not done: headroom bfrt compare (install --expect already binds it), docstring
+  rewording, stale `_notes` in the hash-bound smoke config. Suite 699 passed (with and without RESEARCH_PYTHON).
+- Silicon (software endpoints only, no relay OPERATE):
+  - `candidate61_fourarm_smoke_01` FAIL (off arm, one gate): capture_boundary read argv-list tcpdump commands as
+    str(list) so '-Q in' never matched. Fixed in 48f81cb3a. Other off-arm gates passed.
+  - `candidate61_fourarm_smoke_02` off/timing_only/size_only PASS; combined traffic correct but calibration out
+    tcpdump received 4 / captured 0 (TPACKET_V3 block lost on terminate after fixed 1 s). Fixed fb244ee9f
+    (--immediate-mode, wait for -c count).
+  - **`candidate61_fourarm_smoke_03` PASS all four arms, campaign ok.** Per arm: 22 server data segments in
+    in.pcap, no retransmissions; off/timing_only READ 49 x20 + SELECT/OPERATE 37; size_only/combined 22 x 61
+    (one received segment per response). SELECT authorizes, OPERATE succeeds, check_capture conformant,
+    calibration 2/2 both directions, GRO off during capture and restored, headroom 65496 remaining. Restore all
+    rc 0 + ping; production `case4_response_path` observed afterwards.
+- Evidence: `seg61_02/evidence/hw_campaigns/candidate61_fourarm_smoke_0{1,2,3}`.
+- Vision mgmt is 10.10.54.19 again (.166 no route); `sudo python3` is NOPASSWD there.
+- NEXT (not authorized yet): PLAN step 3 persistence/loss/reconnect/duplicate-OPERATE, then step 4 timing.
