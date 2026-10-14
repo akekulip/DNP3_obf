@@ -19,6 +19,16 @@ credentials.json
 !defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/config/candidate61_stale_tokens_*.json
 !defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_*/
 !defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_*/**
+# Re-assert the credential patterns after the evidence exceptions above (last match wins), so a secret
+# dropped inside an exempted evidence folder is still ignored.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/credentials.json
+**/settings.json
+**/settings.local.json
+**/*_secret*
 
 # --- Databases / user data ---
 *.sqlite

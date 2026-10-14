@@ -280,6 +280,7 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
         IP_O, IP_M, CAL_SRC_PORT, CAL_DST_PORT)
     commands = {}
     procs = {}
+    capture_ready, ready_polls = False, 0
     for direction in ('out', 'in'):
         # --immediate-mode: TPACKET_V3 otherwise holds packets in a ring block until it retires, and a
         # terminate before that loses them (smoke_02 combined: received 4, captured 0)
@@ -290,8 +291,9 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
     try:
         # tcpdump writes the 24-octet pcap header once its capture is active; send only after both have
         # (fixed 1 s sleeps here delayed the next connection past candidate61_stale_tokens' old tokens)
-        for _ in range(CAL_READY_POLLS):
-            if all(_pcap_header_written(command) for command in commands.values()):
+        for ready_polls in range(1, CAL_READY_POLLS + 1):
+            capture_ready = all(_pcap_header_written(command) for command in commands.values())
+            if capture_ready:
                 break
             sleep(0.05)
         if send_calibration is None:
@@ -313,7 +315,8 @@ def run_calibration(evidence_dir, interface=PARENT, run=sh, popen=subprocess.Pop
                 proc.kill()
                 _, err = proc.communicate()
             stats[direction] = parse_tcpdump_stats(err or '')
-    result = {'capture_commands': commands, 'tcpdump': stats}
+    result = {'capture_commands': commands, 'tcpdump': stats, 'capture_ready': capture_ready,
+              'ready_polls': ready_polls}
     (evidence_dir / 'calibration_result.json').write_text(json.dumps(result, indent=2) + '\n')
     return result
 

@@ -166,7 +166,6 @@ def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, 
         verdicts.append(v)
     if len(native_frags) < len(request_infos):
         missing = request_infos[len(native_frags):]
-        controls_observed += sum(1 for r in missing if r['function'] in (3, 4) and False)
         failures.append('missing responses: expected %d, observed %d' % (len(request_infos), len(native_frags)))
     if controls_observed != controls_expected:
         failures.append('missing control responses: expected %d, observed %d' % (controls_expected, controls_observed))

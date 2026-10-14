@@ -50,36 +50,48 @@ def exchanges(d):
     return t['exchanges'], t.get('sd_convention')
 
 
+def clean(e):
+    """One attempt, complete, not retransmitted: the exchanges every statistic here is computed over."""
+    return bool(e.get('complete')) and not e.get('retransmitted') and e.get('attempts', 1) == 1
+
+
 def control_timing(ex):
-    sel = [e for e in ex if e['kind'] == 'SELECT']
-    op = [e for e in ex if e['kind'] == 'OPERATE']
     out = {}
-    for kind, rows in (('SELECT', sel), ('OPERATE', op)):
-        rows = [e for e in rows if e.get('complete')]
+    for kind in ('SELECT', 'OPERATE'):
+        rows = [e for e in ex if e['kind'] == kind and clean(e)]
         out[kind] = {k: [e[k] for e in rows if isinstance(e.get(k), (int, float))]
                      for k in ('ack_lat_us', 'clrt_us', 'rt_us')}
-    done = [(s, o) for s in sel for o in op if s.get('complete') and o.get('complete')
-            and isinstance(o.get('rt_us'), (int, float))]
-    out['sbo_completion_us'] = [o['t_req'] + o['rt_us'] - s['t_req'] for s, o in done]
+    completion, last_select = [], None          # pair each OPERATE with the latest earlier SELECT only
+    for e in sorted(ex, key=lambda r: r.get('t_req', 0)):
+        if e['kind'] == 'SELECT':
+            last_select = e if clean(e) else None
+        elif e['kind'] == 'OPERATE':
+            if last_select is not None and clean(e) and isinstance(e.get('rt_us'), (int, float)):
+                completion.append(e['t_req'] + e['rt_us'] - last_select['t_req'])
+            last_select = None
+    out['sbo_completion_us'] = completion
     return out
 
 
-def growth_check(d, ex):
+def growth_check(d, ex, measured=None):
     """Expected growth of newly delivered, single-attempt responses, from the trial's bound expected lengths
     (standards.json, i.e. the profile/arm, not the capture): candidate61 12 x READ + 24 x (SELECT + OPERATE),
-    strict 9 x READ, native 0. Retransmitted exchanges are counted apart."""
+    strict 9 x READ, native 0. Retransmitted exchanges are counted apart; kinds outside READ/SELECT/OPERATE
+    are listed, not guessed."""
     lengths = json.load(open(d / 'standards.json'))['expected']['lengths']
-    per_kind = {kind: lengths[kind][0] - NATIVE[kind] for kind in NATIVE}
-    fresh = [e for e in ex if e.get('complete') and not e.get('retransmitted')]
-    retx = [e for e in ex if e.get('retransmitted')]
-    return {'expected_fresh_bytes': sum(per_kind[e['kind']] for e in fresh), 'per_kind': per_kind,
-            'fresh': len(fresh), 'retransmitted_exchanges': len(retx)}
+    per_kind = {kind: lengths[kind][0] - NATIVE[kind] for kind in NATIVE if lengths.get(kind)}
+    fresh = [e for e in ex if clean(e) and e['kind'] in per_kind]
+    expected = sum(per_kind[e['kind']] for e in fresh)
+    return {'expected_fresh_bytes': expected, 'per_kind': per_kind, 'fresh': len(fresh),
+            'retransmitted_exchanges': sum(1 for e in ex if e.get('retransmitted')),
+            'unknown_kinds': sorted({e['kind'] for e in ex if e['kind'] not in NATIVE}),
+            'growth_match': None if measured is None else measured == expected}
 
 
 def tails(root, arm, label, ex, gap_us):
     out = []
     for e in ex:
-        if e['kind'] != 'READ' or not e.get('complete') or e.get('retransmitted') or e.get('piggyback'):
+        if e['kind'] != 'READ' or not clean(e) or e.get('piggyback'):
             continue
         if not isinstance(e.get('clrt_us'), (int, float)):
             continue
@@ -104,8 +116,8 @@ def run_report(roots):
             ctl = control_timing(ex)
             agg = pooled_ctl.setdefault(arm['arm'], {'SELECT': {}, 'OPERATE': {}, 'sbo_completion_us': [],
                                                      'read_rt_us': []})
-            agg['read_rt_us'].extend(e['rt_us'] for e in ex if e['kind'] == 'READ' and e.get('complete')
-                                     and not e.get('retransmitted') and isinstance(e.get('rt_us'), (int, float)))
+            agg['read_rt_us'].extend(e['rt_us'] for e in ex if e['kind'] == 'READ' and clean(e)
+                                     and isinstance(e.get('rt_us'), (int, float)))
             for kind in ('SELECT', 'OPERATE'):
                 for k, v in ctl[kind].items():
                     agg[kind].setdefault(k, []).extend(v)
@@ -116,7 +128,7 @@ def run_report(roots):
                               'abs_p95_us': es.pct([abs(x) for x in errs], 0.95) if errs else None,
                               'excluded': row['excluded'], 'loop_pkts': row['loop_pkts'],
                               'loop_bytes': row['loop_bytes'], 'growth_bytes': row['growth_bytes'],
-                              'growth_check': growth_check(d, ex),
+                              'growth_check': growth_check(d, ex, measured=row['growth_bytes']),
                               'read_piggybacked': sum(1 for e in ex if e['kind'] == 'READ' and e.get('piggyback')),
                               'resp_lens': sorted({(e['kind'], e['resp_len']) for e in ex if e.get('resp_len')}),
                               'sbo_completion_us': ctl['sbo_completion_us']})

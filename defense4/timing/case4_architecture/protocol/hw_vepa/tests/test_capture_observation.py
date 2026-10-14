@@ -337,6 +337,9 @@ class CaptureObservation(unittest.TestCase):
         co.run_calibration(root, 'enp59s0f0np0', run=run, popen=popen, send_calibration=send, sleep=sleep)
         sends = [e for e in events if e[0] == 'send']
         self.assertEqual(sends, [('send', True)])
+        result = json.loads((root / 'calibration_result.json').read_text())
+        self.assertIs(result['capture_ready'], True)
+        self.assertGreaterEqual(result['ready_polls'], 1)
         self.assertFalse([e for e in events if e == ('sleep', 1.0)], events)
 
 

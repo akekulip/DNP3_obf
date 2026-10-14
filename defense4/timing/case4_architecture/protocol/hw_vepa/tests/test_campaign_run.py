@@ -233,10 +233,12 @@ class Sequence(Base):
                                        operate_ok=True, aggregate_ok=False)
         self.assertEqual(obs['failures'], [])
         self.assertTrue(obs['aggregate_verdict'])
+        self.assertEqual(obs['precision_deferred'], [precision])       # visible in standards.json
         other = _ORIG_STANDARDS_OBSERVED(campaign, {}, [precision, 'wire: bad CRC'], transport_ok=True,
                                          select_ok=True, operate_ok=True, aggregate_ok=False)
         self.assertEqual(other['failures'], [precision, 'wire: bad CRC'])
         self.assertFalse(other['aggregate_verdict'])
+        self.assertEqual(other['precision_deferred'], [])
 
     def test_standards_checker_system_exit_becomes_structured_failure(self):
         class ExitingChecker:
