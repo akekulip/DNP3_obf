@@ -1,0 +1,34 @@
+{
+ "cases": [
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/realrelay_native_01/model_drive_native.py\", line 215, in main\n    report.record['meta']['initial_state'] = snapshot()\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/realrelay_native_01/model_drive_native.py\", line 149, in snapshot\n    state = {role: {n: m.register_read(prefix[role] + n, 0, pipe=1 if role == 'T' else 0) for n in ns}\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/realrelay_native_01/model_drive_native.py\", line 149, in <dictcomp>\n    state = {role: {n: m.register_read(prefix[role] + n, 0, pipe=1 if role == 'T' else 0) for n in ns}\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/realrelay_native_01/model_drive_native.py\", line 149, in <dictcomp>\n    state = {role: {n: m.register_read(prefix[role] + n, 0, pipe=1 if role == 'T' else 0) for n in ns}\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 117, in register_read\n    t = self.table(name)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 79, in table\n    self._tables[full] = self.info.table_get(full)\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 3012, in table_get\n    return self.table_dict[name]\nKeyError: 'p1.t_Ingress.quarantine_reg'\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "01b519a73e7f48c741c7a27d3fc001728fa34e7371850724e6f17a7df27d847d",
+  "physical": false,
+  "port_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "port_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "n_ack_return": 48,
+   "relay_port": 9,
+   "t_in": 180
+  },
+  "scope": "realrelay_native_01: option-bearing connections native, clean connections mapped"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

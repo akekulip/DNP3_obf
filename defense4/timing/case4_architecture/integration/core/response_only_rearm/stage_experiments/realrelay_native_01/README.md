@@ -137,3 +137,49 @@ longer reaches N's handshake path at all.
 - **Bound on any claim:** with this build, no real-relay (TS) traffic is ever defended; it is passed native.
 
 Status: model-stage candidate only. Not compiled for the switch, not pinned, not run on silicon.
+
+## full_02 (2026-10-13): the network-check fix only; the wedge stays open
+
+`generate_02.py` builds on `generate.py` without editing it, so full_01 stays reproducible. It has three
+variants. Only `network-only` fits the pipeline:
+
+| variant | what it adds | compile (local bf-p4c 9.13.1) |
+|---|---|---|
+| `full` | pending-open abort (review HIGH) plus network checks (review MEDIUM) | exit 4, PHV allocation was not successful (`full_02_failed`) |
+| `no-origin` | `full`, with the abort path keeping the origin header | exit 4, PHV allocation was not successful (`probe_b_no_origin`) |
+| `network-only` | network checks only | exit 0, p0 ingress 12 / egress 12, p1 ingress 11 (`probe_a_network_only`, byte-identical to `full_02`) |
+
+`evidence/full_02` is the `network-only` source (sha256 `4688e571…0ed8`). `foreign` no longer sets
+`network_valid` in the parser. It sets `tcp_sum` to 0, and the `network` table gains rows for parsed 0, kind 0
+or 26, TTL 1..255, reserved 0, urgent 0 and no IPv4 checksum error. A foreign segment with TTL 0 or a bad IPv4
+checksum therefore gets no `network_valid` and is dropped as before. This closes the review's first MEDIUM finding.
+
+**Model results**, using the same wrapper, the same settings and the same driver as full_01
+(`model_drive_native.py`, sha256 `2a027b55…`):
+
+| suite | full_02 | full_01 |
+|---|---|---|
+| `model_drive_native.py` | 99/99 (`native_model_full02_01`) | 99/99 |
+| `model_drive_diag_strict.py` | 519/519 (`diag_strict_full02_01`) | 519/519 |
+| `model_drive_retx_strict.py` | 37/37 (`retx_strict_full02_01`) | 37/37 |
+| `model_drive_dup.py` | 88/89 (`dup_full02_01`), failure `C_read_dup_no_early_READ_copy` | 88/89, same failure |
+
+**Review findings after full_02:**
+
+1. **HIGH, tuple wedge: open.** The pending-open abort (owner phase 2 to 0x0200 on an option-bearing
+   SYN-ACK) does not fit PHV in either form. A smaller design would need a new `owner` RegisterAction that
+   rewrites phase 2 to 0x0200. That is a design decision for Philip and has not been attempted.
+2. **MEDIUM, `foreign` bypassed network validation: fixed** in full_02, as described above.
+3. **MEDIUM, MSS + WS + SACK without timestamps: unsupported, by decision.** After its handshake, this
+   profile sends offset-5 segments that reach `go_new` and `allocate`. Those segments bump the generation
+   counter and are then dropped. Making them native needs per-incarnation state, which this build does not have.
+   The SEL-751 uses timestamps and is not affected.
+4. **WARNING, `model_drive_real_profile.py` (commit 0c5e3673c): retired.** It tests the TS parser states that
+   this experiment removed. It is not re-run, and its earlier results do not describe full_01 or full_02.
+
+Retained evidence: the source, the input record and the compile manifest for each build, and the driver, port
+map and result JSON for each model run. Simulator logs and compiler output stay local because they are tens of
+megabytes per run. Each manifest records their sha256.
+
+Status: still a model-stage candidate. Hardware stays blocked by finding 1. Not compiled for the switch,
+not pinned, not run on silicon.
