@@ -69,8 +69,17 @@ def receiver_ns(direction):
 
 
 def parse_drop(text, reads):
-    """'CLASS[:N]' -> spec dict {class, n, base, occurrence, ip_len, dir, flags}; ValueError when malformed."""
-    parts = str(text).split(':')
+    """'CLASS[:N][@LEN]' -> spec dict {class, n, base, occurrence, ip_len, dir, flags, padded_len}; ValueError when
+    malformed. @LEN declares the build's padded response length (default 58): the padded class then matches IP length
+    40 + LEN and the data-ACK gate looks for a LEN-octet frontier. It travels inside the drop string so Vision's
+    vision_run.py --drop needs no extra flag."""
+    text, _, plen = str(text).partition('@')
+    padded_len = PADDED_LEN
+    if plen:
+        if not plen.isdigit() or not 50 <= int(plen) <= 249:
+            raise ValueError('--drop %s@%s: LEN must be an integer 50..249' % (text, plen))
+        padded_len = int(plen)
+    parts = text.split(':')
     if len(parts) > 2 or not parts[0]:
         raise ValueError('--drop wants CLASS[:N], got %r' % text)
     name = parts[0]
@@ -85,7 +94,9 @@ def parse_drop(text, reads):
         raise ValueError('--drop %s: N must be 1..%d' % (text, MAX_N))
     base, off = (name, 0) if name in CLASSES else (ALIASES[name][0], ALIASES[name][1](reads))
     spec = dict(CLASSES[base], **{'class': name, 'n': n, 'base': base, 'occurrence': n + off,
-                                  'data_ack': name in DATA_ACK})
+                                  'data_ack': name in DATA_ACK, 'padded_len': padded_len})
+    if base == 'resp_padded':
+        spec['ip_len'] = 40 + padded_len
     if spec['occurrence'] > MAX_OCCURRENCE:
         raise ValueError('--drop %s: occurrence %d beyond %d' % (text, spec['occurrence'], MAX_OCCURRENCE))
     return spec
@@ -256,7 +267,7 @@ def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
         nxt = next((s for s in ins if s['t_us'] > t['t_us'] and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
         res['progress_us'] = nxt['t_us'] - t['t_us'] if nxt else None
         if t['src'] == MASTER_IP:
-            res.update(data_ack_facts(ins, [x for x in outs if flow_ok(x)], t))
+            res.update(data_ack_facts(ins, [x for x in outs if flow_ok(x)], t, spec.get('padded_len', PADDED_LEN)))
         return res
     copies = [s for s in ins if s['src'] == t['src'] and s['seq'] == t['seq'] and s['len'] > 0]
     res['copies_returned'] = len(copies)
@@ -275,7 +286,7 @@ def _seq_ge(a, b):
     return ((a - b) & 0xFFFFFFFF) < 0x80000000
 
 
-def data_ack_facts(ins, outs, t):
+def data_ack_facts(ins, outs, t, padded_len=PADDED_LEN):
     """What a dropped master pure ACK `t` acknowledged, and how the connection recovered from its loss.
 
     in.pcap holds what the switch emitted toward each endpoint, so `t` (a master packet heading to the outstation)
@@ -306,21 +317,22 @@ def data_ack_facts(ins, outs, t):
     events = sorted([e for e in (('cumulative_ack', cum), ('retransmission', retx)) if e[1]],
                     key=lambda e: e[1]['t_us'])
     mech, by = events[0] if events else (None, None)
-    return {'covers_padded_frontier': bool(delivered and delivered['len'] == PADDED_LEN
-                                           and covered['len'] < PADDED_LEN),
+    return {'covers_padded_frontier': bool(delivered and delivered['len'] == padded_len
+                                           and covered['len'] < padded_len),
             'covered_segment': _seg_view(covered) if covered else None,
             'delivered_segment': _seg_view(delivered) if delivered else None,
             'before_fin': not fin_seen, 'recovery_mechanism': mech,
             'cover_us': by['t_us'] - t['t_us'] if by else None, 'covered_retransmitted': retx is not None}
 
 
-def _growth(timing, padded, control_padding=True):
+def _growth(timing, padded, control_padding=True, image_len=58):
     """(observed growth bytes over native, expected from the exchanges that actually completed). Under the
     strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing."""
     ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
     obs = sum(e['resp_len'] - NATIVE.get(e['kind'], e['resp_len']) for e in ex)
-    exp = (9 * sum(1 for e in ex if e['kind'] == 'READ') +
-           (21 if control_padding else 0) * sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
+    exp = ((image_len - NATIVE['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
+           ((image_len - NATIVE['SELECT']) if control_padding else 0) *
+           sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
     return obs, exp
 
 
@@ -414,9 +426,10 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
         fails.append('%d unmatched returned segment(s): a frame the switch emitted that no sender frame explains'
                      % len(w['unmatched_returned']))
     res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
-    ctl = bool(arm.get('control_padding', True))
-    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl)
+    ctl, image = bool(arm.get('control_padding', True)), int(arm.get('image_len', 58))
+    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image)
     if res['growth_bytes'] != res['expected_growth_bytes']:
-        fails.append('growth %d B != %d B expected from the responses delivered (9 per READ, %d per control response)'
-                     % (res['growth_bytes'], res['expected_growth_bytes'], 21 if ctl else 0))
+        fails.append('growth %d B != %d B expected from the responses delivered (%d per READ, %d per control response)'
+                     % (res['growth_bytes'], res['expected_growth_bytes'], image - NATIVE['READ'],
+                        image - NATIVE['SELECT'] if ctl else 0))
     return fails, res

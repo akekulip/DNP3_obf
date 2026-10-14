@@ -92,8 +92,9 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     m['unmatched_returned'] = len(w['unmatched_returned']) if w and 'unmatched_returned' in w else None
     exs = [e for e in (t or {}).get('exchanges', []) if e.get('resp_len')]
     reads = [e for e in exs if e.get('kind') == 'READ']
-    padded = [e for e in exs if e['resp_len'] == 58]
-    m['padding_coverage'] = round(len([e for e in reads if e['resp_len'] == 58]) / len(reads), 4) if reads else None
+    native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
+    padded = [e for e in exs if e['resp_len'] > native.get(e['kind'], e['resp_len'])]
+    m['padding_coverage'] = round(len([e for e in reads if e['resp_len'] > 49]) / len(reads), 4) if reads else None
     m['growth_bytes'] = ((trial.get('observed') or {}).get('growth_bytes'))
     if m['growth_bytes'] is None and exs:
         native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}

@@ -237,6 +237,13 @@ def test_series_switch_gate_held_operate_duplicates():
     failures, _ = _dup_gate(module, cfg, 0, False)
     assert not any('held-OPERATE' in f for f in failures)
 
+
+def test_series_switch_gate_image_61_growth():
+    module, cfg = configured()
+    cfg['builds'][cfg['arms'][0]['build']]['image_len'] = 61
+    failures, observed = _dup_gate(module, cfg, 0, False)
+    assert observed['external_growth_expected'] == 20 * 12 + 2 * 24
+
 def actual_lifecycle(epoch=145):
     return {'valid': True, 'errors': {}, 'software_read_fallbacks': [], 'registers': {
         'p0.n_Ingress.work.work': {'n_Ingress.work.work.generation': [216], 'n_Ingress.work.work.phase': [4]},

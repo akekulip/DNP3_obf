@@ -364,3 +364,26 @@ class StrictControls(unittest.TestCase):
         fails, _ = loss.evaluate_loss({'padding': 1}, 3, 5.0, d['spec'], d['rule'], d['ident'], d['master'], d['ost'],
                                       d['wire'], self.strict_timing(), EXP, baseline_completion_s=2.5)
         self.assertTrue(any('growth 27 B != 69 B' in f for f in fails), fails)
+
+
+class ImageLength(unittest.TestCase):
+    """Build-declared padded length (61-octet profile): drop spec suffix @LEN, padded class IP length, growth."""
+
+    def test_drop_suffix_sets_padded_class_and_frontier(self):
+        spec = loss.parse_drop('read_resp_padded:3@61', reads=3)
+        self.assertEqual((spec['ip_len'], spec['padded_len'], spec['occurrence']), (101, 61, 3))
+        self.assertEqual(loss.parse_drop('read_resp_padded:3', reads=3)['ip_len'], 98)
+        self.assertEqual(loss.parse_drop('request:3@61', reads=3)['ip_len'], 60)      # only the padded class moves
+        for bad in ('request:3@abc', 'request:3@20', 'request:3@300'):
+            with self.assertRaises(ValueError):
+                loss.parse_drop(bad, reads=3)
+
+    def test_growth_for_61(self):
+        t = clean_timing()
+        for e in t['exchanges']:
+            e['resp_len'] = 61
+        self.assertEqual(loss._growth(t, True, True, 61), (3 * 12 + 2 * 24, 3 * 12 + 2 * 24))
+        d = good_inputs()
+        fails, res = loss.evaluate_loss({'padding': 1, 'image_len': 61}, 3, 5.0, d['spec'], d['rule'], d['ident'],
+                                        d['master'], d['ost'], d['wire'], t, EXP, baseline_completion_s=2.5)
+        self.assertFalse(any('growth' in f for f in fails), fails)

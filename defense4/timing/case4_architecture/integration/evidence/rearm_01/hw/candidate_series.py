@@ -214,7 +214,9 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
-        expected = reads * 9 + (42 if build.get('control_padding', True) else 0) if arm['padding'] else 0
+        image = build.get('image_len', 58)
+        expected = (reads * (image - 49) + (2 * (image - 37) if build.get('control_padding', True) else 0)
+                    if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
             failures.append('E mapper growth must reflect last generation only: observed %d, expected %d' %

@@ -448,6 +448,11 @@ class Campaign:
         self.vision_touched = False
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
+    def _padded_suffix(self, arm):
+        """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''."""
+        image = self.cfg['builds'][arm['build']].get('image_len', 58)
+        return '' if image == 58 else '@%d' % image
+
     def units(self):
         """[unit dict]: one cold bring-up and one connection each, with its own recorded conditions.
         per_trial_cold: every trial of every arm (fixture-major); one_connection: one per arm carrying all of its
@@ -479,7 +484,7 @@ class Campaign:
                     for e in entries:
                         out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'],
                                         start_seed=c['seeds']['rng_seed'] + len(out),
-                                        drop='%s:%d' % (e['class'], e['n']) if e else None,
+                                        drop=('%s:%d' % (e['class'], e['n']) + self._padded_suffix(arm)) if e else None,
                                         scenario=self.scenario))
                         i += 1
             return out
@@ -984,7 +989,8 @@ class Campaign:
         except Exception as e:                       # an unreadable capture is a recorded failure, not a crash
             ident = {'identified': False, 'candidates': None, 'packet': None, 'error': str(e)}
         base = self._baseline_completion_s(fixture, arm['name'])
-        arm = dict(arm, control_padding=c['builds'][arm['build']].get('control_padding', True))
+        build = c['builds'][arm['build']]
+        arm = dict(arm, control_padding=build.get('control_padding', True), image_len=build.get('image_len', 58))
         fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
                                         result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
                                         ev['timing'], c['expectations'], base)
