@@ -1,0 +1,30 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS base_SYN                           expected=one exact frame observed=1
+PASS base_SYNACK                        expected=one exact frame observed=1
+PASS base_ACK                           expected=one exact frame observed=1
+PASS read_seq_00_request                expected=one exact frame observed=1
+PASS read_seq_00_server_ack             expected=one exact frame observed=1
+PASS read_seq_00_response61             expected=one exact frame observed=1
+PASS read_seq_00_payload_len            expected=61         observed=61
+PASS read_seq_00_mapped_ack             expected=one exact frame observed=1
+FAIL read_seq_01_request                expected=one exact frame observed=1
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 395, in model_main
+    gate.run()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 329, in run
+    cseq, native_sseq, wire_sseq = self.read_exchange('read_seq_%02d' % seq, cseq, native_sseq, wire_sseq,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 285, in read_exchange
+    self.exchange(name + '_request', request, request)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 270, in exchange
+    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 257, in add
+    raise AssertionError(name)
+AssertionError: read_seq_01_request
+
+SUMMARY {'total': 10, 'passed': 8, 'failed': ['read_seq_01_request', 'exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

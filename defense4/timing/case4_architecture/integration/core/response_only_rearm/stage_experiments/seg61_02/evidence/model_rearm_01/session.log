@@ -1,0 +1,28 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS SYN_100                            expected=one exact frame observed=1 frames
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py", line 140, in main
+    initial = handshake(100, 900)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py", line 119, in handshake
+    before = snapshot()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py", line 92, in snapshot
+    return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py", line 92, in <dictcomp>
+    return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py", line 92, in <dictcomp>
+    return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 117, in register_read
+    t = self.table(name)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 79, in table
+    self._tables[full] = self.info.table_get(full)
+  File "/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 3012, in table_get
+    return self.table_dict[name]
+KeyError: 'p1.t_Ingress.quarantine_reg'
+
+SUMMARY {'total': 2, 'passed': 1, 'failed': ['exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

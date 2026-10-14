@@ -1,0 +1,46 @@
+{
+  "plan": "DNP3_Implementation_Directive_492013014.md plus user refinements",
+  "baseline": "49201301439b260ba08455e192e1302a7663e92b",
+  "branch": "implement/seg61-qualified-20261014",
+  "tasks": {
+    "checker": "implemented; regression tests passed; final integrated verification pending",
+    "E": "full_04 generated; E only; N/T hashes and replace-back equality verified",
+    "compile": "bothSDK9.13.1and9.13.2PASS N11/E12/T11, actualPHV/table/hash/mirror reviewed",
+    "first_model": "PASS: smoke30/30, native30/30, packets622/622, rearm399/399, dup102/102",
+    "acceptance": "Implemented; final verification unfinished. Earlier671PASS; latest broad687PASS/3FAIL; later config8PASS/1FAIL on obsolete status-string assertion.",
+    "silicon": "Not run; user stopped execution. Latest observed image case4_response_path PID537002.",
+    "evaluation": "Planned only: full timing and size roadmap in updated directive."
+  },
+  "rulings": [
+    "Work on a dedicated branch in the existing checkout to preserve the local untracked evidence and fixture dependencies; do not stage pre-existing edits.",
+    "The supplied plan authorizes software-endpoint hardware trials after preceding gates, no relay traffic or defaults promotion."
+  ],
+  "preexisting_working_notes_sha256": "4fd40d4331336119382dd4c0f99c3cd1665f6503fad6aa90d8ef621cc6c3ed39",
+  "hardware_changed": false,
+  "candidate_sha256": "1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa",
+  "attempts": {
+    "full_01": "compiler unsupported action math, exit3",
+    "full_02": "PHV allocation failed exit4",
+    "full_03": "same PHV failure exit4",
+    "full_04": "success exit0 SDK9.13.1, N11/E12/T11",
+    "model_smoke_01": "sandbox namespace setup failed; no packet tests",
+    "model_smoke_02": "30/30 pass",
+    "model_packets_01": "fixture expected untranslated request ACK",
+    "model_packets_02": "fixture mismatched READ application sequence",
+    "model_packets_03": "593/595; finalrearmSYNbackwardserial correctly rejected",
+    "model_packets_04": "PASS622/622;wrapfirstandserialfreshrearm;all64READ/SBO;negativeoutstandingrequestthenrecovery",
+    "model_rearm_01": "stale fixture schema quarantine register absent, no traffic qualification",
+    "model_rearm_02": "PASS399/399;all61reversedistances/windowboundaries;oldraw/work/ladder/ACK/FIN/RST/reset;freshREAD/SBO;close/rearm",
+    "model_native_01": "PASS30/30; padding disabled READ49/SBO37",
+    "model_dup_01": "96/100; fixture injected server traffic before observed request delivery, plus incorrect late request assertions",
+    "model_dup_02": "PASS102/102; actual ACK/response hold/release and normalized late request without double growth/allocation"
+  },
+  "status": "stopped_by_user_before_silicon",
+  "next_actions": [
+    "Finish stale strict-config test expectation and integrated test/review checkpoint",
+    "Regenerate configs and review bounded four-arm smoke plan",
+    "Run qualified physical-capture silicon smoke with headroom and verified restoration only after resumption",
+    "Follow full timing-and-size roadmap in directive; no larger campaign started"
+  ],
+  "commit_status": "uncommitted; no push or default promotion"
+}
