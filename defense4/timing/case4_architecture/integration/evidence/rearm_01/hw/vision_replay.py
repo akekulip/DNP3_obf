@@ -168,14 +168,16 @@ def derive_current(dest):
     return result
 
 
-def scenario(label, port=PORT, padding=1, apply=False, control_padding=1, image_len=58):
+def scenario(label, port=PORT, padding=1, apply=False, control_padding=1, image_len=58, qualify_capture=False):
     vc.guard(port, apply)
     if port != PORT:
         raise ValueError('external replay requires fixed master source port59400')
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
         raise ValueError('invalid label or padding')
+    if type(qualify_capture) is not bool:
+        raise ValueError('qualify_capture must be a boolean')
     record = vi.scenario(label, port, padding)  # pure offline plan; its controls are the shared fixed sequence
-    record.update(scenario='candidate_same_tuple_replay', applied=apply, ok=False)
+    record.update(scenario='candidate_same_tuple_replay', applied=apply, qualify_capture=qualify_capture, ok=False)
     if not apply:
         record['ok'] = True; return record
     parent = Path(vc.vr.RUNS) / label; parent.mkdir(parents=True)
@@ -194,8 +196,11 @@ def scenario(label, port=PORT, padding=1, apply=False, control_padding=1, image_
             worker = threading.Thread(target=watch, daemon=True); worker.start()
             try:
                 with vc.pre_read_controls(dest, leg['pre_read_grace_ms']):
+                    kwargs = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=1000, capture_immediate=True)
+                    if qualify_capture:
+                        kwargs['qualify_capture'] = True
                     result = vc.vr.run_connection(str(dest), label + '_' + dest.name, PORT, 1, 8, 0, 0,
-                        leg['start_seed'], read_pause_ms=25, run_sbo=True, close_grace_ms=1000, capture_immediate=True)
+                        leg['start_seed'], **kwargs)
                 connection['result'] = result
             except Exception as error:
                 result = {}; connection['failures'].append(str(error))
@@ -238,9 +243,12 @@ def main(argv=None):
     parser.add_argument('--image-len', type=int, default=58)
     parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
+    parser.add_argument('--qualify-capture', action='store_true',
+                        help='opt-in physical packet-boundary qualification evidence for each leg')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
-    record = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding, image_len=args.image_len)
+    record = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding,
+                      image_len=args.image_len, qualify_capture=args.qualify_capture)
     print(json.dumps(record, indent=2)); return 0 if record['ok'] else 1
 
 

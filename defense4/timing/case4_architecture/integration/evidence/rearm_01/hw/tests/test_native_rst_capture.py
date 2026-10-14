@@ -92,7 +92,7 @@ class FakeRunner:
             return nc.nr.cp.Result(0, json.dumps({'program': 'response_only' if self.wrong_program else nc.nr.PROGRAM}), '')
         if cmd.startswith('sha256sum '):
             local = dict(nc.nr.tools() + nc.vision_tools())
-            local.update({name: nc.nr.HW_VEPA / name for name in ('vision_run.py', 'loss.py')})
+            local.update({name: nc.nr.HW_VEPA / name for name in ('vision_run.py', 'loss.py', 'capture_observation.py', 'wire_check.py')})
             lines = []
             for remote in shlex.split(cmd)[1:]:
                 name = Path(remote).name

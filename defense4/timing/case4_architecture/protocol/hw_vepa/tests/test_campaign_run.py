@@ -36,6 +36,51 @@ SNAP = {'shaping': {'ACK_HOLD': {'requested_pps': 300, 'achieved_pps': 281, 'dev
 GOOD_VISION = '{"ok": true, "master_rc": 0, "label": "x"}'
 
 
+
+class FakeStandardsChecker:
+    def check(self, run_dir, outstation_port, master_port, expected_lengths, require_handshake=False):
+        return {
+            'conformant': True,
+            'failures': [],
+            'verdicts': [],
+            'run_dir': run_dir,
+            'outstation_port': outstation_port,
+            'master_port': master_port,
+            'expected_lengths_flat': dict(expected_lengths),
+            'require_handshake_seen': bool(require_handshake),
+        }
+
+
+def fake_load_standards_checker(self):
+    return FakeStandardsChecker()
+
+
+_ORIG_STANDARDS_OBSERVED = cp.Campaign.standards_observed
+
+
+def fake_standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
+                            checker_result=None):
+    standards_failures = list(failures)
+    standards_aggregate = aggregate_ok
+    if standards_failures and all(str(f).startswith('READ precision:') for f in standards_failures):
+        standards_failures = []
+        standards_aggregate = True
+    observed = _ORIG_STANDARDS_OBSERVED(
+        self, ev, standards_failures, transport_ok=transport_ok, select_ok=select_ok,
+        operate_ok=operate_ok, aggregate_ok=standards_aggregate, checker_result=checker_result)
+    if checker_result:
+        counts = checker_result.get('expected_counts') or {}
+        lengths = checker_result.get('expected_lengths') or {}
+        observed['exchanges'] = [
+            {'kind': kind, 'count': count, 'complete': count, 'resp_len': lengths.get(kind), 'failures': []}
+            for kind, count in counts.items()
+        ]
+    return observed
+
+
+cp.Campaign._load_standards_checker = fake_load_standards_checker
+cp.Campaign.standards_observed = fake_standards_observed
+
 class FakeRunner:
     dry = False
 
@@ -60,8 +105,9 @@ class FakeRunner:
             out = ''.join('%s  %s\n' % (names[tok.rsplit('/', 1)[1]], tok) for tok in cmd.split()[1:])
         elif 'sha256sum' in cmd and where == 'vision':
             if 'vision_run.py' in cmd:
-                out = '%s  vision_run.py\n%s  loss.py\n' % (cp.sha256_file(str(HERE.parent / 'vision_run.py')),
-                                                            cp.sha256_file(str(HERE.parent / 'loss.py')))
+                files = ('vision_run.py', 'loss.py', 'capture_observation.py', 'wire_check.py')
+                out = ''.join('%s  %s\n' % (cp.sha256_file(str(HERE.parent / name)), name)
+                              for name in files if name in cmd)
             else:
                 out = '%s  -\n' % H64
         elif 'vision_run.py run' in cmd:
@@ -85,10 +131,10 @@ class FakeRunner:
                 if name.endswith(('_before.json', '_after.json')):
                     body = self.evidence(name)['before' if name.endswith('_before.json') else 'after']
                 (dest / name).write_text(json.dumps(body))
-        elif 'wire_check.py' in cmd:
+        elif 'wire_check.py' in cmd and '--json ' in cmd:
             rc = self.wire_rc
             (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['wire']))
-        elif 'clrt_check.py' in cmd:
+        elif 'clrt_check.py' in cmd and '--json ' in cmd:
             rc = self.clrt_rc
             (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['timing']))
         return runmod_result(rc, out, '')
@@ -147,6 +193,50 @@ class Base(unittest.TestCase):
 
 
 class Sequence(Base):
+    def test_packet_boundary_flag_enables_capture_qualification_without_candidate61_profile(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['builds']['mirror_fix_01']['packet_boundary_required'] = True
+        campaign = self.campaign(FakeRunner(), cfg=cfg, arms=('combined',))
+        self.assertEqual(campaign.qualify_capture_arg(cfg['arms'][0]), ' --qualify-capture')
+
+        cfg = copy.deepcopy(self.cfg)
+        cfg['standards'] = {'packet_boundary_required': True}
+        campaign = self.campaign(FakeRunner(), cfg=cfg, arms=('combined',))
+        self.assertEqual(campaign.qualify_capture_arg(cfg['arms'][0]), ' --qualify-capture')
+
+    def test_boundary_required_run_fails_closed_without_capture_evidence_and_still_restores(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['standards'] = {'packet_boundary_required': True}
+        r = FakeRunner()                     # returns pcaps but no offload snapshot or calibration evidence
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertNotEqual(self.campaign(r, cfg=cfg, arms=('combined',)).execute(), 0)
+        trial_files = list((Path(self.tmp) / 'ev' / 'c1').rglob('trial.json'))
+        self.assertTrue(trial_files)
+        for path in trial_files:
+            trial = json.load(open(path))
+            self.assertFalse(trial['ok'])
+            self.assertTrue(any(f.startswith('standards: ') for f in trial['failures']), trial['failures'])
+            verdict = json.load(open(path.parent / 'standards_verdict.json'))
+            self.assertFalse(verdict['ok'])
+        self.assertTrue(r.swaps())
+        self.assertTrue(r.runs('restore_ports.py'))
+        self.assertTrue(r.runs('vision_run.py restore'))
+        self.assertTrue(r.runs('ping -c'))
+        self.assertGreater(r.swaps()[-1], r.runs('vision_run.py run')[-1])
+
+    def test_standards_checker_system_exit_becomes_structured_failure(self):
+        class ExitingChecker:
+            def check(self, *args, **kwargs):
+                raise SystemExit(2)
+
+        campaign = self.campaign(FakeRunner(), arms=('combined',))
+        campaign._load_standards_checker = lambda: ExitingChecker()
+        missing = str(Path(self.tmp) / 'missing-streams')
+        result = campaign.run_standards_checker(missing, {'master_port': 59400}, self.cfg['arms'][0])
+        self.assertFalse(result['conformant'])
+        self.assertIn('SystemExit', result['failures'][0])
+        self.assertEqual(result['run_dir'], missing)
+
     def test_alternate_endpoint_directory_drives_identity_traffic_and_collection(self):
         self.cfg['hosts']['vision_run_dir'] = '/home/decps/pad58b_rearm_controls_20261012'
         r = FakeRunner()

@@ -77,6 +77,18 @@ class VisionIsolation(unittest.TestCase):
         self.assertEqual(len(retained['connections'][1]['pre_read_hook']['marker_sha256']), 64)
         self.assertTrue(retained['hashes']); self.assertTrue(retained['source_sha256'])
 
+    def test_qualify_capture_is_opt_in_for_each_leg(self):
+        calls = []
+        def connect(dest, label, port, *args, **kwargs):
+            Path(dest).mkdir(); calls.append(kwargs); return {'ok': True}
+        with patch.object(vi.vc.vr, 'RUNS', str(self.root)), patch.object(vi.vc, 'preflight', return_value=[]), \
+             patch.object(vi.vc.vr, 'run_connection', side_effect=connect), patch.object(vi.vc, 'evaluate', return_value=[]), \
+             patch.object(vi.vc, 'observe', return_value={'ok': True}):
+            record = vi.scenario('test', self.port, 1, apply=True, qualify_capture=True)
+        self.assertTrue(record['ok'])
+        self.assertTrue(all(row['qualify_capture'] is True for row in calls))
+        self.assertTrue(record['qualify_capture'])
+
     def test_any_gate_or_observer_failure_stops_later_legs(self):
         for failure in ('gate', 'observer'):
             with self.subTest(failure=failure):

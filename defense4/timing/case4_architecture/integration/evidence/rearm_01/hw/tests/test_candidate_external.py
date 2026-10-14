@@ -67,6 +67,18 @@ def test_root_rejects_forged_filtering_proof(tmp_path):
         ce.ExternalIsolationCampaign.verify_current_derivation(raw)
 
 
+def test_c2_standards_captures_bind_current_to_raw_filter_proof(tmp_path):
+    import json
+    raw=tmp_path/'c2';artifacts(raw);vp.derive_current(raw)
+    captures=ce.ExternalIsolationCampaign.connection_standards_captures(raw,raw/'current','c2')
+    assert captures['filter_proof']['path']==str(raw/'current/filter.json')
+    assert captures['out']['path']==str(raw/'current/out.pcap')
+    assert captures['out']['filtered_from']=={'raw_out':str(raw/'out.pcap')}
+    assert captures['in']['filtered_from']=={'raw_in':str(raw/'in.pcap')}
+    assert captures['out']['filter_procedure']==json.loads((raw/'current/filter.json').read_text())
+    assert 'filtered_from' not in ce.ExternalIsolationCampaign.connection_standards_captures(raw,raw,'c1')['out']
+
+
 def pool_run():
     original,graceful,rst=configured()
     evidence=ce.ARCH/'integration/evidence/campaign_hw_vepa'

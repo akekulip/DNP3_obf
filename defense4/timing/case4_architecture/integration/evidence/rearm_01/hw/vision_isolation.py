@@ -28,10 +28,12 @@ from token_window import PRE_READ_GRACE_MS
 GRACES = (0, PRE_READ_GRACE_MS, 0)
 
 
-def scenario(label, port, padding, apply=False, control_padding=1, image_len=58):
+def scenario(label, port, padding, apply=False, control_padding=1, image_len=58, qualify_capture=False):
     vc.guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
         raise ValueError('invalid label or padding')
+    if type(qualify_capture) is not bool:
+        raise ValueError('qualify_capture must be a boolean')
     parent = Path(vc.vr.RUNS) / label
     plan = [dict(name='c%d' % index, master_port=port, reads=1, start_seed=12344 + index,
                  pre_read_grace_ms=grace,
@@ -41,6 +43,7 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58)
                   tuple=[vc.MASTER, port, vc.OUTSTATION, vc.SERVER_PORT],
                   namespaces=[vc.NAMESPACE_M, vc.NAMESPACE_O], nic=vc.NIC,
                   padding=padding, reads=1, read_pause_ms=25, close_mode='rst', close_grace_ms=1000,
+                  qualify_capture=qualify_capture,
                   switch_mutations=False, applied=apply, plan=plan, connections=[], ok=False)
     if not apply:
         record['ok'] = True
@@ -64,9 +67,11 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58)
             worker.start()
             try:
                 with vc.pre_read_controls(dest, leg['pre_read_grace_ms']):
+                    kwargs = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=1000, capture_immediate=True)
+                    if qualify_capture:
+                        kwargs['qualify_capture'] = True
                     result = vc.vr.run_connection(str(dest), label + '_' + dest.name, port, 1, 8, 0, 0,
-                                                  leg['start_seed'], read_pause_ms=25,
-                                                  run_sbo=True, close_grace_ms=1000, capture_immediate=True)
+                                                  leg['start_seed'], **kwargs)
                 connection['result'] = result
             except Exception as error:
                 result = {}
@@ -112,9 +117,12 @@ def main(argv=None):
     parser.add_argument('--image-len', type=int, default=58)
     parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
+    parser.add_argument('--qualify-capture', action='store_true',
+                        help='opt-in physical packet-boundary qualification evidence for each leg')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
-    result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding, image_len=args.image_len)
+    result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding,
+                      image_len=args.image_len, qualify_capture=args.qualify_capture)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

@@ -115,9 +115,18 @@ class Ctl61(unittest.TestCase):
 
     def test_ineligible_shapes_stay_native(self):
         u = ctl_user(1)
-        for mut in (u[:2] + b'\x82' + u[3:], bytes([0x40 | 1]) + u[1:], u[:5] + b'\x0c\x01\x17' + u[8:]):
+        for mut in (u[:2] + b'\x82' + u[3:], bytes([0x40 | 1]) + u[1:],
+                    u[:5] + b'\x0c\x01\x17' + u[8:], u[:-1] + b'\x01'):
             self.assertIsNone(e.ctl61(frame_for(mut)))
         self.assertIsNone(e.encode(frame_for(bytes([0xC0, 0xC0, 0x81, 0, 0]))))
+
+    def test_app_con_shapes_are_ineligible(self):
+        read = bytearray(std.deframe(native_read([0x81] * 23))[1])
+        read[1] |= 0x20
+        self.assertIsNone(e.read61(frame_for(bytes(read))))
+        control = bytearray(ctl_user(1))
+        control[1] |= 0x20
+        self.assertIsNone(e.ctl61(frame_for(bytes(control))))
 
 
 @unittest.skipUnless((RUN / 'out.pcap').exists(), 'retained candidate56r capture absent')

@@ -87,9 +87,15 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
     def series_vision_cmd(self,label,master_port,reads,*args,**kwargs):
         if reads!=1 or any(kwargs.get(key) for key in ('connect_must_fail','drop','scenario','reconnect_port')):
             raise ValueError('isolation requires a protected one-READ tuple')
-        return authorized_python(base.runner.V_RUN+'/vision_isolation.py',
-            [label,'--master-port',master_port,'--padding',1,'--control-padding',self._control_padding(),
-             '--image-len',self._image_len(),'--apply'])
+        args = [label, '--master-port', master_port, '--padding', 1,
+                '--control-padding', self._control_padding(), '--image-len', self._image_len(), '--apply']
+        if self._qualify_capture():
+            args.append('--qualify-capture')
+        return authorized_python(base.runner.V_RUN + '/vision_isolation.py', args)
+
+    def _qualify_capture(self):
+        builds = {arm['build'] for arm in self.cfg['arms']}
+        return any(self.cfg['builds'][build].get('profile') == 'candidate61' for build in builds)
 
     def _image_len(self):
         builds={arm['build'] for arm in self.cfg['arms']}
@@ -244,6 +250,17 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                                      cs._load_json(root/'result.json') or {},rst_grace_ms=1000,
                                      reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0,
                                      control_padding=self._control_padding(),image_len=self._image_len()))
+            outstation = ev.get('outstation') or {}
+            cfail.extend(self.validate_standards_file(
+                str(root), trial, arm,
+                {'out': {'path': str(root/'out.pcap')}, 'in': {'path': str(root/'in.pcap')}},
+                self.standards_observed(
+                    ev, list(cfail), transport_ok=(not any(f.endswith('wire_check.py failed rc1') for f in cfail)),
+                    select_ok=outstation.get('select_real') == 1,
+                    operate_ok=outstation.get('operate_real') == 1,
+                    aggregate_ok=not cfail,
+                    checker_result=self.run_standards_checker(str(root), trial, arm, cn)),
+                connection_id=cn))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
             failures.extend(cn+': '+failure for failure in cfail)
         if v.rc or scenario.get('ok') is not True:

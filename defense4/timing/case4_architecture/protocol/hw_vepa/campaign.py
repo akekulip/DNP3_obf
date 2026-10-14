@@ -39,6 +39,7 @@ until it exists. Physical relay OPERATE remains attended-only and is out of this
 import argparse
 import collections
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -52,6 +53,7 @@ sys.path.insert(0, HERE)
 import checks  # noqa: E402
 import loss  # noqa: E402
 import run as runner  # noqa: E402  (evaluate(): the reviewed per-run gate)
+import standards  # noqa: E402
 import vision_run as vr  # noqa: E402  (the Vision-side paths the endpoint runner itself uses)
 
 # where the hw installer scripts live on the switch, relative to the copied source tree (hw/README.md)
@@ -59,6 +61,8 @@ HW = 'src/integration/core/response_only/hw'
 RESPONSE_ONLY = 'integration/core/response_only'
 Result = collections.namedtuple('Result', 'rc out err')
 ARCH = os.path.abspath(os.path.join(HERE, '..', '..'))      # case4_architecture: every config path is relative to it
+CHECK_CAPTURE = os.path.join(ARCH, 'integration', 'core', 'response_only_rearm', 'stage_experiments',
+                             'read_reencode_01', 'check_capture.py')
 REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'timing_params_ns', 'service',
             'shaping', 'fixture', 'trials', 'traffic', 'loss', 'seeds', 'evidence_dir', 'production', 'expectations')
 # bringup_composite --expect: the first three are required by the installer; p1/response_only.bfa is the file its
@@ -447,6 +451,115 @@ class Campaign:
         self.standing = []            # manifests of installs not yet torn down
         self.vision_touched = False
 
+    def standards_context(self, trial, arm, connection_id=None, unbound_native=False):
+        build = self.cfg['builds'].get(arm['build'], {})
+        return {
+            'config': self.cfg,
+            'run_record': dict(self.record, run_id=self.run_id, config_sha256=self.config_sha256,
+                               builds=getattr(self, 'bound', None) or {}),
+            'trial': trial,
+            'connection_id': connection_id or 'primary',
+            'arm': arm,
+            'candidate_source_sha256': build.get('source_sha256') or build.get('strict_source_sha256'),
+            'checker_files': [os.path.join(HERE, name) for name in
+                              ('wire_check.py', 'clrt_check.py', 'checks.py', 'standards.py',
+                               'capture_boundary.py')] + [CHECK_CAPTURE] + [
+                                   os.path.join(os.path.dirname(CHECK_CAPTURE), name)
+                                   for name in ('capture.py', 'dnp3_std.py')],
+            'unbound_native': unbound_native,
+            'packet_boundary_required': bool(build.get('profile') == 'candidate61' or
+                                             build.get('packet_boundary_required') or
+                                             self.cfg.get('standards', {}).get('packet_boundary_required')),
+        }
+
+    def standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
+                           checker_result=None):
+        return {
+            'timing': ev.get('timing'),
+            'checker_result': checker_result,
+            'failures': failures,
+            'transport_ok': transport_ok,
+            'select_authorizes_operate': select_ok,
+            'operate_success': operate_ok,
+            'aggregate_verdict': aggregate_ok,
+        }
+
+    def standards_captures(self, dest, captures):
+        merged = dict(captures or {})
+        boundary_files = {
+            'capture_offloads': 'capture_offloads.json',
+            'calibration_expected': 'calibration_expected.json',
+            'calibration_in': 'calibration_in.pcap',
+            'calibration_out': 'calibration_out.pcap',
+            'calibration_result': 'calibration_result.json',
+            'run_result': 'result.json',
+        }
+        for name, filename in boundary_files.items():
+            path = os.path.join(dest, filename)
+            if os.path.exists(path):
+                merged[name] = {'path': path}
+        return merged
+
+    def qualify_capture_arg(self, arm):
+        build = self.cfg.get('builds', {}).get(arm.get('build'), {})
+        required = (build.get('profile') == 'candidate61' or build.get('packet_boundary_required') or
+                    self.cfg.get('standards', {}).get('packet_boundary_required'))
+        return ' --qualify-capture' if required else ''
+
+    def _load_standards_checker(self):
+        spec = importlib.util.spec_from_file_location('dnp3_standards_check_capture', CHECK_CAPTURE)
+        module = importlib.util.module_from_spec(spec)
+        sys.path.insert(0, os.path.dirname(CHECK_CAPTURE))
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            try:
+                sys.path.remove(os.path.dirname(CHECK_CAPTURE))
+            except ValueError:
+                pass
+        return module
+
+    def run_standards_checker(self, dest, trial, arm, connection_id=None, unbound_native=False):
+        context = self.standards_context(trial, arm, connection_id, unbound_native)
+        expected = standards.expected_identity(context)['expected']
+        lengths = {kind: values[0] for kind, values in expected['lengths'].items()}
+        try:
+            raw = self._load_standards_checker().check(
+                dest,
+                outstation_port=self.cfg['endpoints']['outstation_port'],
+                master_port=trial.get('master_port'),
+                expected_lengths=lengths,
+                require_handshake=True)
+        except SystemExit as error:
+            raw = {'conformant': False, 'failures': ['SystemExit: %s' % error],
+                   'verdicts': [], 'run_dir': dest}
+        except Exception as error:
+            raw = {'conformant': False, 'failures': [str(error)], 'verdicts': [], 'run_dir': dest}
+        result = dict(raw)
+        result['require_handshake'] = True
+        result['outstation_port'] = self.cfg['endpoints']['outstation_port']
+        result['master_port'] = trial.get('master_port') or result.get('master_port')
+        result['expected_lengths'] = expected['lengths']
+        result['expected_counts'] = expected['counts']
+        result['raw_result'] = raw
+        result['result_sha256'] = hashlib.sha256(
+            json.dumps(raw, sort_keys=True, separators=(',', ':'), default=str).encode()).hexdigest()
+        return result
+
+    def validate_standards_file(self, dest, trial, arm, captures, observed, connection_id=None, unbound_native=False):
+        if self.rn.dry:
+            return []
+        context = self.standards_context(trial, arm, connection_id, unbound_native)
+        captures = self.standards_captures(dest, captures)
+        artifact = standards.build_standards_artifact(context, captures, observed)
+        path = os.path.join(dest, 'standards.json')
+        with open(path, 'w') as f:
+            json.dump(artifact, f, indent=1, default=str)
+        result = standards.validate_standards(path, context, captures)
+        with open(os.path.join(dest, 'standards_verdict.json'), 'w') as f:
+            json.dump(result, f, indent=1, default=str)
+        return ['standards: ' + failure for failure in result['failures']]
+
     # ---- groups, gates, bound identity ------------------------------------------------------------------
     def _padded_suffix(self, arm):
         """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''."""
@@ -601,11 +714,11 @@ class Campaign:
     def vision_identity(self):
         """Read-only identity checks on Vision (the only change is copying vision_run.py)."""
         ep, V = self.cfg['endpoint'], self.V
-        files = ('vision_run.py', 'loss.py')                  # loss.py = packet classes + iptables rule lifecycle
-        self.step('local', 'deploy vision_run.py and loss.py to Vision',
+        files = ('vision_run.py', 'loss.py', 'capture_observation.py', 'wire_check.py')
+        self.step('local', 'deploy Vision run/capture helpers to Vision',
                   'scp -q %s %s:%s/' % (' '.join(q(os.path.join(HERE, f)) for f in files),
                                         self.cfg['hosts']['vision'], V))
-        r = self.step('vision', 'verify the deployed vision_run.py and loss.py by sha256',
+        r = self.step('vision', 'verify deployed Vision helper sha256 values',
                       'sha256sum ' + ' '.join('%s/%s' % (V, f) for f in files))
         if not self.rn.dry:
             got = {l.split()[1].rsplit('/', 1)[-1]: l.split()[0] for l in r.out.splitlines() if len(l.split()) == 2}
@@ -623,10 +736,12 @@ class Campaign:
         self.step('vision', 'no run directory for any of these labels may exist yet (vision_run refuses to reuse one)',
                   'for l in %s; do test ! -e %s/runs/$l || { echo "EXISTS $l"; exit 1; }; done'
                   % (' '.join(labels), self.V))
+        helper_hashes = {f: sha256_file(os.path.join(HERE, f)) for f in files}
         self.record['endpoint_observed'] = {'binary_sha256': ep['binary_sha256'], 'lib_sha256': ep['lib_sha256'],
                                             'binary_path': binary, 'lib_path': lib,
-                                            'vision_run_sha256': sha256_file(os.path.join(HERE, 'vision_run.py')),
-                                            'loss_sha256': sha256_file(os.path.join(HERE, 'loss.py'))}
+                                            'vision_helper_sha256': helper_hashes,
+                                            'vision_run_sha256': helper_hashes['vision_run.py'],
+                                            'loss_sha256': helper_hashes['loss.py']}
 
     def deploy_switch(self):
         """Copy every tool and build into the configured switch directory and verify each tool's sha256 there.
@@ -787,7 +902,8 @@ class Campaign:
                                             unit['start_seed'], drop=unit.get('drop'), scenario=unit.get('scenario'),
                                             reconnect_port=(port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
                                                             if unit.get('scenario') else None)
-                                            ).replace(runner.V_RUN, self.V) + self.endpoint_control_args(), check=False)
+                                            ).replace(runner.V_RUN, self.V) + self.endpoint_control_args()
+                          + self.qualify_capture_arg(arm), check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
             self.snapshot(out_remote, label + '_after', check=False, preset=preset)
@@ -913,6 +1029,18 @@ class Campaign:
         cfail += self.endpoint_control_checks(ev['master'])
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail
+        outstation = ev.get('outstation') or {}
+        run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        std_fail = self.validate_standards_file(
+            dest, trial, arm, {'out': {'path': os.path.join(dest, 'out.pcap')},
+                               'in': {'path': os.path.join(dest, 'in.pcap')}},
+            self.standards_observed(
+                ev, list(fails), transport_ok=(w.rc == 0),
+                select_ok=(not run_sbo) or outstation.get('select_real') == 1,
+                operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                aggregate_ok=ok, checker_result=self.run_standards_checker(dest, trial, arm)))
+        fails += std_fail
+        ok = ok and not std_fail
         trial.update(ok=ok, failures=fails)
         purpose = self.cfg.get('evaluation', {}).get('purpose', 'qualification')
         timing_continue = False
@@ -1007,6 +1135,16 @@ class Campaign:
                   or 'OUT_TOKEN_STALE' in f or 'diagnostic stale' in f]
         if ev['master'] and ev['master'].get('issued_ns') and ev['master'].get('completed_ns'):
             trial['master_completion_s'] = round((ev['master']['completed_ns'] - ev['master']['issued_ns']) / 1e9, 3)
+        outstation = ev.get('outstation') or {}
+        run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        fails += self.validate_standards_file(
+            dest, trial, arm, {'out': {'path': os.path.join(dest, 'out.pcap')},
+                               'in': {'path': os.path.join(dest, 'in.pcap')}},
+            self.standards_observed(
+                ev, list(fails), transport_ok=(w.rc == 0),
+                select_ok=(not run_sbo) or outstation.get('select_real') == 1,
+                operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                aggregate_ok=not fails, checker_result=self.run_standards_checker(dest, trial, arm)))
         trial.update(ok=not fails, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc, loss=res, observed=obs)
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if fails:
@@ -1061,6 +1199,18 @@ class Campaign:
                     connection_failures.append('%s extractor rc=%d' % (tool, status.rc))
             if not (cn in vc and ent.get('ok') and ent.get('master_rc') == 0 and not ent.get('master_timeout')):
                 connection_failures.append('connection did not complete successfully')
+            outstation = e.get('outstation') or {}
+            std_fail = self.validate_standards_file(
+                d, trial, arm, {'out': {'path': os.path.join(d, 'out.pcap')},
+                                'in': {'path': os.path.join(d, 'in.pcap')}},
+                self.standards_observed(
+                    e, list(connection_failures), transport_ok=(rcs[cn][0].rc == 0),
+                    select_ok=(not run_sbo) or outstation.get('select_real') == 1,
+                    operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                    aggregate_ok=not connection_failures,
+                    checker_result=self.run_standards_checker(d, trial, arm, cn, cn == 'c2')),
+                connection_id=cn, unbound_native=(cn == 'c2'))
+            connection_failures.extend(std_fail)
             out[cn] = {'role': ent.get('role'), 'master_port': ent.get('master_port'), 'ran': ent.get('ran', cn in vc),
                        'vision_ok': bool(ent.get('ok')), 'connect_ok': ent.get('master_rc') == 0,
                        'master_rc': ent.get('master_rc'), 'master_timeout': bool(ent.get('master_timeout')),

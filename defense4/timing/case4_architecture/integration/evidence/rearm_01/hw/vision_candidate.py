@@ -33,6 +33,7 @@ import time
 
 HERE = Path(__file__).resolve().parent
 LIBRARY = HERE if (HERE / 'vision_run.py').is_file() else HERE.parents[3] / 'protocol/hw_vepa'
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(LIBRARY))
 import vision_run as vr
 import wire_check as wc
@@ -294,7 +295,7 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
 
 
 def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
-             control_padding=1, expect_held_operate_dup=0, image_len=58):
+             control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -304,11 +305,14 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
         raise ValueError('READ count must be an integer in 1..20')
     if type(pre_read_grace_ms) is not int or not 0 <= pre_read_grace_ms <= PRE_READ_GRACE_MS:
         raise ValueError('pre-READ grace must be an integer in 0..%d ms' % PRE_READ_GRACE_MS)
+    if type(qualify_capture) is not bool:
+        raise ValueError('qualify_capture must be a boolean')
     parent = Path(vr.RUNS) / label
     record = dict(scenario='candidate_same_tuple', label=label, close_mode=mode, master_port=port,
                   tuple=[MASTER, port, OUTSTATION, SERVER_PORT], namespaces=[NAMESPACE_M, NAMESPACE_O], nic=NIC,
                   padding=padding, reads=reads, read_pause_ms=25, close_grace_ms=rst_grace_ms if mode == 'rst' else 0,
                   pre_read_grace_ms=pre_read_grace_ms,
+                  qualify_capture=qualify_capture,
                   switch_mutations=False, applied=apply, connections=[], ok=False)
     if not apply:
         record['plan'] = [dict(name='c%d' % index, master_port=port, start_seed=12344 + index,
@@ -330,9 +334,12 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                 worker = threading.Thread(target=watch, daemon=True); worker.start()
             try:
                 with pre_read_controls(dest, pre_read_grace_ms):
+                    kwargs = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=record['close_grace_ms'],
+                                  capture_immediate=mode == 'rst')
+                    if qualify_capture:
+                        kwargs['qualify_capture'] = True
                     result = vr.run_connection(str(dest), label + '_' + dest.name, port, reads, 8, 0, 0, 12344 + index,
-                                               read_pause_ms=25, run_sbo=True, close_grace_ms=record['close_grace_ms'],
-                                               capture_immediate=mode == 'rst')
+                                               **kwargs)
                 connection['result'] = result
             except Exception as error:
                 result = {}; connection['failures'].append(str(error))
@@ -384,12 +391,14 @@ def main(argv=None):
     parser.add_argument('--rst-grace-ms', type=int, default=5000)
     parser.add_argument('--reads', type=int, default=20)
     parser.add_argument('--pre-read-grace-ms', type=int, default=0)
+    parser.add_argument('--qualify-capture', action='store_true',
+                        help='opt-in physical packet-boundary qualification evidence for each connection')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.close_mode, args.padding, args.apply,
                       rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms,
                       control_padding=args.control_padding, expect_held_operate_dup=args.expect_held_operate_dup,
-                      image_len=args.image_len)
+                      image_len=args.image_len, qualify_capture=args.qualify_capture)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

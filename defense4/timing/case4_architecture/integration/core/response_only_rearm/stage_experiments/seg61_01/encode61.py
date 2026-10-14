@@ -28,7 +28,7 @@ SIZE = 61
 
 
 def read_eligible(user):
-    return (len(user) == 33 and user[0] & 0xC0 == 0xC0 and user[1] & 0xC0 == 0xC0 and user[2] == 0x81
+    return (len(user) == 33 and user[0] & 0xC0 == 0xC0 and user[1] & 0xF0 == 0xC0 and user[2] == 0x81
             and user[5:10] == READ_NATIVE_HEADER)
 
 
@@ -44,8 +44,8 @@ def read61(frame):
 def ctl_eligible(user):
     """A single-segment SELECT/OPERATE response echoing one CROB (G12V1, qualifier 0x28, count 1), as the P4
     control profile admits: 23 user octets, FIR|FIN, function 0x81."""
-    return (len(user) == 23 and user[0] & 0xC0 == 0xC0 and user[1] & 0xC0 == 0xC0 and user[2] == 0x81
-            and user[5:10] == bytes.fromhex('0c01280100'))
+    return (len(user) == 23 and user[0] & 0xC0 == 0xC0 and user[1] & 0xF0 == 0xC0 and user[2] == 0x81
+            and user[5:10] == bytes.fromhex('0c01280100') and user[-1] == 0)
 
 
 def ctl61(frame):

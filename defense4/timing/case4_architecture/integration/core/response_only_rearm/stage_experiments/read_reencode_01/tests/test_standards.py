@@ -174,6 +174,8 @@ class RetainedCapture(unittest.TestCase):
     def test_native_controls_satisfy_rule8(self):
         for req, rsp in zip(self.native_req[20:22], self.native_rsp[20:22]):
             self.assertTrue(std.check_control_echo(std.deframe(req)[1], std.deframe(rsp)[1]))
+            outcome = std.check_control_outcome(std.deframe(req)[1], std.deframe(rsp)[1])
+            self.assertTrue(outcome['authorizes_or_succeeds'])
 
     def test_deployed_control_padding_fails_rule8(self):
         for req, rsp in zip(self.native_req[20:22], self.wire_rsp[20:22]):
@@ -194,6 +196,30 @@ class RetainedCapture(unittest.TestCase):
             fill = bytes(rng.randrange(256) for _ in range(n))
             with self.assertRaises(std.StdError):
                 std.check_control_echo(req, rsp + fill)
+
+
+class ControlSemantics(unittest.TestCase):
+    def test_iin_or_nonzero_status_preserves_echo_but_not_success(self):
+        req = bytes.fromhex('c0c0030c0117010102030405060708090a0b00')
+        rsp = bytes.fromhex('c0c08100000c0117010102030405060708090a0b00')
+        self.assertTrue(std.check_control_echo(req, rsp))
+        self.assertTrue(std.check_control_outcome(req, rsp)['authorizes_or_succeeds'])
+        for label, mutated_req, mutated in (('IIN2', req, rsp[:4] + b'\x01' + rsp[5:]),
+                                            ('status', req[:-1] + b'\x01', rsp[:-1] + b'\x01')):
+            with self.subTest(label=label):
+                self.assertTrue(std.check_control_echo(mutated_req, mutated))
+                outcome = std.check_control_outcome(mutated_req, mutated)
+                self.assertFalse(outcome['authorizes_or_succeeds'])
+                self.assertTrue(outcome['echo_ok'])
+
+    def test_rule8_iin_mask_matches_clause_4_4_4_3(self):
+        req = bytes.fromhex('c0c0030c0117010102030405060708090a0b00')
+        rsp = bytearray(bytes.fromhex('c0c08100000c0117010102030405060708090a0b00'))
+        for bit in range(8):
+            with self.subTest(bit=bit):
+                rsp[4] = 1 << bit
+                outcome = std.check_control_outcome(req, bytes(rsp))
+                self.assertEqual(outcome['authorizes_or_succeeds'], bit not in (0, 1, 2, 4))
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ declare lifecycle_rearm:true; frozen baseline campaigns use their original CLI.
 """
 import sys
 import os
+import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -15,7 +16,8 @@ import campaign as base
 
 CANDIDATE = 'integration/core/response_only_rearm'
 EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
-               CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py')
+               CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py',
+               CANDIDATE + '/hw/generation_headroom.py')
 
 
 class CandidateCampaign(base.Campaign):
@@ -67,6 +69,86 @@ class CandidateCampaign(base.Campaign):
         if script == 'snapshot_counters.py':
             return 'python3 %s/src/%s/hw/%s %s' % (self.R, CANDIDATE, script, args)
         return super().switch_cmd(script, args)
+
+    def _headroom_trial(self, name):
+        if not name.endswith('_before'):
+            return None, None
+        label = name[:-len('_before')]
+        for rec in self.record.get('arms', []):
+            for trial in rec.get('trials', []):
+                if trial.get('label') == label:
+                    return rec, trial
+        return None, None
+
+    def _headroom_required(self, rec):
+        build = self.cfg.get('builds', {}).get(rec.get('build'), {})
+        return bool(build.get('profile') == 'candidate61' or
+                    build.get('packet_boundary_required') or
+                    self.cfg.get('standards', {}).get('packet_boundary_required'))
+
+    def _headroom_reserve(self, trial):
+        reads = trial.get('reads')
+        if not isinstance(reads, int) or isinstance(reads, bool) or reads < 1:
+            raise ValueError('generation headroom requires a positive trial read count')
+        connections = int(self.record.get('candidate_series', {}).get('connections') or 1)
+        if self.scenario is not None:
+            connections = max(connections, 3)
+        reserve = reads * connections + 2 * connections + 16
+        return reserve, {'reads': reads, 'connections': connections, 'open_close_per_connection': 2,
+                         'margin': 16, 'source': 'verified T allocator lifecycle counts'}
+
+    def _parse_headroom_result(self, result):
+        lines = [line for line in (result.out or '').splitlines() if line.strip()]
+        for line in reversed(lines):
+            try:
+                value = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(value, dict):
+                return value
+        raise base.StepFailed('generation headroom helper did not return JSON', result)
+
+    def _record_headroom(self, trial, evidence):
+        trial['generation_headroom'] = evidence
+        self.record.setdefault('generation_headroom', []).append({
+            'label': trial.get('label'),
+            'ok': evidence.get('ok'),
+            'reserve': evidence.get('reserve'),
+            'current': evidence.get('current'),
+            'remaining_after_reserve': evidence.get('remaining_after_reserve'),
+            'dry_run': evidence.get('dry_run', False),
+            'error': evidence.get('error'),
+        })
+
+    def _check_generation_headroom(self, out_remote, name, rec, trial):
+        reserve, budget = self._headroom_reserve(trial)
+        output = '%s/snap/%s_generation_headroom.json' % (self.R, name)
+        cmd = ('python3 %s/src/%s/hw/generation_headroom.py --build-out %s --switch-tools %s/%s '
+               '--reserve %d --output %s' %
+               (self.R, CANDIDATE, out_remote, self.R, base.HW, reserve, output))
+        if self.rn.dry:
+            self.step('switch', 'generation headroom precheck %s' % name, self.hw_env(cmd))
+            evidence = {'ok': None, 'dry_run': True, 'reserve': reserve,
+                        'budget': budget, 'output': output}
+            self._record_headroom(trial, evidence)
+            return
+        result = self.step('switch', 'generation headroom precheck %s' % name,
+                           self.hw_env(cmd), check=False)
+        evidence = self._parse_headroom_result(result)
+        evidence.setdefault('reserve', reserve)
+        evidence['budget'] = budget
+        evidence['output'] = output
+        self._record_headroom(trial, evidence)
+        if result.rc != 0 or evidence.get('ok') is not True:
+            raise base.StepFailed('generation headroom refused %s: %s' %
+                                  (name, evidence.get('error') or evidence.get('failures')), result)
+
+    def snapshot(self, out_remote, name, check=True, preset=None):
+        result = super().snapshot(out_remote, name, check=check, preset=preset)
+        rec, trial = self._headroom_trial(name)
+        if rec is not None and self._headroom_required(rec):
+            self._check_generation_headroom(out_remote, name, rec, trial)
+        return result
 
 
 if __name__ == '__main__':

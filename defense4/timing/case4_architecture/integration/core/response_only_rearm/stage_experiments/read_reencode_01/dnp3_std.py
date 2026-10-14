@@ -65,6 +65,7 @@ def frame_length(user_len):
 # G12V1 CROB (A.8); G41 analog output block (A.20, pp.615-619): V1 INT32+status, V2 INT16+status,
 # V3 FLT32+status, V4 FLT64+status; G10V2 binary output status with flags, one octet (A.6).
 OBJECT_SIZE = {(10, 2): 1, (12, 1): 11, (41, 1): 5, (41, 2): 3, (41, 3): 5, (41, 4): 9}
+SELECT_OPERATE_IIN2_BLOCK_MASK = 0x17
 
 # Qualifiers permitted in a RESPONSE, per object. G10V2: 00/01 only (Table 12-6, p.354; Table 14-2, p.398;
 # Table 4-8, p.35 "static objects"). G12V1 and G41 responses echo the request (Table 12-8, p.354), whose
@@ -181,6 +182,34 @@ def check_control_echo(req_user, rsp_user):
         raise StdError('control echo differs: request %d octets, response %d octets'
                        % (len(q['objects']), len(r['objects'])))
     return True
+
+
+def check_control_outcome(req_user, rsp_user):
+    """Return SELECT/OPERATE success semantics separately from byte-for-byte delivery.
+
+    A control response can be faithfully transported and still not authorize/succeed: Rule 8 also
+    depends on clear IIN error bits and success status bytes in every echoed control object.
+    """
+    q, r = request(req_user), response(rsp_user)
+    if q['function'] not in (3, 4):
+        raise StdError('request function 0x%02x is not SELECT/OPERATE' % q['function'])
+    if r['function'] != 0x81:
+        raise StdError('control response function 0x%02x' % r['function'])
+    reasons = []
+    echo_ok = r['objects'] == q['objects']
+    if not echo_ok:
+        reasons.append('control echo differs')
+    iin_error = bool(r['iin'][1] & SELECT_OPERATE_IIN2_BLOCK_MASK)
+    if iin_error:
+        reasons.append('Rule 8 IIN2 error bits set: 0x%02x' % (r['iin'][1] & SELECT_OPERATE_IIN2_BLOCK_MASK))
+    if echo_ok:
+        for g, v, _q, objs in parse_objects(r['objects'], response=True):
+            if (g, v) == (12, 1):
+                for idx, obj in objs:
+                    if obj[-1] != 0:
+                        reasons.append('control status for index %d is 0x%02x' % (idx, obj[-1]))
+    return {'echo_ok': echo_ok, 'iin_clear': not iin_error, 'reasons': reasons,
+            'authorizes_or_succeeds': not reasons}
 
 
 # ---- transport function (Clause 8): segments -> application fragments ------------------------------------

@@ -62,6 +62,8 @@ def dnp3_ok(payload):
             return False, 'no start' if base == 0 else 'no start at %d' % base
         if dnp3_crc(p[base:base + 8]) != int.from_bytes(p[base + 8:base + 10], 'little'):
             return False, 'header crc' if base == 0 else 'header crc at %d' % base
+        if p[base + 2] < 5:
+            return False, 'LEN %d < 5' % p[base + 2]
         i, n = base + 10, p[base + 2] - 5
         while n > 0:
             k = min(16, n)

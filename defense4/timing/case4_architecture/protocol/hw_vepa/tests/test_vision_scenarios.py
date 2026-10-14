@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -119,6 +120,22 @@ class SingleRun(Base):
                 vr.run_connection(dest, 'invalid_capture', 54500, 1, 8, 0, 0, 0, capture_immediate=value)
             self.assertFalse(os.path.exists(dest))
         self.assertEqual(FakePopen.log, [])
+
+    def test_qualified_capture_wraps_main_run_without_changing_default_capture_arguments(self):
+        wrapped = []
+
+        def qualify(run_dir, main, **kwargs):
+            wrapped.append((run_dir, kwargs))
+            return main()
+
+        dest = os.path.join(self.runs, 'qualified_capture')
+        with patch.object(vr.capture_observation, 'run_with_qualified_capture', side_effect=qualify):
+            result = vr.run_connection(dest, 'qualified_capture', 54500, 1, 8, 0, 0, 0, qualify_capture=True)
+        self.assertTrue(result['ok'])
+        self.assertEqual([row[0] for row in wrapped], [dest])
+        self.assertEqual(wrapped[0][1]['interface'], vr.PARENT)
+        retained = json.loads(Path(dest, 'result.json').read_text())
+        self.assertTrue(retained['qualify_capture'])
 
     def test_controls_reach_endpoint_environment_and_extend_timeout(self):
         res = vr.run_connection(os.path.join(self.runs, 'controls'), 'controls', 54500, 5, 8, 0, 0, 0,
@@ -250,6 +267,7 @@ class Cli(unittest.TestCase):
                              capture_output=True, text=True).stdout
         self.assertIn('--scenario', out)
         self.assertIn('--reconnect-port', out)
+        self.assertIn('--qualify-capture', out)
 
 
 if __name__ == '__main__':

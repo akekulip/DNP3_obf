@@ -5,6 +5,10 @@ from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
 PROFILES = {
+    # candidate61 seg61_02 full_04: complete installed SDK 9.13.2 artifacts.
+    'e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311': {
+        '3306c394ef3f447cb48e62f25e2df609acc72e02085f83f6096ccbb9d7287a43',
+    },
     '4c1bfc92eb746d5df80cb6464e777c3b244fb7f792b17c76eb31bb461e1170da': {
         '6dab48d4ad2bdc9db993825fe57117e0fd27c57951e8c1b1578333ee37b256dc',
         '25244d805cfbc05c39c14a7f3f947ec049826a6108ea0737ed717df3e4634fb1',

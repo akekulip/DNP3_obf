@@ -99,8 +99,11 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
     def series_vision_cmd(self,label,port,reads,*args,**kwargs):
         if port!=59400 or reads!=1:
             raise ValueError('external replay requires source59400 and one READ per incarnation')
-        return authorized_python(base.runner.V_RUN+'/vision_replay.py',[label,'--master-port',port,'--padding',1,
-                                 '--control-padding',self._control_padding(),'--image-len',self._image_len(),'--apply'])
+        args = [label, '--master-port', port, '--padding', 1,
+                '--control-padding', self._control_padding(), '--image-len', self._image_len(), '--apply']
+        if self._qualify_capture():
+            args.append('--qualify-capture')
+        return authorized_python(base.runner.V_RUN + '/vision_replay.py', args)
 
     def snapshot(self,out_remote,name,check=True,preset=None):
         return cs.CandidateSeriesCampaign.snapshot(self,out_remote,name,check,preset)
@@ -194,6 +197,19 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 previous=fresh
             except (OSError,ValueError,KeyError,IndexError) as error:cfail.append('fresh mapping: '+str(error))
             if (cs._load_json(raw/'verdict.json') or {}).get('ok') is not True:cfail.append('strict Vision replay leg verdict failed')
+            ev=cs.checks.load_evidence_files(master=str(analysis/'master.json'),outstation=str(analysis/'outstation.json'),
+                                             wire=str(analysis/'wire.json'),timing=str(analysis/'timing.json'))
+            outstation=ev.get('outstation') or {}
+            captures=self.connection_standards_captures(raw,analysis,cn)
+            if cn=='c2':
+                captures=self.standards_captures(str(raw),captures)
+            cfail.extend(self.validate_standards_file(str(analysis),trial,arm,captures,
+                self.standards_observed(ev,list(cfail),transport_ok=not any('wire_check.py failed' in f for f in cfail),
+                                        select_ok=outstation.get('select_real')==1,
+                                        operate_ok=outstation.get('operate_real')==1,
+                                        aggregate_ok=not cfail,
+                                        checker_result=self.run_standards_checker(str(analysis),trial,arm,cn)),
+                connection_id=cn))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
             failures.extend(cn+': '+failure for failure in cfail)
         isolation=dict(ok=False,failures=['missing established quiet window'])
@@ -235,6 +251,18 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 if retained.get(key)!=independently.get(key):
                     raise ValueError('retained replay filtering proof differs: '+key)
             return independently
+
+    @staticmethod
+    def connection_standards_captures(raw,analysis,connection_id):
+        raw,analysis=Path(raw),Path(analysis)
+        captures={'out':{'path':str(analysis/'out.pcap')},'in':{'path':str(analysis/'in.pcap')}}
+        if connection_id=='c2':
+            proof=analysis/'filter.json'
+            procedure=cs._load_json(proof) or {}
+            captures['out'].update(filtered_from={'raw_out':str(raw/'out.pcap')},filter_procedure=procedure)
+            captures['in'].update(filtered_from={'raw_in':str(raw/'in.pcap')},filter_procedure=procedure)
+            captures['filter_proof']={'path':str(proof)}
+        return captures
 
 
 def main():

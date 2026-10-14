@@ -7,6 +7,7 @@ import pytest
 
 from test_checks import evidence
 from test_campaign_bindings import cfg_for
+import test_campaign_run  # noqa: F401  # installs campaign standards checker fakes for direct verdict tests
 import campaign as cp
 
 
@@ -35,6 +36,8 @@ def verdict(tmp_path, padding=1, policy='characterize', mutate=None, wire_rc=0, 
         d.mkdir(parents=True)
         for kind in ('master', 'outstation'):
             (d / (kind + '.json')).write_text(json.dumps(entry[kind]))
+        for name in ('out.pcap', 'in.pcap'):
+            (d / name).write_bytes(b'synthetic capture')
     switch = evidence(padding, T, fixture, reads=40)
     if T:
         switch['after']['outcomes']['OUT_OP_RELEASE'] += 1
@@ -47,9 +50,9 @@ def verdict(tmp_path, padding=1, policy='characterize', mutate=None, wire_rc=0, 
         (dest / 'snapshots' / ('one_' + name + '.json')).write_text(json.dumps(switch[name]))
     runner = Extractors(entries, wire_rc, clrt_rc)
     c = cp.Campaign(cfg, runner, 'one', scenario='reconnect')
-    trial = {'reads': 20, 'fixture': fixture}
+    trial = {'label': 'one', 'reads': 20, 'fixture': fixture}
     vision = {'ok': True, 'connections': {name: {'ok': True, 'master_rc': 0} for name in entries}}
-    c.verdict_scenario(trial, 'one', str(dest), cp.Result(0, json.dumps(vision), ''), {'padding': padding, 'T': T, 'build': cfg['arms'][0]['build']})
+    c.verdict_scenario(trial, 'one', str(dest), cp.Result(0, json.dumps(vision), ''), {'name': 'combined', 'padding': padding, 'T': T, 'build': cfg['arms'][0]['build']})
     return trial
 
 

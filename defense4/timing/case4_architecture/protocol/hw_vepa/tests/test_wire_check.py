@@ -133,3 +133,6 @@ class MultiFrame(unittest.TestCase):
     def test_trailing_or_truncated_fails(self):
         self.assertFalse(wc.dnp3_ok(self.payload() + b'\x00')[0])
         self.assertFalse(wc.dnp3_ok(self.payload()[:-1])[0])
+
+    def test_link_len_below_header_floor_fails(self):
+        self.assertEqual(wc.dnp3_ok(bytes.fromhex('0564044401000a006bd4')), (False, 'LEN 4 < 5'))

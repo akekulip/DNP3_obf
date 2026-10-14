@@ -38,7 +38,7 @@ def timing(clrt, ack, rt, retx=0, resp_lens=(58,)):
 
 
 def make_trial(root, fixture, arm, label, preset, frames, octets, clrt, ack=(5500, 5510), rt=(6300, 6320), rewait=100,
-               blk=None, stale=0, triggers=None, bad=0, retx=0, resp_lens=(58,)):
+               blk=None, stale=0, triggers=None, bad=0, retx=0, resp_lens=(58,), standards_lengths=None):
     d = Path(root) / fixture / arm / label
     (d / 'snapshots').mkdir(parents=True)
     zero = loop_block([0] * 4, [0] * 4)
@@ -61,6 +61,8 @@ def make_trial(root, fixture, arm, label, preset, frames, octets, clrt, ack=(550
     (d / 'timing.json').write_text(json.dumps(t))
     (d / 'wire.json').write_text(json.dumps({'unmatched_returned': [], 'duplicate_returned': [1],
                                              'returned_integrity': {'dnp3_crc_bad': [], 'tcp_checksum_bad': []}}))
+    if standards_lengths:
+        (d / 'standards.json').write_text(json.dumps({'expected': {'lengths': standards_lengths}}))
     growth = sum(9 for _ in clrt) if 58 in resp_lens else 0
     return {'fixture': fixture, 'label': label, 'preset': preset, 'ok': True, 'reads': len(clrt),
             'observed': {'growth_bytes': growth}}
@@ -140,6 +142,32 @@ class Metrics(unittest.TestCase):
     def test_padding_coverage_and_growth(self):
         self.assertEqual(self.m['padding_coverage'], 1.0)
         self.assertEqual(self.m['growth_bytes'], 54)
+
+    def test_exact_target_coverage_uses_standards_length_not_any_growth(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        label = 'c1_separate_ack_combined_t0'
+        trial = make_trial(td.name, 'separate_ack', 'combined', label, None, [1] * 4, [1] * 4,
+                           [800, 810], resp_lens=(60, 61), standards_lengths={'READ': [61]})
+        make_run(td.name, {('separate_ack', 'combined'): [trial]})
+        metric = report.load(td.name)[0]
+        self.assertEqual(metric['padding_coverage'], 0.5)
+        self.assertEqual(metric['exact_length_eligible'], 2)
+        self.assertEqual(metric['exact_length_correct'], 1)
+        self.assertEqual(metric['length_failed'], 1)
+
+    def test_native_target_arm_reports_length_conformance_but_no_padding_coverage(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        label = 'c1_separate_ack_off_t0'
+        trial = make_trial(td.name, 'separate_ack', 'off', label, None, [1] * 4, [1] * 4,
+                           [800, 810], resp_lens=(49, 49), standards_lengths={'READ': [49]})
+        make_run(td.name, {('separate_ack', 'off'): [trial]})
+        metric = report.load(td.name)[0]
+        self.assertIsNone(metric['padding_coverage'])
+        self.assertEqual(metric['exact_length_eligible'], 2)
+        self.assertEqual(metric['exact_length_correct'], 2)
+        self.assertEqual(metric['length_failed'], 0)
 
     def test_trigger_stale_and_bad_octet_counts(self):
         self.assertEqual(self.m['read_triggers'], 6)

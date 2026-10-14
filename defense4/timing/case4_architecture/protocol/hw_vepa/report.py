@@ -33,6 +33,12 @@ def _json(path):
         return None
 
 
+def _standards_lengths(path):
+    data = _json(path)
+    lengths = (((data or {}).get('expected') or {}).get('lengths') or {})
+    return lengths if isinstance(lengths, dict) else {}
+
+
 def _delta(a, b, getter):
     try:
         return getter(a) - getter(b)
@@ -47,6 +53,7 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     a = _json(os.path.join(d, 'snapshots', '%s_after.json' % label))
     t = _json(os.path.join(d, 'timing.json'))
     w = _json(os.path.join(d, 'wire.json'))
+    std_lengths = _standards_lengths(os.path.join(d, 'standards.json'))
     m = {'label': label, 'fixture': fixture, 'arm': arm, 'preset': trial.get('preset')}
     m['per_port'] = {}
     pk = by = bad = 0
@@ -94,7 +101,22 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     reads = [e for e in exs if e.get('kind') == 'READ']
     native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
     padded = [e for e in exs if e['resp_len'] > native.get(e['kind'], e['resp_len'])]
-    m['padding_coverage'] = round(len([e for e in reads if e['resp_len'] > 49]) / len(reads), 4) if reads else None
+    read_target = (std_lengths.get('READ') or [None])[0]
+    if read_target is not None and reads:
+        exact = [e for e in reads if e['resp_len'] == read_target]
+        native_or_ineligible = [e for e in reads if e['resp_len'] == native['READ']]
+        m['exact_length_eligible'] = len(reads)
+        m['exact_length_correct'] = len(exact)
+        m['native_or_ineligible'] = len(native_or_ineligible)
+        m['length_failed'] = len(reads) - len(exact)
+        # coverage is a padding metric: a control arm whose target is the native length has none to report
+        m['padding_coverage'] = round(len(exact) / len(reads), 4) if read_target > native['READ'] else None
+    else:
+        m['exact_length_eligible'] = len(reads) if reads else None
+        m['exact_length_correct'] = None
+        m['native_or_ineligible'] = None
+        m['length_failed'] = None
+        m['padding_coverage'] = round(len([e for e in reads if e['resp_len'] > 49]) / len(reads), 4) if reads else None
     m['growth_bytes'] = ((trial.get('observed') or {}).get('growth_bytes'))
     if m['growth_bytes'] is None and exs:
         native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
@@ -161,6 +183,10 @@ ROWS = [
     ('incomplete', lambda m: m['incomplete']), ('retransmitted', lambda m: m['retransmitted']),
     ('piggybacked', lambda m: m['piggyback']), ('duplicate returned', lambda m: m['duplicate_returned']),
     ('unmatched returned', lambda m: m['unmatched_returned']),
+    ('target length eligible', lambda m: m['exact_length_eligible']),
+    ('target length correct', lambda m: m['exact_length_correct']),
+    ('native/ineligible length', lambda m: m['native_or_ineligible']),
+    ('target length failed', lambda m: m['length_failed']),
     ('padding coverage', lambda m: m['padding_coverage']), ('growth bytes', lambda m: m['growth_bytes']),
     ('READ triggers', lambda m: m['read_triggers']), ('READ gen pkts', lambda m: m['read_pkts']),
     ('stale tokens', lambda m: m['stale']), ('bad octets', lambda m: m['bad_octets']),

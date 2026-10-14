@@ -92,7 +92,7 @@ class LossFake(FakeRunner):
                 self.write_conv(dest / 'c2', self.reads[label], 49, sbo=True)
                 self.write_conv(dest / 'c3', self.reads[label], 49 if self.c3 == 'native_ok' else padded, sbo=True)
                 return cp.Result(0, '', '')
-        if where == 'local' and ('wire_check.py' in cmd or 'clrt_check.py' in cmd):
+        if where == 'local' and ('wire_check.py' in cmd or 'clrt_check.py' in cmd) and '--json' in cmd:
             tool = 'wire' if 'wire_check.py' in cmd else 'clrt'
             args = shlex.split(cmd)
             outp, inp = args[args.index('--json') - 2], args[args.index('--json') - 1]
@@ -172,7 +172,7 @@ class ConfigAndPlan(Base):
                         scenario='reconnect').execute()
         run = [c for _w, c in dry.calls if 'vision_run.py run' in c][0]
         self.assertRegex(run, r'--scenario reconnect --reconnect-port \d+')
-        analyses = [c for _w, c in dry.calls if 'wire_check.py' in c or 'clrt_check.py' in c]
+        analyses = [c for _w, c in dry.calls if ('wire_check.py' in c or 'clrt_check.py' in c) and '--json' in c]
         self.assertEqual(len(analyses), 6)
         for cn in ('c1', 'c2', 'c3'):
             self.assertTrue(any('/%s/out.pcap' % cn in c for c in analyses), cn)

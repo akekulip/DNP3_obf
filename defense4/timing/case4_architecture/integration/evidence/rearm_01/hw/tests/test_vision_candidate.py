@@ -218,6 +218,17 @@ class VisionCandidate(unittest.TestCase):
                                         expect_held_operate_dup=0, image_len=58)
                             for row in gates))
 
+    def test_qualify_capture_is_opt_in_and_reaches_each_connection(self):
+        calls = []
+        def connect(dest, label, port, *args, **kwargs):
+            Path(dest).mkdir(); calls.append(kwargs); return {'ok': True}
+        with patch.object(vc.vr, 'RUNS', str(self.root)), patch.object(vc, 'preflight', return_value=[]), \
+             patch.object(vc.vr, 'run_connection', side_effect=connect), patch.object(vc, 'evaluate', return_value=[]):
+            record = vc.scenario('test', self.port, 'graceful', 1, apply=True, qualify_capture=True)
+        self.assertTrue(record['ok'])
+        self.assertTrue(all(row['qualify_capture'] is True for row in calls))
+        self.assertTrue(record['qualify_capture'])
+
     def test_strict_control_padding_propagates_to_gate(self):
         gates = []
         def connect(dest, label, port, *args, **kwargs):

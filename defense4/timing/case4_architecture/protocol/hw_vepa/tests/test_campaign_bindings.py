@@ -43,6 +43,9 @@ def cfg_for(root, hashes, tamper=None):
     sha = fake_build(root, tamper)
     b = cfg['builds'][build_name(cfg)]
     b['allowed_loop_octet_gap'] = {}                       # a fake build has no known gap, whatever the shipped one has
+    b['profile'] = 'strict_comparison'
+    b['image_len'] = 58
+    b['source_sha256'] = H64
     b['out_dir'], b['manifest'] = str(Path(root) / 'out'), str(Path(root) / 'manifest.json')
     b['hashes'] = {r: (sha[r] if hashes == 'match' else hashes) for r in sha}
     cfg['endpoint'].update(binary_sha256=H64, lib_sha256=H64)

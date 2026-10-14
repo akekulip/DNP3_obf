@@ -33,6 +33,7 @@ VISION_EXTRA = {
     'token_window.py': HERE / 'token_window.py',
     'snapshot_lifecycle.py': HERE / 'snapshot_lifecycle.py',
     'vision_candidate.py': HERE / 'vision_candidate.py',
+    'capture_observation.py': ARCH / 'protocol' / 'hw_vepa' / 'capture_observation.py',
     'wire_check.py': ARCH / 'protocol' / 'hw_vepa' / 'wire_check.py',
     'clrt_check.py': ARCH / 'protocol' / 'hw_vepa' / 'clrt_check.py',
     'checks.py': ARCH / 'protocol' / 'hw_vepa' / 'checks.py',
@@ -319,13 +320,15 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                           connect_must_fail=False, drop=None, scenario=None, reconnect_port=None):
         if connect_must_fail or drop or scenario or reconnect_port is not None:
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
-        return authorized_python(base.runner.V_RUN+'/vision_candidate.py',
-            [label,'--master-port',master_port,'--padding',self._series_padding,
-             '--control-padding',self._series_control_padding,
-             '--image-len',int(self.cfg['builds'][self._series_build].get('image_len', 58)),
-             '--expect-held-operate-dup',int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
-             '--close-mode',self.close_mode,
-             '--rst-grace-ms',self.rst_grace_ms,'--reads',reads,'--apply'])
+        args = [label, '--master-port', master_port, '--padding', self._series_padding,
+                '--control-padding', self._series_control_padding,
+                '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
+                '--expect-held-operate-dup', int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
+                '--close-mode', self.close_mode,
+                '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']
+        if self.cfg['builds'][self._series_build].get('profile') == 'candidate61':
+            args.append('--qualify-capture')
+        return authorized_python(base.runner.V_RUN + '/vision_candidate.py', args)
 
     def run_unit(self, unit, port):
         old = base.runner.vision_cmd
@@ -418,6 +421,18 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             scenario = _load_json(os.path.join(dest, cn, 'verdict.json')) or {}
             if scenario.get('ok') is not True:
                 cfail.append('vision_candidate per-connection verdict failed')
+            outstation = ev.get('outstation') or {}
+            cfail.extend(self.validate_standards_file(
+                os.path.join(dest, cn), trial, arm,
+                {'out': {'path': os.path.join(dest, cn, 'out.pcap')},
+                 'in': {'path': os.path.join(dest, cn, 'in.pcap')}},
+                self.standards_observed(
+                    ev, list(cfail), transport_ok=(tool_rcs[cn]['wire_rc'] == 0),
+                    select_ok=(not run_sbo) or outstation.get('select_real') == 1,
+                    operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                    aggregate_ok=not cfail,
+                    checker_result=self.run_standards_checker(os.path.join(dest, cn), trial, arm, cn)),
+                connection_id=cn))
             connections[cn] = {'ok': not cfail, 'failures': cfail, 'read_precision': precision,
                                'fresh_mapping': fresh, **tool_rcs[cn]}
             failures.extend('%s: %s' % (cn, failure) for failure in cfail)

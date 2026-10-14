@@ -54,7 +54,7 @@ class FakeRunner:
                 if name == 'case4_socket_gate_pad58b':
                     value = self.cfg['endpoint']['binary_sha256']
                 else:
-                    local = nr.HW_VEPA / name if name in ('vision_run.py', 'loss.py') else dict(nr.tools())[name]
+                    local = nr.HW_VEPA / name if name in ('vision_run.py', 'loss.py', 'capture_observation.py', 'wire_check.py') else dict(nr.tools())[name]
                     value = nr.cp.sha256_file(str(local))
                 lines.append('%s  %s' % (value, remote))
             return nr.cp.Result(0, '\n'.join(lines), '')

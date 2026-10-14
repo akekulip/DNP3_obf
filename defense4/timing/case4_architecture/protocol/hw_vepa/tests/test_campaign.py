@@ -90,8 +90,8 @@ class PlanContent(unittest.TestCase):
         runs = [c for c in self.cmds if 'vision_run.py run' in c]
         self.assertEqual(len(runs), 4 * self.cfg['trials']['trials_per_arm'] * len(self.cfg['fixture']['modes']))
         self.assertTrue(all('--reads %d' % self.cfg['trials']['reads_per_trial'] in c for c in runs))
-        self.assertEqual(len([c for c in self.cmds if 'wire_check.py' in c]), len(runs))
-        self.assertEqual(len([c for c in self.cmds if 'clrt_check.py' in c]), len(runs))
+        self.assertEqual(len([c for c in self.cmds if c.startswith(cp.runner.PY + ' ') and 'wire_check.py' in c]), len(runs))
+        self.assertEqual(len([c for c in self.cmds if c.startswith(cp.runner.PY + ' ') and 'clrt_check.py' in c]), len(runs))
 
     def test_ties_in_snapshots_and_restoration(self):
         for s in ('snapshot_counters.py', 'bringup_teardown.py', 'restore_ports.py', 'vision_run.py setup',

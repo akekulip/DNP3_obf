@@ -193,6 +193,27 @@ class VisionReplay(unittest.TestCase):
         self.assertEqual(verdict['replay_filter'], result['connections'][1]['replay_filter'])
         self.assertTrue(result['hashes'])
 
+    def test_qualify_capture_is_opt_in_for_replay_legs(self):
+        calls = []
+        def connect(dest, *args, **kwargs):
+            dest = Path(dest); dest.mkdir()
+            grace = int(os.environ['CASE4_PRE_READ_GRACE_MS'])
+            if grace: artifacts(dest)
+            master = dict(opens=1, pre_read_grace_ms=grace, pre_read_ready_ns=1_000_000_000,
+                          first_read_issued_ns=1_000_000_000 + grace * 1_000_000)
+            (dest / 'master.json').write_text(json.dumps(master))
+            if grace:
+                Path(os.environ['CASE4_PRE_READ_MARKER']).write_text(json.dumps(dict(tcp_open=True, opens=1,
+                    pre_read_grace_ms=grace, pre_read_ready_ns=master['pre_read_ready_ns'], first_read_issued_ns=0)))
+            calls.append(kwargs); return dict(ok=True)
+        with patch.object(vp.vc.vr, 'RUNS', str(self.root)), patch.object(vp.vc, 'preflight', return_value=[]), \
+             patch.object(vp.vc.vr, 'run_connection', side_effect=connect), patch.object(vp.vc, 'observe', return_value={'ok': True}), \
+             patch.object(vp.vc, 'evaluate', return_value=[]):
+            result = vp.scenario('series_qual', apply=True, qualify_capture=True)
+        self.assertTrue(result['ok'])
+        self.assertTrue(all(row['qualify_capture'] is True for row in calls))
+        self.assertTrue(result['qualify_capture'])
+
     def test_first_leg_observer_or_application_failure_stops_remaining_legs(self):
         def connect(dest, *args, **kwargs):
             Path(dest).mkdir(); return dict(ok=True)

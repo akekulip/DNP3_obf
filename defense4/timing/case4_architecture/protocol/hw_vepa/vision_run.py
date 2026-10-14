@@ -2,7 +2,9 @@
 """Vision side of a software-endpoint run through the switch. Run with sudo python3 on Vision.
 
   vision_run.py setup            clean TCP profile in ns_vepa_a / ns_vepa_b, disable-source-pruning on
-  vision_run.py restore          sysctls back to 1/1/1 and 32768 60999, disable-source-pruning off
+                                 and record the parent NIC's receive-offload baseline (once; see restore)
+  vision_run.py restore          sysctls back to 1/1/1 and 32768 60999, disable-source-pruning off, receive
+                                 offloads re-applied from the setup baseline and verified (nonzero exit if not)
   vision_run.py state            print the NIC flag and the namespace sysctls
   vision_run.py casea on --delay-ms D | casea off
                                  make the outstation side present a separate ACK followed by a late response,
@@ -28,6 +30,7 @@ import subprocess
 import sys
 import time
 
+import capture_observation
 import loss  # shared packet classes and iptables rule lifecycle; deployed beside this file
 
 PARENT = 'enp59s0f0np0'
@@ -37,6 +40,7 @@ HOME = os.path.dirname(os.path.abspath(__file__))
 BIN, LIB, RUNS = HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/runs'
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
+OFFLOAD_BASELINE = HOME + '/offload_baseline.json'   # campaign receive-offload baseline (setup/restore)
 
 
 def sh(*cmd, **kw):
@@ -143,7 +147,8 @@ def wait_port_free(port, tries=80):
 
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
-                   connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False):
+                   connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
+                   qualify_capture=False):
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
     reused). capture_immediate enables tcpdump's immediate mode for live observers.
     Returns the result dict and capture arguments, also written to run_dir/result.json."""
@@ -154,7 +159,23 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
         raise ValueError('run_sbo must be 0 or 1')
     if type(capture_immediate) is not bool:
         raise ValueError('capture_immediate must be a boolean')
+    if type(qualify_capture) is not bool:
+        raise ValueError('qualify_capture must be a boolean')
     os.makedirs(run_dir)                      # refuses to reuse a label
+
+    def run_main():
+        return _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed,
+                                       drop, connect_must_fail, read_pause_ms, run_sbo, close_grace_ms,
+                                       capture_immediate, qualify_capture)
+
+    if qualify_capture:
+        return capture_observation.run_with_qualified_capture(run_dir, run_main, interface=PARENT)
+    return run_main()
+
+
+def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
+                            connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0,
+                            capture_immediate=False, qualify_capture=False):
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
@@ -173,6 +194,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
               'start_delay_ms_applied': start_delay_ms(start_delay_max, start_seed)}
     result['endpoint_controls'] = dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms)
     result['capture_immediate'] = capture_immediate
+    result['qualify_capture'] = qualify_capture
     result['capture_commands'] = {}
     result['source_port_wait'] = port_wait
     if port_wait['result'] != 'free':
@@ -253,7 +275,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
 
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed,
-                  read_pause_ms=25, run_sbo=True, close_grace_ms=0):
+                  read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
 
       c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
@@ -272,7 +294,8 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
         try:
             res = run_connection(os.path.join(parent, name), '%s_%s' % (label, name), port, reads, rng, gap_ms,
                                  start_delay_max, start_seed, read_pause_ms=read_pause_ms,
-                                 run_sbo=run_sbo, close_grace_ms=close_grace_ms)
+                                 run_sbo=run_sbo, close_grace_ms=close_grace_ms,
+                                 qualify_capture=qualify_capture)
         except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
             res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
         res['role'] = role
@@ -318,9 +341,12 @@ def main():
     ap.add_argument('--drop', metavar='CLASS[:N]',
                     help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
                          'classes: ' + ', '.join(loss.names()))
+    ap.add_argument('--qualify-capture', action='store_true',
+                    help='opt-in physical packet-boundary qualification evidence for this run')
     a = ap.parse_args()
 
     if a.mode == 'setup':
+        capture_observation.record_offload_baseline(OFFLOAD_BASELINE, PARENT)
         profile('0', DEFAULT_RANGE)
         if 'source-pruning : on' not in state():
             pruning('on')
@@ -333,6 +359,10 @@ def main():
         profile('1', DEFAULT_RANGE)
         if 'source-pruning : off' not in state():
             pruning('off')
+        offload_errors = capture_observation.restore_offload_baseline(OFFLOAD_BASELINE, PARENT)
+        if offload_errors:
+            print(state())
+            sys.exit('receive offload restore failed: ' + '; '.join(offload_errors))
     if a.mode != 'run':
         print(state())
         sys.exit(0)
@@ -347,13 +377,15 @@ def main():
             sys.exit(str(e))
     if a.scenario == 'reconnect':
         out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
-                            a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms)
+                            a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
+                            a.qualify_capture)
         print(json.dumps(out))
         sys.exit(0 if out['ok'] else 1)
     try:
         result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
                                 a.start_delay_ms, a.start_seed, drop, a.connect_must_fail,
-                                a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms)
+                                a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
+                                qualify_capture=a.qualify_capture)
     except RuntimeError as e:
         sys.exit(str(e))
     print(json.dumps(result))
