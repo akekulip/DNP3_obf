@@ -19,7 +19,11 @@ Every trial carried exactly the bound lengths: candidate61 off/timing_only READ 
 
 ## Tails
 
-Over-bound READs: candidate61 7 of 3,000 timed, strict 12 of 3,000. All are ~1.1 ms events. Late ACKs or late responses of the same size appear in the **off** arm too (no switch timing; exchange 275 is late in all four arms of block 1), so they originate at the endpoints, not in the candidate. A late upstream ACK shortens CLRT (-920 us errors) while request-to-response stays on schedule; a late response lengthens it (+1.1 ms). Precision is block-dependent for both builds equally (block 3 abs p95 about 45-63 us vs about 11-15 us in blocks 1-2), consistent with a host or testbed effect.
+Over-bound READs: candidate61 7 of 3,000 timed, strict 12 of 3,000. All are ~1.1 ms events, and they recur near READ indices 127 and 255 (126 and 254 in candidate61 block 3), about every 128 exchanges, across arms, blocks and both builds.
+
+**Where they arise (corrected after the independent audit).** Both captures are on Vision's switch-facing port, so their timestamps are comparable. In `out.pcap` the outstation emits its ACK and response on time; the extra ~1.1 ms accrues between Vision's transmit tap and its receive tap, in the NIC, the link or the Tofino (off arm, candidate block 1: pure-ACK tap-to-tap transit median 27 us, two events up to 1,139 us; responses at most 198 us). They also occur in the untimed off and size_only arms and at the same rate in the strict build, so they are not caused by the timing hold or the 61-octet encoding. Which transit component adds them is undetermined; the 128-exchange period is the lead. An ACK delayed in transit shortens the measured CLRT (about -920 us); a response delayed in transit lengthens it (about +1.1 ms).
+
+Precision also varies by block for both builds: block 3 shows a median bias of about +34 to +51 us (0 to 7 us in blocks 1-2), and strict timing_only block 2 has abs p95 48 us; the other block 1-2 values are 11-15 us. Neither changes a conclusion.
 
 ## OPERATE hold and SBO
 

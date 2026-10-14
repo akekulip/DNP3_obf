@@ -1822,9 +1822,20 @@ Philip: "go ahead with step 4". Results: `seg61_02/evidence/STEP4_RESULTS.md` + 
 (analysis/step4_report.py, tested on committed evidence). Six interleaved blocks (candidate b1, strict b1, ...),
 piggyback, 14,892 vs 59,570 PPS. All restored, production observed after each.
 - Pooled abs p99: candidate61 timing_only 54 us, combined 51; strict 65 / 51. Lengths and growth exact everywhere.
-- ~1.1 ms tails: late ACK or late response at the switch, present in the untimed off arm → endpoint origin.
+- ~1.1 ms tails: CORRECTED by the step-5 audit — endpoints emit on time; the delay accrues between Vision's tx and
+  rx taps (NIC, link or Tofino), in untimed arms and the strict build alike; component undetermined, ~every 128 exchanges.
 - 14,892 PPS abs p99 147 us vs 90.5 us at 59,570 PPS with ~3.3x fewer internal packets.
 - Harness fix 598473ebe: precision-only failures no longer re-flagged as hard standards failures (the test fake
   in test_campaign_run had masked it); compare_14892_950_01 retained.
 - Not done: repeated SBO cycles per connection (SBO n = 3 per arm).
 - NEXT: PLAN step 5 (final review + report).
+
+## 2026-10-14 (late afternoon) — candidate61 PLAN step 5 done: review and report
+
+- Report: `seg61_02/evidence/QUALIFICATION_REPORT.md`.
+- Evidence audit (own pcap parser): every length/CRC/frame-layout/CLRT number reproduced; corrected my tail-origin
+  claim (transit path, not endpoints). Code review: no blocker; fixed MAJOR (.gitignore re-asserts credential
+  patterns after the evidence exceptions; verified with planted .env/credentials.json/id.key) and MINOR 1,4,5,6,7.
+- Mistake to remember: `git stash -- .gitignore` inside a diagnostic command stashed my edit; popped and verified.
+- Open: transit tail source (~every 128 exchanges), repeated SBO cycles, self-attested checker fields, class-level
+  test fakes in test_campaign_run, real relay, promotion (Philip's decision). Nothing pushed.

@@ -9,7 +9,8 @@
   "first_model": "PASS: smoke30/30, native30/30, packets622/622, rearm399/399, dup102/102",
   "acceptance": "Verified: integrated suite 699 passed (with and without RESEARCH_PYTHON); code-reviewer no blockers, MAJOR findings fixed.",
   "silicon": "Four-arm smoke and all step-3 gates PASS (2026-10-14). Timing evaluation (step 4) not run.",
-  "evaluation": "Done on silicon 2026-10-14: evidence/STEP4_RESULTS.md, evidence/step4_summary.json"
+  "evaluation": "Done on silicon 2026-10-14: evidence/STEP4_RESULTS.md, evidence/step4_summary.json",
+  "review": "Step 5: evidence audit reproduced all numbers (tail-origin inference corrected); code review no blocker, MAJOR+5 MINOR fixed"
  },
  "rulings": [
   "Work on a dedicated branch in the existing checkout to preserve the local untracked evidence and fixture dependencies; do not stage pre-existing edits.",
@@ -57,9 +58,11 @@
   "candidate61_compare_14892_950_02": "silicon: 3 trials, abs p99 147 us (soft timing failures), growth exact",
   "candidate61_compare_59570_950_01": "silicon: 3 trials, abs p99 90.5 us, growth exact"
  },
- "status": "step4_complete",
+ "status": "qualification_complete",
  "next_actions": [
-  "PLAN step 5: final review of changes and evidence, report"
+  "Open: transit-path ~1.1 ms tail source (period ~128 exchanges)",
+  "Open: repeated SBO cycles",
+  "Open: real-relay compatibility; default promotion is Philip's decision"
  ],
  "commit_status": "committed on implement/seg61-qualified-20261014; not pushed; no default promotion"
 }
