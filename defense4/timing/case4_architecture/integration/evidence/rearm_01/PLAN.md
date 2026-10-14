@@ -2,7 +2,7 @@
 
 ## Current plan — 61-octet READ/SBO and full timing qualification (2026-10-14)
 
-**Steps 1, 2 and 3 are complete (2026-10-14).** Offline verification is green (integrated suite 699 passed, with and without `RESEARCH_PYTHON`) and the bounded four-arm silicon smoke passed as `candidate61_fourarm_smoke_03`; earlier attempts `_01` and `_02` failed closed on harness defects that are fixed and retained. Production `case4_response_path` was restored and observed after every run. Step 3 passed on silicon the same day after Philip's go-ahead. Steps 4 and 5 (timing and size evaluation, finish) have not run and need fresh authorization. Work is committed on branch `implement/seg61-qualified-20261014`, not pushed, no defaults promoted.
+**Steps 1 to 4 are complete (2026-10-14).** Offline verification is green (integrated suite 699 passed, with and without `RESEARCH_PYTHON`) and the bounded four-arm silicon smoke passed as `candidate61_fourarm_smoke_03`; earlier attempts `_01` and `_02` failed closed on harness defects that are fixed and retained. Production `case4_response_path` was restored and observed after every run. Step 3 passed on silicon the same day after Philip's go-ahead. Step 4 (timing and size evaluation) then ran the same afternoon; step 5 (final review and report) remains. Work is committed on branch `implement/seg61-qualified-20261014`, not pushed, no defaults promoted.
 
 Specification: [implementation directive](../../../../../../DNP3_Implementation_Directive_492013014.md). Exact campaign commands and configurations: [candidate61 hardware runbook](../../core/response_only_rearm/stage_experiments/seg61_02/hw/RUNBOOK.md). Attempt history: [progress ledger](../../core/response_only_rearm/stage_experiments/seg61_02/evidence/progress.json).
 
@@ -63,12 +63,14 @@ Result (2026-10-14, all on silicon, restore and ping ok after every block): `can
 
 ### 4. Full timing and size obfuscation evaluation
 
-- [ ] Run **three order-rotated blocks × four arms ×500 READs at59,570PPS/950µs**, preserving matched endpoint/fixture settings and recording achieved hardware rates. Include SBO in every connection; add repeated successful SBO cycles for control timing distributions.
-- [ ] Measure READ request-ACK/response commit and release timing, OPERATE hold/release, request-to-response latency and full SBO completion. Preserve per-exchange timestamps and callbacks.
-- [ ] Run matched strict comparison blocks at the same59,570PPS/950µs with the same qualified physical capture procedure. Keep strict READ58/SBO37 separately identified.
-- [ ] Run separately labelled piggyback-ACK measurements. Report request-to-response/SBO completion and fallback behavior; CLRT requires a separate request ACK.
-- [ ] After correctness, compare14,892 versus59,570PPS with the candidate, workload and target held fixed to measure precision versus total overhead.
-- [ ] Retain per-block signed/absolute target error, p50/p95/p99/max, every tail/exclusion and its exchange/reason, recovery, callbacks, intentional delay versus processing/polling overhead, total internal packets **and bytes**, and external growth. Expected fresh-response growth is `12 × READ +24 × (SELECT + OPERATE)`; report retransmission traffic separately. State the SD convention. Provisional p99 absolute error≤100µs is not a maximum-error guarantee; investigate the retained strict~1.1ms tails using matched captures/counters/host logs.
+- - [x] Run **three order-rotated blocks × four arms ×500 READs at59,570PPS/950µs**, preserving matched endpoint/fixture settings and recording achieved hardware rates. Include SBO in every connection; add repeated successful SBO cycles for control timing distributions.
+- - [x] Measure READ request-ACK/response commit and release timing, OPERATE hold/release, request-to-response latency and full SBO completion. Preserve per-exchange timestamps and callbacks.
+- - [x] Run matched strict comparison blocks at the same59,570PPS/950µs with the same qualified physical capture procedure. Keep strict READ58/SBO37 separately identified.
+- - [x] Run separately labelled piggyback-ACK measurements. Report request-to-response/SBO completion and fallback behavior; CLRT requires a separate request ACK.
+- - [x] After correctness, compare14,892 versus59,570PPS with the candidate, workload and target held fixed to measure precision versus total overhead.
+- - [x] Retain per-block signed/absolute target error, p50/p95/p99/max, every tail/exclusion and its exchange/reason, recovery, callbacks, intentional delay versus processing/polling overhead, total internal packets **and bytes**, and external growth. Expected fresh-response growth is `12 × READ +24 × (SELECT + OPERATE)`; report retransmission traffic separately. State the SD convention. Provisional p99 absolute error≤100µs is not a maximum-error guarantee; investigate the retained strict~1.1ms tails using matched captures/counters/host logs.
+
+Result (2026-10-14): see `seg61_02/evidence/STEP4_RESULTS.md` and `step4_summary.json`. Pooled abs p99 at 59,570 PPS / 950 us: candidate61 timing_only 54 us, combined 51 us; strict 65 us and 51 us. Lengths and growth exact in every trial. The ~1.1 ms tails occur in the untimed off arm too, so they originate at the endpoints. 14,892 PPS: abs p99 147 us (47 of 150 over 100 us) with about 3.3x fewer internal packets. Not done: repeated SBO cycles per connection (SBO timing is n = 3 per arm).
 
 ### 5. Finish and report
 

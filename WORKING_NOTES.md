@@ -1815,3 +1815,16 @@ Philip: "go ahead with step 3". All runs software endpoints, combined arm, resto
 - Old-external archive pool = the 13 archives of candidate57s_old_external_04 (hashes re-verified).
 - NEXT (needs authorization): PLAN step 4 timing/size evaluation at 59,570 PPS / 950 us, strict comparison,
   piggyback, 14,892-vs-59,570 rate comparison.
+
+## 2026-10-14 (afternoon) — candidate61 PLAN step 4 complete on silicon
+
+Philip: "go ahead with step 4". Results: `seg61_02/evidence/STEP4_RESULTS.md` + `step4_summary.json`
+(analysis/step4_report.py, tested on committed evidence). Six interleaved blocks (candidate b1, strict b1, ...),
+piggyback, 14,892 vs 59,570 PPS. All restored, production observed after each.
+- Pooled abs p99: candidate61 timing_only 54 us, combined 51; strict 65 / 51. Lengths and growth exact everywhere.
+- ~1.1 ms tails: late ACK or late response at the switch, present in the untimed off arm → endpoint origin.
+- 14,892 PPS abs p99 147 us vs 90.5 us at 59,570 PPS with ~3.3x fewer internal packets.
+- Harness fix 598473ebe: precision-only failures no longer re-flagged as hard standards failures (the test fake
+  in test_campaign_run had masked it); compare_14892_950_01 retained.
+- Not done: repeated SBO cycles per connection (SBO n = 3 per arm).
+- NEXT: PLAN step 5 (final review + report).

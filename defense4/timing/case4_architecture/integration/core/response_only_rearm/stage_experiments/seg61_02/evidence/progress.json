@@ -9,7 +9,7 @@
   "first_model": "PASS: smoke30/30, native30/30, packets622/622, rearm399/399, dup102/102",
   "acceptance": "Verified: integrated suite 699 passed (with and without RESEARCH_PYTHON); code-reviewer no blockers, MAJOR findings fixed.",
   "silicon": "Four-arm smoke and all step-3 gates PASS (2026-10-14). Timing evaluation (step 4) not run.",
-  "evaluation": "Planned only: full timing and size roadmap in updated directive."
+  "evaluation": "Done on silicon 2026-10-14: evidence/STEP4_RESULTS.md, evidence/step4_summary.json"
  },
  "rulings": [
   "Work on a dedicated branch in the existing checkout to preserve the local untracked evidence and fixture dependencies; do not stage pre-existing edits.",
@@ -45,12 +45,21 @@
   "candidate61_stale_tokens_950_01": "silicon FAIL closed: missing capture_observation source pin; calibration sleeps put c2 past old tokens; fixed d8b83014b",
   "candidate61_stale_tokens_950_02": "silicon PASS: c2 ready with READ app pkt_counter 3/4; isolation qualified",
   "candidate61_held_operate_350_01": "silicon PASS: OUT_OP_DUP_DROP 0->3, OUT_OP_RELEASE 0->3, one OPERATE per connection",
-  "candidate61_old_external_950_01": "silicon PASS: 82 replayed old frames during c2; same removed set as strict old_external_04"
+  "candidate61_old_external_950_01": "silicon PASS: 82 replayed old frames during c2; same removed set as strict old_external_04",
+  "candidate61_eval_59570_950_b1": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "strict_comparison_59570_950_b1": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "candidate61_eval_59570_950_b2": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "strict_comparison_59570_950_b2": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "candidate61_eval_59570_950_b3": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "strict_comparison_59570_950_b3": "silicon: 4 arms x 500 READs, hard=None soft=0, restore ok",
+  "candidate61_piggyback_combined_59570_950_01": "silicon: 19/20 READ piggybacked, 61/61/61, READ req->resp p50 30.1 ms (known fallback)",
+  "candidate61_compare_14892_950_01": "silicon: stopped after 1 of 3 trials, precision-only failure re-flagged as hard standards failure; fixed 598473ebe",
+  "candidate61_compare_14892_950_02": "silicon: 3 trials, abs p99 147 us (soft timing failures), growth exact",
+  "candidate61_compare_59570_950_01": "silicon: 3 trials, abs p99 90.5 us, growth exact"
  },
- "status": "step3_passed",
+ "status": "step4_complete",
  "next_actions": [
-  "PLAN step 4 timing and size evaluation at 59,570 PPS / 950 us after fresh authorization",
-  "PLAN step 5 finish and report"
+  "PLAN step 5: final review of changes and evidence, report"
  ],
  "commit_status": "committed on implement/seg61-qualified-20261014; not pushed; no default promotion"
 }

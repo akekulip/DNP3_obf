@@ -10,8 +10,9 @@ interval) and adds what PLAN step 4 asks for and that summary does not carry:
   - every READ over the provisional 100 us bound, by run, label and application sequence
   - SELECT and OPERATE request-to-ACK, ACK-to-response and request-to-response, and full SBO completion
     (SELECT request to OPERATE response) per connection
-  - internal loop packets and bytes, and external growth against 12 x READ + 24 x (SELECT + OPERATE) for
-    newly delivered responses on padded arms (retransmitted exchanges reported separately)
+  - READ request-to-response latency (the measure that applies when the ACK is piggybacked)
+  - internal loop packets and bytes, and external growth against the bound lengths: candidate61
+    12 x READ + 24 x (SELECT + OPERATE), strict 9 x READ, native 0 (retransmitted exchanges counted apart)
 SD is the population SD (statistics.pstdev), the convention eval_summary.py uses. Stdlib only.
 """
 import argparse
@@ -26,8 +27,7 @@ sys.path.insert(0, str(ARCH / 'integration/evidence/rearm_01'))
 sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
 import eval_summary as es  # noqa: E402
 
-GROWTH = {'READ': 12, 'SELECT': 24, 'OPERATE': 24}
-PADDED_ARMS = ('size_only', 'combined')
+NATIVE = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
 
 
 def dist(values):
@@ -64,12 +64,16 @@ def control_timing(ex):
     return out
 
 
-def growth_check(arm, ex):
-    """Expected growth from newly delivered, single-attempt responses; retransmitted ones are listed apart."""
+def growth_check(d, ex):
+    """Expected growth of newly delivered, single-attempt responses, from the trial's bound expected lengths
+    (standards.json, i.e. the profile/arm, not the capture): candidate61 12 x READ + 24 x (SELECT + OPERATE),
+    strict 9 x READ, native 0. Retransmitted exchanges are counted apart."""
+    lengths = json.load(open(d / 'standards.json'))['expected']['lengths']
+    per_kind = {kind: lengths[kind][0] - NATIVE[kind] for kind in NATIVE}
     fresh = [e for e in ex if e.get('complete') and not e.get('retransmitted')]
     retx = [e for e in ex if e.get('retransmitted')]
-    expected = sum(GROWTH[e['kind']] for e in fresh) if arm in PADDED_ARMS else 0
-    return {'expected_fresh_bytes': expected, 'fresh': len(fresh), 'retransmitted_exchanges': len(retx)}
+    return {'expected_fresh_bytes': sum(per_kind[e['kind']] for e in fresh), 'per_kind': per_kind,
+            'fresh': len(fresh), 'retransmitted_exchanges': len(retx)}
 
 
 def tails(root, arm, label, ex, gap_us):
@@ -98,7 +102,10 @@ def run_report(roots):
             gap_us = (rec['effective']['timing_params_ns']['gap'] / 1000.0) if timed else 0.0
             errs, _ = es.eligible_errors(root, arm['fixture'], arm['arm'], tr['label'], gap_us)
             ctl = control_timing(ex)
-            agg = pooled_ctl.setdefault(arm['arm'], {'SELECT': {}, 'OPERATE': {}, 'sbo_completion_us': []})
+            agg = pooled_ctl.setdefault(arm['arm'], {'SELECT': {}, 'OPERATE': {}, 'sbo_completion_us': [],
+                                                     'read_rt_us': []})
+            agg['read_rt_us'].extend(e['rt_us'] for e in ex if e['kind'] == 'READ' and e.get('complete')
+                                     and not e.get('retransmitted') and isinstance(e.get('rt_us'), (int, float)))
             for kind in ('SELECT', 'OPERATE'):
                 for k, v in ctl[kind].items():
                     agg[kind].setdefault(k, []).extend(v)
@@ -109,7 +116,8 @@ def run_report(roots):
                               'abs_p95_us': es.pct([abs(x) for x in errs], 0.95) if errs else None,
                               'excluded': row['excluded'], 'loop_pkts': row['loop_pkts'],
                               'loop_bytes': row['loop_bytes'], 'growth_bytes': row['growth_bytes'],
-                              'growth_check': growth_check(arm['arm'], ex),
+                              'growth_check': growth_check(d, ex),
+                              'read_piggybacked': sum(1 for e in ex if e['kind'] == 'READ' and e.get('piggyback')),
                               'resp_lens': sorted({(e['kind'], e['resp_len']) for e in ex if e.get('resp_len')}),
                               'sbo_completion_us': ctl['sbo_completion_us']})
             if timed:
@@ -117,8 +125,9 @@ def run_report(roots):
     arms = {}
     for a, s in base['arms'].items():
         pooled = s['pooled']
-        arms[a] = dict(s, control={k: ({m: dist(v) for m, v in pooled_ctl[a][k].items()} if k != 'sbo_completion_us'
-                                       else dist(pooled_ctl[a][k])) for k in ('SELECT', 'OPERATE', 'sbo_completion_us')})
+        arms[a] = dict(s, read_request_to_response_us=dist(pooled_ctl[a]['read_rt_us']),
+                       control={k: ({m: dist(v) for m, v in pooled_ctl[a][k].items()} if k != 'sbo_completion_us'
+                                    else dist(pooled_ctl[a][k])) for k in ('SELECT', 'OPERATE', 'sbo_completion_us')})
     return {'runs': [Path(r).name for r in roots], 'bound_us_provisional': es.BOUND_US, 'arms': arms,
             'trials': per_trial, 'over_bound': over, 'timing_sd_conventions': sorted(map(str, sd_conventions))}
 
