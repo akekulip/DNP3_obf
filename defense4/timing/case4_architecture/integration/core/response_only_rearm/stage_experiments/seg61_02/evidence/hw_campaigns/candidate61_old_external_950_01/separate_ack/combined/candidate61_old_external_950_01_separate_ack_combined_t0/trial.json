@@ -1,0 +1,250 @@
+{
+  "fixture": "separate_ack",
+  "label": "candidate61_old_external_950_01_separate_ack_combined_t0",
+  "master_port": 59400,
+  "reads": 1,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 5,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65509,
+      "read": 65509
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": 25,
+    "snapshot": {
+      "bfrt_sha256": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1791995482.5491073,
+      "valid": true
+    },
+    "time": 1791995482.5566418,
+    "budget": {
+      "reads": 1,
+      "connections": 3,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "source": "verified T allocator lifecycle counts"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/candidate61_old_external_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+  },
+  "scenario": {
+    "policy": "exact_old_external_replay",
+    "connections": {
+      "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 2153226996,
+          "server_isn": 4057222649,
+          "frontiers": {
+            "client": 2153227087,
+            "server": 4057222773
+          }
+        }
+      },
+      "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 2239342655,
+          "server_isn": 4143337833,
+          "frontiers": {
+            "client": 2239342746,
+            "server": 4143337957
+          }
+        }
+      },
+      "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 2481700104,
+          "server_isn": 90727722,
+          "frontiers": {
+            "client": 2481700195,
+            "server": 90727846
+          }
+        }
+      }
+    }
+  },
+  "observed": {
+    "bank_isolation": {
+      "ok": true,
+      "failures": [],
+      "allowed_changes": [
+        {
+          "register": "p0.n_Ingress.count_busy",
+          "before": 0,
+          "after": 21,
+          "reason": "N diagnostic packet counter"
+        },
+        {
+          "register": "p0.n_Ingress.counter",
+          "before": 17,
+          "after": 68,
+          "reason": "N diagnostic packet counter"
+        },
+        {
+          "register": "p0.n_Ingress.work.work",
+          "before": [
+            17
+          ],
+          "after": [
+            67
+          ],
+          "reason": "genuine free packet allocator"
+        }
+      ],
+      "observed": {
+        "before": {
+          "epochs": {
+            "N": 15,
+            "E": 15,
+            "T": 15
+          },
+          "work_phase": 4,
+          "work_generation": 17,
+          "owner": 327682,
+          "mapper": {
+            "front": 4143337834,
+            "lo": 4143337834,
+            "hi": 0
+          }
+        },
+        "after": {
+          "epochs": {
+            "N": 15,
+            "E": 15,
+            "T": 15
+          },
+          "work_phase": 4,
+          "work_generation": 67,
+          "owner": 327682,
+          "mapper": {
+            "front": 4143337834,
+            "lo": 4143337834,
+            "hi": 0
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 1590,
+        "OUT_ACK_COMMIT": 3,
+        "OUT_RESP_RELEASE": 3,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+        "READ": {
+          "triggers": 3,
+          "pkts": 12
+        },
+        "OPERATE": {
+          "triggers": 3,
+          "pkts": 12
+        }
+      },
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 60,
+      "external_growth_expected": 60,
+      "unacked": 0,
+      "held_operate_dup_drops": 0
+    },
+    "lifecycle": {
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 80,
+          "E": 80,
+          "T": 80
+        },
+        "E_raw": 2147483728,
+        "T_raw": 2147483728,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 93
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "precision_qualified": false
+  }
+}

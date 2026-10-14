@@ -1,0 +1,1177 @@
+{
+ "run_id": "candidate61_held_operate_350_01",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_61_full04",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+     "master_port": 59522,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65452,
+       "read": 65452
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 82,
+      "snapshot": {
+       "bfrt_sha256": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791995170.1710503,
+       "valid": true
+      },
+      "time": 1791995170.1786346,
+      "budget": {
+       "reads": 20,
+       "connections": 3,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/candidate61_held_operate_350_01_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "vision": {
+      "scenario": "candidate_same_tuple",
+      "label": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+      "close_mode": "graceful",
+      "master_port": 59522,
+      "tuple": [
+       "192.168.10.61",
+       59522,
+       "192.168.10.62",
+       20000
+      ],
+      "namespaces": [
+       "ns_vepa_a",
+       "ns_vepa_b"
+      ],
+      "nic": "enp59s0f0np0",
+      "padding": 1,
+      "reads": 20,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "pre_read_grace_ms": 0,
+      "qualify_capture": true,
+      "switch_mutations": false,
+      "applied": true,
+      "connections": [
+       {
+        "name": "c1",
+        "master_port": 59522,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "candidate61_held_operate_350_01_separate_ack_combined_t0_c1",
+         "master_port": 59522,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12345,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c1/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c1/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59522,
+          "polls": 1,
+          "elapsed_s": 0.036,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 1.056,
+         "tcpdump": {
+          "out": {
+           "captured": 78,
+           "received": 155,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 77,
+           "received": 155,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 78,
+         "frames_in": 77,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       },
+       {
+        "name": "c2",
+        "master_port": 59522,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "candidate61_held_operate_350_01_separate_ack_combined_t0_c2",
+         "master_port": 59522,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12346,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c2/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c2/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59522,
+          "polls": 61,
+          "elapsed_s": 62.121,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 1.055,
+         "tcpdump": {
+          "out": {
+           "captured": 78,
+           "received": 155,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 77,
+           "received": 155,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 78,
+         "frames_in": 77,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       },
+       {
+        "name": "c3",
+        "master_port": 59522,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "candidate61_held_operate_350_01_separate_ack_combined_t0_c3",
+         "master_port": 59522,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12347,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c3/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_held_operate_350_01_separate_ack_combined_t0/c3/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59522,
+          "polls": 59,
+          "elapsed_s": 60.032,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 1.057,
+         "tcpdump": {
+          "out": {
+           "captured": 78,
+           "received": 155,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 77,
+           "received": 155,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 78,
+         "frames_in": 77,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       }
+      ],
+      "ok": true,
+      "preflight": [
+       {
+        "namespace": null,
+        "argv": [
+         "ip",
+         "-j",
+         "link",
+         "show",
+         "dev",
+         "enp59s0f0np0"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":2,\"ifname\":\"enp59s0f0np0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"mq\",\"operstate\":\"UP\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"3c:fd:fe:cc:5d:c0\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"vfinfo_list\":[]}]\n",
+        "stderr": ""
+       },
+       {
+        "namespace": "ns_vepa_a",
+        "argv": [
+         "ip",
+         "-j",
+         "address",
+         "show",
+         "dev",
+         "mvA"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":12,\"link_index\":2,\"ifname\":\"mvA\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"noqueue\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"d2:9d:1d:1c:f4:dd\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.61\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvA\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::d09d:1dff:fe1c:f4dd\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+        "stderr": ""
+       },
+       {
+        "namespace": "ns_vepa_b",
+        "argv": [
+         "ip",
+         "-j",
+         "address",
+         "show",
+         "dev",
+         "mvB"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":13,\"link_index\":2,\"ifname\":\"mvB\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"prio\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"ee:df:16:18:b0:a5\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.62\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvB\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::ecdf:16ff:fe18:b0a5\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+        "stderr": ""
+       }
+      ],
+      "source_sha256": {
+       "/home/decps/pad58b_rearm_controls_20261012/vision_candidate.py": "c1ffac8605872e91fb8e3260863d057629f388e9dd8c0f46e660ceb57470f2a0",
+       "/home/decps/pad58b_rearm_controls_20261012/vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+       "/home/decps/pad58b_rearm_controls_20261012/wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+       "/home/decps/pad58b_rearm_controls_20261012/clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+       "/home/decps/pad58b_rearm_controls_20261012/checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+       "/home/decps/pad58b_rearm_controls_20261012/token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+       "/home/decps/pad58b_rearm_controls_20261012/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+      },
+      "hashes": {
+       "c1/timing.json": "41dce9077cb1cfaefb6d9f9f3c1a038b4994a11df4db238f2b44afe6abeeb2c6",
+       "c1/in.pcap": "55e69dc4b4e06de98d392bdd864ea4795afccbae3e453e57ec62097ec60262b1",
+       "c1/master.json": "eb0a36c9789215753b0fdf7349895f8e2dc799866148386247dcd39c5f211634",
+       "c1/verdict.json": "f4c345f7b25c77d848f102ef25477cf3f1012555b536e0460a5c338adc28c1e5",
+       "c1/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c1/calibration_out.pcap": "42b9444d25aa4e92219ead9cfba7023376d40cad820290fda0528fd2c5f69073",
+       "c1/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c1/outstation.json": "81743ddf17fa05e09770f02c9ef5864cb2f767899e4d7b5bd055ad57976c83d4",
+       "c1/held_operate_duplicates.json": "a26b8700e9be54bd1f7b7d5d072970a96214275ed7feab576d70fc0480813eef",
+       "c1/calibration_result.json": "7ef78e9ce95d9a469f54f887b76b914fa402ba7fdbf037b873e581f9bb86c00b",
+       "c1/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c1/calibration_in.pcap": "0e25d21e45cabc752927b3e204f83e9f7eaf180ea1455c9f7cd165ba0913fa0c",
+       "c1/state.txt": "2ab8d6e6ed51c36902dca54b69920f716873d3c745e19bfac0d163c0ff24f8ff",
+       "c1/out.pcap": "da9add489ab77a8e2e5ec18a524f805d8d3ceb70948ae5f4b074462cc6c09641",
+       "c1/wire.json": "7b9b3ce19fc30ba2487ed48e0f4e92c5cbe5186599793f863ea80604d5392d8c",
+       "c1/result.json": "7aaa4cf4998c4daf8c1101e5e9c5aa21f48556326fc889ca866f7dc4f7c5ae62",
+       "c3/timing.json": "c0b6bba2da5971bbd383094abf6bb65537172b92cb794935ad17273dea5cb7a8",
+       "c3/in.pcap": "e5bd0372532f96eb2151cd86f5ceb745b41cdf5f056bd243bb7c0a953ef17fbf",
+       "c3/master.json": "e842741eea27ca31c54b0a37a76caca72a421ccf6573b79d44bb0f872fb188e9",
+       "c3/verdict.json": "0ea85ea9dd76a145f2cb23c8bc922258e0b2716af50a10bf96fdcb0f0be3b515",
+       "c3/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c3/calibration_out.pcap": "d1977d546f8f4dcacb7e51d90a8f1f2329a28798f7b71c593a40707f43facbe0",
+       "c3/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c3/outstation.json": "940d31ce1c5a18890055501156fe304c6228c7e3113a0dece15f03964e4c8dc7",
+       "c3/held_operate_duplicates.json": "7177babac6e1444b8a064e1550c5c96c93e904b59946aeb0ed0e6d877ba0ecde",
+       "c3/calibration_result.json": "e49f4b35be5b6e42eea95ebe9e03929a0e75f6b743c93a6cad27312fd828175d",
+       "c3/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c3/calibration_in.pcap": "3821383f2f2d187e1e6f4f1de1175291a534be957000e3e31950a044443ecee8",
+       "c3/state.txt": "61761d1ef891f818e98f620a3cc9f7a624f4d64ea248026812453260237d192d",
+       "c3/out.pcap": "0dfb45612d61735f99acea4549fcdb15522c48fef879fe811e3081bfbb31752a",
+       "c3/wire.json": "479a0aa213c76cd94dbb3b4490e20a7f0e4bd533cf0392af342f8af9337a9b86",
+       "c3/result.json": "7534f03debe56ad39e0114f7bdf8333e755bb56d51d52065ceed807dce90488f",
+       "c2/timing.json": "1dd87d1010334dfd8d5437b0effcc61879e20d2d7e4aa3c721ebca5970a5829b",
+       "c2/in.pcap": "d6c216bba151c50d1db45d34da70e0bf23e34a69c8528b3776f3a322f5c65f46",
+       "c2/master.json": "2d20dbbc8786be79d4c8118d8db31cf18e67067a1d2e0cde688a7b55de9f5f24",
+       "c2/verdict.json": "1cacc8e906a730efa08292004113ba7895be4eb310fd63add8da3b7f3d5ce637",
+       "c2/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c2/calibration_out.pcap": "90764dbffd219418dd026546b1d85fcaab90e3959dc18f33d895b94afd3a2c8a",
+       "c2/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c2/outstation.json": "7e6bafc5da92687205ef2340ed0511cb16c88b2a4da7fa269cffe0ba565f5d63",
+       "c2/held_operate_duplicates.json": "23fa59c805584484474a7441c2aa91902d67dde496efd476f879bb9069a37b50",
+       "c2/calibration_result.json": "1c5637b99a6d28857b52abf79117778e355060a9d8bbe4c1a3e7cf3658009b1b",
+       "c2/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c2/calibration_in.pcap": "bf05619fa7b174a2996c9ae5ab497cbe16fb3198567754c77838de17ec7b632b",
+       "c2/state.txt": "61761d1ef891f818e98f620a3cc9f7a624f4d64ea248026812453260237d192d",
+       "c2/out.pcap": "1cc897e5bb4fe4d6726fcbb594be07fdd02b27d252fa7e5fadbfd331c2d2b2bd",
+       "c2/wire.json": "c9500c46f38a07b0395fccd167b051c656b79e906106de28380a5efba9ef50ea",
+       "c2/result.json": "3d206c40385b186120796fa6caa5a7da994128310d1c161af1fcd2ed2ca15733"
+      }
+     },
+     "scenario": {
+      "policy": "candidate_same_tuple_protected",
+      "connections": {
+       "c1": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 800.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 1.0,
+          "median": 6,
+          "iqr": 9.0,
+          "p95": 24.0,
+          "p99": 35.0,
+          "max": 35.0,
+          "sd_population": 8.8,
+          "sd_sample": 9.0
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -7.0,
+          "median": 5,
+          "iqr": 12.0,
+          "p95": 24.0,
+          "p99": 35.0,
+          "max": 35.0,
+          "sd_population": 10.7,
+          "sd_sample": 10.9
+         },
+         "tails": [
+          {
+           "t_req": 1791995174864355,
+           "clrt_us": 835,
+           "error_us": 35.0
+          },
+          {
+           "t_req": 1791995174830529,
+           "clrt_us": 824,
+           "error_us": 24.0
+          },
+          {
+           "t_req": 1791995174999634,
+           "clrt_us": 820,
+           "error_us": 20.0
+          },
+          {
+           "t_req": 1791995175067319,
+           "clrt_us": 819,
+           "error_us": 19.0
+          },
+          {
+           "t_req": 1791995174796733,
+           "clrt_us": 814,
+           "error_us": 14.0
+          }
+         ],
+         "pass": true,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 2092253904,
+         "server_isn": 2928252180,
+         "frontiers": {
+          "client": 2092254376,
+          "server": 2928253236
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       },
+       "c2": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 800.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 1.0,
+          "median": 7,
+          "iqr": 17.0,
+          "p95": 35.0,
+          "p99": 59.0,
+          "max": 59.0,
+          "sd_population": 14.6,
+          "sd_sample": 15.0
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -59.0,
+          "median": 3,
+          "iqr": 25.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0,
+          "sd_population": 20.2,
+          "sd_sample": 20.7
+         },
+         "tails": [
+          {
+           "t_req": 1791995242235004,
+           "clrt_us": 741,
+           "error_us": -59.0
+          },
+          {
+           "t_req": 1791995242471733,
+           "clrt_us": 835,
+           "error_us": 35.0
+          },
+          {
+           "t_req": 1791995242810240,
+           "clrt_us": 835,
+           "error_us": 35.0
+          },
+          {
+           "t_req": 1791995242742614,
+           "clrt_us": 827,
+           "error_us": 27.0
+          },
+          {
+           "t_req": 1791995242844112,
+           "clrt_us": 824,
+           "error_us": 24.0
+          }
+         ],
+         "pass": true,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 3146504604,
+         "server_isn": 3982502959,
+         "frontiers": {
+          "client": 3146505076,
+          "server": 3982504015
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       },
+       "c3": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 800.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 0.0,
+          "median": 6,
+          "iqr": 8.0,
+          "p95": 26.0,
+          "p99": 33.0,
+          "max": 33.0,
+          "sd_population": 8.5,
+          "sd_sample": 8.8
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -14.0,
+          "median": 4,
+          "iqr": 12.0,
+          "p95": 26.0,
+          "p99": 33.0,
+          "max": 33.0,
+          "sd_population": 11.4,
+          "sd_sample": 11.7
+         },
+         "tails": [
+          {
+           "t_req": 1791995307692848,
+           "clrt_us": 833,
+           "error_us": 33.0
+          },
+          {
+           "t_req": 1791995307929744,
+           "clrt_us": 826,
+           "error_us": 26.0
+          },
+          {
+           "t_req": 1791995308166483,
+           "clrt_us": 820,
+           "error_us": 20.0
+          },
+          {
+           "t_req": 1791995307760531,
+           "clrt_us": 819,
+           "error_us": 19.0
+          },
+          {
+           "t_req": 1791995308065139,
+           "clrt_us": 786,
+           "error_us": -14.0
+          }
+         ],
+         "pass": true,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 4168226561,
+         "server_isn": 709257368,
+         "frontiers": {
+          "client": 4168227033,
+          "server": 709258424
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       }
+      },
+      "installed_connections_expected": 3,
+      "old_replay_and_token_proofs": "separate diagnostics"
+     },
+     "observed": {
+      "switch": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 84562,
+        "OUT_ACK_COMMIT": 60,
+        "OUT_RESP_RELEASE": 60,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 3
+       },
+       "token_stale": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 60,
+         "pkts": 240
+        },
+        "OPERATE": {
+         "triggers": 3,
+         "pkts": 12
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       },
+       "external_growth_bytes": 288,
+       "external_growth_expected": 288,
+       "unacked": 0,
+       "held_operate_dup_drops": 3
+      },
+      "lifecycle": {
+       "epochs": {
+        "registers": {
+         "N": "p0.n_Ingress.epoch",
+         "E": "p0.r_Egress.epoch",
+         "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+         "N": 153,
+         "E": 153,
+         "T": 153
+        },
+        "E_raw": 2147483801,
+        "T_raw": 2147483801,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+       },
+       "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 228
+       },
+       "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 17760259,
+        "phase": 271,
+        "generation": 3
+       }
+      }
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59522,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate61_held_operate_350_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "before lifecycle snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "what": "after lifecycle snapshot",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "b8c046268596986958a31d122b8870df03ea76553626786218560f29038575e9",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "00a0e4f2928fc9f5e86168687a0a7878c11171e18c5659d8860bd40fc586fc44"
+ },
+ "candidate_series": {
+  "close_mode": "graceful",
+  "rst_grace_ms": 5000,
+  "connections": 3,
+  "effective_endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "limitations": [
+   "old retained packet replay is proven by replay_old_packets.py, not this series harness",
+   "delayed internal token proof is a separate IPG diagnostic, not a precision qualification"
+  ]
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "e0a2fdea9e13e71f3c5142169a481dc0c9c9a6e5ec7f85c046026680ea0154e8",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "candidate_series_vision_identity": {
+  "token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "vision_candidate.py": "c1ffac8605872e91fb8e3260863d057629f388e9dd8c0f46e660ceb57470f2a0",
+  "capture_observation.py": "e0a2fdea9e13e71f3c5142169a481dc0c9c9a6e5ec7f85c046026680ea0154e8",
+  "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+  "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+  "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672"
+ },
+ "candidate_series_switch_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "candidate61_held_operate_350_01_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": 82,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65452,
+    "read": 65452
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 800000,
+   "op_j": 350000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 20,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59522,
+    "last": 59522
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0,
+   "expect_held_operate_dup": true
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "candidate61_label": "held_operate"
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "rearm_61_full04": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "c3a4bfca80ebaa4ae2b8ce6b02f7bd821082dd29638a170802a443b92f015f28",
+ "config_file_sha256": "ba39d53b17b67897182bca9cf67b823e65f31672d7350f94abfc6f374d50ade5",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "b1769a281fdbd692f33a2b5992a1661f627c7df09cefb83876464fbc886a79db",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "build_sources": {
+   "rearm_61_full04": {
+    "source_sha256": "1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa",
+    "source_files": {
+     "response_only.p4": "1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_61_full04": {
+   "bfrt.json": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+   "p0/tofino.bin": "60ce5aa25762ae8537bac84bf9aef8ec6e443c5e9384692014f44475b4dd6bc0",
+   "p1/tofino.bin": "e57f75f9a3cf39ab7d3f0cc4814300e989b635e40795c65c098361ab75ff38f5",
+   "p1/response_only.bfa": "2bdf05f793c1ab32721b7f786ade814a10dbedc5a8f72ee040a9a17ba92e78e0"
+  }
+ },
+ "paired_block": null,
+ "time": 1791995384.9021716
+}

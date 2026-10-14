@@ -8,7 +8,7 @@
   "compile": "bothSDK9.13.1and9.13.2PASS N11/E12/T11, actualPHV/table/hash/mirror reviewed",
   "first_model": "PASS: smoke30/30, native30/30, packets622/622, rearm399/399, dup102/102",
   "acceptance": "Verified: integrated suite 699 passed (with and without RESEARCH_PYTHON); code-reviewer no blockers, MAJOR findings fixed.",
-  "silicon": "Four-arm smoke PASS (candidate61_fourarm_smoke_03, 2026-10-14). Persistence/loss/reconnect/duplicates and timing not run.",
+  "silicon": "Four-arm smoke and all step-3 gates PASS (2026-10-14). Timing evaluation (step 4) not run.",
   "evaluation": "Planned only: full timing and size roadmap in updated directive."
  },
  "rulings": [
@@ -36,12 +36,21 @@
   "model_dup_02": "PASS102/102; actual ACK/response hold/release and normalized late request without double growth/allocation",
   "candidate61_fourarm_smoke_01": "silicon FAIL closed, off arm only: capture_boundary read argv-list tcpdump commands as str(list); fixed 48f81cb3a; restore ok",
   "candidate61_fourarm_smoke_02": "silicon: off/timing_only/size_only PASS; combined calibration out tcpdump received4/captured0 (TPACKET_V3 terminate race); fixed fb244ee9f; restore ok",
-  "candidate61_fourarm_smoke_03": "silicon PASS all four arms: READ49/SBO37 off+timing_only, READ/SELECT/OPERATE 61 size_only+combined as one received segment each; SBO ok; conformant; calibration 2/2; restore+ping ok"
+  "candidate61_fourarm_smoke_03": "silicon PASS all four arms: READ49/SBO37 off+timing_only, READ/SELECT/OPERATE 61 size_only+combined as one received segment each; SBO ok; conformant; calibration 2/2; restore+ping ok",
+  "candidate61_loss_core_950_01": "silicon PASS: 7 single-loss classes, exact drop, recovery, callbacks exactly once, growth 288",
+  "candidate61_reconnect_950_01": "silicon FAIL closed: c2 checked on c1 port (harness); captures conformant on re-check; fixed 20e02e6bb/631482edc",
+  "candidate61_reconnect_950_02": "silicon PASS: c1 61, c2 native 49/37, c3 61",
+  "candidate61_persistence_graceful_950_01": "silicon PASS: 3 same-tuple graceful connections 61/61/61",
+  "candidate61_persistence_rst_950_01": "silicon PASS: 3 same-tuple RST connections 61/61/61",
+  "candidate61_stale_tokens_950_01": "silicon FAIL closed: missing capture_observation source pin; calibration sleeps put c2 past old tokens; fixed d8b83014b",
+  "candidate61_stale_tokens_950_02": "silicon PASS: c2 ready with READ app pkt_counter 3/4; isolation qualified",
+  "candidate61_held_operate_350_01": "silicon PASS: OUT_OP_DUP_DROP 0->3, OUT_OP_RELEASE 0->3, one OPERATE per connection",
+  "candidate61_old_external_950_01": "silicon PASS: 82 replayed old frames during c2; same removed set as strict old_external_04"
  },
- "status": "fourarm_smoke_passed",
+ "status": "step3_passed",
  "next_actions": [
-  "PLAN step 3 (persistence, loss, reconnect, stale tokens, held-OPERATE duplicates) after fresh authorization; demonstrate validator rejection for candidate_series/isolation/external first",
-  "PLAN step 4 timing and size evaluation after step 3"
+  "PLAN step 4 timing and size evaluation at 59,570 PPS / 950 us after fresh authorization",
+  "PLAN step 5 finish and report"
  ],
  "commit_status": "committed on implement/seg61-qualified-20261014; not pushed; no default promotion"
 }

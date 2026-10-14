@@ -1799,3 +1799,19 @@ Philip authorized PLAN step 1 (offline) + step 2 (bounded four-arm smoke) and st
 - Evidence: `seg61_02/evidence/hw_campaigns/candidate61_fourarm_smoke_0{1,2,3}`.
 - Vision mgmt is 10.10.54.19 again (.166 no route); `sudo python3` is NOPASSWD there.
 - NEXT (not authorized yet): PLAN step 3 persistence/loss/reconnect/duplicate-OPERATE, then step 4 timing.
+
+## 2026-10-14 (afternoon) — candidate61 PLAN step 3 PASS on silicon
+
+Philip: "go ahead with step 3". All runs software endpoints, combined arm, restore + ping ok after each.
+- Prerequisite: validator-rejection tests for candidate_series/isolation/external (a541ddfa8), mutation-checked.
+- PASS: loss_core_950_01 (7 classes), reconnect_950_02, persistence_graceful_950_01, persistence_rst_950_01,
+  stale_tokens_950_02, held_operate_350_01 (DUP_DROP 0->3, RELEASE 0->3), old_external_950_01 (82 old frames).
+- Retained harness failures: reconnect_950_01 (c2 checked on c1's port; fixed 20e02e6bb + 631482edc — the
+  former was committed with 35 failing tests because the gate read tail's rc; gate now reads pytest's rc);
+  stale_tokens_950_01 (capture_observation missing from Vision pins; calibration's fixed 1 s sleeps moved c2
+  from 4.92 to 7.04 s after c1, past the 4th old token at 2.5 s cadence; fixed d8b83014b).
+- .gitignore `*_token*` had silently dropped candidate61_stale_tokens_950.json from 370d29449; narrow
+  exception added (scanned, no secrets).
+- Old-external archive pool = the 13 archives of candidate57s_old_external_04 (hashes re-verified).
+- NEXT (needs authorization): PLAN step 4 timing/size evaluation at 59,570 PPS / 950 us, strict comparison,
+  piggyback, 14,892-vs-59,570 rate comparison.

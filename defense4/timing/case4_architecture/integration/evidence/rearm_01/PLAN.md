@@ -2,7 +2,7 @@
 
 ## Current plan — 61-octet READ/SBO and full timing qualification (2026-10-14)
 
-**Steps 1 and 2 are complete (2026-10-14, resumed session).** Offline verification is green (integrated suite 699 passed, with and without `RESEARCH_PYTHON`) and the bounded four-arm silicon smoke passed as `candidate61_fourarm_smoke_03`; earlier attempts `_01` and `_02` failed closed on harness defects that are fixed and retained. Production `case4_response_path` was restored and observed after every run. Steps 3 to 5 have not run and need fresh authorization. Work is committed on branch `implement/seg61-qualified-20261014`, not pushed, no defaults promoted.
+**Steps 1, 2 and 3 are complete (2026-10-14).** Offline verification is green (integrated suite 699 passed, with and without `RESEARCH_PYTHON`) and the bounded four-arm silicon smoke passed as `candidate61_fourarm_smoke_03`; earlier attempts `_01` and `_02` failed closed on harness defects that are fixed and retained. Production `case4_response_path` was restored and observed after every run. Step 3 passed on silicon the same day after Philip's go-ahead. Steps 4 and 5 (timing and size evaluation, finish) have not run and need fresh authorization. Work is committed on branch `implement/seg61-qualified-20261014`, not pushed, no defaults promoted.
 
 Specification: [implementation directive](../../../../../../DNP3_Implementation_Directive_492013014.md). Exact campaign commands and configurations: [candidate61 hardware runbook](../../core/response_only_rearm/stage_experiments/seg61_02/hw/RUNBOOK.md). Attempt history: [progress ledger](../../core/response_only_rearm/stage_experiments/seg61_02/evidence/progress.json).
 
@@ -20,7 +20,7 @@ Specification: [implementation directive](../../../../../../DNP3_Implementation_
 - [x] Correct the obsolete `candidate61-only` status assertion in `seg61_02/hw/tests/test_candidate61_hw_configs.py`; verify strict configurations explicitly use `profile=strict_comparison` and `standards.packet_boundary_required=true`.
 - [x] Regenerate configurations with `seg61_02/hw/build_candidate61_configs.py` after final model evidence. Verify source/build hashes, expected counts and profile/arm lengths, capture flag and sealed-profile artifact pair.
 - [x] Rerun the integrated tests and finish the interrupted independent smoke-path review. Result: 699 passed (with and without `RESEARCH_PYTHON`); code-reviewer found no blockers, two MAJOR findings fixed (Vision offload baseline restore, native-arm padding coverage).
-- [ ] (Done for `candidate_campaign.py`, the smoke entry point; `candidate_series.py`, `candidate_isolation.py` and `candidate_external.py` still need it before their first use in step 3.) Before first use of each entry point, demonstrate its shared validator rejects missing, copied, altered or failed evidence, including capture-boundary evidence (end-to-end fail-closed test added in `test_campaign_run.py`). Qualification binds run/trial/connection/arm, source/build/profile/config, checker closure and actual capture hashes; filtered captures require source/procedure provenance.
+- [x] (Demonstrated for all four entry points: `candidate_campaign.py` in step 1, `candidate_series.py`/`candidate_isolation.py`/`candidate_external.py` in `a541ddfa8`, each with a control case and a mutation check.) Before first use of each entry point, demonstrate its shared validator rejects missing, copied, altered or failed evidence, including capture-boundary evidence (end-to-end fail-closed test added in `test_campaign_run.py`). Qualification binds run/trial/connection/arm, source/build/profile/config, checker closure and actual capture hashes; filtered captures require source/procedure provenance.
 
 From the repository root, the integrated verification command is:
 
@@ -54,10 +54,12 @@ Expected sizes come from the bound profile and arm:
 
 ### 3. Persistence, recovery and state isolation
 
-- [ ] Mixed persistent READ/SBO and at least three successive same-tuple connections for both graceful close and qualified RST, without reseeding/resetting authority.
-- [ ] All configured single-loss classes, including padded SELECT/OPERATE responses and data ACK; verify intended drop, recovery, application completion and no duplicate effects.
-- [ ] Protected reconnect, stale token/internal traffic and old external packet isolation. Preserve new-incarnation authority and capture provenance.
-- [ ] Early/held/late OPERATE duplicates on silicon. Require no premature departure, repeated allocation/growth or duplicate callback. Check headroom and restoration for every block.
+- [x] Mixed persistent READ/SBO and at least three successive same-tuple connections for both graceful close and qualified RST, without reseeding/resetting authority.
+- [x] All configured single-loss classes, including padded SELECT/OPERATE responses and data ACK; verify intended drop, recovery, application completion and no duplicate effects.
+- [x] Protected reconnect, stale token/internal traffic and old external packet isolation. Preserve new-incarnation authority and capture provenance.
+- [x] Early/held/late OPERATE duplicates on silicon. Require no premature departure, repeated allocation/growth or duplicate callback. Check headroom and restoration for every block.
+
+Result (2026-10-14, all on silicon, restore and ping ok after every block): `candidate61_persistence_graceful_950_01` and `candidate61_persistence_rst_950_01` PASS (three same-tuple connections each, 61/61/61, no reset/reseed); `candidate61_loss_core_950_01` PASS (seven single-loss classes incl. padded SELECT/OPERATE and master ACK of padded data; exact drop, recovery, callbacks exactly once, growth 288 = expected); `candidate61_reconnect_950_02` PASS (c1 61, c2 unknown port native 49/37, c3 61); `candidate61_stale_tokens_950_02` PASS (c2 ready with one old READ token outstanding); `candidate61_held_operate_350_01` PASS (OUT_OP_DUP_DROP 0->3, OUT_OP_RELEASE 0->3, one OPERATE callback per connection); `candidate61_old_external_950_01` PASS (82 replayed old frames during c2, removed set identical to strict `candidate57s_old_external_04`). Retained failures, all harness: `reconnect_950_01` (c2 checked on c1's port), `stale_tokens_950_01` (missing source pin; calibration sleeps delayed c2 past the old tokens).
 
 ### 4. Full timing and size obfuscation evaluation
 

@@ -1,0 +1,741 @@
+{
+  "scenario": "candidate_same_tuple_replay",
+  "label": "candidate61_old_external_950_01_separate_ack_combined_t0",
+  "master_port": 59400,
+  "tuple": [
+    "192.168.10.61",
+    59400,
+    "192.168.10.62",
+    20000
+  ],
+  "namespaces": [
+    "ns_vepa_a",
+    "ns_vepa_b"
+  ],
+  "nic": "enp59s0f0np0",
+  "padding": 1,
+  "reads": 1,
+  "read_pause_ms": 25,
+  "close_mode": "rst",
+  "close_grace_ms": 1000,
+  "qualify_capture": true,
+  "switch_mutations": false,
+  "applied": true,
+  "plan": [
+    {
+      "name": "c1",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12345,
+      "pre_read_grace_ms": 0,
+      "marker_path": null
+    },
+    {
+      "name": "c2",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12346,
+      "pre_read_grace_ms": 10000,
+      "marker_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/pre_read_ready.json"
+    },
+    {
+      "name": "c3",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12347,
+      "pre_read_grace_ms": 0,
+      "marker_path": null
+    }
+  ],
+  "connections": [
+    {
+      "name": "c1",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12345,
+      "pre_read_grace_ms": 0,
+      "marker_path": null,
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "candidate61_old_external_950_01_separate_ack_combined_t0_c1",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12345,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "qualify_capture": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c1/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c1/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 1,
+          "elapsed_s": 0.035,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.064,
+        "tcpdump": {
+          "out": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 15,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791995487111801,
+          "app_seq": 2,
+          "frame_sha256": "f2a360382d349ab51c5558265a94f7073d12ee660d39ef70f7d5d5d5e3a151f1",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "evidence_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c1",
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 0,
+        "supported": true,
+        "observed_pre_read_grace_ms": 0,
+        "pre_read_ready_ns": 767410043325566,
+        "first_read_issued_ns": 767410043327534,
+        "marker_path": null,
+        "marker_sha256": null
+      }
+    },
+    {
+      "name": "c2",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12346,
+      "pre_read_grace_ms": 10000,
+      "marker_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/pre_read_ready.json",
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "candidate61_old_external_950_01_separate_ack_combined_t0_c2",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12346,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "qualify_capture": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 1,
+          "elapsed_s": 0.033,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 11.065,
+        "tcpdump": {
+          "out": {
+            "captured": 97,
+            "received": 112,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 112,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 97,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791995502623931,
+          "app_seq": 2,
+          "frame_sha256": "a108e37a6a563cde7fbbaf3de053fec34533bf4f4f932c87dce33c7f506e0532",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "replay_filter": {
+        "evidence_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/current",
+        "removed": 82,
+        "removed_sha_counts": {
+          "bf48817b2b2867677d784abe6e1cc3d7d6e33a4ef0a4dfe22f4613c691f93b7e": 1,
+          "ccf8259f7eba9f4dcf00f9319e7677bc043f44f6ab82eafbb1a7044d91286f74": 1,
+          "edcf9901d0d4dd32bdacb6374dc25b736c93fcf18f9c2af8db73e5ffb9bb3ea6": 1,
+          "6e079de5c33dc274e3e053243a0acceb16562f0767386aad3a7a5978bc5dabff": 1,
+          "8d5f3fa11103b373ea7bcefa2b29f7a7166c5b1afacf5b6313a851ab71bb1fa5": 1,
+          "fd92e03994d05f3de0c2f9074e9c599eb02c6d5a88b7ea55e67da0c245c25c4c": 1,
+          "373d757d852bb1b8cf1c06168af1e1c41e658a6ba6184af664a347e647dd9741": 1,
+          "7b1e4d28b24c70d2f1acc7662286b6f6471884a459e9cb6d82b25f66bcbda437": 1,
+          "4dba906b04750e14f644fc408111d43dd393703e87232cfbecbf835fbc81aadc": 1,
+          "b861bcff956bc3dc0f16a3df6b1dbbe6422b969bd89225b7a09c41d9e2230ecf": 1,
+          "4c01bc73fe270cc9923d8aa853d1db3d540d4df223759342cd62bae7a20f2412": 1,
+          "c6c743eb5d59a555dd417eae37bf99025491a3a97814ab590ab26a14458e70dd": 1,
+          "efb1ebca9674571b9f109e87d853077f84c92972b63811dccedb9ae44b640b61": 1,
+          "3fd5c3ac1ed7e538fd7911f658cdcf91813d9c56f789eee270f484a2517ac506": 1,
+          "f52f2c6b4b39b747427d912ec32955ae2bc1efc369f16b538ad9b4a902465ef9": 1,
+          "972c232c8714702d020769f49cc4a92164997e87932d72ac9b5dd91c0459e894": 1,
+          "ada9abc307ed6c7950008249e89c9e73b0231784c93874cb1207ce778e760659": 1,
+          "0ff57ec9d11788a2b9cbd06b72ad0d1148cf891c79bffb70a8c0cdbd091e49ad": 1,
+          "5d6740c2b3510ec4002620ad625364f81ae49df1fdec44f45aad5f8e7859c3c3": 1,
+          "ae664fb5974aaba8cb6f62ef9453be59b1c7319c385d8acf23c007525a0e5f1a": 1,
+          "7f68ab0ec89d9a23991e359d5c3b6b8b2b1594a1e3acc33bbb7e1c6fa4719372": 1,
+          "b930279a72746c771b3aec29fca407327c311da882c4034a3b7e7f626c0e4153": 1,
+          "392c98f46afd874dba191b7aaef354515d1e61ca4f89a31b2c6d0ff0e38e6665": 1,
+          "f3752393a835284f9cd9ba1c7fba49cb069b2c2dd8d477191f0555fe82cfafba": 1,
+          "89cb6f9f889d97d77c9906580b58d2cc67f1d3c354c39c5ab6ff2c3cccc3e52c": 1,
+          "abc28ed26439bdea562090f19c3841e7bc0a77622b50972075f21fa7453b07c2": 1,
+          "86b7feeb4f51d1fd2bbc24c56105e9ca9f65ca7146a94d4afdf130a92f556c8f": 1,
+          "b6dafba5e7a8dc732b6de675d102260911c56686671b3cdb2fb2652c0edcc475": 1,
+          "01df0c65dfb09491dc5b35887fa98ff019d7716381a57ed577eb1ae24fc25716": 1,
+          "38b0faaa4a11a16e3d16b15f538251d6d647a93a9a405f534aaf8d8835174b89": 1,
+          "38bdfd5c6e9d58d3f68d7a47e30235f90abd6cc9b04c8cb91f2fe58277f068ef": 1,
+          "7b5de9486ce26c4d1083f3f1f32eb3fddf85d01d6d8ec5585b6974dee5e5968a": 1,
+          "ea6cd62ac2573ca218564ade693408dfd5af0cd7ceee41b9a6039635bdc75665": 1,
+          "14f329ac677f030bc9267fa0aa9fd860586262b9f0a33b87d042a30af8a522cd": 1,
+          "af42098ea97a28ecdae8841e6d8e73d227594b5d878999ebb4c49d6d0967885c": 1,
+          "b33b1359e4b691c91ffc05d44c6cec55dfd621643160c2502ee23a5ec9dfc212": 1,
+          "e748e7d3a4db0551d93e3111f967569c984b868f89cff6da93142fe8913389da": 1,
+          "c874939d816ae3e7e39fdf82ad7b6fb7d7ed2d5205e5202033b8875e43ffcae6": 1,
+          "66c778e892c1bb2c95355bcf0a335bd14282855bb02a5aaca64817699b47a60b": 1,
+          "5642560a8b79347acb7cc664a7fc3b1a6f32575fce0e505a059b875f5611c1af": 1,
+          "0d728aa037aec02ec7adf49067d79df4783be04de716ab9f4396ccc44035738a": 1,
+          "a99dd2c69022b4e3e2581ef9d9ac6fd76f7e310ecb42860c29e1d01ea436ddc9": 1,
+          "b06b10f5cc6353d937393e0bfd48a2889f53a56a72a407b43dfdf17997de44b4": 1,
+          "0fa6774dc04d4ac895f24e3bf88ac88b631fa6f3455a2bc638e249c33fa61321": 1,
+          "af998ab27a4b9adb175a1c42c3f8910556d98f46790f1de7d89bbe11f2023e61": 1,
+          "e80afdf1d4e8b86b29fbd5c9f97e0e70f211b1c1a602649eb4be9d636563db66": 1,
+          "156a1c857000fb84b22aca24fe39e1d199f50fba5dcb531e1046ca1653af6856": 1,
+          "ece05918fb2ab054a1fa9ecc5dd21f7a9cf53f4a5ff93908d2c0aa3c5aa499d8": 1,
+          "7ab9c453ee8ca4609d6394c1d56bfe899dde784f84c3cd6463b4c88be29916a9": 1,
+          "67984bc44835a4700b65aaf46d46de39b55f9964dd7e43cfc0d09118b4194ad8": 1,
+          "5a00db5290b5d713dd97b24c18c9789215ac32c0d9d1fe31d1c68667ba778c28": 1,
+          "2155a9c5e28dbab6c8adf2fee0135f588dbed7822b5cf21c9fc78aa7bff3291f": 1,
+          "fd67fe104d2c1746dd57b06f1059351389152f00cd55c62102f830b3c1dad811": 1,
+          "2175d01922e795c9ba03564786d1a95f78af5486efc023a9b5a5302a6418256d": 1,
+          "6d5e0cfba9f7471de224c62fbbbf7754c800bb849b0624e3acc0044b81bf68e1": 1,
+          "a286ca8019a699d0fd9e583c44bdb83422e68fe8132cdc86abab5625b8c95869": 1,
+          "c4a9b9b04aedca324b6431076710f1db2c312205338b8f06d255500becc850de": 1,
+          "d3dcb75032a793d48d127151183bae9c18698f26b83fcd1f63d95cd0e971a548": 1,
+          "c6f1804955be4b35a88b45db38a5b29e4a65f804a2829d5661a4c98cc2fe395d": 1,
+          "19cd00102dcad54d54ed898a5e32c46af5800e780470eb89c718b6065351b647": 1,
+          "6bde9d6a72ecaf02aea44be2fda6c0d25fd5d8b7648d52a4cc13ea8a8adc2a2a": 1,
+          "1ff6aae7cb59558e5b9fc2aecbcad1a6cad7e4da22eee2521c6be8f4ec7ea9a3": 1,
+          "ab6bfb4777c23cd1b774ffd80459dec53ea4de08be2327d01a8cbbccf99adb71": 1,
+          "dfb13e5ce7ab29fcbac72b74a2cb094e1111d78527d10b362d4f2f91d5a7c837": 1,
+          "0d50c0df1bbb8ecf506f7b8020d8b9884b044d5f39a7c09d96b764dd63fb4a8a": 1,
+          "ea3fd33a16804453d328dde9345f31bab310b811470aa368631cf1388e741250": 1,
+          "3c1f02e494c19d2b7bdcf38f5acf56111f9cd9796b6e03048893a625105095a9": 1,
+          "3cf35b5337a0156c85f52600fa8c5786c714db46fb091edfc704423197ef440d": 1,
+          "a8ff6c345b93ccb7d2fcc4b93b38ea824da86f945435d57ffe0e63905db90935": 1,
+          "601ccf5680e7fc3bf1a17903a80100c3dfc057edcc3d22c99d6d3bac94d5a1d3": 1,
+          "2a9990fa04b2c7c8905a7272b0eb7b83c1471ae9a06e90395bb2a836fa5c8e79": 1,
+          "1d7e82373fb1528e5b8413f1eb38623c363833621e946c4b2a0840a9b0a3f3cb": 1,
+          "38bbb1d0783803fa5144a3e1df3025b87dc7e856e73bbbc9a7bed0289f6761e1": 1,
+          "2613503aa1d758721e6962e2297e3ad2788a401563971abd1dfef6c8ed0ffd6d": 1,
+          "d2abc69dd032fbc54d430c0f7d4acf3bcb861a0b754f426ddd3f3c1c8ff89bc3": 1,
+          "d29771a67625ddac743209f56da6d64fe96544ab012b985e7eab253d879e3c46": 1,
+          "3e44ae646eeef499385bb67d00e40322ef1ae1839bba4fd489d636fd3c91e7bd": 1,
+          "a89bd01c1e8463d982619c87561f3a72e947e99e413680aa407d556c5d0ddfd3": 1,
+          "f5be8895c8cf957b74f34ea57faef7aa56477882fb63c6ac35695998c51c7491": 1,
+          "64b39fd713b501b925a0b39521090b34456dc789247b84cae4e4f3a5324508d4": 1,
+          "75b0bd09fd4f5ae474df64d8924418280d312b3ab3bcc295faff02bf71dfda35": 1,
+          "98cfa5091b7700392ff8d429e916daf53e440304d373c772f56b75af9da64da4": 1
+        },
+        "classes": {
+          "SYN": 2,
+          "SYN_ACK": 2,
+          "READ_REQUEST": 21,
+          "READ_RESPONSE": 21,
+          "PURE_ACK": 33,
+          "FIN": 2,
+          "RST": 1
+        },
+        "new_isns": {
+          "client": 2239342655,
+          "server": 4143337833
+        },
+        "old_isns": [
+          {
+            "client": 707943477,
+            "server": 2611938576
+          },
+          {
+            "client": 1700760821,
+            "server": 3604755982
+          }
+        ],
+        "interval": {
+          "handshake_ack_ns": 1791995492573955000,
+          "first_read_ns": 1791995502576646000,
+          "first_replay_ns": 1791995495479169000,
+          "last_replay_ns": 1791995495886569000
+        },
+        "manifest_hashes": {
+          "replay_graceful.json": "7753fca28b848a18971438220f4d370f0bd5077d51442970383d279de46e46dc",
+          "replay_rst.json": "e4f6a76a45c6ccd5949735691384d2e24fc440782a819bc507b75e05aafcf9e8"
+        },
+        "raw_hashes": {
+          "out.pcap": "9036f74aba29f0c56601604ef5cd551b8095267aa81c31f402867db20e5c148d",
+          "in.pcap": "024ee0b2fa0034fb62114018c0c6cf28e5639a3766a723226d5cdd1f40447239",
+          "master.json": "61076ca2c636f89e2924c9cef49c6325bcf63b2b54dce13ac166456b0ced54bd",
+          "outstation.json": "25c0ac7d684535bbf5b6de7485d4993c26a9c99327fba2f76469bad3488a57b0",
+          "result.json": "7fe667835734f72bff6d3aa7ba91bb230b4c7db08d212717aab07b57dbc09df8",
+          "state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+          "pre_read_ready.json": "0fc93f11fbda66a49b3cfc38dfbfbe8c84ca4d116c916a7980db38dca0a307a4"
+        },
+        "derived_hashes": {
+          "out.pcap": "33b8e7b590c05454dc4e0a0053656af7765197664c9d47e7224c790234b39223",
+          "in.pcap": "024ee0b2fa0034fb62114018c0c6cf28e5639a3766a723226d5cdd1f40447239",
+          "master.json": "61076ca2c636f89e2924c9cef49c6325bcf63b2b54dce13ac166456b0ced54bd",
+          "outstation.json": "25c0ac7d684535bbf5b6de7485d4993c26a9c99327fba2f76469bad3488a57b0",
+          "result.json": "7fe667835734f72bff6d3aa7ba91bb230b4c7db08d212717aab07b57dbc09df8",
+          "state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+          "pre_read_ready.json": "0fc93f11fbda66a49b3cfc38dfbfbe8c84ca4d116c916a7980db38dca0a307a4"
+        }
+      },
+      "evidence_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/current",
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 10000,
+        "supported": true,
+        "observed_pre_read_grace_ms": 10000,
+        "pre_read_ready_ns": 767415554719441,
+        "first_read_issued_ns": 767425555105773,
+        "marker_path": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c2/pre_read_ready.json",
+        "marker_sha256": "0fc93f11fbda66a49b3cfc38dfbfbe8c84ca4d116c916a7980db38dca0a307a4",
+        "elapsed_ns": 10000386332
+      }
+    },
+    {
+      "name": "c3",
+      "master_port": 59400,
+      "reads": 1,
+      "start_seed": 12347,
+      "pre_read_grace_ms": 0,
+      "marker_path": null,
+      "ok": true,
+      "failures": [],
+      "result": {
+        "label": "candidate61_old_external_950_01_separate_ack_combined_t0_c3",
+        "master_port": 59400,
+        "reads": 1,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12347,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 1000
+        },
+        "capture_immediate": true,
+        "qualify_capture": true,
+        "capture_commands": {
+          "out": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "out",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c3/out.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+            "tcpdump",
+            "--immediate-mode",
+            "-i",
+            "enp59s0f0np0",
+            "-Q",
+            "in",
+            "-s0",
+            "-U",
+            "-n",
+            "-w",
+            "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c3/in.pcap",
+            "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+        },
+        "source_port_wait": {
+          "port": 59400,
+          "polls": 1,
+          "elapsed_s": 0.037,
+          "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.064,
+        "tcpdump": {
+          "out": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          },
+          "in": {
+            "captured": 15,
+            "received": 30,
+            "dropped_kernel": 0
+          }
+        },
+        "frames_out": 15,
+        "frames_in": 15,
+        "ok": true
+      },
+      "observer": {
+        "ok": true,
+        "response": {
+          "response_index": 12,
+          "t_us": 1791995508134239,
+          "app_seq": 2,
+          "frame_sha256": "990170878a4a884c1ef27fe6188cbcc2ccfe6995c6d0c8915c7252dde4f9ed83",
+          "checksum_valid": true,
+          "dnp3_crc_valid": true
+        },
+        "error": null,
+        "commands": [
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "ss",
+              "-H",
+              "-4",
+              "-t",
+              "-n",
+              "-K",
+              "state",
+              "established",
+              "( src 192.168.10.61 and sport = :59400 and dst 192.168.10.62 and dport = :20000 )"
+            ],
+            "namespace": "ns_vepa_a",
+            "rc": 0,
+            "stdout": "0      0      192.168.10.61:59400 192.168.10.62:20000\n",
+            "stderr": ""
+          }
+        ]
+      },
+      "evidence_dir": "/home/decps/pad58b_rearm_barrier_10s_20261012/runs/candidate61_old_external_950_01_separate_ack_combined_t0/c3",
+      "pre_read_hook": {
+        "requested_pre_read_grace_ms": 0,
+        "supported": true,
+        "observed_pre_read_grace_ms": 0,
+        "pre_read_ready_ns": 767431065582531,
+        "first_read_issued_ns": 767431065584020,
+        "marker_path": null,
+        "marker_sha256": null
+      }
+    }
+  ],
+  "ok": true,
+  "preflight": [
+    {
+      "namespace": null,
+      "argv": [
+        "ip",
+        "-j",
+        "link",
+        "show",
+        "dev",
+        "enp59s0f0np0"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":2,\"ifname\":\"enp59s0f0np0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"mq\",\"operstate\":\"UP\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"3c:fd:fe:cc:5d:c0\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"vfinfo_list\":[]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": "ns_vepa_a",
+      "argv": [
+        "ip",
+        "-j",
+        "address",
+        "show",
+        "dev",
+        "mvA"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":12,\"link_index\":2,\"ifname\":\"mvA\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"noqueue\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"d2:9d:1d:1c:f4:dd\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.61\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvA\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::d09d:1dff:fe1c:f4dd\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": "ns_vepa_b",
+      "argv": [
+        "ip",
+        "-j",
+        "address",
+        "show",
+        "dev",
+        "mvB"
+      ],
+      "rc": 0,
+      "stdout": "[{\"ifindex\":13,\"link_index\":2,\"ifname\":\"mvB\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"prio\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"ee:df:16:18:b0:a5\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.62\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvB\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::ecdf:16ff:fe18:b0a5\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+      "stderr": ""
+    },
+    {
+      "namespace": null,
+      "argv": [
+        "ss",
+        "--help"
+      ],
+      "rc": 0,
+      "stdout": "Usage: ss [ OPTIONS ]\n       ss [ OPTIONS ] [ FILTER ]\n   -h, --help          this message\n   -V, --version       output version information\n   -n, --numeric       don't resolve service names\n   -r, --resolve       resolve host names\n   -a, --all           display all sockets\n   -l, --listening     display listening sockets\n   -o, --options       show timer information\n   -e, --extended      show detailed socket information\n   -m, --memory        show socket memory usage\n   -p, --processes     show process using socket\n   -T, --threads       show thread using socket\n   -i, --info          show internal TCP information\n       --tipcinfo      show internal tipc socket information\n   -s, --summary       show socket usage summary\n       --tos           show tos and priority information\n       --cgroup        show cgroup information\n   -b, --bpf           show bpf filter socket information\n   -E, --events        continually display sockets as they are destroyed\n   -Z, --context       display task SELinux security contexts\n   -z, --contexts      display task and socket SELinux security contexts\n   -N, --net           switch to the specified network namespace name\n\n   -4, --ipv4          display only IP version 4 sockets\n   -6, --ipv6          display only IP version 6 sockets\n   -0, --packet        display PACKET sockets\n   -t, --tcp           display only TCP sockets\n   -M, --mptcp         display only MPTCP sockets\n   -S, --sctp          display only SCTP sockets\n   -u, --udp           display only UDP sockets\n   -d, --dccp          display only DCCP sockets\n   -w, --raw           display only RAW sockets\n   -x, --unix          display only Unix domain sockets\n       --tipc          display only TIPC sockets\n       --vsock         display only vsock sockets\n       --xdp           display only XDP sockets\n   -f, --family=FAMILY display sockets of type FAMILY\n       FAMILY := {inet|inet6|link|unix|netlink|vsock|tipc|xdp|help}\n\n   -K, --kill          forcibly close sockets, display what was closed\n   -H, --no-header     Suppress header line\n   -O, --oneline       socket's data printed on a single line\n       --inet-sockopt  show various inet socket options\n\n   -A, --query=QUERY, --socket=QUERY\n       QUERY := {all|inet|tcp|mptcp|udp|raw|unix|unix_dgram|unix_stream|unix_seqpacket|packet|packet_raw|packet_dgram|netlink|dccp|sctp|vsock_stream|vsock_dgram|tipc|xdp}[,QUERY]\n\n   -D, --diag=FILE     Dump raw information about TCP sockets to FILE\n   -F, --filter=FILE   read filter information from FILE\n       FILTER := [ state STATE-FILTER ] [ EXPRESSION ]\n       STATE-FILTER := {all|connected|synchronized|bucket|big|TCP-STATES}\n         TCP-STATES := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|closed|close-wait|last-ack|listening|closing}\n          connected := {established|syn-sent|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}\n       synchronized := {established|syn-recv|fin-wait-{1,2}|time-wait|close-wait|last-ack|closing}\n             bucket := {syn-recv|time-wait}\n                big := {established|syn-sent|fin-wait-{1,2}|closed|close-wait|last-ack|listening|closing}\n",
+      "stderr": ""
+    }
+  ],
+  "source_sha256": {
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/vision_replay.py": "92eac90ac22404906d91ab90f0e19b67a665a8e68e8e6323dbf7b9cc348b558e",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/vision_isolation.py": "c1e6f0462f99b222e3e8b005d6e27278f8c27f2a658a6037dcc707e996d058b3",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/vision_candidate.py": "c1ffac8605872e91fb8e3260863d057629f388e9dd8c0f46e660ceb57470f2a0",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/replay_old_packets.py": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/capture_observation.py": "e0a2fdea9e13e71f3c5142169a481dc0c9c9a6e5ec7f85c046026680ea0154e8",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/token_window.py": "1fb27a904924e7f259ab2e71ce86f1f4bd954913b1ca63cbf3c6a26397ff42ac",
+    "/home/decps/pad58b_rearm_barrier_10s_20261012/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+  },
+  "hashes": {
+    "c1/timing.json": "22e24b0baf19522d8f0011d04d450d04374898782e069aab63f0988f236e6f8e",
+    "c1/in.pcap": "821d27d293419758c5386a9b8e2b7e8e45b8cd95623a38eb5de0502841a2addc",
+    "c1/master.json": "f53a5909f3e5dfcbcfd496797dfd4326fc43ae750b17e9c64b168ca05752db55",
+    "c1/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c1/verdict.json": "bc91891cd92208544a5f47d02a078743c060b12aaea841a664c52ab17064acf3",
+    "c1/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+    "c1/calibration_out.pcap": "4d8de8343b61d5fa02a2cc37732f382847e64a822f8de7c7cf529338568b248f",
+    "c1/calibration_expected.json": "ac461fc2f018f16b7313b00b7ce39d006f69781e42a0a60ca49b27e96840f51e",
+    "c1/outstation.json": "07e314788208d442bc206a0edf23f8b349e764e213df39e6aef210e85bb1b4c2",
+    "c1/calibration_result.json": "14aef472e5cf2dd8575a9eba6bbef02b025b6282e0be482c912e7f3622994214",
+    "c1/observer.json": "2402502d113e763a370af4a14ac655c253c757736f972fa2413ebe9b2772f697",
+    "c1/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c1/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c1/calibration_in.pcap": "552223444a5cb016e351694dd4ed1c924b43bb17720b83dd515d45e37ee02da7",
+    "c1/state.txt": "2ab8d6e6ed51c36902dca54b69920f716873d3c745e19bfac0d163c0ff24f8ff",
+    "c1/out.pcap": "f8592b0726e9fc8b06d266d21b307c94b8a6b0040a70c4f3de41935c8688f858",
+    "c1/wire.json": "2789792f76f4ce76f9689947df49d72a0e9e889556d8a03dc8a2418351c79040",
+    "c1/result.json": "5bada805c53bc25308935314ac88b9103ccfa19c4395cbb42323693f3d10419a",
+    "c3/timing.json": "e114847e2678a732f21a188b5442c057646fa24b1ea2cb965c9b6ec3a16e2c33",
+    "c3/in.pcap": "5d83e99463df6d3ceaef5413a2076d5bab578b8bffeceaffb9f3963977662fb6",
+    "c3/master.json": "2ea089217cf2f0d6b9d17048637ddc71670e8fe04d1e52ad2477db2f5b99c974",
+    "c3/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c3/verdict.json": "780cfd71ff1fe7c5325d18c5520eae4e06215e85153bf945ea07d576ca06ecc4",
+    "c3/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+    "c3/calibration_out.pcap": "5b83a4bde07b7b547bf39b56b75f3c131dafbbda4db1c0a31eb0eaeb8c677595",
+    "c3/calibration_expected.json": "ac461fc2f018f16b7313b00b7ce39d006f69781e42a0a60ca49b27e96840f51e",
+    "c3/outstation.json": "fd8f244931cfcb03e1d6b28408479b7995ac31822c9785f5ae54bac7bb8fcf81",
+    "c3/calibration_result.json": "8d5fd660a145c1b5be43c1e23ee442b5b7bee525aa8450bf38d85075675efaf2",
+    "c3/observer.json": "aebda3c023439956a6ed020f8c00fa384d17d721e6ae074517cc25fd94be0c34",
+    "c3/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c3/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c3/calibration_in.pcap": "01c320c69e534c9dd1beb1e882375d5190763261d43c755ba38f31dac993c60a",
+    "c3/state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+    "c3/out.pcap": "40b843bf1e076709052a75a7da51dec3597dc4984e5b484a8ecc21ebe3206d3a",
+    "c3/wire.json": "d90b88b6be2429370a6a14389d4d8bfdfa42b0900269c05a4ff0bbb3e24517fd",
+    "c3/result.json": "b7bcfd142297c41f247df9bd48e88ebd08b8ceb0794865124a4a0cd8df05630b",
+    "c2/in.pcap": "024ee0b2fa0034fb62114018c0c6cf28e5639a3766a723226d5cdd1f40447239",
+    "c2/master.json": "61076ca2c636f89e2924c9cef49c6325bcf63b2b54dce13ac166456b0ced54bd",
+    "c2/ss_kill.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c2/verdict.json": "2348e8db44770171fffb0e57a1350c632b137ad6f8cf1abe2ae4f0249015b743",
+    "c2/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+    "c2/calibration_out.pcap": "b20a04e3a5f8457a2ef680faa67485e36bc0c7c14158bcaaccaa9bae3c6d565f",
+    "c2/calibration_expected.json": "ac461fc2f018f16b7313b00b7ce39d006f69781e42a0a60ca49b27e96840f51e",
+    "c2/outstation.json": "25c0ac7d684535bbf5b6de7485d4993c26a9c99327fba2f76469bad3488a57b0",
+    "c2/pre_read_ready.json": "0fc93f11fbda66a49b3cfc38dfbfbe8c84ca4d116c916a7980db38dca0a307a4",
+    "c2/replay_rst.json": "e4f6a76a45c6ccd5949735691384d2e24fc440782a819bc507b75e05aafcf9e8",
+    "c2/calibration_result.json": "1e297e27f86353db073a9615f9dbe3937cb6dd1844b9f76b65ec056fb88955c2",
+    "c2/observer.json": "66c41bdb253ec96897d31f6b584cacd1f0bfed362a9ee90616116addeb7f3e5f",
+    "c2/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "c2/ss_probe.log": "0794730542b07f20cf56fe5bf24ac094b3c8905ef9e9ac0bbd8b3ed99e935fa7",
+    "c2/calibration_in.pcap": "ec856ffbe79b57aea652046c18eb15d6139702e6f486bda70e8b97767d522daf",
+    "c2/state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+    "c2/out.pcap": "9036f74aba29f0c56601604ef5cd551b8095267aa81c31f402867db20e5c148d",
+    "c2/replay_graceful.json": "7753fca28b848a18971438220f4d370f0bd5077d51442970383d279de46e46dc",
+    "c2/result.json": "7fe667835734f72bff6d3aa7ba91bb230b4c7db08d212717aab07b57dbc09df8",
+    "c2/current/timing.json": "84dd42180c95a82d531788e841bbd200a7ef47125f7a4d3fb8272a1fc66698a6",
+    "c2/current/in.pcap": "024ee0b2fa0034fb62114018c0c6cf28e5639a3766a723226d5cdd1f40447239",
+    "c2/current/master.json": "61076ca2c636f89e2924c9cef49c6325bcf63b2b54dce13ac166456b0ced54bd",
+    "c2/current/filter.json": "458ddedd32a2542312f30da327a83484d66e68f7dc71f771f3f2ac509d356b8c",
+    "c2/current/outstation.json": "25c0ac7d684535bbf5b6de7485d4993c26a9c99327fba2f76469bad3488a57b0",
+    "c2/current/pre_read_ready.json": "0fc93f11fbda66a49b3cfc38dfbfbe8c84ca4d116c916a7980db38dca0a307a4",
+    "c2/current/state.txt": "bc4040406550b8efc48ba6081de0f5efce834b7dd3257ecf0218a2004b3f26bd",
+    "c2/current/out.pcap": "33b8e7b590c05454dc4e0a0053656af7765197664c9d47e7224c790234b39223",
+    "c2/current/wire.json": "0794293eea690b3b4f23a90230abb7c370193ee892a02950c3e46ed7050606ab",
+    "c2/current/result.json": "7fe667835734f72bff6d3aa7ba91bb230b4c7db08d212717aab07b57dbc09df8"
+  }
+}

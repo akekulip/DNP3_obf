@@ -1,6 +1,6 @@
 # candidate61 hardware preparation
 
-> **Four-arm smoke PASSED on silicon on 2026-10-14 (`candidate61_fourarm_smoke_03`).** Off/timing_only READ 49 and SBO 37; size_only/combined READ, SELECT and OPERATE 61, each one received TCP segment. Earlier attempts `_01` and `_02` failed closed on harness defects (fixed, retained). The commands below for persistence, loss, reconnect, isolation, held-OPERATE and timing have not been run.
+> **Four-arm smoke PASSED on silicon on 2026-10-14 (`candidate61_fourarm_smoke_03`).** Off/timing_only READ 49 and SBO 37; size_only/combined READ, SELECT and OPERATE 61, each one received TCP segment. Earlier attempts `_01` and `_02` failed closed on harness defects (fixed, retained). Persistence, loss, reconnect, stale-token, external-replay and held-OPERATE gates also PASSED the same day (see `rearm_01/STATUS.md`). The timing-evaluation, strict-comparison, piggyback and rate-comparison commands have not been run.
 
 This directory is a staging surface for the `seg61_02` candidate61 silicon campaigns. It does not change production defaults, shared campaign entry points, or `response_only_rearm/hw/sealed_profile.py`.
 

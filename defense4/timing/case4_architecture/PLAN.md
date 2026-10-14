@@ -1,5 +1,7 @@
 # Case 4 architecture execution
 
+> **CURRENT CHECKPOINT AND REMAINING PLAN (2026-10-14):** candidate61 `seg61_02/full_04` compiles on both SDKs at N11/E12/T11 and passes the five compiled-model suites (30/30,30/30,622/622,399/399,102/102). **Update 2026-10-14: the four-arm silicon smoke and every step-3 gate (persistence, loss, reconnect, isolation, held OPERATE) passed on silicon; full timing qualification (step 4) is pending.** The detailed completed/pending checklist is in [the updated rearm PLAN](integration/evidence/rearm_01/PLAN.md): final test/review, qualified-capture four-arm silicon smoke, persistence/loss/reconnect/stale/held-duplicate gates, repeated four-arm and strict timing comparison at59,570PPS/950µs, separately labelled piggyback, then14,892-vs59,570PPS overhead/precision comparison. This checkpoint supersedes conflicting historical directions below, including the earlier open equal-size SBO decision. READ/SBO61 uses the directive's legal re-encoding/transport framing with unchanged application content. Hardware evidence: `seg61_02/evidence/hw_campaigns/`.
+
 > **ACTIVE DIRECTION (2026-10-13), supersedes every instruction below that conflicts with it.** Source:
 > `defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md`. Requests stay native; no request
 > padding (35→55), no response splitting or carving (57→[28,29]), no extended M mapper, no request-side
