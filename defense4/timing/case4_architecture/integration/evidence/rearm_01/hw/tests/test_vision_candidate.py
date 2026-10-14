@@ -215,7 +215,7 @@ class VisionCandidate(unittest.TestCase):
         self.assertTrue(all(row[1][0] == 1 and row[2]['close_grace_ms'] == 1000 for row in calls))
         self.assertTrue(all(row[2]['capture_immediate'] is True for row in calls))
         self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0, control_padding=1,
-                                        expect_held_operate_dup=0)
+                                        expect_held_operate_dup=0, image_len=58)
                             for row in gates))
 
     def test_strict_control_padding_propagates_to_gate(self):
@@ -378,3 +378,9 @@ class HeldOperateDuplicates(unittest.TestCase):
                                                                   {'sent_index': 0}])
             self.assertEqual([e['sent_index'] for e in excused], [1])
             self.assertEqual([r['sent_index'] for r in remaining], [2, 0])
+
+
+    def test_expect_defaults_reproduce_the_fixed_tables(self):
+        self.assertEqual(vc.expect(1, 58), vc.EXPECT)
+        self.assertEqual(vc.expect(0, 58), vc.EXPECT_STRICT)
+        self.assertEqual(vc.expect(1, 61)['padding']['1'], {'read_resp_len': [61], 'sbo_resp_len': [61]})

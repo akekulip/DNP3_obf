@@ -88,7 +88,12 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if reads!=1 or any(kwargs.get(key) for key in ('connect_must_fail','drop','scenario','reconnect_port')):
             raise ValueError('isolation requires a protected one-READ tuple')
         return authorized_python(base.runner.V_RUN+'/vision_isolation.py',
-            [label,'--master-port',master_port,'--padding',1,'--control-padding',self._control_padding(),'--apply'])
+            [label,'--master-port',master_port,'--padding',1,'--control-padding',self._control_padding(),
+             '--image-len',self._image_len(),'--apply'])
+
+    def _image_len(self):
+        builds={arm['build'] for arm in self.cfg['arms']}
+        return int(self.cfg['builds'][builds.pop()].get('image_len',58))
 
     def _control_padding(self):
         builds={arm['build'] for arm in self.cfg['arms']}
@@ -238,7 +243,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             cfail.extend(vc.evaluate(root,trial['master_port'],'rst',1,
                                      cs._load_json(root/'result.json') or {},rst_grace_ms=1000,
                                      reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0,
-                                     control_padding=self._control_padding()))
+                                     control_padding=self._control_padding(),image_len=self._image_len()))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
             failures.extend(cn+': '+failure for failure in cfail)
         if v.rc or scenario.get('ok') is not True:

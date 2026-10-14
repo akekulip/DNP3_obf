@@ -100,7 +100,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
         if port!=59400 or reads!=1:
             raise ValueError('external replay requires source59400 and one READ per incarnation')
         return authorized_python(base.runner.V_RUN+'/vision_replay.py',[label,'--master-port',port,'--padding',1,
-                                 '--control-padding',self._control_padding(),'--apply'])
+                                 '--control-padding',self._control_padding(),'--image-len',self._image_len(),'--apply'])
 
     def snapshot(self,out_remote,name,check=True,preset=None):
         return cs.CandidateSeriesCampaign.snapshot(self,out_remote,name,check,preset)
@@ -187,7 +187,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 if result.rc:failures.append(cn+': '+script+' failed rc'+str(result.rc))
             cfail=vc.evaluate(analysis,59400,'rst',1,cs._load_json(raw/'result.json') or {},
                               rst_grace_ms=1000,reads=1,pre_read_grace_ms=PRE_READ_GRACE_MS if cn=='c2' else 0,
-                              control_padding=self._control_padding())
+                              control_padding=self._control_padding(),image_len=self._image_len())
             fresh=None
             try:
                 fresh=cs.freshness_gate(cs.wc.parse(analysis/'out.pcap')[0],cs.wc.parse(analysis/'in.pcap')[0],59400,previous)

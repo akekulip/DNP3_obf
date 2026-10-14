@@ -322,6 +322,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         return authorized_python(base.runner.V_RUN+'/vision_candidate.py',
             [label,'--master-port',master_port,'--padding',self._series_padding,
              '--control-padding',self._series_control_padding,
+             '--image-len',int(self.cfg['builds'][self._series_build].get('image_len', 58)),
              '--expect-held-operate-dup',int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
              '--close-mode',self.close_mode,
              '--rst-grace-ms',self.rst_grace_ms,'--reads',reads,'--apply'])
@@ -330,6 +331,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         old = base.runner.vision_cmd
         self._series_padding = unit['arm']['padding']
         self._series_control_padding = int(self.cfg['builds'][unit['arm']['build']].get('control_padding', True))
+        self._series_build = unit['arm']['build']
         base.runner.vision_cmd = self.series_vision_cmd
         try:
             return super().run_unit(unit, port)

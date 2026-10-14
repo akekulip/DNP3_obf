@@ -28,7 +28,7 @@ from token_window import PRE_READ_GRACE_MS
 GRACES = (0, PRE_READ_GRACE_MS, 0)
 
 
-def scenario(label, port, padding, apply=False, control_padding=1):
+def scenario(label, port, padding, apply=False, control_padding=1, image_len=58):
     vc.guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
         raise ValueError('invalid label or padding')
@@ -84,7 +84,7 @@ def scenario(label, port, padding, apply=False, control_padding=1):
             connection['failures'] += vc.evaluate(dest, port, 'rst', padding, result,
                                                   rst_grace_ms=1000, reads=1,
                                                   pre_read_grace_ms=leg['pre_read_grace_ms'],
-                                                  control_padding=control_padding)
+                                                  control_padding=control_padding, image_len=image_len)
             connection['pre_read_hook'] = vc.pre_read_evidence(dest, leg['pre_read_grace_ms'])[1]
             connection['ok'] = not connection['failures']
             vc.write_json(dest / 'verdict.json', connection)
@@ -109,11 +109,12 @@ def main(argv=None):
     parser.add_argument('label')
     parser.add_argument('--master-port', type=int, required=True)
     parser.add_argument('--padding', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--image-len', type=int, default=58)
     parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
-    result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding)
+    result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding, image_len=args.image_len)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 
