@@ -1212,7 +1212,8 @@ class Campaign:
                     aggregate_ok=not connection_failures,
                     checker_result=self.run_standards_checker(
                         d, trial, arm, cn, cn == 'c2',
-                        master_port=trial['master_port'] + (reconnect_offset if cn == 'c2' else 0))),
+                        master_port=(None if trial.get('master_port') is None else
+                                     trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))),
                 connection_id=cn, unbound_native=(cn == 'c2'))
             connection_failures.extend(std_fail)
             out[cn] = {'role': ent.get('role'), 'master_port': ent.get('master_port'), 'ran': ent.get('ran', cn in vc),
