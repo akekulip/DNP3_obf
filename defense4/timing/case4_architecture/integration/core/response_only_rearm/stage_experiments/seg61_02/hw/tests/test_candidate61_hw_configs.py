@@ -96,7 +96,7 @@ class Candidate61HardwareConfigTests(unittest.TestCase):
 
     def test_all_builds_have_profile_source_and_hash_pins(self):
         configs = sorted(CFG.glob('candidate61_*.json')) + sorted(CFG.glob('strict_comparison_*.json'))
-        self.assertEqual(len(configs), 17)
+        self.assertEqual(len(configs), 20)
         for path in configs:
             data = load_path(path)
             self.assertIn('candidate61_identity', data)

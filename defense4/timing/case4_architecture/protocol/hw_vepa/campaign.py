@@ -121,6 +121,16 @@ def validate_profile(cfg):
             raise ValueError('traffic.%s must be an integer in 0..5000' % key)
     if not isinstance(cfg['traffic'].get('run_sbo', True), bool):
         raise ValueError('traffic.run_sbo must be boolean')
+    if 'sbo_cycles' in cfg['traffic']:
+        cycles = cfg['traffic']['sbo_cycles']
+        if not isinstance(cycles, int) or isinstance(cycles, bool) or not 1 <= cycles <= checks.MAX_SBO_CYCLES:
+            raise ValueError('traffic.sbo_cycles must be an integer in 1..%d' % checks.MAX_SBO_CYCLES)
+        if cfg['traffic'].get('run_sbo', True) is not True:
+            raise ValueError('traffic.sbo_cycles requires traffic.run_sbo')
+        if cfg['trials']['reads_per_trial'] < cycles + 1:
+            raise ValueError('trials.reads_per_trial counts every READ and must be >= sbo_cycles + 1')
+        if cfg.get('loss', {}).get('presets'):
+            raise ValueError('traffic.sbo_cycles is not supported with loss presets (unsupported shape)')
     quality = cfg.get('evaluation', {})
     if quality.get('purpose', 'qualification') not in ('qualification', 'stale_source_characterization',
                                                       'timing_precision_characterization'):
@@ -717,8 +727,11 @@ class Campaign:
         return 'DEFENSE4_HW_AUTHORIZED=1 ' + cmd
 
     def endpoint_controls(self):
-        return {key: self.cfg['traffic'].get(key, default) for key, default in
-                (('read_pause_ms', 25), ('run_sbo', True), ('close_grace_ms', 0))}
+        controls = {key: self.cfg['traffic'].get(key, default) for key, default in
+                    (('read_pause_ms', 25), ('run_sbo', True), ('close_grace_ms', 0))}
+        if 'sbo_cycles' in self.cfg['traffic']:          # only the repeated-SBO endpoint knows this control
+            controls['sbo_cycles'] = self.cfg['traffic']['sbo_cycles']
+        return controls
 
     def endpoint_control_args(self):
         return ''.join(' --%s %d' % (key.replace('_', '-'), int(value))
@@ -1084,19 +1097,19 @@ class Campaign:
                                      diagnostic=self.cfg['builds'][arm['build']].get('diagnostic', False),
                                      gap_ns=self.cfg['timing_params_ns']['gap'],
                                      precision=self.cfg.get('evaluation', {}).get('read_precision', True),
-                                     run_sbo=self.cfg['traffic'].get('run_sbo', True))
+                                     run_sbo=checks.sbo_count(self.cfg['traffic']))
         cfail += self.endpoint_control_checks(ev['master'])
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail
         outstation = ev.get('outstation') or {}
-        run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        run_sbo = checks.sbo_count(self.cfg['traffic'])
         std_fail = self.validate_standards_file(
             dest, trial, arm, {'out': {'path': os.path.join(dest, 'out.pcap')},
                                'in': {'path': os.path.join(dest, 'in.pcap')}},
             self.standards_observed(
                 ev, list(fails), transport_ok=(w.rc == 0),
-                select_ok=(not run_sbo) or outstation.get('select_real') == 1,
-                operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
+                operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
                 aggregate_ok=ok, precision_required=self.precision_required(arm, fixture),
                 precision=obs.get('read_precision'),
                 precision_reason=('arm %s has no timing target (T=0)' % arm['name'] if not arm.get('T') else
@@ -1198,14 +1211,14 @@ class Campaign:
         if ev['master'] and ev['master'].get('issued_ns') and ev['master'].get('completed_ns'):
             trial['master_completion_s'] = round((ev['master']['completed_ns'] - ev['master']['issued_ns']) / 1e9, 3)
         outstation = ev.get('outstation') or {}
-        run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        run_sbo = checks.sbo_count(self.cfg['traffic'])
         fails += self.validate_standards_file(
             dest, trial, arm, {'out': {'path': os.path.join(dest, 'out.pcap')},
                                'in': {'path': os.path.join(dest, 'in.pcap')}},
             self.standards_observed(
                 ev, list(fails), transport_ok=(w.rc == 0),
-                select_ok=(not run_sbo) or outstation.get('select_real') == 1,
-                operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
+                operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
                 aggregate_ok=not fails, precision_required=False,
                 precision_reason='loss/recovery trial: READ precision is not evaluated',
                 checker_result=self.run_standards_checker(dest, trial, arm)),
@@ -1235,7 +1248,7 @@ class Campaign:
         result = self._vision_json(v)
         vc = result.get('connections', {})
         out, fails = {}, []
-        run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        run_sbo = checks.sbo_count(self.cfg['traffic'])
         reconnect_offset = self.cfg['scenarios'][self.scenario]['reconnect_port_offset']   # c2's commanded port
         for cn in conns:
             d = os.path.join(dest, cn)
@@ -1273,8 +1286,8 @@ class Campaign:
                                 'in': {'path': os.path.join(d, 'in.pcap')}},
                 self.standards_observed(
                     e, list(connection_failures), transport_ok=(rcs[cn][0].rc == 0),
-                    select_ok=(not run_sbo) or outstation.get('select_real') == 1,
-                    operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
+                    select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
+                    operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
                     aggregate_ok=not connection_failures,
                     precision_required=precision['gated'], precision=precision,
                     precision_reason=exempt or 'reconnect %s: no READ timing target' % cn,
@@ -1318,7 +1331,7 @@ class Campaign:
                 self.cfg['expectations'], arm, 2 * trial['reads'], snapshots, checks.allowed_gap(build),
                 self.cfg['service']['k'] if build.get('mirror_fix') else None,
                 checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
-                sbo_count=2 * int(run_sbo),
+                sbo_count=2 * run_sbo,
                 complete_reads=sum(out[cn]['complete'] for cn in ('c1', 'c3') if isinstance(out[cn]['complete'], int)),
                 piggyback_reads=sum(out[cn]['piggyback'] for cn in ('c1', 'c3') if isinstance(out[cn]['piggyback'], int)))
             fails.extend('switch: %s' % failure for failure in switch_fails)

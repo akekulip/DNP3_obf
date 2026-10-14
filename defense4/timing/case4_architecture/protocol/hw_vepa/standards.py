@@ -115,10 +115,11 @@ def expected_lengths(config, arm, unbound_native=False):
 def expected_counts(context):
     trial = context.get('trial') or {}
     reads = int(trial.get('reads', 0))
-    run_sbo = bool((context.get('config') or {}).get('traffic', {}).get('run_sbo', True))
+    traffic = (context.get('config') or {}).get('traffic', {}) or {}
+    sbo = int(traffic.get('sbo_cycles') or 1) if traffic.get('run_sbo', True) else 0
     counts = {'READ': reads}
-    if run_sbo:
-        counts.update({'SELECT': 1, 'OPERATE': 1})
+    if sbo:
+        counts.update({'SELECT': sbo, 'OPERATE': sbo})
     return counts
 
 

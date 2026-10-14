@@ -901,6 +901,15 @@
     },
     "model_gates": {
       "latest_successful": {
+        "model_abandon": {
+          "path": "integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/model_abandon_03/abandon_results.json",
+          "sha256": "d60605c0b9bbaf4f8a8380939803e62f41ba230efa7ef3ebd535fa3210612961",
+          "summary": {
+            "failed": [],
+            "passed": 15,
+            "total": 15
+          }
+        },
         "model_dup": {
           "path": "integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/model_dup_02/dup_results.json",
           "sha256": "b217e97cbd87d366d761e8533e78020366d35f083065396717cd490ca714a97a",
@@ -935,6 +944,15 @@
             "failed": [],
             "passed": 399,
             "total": 399
+          }
+        },
+        "model_repeat": {
+          "path": "integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/model_repeat_04/repeat_results.json",
+          "sha256": "0130a021503936514ad744bcb474ab7173a450741907438e5d1cb4c8dfa4f5f9",
+          "summary": {
+            "failed": [],
+            "passed": 520,
+            "total": 520
           }
         },
         "model_smoke": {
@@ -1007,6 +1025,39 @@
             ],
             "passed": 1,
             "total": 2
+          }
+        },
+        {
+          "path": "integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/model_repeat_01/repeat_results.json",
+          "sha256": "8f2b0334689877ea415e4b52952599f31fae344dbc0e664cebf6e35303a33620",
+          "summary": {
+            "failed": [
+              "phaseA_master_transport_wrapped",
+              "phaseA_application_sequence_wrapped",
+              "phaseA_outstation_transport_wrapped"
+            ],
+            "passed": 39,
+            "total": 42
+          }
+        },
+        {
+          "path": "integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/model_repeat_03/repeat_results.json",
+          "sha256": "f5e2089347338a0194624c116b7ba9f6a8ede1e58746bf4a2c7c1c429478d146",
+          "summary": {
+            "failed": [
+              "probe1_READ_request",
+              "probe1_READ_server_ACK",
+              "probe1_READ_response_61",
+              "probe2_qualified_RST",
+              "probe2_SYN",
+              "probe2_SYNACK",
+              "probe2_final_ACK",
+              "probe2_READ_request",
+              "probe2_READ_server_ACK",
+              "probe2_READ_response_61"
+            ],
+            "passed": 498,
+            "total": 508
           }
         }
       ]

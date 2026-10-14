@@ -148,15 +148,21 @@ def wait_port_free(port, tries=80):
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
-                   qualify_capture=False):
+                   qualify_capture=False, sbo_cycles=0):
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
     reused). capture_immediate enables tcpdump's immediate mode for live observers.
+    sbo_cycles N>0 (repeated-SBO endpoint only): reads is the total READ count; the master issues reads-N READs,
+    then N cycles of SELECT->OPERATE followed by one READ, all on this connection.
     Returns the result dict and capture arguments, also written to run_dir/result.json."""
     for key, value in (('read_pause_ms', read_pause_ms), ('close_grace_ms', close_grace_ms)):
         if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5000:
             raise ValueError('%s must be an integer in 0..5000' % key)
     if run_sbo not in (False, True, 0, 1):
         raise ValueError('run_sbo must be 0 or 1')
+    if type(sbo_cycles) is not int or not 0 <= sbo_cycles <= 64:
+        raise ValueError('sbo_cycles must be an integer in 0..64')
+    if sbo_cycles and (not run_sbo or reads < sbo_cycles + 1):
+        raise ValueError('sbo_cycles needs run_sbo and reads >= sbo_cycles + 1 (one READ before the first cycle)')
     if type(capture_immediate) is not bool:
         raise ValueError('capture_immediate must be a boolean')
     if type(qualify_capture) is not bool:
@@ -166,7 +172,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
     def run_main():
         return _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed,
                                        drop, connect_must_fail, read_pause_ms, run_sbo, close_grace_ms,
-                                       capture_immediate, qualify_capture)
+                                       capture_immediate, qualify_capture, sbo_cycles)
 
     if qualify_capture:
         return capture_observation.run_with_qualified_capture(run_dir, run_main, interface=PARENT)
@@ -175,7 +181,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
 
 def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                             connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0,
-                            capture_immediate=False, qualify_capture=False):
+                            capture_immediate=False, qualify_capture=False, sbo_cycles=0):
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
@@ -186,13 +192,15 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
     flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
     env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB,
            'CASE4_READ_PAUSE_MS=%d' % read_pause_ms, 'CASE4_RUN_SBO=%d' % int(run_sbo),
-           'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms]
+           'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms] + (['CASE4_SBO_CYCLES=%d' % sbo_cycles] if sbo_cycles else [])
     extra_seconds = (reads * (gap_ms + read_pause_ms) + close_grace_ms + 999) // 1000
     stop = os.path.join(run_dir, 'stop')
     result = {'label': label, 'master_port': master_port, 'reads': reads, 'range': rng, 'gap_ms': gap_ms,
               'start_delay_ms_max': start_delay_max, 'start_seed': start_seed,
               'start_delay_ms_applied': start_delay_ms(start_delay_max, start_seed)}
     result['endpoint_controls'] = dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms)
+    if sbo_cycles:
+        result['endpoint_controls']['sbo_cycles'] = sbo_cycles
     result['capture_immediate'] = capture_immediate
     result['qualify_capture'] = qualify_capture
     result['capture_commands'] = {}
@@ -231,8 +239,8 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
             try:
-                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads), IP_M, str(rng),
-                          str(gap_ms), timeout=reads * 4 + 30 + extra_seconds)
+                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
+                          IP_M, str(rng), str(gap_ms), timeout=reads * 4 + sbo_cycles * 4 + 30 + extra_seconds)
                 result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
                 open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
             except subprocess.TimeoutExpired:
@@ -275,7 +283,7 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
 
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed,
-                  read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False):
+                  read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
 
       c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
@@ -295,7 +303,7 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
             res = run_connection(os.path.join(parent, name), '%s_%s' % (label, name), port, reads, rng, gap_ms,
                                  start_delay_max, start_seed, read_pause_ms=read_pause_ms,
                                  run_sbo=run_sbo, close_grace_ms=close_grace_ms,
-                                 qualify_capture=qualify_capture)
+                                 qualify_capture=qualify_capture, sbo_cycles=sbo_cycles)
         except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
             res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
         res['role'] = role
@@ -329,6 +337,8 @@ def main():
     ap.add_argument('--read-pause-ms', type=bounded_ms, default=25, help='endpoint completion pause after each READ')
     ap.add_argument('--run-sbo', type=int, choices=(0, 1), default=1, help='perform one real SELECT/OPERATE after READs')
     ap.add_argument('--close-grace-ms', type=bounded_ms, default=0, help='endpoint pause before normal close')
+    ap.add_argument('--sbo-cycles', type=int, default=0,
+                    help='repeated-SBO endpoint: N cycles of SELECT->OPERATE then READ (reads counts every READ)')
     ap.add_argument('--start-delay-ms', type=int, default=0,
                     help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
@@ -378,15 +388,15 @@ def main():
     if a.scenario == 'reconnect':
         out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
                             a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
-                            a.qualify_capture)
+                            a.qualify_capture, a.sbo_cycles)
         print(json.dumps(out))
         sys.exit(0 if out['ok'] else 1)
     try:
         result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
                                 a.start_delay_ms, a.start_seed, drop, a.connect_must_fail,
                                 a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
-                                qualify_capture=a.qualify_capture)
-    except RuntimeError as e:
+                                qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles)
+    except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))
     sys.exit(0 if result['ok'] else 1)

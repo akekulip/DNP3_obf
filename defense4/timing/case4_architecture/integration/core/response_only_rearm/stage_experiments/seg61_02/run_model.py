@@ -12,7 +12,7 @@ SHA = '1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa'
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('driver', choices=('smoke', 'native', 'packets', 'rearm', 'dup'))
+    parser.add_argument('driver', choices=('smoke', 'native', 'packets', 'rearm', 'dup', 'repeat', 'abandon'))
     parser.add_argument('attempt', type=int)
     args = parser.parse_args()
     assert args.attempt > 0

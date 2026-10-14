@@ -56,8 +56,49 @@ def load_evidence_files(before=None, after=None, master=None, outstation=None, w
     return out
 
 
+MAX_SBO_CYCLES = 64
+
+
+def sbo_count(traffic):
+    """SELECT/OPERATE pairs per connection: 0 without SBO, traffic.sbo_cycles when set, otherwise 1."""
+    if not (traffic or {}).get('run_sbo', True):
+        return 0
+    return int((traffic or {}).get('sbo_cycles') or 1)
+
+
+def repeated_sbo_checks(master, outstation, cycles):
+    """Per-cycle records of a repeated-SBO connection: one task callback per cycle with index 1 SUCCESS, the
+    following READ matching the seed, and on the outstation exactly one SELECT then one OPERATE callback per
+    cycle carrying that cycle's on-time (100 + cycle), in order, all SUCCESS, software handler only."""
+    fails = []
+    rows = (master or {}).get('cycles')
+    if (master or {}).get('sbo_cycles') != cycles or not isinstance(rows, list) or len(rows) != cycles:
+        return ['master did not report %d SBO cycle records (sbo_cycles=%r)' % (cycles, (master or {}).get('sbo_cycles'))]
+    for c, row in enumerate(rows):
+        want = {'cycle': c, 'on_time_ms': 100 + c, 'callbacks': 1, 'ok': True, 'index': 1, 'status': 0,
+                'points': 1, 'read_matches_seed': True}
+        bad = {k: row.get(k) for k, v in want.items() if row.get(k) != v}
+        if bad:
+            fails.append('SBO cycle %d: %r (expected %r)' % (c, bad, {k: want[k] for k in bad}))
+    events = (outstation or {}).get('events')
+    if not isinstance(events, list):
+        return fails + ['outstation did not report per-callback events']
+    if (outstation or {}).get('actuation') != 'software_handler' or (outstation or {}).get('physical_actuations') != 0:
+        fails.append('outstation callbacks are not marked software_handler with zero physical actuations')
+    want_kinds = ['SELECT', 'OPERATE'] * cycles
+    if [e.get('kind') for e in events] != want_kinds:
+        fails.append('outstation callbacks are not one SELECT then one OPERATE per cycle (%d events)' % len(events))
+    else:
+        for i, e in enumerate(events):
+            if (e.get('index'), e.get('status'), e.get('on_time_ms')) != (1, 0, 100 + i // 2):
+                fails.append('outstation %s callback %d: index=%r status=%r on_time_ms=%r' %
+                             (e.get('kind'), i // 2, e.get('index'), e.get('status'), e.get('on_time_ms')))
+    return fails
+
+
 def application_checks(exp, padding, reads, ev, run_sbo=True):
-    """Endpoint semantics and per-function wire checks, shared by ordinary and reconnect trials."""
+    """Endpoint semantics and per-function wire checks, shared by ordinary and reconnect trials. run_sbo is the
+    number of SELECT/OPERATE pairs expected (a boolean means 0 or 1)."""
     fails = []
     m, o, w, t = (ev.get(k) for k in ('master', 'outstation', 'wire', 'timing'))
     for key, value in (('master', m), ('outstation', o), ('wire', w), ('timing', t)):
@@ -76,6 +117,8 @@ def application_checks(exp, padding, reads, ev, run_sbo=True):
                 or r.get('matches_seed') is not True or r.get('completed') is not True for r in rs):
             fails.append('READs did not return all %d seed values' % exp['common']['read_points'])
     if isinstance(o, dict) and o:
+        if isinstance(m, dict) and (m.get('sbo_cycles') or 0) > 0:
+            fails += repeated_sbo_checks(m, o, int(run_sbo))
         for key in ('select_real', 'operate_real'):
             if o.get(key) != int(run_sbo):
                 fails.append('outstation %s=%r, expected exactly %d real %s' %
@@ -99,7 +142,7 @@ def application_checks(exp, padding, reads, ev, run_sbo=True):
             return fails
         pad = exp['padding'][str(padding)]
         functions = [('READ', reads, pad['read_resp_len'])] + (
-            [(kind, 1, pad['sbo_resp_len']) for kind in SBO] if run_sbo else [])
+            [(kind, int(run_sbo), pad['sbo_resp_len']) for kind in SBO] if run_sbo else [])
         for kind, count, lengths in functions:
             item = summ.get(kind)
             if not isinstance(item, dict) or not item:

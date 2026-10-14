@@ -237,7 +237,8 @@ def configure_loss_presets(d, profile):
 
 def transform(data, *, purpose=None, preset=None, gap=950000, readiness=None, build_name=BUILD, build_spec=None,
               profile='candidate61', arms=None, reads=None, trials=None, port_first=None, port_last=None,
-              run_sbo=None, held=False, start_delay_ms=None, fixtures=None, eval_extra=None, standards=None, loss_presets=None):
+              run_sbo=None, held=False, start_delay_ms=None, fixtures=None, eval_extra=None, standards=None, loss_presets=None,
+              sbo_cycles=None, endpoint=None, vision_run_dir=None):
     d = copy.deepcopy(data)
     d['_notes'] = (strict_notes if profile == 'strict_comparison' else notes) + d.get('_notes', [])
     d['evidence_dir'] = 'integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns'
@@ -285,6 +286,12 @@ def transform(data, *, purpose=None, preset=None, gap=950000, readiness=None, bu
         d['standards'] = standards
     if loss_presets is not None:
         d['loss']['presets'] = loss_presets
+    if sbo_cycles is not None:
+        d['traffic']['sbo_cycles'] = sbo_cycles
+    if endpoint is not None:
+        d['endpoint'] = copy.deepcopy(endpoint)
+    if vision_run_dir is not None:
+        d['hosts']['vision_run_dir'] = vision_run_dir
     return d
 
 
@@ -320,6 +327,34 @@ for filename, template, order, block in orders:
         'candidate61_label': 'repeated_fourarm_59570_950', 'block': block, 'arm_order': order}, arms=order, reads=500, trials=1,
         preset='shape_59570', gap=950000, port_first=59560, port_last=59563, start_delay_ms=50,
         loss_presets={}))
+
+# Repeated SELECT/OPERATE on one persistent connection (Gate 2): the repeated-SBO endpoint fork, deployed to its
+# own Vision directory. reads counts every READ: 1 before the first cycle, then 64 x (SELECT, OPERATE, READ).
+REPEAT_ENDPOINT = {
+    'opendnp3_commit': '4648fcb898456d1cb70b5baecc38cc256c859c2e',
+    'binary_sha256': 'e8f7694d98d5aad8bcfd0a4423e634a5a740e945d296df053cac6aa386d8e793',
+    'lib_sha256': 'a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba',
+    '_pinned': 'repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.',
+    '_pin_with': 'sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory',
+    '_lib_note': 'lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/',
+    'source_sha256': 'dc3985033d00d3d38dec74a3bf71574f56ade7ea49fc5a0162da5d95fb39384e',
+    'source_files': {
+        'SocketGatePad58B.cpp': 'dc3985033d00d3d38dec74a3bf71574f56ade7ea49fc5a0162da5d95fb39384e',
+        'DecoyGateCommandHandler.h': 'e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2',
+    },
+    'build_recipe': 'integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py',
+}
+REPEAT_VISION_DIR = '/home/decps/pad58b_repeat_sbo_20261014b'   # _20261014 held a stale build
+repeat_orders = [
+    ('candidate61_repeat_sbo_950_b1.json', 'candidate57s_eval_b1.json', ['off', 'timing_only', 'size_only', 'combined'], 1),
+    ('candidate61_repeat_sbo_950_b2.json', 'candidate57s_eval_b2.json', ['combined', 'off', 'timing_only', 'size_only'], 2),
+    ('candidate61_repeat_sbo_950_b3.json', 'candidate57s_eval_b3.json', ['size_only', 'combined', 'off', 'timing_only'], 3),
+]
+for filename, template, order, block in repeat_orders:
+    write(filename, transform(load(template), purpose={'purpose': 'timing_precision_characterization', 'read_precision': True,
+        'candidate61_label': 'repeat_sbo_64_59570_950', 'block': block, 'arm_order': order}, arms=order, reads=65, trials=1,
+        preset='shape_59570', gap=950000, port_first=59590, port_last=59593, start_delay_ms=50, loss_presets={},
+        sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR))
 
 strict_standards = {
     'packet_boundary_required': True,

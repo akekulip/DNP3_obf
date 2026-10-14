@@ -64,7 +64,7 @@ Result (2026-10-14, all on silicon, restore and ping ok after every block): `can
 ### 4. Full timing and size obfuscation evaluation
 
 - - [x] Run **three order-rotated blocks × four arms ×500 READs at59,570PPS/950µs**, preserving matched endpoint/fixture settings and recording achieved hardware rates. Include SBO in every connection.
-  - [ ] **Open (reopened by the f0baa724a audit):** add repeated successful SBO cycles for control timing distributions. Only one SELECT/OPERATE cycle per connection ran; this sub-item was wrongly covered by the checked line above.
+  - [x] Repeated successful SBO cycles (reopened by the f0baa724a audit, done 2026-10-14): three order-rotated blocks x four arms x 64 cycles on one connection each (`candidate61_repeat_sbo_950_b1_02`, `_b2`, `_b3`; failed attempt `_b1` retained, stale endpoint build). 768 of 768 cycles verified per cycle by `seg61_02/analysis/repeat_sbo_report.py`; control timing in `rearm_01/TIMING_CONTRACT.md`.
 - - [x] Measure READ request-ACK/response commit and release timing, OPERATE hold/release, request-to-response latency and full SBO completion. Preserve per-exchange timestamps and callbacks.
 - - [x] Run matched strict comparison blocks at the same59,570PPS/950µs with the same qualified physical capture procedure. Keep strict READ58/SBO37 separately identified.
 - - [x] Run separately labelled piggyback-ACK measurements. Report request-to-response/SBO completion and fallback behavior; CLRT requires a separate request ACK.
