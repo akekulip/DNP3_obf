@@ -117,7 +117,13 @@ def restore_offload_baseline(path, interface=PARENT, run=sh):
         return ['no receive-offload baseline recorded at %s' % path]
     baseline = json.loads(path.read_text())
     errors = []
+    try:
+        current = snapshot_features(interface, run=run)['features']
+    except Exception as error:
+        return [str(error)]
     for key, value in baseline['features'].items():
+        if current.get(key) == value:       # never write a key already at baseline ([fixed] features refuse -K)
+            continue
         result = run(['ethtool', '-K', interface, key, 'on' if value else 'off'])
         if getattr(result, 'returncode', 0):
             errors.append('ethtool -K %s %s failed: %s' % (key, value, getattr(result, 'stderr', '').strip()))

@@ -127,17 +127,28 @@ class CaptureObservation(unittest.TestCase):
         co.record_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([off], commands))
         self.assertTrue(json.loads(path.read_text())['features']['gro'])
         commands.clear()
-        errors = co.restore_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([on], commands))
+        errors = co.restore_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([off, on], commands))
         self.assertEqual(errors, [])
         self.assertIn(['ethtool', '-K', 'enp59s0f0np0', 'gro', 'on'], commands)
         self.assertFalse(path.exists())
+
+    def test_restore_sets_only_keys_that_differ_so_fixed_features_are_never_written(self):
+        base = 'generic-receive-offload: on\nlarge-receive-offload: off [fixed]\nrx-gro-hw: off [fixed]\n'
+        now = 'generic-receive-offload: off\nlarge-receive-offload: off [fixed]\nrx-gro-hw: off [fixed]\n'
+        path = Path(self.tmpdir()) / 'offload_baseline.json'
+        co.record_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([base], []))
+        commands = []
+        self.assertEqual(co.restore_offload_baseline(path, 'enp59s0f0np0',
+                                                     run=self._ethtool([now, base], commands)), [])
+        self.assertEqual([c for c in commands if c[:2] == ['ethtool', '-K']],
+                         [['ethtool', '-K', 'enp59s0f0np0', 'gro', 'on']])
 
     def test_restore_reports_mismatch_and_keeps_the_baseline(self):
         on = 'generic-receive-offload: on\nlarge-receive-offload: off\n'
         off = 'generic-receive-offload: off\nlarge-receive-offload: off\n'
         path = Path(self.tmpdir()) / 'offload_baseline.json'
         co.record_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([on], []))
-        errors = co.restore_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([off], [], fail_set=True))
+        errors = co.restore_offload_baseline(path, 'enp59s0f0np0', run=self._ethtool([off, off], [], fail_set=True))
         self.assertTrue(any('gro' in e for e in errors), errors)
         self.assertTrue(path.exists())
 
