@@ -53,21 +53,28 @@ def dnp3_crc(data):
 
 
 def dnp3_ok(payload):
-    """(ok, reason) for a DNP3 link frame: start octets, header CRC and every data-block CRC."""
-    p = payload
-    if len(p) < 10 or p[0:2] != b'\x05\x64':
-        return False, 'no start'
-    if dnp3_crc(p[0:8]) != int.from_bytes(p[8:10], 'little'):
-        return False, 'header crc'
-    i, n = 10, p[2] - 5
-    while n > 0:
-        k = min(16, n)
-        blk, c = p[i:i + k], p[i + k:i + k + 2]
-        if len(c) < 2 or dnp3_crc(blk) != int.from_bytes(c, 'little'):
-            return False, 'block crc at %d' % i
-        i += k + 2
-        n -= k
-    return (i == len(p)), ('ok' if i == len(p) else 'trailing')
+    """(ok, reason) for a TCP payload of one or more back-to-back DNP3 link frames: for every frame the start octets,
+    header CRC and every data-block CRC, and the payload must end exactly on a frame boundary. Several frames occur
+    when one response is carried as several transport segments in one TCP segment (61-octet profile)."""
+    p, base = payload, 0
+    while True:
+        if len(p) - base < 10 or p[base:base + 2] != b'\x05\x64':
+            return False, 'no start' if base == 0 else 'no start at %d' % base
+        if dnp3_crc(p[base:base + 8]) != int.from_bytes(p[base + 8:base + 10], 'little'):
+            return False, 'header crc' if base == 0 else 'header crc at %d' % base
+        i, n = base + 10, p[base + 2] - 5
+        while n > 0:
+            k = min(16, n)
+            blk, c = p[i:i + k], p[i + k:i + k + 2]
+            if len(c) < 2 or dnp3_crc(blk) != int.from_bytes(c, 'little'):
+                return False, 'block crc at %d' % i
+            i += k + 2
+            n -= k
+        if i == len(p):
+            return True, 'ok'
+        if i > len(p):
+            return False, 'truncated'
+        base = i
 
 
 def _sum16(data):

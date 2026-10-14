@@ -110,3 +110,26 @@ class SpuriousReturned(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class MultiFrame(unittest.TestCase):
+    """One TCP payload carrying several DNP3 link frames (transport segments of one response)."""
+
+    def payload(self):
+        return tk.dnp3_frame(bytes([0x40]) + bytes(15)) + tk.dnp3_frame(bytes([0x01]) + bytes(6)) + \
+            tk.dnp3_frame(bytes([0x82]) + bytes(1))
+
+    def test_back_to_back_frames_ok(self):
+        p = self.payload()
+        self.assertEqual(len(p), 61)
+        self.assertEqual(wc.dnp3_ok(p), (True, 'ok'))
+
+    def test_corruption_in_later_frame_fails(self):
+        for pos in (30, 50, 59):
+            bad = bytearray(self.payload())
+            bad[pos] ^= 1
+            self.assertFalse(wc.dnp3_ok(bytes(bad))[0], pos)
+
+    def test_trailing_or_truncated_fails(self):
+        self.assertFalse(wc.dnp3_ok(self.payload() + b'\x00')[0])
+        self.assertFalse(wc.dnp3_ok(self.payload()[:-1])[0])
