@@ -5,8 +5,11 @@
 - Candidate: `seg61_02/evidence/full_04/response_only.p4` SHA256 `1b2d62d1…65aa` (regenerates byte-identically), SDK 9.13.2 bfrt `e32df204…`, p4pp `3306c394…`; strict comparison source `2ad71761…`.
 - Live switch (read-only `ps`, 2026-10-14): `bf_switchd` running `case4_response_path_conf.json` (production restore target), matching the recorded state.
 - Decisions (Philip, 2026-10-14): normalize all three CLRTs (READ, SELECT, OPERATE) in a separate control-timing candidate while keeping the OPERATE command hold J as its own objective; piggyback gets a response-aware bounded latency (global readiness unchanged); silicon authorized for Gates 2, 3 and 5 with software endpoints only and no relay OPERATE; model gates only after functional changes; the E-stage CRC change is an experiment.
-- Gate 1 (acceptance and reproducibility): implemented and tested offline (precision status serialized with qualification; per-attempt profile-exact verdict; build-tree precondition split; nearest-rank/sample-SD; PLAN/report corrections). Suite 763 passed. Review pending, then commit.
-- Open: Gate 2 repeated SBO; Gate 3 control timing and piggyback; Gate 4 E-stage CRC experiment; Gate 5 cost and tail localization.
+- Gate 1 (acceptance and reproducibility): committed `2cad04ff6`, `d4c785844` after one review and one independent verification.
+- Gate 2 (repeated SBO): committed `ab191033f`, `876bc216c`. Silicon `candidate61_repeat_sbo_950_b1_02`, `_b2`, `_b3`: 768/768 cycles verified per cycle; failed `_b1` retained (stale endpoint build). Model `model_repeat_04` 520/520, `model_abandon_03` 15/15. Limitation: an abandoned SELECT stalls the connection until reset.
+- Gate 3 step 1 (contract table): `TIMING_CONTRACT.md`; SELECT/OPERATE CLRT native (~5.3 ms, n=192/arm). Control-timing candidate not started.
+- Gate 4 (CRC experiment): committed `7202358fd`; no stage recovered (E12 on both SDKs, N 11->12), baseline kept.
+- Open: Gate 3 control-timing candidate and piggyback bound; Gate 5 cost and tail localization; final mechanism report.
 
 **2026-10-14 candidate61 qualification complete (PLAN steps 1-5).** Report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_REPORT.md`. Later pushed to `origin/main` at `f0baa724a`; no defaults promoted; repeated SBO and control-CLRT normalization remain open (f0baa724a audit); real-relay compatibility and the transit-path tail source remain open.
 
