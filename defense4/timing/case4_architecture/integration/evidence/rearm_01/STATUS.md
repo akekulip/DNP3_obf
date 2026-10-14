@@ -165,3 +165,23 @@ Correctly addressed baseline result: on rearm_57s, `realrelay_native_01/model_dr
   request, relay ACK and response are dropped, and registers change.
 So rearm_57s cannot carry a real-relay TS connection at all. The fixed build (`realrelay_native_01`, under review)
 passes the same driver 99/99.
+
+**Authorization recorded 2026-10-13 night (Philip): 61-octet transport-segmentation candidate, bounded experiment.**
+- **Scope.** DNP3 transport segmentation within ONE outgoing TCP packet is authorized; more than one TCP packet per response
+  is not. Requests stay unchanged. The strict baseline rearm_57s is preserved.
+- **What may not be claimed.** This is not described as the only compliant solution, and not as qualified, until
+  demonstrated through the ASIC.
+- **Gate order.**
+  1. Offline proof of the exact 61-octet READ and SBO encodings. For SBO, transport reassembly must reproduce every
+     application octet and pass the exact Rule 8 comparison. FIR/FIN, sequence wrap, link lengths and every CRC are
+     verified.
+  2. The real OpenDNP3 endpoint gate.
+  3. Compile and the integrated model.
+  4. Silicon under the existing authorization: software endpoints, no physical relay OPERATE, build and config hashes
+     pinned.
+- **TCP translation for the actual growth.** READ 49->61 (+12), SBO 37->61 (+24). Retransmissions must reproduce
+  identical bytes. Mapping must happen exactly once.
+- **Measurements.** Endpoint reassembly latency, timing precision, stages, internal packets/bytes, wire overhead.
+- **Restore.** After every block, failed blocks included, case4_response_path is restored and verified. If a restore
+  fails or traffic affects anything outside the test, hardware activity stops and the evidence is preserved.
+- **Failure handling.** A gate failure is diagnosed and corrected, never replaced by permissive-parser success.
