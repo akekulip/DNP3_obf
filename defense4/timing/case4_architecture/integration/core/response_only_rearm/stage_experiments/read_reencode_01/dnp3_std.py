@@ -181,3 +181,54 @@ def check_control_echo(req_user, rsp_user):
         raise StdError('control echo differs: request %d octets, response %d octets'
                        % (len(q['objects']), len(r['objects'])))
     return True
+
+
+# ---- transport function (Clause 8): segments -> application fragments ------------------------------------
+FIR, FIN = 0x40, 0x80
+
+
+def reassemble(frames):
+    """Apply the transport receive rules (8.2.1 Rules 3-7; 8.2.2 Rule 1) to a sequence of link frames, in order.
+    Returns (fragments, events): fragments is a list of (application octets, [frame lengths], first_seq);
+    events records every discarded segment and why. A segment carries 1..249 application octets; a FIR segment starts
+    a series with any sequence number; each later segment must be the previous sequence +1 mod 64; a segment octet-for-
+    octet identical to the previous one is discarded; FIR during a series restarts it; a wrong sequence discards the
+    series; only a series closed by FIN yields a fragment."""
+    fragments, events = [], []
+    series = None                                            # (app bytes, frame lengths, first seq, last seq, last user)
+    for f in frames:
+        _, user = deframe(f)
+        if not user:
+            events.append('link frame without user data')
+            continue
+        th, app = user[0], user[1:]
+        if not 1 <= len(app) <= 249:
+            raise StdError('transport segment carries %d application octets (1..249)' % len(app))
+        seq = th & 0x3F
+        if th & FIR:
+            if series is not None:
+                events.append('FIR during a series: series discarded')
+            series = (app, [len(f)], seq, seq, user)
+        elif series is None:
+            events.append('segment without FIR outside a series: discarded')
+            continue
+        elif user == series[4]:
+            events.append('octet-identical repeat: discarded')
+            continue
+        elif seq != (series[3] + 1) & 0x3F:
+            events.append('sequence %d after %d: series discarded' % (seq, series[3]))
+            series = None
+            continue
+        else:
+            series = (series[0] + app, series[1] + [len(f)], series[2], seq, user)
+        if th & FIN:
+            fragments.append((series[0], series[1], series[2]))
+            series = None
+    if series is not None:
+        events.append('series without FIN at end of stream')
+    return fragments, events
+
+
+def fragment_user(app):
+    """A single-segment user-data view of a reassembled fragment, for the response/request checks above."""
+    return bytes([FIR | FIN]) + app

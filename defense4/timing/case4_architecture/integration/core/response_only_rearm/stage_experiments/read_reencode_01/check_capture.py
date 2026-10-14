@@ -39,20 +39,27 @@ def check(run_dir, outstation_port=20000, master_port=None):
     wire_rsp, _ = directed(run_dir / 'in.pcap', outstation_port, mport)
     native_req, _ = directed(run_dir / 'out.pcap', mport, outstation_port)
     verdicts, failures = [], []
-    if len(native_rsp) != len(wire_rsp):
-        failures.append('response count differs: native %d, wire %d' % (len(native_rsp), len(wire_rsp)))
+    # Clause 8: judge application fragments, not link frames. A response may span several transport segments
+    # (link frames) in the wire stream; each side is reassembled with the transport receive rules first.
+    native_frags, native_events = std.reassemble(native_rsp)
+    wire_frags, wire_events = std.reassemble(wire_rsp)
+    for side, events in (('native', native_events), ('wire', wire_events)):
+        for ev in events:
+            failures.append('%s transport: %s' % (side, ev))
+    if len(native_frags) != len(wire_frags):
+        failures.append('response count differs: native %d, wire %d' % (len(native_frags), len(wire_frags)))
     controls = [std.deframe(f)[1] for f in native_req if std.request(std.deframe(f)[1])['function'] in (3, 4)]
     ci = 0
-    for i, (nat, wire) in enumerate(zip(native_rsp, wire_rsp)):
-        nu, wu = std.deframe(nat)[1], std.deframe(wire)[1]
-        v = {'index': i, 'native_len': len(nat), 'wire_len': len(wire)}
+    for i, ((napp, nlens, _), (wapp, wlens, _)) in enumerate(zip(native_frags, wire_frags)):
+        nu, wu = std.fragment_user(napp), std.fragment_user(wapp)
+        v = {'index': i, 'native_len': sum(nlens), 'wire_len': sum(wlens), 'segments': len(wlens)}
         try:
             if nu[2] == 0x81 and nu[5:7] == b'\x0a\x02':
                 v['kind'] = 'READ'
                 _, npts = std.check_read_response(nu)
                 std.check_read_response(wu, expect=npts)
-                if nu[:5] != wu[:5]:
-                    raise std.StdError('transport/application header or IIN changed')
+                if nu[1:5] != wu[1:5]:
+                    raise std.StdError('application header or IIN changed')
                 v['ok'] = True
             elif ci < len(controls):
                 v['kind'] = ('SELECT', 'OPERATE')[controls[ci][2] - 3]
@@ -60,7 +67,7 @@ def check(run_dir, outstation_port=20000, master_port=None):
                 ci += 1
                 v['ok'] = True
             else:
-                v['kind'], v['ok'] = 'other', nat == wire
+                v['kind'], v['ok'] = 'other', napp == wapp
                 if not v['ok']:
                     raise std.StdError('unclassified response changed')
         except std.StdError as error:
@@ -69,7 +76,7 @@ def check(run_dir, outstation_port=20000, master_port=None):
             v['ok'], v['error'] = False, str(error)
             failures.append('%s #%d: %s' % (v.get('kind'), i, error))
         verdicts.append(v)
-    return {'run_dir': str(run_dir), 'master_port': mport, 'responses': len(wire_rsp), 'verdicts': verdicts,
+    return {'run_dir': str(run_dir), 'master_port': mport, 'responses': len(wire_frags), 'verdicts': verdicts,
             'failures': failures, 'conformant': not failures}
 
 
