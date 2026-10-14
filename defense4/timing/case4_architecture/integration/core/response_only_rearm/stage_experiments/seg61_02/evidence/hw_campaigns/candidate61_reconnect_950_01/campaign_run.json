@@ -1,0 +1,918 @@
+{
+ "run_id": "candidate61_reconnect_950_01",
+ "ok": false,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "rearm_61_full04",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+     "master_port": 59550,
+     "reads": 20,
+     "ok": false,
+     "failures": [
+      "c2 native connection: standards: observed.checker_result.conformant is False, expected True"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "protected",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65452,
+       "read": 65452
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 82,
+      "snapshot": {
+       "bfrt_sha256": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1791993360.2312925,
+       "valid": true
+      },
+      "time": 1791993360.2391074,
+      "budget": {
+       "reads": 20,
+       "connections": 3,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/candidate61_reconnect_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "scenario": "reconnect",
+      "label": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+      "connections": {
+       "c1": {
+        "label": "candidate61_reconnect_950_01_separate_ack_combined_t0_c1",
+        "master_port": 59550,
+        "reads": 20,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12345,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+         "read_pause_ms": 25,
+         "run_sbo": true,
+         "close_grace_ms": 1000
+        },
+        "capture_immediate": false,
+        "qualify_capture": true,
+        "capture_commands": {
+         "out": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "out",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c1/out.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ],
+         "in": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "in",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c1/in.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ]
+        },
+        "source_port_wait": {
+         "port": 59550,
+         "polls": 1,
+         "elapsed_s": 0.035,
+         "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.708,
+        "tcpdump": {
+         "out": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         },
+         "in": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         }
+        },
+        "frames_out": 75,
+        "frames_in": 75,
+        "ok": true,
+        "role": "installed"
+       },
+       "c2": {
+        "label": "candidate61_reconnect_950_01_separate_ack_combined_t0_c2",
+        "master_port": 60550,
+        "reads": 20,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12345,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+         "read_pause_ms": 25,
+         "run_sbo": true,
+         "close_grace_ms": 1000
+        },
+        "capture_immediate": false,
+        "qualify_capture": true,
+        "capture_commands": {
+         "out": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "out",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c2/out.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ],
+         "in": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "in",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c2/in.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ]
+        },
+        "source_port_wait": {
+         "port": 60550,
+         "polls": 1,
+         "elapsed_s": 0.036,
+         "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.662,
+        "tcpdump": {
+         "out": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         },
+         "in": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         }
+        },
+        "frames_out": 75,
+        "frames_in": 75,
+        "ok": true,
+        "role": "unknown_port"
+       },
+       "c3": {
+        "label": "candidate61_reconnect_950_01_separate_ack_combined_t0_c3",
+        "master_port": 59550,
+        "reads": 20,
+        "range": 8,
+        "gap_ms": 0,
+        "start_delay_ms_max": 0,
+        "start_seed": 12345,
+        "start_delay_ms_applied": 0,
+        "endpoint_controls": {
+         "read_pause_ms": 25,
+         "run_sbo": true,
+         "close_grace_ms": 1000
+        },
+        "capture_immediate": false,
+        "qualify_capture": true,
+        "capture_commands": {
+         "out": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "out",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c3/out.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ],
+         "in": [
+          "tcpdump",
+          "-i",
+          "enp59s0f0np0",
+          "-Q",
+          "in",
+          "-s0",
+          "-U",
+          "-n",
+          "-w",
+          "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_reconnect_950_01_separate_ack_combined_t0/c3/in.pcap",
+          "tcp and host 192.168.10.61 and host 192.168.10.62"
+         ]
+        },
+        "source_port_wait": {
+         "port": 59550,
+         "polls": 50,
+         "elapsed_s": 50.697,
+         "result": "free"
+        },
+        "outstation_ready": true,
+        "master_rc": 0,
+        "master_wall_s": 1.708,
+        "tcpdump": {
+         "out": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         },
+         "in": {
+          "captured": 75,
+          "received": 150,
+          "dropped_kernel": 0
+         }
+        },
+        "frames_out": 75,
+        "frames_in": 75,
+        "ok": true,
+        "role": "installed_again"
+       }
+      },
+      "ok": true
+     },
+     "scenario": {
+      "policy": "protected",
+      "connections": {
+       "c1": {
+        "role": "installed",
+        "master_port": 59550,
+        "ran": true,
+        "vision_ok": true,
+        "connect_ok": true,
+        "master_rc": 0,
+        "master_timeout": false,
+        "source_port_wait": {
+         "port": 59550,
+         "polls": 1,
+         "elapsed_s": 0.035,
+         "result": "free"
+        },
+        "error": null,
+        "completed": true,
+        "reads_completed": 20,
+        "resp_lens": [
+         61
+        ],
+        "response_lengths": {
+         "OPERATE": [
+          61
+         ],
+         "READ": [
+          61
+         ],
+         "SELECT": [
+          61
+         ]
+        },
+        "padded": false,
+        "retransmitted": 0,
+        "complete": 20,
+        "incomplete": 0,
+        "piggyback": 0,
+        "wire_rc": 0,
+        "clrt_rc": 0,
+        "failures": [],
+        "ok": true,
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 0.0,
+          "median": 5,
+          "iqr": 5.0,
+          "p95": 12.0,
+          "p99": 31.0,
+          "max": 31.0,
+          "sd_population": 6.7,
+          "sd_sample": 6.8
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -7.0,
+          "median": 1,
+          "iqr": 7.0,
+          "p95": 12.0,
+          "p99": 31.0,
+          "max": 31.0,
+          "sd_population": 7.9,
+          "sd_sample": 8.2
+         },
+         "tails": [
+          {
+           "t_req": 1791993365533039,
+           "clrt_us": 981,
+           "error_us": 31.0
+          },
+          {
+           "t_req": 1791993365600672,
+           "clrt_us": 962,
+           "error_us": 12.0
+          },
+          {
+           "t_req": 1791993365195045,
+           "clrt_us": 958,
+           "error_us": 8.0
+          },
+          {
+           "t_req": 1791993365397712,
+           "clrt_us": 943,
+           "error_us": -7.0
+          },
+          {
+           "t_req": 1791993365736055,
+           "clrt_us": 957,
+           "error_us": 7.0
+          }
+         ],
+         "pass": true,
+         "gated": true
+        }
+       },
+       "c2": {
+        "role": "unknown_port",
+        "master_port": 60550,
+        "ran": true,
+        "vision_ok": true,
+        "connect_ok": true,
+        "master_rc": 0,
+        "master_timeout": false,
+        "source_port_wait": {
+         "port": 60550,
+         "polls": 1,
+         "elapsed_s": 0.036,
+         "result": "free"
+        },
+        "error": null,
+        "completed": true,
+        "reads_completed": 20,
+        "resp_lens": [
+         37,
+         49
+        ],
+        "response_lengths": {
+         "OPERATE": [
+          37
+         ],
+         "READ": [
+          49
+         ],
+         "SELECT": [
+          37
+         ]
+        },
+        "padded": false,
+        "retransmitted": 0,
+        "complete": 20,
+        "incomplete": 0,
+        "piggyback": 0,
+        "wire_rc": 0,
+        "clrt_rc": 0,
+        "failures": [
+         "standards: observed.checker_result.conformant is False, expected True"
+        ],
+        "ok": false,
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 4325.0,
+          "median": 4396,
+          "iqr": 26.0,
+          "p95": 4436.0,
+          "p99": 4450.0,
+          "max": 4450.0,
+          "sd_population": 34.0,
+          "sd_sample": 34.9
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": 4325.0,
+          "median": 4396,
+          "iqr": 26.0,
+          "p95": 4436.0,
+          "p99": 4450.0,
+          "max": 4450.0,
+          "sd_population": 34.0,
+          "sd_sample": 34.9
+         },
+         "tails": [
+          {
+           "t_req": 1791993373551807,
+           "clrt_us": 5400,
+           "error_us": 4450.0
+          },
+          {
+           "t_req": 1791993373456924,
+           "clrt_us": 5386,
+           "error_us": 4436.0
+          },
+          {
+           "t_req": 1791993373172358,
+           "clrt_us": 5381,
+           "error_us": 4431.0
+          },
+          {
+           "t_req": 1791993373330299,
+           "clrt_us": 5381,
+           "error_us": 4431.0
+          },
+          {
+           "t_req": 1791993373361922,
+           "clrt_us": 5367,
+           "error_us": 4417.0
+          }
+         ],
+         "pass": false,
+         "gated": false
+        }
+       },
+       "c3": {
+        "role": "installed_again",
+        "master_port": 59550,
+        "ran": true,
+        "vision_ok": true,
+        "connect_ok": true,
+        "master_rc": 0,
+        "master_timeout": false,
+        "source_port_wait": {
+         "port": 59550,
+         "polls": 50,
+         "elapsed_s": 50.697,
+         "result": "free"
+        },
+        "error": null,
+        "completed": true,
+        "reads_completed": 20,
+        "resp_lens": [
+         61
+        ],
+        "response_lengths": {
+         "OPERATE": [
+          61
+         ],
+         "READ": [
+          61
+         ],
+         "SELECT": [
+          61
+         ]
+        },
+        "padded": false,
+        "retransmitted": 0,
+        "complete": 20,
+        "incomplete": 0,
+        "piggyback": 0,
+        "wire_rc": 0,
+        "clrt_rc": 0,
+        "failures": [],
+        "ok": true,
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 1.0,
+          "median": 5,
+          "iqr": 6.0,
+          "p95": 51.0,
+          "p99": 56.0,
+          "max": 56.0,
+          "sd_population": 16.4,
+          "sd_sample": 16.8
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -56.0,
+          "median": 2,
+          "iqr": 9.0,
+          "p95": 27.0,
+          "p99": 39.0,
+          "max": 39.0,
+          "sd_population": 20.6,
+          "sd_sample": 21.1
+         },
+         "tails": [
+          {
+           "t_req": 1791993431828304,
+           "clrt_us": 894,
+           "error_us": -56.0
+          },
+          {
+           "t_req": 1791993431761143,
+           "clrt_us": 899,
+           "error_us": -51.0
+          },
+          {
+           "t_req": 1791993432369712,
+           "clrt_us": 989,
+           "error_us": 39.0
+          },
+          {
+           "t_req": 1791993432234350,
+           "clrt_us": 977,
+           "error_us": 27.0
+          },
+          {
+           "t_req": 1791993432335860,
+           "clrt_us": 962,
+           "error_us": 12.0
+          }
+         ],
+         "pass": true,
+         "gated": true
+        },
+        "comparable": false,
+        "note": "not comparable: an earlier connection prerequisite failed or c3 did not run"
+       }
+      },
+      "switch_observed": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 15553,
+        "OUT_ACK_COMMIT": 40,
+        "OUT_RESP_RELEASE": 40,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 2,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 40,
+         "pkts": 160
+        },
+        "OPERATE": {
+         "triggers": 2,
+         "pkts": 8
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "switch_failures": [],
+      "installed_connections_expected": 2,
+      "unknown_native_connections_expected": 1
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59550,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_candidate61_reconnect_950_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "b8c046268596986958a31d122b8870df03ea76553626786218560f29038575e9",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "00a0e4f2928fc9f5e86168687a0a7878c11171e18c5659d8860bd40fc586fc44"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "22c65eb590c734120f0f9c7f41240d6dffad76fb4dc57b1f1dbd7cdd0f013b22",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "candidate61_reconnect_950_01_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": 82,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65452,
+    "read": 65452
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 20,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59550,
+    "last": 59550
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "candidate61_label": "reconnect_protected"
+  },
+  "reconnect_policy": "protected",
+  "max_token_stale": {
+   "rearm_61_full04": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "35784397930aa7c0af2fcddc4298156a55142a07543e343e61b24513f9934d53",
+ "config_file_sha256": "4445392a14178da96845e73a6d5d8944b6c19f102f84b72e362d8ed2b11bff07",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "4044672c2826b201b1183cc6c482e9267a51200abc4a6b8c3dd9d8926776897f",
+   "checks.py": "0e246af9f8682b4d13c78e0bc23d5e1276d68470e12e3e5e54e25177b72de672",
+   "vision_run.py": "0b2f6f196e3995aa217c46097f13503d171436b3cca090f297b64a2fdd594e70",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "build_sources": {
+   "rearm_61_full04": {
+    "source_sha256": "1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa",
+    "source_files": {
+     "response_only.p4": "1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "rearm_61_full04": {
+   "bfrt.json": "e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311",
+   "p0/tofino.bin": "60ce5aa25762ae8537bac84bf9aef8ec6e443c5e9384692014f44475b4dd6bc0",
+   "p1/tofino.bin": "e57f75f9a3cf39ab7d3f0cc4814300e989b635e40795c65c098361ab75ff38f5",
+   "p1/response_only.bfa": "2bdf05f793c1ab32721b7f786ade814a10dbedc5a8f72ee040a9a17ba92e78e0"
+  }
+ },
+ "paired_block": null,
+ "time": 1791993505.927087,
+ "soft_failures": [
+  "candidate61_reconnect_950_01_separate_ack_combined_t0"
+ ]
+}

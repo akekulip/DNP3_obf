@@ -226,6 +226,20 @@ class LossTrials(Base):
 
 
 class Reconnect(Base):
+    def test_each_connection_is_checked_on_its_own_master_port(self):
+        """candidate61_reconnect_950_01: c2 (the unknown port) was checked on c1's port and found no stream."""
+        r = LossFake()
+        self.assertEqual(self.execute(r, scenario='reconnect'), 0)
+        t = self.rec()['arms'][0]['trials'][0]
+        port = t['master_port']
+        offset = self.cfg['scenarios']['reconnect']['reconnect_port_offset']
+        dest = Path(self.tmp) / 'ev' / 'c1' / t['fixture'] / self.rec()['arms'][0]['arm'] / t['label']
+        want = {'c1': port, 'c2': port + offset, 'c3': port}
+        for cn, expected_port in want.items():
+            checker = json.load(open(dest / cn / 'standards.json'))['observed']['checker_result']
+            self.assertEqual(checker['raw_result']['master_port'], expected_port, cn)
+            self.assertEqual(checker['master_port'], expected_port, cn)
+
     def test_c1_c2_c3_are_analysed_separately_and_recorded(self):
         r = LossFake()
         self.assertEqual(self.execute(r, scenario='reconnect'), 0)

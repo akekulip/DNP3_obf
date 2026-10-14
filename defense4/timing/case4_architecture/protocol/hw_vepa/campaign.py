@@ -519,7 +519,8 @@ class Campaign:
                 pass
         return module
 
-    def run_standards_checker(self, dest, trial, arm, connection_id=None, unbound_native=False):
+    def run_standards_checker(self, dest, trial, arm, connection_id=None, unbound_native=False, master_port=None):
+        master_port = master_port if master_port is not None else trial.get('master_port')
         context = self.standards_context(trial, arm, connection_id, unbound_native)
         expected = standards.expected_identity(context)['expected']
         lengths = {kind: values[0] for kind, values in expected['lengths'].items()}
@@ -527,7 +528,7 @@ class Campaign:
             raw = self._load_standards_checker().check(
                 dest,
                 outstation_port=self.cfg['endpoints']['outstation_port'],
-                master_port=trial.get('master_port'),
+                master_port=master_port,
                 expected_lengths=lengths,
                 require_handshake=True)
         except SystemExit as error:
@@ -538,7 +539,7 @@ class Campaign:
         result = dict(raw)
         result['require_handshake'] = True
         result['outstation_port'] = self.cfg['endpoints']['outstation_port']
-        result['master_port'] = trial.get('master_port') or result.get('master_port')
+        result['master_port'] = master_port if master_port is not None else result.get('master_port')
         result['expected_lengths'] = expected['lengths']
         result['expected_counts'] = expected['counts']
         result['raw_result'] = raw
@@ -1171,6 +1172,7 @@ class Campaign:
         vc = result.get('connections', {})
         out, fails = {}, []
         run_sbo = self.cfg['traffic'].get('run_sbo', True)
+        reconnect_offset = self.cfg['scenarios'][self.scenario]['reconnect_port_offset']   # c2's commanded port
         for cn in conns:
             d = os.path.join(dest, cn)
             e = checks.load_evidence_files(master=os.path.join(d, 'master.json'),
@@ -1208,7 +1210,9 @@ class Campaign:
                     select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                     operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
                     aggregate_ok=not connection_failures,
-                    checker_result=self.run_standards_checker(d, trial, arm, cn, cn == 'c2')),
+                    checker_result=self.run_standards_checker(
+                        d, trial, arm, cn, cn == 'c2',
+                        master_port=trial['master_port'] + (reconnect_offset if cn == 'c2' else 0))),
                 connection_id=cn, unbound_native=(cn == 'c2'))
             connection_failures.extend(std_fail)
             out[cn] = {'role': ent.get('role'), 'master_port': ent.get('master_port'), 'ran': ent.get('ran', cn in vc),
