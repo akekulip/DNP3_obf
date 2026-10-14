@@ -153,12 +153,19 @@ def _stats_failures(data, label):
     return failures
 
 
+def _command_text(command):
+    # vision_run.py records argv lists; str(list) would hide '-Q in' as "'-Q', 'in'"
+    if isinstance(command, (list, tuple)):
+        return ' '.join(str(arg) for arg in command)
+    return str(command)
+
+
 def _capture_commands(data):
     commands = data.get('capture_commands') if isinstance(data, dict) else None
     if isinstance(commands, dict):
-        return [str(v) for v in commands.values()]
+        return [_command_text(v) for v in commands.values()]
     if isinstance(commands, list):
-        return [str(v) for v in commands]
+        return [_command_text(v) for v in commands]
     return []
 
 

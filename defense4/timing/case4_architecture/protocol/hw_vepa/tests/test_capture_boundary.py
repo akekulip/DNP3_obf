@@ -163,6 +163,25 @@ def test_main_capture_must_retain_incoming_command_and_stats(tmp_path):
     assert any('incoming physical capture command' in failure for failure in result['failures'])
 
 
+def test_argv_list_capture_commands_as_vision_run_records_them_are_recognized(tmp_path):
+    """vision_run.py stores each tcpdump command as an argv list; the -Q in direction must still be seen."""
+    captures = make_boundary(tmp_path)
+    stats = {'captured': 5, 'dropped_kernel': 0, 'dropped_interface': 0}
+    write_json(captures['run_result']['path'], {
+        'capture_commands': {'out': ['tcpdump', '-i', 'enp1s0', '-Q', 'out', '-w', 'out.pcap'],
+                             'in': ['tcpdump', '-i', 'enp1s0', '-Q', 'in', '-w', 'in.pcap']},
+        'tcpdump_stats': stats})
+    result = capture_boundary.validate_boundary_evidence(
+        captures, required_payload_len=61, expected_attempts=1, checker_result=checker_result(0))
+    assert not any('incoming physical capture command' in f for f in result['failures']), result['failures']
+    write_json(captures['run_result']['path'], {
+        'capture_commands': {'out': ['tcpdump', '-i', 'enp1s0', '-Q', 'out', '-w', 'out.pcap']},
+        'tcpdump_stats': stats})
+    result = capture_boundary.validate_boundary_evidence(
+        captures, required_payload_len=61, expected_attempts=1, checker_result=checker_result(0))
+    assert any('incoming physical capture command' in f for f in result['failures'])
+
+
 def test_random_61_byte_tcp_segment_is_not_boundary_evidence(tmp_path):
     captures = make_boundary(tmp_path, random61=True)
     result = capture_boundary.validate_boundary_evidence(
