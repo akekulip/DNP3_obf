@@ -1,6 +1,14 @@
 # Generation-safe rearm evidence
 
-**2026-10-14 candidate61 qualification complete (PLAN steps 1-5).** Report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_REPORT.md`. Not pushed; no defaults promoted; real-relay compatibility and the transit-path tail source remain open.
+**2026-10-14 f0baa724a checkpoint (mechanism completion, `DNP3_Next_Implementation_Prompt_f0baa724a.md` + `DNP3_f0baa724a_Audit.md`).**
+- HEAD `f0baa724a` on `main` (= `origin/main`). Dirty paths owned by Philip and preserved: `WORKING_NOTES.md`, the two root prompt/audit files, untracked old evidence and paper corpus. `DNP3_f0baa724a_Reproduction.zip` is not on disk; the audit probes are reproduced from its text.
+- Candidate: `seg61_02/evidence/full_04/response_only.p4` SHA256 `1b2d62d1…65aa` (regenerates byte-identically), SDK 9.13.2 bfrt `e32df204…`, p4pp `3306c394…`; strict comparison source `2ad71761…`.
+- Live switch (read-only `ps`, 2026-10-14): `bf_switchd` running `case4_response_path_conf.json` (production restore target), matching the recorded state.
+- Decisions (Philip, 2026-10-14): normalize all three CLRTs (READ, SELECT, OPERATE) in a separate control-timing candidate while keeping the OPERATE command hold J as its own objective; piggyback gets a response-aware bounded latency (global readiness unchanged); silicon authorized for Gates 2, 3 and 5 with software endpoints only and no relay OPERATE; model gates only after functional changes; the E-stage CRC change is an experiment.
+- Gate 1 (acceptance and reproducibility): implemented and tested offline (precision status serialized with qualification; per-attempt profile-exact verdict; build-tree precondition split; nearest-rank/sample-SD; PLAN/report corrections). Suite 763 passed. Review pending, then commit.
+- Open: Gate 2 repeated SBO; Gate 3 control timing and piggyback; Gate 4 E-stage CRC experiment; Gate 5 cost and tail localization.
+
+**2026-10-14 candidate61 qualification complete (PLAN steps 1-5).** Report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_REPORT.md`. Later pushed to `origin/main` at `f0baa724a`; no defaults promoted; repeated SBO and control-CLRT normalization remain open (f0baa724a audit); real-relay compatibility and the transit-path tail source remain open.
 
 **2026-10-14 candidate61 step 4 (timing and size evaluation) complete on silicon.** Six interleaved candidate/strict blocks at 59,570 PPS / 950 us (4 arms x 500 READs, rotated), piggyback, and a 14,892-vs-59,570 PPS rate comparison; all restored, production observed after each. Pooled READ abs p99: candidate61 timing_only 54 us, combined 51 us; strict 65 us / 51 us. Bound lengths and growth exact in every trial. ~1.1 ms tails arise in the transit path between Vision's transmit and receive taps (NIC, link or Tofino; endpoints emit on time), occur in untimed arms and equally in the strict build, so they are not caused by the hold or the encoding; the component is undetermined. Results: `core/response_only_rearm/stage_experiments/seg61_02/evidence/STEP4_RESULTS.md`.
 

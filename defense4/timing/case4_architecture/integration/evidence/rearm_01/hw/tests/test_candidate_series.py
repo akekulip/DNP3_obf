@@ -320,9 +320,10 @@ def test_deployed_vision_helper_imports_from_only_its_pinned_files(tmp_path):
 
 
 INJECTED = 'standards: packet_boundary: injected rejection'
+PROFILE_INJECTED = 'profile: profile not conformant: attempt #3 (READ): injected rejection'
 
 
-@pytest.mark.parametrize('rejection', [[], [INJECTED]])
+@pytest.mark.parametrize('rejection', [[], [INJECTED], [PROFILE_INJECTED]])
 def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatch, tmp_path, rejection):
     module, cfg = configured()
     runner = module.base.DryRunner(); runner.dry = False
@@ -353,5 +354,5 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
         with pytest.raises(module.base.StepFailed, match='injected rejection'):
             campaign.verdict(trial, {}, 'series_standards', str(tmp_path), vision, arm, 'separate_ack')
         assert trial['ok'] is False
-        assert 'c1: ' + INJECTED in trial['failures']
+        assert 'c1: ' + rejection[0] in trial['failures']
     assert calls == ['c1', 'c2', 'c3']

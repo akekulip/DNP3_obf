@@ -12,8 +12,10 @@ from pathlib import Path
 
 import capture_boundary
 
-SCHEMA_VERSION = 'dnp3-standards-v1'
+SCHEMA_VERSION = 'dnp3-standards-v2'   # v2: observed.precision + qualification
 SBO = ('SELECT', 'OPERATE')
+PRECISION_STATUSES = ('pass', 'deferred', 'fail', 'not_applicable')
+QUALIFICATIONS = ('qualified', 'measurement_only', 'rejected')
 
 BOUNDARY_CAPTURE_KEYS = (
     'capture_offloads',
@@ -212,21 +214,21 @@ def validate_standards(artifact, context, captures):
         try:
             artifact = json.load(open(artifact))
         except (OSError, ValueError) as error:
-            return {'ok': False, 'failures': ['artifact unreadable: %s' % error]}
+            return {'ok': False, 'failures': ['artifact unreadable: %s' % error], 'qualification': 'rejected'}
     failures = []
     if not isinstance(artifact, dict):
-        return {'ok': False, 'failures': ['artifact is not an object']}
+        return {'ok': False, 'failures': ['artifact is not an object'], 'qualification': 'rejected'}
     try:
         expected = expected_identity(context)
     except (KeyError, TypeError, ValueError) as error:
-        return {'ok': False, 'failures': ['context malformed: %s' % error]}
+        return {'ok': False, 'failures': ['context malformed: %s' % error], 'qualification': 'rejected'}
     failures += _validate_context(context, captures, expected)
     _append_mismatch(failures, 'schema_version', SCHEMA_VERSION, artifact.get('schema_version'))
     for group in ('run', 'identity', 'checker', 'expected'):
         if not isinstance(artifact.get(group), dict):
             failures.append('missing or malformed %s' % group)
     if failures:
-        return {'ok': False, 'failures': failures, 'expected': expected.get('expected')}
+        return {'ok': False, 'failures': failures, 'expected': expected.get('expected'), 'qualification': 'rejected'}
     for key, value in expected['run'].items():
         _append_mismatch(failures, 'run.%s' % key, value, artifact['run'].get(key))
     for key, value in expected['identity'].items():
@@ -319,8 +321,15 @@ def validate_standards(artifact, context, captures):
         for failure in boundary_result.get('failures', []):
             failures.append('packet_boundary: ' + failure)
 
+    purpose = ((context or {}).get('config') or {}).get('evaluation', {}).get('purpose', 'qualification')
+    precision = (artifact.get('observed') or {}).get('precision') if isinstance(artifact.get('observed'), dict) else None
+    precision_failures = _validate_precision(artifact['observed'], context, purpose) \
+        if isinstance(artifact.get('observed'), dict) else []
+    failures += precision_failures
     return {'ok': not failures, 'failures': failures, 'expected': expected['expected'],
-            'capture_hashes': capture_hashes}
+            'capture_hashes': capture_hashes,
+            'precision': precision if not precision_failures else None,
+            'qualification': qualification(not failures, precision, purpose)}
 
 
 def _is_sha(value):
@@ -390,6 +399,116 @@ def _observed_from_timing(timing, observed):
     return rows
 
 
+PRECISION_MINIMUM_ELIGIBLE = 20
+PRECISION_MAXIMUM_P99_US = 100
+
+
+def precision_requirement(context):
+    """(required, reason) derived from the run context, never from the artifact: a timed arm on the
+    separate-ACK fixture with READ precision enabled claims a READ timing target, unless the campaign code path
+    declared an explicit exemption (context['precision_exempt'], e.g. a loss trial) or the connection is an
+    unbound native one."""
+    config = (context or {}).get('config') or {}
+    arm = (context or {}).get('arm') or _first_config_arm(config) or {}
+    trial = (context or {}).get('trial') or {}
+    evaluation = config.get('evaluation', {}) or {}
+    if not arm.get('T'):
+        return False, 'arm %s has no timing target (T=0)' % arm.get('name')
+    if trial.get('fixture', 'separate_ack') != 'separate_ack':
+        return False, 'fixture %s: READ CLRT is undefined without a separate ACK' % trial.get('fixture')
+    if evaluation.get('read_precision', True) is not True:
+        return False, 'READ precision disabled for %s' % evaluation.get('purpose')
+    if context.get('unbound_native'):
+        return False, 'unbound native connection: no timing target'
+    if context.get('precision_exempt'):
+        return False, str(context['precision_exempt'])
+    return True, None
+
+
+def _precision_numbers(precision):
+    eligible = precision.get('eligible')
+    p99 = (precision.get('absolute_error_us') or {}).get('p99')
+    ok = (isinstance(eligible, int) and not isinstance(eligible, bool) and
+          isinstance(p99, (int, float)) and not isinstance(p99, bool))
+    return (eligible, p99) if ok else (None, None)
+
+
+def precision_block(required, precision=None, purpose='qualification', reason=None):
+    """READ precision status, kept apart from standards conformance.
+
+    required: the trial claims a READ timing target (see precision_requirement).
+    precision: checks.read_precision output, or None when the path produced none.
+    A required block without usable evidence fails. Only a p99 exceedance over enough eligible READs in an
+    explicit timing-characterization run is deferred (measurement only); everything else that misses fails.
+    """
+    if not required:
+        return {'required': False, 'status': 'not_applicable',
+                'reasons': [reason or 'no READ timing target for this arm/fixture'], 'evidence': precision}
+    eligible, p99 = _precision_numbers(precision) if isinstance(precision, dict) else (None, None)
+    if eligible is None:
+        return {'required': True, 'status': 'fail', 'reasons': ['READ precision evidence missing'],
+                'evidence': precision}
+    if eligible >= PRECISION_MINIMUM_ELIGIBLE and p99 <= PRECISION_MAXIMUM_P99_US:
+        return {'required': True, 'status': 'pass', 'reasons': [], 'evidence': precision}
+    message = 'READ precision: eligible=%s (minimum%d), p99 absolute CLRT error=%s us (maximum%d)' % (
+        eligible, PRECISION_MINIMUM_ELIGIBLE, p99, PRECISION_MAXIMUM_P99_US)
+    deferrable = (purpose == 'timing_precision_characterization' and eligible >= PRECISION_MINIMUM_ELIGIBLE)
+    return {'required': True, 'status': 'deferred' if deferrable else 'fail', 'reasons': [message],
+            'evidence': precision}
+
+
+def qualification(structural_ok, precision, purpose='qualification'):
+    """Overall verdict for the selected research configuration: conformance AND precision AND purpose."""
+    if not structural_ok or not isinstance(precision, dict) or precision.get('status') not in PRECISION_STATUSES:
+        return 'rejected'
+    if precision['status'] == 'fail':
+        return 'rejected'
+    if precision['status'] == 'deferred' or purpose != 'qualification':
+        return 'measurement_only'
+    return 'qualified'
+
+
+def _validate_precision(observed, context, purpose):
+    """The artifact's precision block must agree with the context-derived requirement, and a claimed pass or
+    deferral must be supported by its own evidence against the fixed bound (not a bound the artifact states)."""
+    failures = []
+    block = observed.get('precision')
+    if not isinstance(block, dict):
+        return ['observed.precision missing or malformed']
+    status, required, reasons = block.get('status'), block.get('required'), block.get('reasons')
+    if status not in PRECISION_STATUSES:
+        failures.append('observed.precision.status %r not in %r' % (status, PRECISION_STATUSES))
+    if not isinstance(required, bool):
+        failures.append('observed.precision.required is %r, expected boolean' % (required,))
+    if not isinstance(reasons, list):
+        failures.append('observed.precision.reasons is %r, expected list' % (reasons,))
+    if failures:
+        return failures
+    want_required, _ = precision_requirement(context)
+    if required is not want_required:
+        failures.append('observed.precision.required is %r but the context requires %r' % (required, want_required))
+    if required and status == 'not_applicable':
+        failures.append('observed.precision: required but status not_applicable')
+    if not required and status != 'not_applicable':
+        failures.append('observed.precision: not required but status %r' % status)
+    if status in ('fail', 'deferred', 'not_applicable') and not reasons:
+        failures.append('observed.precision.status %r without reasons' % status)
+    if status == 'deferred' and purpose != 'timing_precision_characterization':
+        failures.append('observed.precision deferred outside timing_precision_characterization')
+    if status in ('pass', 'deferred'):
+        evidence = block.get('evidence')
+        eligible, p99 = _precision_numbers(evidence) if isinstance(evidence, dict) else (None, None)
+        if eligible is None:
+            failures.append('observed.precision.evidence does not support status %r (no eligible/p99)' % status)
+        elif eligible < PRECISION_MINIMUM_ELIGIBLE:
+            failures.append('observed.precision.evidence does not support status %r: eligible %d < %d'
+                            % (status, eligible, PRECISION_MINIMUM_ELIGIBLE))
+        elif (status == 'pass') != (p99 <= PRECISION_MAXIMUM_P99_US):
+            failures.append('observed.precision.evidence does not support status %r: p99 %s us against %d'
+                            % (status, p99, PRECISION_MAXIMUM_P99_US))
+    return failures
+
+
 def build_standards_artifact(context, captures, observed=None):
     observed = dict(observed or {})
     expected = expected_identity(context)
@@ -406,6 +525,78 @@ def build_standards_artifact(context, captures, observed=None):
             'select_authorizes_operate': observed.get('select_authorizes_operate') is True,
             'operate_success': observed.get('operate_success') is True,
             'aggregate_verdict': observed.get('aggregate_verdict') is True,
+            'precision': observed.get('precision'),
         },
     }
     return artifact
+
+
+# ---- candidate61 profile-exact verdict, bound to the same run, build, config and captures ------------------
+
+PROFILE_SCHEMA_VERSION = 'dnp3-profile-v1'
+PROFILE_CAPTURES = ('in', 'out')
+
+
+def profile_required(context):
+    """The campaign claims the candidate61 encoding (or its native arms) for this trial/connection."""
+    return expected_identity(context)['identity']['profile'] == 'candidate61'
+
+
+def build_profile_artifact(context, captures, result, checker_file):
+    expected = expected_identity(context)
+    return {
+        'schema_version': PROFILE_SCHEMA_VERSION,
+        'run': expected['run'],
+        'identity': expected['identity'],
+        'expected': expected['expected'],
+        'checker': {'profile_check_sha256': sha256_file(checker_file)},
+        'captures': _capture_hashes({k: v for k, v in (captures or {}).items() if k in PROFILE_CAPTURES}),
+        'result': result,
+    }
+
+
+def validate_profile(artifact, context, captures, checker_file):
+    if isinstance(artifact, (str, os.PathLike)):
+        try:
+            artifact = json.load(open(artifact))
+        except (OSError, ValueError) as error:
+            return {'ok': False, 'failures': ['profile artifact unreadable: %s' % error]}
+    if not isinstance(artifact, dict):
+        return {'ok': False, 'failures': ['profile artifact is not an object']}
+    failures = []
+    try:
+        expected = expected_identity(context)
+    except (KeyError, TypeError, ValueError) as error:
+        return {'ok': False, 'failures': ['context malformed: %s' % error]}
+    _append_mismatch(failures, 'schema_version', PROFILE_SCHEMA_VERSION, artifact.get('schema_version'))
+    for group in ('run', 'identity', 'expected'):
+        if artifact.get(group) != expected[group]:
+            failures.append('%s mismatch: expected %r, got %r' % (group, expected[group], artifact.get(group)))
+    try:
+        _append_mismatch(failures, 'checker.profile_check_sha256', sha256_file(checker_file),
+                         (artifact.get('checker') or {}).get('profile_check_sha256'))
+    except OSError as error:
+        failures.append('profile checker unreadable: %s' % error)
+    actual = _capture_hashes({k: v for k, v in (captures or {}).items() if k in PROFILE_CAPTURES})
+    for name in PROFILE_CAPTURES:
+        if name not in actual or 'error' in actual[name]:
+            failures.append('captures.%s missing or unreadable' % name)
+        else:
+            _append_mismatch(failures, 'captures.%s.sha256' % name, actual[name]['sha256'],
+                             ((artifact.get('captures') or {}).get(name) or {}).get('sha256'))
+    result = artifact.get('result')
+    if not isinstance(result, dict):
+        failures.append('profile result missing or malformed')
+    else:
+        if result.get('conformant') is not True:
+            failures.append('profile not conformant: %r' % (result.get('failures') or [])[:4])
+        _append_mismatch(failures, 'result.expected_lengths', expected['expected']['lengths'],
+                         result.get('expected_lengths'))
+        _append_mismatch(failures, 'result.counts', expected['expected']['counts'], result.get('counts'))
+        if (context or {}).get('master_port') is not None:
+            _append_mismatch(failures, 'result.master_port', context['master_port'], result.get('master_port'))
+        if not isinstance(result.get('attempts'), int) or not isinstance(result.get('responses'), int) or \
+                result['attempts'] < result['responses'] or result['responses'] < 1:
+            failures.append('profile attempts/responses malformed: %r/%r'
+                            % (result.get('attempts'), result.get('responses')))
+    return {'ok': not failures, 'failures': failures}

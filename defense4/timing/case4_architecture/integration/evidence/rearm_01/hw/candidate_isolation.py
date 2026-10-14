@@ -258,7 +258,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                     ev, list(cfail), transport_ok=(not any(f.endswith('wire_check.py failed rc1') for f in cfail)),
                     select_ok=outstation.get('select_real') == 1,
                     operate_ok=outstation.get('operate_real') == 1,
-                    aggregate_ok=not cfail,
+                    aggregate_ok=not cfail, precision_required=False,
+                    precision_reason='isolation: stale_source_characterization, never precision qualification',
                     checker_result=self.run_standards_checker(str(root), trial, arm, cn)),
                 connection_id=cn))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)

@@ -77,3 +77,30 @@ def test_growth_check_tolerates_no_sbo_and_unknown_kinds_and_reports_the_match(t
     g = m.growth_check(tmp_path, ex, measured=24)
     assert g['expected_fresh_bytes'] == 24 and g['growth_match'] is True and g['unknown_kinds'] == ['F7']
     assert m.growth_check(tmp_path, ex, measured=36)['growth_match'] is False
+
+
+def _es():
+    sys.path.insert(0, str(HERE.parents[4] / 'integration/evidence/rearm_01'))
+    sys.path.insert(0, str(HERE.parents[4] / 'protocol/hw_vepa'))
+    import eval_summary
+    return eval_summary
+
+
+def test_declared_conventions_are_nearest_rank_and_sample_sd():
+    es = _es()
+    values = list(range(1, 101))
+    assert es.pct(values, 0.99) == 99                       # ceil(0.99 * 100) = 99th value
+    assert abs(es.pct_interp(values, 0.99) - 99.01) < 1e-9  # comparison only
+    assert es.pct([5], 0.99) == 5 and es.pct([], 0.99) is None
+    assert es.sd_sample([1, 3]) == 1.41 and es.sd_sample([1]) is None
+
+
+def test_rate_comparison_is_91_us_nearest_rank_not_90_5():
+    """f0baa724a audit: 59,570 PPS gives 91 us nearest-rank versus the reported 90.5 us interpolation."""
+    run = HERE / 'evidence/hw_campaigns/candidate61_compare_59570_950_01'
+    if not (run / 'campaign_run.json').exists():
+        import pytest
+        pytest.skip('retained rate comparison absent')
+    pooled = _es().summarize([str(run)])['arms']['combined']['pooled']
+    assert pooled['abs_p99_us'] == 91.0
+    assert round(pooled['abs_p99_interp_us'], 2) == 90.51

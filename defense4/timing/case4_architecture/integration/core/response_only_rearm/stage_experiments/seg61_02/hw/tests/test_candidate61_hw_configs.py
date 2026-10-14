@@ -28,7 +28,65 @@ def load_path(path):
         return json.load(f)
 
 
+def build_tree_status():
+    """(present, stderr): the generator's own precondition check for the ignored compiler outputs."""
+    result = subprocess.run([sys.executable, str(GEN), '--check-build'], cwd=str(REPO), text=True,
+                            capture_output=True)
+    if result.returncode not in (0, 3):                 # anything but 'present' or 'missing' is a real failure
+        raise AssertionError('build_candidate61_configs.py --check-build rc=%d: %s' % (result.returncode, result.stderr))
+    return result.returncode == 0, result.stderr
+
+
+BUILD_PRESENT, BUILD_MISSING = build_tree_status()
+
+
+def sha_file(path):
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+class Candidate61SourceOnlyTests(unittest.TestCase):
+    """Tracked source, manifests and configs: no compiler output needed."""
+
+    def test_configs_bind_the_tracked_compile_manifests(self):
+        c4 = REPO / 'defense4/timing/case4_architecture'
+        for path in sorted(CFG.glob('candidate61_*.json')) + sorted(CFG.glob('strict_comparison_*.json')):
+            data = load_path(path)
+            for name, build in data['builds'].items():
+                manifest = json.load(open(c4 / build['manifest']))
+                self.assertEqual(manifest['exit_code'], 0, path.name)
+                self.assertEqual(manifest['source_sha256'], build['source_sha256'], path.name)
+                for rel, digest in build['hashes'].items():
+                    self.assertEqual(manifest['artifact_sha256'][rel], digest, (path.name, rel))
+            ident = data['candidate61_identity']
+            self.assertEqual(ident['switch_compile']['manifest_sha256'], sha_file(c4 / ident['switch_compile']['manifest']))
+            self.assertEqual(ident['full04_source_sha256'], CANDIDATE_SHA)
+            self.assertEqual(sha_file(c4 / ident['switch_compile']['manifest'].replace('compile_switch_9132/manifest.json',
+                                                                                        'response_only.p4')), CANDIDATE_SHA)
+
+    def test_missing_build_tree_is_an_explicit_precondition(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:                  # a checkout with no compiler outputs at all
+            result = subprocess.run([sys.executable, str(GEN)], cwd=tmp, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertEqual(result.stderr.count('missing compiler output'), 6, result.stderr)
+        self.assertEqual(result.stderr.count('rebuild: '), 6)
+        self.assertIn('orchestrator.py', result.stderr)
+        self.assertIn('bf-sde-9.13.1', result.stderr)
+
+    def test_hardware_bindings_fail_hard_without_the_build_tree(self):
+        import copy
+        import tempfile
+        cfg = campaign.load_config(str(CFG / 'candidate61_fourarm_smoke.json'))
+        with tempfile.TemporaryDirectory() as tmp:
+            broken = copy.deepcopy(cfg)
+            broken['builds']['rearm_61_full04']['out_dir'] = tmp
+            errs = campaign.check_bindings(broken)
+        self.assertTrue(any('on disk is missing' in e for e in errs), errs)
+
+
 class Candidate61HardwareConfigTests(unittest.TestCase):
+    @unittest.skipUnless(BUILD_PRESENT, 'compiler build tree absent (source-only checkout):\n' + BUILD_MISSING)
     def test_generator_is_reproducible(self):
         before = {p.relative_to(CFG): p.read_bytes() for p in CFG.glob('*.json')}
         result = subprocess.run([sys.executable, str(GEN)], cwd=str(REPO), text=True, capture_output=True)

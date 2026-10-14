@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path('defense4/timing/case4_architecture')
@@ -72,6 +73,33 @@ def latest_model_reports():
             failures.append(item)
     return {'latest_successful': by_kind, 'retained_failed': failures}
 
+
+# Compiler outputs are git-ignored (**/out/). The configs bind their hashes, so regeneration needs the real
+# build trees; they are never synthesized. Exit 3 names what is missing and how to rebuild it.
+BUILD_OUTPUTS = {
+    FULL / 'compile_switch_9132/out': (
+        'SDK 9.13.2 on the switch host: python3 %s (copies build.py and the source to decps@10.10.54.81, runs '
+        'bf-p4c --target tofino --arch tna -g, rsyncs out/ back)' % (FULL / 'compile_switch_9132/orchestrator.py')),
+    FULL / 'compile_local/out': (
+        'SDK 9.13.1 locally: python3 %s %s %s --compiler /home/philip/bf-sde-9.13.1/install/bin/bf-p4c'
+        % (ROOT / 'build.py', FULL / 'response_only.p4', FULL / 'compile_local')),
+    STRICT / 'compile_switch_9132/out': (
+        'SDK 9.13.2 on the switch host for the strict comparison source, the same orchestrator procedure '
+        'under %s' % (STRICT / 'compile_switch_9132')),
+}
+BUILD_FILES = ('bfrt.json', 'response_only.p4pp')
+
+
+def missing_build_outputs():
+    return [(str(out / name), how) for out, how in BUILD_OUTPUTS.items() for name in BUILD_FILES
+            if not (out / name).is_file()]
+
+
+_missing = missing_build_outputs()
+if '--check-build' in sys.argv[1:] or _missing:
+    for path, how in _missing:
+        sys.stderr.write('missing compiler output %s\n  rebuild: %s\n' % (path, how))
+    sys.exit(3 if _missing else 0)
 
 inputs = load_json(FULL / 'response_only.inputs.json')
 local_manifest = load_json(FULL / 'compile_local/manifest.json')

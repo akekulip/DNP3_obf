@@ -13,7 +13,8 @@ interval) and adds what PLAN step 4 asks for and that summary does not carry:
   - READ request-to-response latency (the measure that applies when the ACK is piggybacked)
   - internal loop packets and bytes, and external growth against the bound lengths: candidate61
     12 x READ + 24 x (SELECT + OPERATE), strict 9 x READ, native 0 (retransmitted exchanges counted apart)
-SD is the population SD (statistics.pstdev), the convention eval_summary.py uses. Stdlib only.
+Conventions follow eval_summary.py: nearest-rank percentiles, statistics.median, sample SD; the interpolated
+p99 and the population SD are kept as separately named comparisons. Stdlib only.
 """
 import argparse
 import json
@@ -33,8 +34,9 @@ NATIVE = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
 def dist(values):
     if not values:
         return None
-    return {'n': len(values), 'min': min(values), 'p50': es.pct(values, 0.5), 'p95': es.pct(values, 0.95),
-            'p99': es.pct(values, 0.99), 'max': max(values), 'mean': round(statistics.mean(values), 2),
+    return {'n': len(values), 'min': min(values), 'p50': statistics.median(values), 'p95': es.pct(values, 0.95),
+            'p99': es.pct(values, 0.99), 'p99_interp': es.pct_interp(values, 0.99), 'max': max(values),
+            'mean': round(statistics.mean(values), 2), 'sd': es.sd_sample(values),
             'sd_population': round(statistics.pstdev(values), 2)}
 
 
@@ -124,6 +126,7 @@ def run_report(roots):
             agg['sbo_completion_us'].extend(ctl['sbo_completion_us'])
             row = next(r for b in base['blocks'] if b['run'] == str(root) for r in b['rows'] if r['label'] == tr['label'])
             per_trial.append({'run': Path(root).name, 'arm': arm['arm'], 'label': tr['label'], 'ok': tr.get('ok'),
+                              'qualification': tr.get('qualification'),
                               'metric': row['metric'], 'signed': dist(errs),
                               'abs_p95_us': es.pct([abs(x) for x in errs], 0.95) if errs else None,
                               'excluded': row['excluded'], 'loop_pkts': row['loop_pkts'],
@@ -152,7 +155,8 @@ def main(argv=None):
     ap.add_argument('--rate', nargs='*', default=[])
     ap.add_argument('-o', '--output', required=True)
     a = ap.parse_args(argv)
-    out = {'sd_convention': 'population SD (statistics.pstdev)',
+    out = {'sd_convention': 'sample SD (n-1); sd_population kept for comparison',
+           'percentile_convention': 'nearest-rank (ceil(q*n)-th value); p99_interp kept for comparison',
            'candidate61': run_report([Path(r) for r in a.candidate])}
     for key, roots in (('strict_comparison', a.strict), ('piggyback', a.piggyback), ('rate', a.rate)):
         out[key] = {Path(r).name: run_report([Path(r)]) for r in roots} if key != 'strict_comparison' else (

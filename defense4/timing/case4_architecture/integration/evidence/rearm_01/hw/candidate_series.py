@@ -430,7 +430,9 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                     ev, list(cfail), transport_ok=(tool_rcs[cn]['wire_rc'] == 0),
                     select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                     operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
-                    aggregate_ok=not cfail,
+                    aggregate_ok=not cfail, precision_required=precision['gated'], precision=precision,
+                    precision_reason='series %s: READ precision not gated (timed=%s, fixture=%s)'
+                                     % (cn, bool(arm['T']), fixture),
                     checker_result=self.run_standards_checker(os.path.join(dest, cn), trial, arm, cn)),
                 connection_id=cn))
             connections[cn] = {'ok': not cfail, 'failures': cfail, 'read_precision': precision,

@@ -173,8 +173,14 @@ def valid_artifact(tmp_path, context, captures):
             'select_authorizes_operate': True,
             'operate_success': True,
             'aggregate_verdict': True,
+            'precision': standards.precision_block(True, PASSING_PRECISION),
         },
     }
+
+
+PASSING_PRECISION = {'pass': True, 'eligible': 500, 'gated': True, 'absolute_error_us': {'p99': 51.0}}
+FAILING_PRECISION = {'pass': False, 'eligible': 50, 'gated': True, 'minimum_eligible': 20,
+                     'maximum_p99_absolute_error_us': 100, 'absolute_error_us': {'p99': 144.0}}
 
 
 def test_valid_artifact_passes_with_identity_bound_to_context(tmp_path):
@@ -362,3 +368,136 @@ def test_malformed_context_is_rejected_without_crashing(tmp_path):
     result = standards.validate_standards(artifact, context, captures)
     assert result['ok'] is False
     assert any('context malformed' in failure for failure in result['failures'])
+
+
+# ---- precision status: serialized, reloaded, and kept apart from standards conformance -------------------
+
+def _write_and_validate(tmp_path, context, captures, precision_block):
+    artifact = valid_artifact(tmp_path, context, captures)
+    artifact['observed']['precision'] = precision_block
+    path = tmp_path / 'standards.json'
+    path.write_text(json.dumps(artifact))
+    return json.loads(path.read_text()), standards.validate_standards(str(path), context, captures)
+
+
+def test_precision_pass_round_trips_and_qualifies(tmp_path):
+    context, captures = base_context(tmp_path)
+    reloaded, result = _write_and_validate(tmp_path, context, captures,
+                                           standards.precision_block(True, PASSING_PRECISION))
+    assert reloaded['observed']['precision']['status'] == 'pass'
+    assert result['ok'] is True and result['qualification'] == 'qualified'
+    assert result['precision']['status'] == 'pass'
+
+
+def test_missing_precision_block_is_rejected(tmp_path):
+    context, captures = base_context(tmp_path)
+    artifact = valid_artifact(tmp_path, context, captures)
+    del artifact['observed']['precision']
+    result = standards.validate_standards(artifact, context, captures)
+    assert result['ok'] is False and result['qualification'] == 'rejected'
+    assert any('observed.precision missing' in f for f in result['failures'])
+
+
+def test_timed_arm_without_precision_evidence_is_rejected(tmp_path):
+    context, captures = base_context(tmp_path)
+    block = standards.precision_block(True, None)
+    assert block['status'] == 'fail' and block['reasons'] == ['READ precision evidence missing']
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['ok'] is True                       # conformance is separate
+    assert result['qualification'] == 'rejected'
+
+
+def test_precision_failure_in_qualification_purpose_is_rejected_not_hidden(tmp_path):
+    context, captures = base_context(tmp_path)
+    block = standards.precision_block(True, FAILING_PRECISION, 'qualification')
+    assert block['status'] == 'fail' and '144.0' in block['reasons'][0]
+    reloaded, result = _write_and_validate(tmp_path, context, captures, block)
+    assert reloaded['observed']['precision']['reasons'] == block['reasons']
+    assert result['ok'] is True and result['qualification'] == 'rejected'
+
+
+def test_retained_14892_shape_is_measurement_only(tmp_path):
+    """candidate61_compare_14892_950_02: structurally conformant, precision failing, characterization purpose."""
+    context, captures = base_context(tmp_path)
+    context['config']['evaluation'] = {'purpose': 'timing_precision_characterization', 'read_precision': True}
+    block = standards.precision_block(True, FAILING_PRECISION, 'timing_precision_characterization')
+    assert block['status'] == 'deferred'
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['ok'] is True and result['qualification'] == 'measurement_only'
+
+
+def test_deferred_outside_characterization_is_a_validation_failure(tmp_path):
+    context, captures = base_context(tmp_path)
+    block = standards.precision_block(True, FAILING_PRECISION, 'timing_precision_characterization')
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['ok'] is False and result['qualification'] == 'rejected'
+
+
+def test_untimed_arm_is_not_applicable_and_qualifies(tmp_path):
+    context, captures = base_context(tmp_path, arm_name='size_only')
+    context['arm']['T'] = 0
+    block = standards.precision_block(False, None, reason='size_only arm has no timing target')
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['precision']['status'] == 'not_applicable'
+    assert result['ok'] is True and result['qualification'] == 'qualified'
+
+
+@pytest.mark.parametrize('block, needle', [
+    ({'required': True, 'status': 'not_applicable', 'reasons': ['x']}, 'required but status not_applicable'),
+    ({'required': False, 'status': 'pass', 'reasons': []}, 'not required but status'),
+    ({'required': True, 'status': 'pass', 'reasons': [], 'evidence': FAILING_PRECISION}, 'does not support'),
+    ({'required': True, 'status': 'fail', 'reasons': []}, 'without reasons'),
+    ({'required': True, 'status': 'ok', 'reasons': []}, 'not in'),
+])
+def test_inconsistent_precision_blocks_are_rejected(tmp_path, block, needle):
+    context, captures = base_context(tmp_path)
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['ok'] is False and result['qualification'] == 'rejected'
+    assert any(needle in f for f in result['failures']), result['failures']
+
+
+# ---- review fixes: the requirement comes from the context, and claimed statuses are re-checked ---------------
+
+def test_timed_arm_cannot_self_declare_not_applicable(tmp_path):
+    context, captures = base_context(tmp_path)                      # combined, T=1, separate_ack by default
+    _, result = _write_and_validate(tmp_path, context, captures,
+                                    {'required': False, 'status': 'not_applicable', 'reasons': ['x']})
+    assert result['ok'] is False and result['qualification'] == 'rejected'
+    assert any('the context requires True' in f for f in result['failures']), result['failures']
+
+
+@pytest.mark.parametrize('evidence', [
+    {'pass': True, 'eligible': 0, 'absolute_error_us': {'p99': 10.0}},
+    {'pass': True, 'eligible': 500, 'absolute_error_us': {'p99': 9999.0}},
+    {'pass': True, 'eligible': 500},
+])
+def test_claimed_pass_is_rechecked_against_the_fixed_bound(tmp_path, evidence):
+    context, captures = base_context(tmp_path)
+    block = {'required': True, 'status': 'pass', 'reasons': [], 'evidence': evidence}
+    _, result = _write_and_validate(tmp_path, context, captures, block)
+    assert result['ok'] is False and result['qualification'] == 'rejected'
+    assert any('does not support' in f for f in result['failures']), result['failures']
+
+
+def test_insufficient_evidence_is_never_deferred():
+    thin = {'pass': False, 'eligible': 5, 'absolute_error_us': {'p99': 144.0}}
+    assert standards.precision_block(True, thin, 'timing_precision_characterization')['status'] == 'fail'
+    assert standards.precision_block(True, {'pass': False}, 'timing_precision_characterization')['status'] == 'fail'
+
+
+def test_declared_exemption_and_unbound_connections_are_not_applicable(tmp_path):
+    context, captures = base_context(tmp_path)
+    context['precision_exempt'] = 'loss/recovery trial: READ precision is not evaluated'
+    assert standards.precision_requirement(context) == (False, context['precision_exempt'])
+    _, result = _write_and_validate(tmp_path, context, captures,
+                                    standards.precision_block(False, None, reason=context['precision_exempt']))
+    assert result['ok'] is True and result['qualification'] == 'qualified'
+    unbound = dict(context, precision_exempt=None, unbound_native=True)
+    assert standards.precision_requirement(unbound)[0] is False
+
+
+def test_piggyback_fixture_has_no_clrt_target(tmp_path):
+    context, _ = base_context(tmp_path)
+    context['trial'] = dict(context['trial'], fixture='piggyback')
+    required, reason = standards.precision_requirement(context)
+    assert required is False and 'piggyback' in reason

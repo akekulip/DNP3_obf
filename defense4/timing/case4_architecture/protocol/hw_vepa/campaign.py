@@ -465,22 +465,27 @@ class Campaign:
                               ('wire_check.py', 'clrt_check.py', 'checks.py', 'standards.py',
                                'capture_boundary.py')] + [CHECK_CAPTURE] + [
                                    os.path.join(os.path.dirname(CHECK_CAPTURE), name)
-                                   for name in ('capture.py', 'dnp3_std.py')],
+                                   for name in ('capture.py', 'dnp3_std.py', 'profile_check.py')],
             'unbound_native': unbound_native,
             'packet_boundary_required': bool(build.get('profile') == 'candidate61' or
                                              build.get('packet_boundary_required') or
                                              self.cfg.get('standards', {}).get('packet_boundary_required')),
         }
 
+    def precision_required(self, arm, fixture):
+        """The trial claims a READ timing target: timed arm, separate-ACK fixture, precision enabled."""
+        return bool(arm.get('T') and fixture == 'separate_ack' and
+                    self.cfg.get('evaluation', {}).get('read_precision', True))
+
     def standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
-                           checker_result=None):
+                           precision_required, precision=None, precision_reason=None, checker_result=None):
         # READ precision is gated by its own failure entry (soft in timing characterization); it is not a
-        # standards property, so a precision-only failure must not re-enter here as a hard standards failure
-        deferred = []
-        if failures and all(str(f).startswith('READ precision:') for f in failures):
-            deferred, failures, aggregate_ok = list(failures), [], True
+        # standards property, so a precision-only failure must not re-enter here as a hard standards failure.
+        # It is serialized separately as observed.precision and drives the qualification verdict.
+        if failures and all(str(f).startswith('READ precision') for f in failures):
+            failures, aggregate_ok = [], True
+        purpose = self.cfg.get('evaluation', {}).get('purpose', 'qualification')
         return {
-            'precision_deferred': deferred,
             'timing': ev.get('timing'),
             'checker_result': checker_result,
             'failures': failures,
@@ -488,6 +493,7 @@ class Campaign:
             'select_authorizes_operate': select_ok,
             'operate_success': operate_ok,
             'aggregate_verdict': aggregate_ok,
+            'precision': standards.precision_block(precision_required, precision, purpose, precision_reason),
         }
 
     def standards_captures(self, dest, captures):
@@ -553,19 +559,65 @@ class Campaign:
             json.dumps(raw, sort_keys=True, separators=(',', ':'), default=str).encode()).hexdigest()
         return result
 
-    def validate_standards_file(self, dest, trial, arm, captures, observed, connection_id=None, unbound_native=False):
+    def validate_standards_file(self, dest, trial, arm, captures, observed, connection_id=None, unbound_native=False,
+                                precision_exempt=None, master_port=None):
+        """precision_exempt: a code-path declaration (e.g. a loss trial) that this trial claims no READ timing
+        target although its arm is timed; the validator derives the requirement from this context, not from the
+        artifact. master_port: the commanded port (default the trial's), which the profile verdict must match."""
         if self.rn.dry:
             return []
         context = self.standards_context(trial, arm, connection_id, unbound_native)
+        context['precision_exempt'] = precision_exempt
+        context['master_port'] = master_port if master_port is not None else trial.get('master_port')
         captures = self.standards_captures(dest, captures)
         artifact = standards.build_standards_artifact(context, captures, observed)
         path = os.path.join(dest, 'standards.json')
         with open(path, 'w') as f:
             json.dump(artifact, f, indent=1, default=str)
         result = standards.validate_standards(path, context, captures)
+        failures = ['standards: ' + failure for failure in result['failures']]
+        if standards.profile_required(context):
+            profile = self.validate_profile_file(dest, context, captures, artifact['expected']['lengths'],
+                                                 context['master_port'])
+            result['profile'] = profile
+            failures += ['profile: ' + failure for failure in profile['failures']]
+            if not profile['ok']:
+                result['qualification'] = 'rejected'
+        if result.get('qualification') == 'rejected' and not failures:
+            # conformant, but the timing claim is not supported (e.g. missing precision evidence): never silent
+            failures.append('qualification: rejected: %s' % '; '.join((result.get('precision') or {}).get('reasons')
+                                                                       or ['precision status fail']))
         with open(os.path.join(dest, 'standards_verdict.json'), 'w') as f:
             json.dump(result, f, indent=1, default=str)
-        return ['standards: ' + failure for failure in result['failures']]
+        trial.setdefault('qualification', {})[connection_id or 'trial'] = result.get('qualification')
+        return failures
+
+    def validate_profile_file(self, dest, context, captures, lengths, master_port):
+        """Every response attempt against the exact candidate61 (or native) image, bound to this trial."""
+        checker = os.path.join(os.path.dirname(CHECK_CAPTURE), 'profile_check.py')
+        try:
+            module = self._load_profile_checker()
+            raw = module.check(dest, master_port, lengths, self.cfg['endpoints']['outstation_port'])
+        except Exception as error:                        # fail closed; the run still restores
+            raw = {'conformant': False, 'failures': ['profile checker error: %s' % error]}
+        path = os.path.join(dest, 'profile_verdict.json')
+        with open(path, 'w') as f:
+            json.dump(standards.build_profile_artifact(context, captures, raw, checker), f, indent=1, default=str)
+        return standards.validate_profile(path, context, captures, checker)
+
+    def _load_profile_checker(self):
+        path = os.path.join(os.path.dirname(CHECK_CAPTURE), 'profile_check.py')
+        spec = importlib.util.spec_from_file_location('dnp3_profile_check', path)
+        module = importlib.util.module_from_spec(spec)
+        sys.path.insert(0, os.path.dirname(CHECK_CAPTURE))
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            try:
+                sys.path.remove(os.path.dirname(CHECK_CAPTURE))
+            except ValueError:
+                pass
+        return module
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
     def _padded_suffix(self, arm):
@@ -1045,7 +1097,10 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
-                aggregate_ok=ok, checker_result=self.run_standards_checker(dest, trial, arm)))
+                aggregate_ok=ok, precision_required=self.precision_required(arm, fixture),
+                precision=obs.get('read_precision'),
+                precision_reason=('arm %s has no timing target (T=0)' % arm['name'] if not arm.get('T') else
+                                  'fixture %s: READ CLRT undefined or precision disabled' % fixture), checker_result=self.run_standards_checker(dest, trial, arm)))
         fails += std_fail
         ok = ok and not std_fail
         trial.update(ok=ok, failures=fails)
@@ -1151,7 +1206,10 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
-                aggregate_ok=not fails, checker_result=self.run_standards_checker(dest, trial, arm)))
+                aggregate_ok=not fails, precision_required=False,
+                precision_reason='loss/recovery trial: READ precision is not evaluated',
+                checker_result=self.run_standards_checker(dest, trial, arm)),
+            precision_exempt='loss/recovery trial: READ precision is not evaluated')
         trial.update(ok=not fails, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc, loss=res, observed=obs)
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if fails:
@@ -1202,6 +1260,8 @@ class Campaign:
             if precision['gated'] and not precision['pass']:
                 connection_failures.append('READ precision did not qualify: eligible%d, p99 absolute error%s us' %
                                            (precision['eligible'], (precision['absolute_error_us'] or {}).get('p99')))
+            exempt = (None if precision['gated'] or cn == 'c2' else
+                      'reconnect %s: READ precision not gated (policy %s)' % (cn, self.reconnect_policy))
             for tool, status in zip(('wire', 'clrt'), rcs[cn]):
                 if status.rc:
                     connection_failures.append('%s extractor rc=%d' % (tool, status.rc))
@@ -1216,11 +1276,15 @@ class Campaign:
                     select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                     operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
                     aggregate_ok=not connection_failures,
+                    precision_required=precision['gated'], precision=precision,
+                    precision_reason=exempt or 'reconnect %s: no READ timing target' % cn,
                     checker_result=self.run_standards_checker(
                         d, trial, arm, cn, cn == 'c2',
                         master_port=(None if trial.get('master_port') is None else
                                      trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))),
-                connection_id=cn, unbound_native=(cn == 'c2'))
+                connection_id=cn, unbound_native=(cn == 'c2'), precision_exempt=exempt,
+                master_port=(None if trial.get('master_port') is None else
+                             trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))
             connection_failures.extend(std_fail)
             out[cn] = {'role': ent.get('role'), 'master_port': ent.get('master_port'), 'ran': ent.get('ran', cn in vc),
                        'vision_ok': bool(ent.get('ok')), 'connect_ok': ent.get('master_rc') == 0,

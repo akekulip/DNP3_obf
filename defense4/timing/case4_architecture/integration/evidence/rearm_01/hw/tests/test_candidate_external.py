@@ -122,9 +122,10 @@ def test_pool_pins_every_member_and_rejects_duplicates():
 
 
 INJECTED='standards: packet_boundary: injected rejection'
+PROFILE_INJECTED = 'profile: profile not conformant: attempt #3 (READ): injected rejection'
 
 
-@pytest.mark.parametrize('rejection',[[],[INJECTED]])
+@pytest.mark.parametrize('rejection', [[], [INJECTED], [PROFILE_INJECTED]])
 def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatch,tmp_path,rejection):
     import json
     import vision_candidate
@@ -161,5 +162,5 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
     else:
         with pytest.raises(ce.base.StepFailed,match='injected rejection'):
             run.verdict(trial,{},'ext_standards',str(tmp_path),vision,arm,'separate_ack')
-        assert trial['ok'] is False and 'c1: '+INJECTED in trial['failures']
+        assert trial['ok'] is False and 'c1: '+rejection[0] in trial['failures']
     assert calls==['c1','c2','c3']
