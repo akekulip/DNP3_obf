@@ -62,6 +62,8 @@ def test_sealed_reset_profile_is_private_and_reversible():
     original = entry.installer.readback
     sealed = CORE/'stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out'
     baseline = CORE/'evidence/incremental_55/compile_local/out'
+    if not (sealed.is_dir() and baseline.is_dir()):        # git-ignored compiler output, absent in a fresh clone
+        pytest.skip('regenerate the isolated full and checkpoint55 compiler artifacts first')
     entry.configure(sealed)
     assert entry.installer.readback is not original
     assert len(entry.installer.readback.T_REGISTER_INIT) == 13
@@ -76,6 +78,8 @@ def test_sealed_snapshot_uses_sparse_reader_and_original_snapshot_module_is_unch
     entry = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(entry)
     sealed = CORE/'stage_experiments/combined_nt_diag_01/evidence/full_01/compile_local/out'
+    if not sealed.is_dir():                                # git-ignored compiler output, absent in a fresh clone
+        pytest.skip('regenerate the isolated full compiler artifact first')
     entry.configure(sealed)
     assert entry.snapshot.read_diagnostics is entry.entry.profile.read_diagnostics
     assert entry.snapshot.diagnostic_build(sealed) is False
