@@ -30,8 +30,8 @@ def ipg_operation(before, value):
             'data': [(name, value if name == 'ipg' else before[name]) for name in CONFIG_FIELDS]}
 
 
-def change_ipg(sw, before, value):
-    check_app(before, restore=before.get('trigger_counter') == 1)
+def change_ipg(sw, before, value, old_triggers=1):
+    check_app(before, restore=before.get('trigger_counter') != 0, old_triggers=old_triggers)
     operation = ipg_operation(before, value)
     enable = dict(kind='pktgen_enable', table=TABLE, pipe=1, key=KEY)
     sw.write(dict(enable, data=[('app_enable', False)]))
@@ -44,13 +44,19 @@ def change_ipg(sw, before, value):
     return after
 
 
-def check_app(entry, restore=False):
+def check_app(entry, restore=False, old_triggers=1):
+    # old_triggers: c1's READ-lane triggers (1 on candidate61; READ + SELECT = 2 on a control-timed build).
     for name, value in EXPECTED.items():
         if entry.get(name) != value:
             raise ValueError('unexpected READ app field: ' + name)
-    expected = (1, 1, 4) if restore else (0, 0, 0)
+    if type(old_triggers) is not int or not 1 <= old_triggers <= 2:
+        raise ValueError('old READ-lane trigger count must be 1 or 2')
+    tokens = EXPECTED['packets_per_batch_cfg'] + 1
+    expected = (old_triggers, old_triggers, old_triggers * tokens) if restore else (0, 0, 0)
     if tuple(entry.get(name) for name in COUNTERS) != expected:
-        raise ValueError('READ app must be fresh, or exactly one completed four-token batch on restore')
+        if old_triggers == 1:
+            raise ValueError('READ app must be fresh, or exactly one completed four-token batch on restore')
+        raise ValueError('READ app must be fresh, or exactly the %d completed old batches on restore' % old_triggers)
     if type(entry.get('ipg')) is not int or not 0 <= entry['ipg'] <= 0xffffffff:
         raise ValueError('missing or malformed prior IPG')
 
@@ -77,6 +83,8 @@ def main():
     parser.add_argument('--record', type=Path, required=True)
     parser.add_argument('--restore', type=Path)
     parser.add_argument('--ipg-ns', type=int, default=3_000_000_000)
+    parser.add_argument('--old-triggers', type=int, default=1, choices=(1, 2),
+                        help='READ-lane batches c1 left (restore only): 2 when SELECT also triggers the READ app')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args()
     if not 1_000_000_000 <= args.ipg_ns <= 4_000_000_000:
@@ -95,7 +103,8 @@ def main():
         parser.error('restore record does not match applied candidate delay')
     value = prior['before']['ipg'] if prior else args.ipg_ns
     record = {'time': time.time(), 'bfrt_sha256': digest, 'pipe': 1, 'app_id': 0,
-              'ipg_ns': value, 'applied': args.apply, 'restore_from': str(args.restore) if args.restore else None}
+              'ipg_ns': value, 'applied': args.apply, 'restore_from': str(args.restore) if args.restore else None,
+              'old_triggers': args.old_triggers}
     if not args.apply:
         print(json.dumps(record))
         return 0
@@ -119,12 +128,12 @@ def main():
             raise ValueError('live candidate E lifetime schema differs')
         before = sw.must_get(TABLE, 1, KEY)
         record['before'] = before
-        check_app(before, restore=bool(prior))
+        check_app(before, restore=bool(prior), old_triggers=args.old_triggers)
         if prior and before['ipg'] != prior['ipg_ns']:
             raise ValueError('current IPG differs from the saved delay')
         record['software_read_fallbacks_before'] = sorted(sw.sw_read)
         args.record.write_text(json.dumps(record, indent=2) + '\n')
-        after = change_ipg(sw, before, value)
+        after = change_ipg(sw, before, value, args.old_triggers)
         record['after'] = after
         record['software_read_fallbacks_after'] = sorted(sw.sw_read)
         check_change(before, after, value)

@@ -2,7 +2,8 @@
 """Fixed three-incarnation isolation sequence on an already installed tuple.
 
 Default prints an offline plan. The hardware owner installs/restores the switch
-and observes c2/pre_read_ready.json during its ten-second pre-READ pause:
+and observes c2/pre_read_ready.json during its pre-READ pause (10 s by default; the
+switch-side harness derives it from the old-token cleanup bound and passes --pre-read-grace-ms):
   sudo env DEFENSE4_HW_AUTHORIZED=1 python3 vision_isolation.py LABEL \
     --master-port PORT --padding 1 --apply
 
@@ -25,8 +26,6 @@ sys.path.insert(0, str(HERE))
 import vision_candidate as vc
 from token_window import PRE_READ_GRACE_MS
 
-GRACES = (0, PRE_READ_GRACE_MS, 0)
-
 
 def source_paths():
     """Every Vision-side file this scenario runs; candidate_isolation.verdict pins exactly these names."""
@@ -35,8 +34,12 @@ def source_paths():
             HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')
 
 
-def scenario(label, port, padding, apply=False, control_padding=1, image_len=58, qualify_capture=False):
+def scenario(label, port, padding, apply=False, control_padding=1, image_len=58, qualify_capture=False,
+             pre_read_grace_ms=PRE_READ_GRACE_MS):
     vc.guard(port, apply)
+    if type(pre_read_grace_ms) is not int or not 1 <= pre_read_grace_ms <= PRE_READ_GRACE_MS:
+        raise ValueError('c2 pre-READ pause must be an integer in 1..%d ms' % PRE_READ_GRACE_MS)
+    graces = (0, pre_read_grace_ms, 0)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
         raise ValueError('invalid label or padding')
     if type(qualify_capture) is not bool:
@@ -45,7 +48,7 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58,
     plan = [dict(name='c%d' % index, master_port=port, reads=1, start_seed=12344 + index,
                  pre_read_grace_ms=grace,
                  marker_path=str(parent / ('c%d' % index) / 'pre_read_ready.json') if grace else None)
-            for index, grace in enumerate(GRACES, 1)]
+            for index, grace in enumerate(graces, 1)]
     record = dict(scenario='candidate_same_tuple_isolation', label=label, master_port=port,
                   tuple=[vc.MASTER, port, vc.OUTSTATION, vc.SERVER_PORT],
                   namespaces=[vc.NAMESPACE_M, vc.NAMESPACE_O], nic=vc.NIC,
@@ -124,10 +127,13 @@ def main(argv=None):
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--qualify-capture', action='store_true',
                         help='opt-in physical packet-boundary qualification evidence for each leg')
+    parser.add_argument('--pre-read-grace-ms', type=int, default=PRE_READ_GRACE_MS,
+                        help='c2 pre-READ pause, derived by the switch-side harness from the cleanup bound')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding,
-                      image_len=args.image_len, qualify_capture=args.qualify_capture)
+                      image_len=args.image_len, qualify_capture=args.qualify_capture,
+                      pre_read_grace_ms=args.pre_read_grace_ms)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

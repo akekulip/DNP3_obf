@@ -1,0 +1,596 @@
+{
+  "generated_by": "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_diagnosis.py",
+  "spec": "integration/evidence/rearm_01/PLAN_m5.md S3",
+  "verdict": {
+    "read_lane_hypothesis": "confirmed",
+    "checks": {
+      "m4 READ app trigger_counter is 1 at c2 readiness": true,
+      "m4 READ app trigger_counter is 2 only from poll 0 on, before c2 issued any READ": true,
+      "candidate61 READ app trigger_counter stayed 1": true,
+      "m4 READ pkt_counter climbs 5 -> 6 -> 7 across the polls": true,
+      "m4 RAW_READ_TIMER_STALE climbs 4 -> 5 -> 6": true,
+      "candidate61 settles at READ pkt 4 / RAW_READ 3": true,
+      "every emitted m4 READ token except the consumed first one is already rejected": true,
+      "m4 still had READ tokens in the generator at the last poll": true,
+      "m4 two-batch READ-lane drain (2 x 3 x IPG) exceeds the 10 s c2 pause": true,
+      "m4 allocates 2 more T READ-lane generations per connection than candidate61 (SELECT and OPERATE admissions, generation_headroom.workload_reserve)": true,
+      "authority (N/T epoch, owner, T generations) unchanged across every m4 poll": true,
+      "the fixed drain test (exactly 4 per app) is never true on any m4 poll": true
+    },
+    "operate_lane_sub_claim": "refuted: on m4 the OPERATE app shows the same single batch as candidate61 (1 trigger, pkt 1 at c2 readiness then 4, RAW_OPERATE_TIMER_STALE 0 then 4); it does not climb",
+    "cause": "The control-timed build admits c1 SELECT as a READ-lane request (0xE100 clone), so the READ app (app 0) is triggered twice by c1. trigger_counter reads 1 at c2 readiness and 2 only at poll 0, together with batch_counter 2 and pkt_counter 5 after token 4: the second batch was emitted only after the first finished. So with the 2.5 s delay IPG the old READ population is 8 tokens spread over about 2 x 3 x 2.5 s = 15 s from c1 READ. The diagnostic waited for exactly 4 tokens per app inside the 10 s c2 pause, which this population cannot meet.",
+    "not_shown": "Per-token generation is not in the snapshots: the attribution of batch 2 to c1 SELECT rests on trigger order and the ctl_timing_01 DESIGN (SELECT clones with 0xE100++gen). The +2 T READ-lane generations per connection on m4 are the SELECT REQUEST and the OPERATE admission (generation_headroom.workload_reserve), not a second SELECT trigger. Trigger arrival instants are not recorded, so how the generator handles a trigger that arrives while a batch is in progress (a depth-1 latch that holds one pending trigger and drops further ones, which would fit m4 full-run READ triggers 4 of 6 and packets 13 of 24) is an UNRESOLVED hypothesis inferred from counters only. The OPERATE app (1) is installed with IPG 0 (t_config.pktgen_ops), yet on both retained runs its pkt_counter is 1 at c2 readiness, about 5.4 s after its trigger, and 4 only at the next poll: this pacing CONTRADICTS IPG 0. It is consistent with app 1 being serviced behind the delayed app 0, but the mechanism is not shown; the cleanup bound therefore models the OPERATE drain as bounded by the READ-lane span, an empirical allowance from two runs. The READ span charges 6 IPG gaps for two batches (3 per batch, no IPG between batches) rather than 7; the only evidence is that m4 tokens 4 and 5 were both emitted between the c2-ready read (switch time 542.51 s, pkt 3) and the poll-0 read (completed 544.95 s, pkt 5), i.e. within 2.44 s < one 2.5 s IPG. That is one observation with a 0.06 s margin; the 6-gap span is UNVERIFIED as generator behaviour."
+  },
+  "m4": {
+    "run": "ctl_m4_stale_tokens_950_01",
+    "files": {
+      "observer": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/token_window_observer.json",
+      "config": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/config/ctl_m4_stale_tokens_950.json",
+      "full_run": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/snapshots/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0_before.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/snapshots/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0_after.json"
+      ],
+      "lifecycle": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/snapshots/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0_before_lifecycle.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/snapshots/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0_after_lifecycle.json"
+      ],
+      "c2_master": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/c2/master.json"
+    },
+    "build": "ctl_timing_m4_01",
+    "control_timed": true,
+    "monitor_ok": false,
+    "monitor_error": "old batch did not finish with time to restore before new READ",
+    "population": {
+      "k": 2,
+      "tokens_per_trigger": 4,
+      "control_timed": true,
+      "reads": 1,
+      "sbo": 1,
+      "formula": "tokens(role) = triggers(role) x 2k; triggers(READ) = reads + (sbo if control_timed else 0); triggers(OPERATE) = sbo; expected raw stale: READ tokens - 1, OPERATE tokens",
+      "READ": {
+        "app_id": 0,
+        "triggers": 2,
+        "tokens": 8,
+        "expected_raw_stale": 7,
+        "raw_index": "24"
+      },
+      "OPERATE": {
+        "app_id": 1,
+        "triggers": 1,
+        "tokens": 4,
+        "expected_raw_stale": 4,
+        "raw_index": "23"
+      }
+    },
+    "cleanup_bound": {
+      "bound_ns": 18001000000,
+      "emission_ns": 15000000000,
+      "terms": {
+        "READ": {
+          "triggers": 2,
+          "ipg_gaps_per_batch": 3,
+          "ipg_ns": 2500000000,
+          "span_ns": 15000000000
+        },
+        "OPERATE": {
+          "triggers": 1,
+          "ipg_gaps_per_batch": 3,
+          "ipg_ns": 0,
+          "span_ns": 0,
+          "drain_model": "empirical: paced behind app 0, bounded by the READ-lane span"
+        }
+      },
+      "last_old_read_token_ns": 15000000000,
+      "allowance": {
+        "trigger_latency_ns": 1000000,
+        "snapshot_ns": 3000000000
+      },
+      "formula": "bound = max(READ span, OPERATE span) + trigger latency + snapshot allowance; span = triggers x (2k-1) x IPG; OPERATE drain bounded by the READ span (empirical)"
+    },
+    "read_lane_serial_drain_ns": 15000000000,
+    "c2": {
+      "pre_read_ready_ns": 827464231582104,
+      "first_read_issued_ns": 827474231924343,
+      "pause_ns": 10000000000
+    },
+    "c2_first_read_switch_estimate": 1792055552.38525,
+    "polls": [
+      {
+        "label": "quiet_before (c2 ready)",
+        "switch_time": 1792055542.5140057,
+        "completed_time": 1792055542.8208272,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 6,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": false,
+        "derived_drained": false,
+        "READ": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 3,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 2,
+          "old_tokens_expected": 8,
+          "old_tokens_emitted": 3,
+          "old_tokens_not_yet_emitted": 5,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 3
+            },
+            {
+              "batch": 2,
+              "admitted_by": "c1 SELECT",
+              "emitted": 0
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 1,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 0,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 1,
+          "old_tokens_not_yet_emitted": 3,
+          "emitted_not_yet_rejected": 1,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 1
+            }
+          ]
+        }
+      },
+      {
+        "label": "poll00",
+        "switch_time": 1792055544.648159,
+        "completed_time": 1792055544.952368,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 6,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": false,
+        "derived_drained": false,
+        "READ": {
+          "trigger_counter": 2,
+          "batch_counter": 2,
+          "pkt_counter": 5,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 4,
+          "old_tokens_expected": 8,
+          "old_tokens_emitted": 5,
+          "old_tokens_not_yet_emitted": 3,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 4
+            },
+            {
+              "batch": 2,
+              "admitted_by": "c1 SELECT",
+              "emitted": 1
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 4,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 4,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 4,
+          "old_tokens_not_yet_emitted": 0,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 4
+            }
+          ]
+        }
+      },
+      {
+        "label": "poll01",
+        "switch_time": 1792055547.2685618,
+        "completed_time": 1792055547.570726,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 6,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": false,
+        "derived_drained": false,
+        "READ": {
+          "trigger_counter": 2,
+          "batch_counter": 2,
+          "pkt_counter": 6,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 5,
+          "old_tokens_expected": 8,
+          "old_tokens_emitted": 6,
+          "old_tokens_not_yet_emitted": 2,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 4
+            },
+            {
+              "batch": 2,
+              "admitted_by": "c1 SELECT",
+              "emitted": 2
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 4,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 4,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 4,
+          "old_tokens_not_yet_emitted": 0,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 4
+            }
+          ]
+        }
+      },
+      {
+        "label": "poll02",
+        "switch_time": 1792055549.8851013,
+        "completed_time": 1792055550.1846237,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 6,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": false,
+        "derived_drained": false,
+        "READ": {
+          "trigger_counter": 2,
+          "batch_counter": 2,
+          "pkt_counter": 7,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 6,
+          "old_tokens_expected": 8,
+          "old_tokens_emitted": 7,
+          "old_tokens_not_yet_emitted": 1,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 4
+            },
+            {
+              "batch": 2,
+              "admitted_by": "c1 SELECT",
+              "emitted": 3
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 4,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 4,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 4,
+          "old_tokens_not_yet_emitted": 0,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 4
+            }
+          ]
+        }
+      }
+    ],
+    "full_run": {
+      "pktgen_delta": {
+        "READ": {
+          "trigger_counter": 4,
+          "batch_counter": 4,
+          "pkt_counter": 13
+        },
+        "OPERATE": {
+          "trigger_counter": 3,
+          "batch_counter": 3,
+          "pkt_counter": 9
+        }
+      },
+      "raw_stale_delta": {
+        "RAW_READ_TIMER_STALE": 11,
+        "RAW_OPERATE_TIMER_STALE": 8,
+        "STALE_BLOCKER": 0,
+        "OUT_TOKEN_STALE": 19
+      },
+      "lifecycle_generations": {
+        "T_read_generation": {
+          "before": 0,
+          "after": 15,
+          "per_connection": 5.0
+        },
+        "T_operate_generation": {
+          "before": 0,
+          "after": 9,
+          "per_connection": 3.0
+        }
+      }
+    },
+    "legacy_window_proof": {
+      "ok": false,
+      "failures": [
+        "READ IPG restore was not confirmed on Vision before pause deadline and first READ",
+        "after: app counters do not prove exactly the old READ-lane batches",
+        "after: app counters do not prove exactly the old READ-lane batches",
+        "counter interval does not prove old tokens arriving after new connection readiness",
+        "read: app configuration changed during quiet window"
+      ],
+      "old_packets_during_pause": null,
+      "old_operate_packets_during_pause": null
+    }
+  },
+  "candidate61": {
+    "run": "candidate61_stale_tokens_950_02",
+    "files": {
+      "observer": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/token_window_observer.json",
+      "config": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/config/candidate61_stale_tokens_950.json",
+      "full_run": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/separate_ack/combined/candidate61_stale_tokens_950_02_separate_ack_combined_t0/snapshots/candidate61_stale_tokens_950_02_separate_ack_combined_t0_before.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/separate_ack/combined/candidate61_stale_tokens_950_02_separate_ack_combined_t0/snapshots/candidate61_stale_tokens_950_02_separate_ack_combined_t0_after.json"
+      ],
+      "lifecycle": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/separate_ack/combined/candidate61_stale_tokens_950_02_separate_ack_combined_t0/snapshots/candidate61_stale_tokens_950_02_separate_ack_combined_t0_before_lifecycle.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/separate_ack/combined/candidate61_stale_tokens_950_02_separate_ack_combined_t0/snapshots/candidate61_stale_tokens_950_02_separate_ack_combined_t0_after_lifecycle.json"
+      ],
+      "c2_master": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/candidate61_stale_tokens_950_02/separate_ack/combined/candidate61_stale_tokens_950_02_separate_ack_combined_t0/c2/master.json"
+    },
+    "build": "rearm_61_full04",
+    "control_timed": false,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "population": {
+      "k": 2,
+      "tokens_per_trigger": 4,
+      "control_timed": false,
+      "reads": 1,
+      "sbo": 1,
+      "formula": "tokens(role) = triggers(role) x 2k; triggers(READ) = reads + (sbo if control_timed else 0); triggers(OPERATE) = sbo; expected raw stale: READ tokens - 1, OPERATE tokens",
+      "READ": {
+        "app_id": 0,
+        "triggers": 1,
+        "tokens": 4,
+        "expected_raw_stale": 3,
+        "raw_index": "24"
+      },
+      "OPERATE": {
+        "app_id": 1,
+        "triggers": 1,
+        "tokens": 4,
+        "expected_raw_stale": 4,
+        "raw_index": "23"
+      }
+    },
+    "cleanup_bound": {
+      "bound_ns": 10501000000,
+      "emission_ns": 7500000000,
+      "terms": {
+        "READ": {
+          "triggers": 1,
+          "ipg_gaps_per_batch": 3,
+          "ipg_ns": 2500000000,
+          "span_ns": 7500000000
+        },
+        "OPERATE": {
+          "triggers": 1,
+          "ipg_gaps_per_batch": 3,
+          "ipg_ns": 0,
+          "span_ns": 0,
+          "drain_model": "empirical: paced behind app 0, bounded by the READ-lane span"
+        }
+      },
+      "last_old_read_token_ns": 7500000000,
+      "allowance": {
+        "trigger_latency_ns": 1000000,
+        "snapshot_ns": 3000000000
+      },
+      "formula": "bound = max(READ span, OPERATE span) + trigger latency + snapshot allowance; span = triggers x (2k-1) x IPG; OPERATE drain bounded by the READ span (empirical)"
+    },
+    "read_lane_serial_drain_ns": 7500000000,
+    "c2": {
+      "pre_read_ready_ns": 766916474254958,
+      "first_read_issued_ns": 766926474506696,
+      "pause_ns": 10000000000
+    },
+    "c2_first_read_switch_estimate": 1791995004.610682,
+    "polls": [
+      {
+        "label": "quiet_before (c2 ready)",
+        "switch_time": 1791994995.0275633,
+        "completed_time": 1791994995.329248,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 4,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": false,
+        "derived_drained": false,
+        "READ": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 3,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 2,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 3,
+          "old_tokens_not_yet_emitted": 1,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 3
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 1,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 0,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 1,
+          "old_tokens_not_yet_emitted": 3,
+          "emitted_not_yet_rejected": 1,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 1
+            }
+          ]
+        }
+      },
+      {
+        "label": "poll00",
+        "switch_time": 1791994997.1818314,
+        "completed_time": 1791994997.4624794,
+        "authority": {
+          "N_epoch": 15,
+          "T_epoch": 15,
+          "owner_generation": 2,
+          "T_read_generation": 4,
+          "T_operate_generation": 4,
+          "N_work_generation": 17
+        },
+        "legacy_drained": true,
+        "derived_drained": true,
+        "READ": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 4,
+          "ipg_ns": 2500000000,
+          "raw_stale_index": "24",
+          "raw_stale": 3,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 4,
+          "old_tokens_not_yet_emitted": 0,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 READ",
+              "emitted": 4
+            }
+          ]
+        },
+        "OPERATE": {
+          "trigger_counter": 1,
+          "batch_counter": 1,
+          "pkt_counter": 4,
+          "ipg_ns": 0,
+          "raw_stale_index": "23",
+          "raw_stale": 4,
+          "old_tokens_expected": 4,
+          "old_tokens_emitted": 4,
+          "old_tokens_not_yet_emitted": 0,
+          "emitted_not_yet_rejected": 0,
+          "by_batch": [
+            {
+              "batch": 1,
+              "admitted_by": "c1 OPERATE",
+              "emitted": 4
+            }
+          ]
+        }
+      }
+    ],
+    "full_run": {
+      "pktgen_delta": {
+        "READ": {
+          "trigger_counter": 3,
+          "batch_counter": 3,
+          "pkt_counter": 12
+        },
+        "OPERATE": {
+          "trigger_counter": 3,
+          "batch_counter": 3,
+          "pkt_counter": 12
+        }
+      },
+      "raw_stale_delta": {
+        "RAW_READ_TIMER_STALE": 3,
+        "RAW_OPERATE_TIMER_STALE": 4,
+        "STALE_BLOCKER": 0,
+        "OUT_TOKEN_STALE": 7
+      },
+      "lifecycle_generations": {
+        "T_read_generation": {
+          "before": 0,
+          "after": 9,
+          "per_connection": 3.0
+        },
+        "T_operate_generation": {
+          "before": 0,
+          "after": 9,
+          "per_connection": 3.0
+        }
+      }
+    },
+    "legacy_window_proof": {
+      "ok": true,
+      "failures": [],
+      "old_packets_during_pause": 1,
+      "old_operate_packets_during_pause": 3
+    }
+  }
+}

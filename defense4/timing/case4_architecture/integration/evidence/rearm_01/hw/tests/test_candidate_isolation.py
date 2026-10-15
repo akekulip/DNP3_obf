@@ -99,10 +99,12 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
         ok=True,source_sha256=pins,scenario='candidate_same_tuple_isolation',applied=True,padding=1,reads=1,
         master_port=59412,read_pause_ms=25,close_mode='rst',close_grace_ms=1000,
         tuple=['192.168.10.61',59412,'192.168.10.62',20000],namespaces=['ns_vepa_a','ns_vepa_b'],
-        nic='enp59s0f0np0',switch_mutations=False)))
+        nic='enp59s0f0np0',switch_mutations=False,
+        plan=[dict(pre_read_grace_ms=grace) for grace in (0,run.pause_ms,0)])))
     for cn in ('c1','c2','c3'):
         (tmp_path/cn).mkdir();(tmp_path/cn/'verdict.json').write_text(json.dumps(dict(ok=True)))
-    run.window.update(monitor_ok=True,marker_observation=dict(marker={}),before={},after={},restored_vision_ns=0)
+    run.window.update(monitor_ok=True,marker_observation=dict(marker={}),before=dict(operate_app_after=dict(ipg=0)),
+                      after={},restored_vision_ns=0)
     # Every other collaborator passes, so the standards wrapper is the only possible failure.
     monkeypatch.setattr(ci.cs.checks,'application_checks',lambda *a,**kw:[])
     monkeypatch.setattr(ci.cs.wc,'parse',lambda path:([],[]))
@@ -110,6 +112,9 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
     monkeypatch.setattr(vision_candidate,'evaluate',lambda *a,**kw:[])
     monkeypatch.setattr(ci,'compare_quiet_generation',lambda *a,**kw:dict(ok=True,failures=[]))
     monkeypatch.setattr(ci,'window_proof',lambda *a,**kw:dict(ok=True,failures=[],old_packets_during_pause=4))
+    monkeypatch.setattr(ci,'cleanup_proof',lambda *a,**kw:dict(ok=True,failures=[]))
+    for name in ('restore_proof','quiet_poll_proof','post_traffic_authority'):
+        monkeypatch.setattr(ci,name,lambda *a,**kw:dict(ok=True,failures=[]))
     monkeypatch.setattr(ci,'rejection_counts',lambda *a,**kw:{})
     monkeypatch.setattr(ci,'rejection_delta',lambda *a,**kw:4)
     monkeypatch.setattr(ci,'full_run_rejections',lambda *a,**kw:dict(strict_stale_total=0))
@@ -128,3 +133,8 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
             run.verdict(trial,{},'iso_standards',str(tmp_path),vision,arm,'separate_ack')
         assert trial['ok'] is False and 'c1: '+rejection[0] in trial['failures']
     assert calls==['c1','c2','c3']
+    isolation=json.loads((tmp_path/'isolation_verdict.json').read_text())
+    assert isolation['separate_from_precision'] is True and isolation['precision_qualified'] is False
+    assert isolation['ok'] is (not rejection) and isolation['vision_series_ok'] is True
+    assert isolation['connections']['c1']['failures']==list(rejection)
+    assert all('c1: '+f in isolation['failures'] for f in rejection)
