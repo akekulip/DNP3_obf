@@ -211,7 +211,11 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         cfg['expectations'], arm, 3 * reads, ev, checks.allowed_gap(build),
         cfg['service']['k'] if build.get('mirror_fix') else None,
         checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
-        sbo_count=3 * int(run_sbo), complete_reads=3 * reads, piggyback_reads=0)
+        sbo_count=3 * int(run_sbo), complete_reads=3 * reads, piggyback_reads=0,
+        # control-timed builds also time each connection's SELECT and OPERATE (commits, releases, SELECT blocker
+        # triggers and their bounded stranded tokens), as campaign.py's verdict does
+        control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')),
+        piggyback_controls=0, gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')

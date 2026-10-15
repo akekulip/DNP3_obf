@@ -357,3 +357,28 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
         assert trial['ok'] is False
         assert 'c1: ' + rejection[0] in trial['failures']
     assert calls == ['c1', 'c2', 'c3']
+
+
+def test_control_timed_series_switch_gate_counts_each_connections_select_and_operate():
+    """ctl_m4_persistence_{graceful,rst}_950_01 (silicon, 2026-10-15): 3 x (20 READ + 1 SBO) on m4. The gate first
+    expected READ-only counts (60) and failed on the build's correct 66 commits/releases, 63 triggers and 6
+    stranded SELECT tokens; with control_timed passed through, switch and lifecycle gates pass on that evidence."""
+    module = load('candidate_series_m4_test', HW / 'candidate_series.py')
+    base = module.ARCH / 'integration/core/response_only_rearm/stage_experiments/seg61_02'
+    for mode in ('graceful', 'rst'):
+        root = base / ('evidence/hw_campaigns/ctl_m4_persistence_%s_950_01/separate_ack/combined' % mode)
+        if not root.is_dir():
+            pytest.skip('retained m4 persistence evidence absent')
+        d = next(root.iterdir())
+        snap, label = d / 'snapshots', d.name
+        cfg = json.loads((base / ('hw/config/ctl_m4_persistence_%s_950.json' % mode)).read_text())
+        ev = module.checks.load_evidence_files(before=str(snap / ('%s_before.json' % label)),
+                                               after=str(snap / ('%s_after.json' % label)))
+        lifecycle = json.loads((snap / ('%s_after_lifecycle.json' % label)).read_text())
+        reads = json.loads((d / 'trial.json').read_text())['reads']
+        failures, observed = module.series_switch_gate(cfg, cfg['arms'][0], reads, ev, lifecycle)
+        assert failures == [] and observed['outcomes']['OUT_ACK_COMMIT'] == 3 * reads + 6
+        assert module.lifecycle_gate(lifecycle, mode)[0] == []
+        cfg['builds'][cfg['arms'][0]['build']]['control_timed'] = False
+        failures, _ = module.series_switch_gate(cfg, cfg['arms'][0], reads, ev, lifecycle)
+        assert any('OUT_ACK_COMMIT' in f for f in failures)
