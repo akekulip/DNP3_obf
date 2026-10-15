@@ -9,7 +9,8 @@
 - Gate 2 (repeated SBO): committed `ab191033f`, `876bc216c`. Silicon `candidate61_repeat_sbo_950_b1_02`, `_b2`, `_b3`: 768/768 cycles verified per cycle; failed `_b1` retained (stale endpoint build). Model `model_repeat_04` 520/520, `model_abandon_03` 15/15. Limitation: an abandoned SELECT stalls the connection until reset.
 - Gate 3 (control timing): `ctl_timing_01` m3 (N + T changes, E identical) passes all model suites and, on silicon, normalizes SELECT and OPERATE CLRT (abs p99 55-92 us) with the OPERATE J hold kept (min 2.47 ms) and piggybacked request->response bounded at about 4.1 ms (was 30.1 ms); internal receives per exchange about double. Not a default; candidate61 remains the qualified encoding baseline.
 - Gate 4 (CRC experiment): committed `7202358fd`; no stage recovered (E12 on both SDKs, N 11->12), baseline kept.
-- Open: Gate 5 tail localization (lead: outstation-side events every 128 exchanges, consistent with NIC tx-frames-irq 256); final mechanism report.
+- Gate 5 (cost and tails): committed `333f3687b` (cost) and `c694dde3d` (tails). Seventeen restored factor runs: the off-arm transit signature at requests 127/255/~275 appears in 4/10 controls and 2/7 runs with Vision tx-frames-irq 64, and survives the change, so NIC TX interrupt batching is ruled out; the tail source stays unresolved. Next factors (adaptive coalescing off, capture buffer, production program on the same traffic) need Philip's go-ahead.
+- Final report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/MECHANISM_REPORT.md`. Nothing pushed; no default promoted.
 
 **2026-10-14 candidate61 qualification complete (PLAN steps 1-5).** Report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_REPORT.md`. Later pushed to `origin/main` at `f0baa724a`; no defaults promoted; repeated SBO and control-CLRT normalization remain open (f0baa724a audit); real-relay compatibility and the transit-path tail source remain open.
 
