@@ -478,6 +478,17 @@ for preset, spec in SHAPE_PILOTS.items():
             data['shaping']['presets'][preset] = dict(spec)
             data['shaping']['preset'] = preset
         write('ctl_m4_%s_b%d.json' % (preset, block), data)
+# Zero-pause robustness block for the confirmed pilot: the endpoint issues the next request as soon as the previous
+# response arrives (read_pause_ms 0), kept apart from the paired efficiency comparison (which keeps 25 ms).
+zp = m4(transform(load('candidate57s_eval_b1.json'), purpose={'purpose': 'timing_precision_characterization',
+    'read_precision': True, 'candidate61_label': 'm4_shaping_ack14892_pause0', 'block': 1}, arms=['combined'],
+    reads=65, trials=1, preset='shape_59570', gap=950000, port_first=59770, port_last=59773, start_delay_ms=50,
+    loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
+    fixtures=['separate_ack'], **M4B))
+zp['shaping']['presets']['shape_ack14892'] = dict(SHAPE_PILOTS['shape_ack14892'])
+zp['shaping']['preset'] = 'shape_ack14892'
+zp['traffic']['read_pause_ms'] = 0
+write('ctl_m4_shape_ack14892_pause0.json', zp)
 
 strict_standards = {
     'packet_boundary_required': True,
