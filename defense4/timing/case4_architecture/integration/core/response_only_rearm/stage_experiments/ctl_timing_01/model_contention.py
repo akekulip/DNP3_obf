@@ -88,8 +88,13 @@ def main():
         def outcomes():
             return {k: scalar(m.register_read('p1.t_Ingress.outcomes', i, pipe=1)) for k, i in OUT.items()}
 
+        cells = 8 if milestone == 'm5' else 4          # m5 grows count_busy to 8 (2 retry, 3 exhaustion, 4 stale)
+
         def busy():
-            return [scalar(m.register_read('p0.n_Ingress.count_busy', i, pipe=0)) for i in range(4)]
+            row = [scalar(m.register_read('p0.n_Ingress.count_busy', i, pipe=0)) for i in range(cells)]
+            if milestone == 'm5':                       # count_term[0]: retried duplicates aborted
+                row.append(scalar(m.register_read('p0.n_Ingress.count_term', 0, pipe=0)))
+            return row
 
         def capture(timeout, quiet):
             socks = {m._listen(p): p for p in ports}
@@ -174,7 +179,9 @@ def main():
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
             want_ack = vectors.packet(16, s + g, c, reverse=True)
             want_rsp = vectors.packet(24, s + g, c, reverse=True, payload=image)
-            to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port]
+            # the contended connection's frames only (a second connection's packets also reach the master port)
+            to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port
+                         and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
             after, busy1 = outcomes(), busy()
             lane = {k: after[k] - before[k] for k in LANE}
             counts = [b - a for a, b in zip(busy0, busy1)]
@@ -270,9 +277,15 @@ def main():
             app, ok = request(kind, fc, objects)
             c, s, g = st['c'], st['s'], st['growth']
 
+            first_rst = {}
+
             def master_rst(_rsp, c=c, s=s, g=g):
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
+                seen = capture(0.6, 0.6)
+                first_rst['relayed'] = any(p == RELAY.dev_port and f[47] & 0x04 for _t, p, f in seen)
+                first_rst['seen'] = seen
             got, native, ack, _rsp = respond(kind, app, body, 0, during=master_rst)
+            got = first_rst['seen'] + got
             after, busy1 = outcomes(), busy()
             fwd_rst = vectors.packet(20, c, s)
             # the relay-bound RST copy that also leaves the master port in every m3/m4 run is exempt
@@ -283,8 +296,44 @@ def main():
                        payload_frames_to_master=len(payload_to_master),
                        lane={k: after[k] - before[k] for k in LANE},
                        count_busy_delta=[b - a for a, b in zip(busy0, busy1)])
+            # Two outcomes are correct and the model's slow laps decide which happens: the response claimed the cell
+            # before the RST's close pass (it was admitted first, so it is released once, committed, and nothing is
+            # stale), or the RST closed the connection first (the waiting retry is refused: nothing reaches the
+            # master). Anything else -- a copy after a refusal, two copies, a fallback release -- fails.
+            image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
+            lane = row['lane']
+            admitted = (len(payload_to_master) == 1 and payload_to_master[0].endswith(image) and lane == COMMITTED
+                        and (milestone != 'm5' or row['count_busy_delta'][4] == 0))
+            counts = row['count_busy_delta']
+            if milestone == 'm5':
+                # admitted: nothing exhausted or stale; refused: a counted stale drop, nothing busy-dropped or exhausted
+                admitted = admitted and counts[3] == 0
+                refused = (not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
+                           and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
+            else:
+                refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
+            row['outcome'] = 'admitted_before_reset' if admitted else 'refused_after_reset' if refused else 'other'
+            row['first_rst_relayed'] = first_rst.get('relayed')
             points.append(row)
-            report.add('%s_no_response_after_RST' % tag, 0, len(payload_to_master), **row)
+            report.add('%s_known_outcome' % tag, True, admitted or refused, **row)
+            # its own verdict: the master's single RST must take effect (relayed to the outstation). An RST that meets
+            # an in-flight N lifecycle is refused by N's owner-state check (m4 behaviour); a real stack never repeats it
+            # The master's RST acks only what it has (the pre-response sequence). Once N has admitted the response,
+            # N refuses such an RST until the master acks the response -- m4 behaviour on the uncontended path too
+            # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
+            # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
+            # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
+            if row['outcome'] == 'admitted_before_reset':
+                report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
+                    dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
+            else:
+                report.add('%s_first_RST_relayed' % tag, True, bool(first_rst.get('relayed')))
+            # CLEANUP ONLY: an RST that met an in-flight lifecycle is refused (m4 behaviour); close the connection
+            # so the next case's same-tuple SYN is accepted. Not part of the verdict above.
+            time.sleep(0.5)
+            for visible in (0, IMAGE_LEN):                 # master-visible ack before / after the 61-octet image
+                m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
+                capture(0.6, 0.3)
 
         # ---- RST and same-tuple reconnect while the response waits ----------------------------------------------
         for kind in ('READ', 'SELECT'):
@@ -300,9 +349,17 @@ def main():
                 # RST at once, then the handshake as ordinary spaced exchanges (back-to-back handshake packets
                 # are themselves busy-dropped on the slow model); every frame seen meanwhile is kept
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
-                time.sleep(0.1)
+                seen = capture(0.6, 0.6)
+                new['first_rst_relayed'] = any(p == RELAY.dev_port and f[47] & 0x04 for _t, p, f in seen)
+                new.setdefault('seen', []).extend(seen)
+                # CLEANUP ONLY (after the verdict input above): close the connection if N refused the first RST
+                # (both master-visible acks: before and after the 61-octet image)
+                for visible in (0, IMAGE_LEN):
+                    m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
+                    new['seen'].extend(capture(0.4, 0.3))
                 st['isn'] += 10000
                 nc, ns = st['isn'], st['isn'] + 5000
+                new['syn_t'] = time.monotonic()
                 for port, pkt in ((MASTER.dev_port, vectors.packet(2, nc, mss=1460)),
                                   (RELAY.dev_port, vectors.packet(18, ns, nc + 1, reverse=True, mss=1460)),
                                   (MASTER.dev_port, vectors.packet(16, nc + 1, ns + 1))):
@@ -312,8 +369,18 @@ def main():
             got, native, _ack, old_rsp = respond(kind, app, body, 0, during=rst_and_reconnect)
             got = got + new.get('seen', [])
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-            old_to_master = [f for _t, p, f in got if p == MASTER.dev_port and f.endswith(image)]
-            report.add('%s_old_response_never_delivered' % tag, 0, len(old_to_master))
+            old_to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port and f.endswith(image)]
+            # the old response may have been admitted before the RST (slow model laps: released once, before the new
+            # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
+            late = [t for t, _f in old_to_master if t >= new['syn_t']]
+            if old_to_master:
+                # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
+                report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
+                    dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
+            else:
+                report.add('%s_first_RST_relayed' % tag, True, bool(new.get('first_rst_relayed')))
+            report.add('%s_old_response_never_on_new_connection' % tag, True,
+                       len(old_to_master) <= 1 and not late, old_copies=len(old_to_master), after_new_syn=len(late))
             # the new connection's READ completes exactly
             st.update(c=new['c'], s=new['s'], growth=0, seqs=rb.Sequences())
             before2, busy2 = outcomes(), busy()
@@ -322,6 +389,7 @@ def main():
             got2, native2, ack2, r2 = respond('READ', app2, READ_BODY, 120)
             judge('%s_new_READ' % tag, 'READ', native2, ack2, got2, before2, busy2, sent_rsp=r2)
             points.append(dict(tag=tag, kind=kind, old_response_frames_to_master=len(old_to_master),
+                               old_response_after_new_syn=len(late),
                                count_busy_delta=[b - a for a, b in zip(busy0, busy())]))
             rst(tag)
 

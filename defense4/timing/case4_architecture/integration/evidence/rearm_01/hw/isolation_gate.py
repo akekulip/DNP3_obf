@@ -35,6 +35,10 @@ def compare_quiet_generation(before, after, connection_generation, server_isn):
                 front=_pick(registers, 'E front', lambda n: n == 'p0.r_Egress.front'),
                 acct=_pick(registers, 'E accounting', lambda n: n.startswith('p0.r_Egress.') and 'acct' in n))
             values = {key: _field_int(registers, names[key]) for key in ('N', 'E', 'T')}
+            # ctl_timing m5: N's retry incarnation register must name the established connection's epoch
+            if 'p0.n_Ingress.retry_epoch' in registers and \
+                    _field_int(registers, 'p0.n_Ingress.retry_epoch') != values['N']:
+                failures.append(label + ': N retry_epoch is not the current epoch')
             e_latched = bool(values['E'] & 0x80000000)
             # E's high bit is the atomic FIRST latch; only the lower 31 bits identify the lifetime.
             values['E'] &= 0x7fffffff

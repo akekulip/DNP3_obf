@@ -38,8 +38,12 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm1')
-    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4'), 'OPERATE': milestone in ('m2', 'm3', 'm4')}
-    bounded = milestone in ('m3', 'm4')
+    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5'),
+             'OPERATE': milestone in ('m2', 'm3', 'm4', 'm5')}
+    bounded = milestone in ('m3', 'm4', 'm5')
+    # m5 changes only N's busy handling (DESIGN.md m5): every m4 expectation holds, and the ACK/response race may
+    # take only the committed path (the busy-drop path is the m4 defect m5 removes)
+    m4_rows = milestone in ('m4', 'm5')
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: T hold/release per transaction (READ, SELECT, OPERATE)' % milestone,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -266,7 +270,7 @@ def main():
             # a duplicate standalone ACK in owner state 9 (SELECT) and 0xc (OPERATE): no early or double release
             transaction('SELECT', 3, rb.crob(110), bytes(2) + rb.crob(110), 'dupack')
             transaction('OPERATE', 4, rb.crob(110), bytes(2) + rb.crob(110), 'dupack')
-        if milestone == 'm4':
+        if m4_rows:
             # a late copy of the old SELECT's response after a replacement SELECT: dropped, B completes exactly
             old = transaction('SELECT', 3, rb.crob(111), bytes(2) + rb.crob(111))
 
@@ -341,7 +345,7 @@ def main():
         after = outcomes()
         relayed = sum(1 for _t, p, _f in got if p == RELAY.dev_port)
         deltas = {k: after[k] - before[k] for k in ('GEN_EXHAUSTED', 'OP_RELEASE')}
-        if milestone == 'm4':
+        if m4_rows:
             report.add('exhausted_OPERATE_dropped_and_counted', {'relayed': 0, 'GEN_EXHAUSTED': 1, 'OP_RELEASE': 0},
                        dict(deltas, relayed=relayed))
         else:
@@ -397,7 +401,8 @@ def main():
         # A real check that the race takes one of the two KNOWN paths (anything else fails). Only 'committed' keeps
         # the timing objective; 'busy_drop_retransmitted' is an open N limitation (one work cell), never acceptance
         # evidence: delivery then waits for the outstation's TCP retransmission and that CLRT is not normalized.
-        report.add('race_known_release_path', True, path != 'other' and retransmitted == (path != 'committed'),
+        allowed = ('committed',) if milestone == 'm5' else ('committed', 'busy_drop_retransmitted')
+        report.add('race_known_release_path', True, path in allowed and retransmitted == (path != 'committed'),
                    deltas=deltas, path=path, all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
         report.record['meta']['race_path'] = path
         s += len(native)

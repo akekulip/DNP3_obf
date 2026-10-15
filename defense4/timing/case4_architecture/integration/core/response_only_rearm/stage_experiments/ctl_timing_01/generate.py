@@ -194,13 +194,137 @@ def transform_t_m4(t):
     return t
 
 
+RETRY_BUDGET = 32                      # retry laps per busy response (PLAN_m5.md amendment 3; DESIGN.md m5)
+assert RETRY_BUDGET == 32, 'retry_valid_t encodes the budget 1..32 as ternary rows'
+RETRY_EVENT = '16w0x0400'              # loop event: stage (bit<2>)0x04 = 0, kind 0, reserved 0
+
+
+def transform_n_m5(n):
+    """m4, plus a bounded, validated busy-retry for responses (PLAN_m5.md; DESIGN.md m5). N only.
+
+    A response (kind 6 control, kind 11 READ) that finds N's single work cell busy -- the outstation's standalone
+    ACK still in its four passes -- is no longer dropped: it becomes a retry frame on RETURN_PORT (egress bypassed,
+    so E never sees it) carrying the current epoch, the generation already allocated for it, and a lap budget.
+      - Generation accounting: the retry claims with the generation carried from its first busy pass (go_retry);
+        a retry pass never calls allocate.
+      - Strict validation: RETURN_PORT at stage 0 stays denied except for the exact retry form (event 0x0400,
+        reserved 0, nonzero epoch and generation, parsed only on RETURN_PORT); a retry whose budget is out of
+        range, whose connection direction is not outstation->master, or whose epoch is not the current
+        incarnation's (retry_epoch) is a stale retry: it reads the work cell without claiming it and is dropped
+        and counted (count_busy[4]).
+      - Incarnation: retry_epoch holds the epoch of the open connection; it is written on the SYN lifecycle's
+        stage-2 pass (only reached once stage 1 stored the epoch) and cleared on every stage-1 close pass (FIN or
+        RST), so a retry from a reset or replaced connection is refused before it can claim the cell. It sits
+        before the work cell, so the check precedes the claim.
+      - Budget: a retry that is still busy with budget 1 is dropped and counted (count_busy[3], exhaustion).
+        count_busy[2] counts retry laps. count_busy grows to 8 cells.
+    Requests keep busy_drop, so request admission and the OPERATE hold are unchanged."""
+    n = transform_n_m4(n)
+    n = once(n, 'bit<32> observed;bit<32> owner_diff;}', 'bit<32> observed;bit<32> owner_diff;bit<2> retry;}')
+    n = once(n, 'pkt.advance(PORT_METADATA_SIZE);m.wire_ack=32w0;', 'pkt.advance(PORT_METADATA_SIZE);m.retry=2w0;m.wire_ack=32w0;')
+    n = once(n, '16w0x030c:origin;default:accept;}}',
+             '16w0x030c:origin;%s:retry_input;default:accept;}}\n state retry_input{m.retry=2w1;transition eth;}' % RETRY_EVENT)
+    n = once(n, 'const PortId_t n_READ_HANDOFF_PORT=9w180;',
+             'const bit<32> n_RETRY_BUDGET=%d;\nconst PortId_t n_READ_HANDOFF_PORT=9w180;' % RETRY_BUDGET)
+    n = once(n, 'table epoch_t{',
+             'Register<bit<32>,bit<1>>(1,0) retry_epoch;\n'
+             ' RegisterAction<bit<32>,bit<1>,bit<2>>(retry_epoch) check_retry_epoch={void apply(inout bit<32> v,out bit<2> r){if(v==hdr.envelope.epoch){r=2w1;}else{r=2w2;}}};\n'
+             ' RegisterAction<bit<32>,bit<1>,bit<2>>(retry_epoch) note_retry_epoch={void apply(inout bit<32> v,out bit<2> r){v=hdr.envelope.epoch;r=2w0;}};\n'
+             ' RegisterAction<bit<32>,bit<1>,bit<2>>(retry_epoch) clear_retry_epoch={void apply(inout bit<32> v,out bit<2> r){v=32w0;r=2w0;}};\n'
+             ' action retry_epoch_check(){m.retry=check_retry_epoch.execute(1w0);}\n'
+             ' action retry_epoch_note(){note_retry_epoch.execute(1w0);}\n'
+             ' action retry_epoch_clear(){clear_retry_epoch.execute(1w0);}\n'
+             ' table retry_epoch_t{key={m.stage:exact;m.kind:exact;m.retry:exact;}actions={retry_epoch_check;retry_epoch_note;retry_epoch_clear;NoAction;}size=4;const default_action=NoAction();\n'
+             ' const entries={(2w0,8w0,2w1):retry_epoch_check();(2w2,8w1,2w0):retry_epoch_note();(2w1,8w4,2w0):retry_epoch_clear();(2w1,8w17,2w0):retry_epoch_clear();}}\n'
+             ' table epoch_t{')
+    n = once(n, 'Register<bit<32>,bit<4>>(4,0) count_busy;', 'Register<bit<32>,bit<4>>(8,0) count_busy;')
+    retry_form = ('hdr.envelope.epoch=m.epoch;hdr.work_generation.generation=m.generation;hdr.event.event=%s;'
+                  'hdr.event.reserved=16w0;tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;' % RETRY_EVENT)
+    n = once(n, "table busy_t{key={m.kind:exact;}actions={busy_drop;busy_pass;}size=8;const entries={8w1:busy_drop();8w2:busy_drop();8w5:busy_drop();8w6:busy_drop();8w7:busy_drop();8w9:busy_drop();8w11:busy_drop();8w12:busy_drop();}const default_action=busy_pass();}",
+             "action busy_retry(){" + retry_form + "hdr.expected_cell.expected_cell=n_RETRY_BUDGET;count_busy_bump.execute(4w2);}\n"
+             # a waiting retry keeps the epoch and generation it carries (never re-stamped with the current epoch, so
+             # isolation rests on the retry's own incarnation, not on owner gating; m5_09 review)
+             "action busy_retry_next(){hdr.expected_cell.expected_cell=hdr.expected_cell.expected_cell-32w1;"
+             "tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;count_busy_bump.execute(4w2);}\n"
+             "action busy_exhausted(){md.drop_ctl=3w1;count_busy_bump.execute(4w3);}\n"
+             "action retry_stale(){md.drop_ctl=3w1;count_busy_bump.execute(4w4);}\n"
+
+             "table busy_t{key={m.kind:ternary;m.retry:ternary;hdr.expected_cell.expected_cell[5:0]:ternary;}"
+             "actions={busy_drop;busy_pass;busy_retry;busy_retry_next;busy_exhausted;retry_stale;}size=16;"
+             "const entries={(_,2w2,_):retry_stale();"
+             "(8w6,2w0,_):busy_retry();(8w11,2w0,_):busy_retry();"
+             # a retry's budget is 1..32 (retry_valid_t), so its low six bits decide budget 1
+             "(8w6,2w1,6w1):busy_exhausted();(8w11,2w1,6w1):busy_exhausted();"
+             "(8w6,2w1,_):busy_retry_next();(8w11,2w1,_):busy_retry_next();"
+             "(8w1,_,_):busy_drop();(8w2,_,_):busy_drop();(8w5,_,_):busy_drop();(8w7,_,_):busy_drop();"
+             "(8w9,_,_):busy_drop();(8w12,_,_):busy_drop();}const default_action=busy_pass();}")
+    n = once(n, "action refuse_n_ack_return(){md.drop_ctl=3w1;}",
+             "action go_retry(bit<8> k){m.go=(bit<1>)(8w1);m.kind=k;m.generation=hdr.work_generation.generation;m.work_op=8w1;}\n"
+             "action go_stale(){m.go=(bit<1>)(8w1);m.kind=8w0;m.work_op=8w0;m.retry=2w2;}\n"
+             "action refuse_n_ack_return(){md.drop_ctl=3w1;}")
+    # guard: one more key (m.retry, wildcard on every existing row); the retry rows come first
+    head = n.index('table guard{')
+    body_start = n.index('const entries={', head) + len('const entries={')
+    body_end = n.index('}}', body_start)
+    rows = n[body_start:body_end]
+    assert rows.count('):') == 42
+    rows = rows.replace('):', ',_):')
+    retry_rows = ('(2w0,8w6,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,2w1):go_retry(8w6);'
+                  '(2w0,8w11,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,2w1):go_retry(8w11);'
+                  '(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale();(_,_,_,_,_,_,_,_,_,_,_,_,_,2w2):go_stale();')
+    n = n[:body_start] + retry_rows + rows + n[body_end:]
+    n = once(n, 'm.tcrc:ternary;m.output_port:ternary;}', 'm.tcrc:ternary;m.output_port:ternary;m.retry:ternary;}')
+    n = once(n, "actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;refuse_n_ack_return;NoAction;}size=48;",
+             "actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;go_retry;go_stale;refuse_n_ack_return;NoAction;}size=48;")
+    # apply: incarnation check before anything that touches state; strict validation; the busy branch
+    n = once(n, 'connection.apply();crc_t.apply();', 'connection.apply();retry_epoch_t.apply();crc_t.apply();')
+    # a retry frame is stale unless it is current, on its connection, in budget and passes N's network check;
+    # every retry frame (stale or not) takes the guarded branch, so none can recirculate unaccounted
+    # (one table, not a gateway: the combined condition exceeds a gateway's PHV input, bf-p4c m5_01 compile)
+    n = once(n, 'table epoch_t{',
+             'action retry_mark_stale(){m.retry=2w2;}\n'
+             ' table retry_valid_t{key={m.retry:exact;m.direction:ternary;hdr.expected_cell.expected_cell:ternary;}'
+             'actions={retry_mark_stale;NoAction;}size=5;const default_action=retry_mark_stale();\n'
+             # budget 1..32 as ternary rows (bf-p4c: no range match on a 32-bit key): 0 stale, 0..31 masked, 32 exact
+             ' const entries={(2w0,_,_):NoAction();(2w2,_,_):NoAction();(2w1,_,32w0):retry_mark_stale();'
+             '(2w1,2w2,32w0&&&32w0xffffffe0):NoAction();(2w1,2w2,32w32):NoAction();}}\n'
+             ' table epoch_t{')
+    n = once(n, 'ports.apply();network.apply();', 'ports.apply();network.apply();retry_valid_t.apply();')
+    # a retry that fails N's port or network check never reaches the guard: denied on its single pass (uncounted;
+    # a genuine retry is byte-identical to a packet that passed them). Widening the main branch condition instead
+    # made PHV allocation fail (bf-p4c, m5_07 and bisect).
+    n = once(n, '  }else if((bit<8>)m.stage!=8w0){deny();}\n }\n}',
+             '  }else if((bit<8>)m.stage!=8w0||m.retry!=2w0){deny();}\n }\n}')
+    n = once(n, 'else if((ig.ingress_port==n_RETURN_PORT&&(bit<8>)m.stage==8w0)||',
+             'else if((ig.ingress_port==n_RETURN_PORT&&(bit<8>)m.stage==8w0&&m.retry==2w0)||')
+    # a claimed retry that first_event classes as a retransmission (forward_original) would leave untimed ahead of
+    # the timed original: it aborts instead (kind 255 returns the cell, terminal_abort drops it) and is counted
+    # counted in count_term[0], a register m4 declares and never uses (counting through busy_t needed a merged
+    # branch flag that made PHV allocation fail, bf-p4c bisect)
+    term = 'RegisterAction<bit<32>,bit<4>,bit<32>>(count_term) count_term_bump={void apply(inout bit<32> v,out bit<32> r){if((int<32>)v!=-1){v=v+32w1;}r=v;}};'
+    n = once(n, term, term + '\naction count_retry_duplicate(){count_term_bump.execute(4w0);}\n'
+             'table retry_dup_t{actions={count_retry_duplicate;}size=1;const default_action=count_retry_duplicate();}')
+    n = once(n, 'snapshot_t.apply();first_event.apply();\n     }else if(m.work_op==8w1){busy_t.apply();}else if(m.kind==8w4){deny();}',
+             'snapshot_t.apply();first_event.apply();\n'
+             '      if(m.retry==2w1&&hdr.event.event==16w0x0108){hdr.event.event[7:0]=8w255;hdr.t0.setInvalid();'
+             'retry_dup_t.apply();}\n'
+             '     }else if(m.work_op==8w1||m.retry==2w2){busy_t.apply();}else if(m.kind==8w4){deny();}')
+    return n
+
+
 def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
-    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4}[milestone](old_n)
-    new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4}[milestone](old_t)
+    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
+             'm5': transform_n_m5}[milestone](old_n)
+    new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
+             'm5': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
+    if milestone == 'm5':                     # N only: E and T byte-identical to m4
+        m4 = full_source('m4')
+        assert combined.segment(text, 'T') == combined.segment(m4, 'T')
+        assert combined.segment(text, 'E') == combined.segment(m4, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
     return text
 
@@ -224,5 +348,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5]')
     write(sys.argv[1], *(sys.argv[2:]))

@@ -1,0 +1,3786 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000753000000000600210003ba20000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000088b80000753160121000b2d80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000007531000088b950101000ca950000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05237497598864138,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000009c40000000006002100014920000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000afc800009c416012100064b80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c410000afc9501010007c750000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04995491495355964,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000c3500000000060021000ed810000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000d6d80000c3516012100016980000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000c3510000d6d9501010002e550000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04859645606484264,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000ea600000000060021000c6710000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000fde80000ea6160121000c8770000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000ea610000fde950101000e0340000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05045908107422292,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001117000000000600210009f610000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000124f800011171601210007a570000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000011171000124f95010100092140000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05199022404849529,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000013880000000006002100078510000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100014c0800013881601210002c370000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001388100014c095010100043f40000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.047725111013278365,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000015f90000000006002100051410000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001731800015f9160121000de160000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000015f910001731950101000f5d30000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04848739202134311,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000186a000000000600210002a310000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100019a28000186a1601210008ff60000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000186a100019a2950101000a7b30000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04824230307713151,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001adb0000000006002100003210000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001c1380001adb16012100041d60000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001adb10001c1395010100059930000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04836090502794832,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_READ_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001d4c00000000060021000dc100000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001e8480001d4c160121000f3b50000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001d4c10001e849501010000b730000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.048728204099461436,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001fbd00000000060021000b5000000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100020f580001fbd160121000a5950000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001fbd100020f5950101000bd520000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.042042026994749904,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000222e000000000600210008df00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100023668000222e16012100057750000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000222e100023669501010006f320000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05271153908688575,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000249f0000000006002100066e00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100025d78000249f16012100009550000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000249f100025d795010100021120000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.047838072990998626,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002710000000000600210003fd00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000284880002710160121000bb340000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000271010002848950101000d2f10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.050307266996242106,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000029810000000006002100018c00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002ab9800029811601210006d140000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000298110002ab995010100084d10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.053497503977268934,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002bf200000000060021000f1af0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002d2a80002bf21601210001ef40000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200002bf210002d2a95010100036b10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05205568904057145,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002e6300000000060021000ca9f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002f9b80002e63160121000d0d30000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200002e6310002f9b950101000e8900000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04987726092804223,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000030d400000000060021000a38f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000320c800030d416012100082b30000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000030d41000320c9501010009a700000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05037636694032699,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_SELECT_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003345000000000600210007c7f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000347d8000334516012100034930000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000033451000347d9501010004c500000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04429551702924073,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000035b600000000060021000556f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100036ee800035b6160121000e6720000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000035b6100036ee950101000fe2f0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.044954663957469165,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003827000000000600210002e5f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000395f8000382716012100098520000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000038271000395f950101000b00f0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04892967396881431,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003a9800000000060021000074f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310003bd080003a981601210004a320000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003a9810003bd095010100061ef0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04931573802605271,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003d0900000000060021000e03e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310003e4180003d09160121000fc110000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003d0910003e4195010100013cf0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05290608503855765,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003f7a00000000060021000b92e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100040b280003f7a160121000adf10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003f7a100040b2950101000c5ae0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.0501795990858227,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000041eb00000000060021000921e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004323800041eb1601210005fd10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000041eb10004323950101000778e0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05205686204135418,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000445c000000000600210006b0e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100045948000445c16012100011b10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000445c10004594950101000296e0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.049606914981268346,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000046cd0000000006002100043fe0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004805800046cd160121000c3900000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000046cd10004805950101000db4d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04958876105956733,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "sweep_OPERATE_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000493e000000000600210001cee0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004a768000493e16012100075700000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000493e10004a769501010008d2d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "dup_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.042963217943906784,
+   "count_busy_delta": [
+    0,
+    0,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "duplicate_sent": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "dup_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "dup_READ"
+  },
+  {
+   "expected": true,
+   "name": "dup_READ_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200004baf00000000060021000f5dd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004ce780004baf16012100027500000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200004baf10004ce79501010003f0d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "dup_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.06299522600602359,
+   "count_busy_delta": [
+    0,
+    0,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "duplicate_sent": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "dup_SELECT_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "tag": "dup_SELECT"
+  },
+  {
+   "expected": true,
+   "name": "dup_SELECT_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200004e2000000000060021000cecd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004f5880004e20160121000d92f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200004e2010004f58950101000f0ec0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "second_connection_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04196489497553557,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "second_connection_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "second_connection_packets": 3,
+   "tag": "second_connection_READ"
+  },
+  {
+   "expected": true,
+   "name": "second_connection_READ_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000509100000000060021000a7bd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100051c9800050911601210008b0f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005091100051c9950101000a2cc0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "second_connection_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05271001800429076,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "second_connection_SELECT_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "second_connection_packets": 3,
+   "tag": "second_connection_SELECT"
+  },
+  {
+   "expected": true,
+   "name": "second_connection_SELECT_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000053020000000006002100080ad0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000543a800053021601210003cef0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000053021000543a95010100054ac0000000000000000"
+    ]
+   }
+  },
+  {
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "expected": true,
+   "first_rst_relayed": false,
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "reset_during_wait_READ_known_outcome",
+   "observed": true,
+   "ok": true,
+   "outcome": "admitted_before_reset",
+   "payload_frames_to_master": 1,
+   "tag": "reset_during_wait_READ"
+  },
+  {
+   "expected": true,
+   "name": "reset_during_wait_READ_first_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "expected": true,
+   "first_rst_relayed": false,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reset_during_wait_SELECT_known_outcome",
+   "observed": false,
+   "ok": false,
+   "outcome": "other",
+   "payload_frames_to_master": 0,
+   "tag": "reset_during_wait_SELECT"
+  },
+  {
+   "expected": true,
+   "name": "reset_during_wait_SELECT_first_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_READ_first_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "after_new_syn": 0,
+   "expected": true,
+   "name": "reconnect_during_wait_READ_old_response_never_on_new_connection",
+   "observed": true,
+   "ok": true,
+   "old_copies": 0
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_READ_new_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "cleanup_retransmission_delivered": false,
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reconnect_during_wait_READ_new_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "reconnect_during_wait_READ_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_first_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "after_new_syn": 0,
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_old_response_never_on_new_connection",
+   "observed": true,
+   "ok": true,
+   "old_copies": 0
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_new_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "cleanup_retransmission_delivered": false,
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reconnect_during_wait_SELECT_new_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "reconnect_during_wait_SELECT_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "loss_recovery_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "expected": 1,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "loss_recovery_READ_exactly_one_response",
+   "observed": 0,
+   "ok": false,
+   "responses_to_master": 0,
+   "tag": "loss_recovery_READ"
+  },
+  {
+   "expected": true,
+   "name": "loss_recovery_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "8c0f0e34852409508a2f426a6c366600ee5bfa6aa0d5b0562aeee63d32f988c9",
+  "final_count_busy": [
+   0,
+   0,
+   31,
+   0,
+   0,
+   0,
+   0,
+   0,
+   2
+  ],
+  "final_outcomes": {
+   "ACK_COMMIT": 41,
+   "ACK_FALLBACK": 0,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 489,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 1,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 9,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 41,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "n_generation_counter": 259,
+  "physical": false,
+  "points": [
+   {
+    "clrt_wall_s": 0.05237497598864138,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_000ms"
+   },
+   {
+    "clrt_wall_s": 0.04995491495355964,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_008ms"
+   },
+   {
+    "clrt_wall_s": 0.04859645606484264,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_015ms"
+   },
+   {
+    "clrt_wall_s": 0.05045908107422292,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_022ms"
+   },
+   {
+    "clrt_wall_s": 0.05199022404849529,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_030ms"
+   },
+   {
+    "clrt_wall_s": 0.047725111013278365,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_045ms"
+   },
+   {
+    "clrt_wall_s": 0.04848739202134311,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_060ms"
+   },
+   {
+    "clrt_wall_s": 0.04824230307713151,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_090ms"
+   },
+   {
+    "clrt_wall_s": 0.04836090502794832,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_READ_120ms"
+   },
+   {
+    "clrt_wall_s": 0.048728204099461436,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_000ms"
+   },
+   {
+    "clrt_wall_s": 0.042042026994749904,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_008ms"
+   },
+   {
+    "clrt_wall_s": 0.05271153908688575,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_015ms"
+   },
+   {
+    "clrt_wall_s": 0.047838072990998626,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_022ms"
+   },
+   {
+    "clrt_wall_s": 0.050307266996242106,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_030ms"
+   },
+   {
+    "clrt_wall_s": 0.053497503977268934,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_045ms"
+   },
+   {
+    "clrt_wall_s": 0.05205568904057145,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_060ms"
+   },
+   {
+    "clrt_wall_s": 0.04987726092804223,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_090ms"
+   },
+   {
+    "clrt_wall_s": 0.05037636694032699,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_SELECT_120ms"
+   },
+   {
+    "clrt_wall_s": 0.04429551702924073,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_000ms"
+   },
+   {
+    "clrt_wall_s": 0.044954663957469165,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_008ms"
+   },
+   {
+    "clrt_wall_s": 0.04892967396881431,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_015ms"
+   },
+   {
+    "clrt_wall_s": 0.04931573802605271,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_022ms"
+   },
+   {
+    "clrt_wall_s": 0.05290608503855765,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_030ms"
+   },
+   {
+    "clrt_wall_s": 0.0501795990858227,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_045ms"
+   },
+   {
+    "clrt_wall_s": 0.05205686204135418,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_060ms"
+   },
+   {
+    "clrt_wall_s": 0.049606914981268346,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_090ms"
+   },
+   {
+    "clrt_wall_s": 0.04958876105956733,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "sweep_OPERATE_120ms"
+   },
+   {
+    "clrt_wall_s": 0.042963217943906784,
+    "count_busy_delta": [
+     0,
+     0,
+     5,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "duplicate_sent": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "dup_READ"
+   },
+   {
+    "clrt_wall_s": 0.06299522600602359,
+    "count_busy_delta": [
+     0,
+     0,
+     7,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "duplicate_sent": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "tag": "dup_SELECT"
+   },
+   {
+    "clrt_wall_s": 0.04196489497553557,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "second_connection_packets": 3,
+    "tag": "second_connection_READ"
+   },
+   {
+    "clrt_wall_s": 0.05271001800429076,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "second_connection_packets": 3,
+    "tag": "second_connection_SELECT"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "first_rst_relayed": false,
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "outcome": "admitted_before_reset",
+    "payload_frames_to_master": 1,
+    "tag": "reset_during_wait_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "first_rst_relayed": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "outcome": "other",
+    "payload_frames_to_master": 0,
+    "tag": "reset_during_wait_SELECT"
+   },
+   {
+    "cleanup_retransmission_delivered": false,
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "reconnect_during_wait_READ_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kind": "READ",
+    "old_response_after_new_syn": 0,
+    "old_response_frames_to_master": 0,
+    "tag": "reconnect_during_wait_READ"
+   },
+   {
+    "cleanup_retransmission_delivered": false,
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "reconnect_during_wait_SELECT_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kind": "SELECT",
+    "old_response_after_new_syn": 0,
+    "old_response_frames_to_master": 0,
+    "tag": "reconnect_during_wait_SELECT"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "responses_to_master": 0,
+    "tag": "loss_recovery_READ"
+   }
+  ],
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000088b9a3d79800e6090000",
+     "0xe60c": "0000006d0003481635c2f600e60c0000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "000000370001e84900000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "00000001000088b900000000e1000000"
+    },
+    "frames": 210,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0800": "00000000000000000000000008004500",
+     "0x0900": "00000001000088b9a3d7980009000000",
+     "0x0a00": "0000000100000000b9269c000a000000",
+     "0x0b00": "0000000100000000be70d4000b000000",
+     "0x0c00": "0000006d0003481635c2f6000c000000",
+     "0x0d01": "00000001000088f6000000000d010000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "000000370001e8490000000009000000",
+     "107": "0000003700000000000000000b000000",
+     "119": "0000000100000000be70d4000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000088b9a3d7980009000000",
+     "98": "00000000000000000000000008004500"
+    },
+    "frames": 187,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {
+     "0x4455": "0d0000260003a980001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "97": "0d0000260003a980001122334455aabb"
+    },
+    "frames": 196,
+    "longest": 97,
+    "shortest": 97
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000200000001001122334455aabb",
+     "68": "0e00000200000001001122334455aabb",
+     "99": "0f00001d00000037001122334455aabb"
+    },
+    "frames": 489,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m5: ACK/response contention for N's work cell (spacing sweep, edges)"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "reset_during_wait_READ_first_RST_relayed",
+   "reset_during_wait_SELECT_SYN",
+   "reset_during_wait_SELECT_SYNACK",
+   "reset_during_wait_SELECT_final_ACK",
+   "reset_during_wait_SELECT_known_outcome",
+   "reset_during_wait_SELECT_first_RST_relayed",
+   "reconnect_during_wait_READ_SYN",
+   "reconnect_during_wait_READ_SYNACK",
+   "reconnect_during_wait_READ_final_ACK",
+   "reconnect_during_wait_READ_first_RST_relayed",
+   "reconnect_during_wait_READ_new_READ_request_relayed",
+   "reconnect_during_wait_READ_new_READ_delivered_once_committed",
+   "reconnect_during_wait_READ_RST_relayed",
+   "reconnect_during_wait_SELECT_SYN",
+   "reconnect_during_wait_SELECT_SYNACK",
+   "reconnect_during_wait_SELECT_final_ACK",
+   "reconnect_during_wait_SELECT_first_RST_relayed",
+   "reconnect_during_wait_SELECT_new_READ_request_relayed",
+   "reconnect_during_wait_SELECT_new_READ_delivered_once_committed",
+   "reconnect_during_wait_SELECT_RST_relayed",
+   "loss_recovery_READ_SYN",
+   "loss_recovery_READ_SYNACK",
+   "loss_recovery_READ_final_ACK",
+   "loss_recovery_READ_request_relayed",
+   "loss_recovery_READ_exactly_one_response",
+   "loss_recovery_READ_RST_relayed"
+  ],
+  "passed": 201,
+  "total": 227
+ }
+}

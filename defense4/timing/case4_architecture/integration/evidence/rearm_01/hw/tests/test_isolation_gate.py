@@ -106,3 +106,15 @@ def test_pre_read_established_phase_five_is_required_before_any_read():
     before['registers']['p0.n_Ingress.owner']['owner'] = [0x70002]
     assert not compare_quiet_generation(before, copy.deepcopy(before),
                                         connection_generation=2, server_isn=201)['ok']
+
+
+def test_m5_retry_epoch_must_name_the_current_epoch_and_never_change():
+    before = snapshot()
+    before['registers']['p0.n_Ingress.retry_epoch'] = {'retry_epoch': [2]}
+    before['expected_registers'] = sorted(before['registers'])
+    assert compare_quiet_generation(before, copy.deepcopy(before), connection_generation=2, server_isn=201)['ok']
+    for value in (0, 1, 3):
+        bad = copy.deepcopy(before)
+        bad['registers']['p0.n_Ingress.retry_epoch']['retry_epoch'] = [value]
+        assert not compare_quiet_generation(bad, copy.deepcopy(bad), connection_generation=2, server_isn=201)['ok']
+        assert not compare_quiet_generation(before, bad, connection_generation=2, server_isn=201)['ok']

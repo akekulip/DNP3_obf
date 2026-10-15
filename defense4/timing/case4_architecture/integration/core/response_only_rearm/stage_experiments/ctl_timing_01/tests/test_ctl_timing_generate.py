@@ -79,3 +79,28 @@ def test_m4_table_4_9_rows_precede_the_refusals_and_exhaustion_drops_operate():
     verdict = verdict[:verdict.index('size = ')]
     assert '(t_KIND_OPERATE, _, 0, _, _, _, 32w0xffff, _) : drop_exhausted();' in verdict
     assert 'size = 23;' in t[t.index('table tin_verdict'):t.index('table token_verdict')]
+
+
+def test_m5_changes_n_only_relative_to_m4():
+    m4, m5 = gen.full_source('m4'), gen.full_source('m5')
+    assert seg(m5, 'N') != seg(m4, 'N')
+    assert seg(m5, 'E') == seg(m4, 'E') and seg(m5, 'T') == seg(m4, 'T')
+    assert m5.replace(seg(m5, 'N'), seg(m4, 'N'), 1) == m4
+
+
+def test_m5_retry_rows_precede_the_native_rows_and_requests_keep_busy_drop():
+    n = seg(gen.full_source('m5'), 'N')
+    guard = n[n.index('table guard{'):]
+    guard = guard[guard.index('const entries={'):guard.index('}}')]
+    rows = guard[len('const entries={'):].split(';')
+    assert [r.split(':')[-1] for r in rows[:4]] == ['go_retry(8w6)', 'go_retry(8w11)', 'go_stale()', 'go_stale()']
+    assert all(r.endswith(',2w1)') or r.endswith(',2w2)') for r in (x.split(':')[0] for x in rows[:4]))
+    assert all(',_):' in r for r in rows[4:] if r)                  # every native row wildcards m.retry
+    busy = n[n.index('table busy_t{'):]
+    busy = busy[:busy.index('}const default_action')]
+    for kind in (1, 2, 5, 7, 9, 12):
+        assert '(8w%d,_,_):busy_drop();' % kind in busy
+    assert 'allocate' not in n[n.index('action go_retry'):n.index('action go_stale')]
+    retained = HERE / 'evidence/m5_10/response_only.p4'
+    if retained.is_file():
+        assert gen.full_source('m5') == retained.read_text()

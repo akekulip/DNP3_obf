@@ -131,6 +131,10 @@ class LapPipeline(sp.SourcePipeline):
     def busy(self, index):
         return self.n.src.cells[('', 'count_busy')][index]
 
+    def retried_duplicates(self):
+        """m5: retried copies classed as retransmissions and aborted (count_term[0])."""
+        return self.n.src.cells[('', 'count_term')][0]
+
     def to_master(self, since=0):
         return [(t, raw) for t, port, raw in self.wire if port == MASTER_PORT and t >= since]
 
@@ -215,7 +219,7 @@ def delivered_once_after_ack(r):
 
 # ---- retry frames (m5) ----------------------------------------------------------------------------
 RETRY_EVENT = 0x0400
-STALE, EXHAUSTED, RETRY, DUPLICATE = 4, 3, 2, 5      # count_busy cells (m5)
+STALE, EXHAUSTED, RETRY = 4, 3, 2      # count_busy cells (m5)
 
 
 def retry_frames(p):
