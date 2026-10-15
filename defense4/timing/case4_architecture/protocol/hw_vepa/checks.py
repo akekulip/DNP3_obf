@@ -239,7 +239,7 @@ def _loop_gap(before, after):
     return out
 
 
-def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0):
+def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, control_timed=False):
     """Generator counters (snapshot pktgen block, after minus before) on a build carrying the compiler-mirror
     fix: T on -> READ triggers == READs, READ packets == 2k per trigger, OPERATE triggers == SBOs, stale == 0;
     T off -> no generator activity at all (what the T-off silicon evidence shows)."""
@@ -254,7 +254,9 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0):
     obs['pktgen'] = d
     sbo = sbo_count
     if arm['T']:
-        want = {'READ': (reads, 2 * k * reads), 'OPERATE': (sbo, 2 * k * sbo)}
+        # control-timed builds (ctl_timing_01) admit each SELECT as a READ-lane request, which seeds READ blockers
+        lane = reads + (sbo if control_timed else 0)
+        want = {'READ': (lane, 2 * k * lane), 'OPERATE': (sbo, 2 * k * sbo)}
         for app, (trig, pkts) in want.items():
             if d[app]['triggers'] != trig:
                 fails.append('T on: %s trigger delta %d, expected %d' % (app, d[app]['triggers'], trig))
@@ -273,7 +275,7 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0):
 
 
 def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, gap_ns=None, precision=True, run_sbo=True,
-             repeated=False):
+             repeated=False, control_timed=False, piggyback_bound=False):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None."""
     allowed = allowed or {}
     fails, obs = [], {}
@@ -310,12 +312,15 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
 
     switch_fails, switch_obs = evaluate_switch(
         exp, arm, reads, ev, allowed, mirror_k, max_stale, diagnostic,
-        sbo_count=int(run_sbo), complete_reads=rd.get('complete'), piggyback_reads=rd.get('piggyback'))
+        sbo_count=int(run_sbo), complete_reads=rd.get('complete'), piggyback_reads=rd.get('piggyback'),
+        control_timed=control_timed, piggyback_bound=piggyback_bound,
+        piggyback_controls=sum((summary.get(k) or {}).get('piggyback') or 0 for k in SBO if isinstance(summary.get(k), dict)))
     return fails + switch_fails, dict(obs, **switch_obs)
 
 
 def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False,
-                    sbo_count=1, complete_reads=None, piggyback_reads=0):
+                    sbo_count=1, complete_reads=None, piggyback_reads=0, control_timed=False, piggyback_bound=False,
+                    piggyback_controls=0):
     """Switch deltas for installed traffic; callers supply the number of installed READs and SBOs.
 
     Reconnect's unknown-port connection is native and contributes no installed generator/release counts.
@@ -347,8 +352,15 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                 te = exp['T']['1']
                 complete = complete_reads if isinstance(complete_reads, int) else reads
                 piggy = piggyback_reads if isinstance(piggyback_reads, int) else 0
-                wanted = {'OUT_ACK_COMMIT': complete - piggy, 'OUT_RESP_RELEASE': complete - piggy,
-                          'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': piggy}
+                # candidate61 times READ only; control-timed builds also time SELECT and OPERATE (each one ACK commit
+                # and one release unless piggybacked); a piggyback-bound build releases piggybacked responses by the
+                # bound (RESP_RELEASE) instead of the readiness fallback.
+                controls = 2 * sbo_count if control_timed else 0
+                piggy_ctl = (piggyback_controls if isinstance(piggyback_controls, int) else 0) if control_timed else 0
+                piggy_all = piggy + piggy_ctl
+                wanted = {'OUT_ACK_COMMIT': complete - piggy + controls - piggy_ctl,
+                          'OUT_RESP_RELEASE': complete - piggy + controls - piggy_ctl + (piggy_all if piggyback_bound else 0),
+                          'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0 if piggyback_bound else piggy_all}
                 for k, count in wanted.items():
                     if d.get(k) != count:
                         fails.append('T on: %s=%s, expected %d (complete READs=%d, piggyback=%d)' %
@@ -362,7 +374,7 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                     if d.get(k):
                         fails.append('T off but %s=%s (expected 0)' % (k, d[k]))
         if mirror_k is not None:
-            _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, b, a, mirror_k, fails, obs, max_stale)
+            _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, b, a, mirror_k, fails, obs, max_stale, control_timed)
         gaps = _loop_gap(b, a)
         obs['loop_octet_gap'] = {r: g for r, (g, e) in gaps.items()}
         for role, (g, err) in gaps.items():

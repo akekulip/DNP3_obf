@@ -1102,7 +1102,9 @@ class Campaign:
                                      gap_ns=self.cfg['timing_params_ns']['gap'],
                                      precision=self.cfg.get('evaluation', {}).get('read_precision', True),
                                      run_sbo=checks.sbo_count(self.cfg['traffic']),
-                                     repeated='sbo_cycles' in self.cfg['traffic'])
+                                     repeated='sbo_cycles' in self.cfg['traffic'],
+                                     control_timed=bool(self.cfg['builds'][arm['build']].get('control_timed')),
+                                     piggyback_bound=bool(self.cfg['builds'][arm['build']].get('piggyback_bound')))
         cfail += self.endpoint_control_checks(ev['master'])
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail

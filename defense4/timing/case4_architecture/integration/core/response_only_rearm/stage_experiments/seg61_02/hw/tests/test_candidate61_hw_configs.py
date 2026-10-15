@@ -11,6 +11,7 @@ CFG = HW / 'config'
 GEN = HW / 'build_candidate61_configs.py'
 CANDIDATE_SHA = '1b2d62d16d40427d8b7e5d4b93f9e57b75e721e6a6c7e4c184fb84a1dc3665aa'
 STRICT_SHA = '2ad71761399e023b0d3b6b72f9fb71257da012499ffe30ac4758b395fc1bd97c'
+CTL_SHA = 'c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204'
 HEX = set('0123456789abcdef')
 
 sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
@@ -69,8 +70,8 @@ class Candidate61SourceOnlyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:                  # a checkout with no compiler outputs at all
             result = subprocess.run([sys.executable, str(GEN)], cwd=tmp, text=True, capture_output=True)
         self.assertEqual(result.returncode, 3, result.stderr)
-        self.assertEqual(result.stderr.count('missing compiler output'), 6, result.stderr)
-        self.assertEqual(result.stderr.count('rebuild: '), 6)
+        self.assertEqual(result.stderr.count('missing compiler output'), 8, result.stderr)
+        self.assertEqual(result.stderr.count('rebuild: '), 8)
         self.assertIn('orchestrator.py', result.stderr)
         self.assertIn('bf-sde-9.13.1', result.stderr)
 
@@ -122,6 +123,7 @@ class Candidate61HardwareConfigTests(unittest.TestCase):
     def test_all_builds_have_profile_source_and_hash_pins(self):
         configs = sorted(CFG.glob('candidate61_*.json')) + sorted(CFG.glob('strict_comparison_*.json'))
         self.assertEqual(len(configs), 20)
+        self.assertEqual(len(list(CFG.glob('ctl_timing_*.json'))), 6)
         for path in configs:
             data = load_path(path)
             self.assertIn('candidate61_identity', data)
@@ -258,3 +260,21 @@ class Candidate61HardwareConfigTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ControlTimingConfigs(unittest.TestCase):
+    """Gate 3 silicon configs: the m3 build, its flags, pb, the repeated-SBO endpoint and both fixtures."""
+
+    def test_ctl_configs_bind_the_m3_build(self):
+        fixtures = []
+        for path in sorted(CFG.glob('ctl_timing_*.json')):
+            data = load_path(path)
+            (name, build), = data['builds'].items()
+            self.assertEqual((name, build['profile'], build['source_sha256']), ('ctl_timing_m3_01', 'candidate61', CTL_SHA))
+            self.assertTrue(build['control_timed'] and build['piggyback_bound'], path.name)
+            self.assertTrue(0 < data['timing_params_ns']['pb'] < data['timing_params_ns']['readiness'], path.name)
+            self.assertEqual(data['traffic']['sbo_cycles'], 64)
+            self.assertEqual(data['hosts']['vision_run_dir'], '/home/decps/pad58b_repeat_sbo_20261014c')
+            campaign.load_config(str(path))
+            fixtures += data['fixture']['modes']
+        self.assertEqual(sorted(fixtures), ['piggyback'] * 3 + ['separate_ack'] * 3)

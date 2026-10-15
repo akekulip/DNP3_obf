@@ -10,6 +10,9 @@ DST = ROOT / 'integration/core/response_only_rearm/stage_experiments/seg61_02/hw
 FULL = ROOT / 'integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/full_04'
 MODEL = ROOT / 'integration/core/response_only_rearm/stage_experiments/seg61_02/evidence'
 STRICT = ROOT / 'integration/core/response_only_rearm/stage_experiments/dup_hold_01/evidence/full_02_strict'
+CTL = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m3_01'
+CTL_BUILD = 'ctl_timing_m3_01'
+CTL_SOURCE_SHA = 'c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204'
 BUILD = 'rearm_61_full04'
 STRICT_BUILD = 'strict_dup_hold_full02'
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
@@ -83,6 +86,8 @@ BUILD_OUTPUTS = {
     FULL / 'compile_local/out': (
         'SDK 9.13.1 locally: python3 %s %s %s --compiler /home/philip/bf-sde-9.13.1/install/bin/bf-p4c'
         % (ROOT / 'build.py', FULL / 'response_only.p4', FULL / 'compile_local')),
+    CTL / 'compile_switch_9132/out': (
+        'SDK 9.13.2 on the switch host: python3 %s' % (CTL.parent.parent / 'compile_switch_orchestrator.py')),
     STRICT / 'compile_switch_9132/out': (
         'SDK 9.13.2 on the switch host for the strict comparison source, the same orchestrator procedure '
         'under %s' % (STRICT / 'compile_switch_9132')),
@@ -106,6 +111,9 @@ local_manifest = load_json(FULL / 'compile_local/manifest.json')
 local_out = FULL / 'compile_local/out'
 candidate_switch = compile_identity(FULL)
 strict_switch = compile_identity(STRICT)
+ctl_switch = compile_identity(CTL)
+if ctl_switch['source_sha256'] != CTL_SOURCE_SHA:
+    raise ValueError('ctl_timing m3 source SHA mismatch')
 if inputs['source_sha256'] != CANDIDATE_SOURCE_SHA or candidate_switch['source_sha256'] != CANDIDATE_SOURCE_SHA:
     raise ValueError('candidate61 source SHA mismatch')
 if strict_switch['source_sha256'] != STRICT_SOURCE_SHA:
@@ -172,6 +180,11 @@ build = make_build(
     'candidate61', CANDIDATE_SOURCE_SHA, candidate_switch, 61, True,
     'candidate61 full_04; READ and SELECT/OPERATE padded image length 61 in size-enabled arms. Hardware remains gated on sealed_profile registration, model/review gates, capture-boundary qualification, generation-headroom precheck, and restore verification.'
 )
+ctl_build = dict(make_build(
+    'candidate61', CTL_SOURCE_SHA, ctl_switch, 61, True,
+    'ctl_timing_01 m3: candidate61 encoding (E byte-identical) with SELECT and OPERATE ACK->response timed by T '
+    '(OPERATE J hold kept) and a per-response piggyback bound pb (timing_params_ns.pb).'),
+    control_timed=True, piggyback_bound=True)
 strict_build = make_build(
     'strict_comparison', STRICT_SOURCE_SHA, strict_switch, 58, False,
     'Strict baseline comparison build: READ padding profile is 58 bytes, SELECT/OPERATE remain native 37 bytes with strict control semantics.'
@@ -357,6 +370,23 @@ for filename, template, order, block in repeat_orders:
         preset='shape_59570', gap=950000, port_first=59590, port_last=59593, start_delay_ms=50, loss_presets={},
         sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR))
 
+# Gate 3 silicon: the control-timing build on the repeated-SBO endpoint. pb = 2 ms bounds piggybacked
+# request->response (previously the 30 ms readiness fallback).
+CTL_PB_NS = 2000000
+ctl_specs = [('ctl_timing_repeat_sbo_950_b%d.json', 'separate_ack', 59600),
+             ('ctl_timing_piggyback_950_b%d.json', 'piggyback', 59610)]
+for pattern, fixture, port in ctl_specs:
+    for filename, template, order, block in repeat_orders:
+        data = transform(load(template), purpose={'purpose': 'timing_precision_characterization', 'read_precision': True,
+            'candidate61_label': 'ctl_timing_m3_%s_64' % fixture, 'block': block, 'arm_order': order}, arms=order,
+            reads=65, trials=1, preset='shape_59570', gap=950000, port_first=port, port_last=port + 3, start_delay_ms=50,
+            loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
+            build_name=CTL_BUILD, build_spec=ctl_build, fixtures=[fixture])
+        data['timing_params_ns']['pb'] = CTL_PB_NS
+        data['ctl_timing_identity'] = {'source_sha256': CTL_SOURCE_SHA, 'switch_compile': ctl_switch,
+                                       'design': 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/DESIGN.md'}
+        write(pattern % block, data)
+
 strict_standards = {
     'packet_boundary_required': True,
     'capture_boundary_scope': 'strict_comparison_fairness',
@@ -384,4 +414,5 @@ write('candidate61_compare_14892_950.json', transform(load('precision_10_950_rem
     purpose={'purpose': 'timing_precision_characterization', 'read_precision': True, 'candidate61_label': 'rate_comparison_14892_950'}, preset='shape_14892',
     gap=950000, arms=['combined'], reads=50, trials=3, port_first=59580, port_last=59582))
 
-print('wrote', len(list(DST.glob('candidate61_*.json'))) + len(list(DST.glob('strict_comparison_*.json'))), 'configs to', DST)
+print('wrote', sum(len(list(DST.glob(g))) for g in ('candidate61_*.json', 'strict_comparison_*.json', 'ctl_timing_*.json')),
+      'configs to', DST)

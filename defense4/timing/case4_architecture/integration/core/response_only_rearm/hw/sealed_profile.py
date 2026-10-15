@@ -5,6 +5,13 @@ from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
 PROFILES = {
+    # ctl_timing_01 m3 (control timing + piggyback bound; E identical to candidate61): SDK 9.13.2, then 9.13.1.
+    '57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84': {
+        '258d12bb39806f70c6a8530ba876604e016f18c1444543dfb5a4c0b1903be0c5',
+    },
+    '133c1accd068c45d8b8ade52b8b4a3d4ea768ee7b006b38fe9a0e9ed67b85b5f': {
+        'f6525046cac2374c0e5c80d387ca05e950fa51f23638fd42c98bac66fb6f382a',
+    },
     # candidate61 seg61_02 full_04: complete installed SDK 9.13.2 artifacts.
     'e32df20459c0dc15b9a64cabc7f64d43e53f90434c51698d5b8a58aa43de0311': {
         '3306c394ef3f447cb48e62f25e2df609acc72e02085f83f6096ccbb9d7287a43',

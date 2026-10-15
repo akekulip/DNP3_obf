@@ -178,3 +178,41 @@ class VisionRunValidation(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ControlTimedSwitchExpectations(unittest.TestCase):
+    """ctl_timing builds: SELECT and OPERATE commit and release in T; piggybacked responses go by the bound."""
+    def snapshot(self, outcomes, read_trig=0, op_trig=0):
+        base = {k: 0 for k in ('OUT_ACK_COMMIT', 'OUT_ACK_FALLBACK', 'OUT_RESP_RELEASE', 'OUT_RESP_FALLBACK',
+                               'OUT_OP_RELEASE', 'OUT_TOKEN_STALE')}
+        base.update(outcomes)
+        return {'outcomes': base, 'pktgen': {'READ': {'trigger_counter': read_trig, 'pkt_counter': 2 * 64 * read_trig},
+                                             'OPERATE': {'trigger_counter': op_trig, 'pkt_counter': 2 * 64 * op_trig}},
+                'loop': {}}
+
+    def run_switch(self, after, **kw):
+        exp = json.load(open(CONFIG))['expectations']
+        ev = {'before': self.snapshot({}), 'after': after}
+        orig = checks._loop_gap
+        checks._loop_gap = lambda b, a: {}
+        try:
+            return checks.evaluate_switch(exp, {'T': 1, 'padding': 1, 'name': 'combined'}, 65, ev, sbo_count=64,
+                                          complete_reads=65, mirror_k=64, **kw)[0]
+        finally:
+            checks._loop_gap = orig
+
+    def test_separate_ack_counts(self):
+        good = self.snapshot({'OUT_ACK_COMMIT': 65 + 128, 'OUT_RESP_RELEASE': 65 + 128, 'OUT_OP_RELEASE': 64},
+                             read_trig=65 + 64, op_trig=64)
+        self.assertEqual(self.run_switch(good, control_timed=True), [])
+        self.assertTrue(self.run_switch(good))                          # candidate61 expectations reject it
+
+    def test_piggyback_bound_counts(self):
+        good = self.snapshot({'OUT_ACK_COMMIT': 0, 'OUT_RESP_RELEASE': 65 + 128, 'OUT_OP_RELEASE': 64},
+                             read_trig=65 + 64, op_trig=64)
+        self.assertEqual(self.run_switch(good, control_timed=True, piggyback_bound=True, piggyback_reads=65,
+                                         piggyback_controls=128), [])
+        fallback = self.snapshot({'OUT_RESP_RELEASE': 0, 'OUT_RESP_FALLBACK': 65 + 128, 'OUT_OP_RELEASE': 64},
+                                 read_trig=65 + 64, op_trig=64)
+        self.assertTrue(self.run_switch(fallback, control_timed=True, piggyback_bound=True, piggyback_reads=65,
+                                        piggyback_controls=128))
