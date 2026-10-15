@@ -449,7 +449,11 @@ held['timing_params_ns'].update(readiness=380000000, cap=400000000)
 write('ctl_m4_held_operate_350.json', held)
 for pattern, fixture, port, purpose, label in (
         ('ctl_m4_qual_repeat_sbo_950_b%d.json', 'separate_ack', 59730, 'qualification', 'ctl_timing_m4_qual_%s_64'),
-        ('ctl_m4_qual_piggyback_950_b%d.json', 'piggyback', 59740, 'qualification', 'ctl_timing_m4_qual_%s_64')):
+        ('ctl_m4_qual_piggyback_950_b%d.json', 'piggyback', 59740, 'qualification', 'ctl_timing_m4_qual_%s_64'),
+        # characterization twins: the same blocks, continuing past a timing-objective miss (measurement_only), so
+        # every arm's distribution is recorded even where qualification stops at the first failing arm
+        ('ctl_m4_char_repeat_sbo_950_b%d.json', 'separate_ack', 59760, 'timing_precision_characterization',
+         'ctl_timing_m4_char_%s_64')):
     for filename, template, order, block in repeat_orders:
         write(pattern % block, m4(transform(load(template), purpose={'purpose': purpose, 'read_precision': True,
             'candidate61_label': label % fixture, 'block': block, 'arm_order': order}, arms=order,
