@@ -8,10 +8,10 @@
 # A record line goes to rearm_01/hw/run_block.log.
 set -u
 HW="$(cd "$(dirname "$0")" && pwd)"
-REPO="$(cd "$HW/../../../../../.." && pwd)"
+REPO="$(git -C "$HW" rev-parse --show-toplevel)"
 TOOL="$1"; CONFIG="$2"; RUN_ID="$3"; shift 3
 cd "$REPO"
-CFG="$(realpath "$CONFIG")"
+CFG="$(realpath -e "$CONFIG")" || { echo "$(date -Is) NO-CONFIG $RUN_ID $CONFIG (nothing touched)" >> "$HW/run_block.log"; exit 1; }
 ROOT="$REPO/defense4/timing/case4_architecture/$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['evidence_dir'])" "$CFG")/$RUN_ID"
 LOG="$HW/run_block.log"
 OUT="/tmp/run_block_$RUN_ID.out"
