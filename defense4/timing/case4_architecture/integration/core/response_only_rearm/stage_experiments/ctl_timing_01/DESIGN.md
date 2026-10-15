@@ -1,6 +1,6 @@
 # ctl_timing_01: normalize SELECT and OPERATE CLRT, keep the OPERATE hold, bound piggyback latency (design, not built)
 
-Status: design reviewed 2026-10-14 (see the review section at the end; change 5 replaced). No P4, model or hardware work has started. Base source is the qualified candidate61, `seg61_02/evidence/full_04/response_only.p4` (SHA256 `1b2d62d1…65aa`). Line numbers below refer to that file. Contract: `rearm_01/TIMING_CONTRACT.md`. Decisions: Philip, 2026-10-14 (all three CLRTs normalized to `gap`, J kept as its own objective, piggyback bounded per response).
+Status (2026-10-14): built as milestones m1 (SELECT), m2 (OPERATE) and m3 (piggyback bound); see "As built" at the end. Design reviewed before code; implementation reviewed after m3. Base source is the qualified candidate61, `seg61_02/evidence/full_04/response_only.p4` (SHA256 `1b2d62d1…65aa`). Line numbers below refer to that file. Contract: `rearm_01/TIMING_CONTRACT.md`. Decisions: Philip, 2026-10-14 (all three CLRTs normalized to `gap`, J kept as its own objective, piggyback bounded per response).
 
 ## What the code does today
 
@@ -97,3 +97,24 @@ DNP3 masters keep one outstanding application request, so SELECT, OPERATE and RE
 9. Piggyback READ, SELECT and OPERATE responses released at the bound; a slow separate ACK beyond the bound still gap-anchored.
 10. Stray ACKs in states 5 and 0xa still `forward_original`.
 11. All existing suites (smoke, packets, rearm, dup, repeat, abandon), the 64-cycle repeat, and an exhaustion check at three generations per cycle.
+
+
+## As built (2026-10-14)
+
+`generate.py` produces `evidence/m1_02` (N only), `evidence/m2_01` (N + T) and `evidence/m3_01` (N + T + piggyback). E is byte-identical in all three, and all compile at N11/E12/T11 on SDK 9.13.1. m3 also compiles on 9.13.2 and passes the mirror guard.
+
+**Deviations from the reviewed design.**
+- **No t0 stamp on SELECT/response events.** N's loop parser (`envelope_event`) reads events 0x0105/0x0106 without `hdr.t0`, so stamping it shifted the loop packet and lost the SELECT (`m1_01`, retained). T never reads `t0q`.
+- **Change 5 as built.**
+  - `ack_seen_reg` is written on the T_IN ACK pass and read only on the held-response pass, giving `ack_seen_diff`.
+  - `resp_go_check` gains two rows: ACK seen → no go; otherwise `t0 + pb` passed → go. No ladder flag and no `held_verdict` change.
+  - The release therefore happens one held lap after the `resp_done` commit, through the existing `done_diff == 0` row.
+- **pb range.** `pb` must satisfy `op_j < pb < readiness`. An OPERATE's piggybacked response cannot arrive before its J hold ends, so `pb <= op_j` would release it at once. Enforced by the installer (`t_config.check_params`) and the campaign config. bfrt name checking refuses an m3 install without `pb` and a `pb` sent to candidate61 (tested).
+
+**Behaviour to disclose.**
+- **Request→ACK carries the outstation's latency, for all three kinds.** The ACK is held until the response is seen. This is READ's existing property, now shared by SELECT and OPERATE. For OPERATE it is `J + execution latency`. CLRT (ACK→response) is normalized and J is a separate objective; request→ACK is not normalized.
+- **Stranded SELECT blocker tokens.** Each SELECT seeds READ-lane blocker tokens. The OPERATE opens the next lane generation milliseconds later, so up to 2k of them are rejected as `OUT_TOKEN_STALE`. The runner bounds this explicitly for control-timed builds (2k per SBO cycle). Silicon `ctl_timing_repeat_sbo_950_b1`: 88 over 64 cycles, raw timer stale 0.
+- **ACK and response microseconds apart.** Characterized in the model (`race_*` case). If N aborts such an ACK, the response is treated as piggybacked and leaves at `t0 + pb`.
+- **Lane-generation exhaustion.** A READ+SBO cycle uses three lane generations. An OPERATE admitted when the lane generation is exhausted keeps its J hold but leaves its ACK/response untimed. Runs stay far below the 16-bit limit, and the per-run headroom precheck applies.
+
+**Not implemented from the falsification list:** a duplicate outstation ACK in states 9/0xc (expected to fail closed on the exact counter check, not to release early), and a late READ response after a SELECT or a RESET while a response is held (covered by the existing generation and stale-flush guards; no new case).

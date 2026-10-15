@@ -1,0 +1,968 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": 2,
+   "name": "READ_lane_generation",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007950181000829a000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 22,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+  },
+  {
+   "expected": 3,
+   "name": "SELECT_lane_generation",
+   "observed": 3,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003c20000009c50101000c4220000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003c20000009c501810002f1000000564154401000a004d1941c18100000c01280100010001016400441f05640c4401000a00b74e0200006400000049980564074401000a003b4783007b54"
+   ],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 20,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003ff0000009c50101000c3e50000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003ff0000009c50101000c3e50000"
+  },
+  {
+   "delay_s": [
+    0.278
+   ],
+   "expected": true,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_one_OP_RELEASE",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_lane_generation",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003ff000000bf50101000c3c20000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003ff000000bf50181000cacf00000564154401000a004d1942c28100000c01280100010001016400f87b05640c4401000a00b74e030000640000002bc70564074401000a003b4784001ad3"
+   ],
+   "name": "OPERATE_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 33,
+    "OP_RELEASE": 1,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000bf00000400501810002a1a000005640dc400000100f387c3c3010a02000016caf7"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000bf00000400501810002a1a000005640dc400000100f387c3c3010a02000016caf7"
+  },
+  {
+   "expected": 5,
+   "name": "READ_lane_generation",
+   "observed": 5,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000043c000000d350101000c3710000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000043c000000d3501810000a22000005643244010000008042c3c38180000a02000005000102030405dae40a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 22,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000d300000431501810003dfa000005641ac40a0001008a1cc4c4030c012801000100010165000000e0176400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000d300000431501810003dfa000005641ac40a0001008a1cc4c4030c012801000100010165000000e0176400000000005b"
+  },
+  {
+   "expected": 6,
+   "name": "SELECT_lane_generation",
+   "observed": 6,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100000479000000f650101000c3110000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000479000000f65018100077a500000564154401000a004d1944c48100000c01280100010001016500ce1905640c4401000a00b74e050000640000001e490564074401000a003b478600ffc8"
+   ],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 19,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004b6000000f650101000c2d40000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004b6000000f650101000c2d40000"
+  },
+  {
+   "delay_s": [
+    0.2813
+   ],
+   "expected": true,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_one_OP_RELEASE",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 7,
+   "name": "OPERATE_lane_generation",
+   "observed": 7,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004b60000011950101000c2b10000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004b60000011950181000eed600000564154401000a004d1945c58100000c012801000100010165005a3a05640c4401000a00b74e06000064000000b8a80564074401000a003b478700b163"
+   ],
+   "name": "OPERATE_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 26,
+    "OP_RELEASE": 1,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001190000047b50181000ed63000005640dc400000100f387c6c6010a0200001603d6"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001190000047b50181000ed63000005640dc400000100f387c6c6010a0200001603d6"
+  },
+  {
+   "expected": 8,
+   "name": "READ_lane_generation",
+   "observed": 8,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004f30000012d50101000c2600000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004f30000012d50181000c2a9000005643244010000008042c6c68180000a020000050001020304051e490a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 20,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000012d000004ac501810007c54000005640dc400000100f387c7c7010a02000016739f"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000012d000004ac501810007c54000005640dc400000100f387c7c7010a02000016739f"
+  },
+  {
+   "deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 6,
+    "RESP_RELEASE": 1
+   },
+   "expected": true,
+   "frames_to_master": 2,
+   "name": "race_ACK_and_response_back_to_back_characterized",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_piggyback_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000141000004dd50181000c5b0000005640dc400000100f387c8c8010a0200001628fd"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000141000004dd50181000c5b0000005640dc400000100f387c8c8010a0200001628fd"
+  },
+  {
+   "expected": 10,
+   "name": "READ_piggyback_lane_generation",
+   "observed": 10,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000056d00000155501810001e7d000005643244010000008042c8c88180000a02000005000102030405bfd10a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_piggyback_released_by_bound",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "READ_piggyback_not_before_t0_plus_pb",
+   "observed": true,
+   "ok": true,
+   "pb_in_wall_s": 1.3898538699140772,
+   "release_after_request_s": 0.9303063869010657
+  },
+  {
+   "all_deltas": {
+    "HELD_REWAIT": 59,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_piggyback_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001550000050e5018100059cc000005641ac40a0001008a1cc9c9030c012801000100010166000000bce16400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001550000050e5018100059cc000005641ac40a0001008a1cc9c9030c012801000100010166000000bce16400000000005b"
+  },
+  {
+   "expected": 11,
+   "name": "SELECT_piggyback_lane_generation",
+   "observed": 11,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000005aa00000178501810009d2f00000564154401000a004d1949c98100000c01280100010001016600785505640c4401000a00b74e0a000064000000abf90564074401000a003b478b00ef3b"
+   ],
+   "name": "SELECT_piggyback_released_by_bound",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "SELECT_piggyback_not_before_t0_plus_pb",
+   "observed": true,
+   "ok": true,
+   "pb_in_wall_s": 1.3898538699140772,
+   "release_after_request_s": 0.9237542350310832
+  },
+  {
+   "all_deltas": {
+    "HELD_REWAIT": 56,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "delay_s": [
+    0.2826
+   ],
+   "expected": true,
+   "name": "OPERATE_piggyback_request_held_J_then_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_piggyback_one_OP_RELEASE",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": 12,
+   "name": "OPERATE_piggyback_lane_generation",
+   "observed": 12,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000005e70000019b50181000213400000564154401000a004d194aca8100000c01280100010001016600c43105640c4401000a00b74e0b000064000000c9a60564074401000a003b478c008ebc"
+   ],
+   "name": "OPERATE_piggyback_released_by_bound",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "OPERATE_piggyback_not_before_t0_plus_pb",
+   "observed": true,
+   "ok": true,
+   "pb_in_wall_s": 1.3898538699140772,
+   "release_after_request_s": 0.9350992060499266
+  },
+  {
+   "all_deltas": {
+    "HELD_REWAIT": 39,
+    "OP_RELEASE": 1,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_slow_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000019b000005585018100032af000005640dc400000100f387cbcb010a02000016b826"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000019b000005585018100032af000005640dc400000100f387cbcb010a02000016b826"
+  },
+  {
+   "expected": 13,
+   "name": "READ_slow_lane_generation",
+   "observed": 13,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_slow_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100000624000001af50101000c0ad0000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000624000001af50181000d685000005643244010000008042cbcb8180000a0200000500010203040503b50a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_slow_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 18,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_slow_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001af000005895018100057fa000005640dc400000100f387cccc010a020000169195"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001af000005895018100057fa000005640dc400000100f387cccc010a020000169195"
+  },
+  {
+   "expected": 14,
+   "name": "READ_lane_generation",
+   "observed": 14,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100000661000001c350101000c05c0000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000661000001c350181000e988000005643244010000008042cccc8180000a02000005000102030405ef5f0a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 22,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001c3000005ba50181000066d000005640dc400000100f387cdcd010a02000016e1dc"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001c3000005ba50181000066d000005640dc400000100f387cdcd010a02000016e1dc"
+  },
+  {
+   "expected": 14,
+   "name": "READ_lane_generation",
+   "observed": 14,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "READ_ACK_forwarded_at_once",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000069e000001d7501810005c1a000005643244010000008042cdcd8180000a020000050001020304057b7c0a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_61_response_untimed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "READ_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001d7000005eb501810005680000005641ac40a0001008a1ccece030c012801000100010167000000b8c96400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001d7000005eb501810005680000005641ac40a0001008a1ccece030c012801000100010167000000b8c96400000000005b"
+  },
+  {
+   "expected": 14,
+   "name": "SELECT_lane_generation",
+   "observed": 14,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "SELECT_ACK_forwarded_at_once",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000006db000001fa50181000921d00000564154401000a004d194ece8100000c01280100010001016700da1405640c4401000a00b74e0f00006400000038960564074401000a003b479000f83b"
+   ],
+   "name": "SELECT_61_response_untimed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "SELECT_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": 14,
+   "name": "T_off_no_lane_generation",
+   "observed": 14,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "6cd456689b7ae417d47f909d7f78eee78af0efb376d2f8e66b59004ea26cf4ac",
+  "final_outcomes": {
+   "ACK_COMMIT": 10,
+   "ACK_FALLBACK": 0,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 362,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 0,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 3,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 13,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "model_ns_per_wall_s": 719500101.1594273,
+  "physical": false,
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "0000000100000385dc645e00e6090000",
+     "0xe60c": "00000001000003ffa32c6e00e60c0000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000003c200000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "000000010000038500000000e1000000"
+    },
+    "frames": 32,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "0000000100000385dc645e0009000000",
+     "0x0a00": "0000000100000000eeb872000a000000",
+     "0x0b00": "0000000100000000fd19a1000b000000",
+     "0x0c00": "00000001000003ffa32c6e000c000000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000003c20000000009000000",
+     "107": "0000000100000000000000000b000000",
+     "119": "0000000100000000fd19a1000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "0000000100000385dc645e0009000000"
+    },
+    "frames": 43,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {
+     "0x4455": "0d0000020003a980001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "97": "0d0000020003a980001122334455aabb"
+    },
+    "frames": 65,
+    "longest": 97,
+    "shortest": 97
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000200000001001122334455aabb",
+     "68": "0e00000200000001001122334455aabb",
+     "99": "0f00000300000001001122334455aabb"
+    },
+    "frames": 357,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m3: T hold/release per transaction (READ, SELECT, OPERATE)",
+  "wall_clrt_s": {
+   "OPERATE": [
+    0.049630793975666165,
+    0.04457346897106618
+   ],
+   "READ": [
+    0.04871404299046844,
+    0.0530772649217397,
+    0.052781048929318786,
+    0.04875871702097356
+   ],
+   "READ_slow": [
+    0.04914351005572826
+   ],
+   "SELECT": [
+    0.049302347004413605,
+    0.043288326007314026
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 81,
+  "total": 81
+ }
+}

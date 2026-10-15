@@ -1,0 +1,125 @@
+{
+ "ok": false,
+ "failures": [
+  "observed.failures is non-empty: ['T on, mirror_fix build: OUT_TOKEN_STALE delta 88 exceeds the build bound 0']",
+  "observed.aggregate_verdict is False, expected True"
+ ],
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    49
+   ],
+   "SELECT": [
+    37
+   ],
+   "OPERATE": [
+    37
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "d64995407318417e6d95c47c688a7b13b892e7f86ae3382a6200f2ba9c88ac57"
+  },
+  "calibration_in": {
+   "sha256": "9a42a28ed79a6ed67bed21b09f1a60c95a7c2b287e1830d3318e262a2bea96ae"
+  },
+  "calibration_out": {
+   "sha256": "a922ad7d25ea27dcfe5453abc661d38ad9f507acc099ed94b0726c12be86e682"
+  },
+  "calibration_result": {
+   "sha256": "8d8c9085a5dfbdf34847fa2a7bc65d0675b9864b6b897521b597a9a66c19d7b8"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "f07d9b14240d4b446242a87fb2785db34a09183713a704ee8e75be6aecc3b6a5"
+  },
+  "out": {
+   "sha256": "ad3eaba3b266b8825b0a98d2da0590d5f4cdaeb0e31c6ddfd90984c41983a237"
+  },
+  "run_result": {
+   "sha256": "e301186ef852f7ce660fb08666fb0af17adb3a12f44012b888bac88796f34a4c"
+  }
+ },
+ "precision": {
+  "required": true,
+  "status": "pass",
+  "reasons": [],
+  "evidence": {
+   "gap_us": 950.0,
+   "read_rows": 65,
+   "eligible": 65,
+   "excluded": {
+    "incomplete": 0,
+    "piggyback": 0,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": {
+    "n": 65,
+    "min": 0.0,
+    "median": 5,
+    "iqr": 5.0,
+    "p95": 14.0,
+    "p99": 21.0,
+    "max": 21.0,
+    "sd_population": 4.4,
+    "sd_sample": 4.5
+   },
+   "signed_error_us": {
+    "n": 65,
+    "min": -21.0,
+    "median": 4,
+    "iqr": 6.0,
+    "p95": 13.0,
+    "p99": 14.0,
+    "max": 21.0,
+    "sd_population": 6.0,
+    "sd_sample": 6.0
+   },
+   "tails": [
+    {
+     "t_req": 1792024562123905,
+     "clrt_us": 971,
+     "error_us": 21.0
+    },
+    {
+     "t_req": 1792024562430613,
+     "clrt_us": 929,
+     "error_us": -21.0
+    },
+    {
+     "t_req": 1792024562532701,
+     "clrt_us": 964,
+     "error_us": 14.0
+    },
+    {
+     "t_req": 1792024564066497,
+     "clrt_us": 964,
+     "error_us": 14.0
+    },
+    {
+     "t_req": 1792024563452784,
+     "clrt_us": 963,
+     "error_us": 13.0
+    }
+   ],
+   "pass": true,
+   "gated": true
+  }
+ },
+ "qualification": "rejected",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}

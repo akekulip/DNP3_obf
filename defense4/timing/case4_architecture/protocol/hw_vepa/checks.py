@@ -264,9 +264,14 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
                 fails.append('T on: generated %s packets delta %d, expected %d (2k = %d per trigger)'
                              % (app, d[app]['pkts'], pkts, 2 * k))
         stale = (obs.get('outcomes') or {}).get('OUT_TOKEN_STALE') or 0
-        if stale > max_stale:
+        # control-timed builds: the OPERATE opens the next READ-lane generation milliseconds after its SELECT's
+        # response, so at most the SELECT's 2k blocker tokens are stranded and rejected as stale per cycle
+        # (silicon ctl_timing_repeat_sbo_950_b1: 88 over 64 cycles, raw timer stale 0). Bound them explicitly.
+        bound = max_stale + (2 * k * sbo if control_timed else 0)
+        obs['token_stale_bound'] = bound
+        if stale > bound:
             fails.append('T on, mirror_fix build: OUT_TOKEN_STALE delta %d exceeds the build bound %d'
-                         % (stale, max_stale))
+                         % (stale, bound))
     else:
         for app in mx['T0']['zero_triggers']:
             if d[app]['triggers'] or d[app]['pkts']:

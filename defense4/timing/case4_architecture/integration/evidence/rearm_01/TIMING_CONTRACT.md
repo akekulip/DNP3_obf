@@ -41,3 +41,9 @@ N classifies each packet (`packet_kind`) and, at the end of a Work, `read_termin
 - Supported: READ; SELECT immediately followed by its OPERATE; repeated on one connection (64 cycles verified on silicon and in the model, across application and transport sequence wraps).
 - An OPERATE with no preceding SELECT on the connection is dropped by N and releases nothing (model `model_repeat_04` probes).
 - **Unsupported, explicit expectation:** a SELECT followed by anything other than its OPERATE (an abandoned SELECT). N drops the next request indefinitely (measured over 7.5 s in the model, with T on and off); a qualified RST is forwarded and a new connection is then admitted (`model_abandon_03`). The connection stalls until the master resets it.
+
+## Control-timing candidate (ctl_timing_01 m3)
+
+- SELECT and OPERATE responses are released at `a_commit + gap`, like READ. OPERATE keeps its command hold J (`op_go_check`). A piggybacked response, with no standalone ACK in its lane generation, is released at `t0 + pb`.
+- **Request→ACK is not normalized**, for any kind. The ACK is held until the response is seen, so request→ACK carries the outstation's response latency: about 5.3 ms in the separate-ACK fixture, and for OPERATE `J` plus that latency.
+- The independent J check is measured from the captures: master transmit to outstation receive of each OPERATE (`repeat_sbo_report.py`, `operate_request_transit_us`).

@@ -176,9 +176,6 @@ class VisionRunValidation(unittest.TestCase):
                 self.assertFalse(run_dir.exists())
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 
 class ControlTimedSwitchExpectations(unittest.TestCase):
     """ctl_timing builds: SELECT and OPERATE commit and release in T; piggybacked responses go by the bound."""
@@ -216,3 +213,25 @@ class ControlTimedSwitchExpectations(unittest.TestCase):
                                  read_trig=65 + 64, op_trig=64)
         self.assertTrue(self.run_switch(fallback, control_timed=True, piggyback_bound=True, piggyback_reads=65,
                                         piggyback_controls=128))
+
+
+class ControlTimedStaleBound(unittest.TestCase):
+    def check(self, stale, control_timed):
+        exp = json.load(open(CONFIG))['expectations']
+        snap = lambda trig, op, st: {'pktgen': {'READ': {'trigger_counter': trig, 'pkt_counter': 4 * trig},
+                                                'OPERATE': {'trigger_counter': op, 'pkt_counter': 4 * op}}}
+        fails, obs = [], {'outcomes': {'OUT_TOKEN_STALE': stale}}
+        lane = 65 + (64 if control_timed else 0)
+        checks._mirror_checks(exp['mirror_fix'], {'T': 1}, 65, 64, snap(0, 0, 0), snap(lane, 64, 0), 2, fails, obs,
+                              0, control_timed)
+        return fails
+
+    def test_stranded_select_tokens_are_bounded(self):
+        self.assertEqual(self.check(88, True), [])                 # silicon b1: 88 over 64 cycles
+        self.assertEqual(self.check(256, True), [])                # 2k = 4 per SELECT generation
+        self.assertTrue(self.check(257, True))
+        self.assertTrue(self.check(1, False))                      # candidate61 keeps its bound of 0
+
+
+if __name__ == '__main__':
+    unittest.main()

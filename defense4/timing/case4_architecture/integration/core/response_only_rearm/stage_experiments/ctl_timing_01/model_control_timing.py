@@ -65,7 +65,8 @@ def main():
         params = dict(da=1_000_000, readiness=2_000_000_000, cap=1_500_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=1)
         if milestone == 'm3':
-            params['pb'] = 20_000_000                                  # piggyback bound, model ns
+            params['pb'] = 1_000_000_000                               # op_j < pb < readiness, model ns
+        clock = {}                                                     # model ns per wall second, from the J hold
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -137,8 +138,15 @@ def main():
                 report.add('%s_request_held_J_then_relayed' % tag, True,
                            len(arrivals) == 1 and same_frame(arrivals[0][2], want_req, sent_req),
                            delay_s=[round(t - t_sent, 4) for t, _p, _f in arrivals])
+                report.add('%s_one_OP_RELEASE' % tag, 1, outcomes()['OP_RELEASE'] - before['OP_RELEASE'])
+                if arrivals and 'ns_per_s' not in clock:
+                    clock['ns_per_s'] = params['op_j'] / max(arrivals[0][0] - t_sent, 1e-6)
+                    report.record['meta']['model_ns_per_wall_s'] = clock['ns_per_s']
             else:
+                t_req_sent = time.monotonic()
                 step('%s_request' % tag, sent_req, want_req)
+            if kind == 'OPERATE':
+                t_req_sent = t_sent
             c += len(request)
             report.add('%s_lane_generation' % tag, gen_before + (1 if is_timed else 0), gen())
             ack, want_ack = vectors.packet(16, s, c, reverse=True), vectors.packet(16, s + growth, c, reverse=True)
@@ -166,6 +174,12 @@ def main():
                 after = outcomes()
                 report.add('%s_released_by_bound' % tag, True,
                            len(frames) == 1 and same_frame(frames[0][1], want_rsp, sent_rsp), frames=[f.hex() for _t, f in frames])
+                # not before t0 + pb: compare the release delay with pb converted by the measured model clock
+                want_s = params['pb'] / clock['ns_per_s'] if clock.get('ns_per_s') else None
+                got_s = frames[0][0] - t_req_sent if frames else None
+                report.add('%s_not_before_t0_plus_pb' % tag, True,
+                           want_s is not None and got_s is not None and got_s >= 0.6 * want_s,
+                           release_after_request_s=got_s, pb_in_wall_s=want_s)
                 report.add('%s_counters' % tag, {'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0},
                            {k: after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE', 'ACK_FALLBACK', 'RESP_FALLBACK')},
                            all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
@@ -202,12 +216,38 @@ def main():
         transaction('READ', 1, rb.READ_OBJECTS, read_body)
         sbo(101)
         transaction('READ', 1, rb.READ_OBJECTS, read_body)
+        # ACK and response back to back (microseconds apart): characterized, not asserted (design review case 5)
+        before = outcomes()
+        request, app = seqs.request(1, rb.READ_OBJECTS)
+        seqs.next_app()
+        step('race_READ_request', vectors.packet(24, c, s + growth, payload=request), vectors.packet(24, c, s, payload=request))
+        c += len(request)
+        native = seqs.response(app, read_body, 'READ')
+        m.drain(ports)
+        m.send(RELAY.dev_port, vectors.packet(16, s, c, reverse=True))
+        m.send(RELAY.dev_port, vectors.packet(24, s, c, reverse=True, payload=native))
+        got = timed_capture(3.0, 0.3)
+        after = outcomes()
+        report.add('race_ACK_and_response_back_to_back_characterized', True, True,
+                   frames_to_master=sum(1 for _t, p, _f in got if p == MASTER.dev_port),
+                   deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
+        s += len(native)
+        growth += IMAGE_LEN - len(native)
         if milestone == 'm3':
             transaction('READ', 1, rb.READ_OBJECTS, read_body, 'piggyback')
             transaction('SELECT', 3, rb.crob(102), bytes(2) + rb.crob(102), 'piggyback')
             transaction('OPERATE', 4, rb.crob(102), bytes(2) + rb.crob(102), 'piggyback')
             transaction('READ', 1, rb.READ_OBJECTS, read_body, 'slow')
             transaction('READ', 1, rb.READ_OBJECTS, read_body)
+        # T disabled: everything passes through untimed and no lane state moves
+        params['enabled'] = 0
+        m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
+        for kind in ('READ', 'SELECT', 'OPERATE'):
+            timed[kind] = False
+        before_gen = gen()
+        transaction('READ', 1, rb.READ_OBJECTS, read_body)
+        transaction('SELECT', 3, rb.crob(103), bytes(2) + rb.crob(103))
+        report.add('T_off_no_lane_generation', before_gen, gen())
         report.record['meta']['final_outcomes'] = outcomes()
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
     except Exception:

@@ -93,8 +93,10 @@ def load_config(path):
     if missing:
         raise ValueError('config missing required sections: %s' % ', '.join(missing))
     t = cfg['timing_params_ns']
-    if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and 0 < t['pb'] < t['readiness']):
-        raise ValueError('timing_params_ns.pb (piggyback bound, ctl_timing builds only) must be an int in 0 < pb < readiness')
+    if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and t['op_j'] < t['pb'] < t['readiness']):
+        raise ValueError('timing_params_ns.pb (piggyback bound, ctl_timing builds only) must be an int in op_j < pb < readiness')
+    if any(b.get('piggyback_bound') for b in cfg.get('builds', {}).values()) and 'pb' not in t:
+        raise ValueError('a piggyback_bound build requires timing_params_ns.pb')
     if not (t['da'] < t['readiness'] <= t['cap']):
         raise ValueError('timing params must satisfy da < readiness <= cap (got da=%d readiness=%d cap=%d)'
                          % (t['da'], t['readiness'], t['cap']))

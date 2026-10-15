@@ -258,9 +258,6 @@ class Candidate61HardwareConfigTests(unittest.TestCase):
         self.assertTrue(any(path.endswith('model_packets_03/packet_results.json') for path in failed_paths))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 
 class ControlTimingConfigs(unittest.TestCase):
     """Gate 3 silicon configs: the m3 build, its flags, pb, the repeated-SBO endpoint and both fixtures."""
@@ -278,3 +275,7 @@ class ControlTimingConfigs(unittest.TestCase):
             campaign.load_config(str(path))
             fixtures += data['fixture']['modes']
         self.assertEqual(sorted(fixtures), ['piggyback'] * 3 + ['separate_ack'] * 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -61,6 +61,25 @@ def wire_controls(in_pcap, master_port):
     return out
 
 
+def request_transit_us(d, master_port):
+    """Per function code, master TX (out.pcap) to outstation RX (in.pcap) of each request, in microseconds. Both taps
+    are Vision's switch-facing port, so this is the switch's hold of the request: the OPERATE command hold J
+    (independent of CLRT) and the unheld READ/SELECT transit."""
+    def requests(path):
+        out = {}
+        for r in capture.tcp_records(path):
+            p = r['payload']
+            if r['src'][1] == master_port and r['dst'][1] == OUTSTATION_PORT and len(p) >= 13 and p[:2] == b'\x05\x64':
+                out.setdefault((r['seq'], p[12]), []).append(r['time'])
+        return out
+    sent, arrived = requests(d / 'out.pcap'), requests(d / 'in.pcap')
+    transit = {}
+    for key, times in sent.items():
+        if key in arrived:
+            transit.setdefault(key[1], []).append(round((min(arrived[key]) - min(times)) * 1e6, 1))
+    return transit
+
+
 def trial_cycles(d, gap_us):
     master = last_json(d / 'master.json')
     outstation = last_json(d / 'outstation.json')
@@ -125,8 +144,15 @@ def trial_cycles(d, gap_us):
     if len(echoes) != 2 * cycles_n:
         failures.append('wire carried %d control responses for %d cycles' % (len(echoes), cycles_n))
     reads = [e for e in ex if e['kind'] == 'READ' and e.get('complete') and e.get('attempts') == 1 and not e.get('piggyback')]
+    try:
+        transit = request_transit_us(d, result['master_port'])
+    except (OSError, ValueError, KeyError) as error:
+        transit, failures = {}, failures + ['request transit unreadable: %s' % error]
     return {'cycles': cycles_n, 'rows': rows, 'failures': failures, 'ok': not failures,
             'read_error_us': [e['clrt_us'] - gap_us for e in reads if isinstance(e.get('clrt_us'), (int, float))],
+            'read_rt_us': [e['rt_us'] for e in ex if e['kind'] == 'READ' and e.get('complete') and e.get('attempts') == 1
+                           and isinstance(e.get('rt_us'), (int, float))],
+            'transit_us': {name: transit.get(fc, []) for name, fc in (('read', 1), ('select', 3), ('operate', 4))},
             'resp_lens': sorted({(e['kind'], e['resp_len']) for e in ex if e.get('resp_len')})}
 
 
@@ -154,6 +180,15 @@ def report(roots):
                             v.setdefault('%s_%s' % (kind, metric), []).append(r[kind].get(metric))
                     v.setdefault('sbo_completion_us', []).append(r['sbo_completion_us'])
                 v.setdefault('read_error_us' if arm.get('T') else 'read_clrt_us', []).extend(t['read_error_us'])
+                v.setdefault('read_rt_us', []).extend(t['read_rt_us'])
+                for name, values in t['transit_us'].items():
+                    v.setdefault('%s_request_transit_us' % name, []).extend(values)
+                gap = gap_us if arm.get('T') else 0.0
+                for r in t['rows']:                                   # CLRT minus the configured gap, timed arms
+                    for kind in ('select', 'operate'):
+                        if isinstance(r[kind].get('clrt_us'), (int, float)) and arm.get('T'):
+                            v.setdefault('%s_clrt_error_us' % kind, []).append(r[kind]['clrt_us'] - gap)
+                            v.setdefault('%s_abs_clrt_error_us' % kind, []).append(abs(r[kind]['clrt_us'] - gap))
     for agg in out['arms'].values():
         agg['timing'] = {k: dist(vals) for k, vals in agg.pop('values').items()}
     out['ok'] = all(r['failures'] == [] for r in out['runs'])
@@ -169,9 +204,11 @@ def main(argv=None):
     Path(a.output).write_text(json.dumps(out, indent=1, default=str) + '\n')
     for arm, agg in out['arms'].items():
         t = agg['timing']
-        print('%-12s blocks=%d cycles=%d ok=%d  SELECT clrt p50=%s  OPERATE clrt p50=%s  OPERATE req->ack p50=%s' % (
+        print('%-12s blocks=%d cycles=%d ok=%d  SELECT clrt p50=%s  OPERATE clrt p50=%s  OPERATE req->ack p50=%s  '
+              'OPERATE hold min=%s' % (
             arm, agg['blocks'], agg['cycles'], agg['cycles_ok'], (t.get('select_clrt_us') or {}).get('p50'),
-            (t.get('operate_clrt_us') or {}).get('p50'), (t.get('operate_ack_lat_us') or {}).get('p50')))
+            (t.get('operate_clrt_us') or {}).get('p50'), (t.get('operate_ack_lat_us') or {}).get('p50'),
+            (t.get('operate_request_transit_us') or {}).get('min')))
     print('all cycles ok:', out['ok'])
     return 0 if out['ok'] else 1
 

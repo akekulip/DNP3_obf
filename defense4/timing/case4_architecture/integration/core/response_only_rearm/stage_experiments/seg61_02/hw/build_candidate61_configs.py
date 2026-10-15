@@ -370,9 +370,10 @@ for filename, template, order, block in repeat_orders:
         preset='shape_59570', gap=950000, port_first=59590, port_last=59593, start_delay_ms=50, loss_presets={},
         sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR))
 
-# Gate 3 silicon: the control-timing build on the repeated-SBO endpoint. pb = 2 ms bounds piggybacked
-# request->response (previously the 30 ms readiness fallback).
-CTL_PB_NS = 2000000
+# Gate 3 silicon: the control-timing build on the repeated-SBO endpoint. pb = 4 ms bounds piggybacked
+# request->response (previously the 30 ms readiness fallback); it must exceed op_j (2.4 ms), because an
+# OPERATE's piggybacked response cannot arrive before its J hold ends.
+CTL_PB_NS = 4000000
 ctl_specs = [('ctl_timing_repeat_sbo_950_b%d.json', 'separate_ack', 59600),
              ('ctl_timing_piggyback_950_b%d.json', 'piggyback', 59610)]
 for pattern, fixture, port in ctl_specs:

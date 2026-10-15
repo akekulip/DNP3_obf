@@ -162,10 +162,13 @@ def check_params(values):
     if values['enabled'] not in (0, 1):
         errs.append('T param enabled=%d must be 0 or 1' % values['enabled'])
     errs += ['T param %s=%d >= 2^31' % (k, v) for k, v in values.items() if v is not None and v >= 1 << 31]
-    # pb (ctl_timing_01 m3 builds only): the piggyback response bound. bfrt name checking already refuses a
-    # build/params mismatch either way; here it must be a real bound below readiness, never 0 (release at t0).
-    if values.get('pb') is not None and not 0 < values['pb'] < values['readiness']:
-        errs.append('T param pb=%d must satisfy 0 < pb < readiness=%d' % (values['pb'], values['readiness']))
+    # pb (ctl_timing_01 m3 builds only): the piggyback response bound, measured from the lane t0. bfrt name
+    # checking refuses a build/params mismatch either way (pb missing on m3, or sent to an older build). It must
+    # exceed op_j, because an OPERATE's piggybacked response cannot arrive before its J hold ends (pb <= op_j
+    # would release it at once, unbounded), and stay below readiness.
+    if values.get('pb') is not None and not values['op_j'] < values['pb'] < values['readiness']:
+        errs.append('T param pb=%d must satisfy op_j=%d < pb < readiness=%d'
+                    % (values['pb'], values['op_j'], values['readiness']))
     if not values['da'] < values['readiness'] <= values['cap']:
         errs.append('T params must satisfy da < readiness <= cap (da=%d readiness=%d cap=%d)'
                     % (values['da'], values['readiness'], values['cap']))
