@@ -411,12 +411,13 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                 previous = fresh
             except (OSError, ValueError, IndexError, KeyError) as error:
                 cfail.append('fresh mapping: ' + str(error))
-            precision = checks.read_precision(ev.get('timing') or {}, self.cfg['timing_params_ns']['gap'])
+            # the nearest-rank gate every new (v3) evaluation uses, as campaign.py does
+            precision = checks.read_precision_gate(ev.get('timing') or {}, self.cfg['timing_params_ns']['gap'])
             precision['gated'] = bool(arm['T'] and fixture == 'separate_ack' and
                                       self.cfg.get('evaluation', {}).get('read_precision', True))
             if precision['gated'] and not precision['pass']:
-                cfail.append('READ precision did not qualify: eligible%d, p99 absolute error%s us' %
-                             (precision['eligible'], (precision['absolute_error_us'] or {}).get('p99')))
+                cfail.append('READ precision did not qualify: eligible%d, nearest-rank p99 absolute error%s us' %
+                             (precision['eligible'], precision['p99_nearest_rank_abs_error_us']))
             for name, rc in tool_rcs[cn].items():
                 if rc:
                     cfail.append('%s=%d' % (name, rc))

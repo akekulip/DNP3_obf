@@ -405,8 +405,8 @@ def test_read_precision_serialization_is_unchanged_against_the_retained_verdict(
 
 
 def test_every_retained_standards_artifact_keeps_its_recorded_qualification():
-    """Pre-objective artifacts carry no observed.objectives; the qualification recomputed from the retained verdict
-    fields equals the recorded one, and the objective validator has nothing to say about them."""
+    """Pre-objective artifacts carry no observed.objectives; v3 artifacts carry them. Either way the qualification
+    recomputed from the retained verdict fields equals the recorded one."""
     checked = 0
     for verdict_path in sorted(RUNS.glob('**/standards_verdict.json')):
         artifact = json.loads((verdict_path.parent / 'standards.json').read_text())
@@ -416,13 +416,20 @@ def test_every_retained_standards_artifact_keeps_its_recorded_qualification():
             continue
         purpose = json.loads((root / 'campaign_run.json').read_text()).get('effective', {}).get(
             'evaluation', {}).get('purpose', 'qualification')
-        assert 'objectives' not in artifact['observed'], verdict_path
-        assert artifact['schema_version'] in ('dnp3-standards-v1', standards.SCHEMA_VERSION), verdict_path
-        assert standards._validate_objectives(artifact['observed'], {}, purpose, v3=False) == []
-        if 'qualification' not in verdict:            # pre-v2 verdicts record no qualification to compare
-            continue
+        if artifact['schema_version'] == 'dnp3-standards-v3':
+            # artifacts written since the objectives gate (2026-10-15 silicon): they must carry every objective
+            # block, and their recorded qualification is recomputed with them
+            assert isinstance(artifact['observed'].get('objectives'), dict), verdict_path
+            got = standards.qualification(verdict['ok'], verdict['precision'], purpose,
+                                          artifact['observed']['objectives'])
+        else:
+            assert 'objectives' not in artifact['observed'], verdict_path
+            assert artifact['schema_version'] in ('dnp3-standards-v1', standards.SCHEMA_VERSION), verdict_path
+            assert standards._validate_objectives(artifact['observed'], {}, purpose, v3=False) == []
+            if 'qualification' not in verdict:            # pre-v2 verdicts record no qualification to compare
+                continue
+            got = standards.qualification(verdict['ok'], verdict['precision'], purpose)
         want = verdict['qualification']
-        got = standards.qualification(verdict['ok'], verdict['precision'], purpose)
         if (verdict.get('profile') or {}).get('ok') is False:
             got = 'rejected'
         assert got == want, verdict_path
