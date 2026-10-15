@@ -1,0 +1,3357 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000753000000000600210003ba20000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000088b80000753160121000b2d80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000007531000088b950101000ca950000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 1,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 1,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_000ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_008ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_015ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_022ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_030ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_045ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_060ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_090ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_READ_120ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_READ_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_000ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_008ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_015ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_022ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_030ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_045ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_060ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_090ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_SELECT_120ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_SELECT_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_000ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_008ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_015ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_022ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_030ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_045ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_060ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_090ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_setup_SELECT_completed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "sweep_OPERATE_120ms_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "sweep_OPERATE_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "dup_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "duplicate_sent": true,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "dup_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "dup_READ"
+  },
+  {
+   "expected": true,
+   "name": "dup_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "dup_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "dup_SELECT_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    2,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "duplicate_sent": true,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "dup_SELECT_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "dup_SELECT"
+  },
+  {
+   "expected": true,
+   "name": "dup_SELECT_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "second_connection_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 3,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "second_connection_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "second_connection_packets": 3,
+   "tag": "second_connection_READ"
+  },
+  {
+   "expected": true,
+   "name": "second_connection_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "second_connection_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "second_connection_SELECT_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 3,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "second_connection_SELECT_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "second_connection_packets": 3,
+   "tag": "second_connection_SELECT"
+  },
+  {
+   "expected": true,
+   "name": "second_connection_SELECT_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "expected": 0,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reset_during_wait_READ_no_response_after_RST",
+   "observed": 0,
+   "ok": true,
+   "payload_frames_to_master": 0,
+   "tag": "reset_during_wait_READ"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_during_wait_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "count_busy_delta": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "expected": 0,
+   "frames_to_master": 0,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reset_during_wait_SELECT_no_response_after_RST",
+   "observed": 0,
+   "ok": true,
+   "payload_frames_to_master": 0,
+   "tag": "reset_during_wait_SELECT"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": 0,
+   "name": "reconnect_during_wait_READ_old_response_never_delivered",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_READ_new_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reconnect_during_wait_READ_new_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "reconnect_during_wait_READ_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reconnect_during_wait_SELECT_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": 0,
+   "name": "reconnect_during_wait_SELECT_old_response_never_delivered",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_new_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_wall_s": null,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": false,
+   "expected": true,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reconnect_during_wait_SELECT_new_READ_delivered_once_committed",
+   "observed": false,
+   "ok": false,
+   "tag": "reconnect_during_wait_SELECT_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "reconnect_during_wait_SELECT_RST_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_SYN",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_SYNACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "loss_recovery_READ_final_ACK",
+   "observed": "0 frames",
+   "ok": false,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "loss_recovery_READ_request_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expected": 1,
+   "frames_to_master": 0,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "loss_recovery_READ_exactly_one_response",
+   "observed": 0,
+   "ok": false,
+   "responses_to_master": 0,
+   "tag": "loss_recovery_READ"
+  },
+  {
+   "expected": true,
+   "name": "loss_recovery_READ_RST_relayed",
+   "observed": false,
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "0aa77c775d7e652e3338976866b429053c4ccc523f2d9117a748bcc890cc1cde",
+  "final_count_busy": [
+   15,
+   0,
+   0,
+   0
+  ],
+  "final_outcomes": {
+   "ACK_COMMIT": 0,
+   "ACK_FALLBACK": 1,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 147,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 0,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 0,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 0,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "n_generation_counter": 257,
+  "physical": false,
+  "points": [
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "frames_to_master": 1,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 1,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_000ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_008ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_015ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_022ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_030ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_045ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_060ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_090ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_READ_120ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_000ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_008ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_015ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_022ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_030ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_045ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_060ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_090ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_SELECT_120ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_000ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_008ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_015ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_022ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_030ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_045ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_060ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_090ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "sweep_OPERATE_120ms"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "duplicate_sent": true,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "dup_READ"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     2,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "duplicate_sent": true,
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "dup_SELECT"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "frames_to_master": 3,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "second_connection_packets": 3,
+    "tag": "second_connection_READ"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": false,
+    "frames_to_master": 3,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "second_connection_packets": 3,
+    "tag": "second_connection_SELECT"
+   },
+   {
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "payload_frames_to_master": 0,
+    "tag": "reset_during_wait_READ"
+   },
+   {
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "frames_to_master": 0,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "payload_frames_to_master": 0,
+    "tag": "reset_during_wait_SELECT"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "reconnect_during_wait_READ_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "kind": "READ",
+    "old_response_frames_to_master": 0,
+    "tag": "reconnect_during_wait_READ"
+   },
+   {
+    "clrt_wall_s": null,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": false,
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "tag": "reconnect_during_wait_SELECT_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     2,
+     0,
+     0,
+     0
+    ],
+    "kind": "SELECT",
+    "old_response_frames_to_master": 0,
+    "tag": "reconnect_during_wait_SELECT"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "frames_to_master": 0,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 0,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 0
+    },
+    "responses_to_master": 0,
+    "tag": "loss_recovery_READ"
+   }
+  ],
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000088b9dbcbc800e6090000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "000000010001e84900000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "00000001000088b900000000e1000000"
+    },
+    "frames": 166,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "00000001000088b9dbcbc80009000000",
+     "0x0a00": "0000000100000000f107b9000a000000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000088b9dbcbc80009000000"
+    },
+    "frames": 3,
+    "longest": 90,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "68": "0e00000200000001001122334455aabb"
+    },
+    "frames": 148,
+    "longest": 68,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m4: ACK/response contention for N's work cell (spacing sweep, edges)"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "sweep_READ_000ms_delivered_once_committed",
+   "sweep_READ_000ms_RST_relayed",
+   "sweep_READ_008ms_SYN",
+   "sweep_READ_008ms_SYNACK",
+   "sweep_READ_008ms_final_ACK",
+   "sweep_READ_008ms_request_relayed",
+   "sweep_READ_008ms_delivered_once_committed",
+   "sweep_READ_008ms_RST_relayed",
+   "sweep_READ_015ms_SYN",
+   "sweep_READ_015ms_SYNACK",
+   "sweep_READ_015ms_final_ACK",
+   "sweep_READ_015ms_request_relayed",
+   "sweep_READ_015ms_delivered_once_committed",
+   "sweep_READ_015ms_RST_relayed",
+   "sweep_READ_022ms_SYN",
+   "sweep_READ_022ms_SYNACK",
+   "sweep_READ_022ms_final_ACK",
+   "sweep_READ_022ms_request_relayed",
+   "sweep_READ_022ms_delivered_once_committed",
+   "sweep_READ_022ms_RST_relayed",
+   "sweep_READ_030ms_SYN",
+   "sweep_READ_030ms_SYNACK",
+   "sweep_READ_030ms_final_ACK",
+   "sweep_READ_030ms_request_relayed",
+   "sweep_READ_030ms_delivered_once_committed",
+   "sweep_READ_030ms_RST_relayed",
+   "sweep_READ_045ms_SYN",
+   "sweep_READ_045ms_SYNACK",
+   "sweep_READ_045ms_final_ACK",
+   "sweep_READ_045ms_request_relayed",
+   "sweep_READ_045ms_delivered_once_committed",
+   "sweep_READ_045ms_RST_relayed",
+   "sweep_READ_060ms_SYN",
+   "sweep_READ_060ms_SYNACK",
+   "sweep_READ_060ms_final_ACK",
+   "sweep_READ_060ms_request_relayed",
+   "sweep_READ_060ms_delivered_once_committed",
+   "sweep_READ_060ms_RST_relayed",
+   "sweep_READ_090ms_SYN",
+   "sweep_READ_090ms_SYNACK",
+   "sweep_READ_090ms_final_ACK",
+   "sweep_READ_090ms_request_relayed",
+   "sweep_READ_090ms_delivered_once_committed",
+   "sweep_READ_090ms_RST_relayed",
+   "sweep_READ_120ms_SYN",
+   "sweep_READ_120ms_SYNACK",
+   "sweep_READ_120ms_final_ACK",
+   "sweep_READ_120ms_request_relayed",
+   "sweep_READ_120ms_delivered_once_committed",
+   "sweep_READ_120ms_RST_relayed",
+   "sweep_SELECT_000ms_SYN",
+   "sweep_SELECT_000ms_SYNACK",
+   "sweep_SELECT_000ms_final_ACK",
+   "sweep_SELECT_000ms_request_relayed",
+   "sweep_SELECT_000ms_delivered_once_committed",
+   "sweep_SELECT_000ms_RST_relayed",
+   "sweep_SELECT_008ms_SYN",
+   "sweep_SELECT_008ms_SYNACK",
+   "sweep_SELECT_008ms_final_ACK",
+   "sweep_SELECT_008ms_request_relayed",
+   "sweep_SELECT_008ms_delivered_once_committed",
+   "sweep_SELECT_008ms_RST_relayed",
+   "sweep_SELECT_015ms_SYN",
+   "sweep_SELECT_015ms_SYNACK",
+   "sweep_SELECT_015ms_final_ACK",
+   "sweep_SELECT_015ms_request_relayed",
+   "sweep_SELECT_015ms_delivered_once_committed",
+   "sweep_SELECT_015ms_RST_relayed",
+   "sweep_SELECT_022ms_SYN",
+   "sweep_SELECT_022ms_SYNACK",
+   "sweep_SELECT_022ms_final_ACK",
+   "sweep_SELECT_022ms_request_relayed",
+   "sweep_SELECT_022ms_delivered_once_committed",
+   "sweep_SELECT_022ms_RST_relayed",
+   "sweep_SELECT_030ms_SYN",
+   "sweep_SELECT_030ms_SYNACK",
+   "sweep_SELECT_030ms_final_ACK",
+   "sweep_SELECT_030ms_request_relayed",
+   "sweep_SELECT_030ms_delivered_once_committed",
+   "sweep_SELECT_030ms_RST_relayed",
+   "sweep_SELECT_045ms_SYN",
+   "sweep_SELECT_045ms_SYNACK",
+   "sweep_SELECT_045ms_final_ACK",
+   "sweep_SELECT_045ms_request_relayed",
+   "sweep_SELECT_045ms_delivered_once_committed",
+   "sweep_SELECT_045ms_RST_relayed",
+   "sweep_SELECT_060ms_SYN",
+   "sweep_SELECT_060ms_SYNACK",
+   "sweep_SELECT_060ms_final_ACK",
+   "sweep_SELECT_060ms_request_relayed",
+   "sweep_SELECT_060ms_delivered_once_committed",
+   "sweep_SELECT_060ms_RST_relayed",
+   "sweep_SELECT_090ms_SYN",
+   "sweep_SELECT_090ms_SYNACK",
+   "sweep_SELECT_090ms_final_ACK",
+   "sweep_SELECT_090ms_request_relayed",
+   "sweep_SELECT_090ms_delivered_once_committed",
+   "sweep_SELECT_090ms_RST_relayed",
+   "sweep_SELECT_120ms_SYN",
+   "sweep_SELECT_120ms_SYNACK",
+   "sweep_SELECT_120ms_final_ACK",
+   "sweep_SELECT_120ms_request_relayed",
+   "sweep_SELECT_120ms_delivered_once_committed",
+   "sweep_SELECT_120ms_RST_relayed",
+   "sweep_OPERATE_000ms_SYN",
+   "sweep_OPERATE_000ms_SYNACK",
+   "sweep_OPERATE_000ms_final_ACK",
+   "sweep_OPERATE_000ms_setup_SELECT_completed",
+   "sweep_OPERATE_000ms_request_relayed",
+   "sweep_OPERATE_000ms_delivered_once_committed",
+   "sweep_OPERATE_000ms_RST_relayed",
+   "sweep_OPERATE_008ms_SYN",
+   "sweep_OPERATE_008ms_SYNACK",
+   "sweep_OPERATE_008ms_final_ACK",
+   "sweep_OPERATE_008ms_setup_SELECT_completed",
+   "sweep_OPERATE_008ms_request_relayed",
+   "sweep_OPERATE_008ms_delivered_once_committed",
+   "sweep_OPERATE_008ms_RST_relayed",
+   "sweep_OPERATE_015ms_SYN",
+   "sweep_OPERATE_015ms_SYNACK",
+   "sweep_OPERATE_015ms_final_ACK",
+   "sweep_OPERATE_015ms_setup_SELECT_completed",
+   "sweep_OPERATE_015ms_request_relayed",
+   "sweep_OPERATE_015ms_delivered_once_committed",
+   "sweep_OPERATE_015ms_RST_relayed",
+   "sweep_OPERATE_022ms_SYN",
+   "sweep_OPERATE_022ms_SYNACK",
+   "sweep_OPERATE_022ms_final_ACK",
+   "sweep_OPERATE_022ms_setup_SELECT_completed",
+   "sweep_OPERATE_022ms_request_relayed",
+   "sweep_OPERATE_022ms_delivered_once_committed",
+   "sweep_OPERATE_022ms_RST_relayed",
+   "sweep_OPERATE_030ms_SYN",
+   "sweep_OPERATE_030ms_SYNACK",
+   "sweep_OPERATE_030ms_final_ACK",
+   "sweep_OPERATE_030ms_setup_SELECT_completed",
+   "sweep_OPERATE_030ms_request_relayed",
+   "sweep_OPERATE_030ms_delivered_once_committed",
+   "sweep_OPERATE_030ms_RST_relayed",
+   "sweep_OPERATE_045ms_SYN",
+   "sweep_OPERATE_045ms_SYNACK",
+   "sweep_OPERATE_045ms_final_ACK",
+   "sweep_OPERATE_045ms_setup_SELECT_completed",
+   "sweep_OPERATE_045ms_request_relayed",
+   "sweep_OPERATE_045ms_delivered_once_committed",
+   "sweep_OPERATE_045ms_RST_relayed",
+   "sweep_OPERATE_060ms_SYN",
+   "sweep_OPERATE_060ms_SYNACK",
+   "sweep_OPERATE_060ms_final_ACK",
+   "sweep_OPERATE_060ms_setup_SELECT_completed",
+   "sweep_OPERATE_060ms_request_relayed",
+   "sweep_OPERATE_060ms_delivered_once_committed",
+   "sweep_OPERATE_060ms_RST_relayed",
+   "sweep_OPERATE_090ms_SYN",
+   "sweep_OPERATE_090ms_SYNACK",
+   "sweep_OPERATE_090ms_final_ACK",
+   "sweep_OPERATE_090ms_setup_SELECT_completed",
+   "sweep_OPERATE_090ms_request_relayed",
+   "sweep_OPERATE_090ms_delivered_once_committed",
+   "sweep_OPERATE_090ms_RST_relayed",
+   "sweep_OPERATE_120ms_SYN",
+   "sweep_OPERATE_120ms_SYNACK",
+   "sweep_OPERATE_120ms_final_ACK",
+   "sweep_OPERATE_120ms_setup_SELECT_completed",
+   "sweep_OPERATE_120ms_request_relayed",
+   "sweep_OPERATE_120ms_delivered_once_committed",
+   "sweep_OPERATE_120ms_RST_relayed",
+   "dup_READ_SYN",
+   "dup_READ_SYNACK",
+   "dup_READ_final_ACK",
+   "dup_READ_request_relayed",
+   "dup_READ_delivered_once_committed",
+   "dup_READ_RST_relayed",
+   "dup_SELECT_SYN",
+   "dup_SELECT_SYNACK",
+   "dup_SELECT_final_ACK",
+   "dup_SELECT_request_relayed",
+   "dup_SELECT_delivered_once_committed",
+   "dup_SELECT_RST_relayed",
+   "second_connection_READ_SYN",
+   "second_connection_READ_SYNACK",
+   "second_connection_READ_final_ACK",
+   "second_connection_READ_request_relayed",
+   "second_connection_READ_delivered_once_committed",
+   "second_connection_READ_RST_relayed",
+   "second_connection_SELECT_SYN",
+   "second_connection_SELECT_SYNACK",
+   "second_connection_SELECT_final_ACK",
+   "second_connection_SELECT_request_relayed",
+   "second_connection_SELECT_delivered_once_committed",
+   "second_connection_SELECT_RST_relayed",
+   "reset_during_wait_READ_SYN",
+   "reset_during_wait_READ_SYNACK",
+   "reset_during_wait_READ_final_ACK",
+   "reset_during_wait_SELECT_SYN",
+   "reset_during_wait_SELECT_SYNACK",
+   "reset_during_wait_SELECT_final_ACK",
+   "reconnect_during_wait_READ_SYN",
+   "reconnect_during_wait_READ_SYNACK",
+   "reconnect_during_wait_READ_final_ACK",
+   "reconnect_during_wait_READ_new_READ_request_relayed",
+   "reconnect_during_wait_READ_new_READ_delivered_once_committed",
+   "reconnect_during_wait_READ_RST_relayed",
+   "reconnect_during_wait_SELECT_SYN",
+   "reconnect_during_wait_SELECT_SYNACK",
+   "reconnect_during_wait_SELECT_final_ACK",
+   "reconnect_during_wait_SELECT_new_READ_request_relayed",
+   "reconnect_during_wait_SELECT_new_READ_delivered_once_committed",
+   "reconnect_during_wait_SELECT_RST_relayed",
+   "loss_recovery_READ_SYN",
+   "loss_recovery_READ_SYNACK",
+   "loss_recovery_READ_final_ACK",
+   "loss_recovery_READ_request_relayed",
+   "loss_recovery_READ_exactly_one_response",
+   "loss_recovery_READ_RST_relayed"
+  ],
+  "passed": 8,
+  "total": 223
+ }
+}
