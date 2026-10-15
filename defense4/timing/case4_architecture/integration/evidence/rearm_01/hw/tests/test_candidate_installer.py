@@ -96,3 +96,17 @@ def test_corrupt_candidate_deployment_is_rejected(monkeypatch):
     monkeypatch.setattr(campaign, 'step', lambda *args, **kwargs: module.base.Result(0, 'bad /wrong/path', ''))
     with pytest.raises(module.base.StepFailed, match='identity mismatch'):
         campaign.deploy_switch()
+
+
+def test_candidate_snapshot_records_n_counters_and_absent_cells_as_none():
+    root=HW.parents[3]/'integration/core/response_only_rearm'
+    entry=load('candidate_snapshot_n_test',root/'hw/snapshot_counters.py')
+
+    class FakeSwitch:
+        cells={'p0.n_Ingress.count_busy':[0,5,7,0],'p0.n_Ingress.count_term':[2,0,0,0]}
+
+        def register(self,name,pipes,index):
+            return [self.cells[name][index]]          # IndexError beyond the register: the cell is absent
+
+    out=entry.read_n_counters(FakeSwitch(),None)
+    assert out=={'count_busy':[0,5,7,0,None,None,None,None],'count_term':[2,0,0,0]}
