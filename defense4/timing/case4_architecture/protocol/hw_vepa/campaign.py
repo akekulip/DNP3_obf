@@ -1418,6 +1418,7 @@ class Campaign:
                 self.cfg['service']['k'] if build.get('mirror_fix') else None,
                 checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
                 sbo_count=2 * run_sbo, gen_exhausted_outcome=build.get('gen_exhausted_outcome'),
+                control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')),
                 complete_reads=sum(out[cn]['complete'] for cn in ('c1', 'c3') if isinstance(out[cn]['complete'], int)),
                 piggyback_reads=sum(out[cn]['piggyback'] for cn in ('c1', 'c3') if isinstance(out[cn]['piggyback'], int)))
             fails.extend('switch: %s' % failure for failure in switch_fails)
