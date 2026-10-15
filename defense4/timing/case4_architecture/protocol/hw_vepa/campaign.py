@@ -1281,6 +1281,10 @@ class Campaign:
                                   c['service']['k'] if c['builds'][arm['build']].get('mirror_fix') else None,
                                   checks.max_token_stale(c['builds'][arm['build']]),
                                   diagnostic=c['builds'][arm['build']].get('diagnostic', False),
+                                  run_sbo=checks.sbo_count(c['traffic']),
+                                  # a control-timed build's SELECT strands bounded blocker tokens (2k per SBO cycle)
+                                  control_timed=bool(build.get('control_timed')),
+                                  piggyback_bound=bool(build.get('piggyback_bound')),
                                   gen_exhausted_outcome=c['builds'][arm['build']].get('gen_exhausted_outcome'))
         fails += [f for f in _f if f.startswith(('loop port', 'missing evidence: before', 'missing evidence: after',
                                                  'generation exhausted'))
