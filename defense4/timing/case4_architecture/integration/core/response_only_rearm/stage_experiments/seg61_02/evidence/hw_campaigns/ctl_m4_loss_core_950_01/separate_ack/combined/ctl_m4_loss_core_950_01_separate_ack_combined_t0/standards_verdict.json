@@ -1,0 +1,70 @@
+{
+ "ok": false,
+ "failures": [
+  "observed.failures is non-empty: ['T on, mirror_fix build: OUT_TOKEN_STALE delta 2 exceeds the build bound 0']",
+  "observed.aggregate_verdict is False, expected True"
+ ],
+ "expected": {
+  "counts": {
+   "READ": 20,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2"
+  },
+  "calibration_in": {
+   "sha256": "e092ed521b9432fec007d43f8740c1b0c78e25ee5f0c8f04ea3ad28fc354da30"
+  },
+  "calibration_out": {
+   "sha256": "9b77f4e68d995cf51c6bd5994b0e038d2f813f5fd124f72aa7a6ec02fa580f9b"
+  },
+  "calibration_result": {
+   "sha256": "867b5da86c16e1607db09f6badf53da0d9a0371fe3db598f1b9d99a679c6814f"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "ffff3b724a1ec48d9a7dad29b520d8f8f5f3670e7e054bc24f1d609a4ef503ea"
+  },
+  "out": {
+   "sha256": "a1e27882e63184f56177174e9d805385e33285eff75c0af5fc056910e35e9f01"
+  },
+  "run_result": {
+   "sha256": "42dc20eae5bfa0cbab55317b2b4144484f4b9ce724654c66cba47d729dccf1cd"
+  }
+ },
+ "precision": {
+  "required": false,
+  "status": "not_applicable",
+  "reasons": [
+   "loss/recovery trial: READ precision is not evaluated"
+  ],
+  "evidence": null
+ },
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "not_applicable",
+  "operate_hold": "not_applicable"
+ },
+ "qualification": "rejected",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}

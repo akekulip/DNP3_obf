@@ -1,0 +1,62 @@
+{
+ "ok": false,
+ "failures": [
+  "observed.precision.evidence does not support status 'pass' (no eligible/p99, nearest-rank p99 required)"
+ ],
+ "expected": {
+  "counts": {
+   "READ": 20,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2"
+  },
+  "calibration_in": {
+   "sha256": "8f013447ebea38af07ad1d4487e51942c5120e413706a4368b3ebd9a989602a6"
+  },
+  "calibration_out": {
+   "sha256": "e6622e1cc72da8b4b0c74c4f6979b8cb762b43eb7cdbff6f88ff2b3e045cf52e"
+  },
+  "calibration_result": {
+   "sha256": "0d7b56285f9384c6d9b65208c9ac8e72c1089b2b59dab9dc48ffe30a63e29da9"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "54814f47ac1a5a982077e9c4a7159009bed4f7a879290598ce318a3e179837ac"
+  },
+  "out": {
+   "sha256": "3d597ace215c2360a7f8fb07b2cf5a59fda9833bade00206c34038072994b598"
+  },
+  "run_result": {
+   "sha256": "5e94dec74b2041bb3cd0dc1ddb4bba9997af4e983763b03f77bd1bf41b1315d3"
+  }
+ },
+ "precision": null,
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "not_applicable",
+  "operate_hold": "not_applicable"
+ },
+ "qualification": "rejected",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}

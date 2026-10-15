@@ -1,0 +1,1765 @@
+{
+ "program": "response_only",
+ "time": 1792056599.0849438,
+ "installed": [
+  {
+   "kind": "loopback",
+   "table": "$PORT",
+   "pipe": 65535,
+   "label": "n_ack_return dev 48",
+   "key": [
+    [
+     "$DEV_PORT",
+     48,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "$LOOPBACK_MODE",
+     "BF_LPBK_MAC_NEAR"
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "loopback",
+   "table": "$PORT",
+   "pipe": 65535,
+   "label": "t_in dev 180",
+   "key": [
+    [
+     "$DEV_PORT",
+     180,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "$LOOPBACK_MODE",
+     "BF_LPBK_MAC_NEAR"
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "loopback",
+   "table": "$PORT",
+   "pipe": 65535,
+   "label": "hb_return dev 181",
+   "key": [
+    [
+     "$DEV_PORT",
+     181,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "$LOOPBACK_MODE",
+     "BF_LPBK_MAC_NEAR"
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "loopback",
+   "table": "$PORT",
+   "pipe": 65535,
+   "label": "held_return dev 182",
+   "key": [
+    [
+     "$DEV_PORT",
+     182,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "$LOOPBACK_MODE",
+     "BF_LPBK_MAC_NEAR"
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "$LOOPBACK_MODE": "BF_LPBK_NONE",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 7,
+   "label": "ACK_BLOCK",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "7"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     23,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 7,
+   "label": "ACK_BLOCK@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     64
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     23,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 6,
+   "label": "ACK_HOLD",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "6"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     22,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 6,
+   "label": "ACK_HOLD@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     1
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     22,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 5,
+   "label": "RESP_BLOCK",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "5"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     21,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 5,
+   "label": "RESP_BLOCK@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     64
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     21,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 4,
+   "label": "RESP_HOLD",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "4"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     20,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 182,
+   "qid": 4,
+   "label": "RESP_HOLD@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     1
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     20,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 181,
+   "qid": 3,
+   "label": "OP_BLOCK",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "3"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     11,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 181,
+   "qid": 3,
+   "label": "OP_BLOCK@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     64
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     11,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue",
+   "table": "tf1.tm.queue.sched_cfg",
+   "pipe": 1,
+   "dev_port": 181,
+   "qid": 2,
+   "label": "OP_HOLD",
+   "data": [
+    [
+     "min_rate_enable",
+     false
+    ],
+    [
+     "max_rate_enable",
+     true
+    ],
+    [
+     "max_priority",
+     "2"
+    ],
+    [
+     "scheduling_enable",
+     true
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     10,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_priority": "LOW",
+    "max_rate_enable": false,
+    "min_rate_enable": false,
+    "scheduling_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "queue_shaping",
+   "table": "tf1.tm.queue.sched_shaping",
+   "pipe": 1,
+   "dev_port": 181,
+   "qid": 2,
+   "label": "OP_HOLD@59570pps",
+   "data": [
+    [
+     "unit",
+     "PPS"
+    ],
+    [
+     "max_rate",
+     59570
+    ],
+    [
+     "max_burst_size",
+     1
+    ]
+   ],
+   "key": [
+    [
+     "pg_id",
+     13,
+     null
+    ],
+    [
+     "pg_queue",
+     10,
+     null
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "max_burst_size": 16384,
+    "max_rate": 25010000,
+    "unit": "BPS",
+    "action_name": null
+   }
+  },
+  {
+   "kind": "pktgen_port",
+   "table": "tf1.pktgen.port_cfg",
+   "pipe": 1,
+   "key": [
+    [
+     "dev_port",
+     196,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "pktgen_enable",
+     true
+    ],
+    [
+     "recirculation_enable",
+     true
+    ],
+    [
+     "pattern_matching_enable",
+     true
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "pattern_matching_enable": false,
+    "pktgen_enable": false,
+    "recirculation_enable": true,
+    "action_name": null
+   }
+  },
+  {
+   "kind": "pktgen_buffer",
+   "table": "tf1.pktgen.pkt_buffer",
+   "pipe": 1,
+   "key": [
+    [
+     "pkt_buffer_offset",
+     0,
+     null
+    ],
+    [
+     "pkt_buffer_size",
+     60,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "buffer",
+     {
+      "hex": "000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+     }
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "buffer": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "action_name": null
+   }
+  },
+  {
+   "kind": "pktgen_app",
+   "table": "tf1.pktgen.app_cfg",
+   "pipe": 1,
+   "label": "OPERATE",
+   "key": [
+    [
+     "app_id",
+     1,
+     null
+    ]
+   ],
+   "action": "trigger_recirc_pattern",
+   "data": [
+    [
+     "pattern_value",
+     3774939136
+    ],
+    [
+     "pattern_mask",
+     4294901760
+    ],
+    [
+     "pkt_len",
+     60
+    ],
+    [
+     "pkt_buffer_offset",
+     0
+    ],
+    [
+     "pipe_local_source_port",
+     68
+    ],
+    [
+     "increment_source_port",
+     false
+    ],
+    [
+     "batch_count_cfg",
+     0
+    ],
+    [
+     "packets_per_batch_cfg",
+     3
+    ],
+    [
+     "ipg",
+     0
+    ],
+    [
+     "ibg",
+     0
+    ],
+    [
+     "trigger_counter",
+     0
+    ],
+    [
+     "batch_counter",
+     0
+    ],
+    [
+     "pkt_counter",
+     0
+    ],
+    [
+     "app_enable",
+     false
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "app_enable": false,
+    "batch_count_cfg": 0,
+    "batch_counter": 0,
+    "ibg": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "packets_per_batch_cfg": 0,
+    "pipe_local_source_port": 0,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 0,
+    "pkt_len": 65532,
+    "trigger_counter": 0,
+    "action_name": "trigger_timer_one_shot"
+   }
+  },
+  {
+   "kind": "pktgen_app",
+   "table": "tf1.pktgen.app_cfg",
+   "pipe": 1,
+   "label": "READ",
+   "key": [
+    [
+     "app_id",
+     0,
+     null
+    ]
+   ],
+   "action": "trigger_recirc_pattern",
+   "data": [
+    [
+     "pattern_value",
+     3774873600
+    ],
+    [
+     "pattern_mask",
+     4294901760
+    ],
+    [
+     "pkt_len",
+     60
+    ],
+    [
+     "pkt_buffer_offset",
+     0
+    ],
+    [
+     "pipe_local_source_port",
+     68
+    ],
+    [
+     "increment_source_port",
+     false
+    ],
+    [
+     "batch_count_cfg",
+     0
+    ],
+    [
+     "packets_per_batch_cfg",
+     3
+    ],
+    [
+     "ipg",
+     0
+    ],
+    [
+     "ibg",
+     0
+    ],
+    [
+     "trigger_counter",
+     0
+    ],
+    [
+     "batch_counter",
+     0
+    ],
+    [
+     "pkt_counter",
+     0
+    ],
+    [
+     "app_enable",
+     false
+    ]
+   ],
+   "undo": "restore",
+   "before": {
+    "app_enable": false,
+    "batch_count_cfg": 0,
+    "batch_counter": 0,
+    "ibg": 0,
+    "increment_source_port": false,
+    "ipg": 0,
+    "packets_per_batch_cfg": 0,
+    "pipe_local_source_port": 0,
+    "pkt_buffer_offset": 0,
+    "pkt_counter": 0,
+    "pkt_len": 65532,
+    "trigger_counter": 0,
+    "action_name": "trigger_timer_one_shot"
+   }
+  },
+  {
+   "kind": "mirror",
+   "table": "$mirror.cfg",
+   "pipe": 65535,
+   "key": [
+    [
+     "$sid",
+     7,
+     null
+    ]
+   ],
+   "action": "$normal",
+   "data": [
+    [
+     "$direction",
+     "INGRESS"
+    ],
+    [
+     "$ucast_egress_port",
+     196
+    ],
+    [
+     "$ucast_egress_port_valid",
+     true
+    ],
+    [
+     "$session_enable",
+     true
+    ],
+    [
+     "$max_pkt_len",
+     2048
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "default",
+   "table": "p1.t_Ingress.params",
+   "pipe": 65535,
+   "action": "t_Ingress.set_params",
+   "data": [
+    [
+     "da",
+     2000000
+    ],
+    [
+     "readiness",
+     30000000
+    ],
+    [
+     "cap",
+     40000000
+    ],
+    [
+     "gap",
+     950000
+    ],
+    [
+     "op_j",
+     2400000
+    ],
+    [
+     "budget",
+     240000
+    ],
+    [
+     "enabled",
+     0
+    ],
+    [
+     "pb",
+     4000000
+    ]
+   ],
+   "undo": "default_reset",
+   "before": {
+    "budget": 240000,
+    "cap": 0,
+    "da": 2000000,
+    "enabled": 1,
+    "gap": 800000,
+    "op_j": 2400000,
+    "pb": 12000000,
+    "readiness": 12000000,
+    "action_name": "t_Ingress.set_params",
+    "is_default_entry": true
+   }
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.r_Egress.conn",
+   "priority": null,
+   "action": "r_Egress.fwd_conn",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     20000,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     59742,
+     null
+    ],
+    [
+     "eg.egress_port",
+     9,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "enable",
+     1
+    ],
+    [
+     "idx",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.r_Egress.conn",
+   "priority": null,
+   "action": "r_Egress.rev_conn",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ],
+    [
+     "eg.egress_port",
+     48,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.r_Egress.odd_ip_t",
+   "priority": null,
+   "action": "r_Egress.odd_conn",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.r_Egress.odd_ip_t",
+   "priority": null,
+   "action": "r_Egress.odd_conn",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.r_Egress.conn",
+   "priority": null,
+   "action": "r_Egress.rev_conn",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ],
+    [
+     "eg.egress_port",
+     9,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.ports",
+   "priority": 1,
+   "action": "n_Ingress.normalize_ack",
+   "key": [
+    [
+     "ig.ingress_port",
+     9,
+     null
+    ],
+    [
+     "hdr.ip.$valid",
+     1,
+     1
+    ],
+    [
+     "hdr.ip.proto",
+     6,
+     255
+    ],
+    [
+     "hdr.ip.src",
+     3232238141,
+     4294967295
+    ]
+   ],
+   "data": [],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.ports",
+   "priority": 10,
+   "action": "n_Ingress.route",
+   "key": [
+    [
+     "ig.ingress_port",
+     9,
+     null
+    ],
+    [
+     "hdr.ip.$valid",
+     1,
+     1
+    ],
+    [
+     "hdr.ip.proto",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.src",
+     3232238142,
+     4294967295
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.ports",
+   "priority": 100,
+   "action": "n_Ingress.route",
+   "key": [
+    [
+     "ig.ingress_port",
+     9,
+     null
+    ],
+    [
+     "hdr.ip.$valid",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.proto",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.src",
+     0,
+     0
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.ports",
+   "priority": 100,
+   "action": "n_Ingress.route",
+   "key": [
+    [
+     "ig.ingress_port",
+     48,
+     null
+    ],
+    [
+     "hdr.ip.$valid",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.proto",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.src",
+     0,
+     0
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.ports",
+   "priority": 100,
+   "action": "n_Ingress.route",
+   "key": [
+    [
+     "ig.ingress_port",
+     68,
+     null
+    ],
+    [
+     "hdr.ip.$valid",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.proto",
+     0,
+     0
+    ],
+    [
+     "hdr.ip.src",
+     0,
+     0
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     68
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.read_connection",
+   "priority": null,
+   "action": "n_Ingress.read_configure",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "dst",
+     2560
+    ],
+    [
+     "src",
+     256
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.read_connection",
+   "priority": null,
+   "action": "n_Ingress.read_configure",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     20000,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     59742,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "dst",
+     256
+    ],
+    [
+     "src",
+     2560
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.data_connection",
+   "priority": null,
+   "action": "n_Ingress.configure",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "index",
+     51456
+    ],
+    [
+     "code",
+     1
+    ],
+    [
+     "repeat",
+     1
+    ],
+    [
+     "on",
+     0
+    ],
+    [
+     "off",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.data_connection",
+   "priority": null,
+   "action": "n_Ingress.configure",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     20000,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     59742,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "index",
+     51456
+    ],
+    [
+     "code",
+     1
+    ],
+    [
+     "repeat",
+     1
+    ],
+    [
+     "on",
+     0
+    ],
+    [
+     "off",
+     0
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.connection",
+   "priority": null,
+   "action": "n_Ingress.forward_flow",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ],
+    [
+     "ig.ingress_port",
+     48,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.connection",
+   "priority": null,
+   "action": "n_Ingress.forward_flow",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     59742,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     20000,
+     null
+    ],
+    [
+     "ig.ingress_port",
+     68,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.connection",
+   "priority": null,
+   "action": "n_Ingress.reverse_flow",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     20000,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     59742,
+     null
+    ],
+    [
+     "ig.ingress_port",
+     9,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "p4",
+   "pipe": 65535,
+   "table": "p0.n_Ingress.connection",
+   "priority": null,
+   "action": "n_Ingress.reverse_flow",
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238142,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238141,
+     null
+    ],
+    [
+     "hdr.tcp.sport",
+     20000,
+     null
+    ],
+    [
+     "hdr.tcp.dport",
+     59742,
+     null
+    ],
+    [
+     "ig.ingress_port",
+     68,
+     null
+    ]
+   ],
+   "data": [
+    [
+     "port",
+     9
+    ]
+   ],
+   "undo": "delete"
+  },
+  {
+   "kind": "pktgen_enable",
+   "table": "tf1.pktgen.app_cfg",
+   "pipe": 1,
+   "label": "OPERATE",
+   "key": [
+    [
+     "app_id",
+     1,
+     null
+    ]
+   ],
+   "action": null,
+   "data": [
+    [
+     "app_enable",
+     true
+    ]
+   ],
+   "undo": "disable",
+   "before": {
+    "app_enable": false,
+    "action_name": "trigger_recirc_pattern"
+   }
+  },
+  {
+   "kind": "pktgen_enable",
+   "table": "tf1.pktgen.app_cfg",
+   "pipe": 1,
+   "label": "READ",
+   "key": [
+    [
+     "app_id",
+     0,
+     null
+    ]
+   ],
+   "action": null,
+   "data": [
+    [
+     "app_enable",
+     true
+    ]
+   ],
+   "undo": "disable",
+   "before": {
+    "app_enable": false,
+    "action_name": "trigger_recirc_pattern"
+   }
+  }
+ ]
+}

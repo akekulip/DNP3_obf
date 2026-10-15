@@ -1,0 +1,133 @@
+{
+  "name": "c1",
+  "master_port": 59701,
+  "ok": true,
+  "failures": [],
+  "result": {
+    "label": "ctl_m4_persistence_rst_950_01_separate_ack_combined_t0_c1",
+    "master_port": 59701,
+    "reads": 20,
+    "range": 8,
+    "gap_ms": 0,
+    "start_delay_ms_max": 0,
+    "start_seed": 12345,
+    "start_delay_ms_applied": 0,
+    "endpoint_controls": {
+      "read_pause_ms": 25,
+      "run_sbo": true,
+      "close_grace_ms": 1000
+    },
+    "capture_immediate": true,
+    "qualify_capture": true,
+    "capture_commands": {
+      "out": [
+        "tcpdump",
+        "--immediate-mode",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m4_persistence_rst_950_01_separate_ack_combined_t0/c1/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+      ],
+      "in": [
+        "tcpdump",
+        "--immediate-mode",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m4_persistence_rst_950_01_separate_ack_combined_t0/c1/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+      ]
+    },
+    "source_port_wait": {
+      "port": 59701,
+      "polls": 1,
+      "elapsed_s": 0.03,
+      "result": "free"
+    },
+    "outstation_ready": true,
+    "master_rc": 0,
+    "master_wall_s": 1.71,
+    "tcpdump": {
+      "out": {
+        "captured": 72,
+        "received": 144,
+        "dropped_kernel": 0
+      },
+      "in": {
+        "captured": 72,
+        "received": 144,
+        "dropped_kernel": 0
+      }
+    },
+    "frames_out": 72,
+    "frames_in": 72,
+    "ok": true
+  },
+  "observer": {
+    "ok": true,
+    "response": {
+      "response_index": 69,
+      "t_us": 1792054490322843,
+      "app_seq": 5,
+      "frame_sha256": "d38f047db207ab9141f2e08d11d020299eb15ae269d92a0db0d800d34a1bd4b1",
+      "checksum_valid": true,
+      "dnp3_crc_valid": true
+    },
+    "error": null,
+    "commands": [
+      {
+        "argv": [
+          "ss",
+          "-H",
+          "-4",
+          "-t",
+          "-n",
+          "state",
+          "established",
+          "( src 192.168.10.61 and sport = :59701 and dst 192.168.10.62 and dport = :20000 )"
+        ],
+        "namespace": "ns_vepa_a",
+        "rc": 0,
+        "stdout": "0      0      192.168.10.61:59701 192.168.10.62:20000\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "ss",
+          "-H",
+          "-4",
+          "-t",
+          "-n",
+          "-K",
+          "state",
+          "established",
+          "( src 192.168.10.61 and sport = :59701 and dst 192.168.10.62 and dport = :20000 )"
+        ],
+        "namespace": "ns_vepa_a",
+        "rc": 0,
+        "stdout": "0      0      192.168.10.61:59701 192.168.10.62:20000\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "pre_read_hook": {
+    "requested_pre_read_grace_ms": 0,
+    "supported": false,
+    "observed_pre_read_grace_ms": null,
+    "pre_read_ready_ns": null,
+    "first_read_issued_ns": null,
+    "marker_path": null,
+    "marker_sha256": null
+  }
+}

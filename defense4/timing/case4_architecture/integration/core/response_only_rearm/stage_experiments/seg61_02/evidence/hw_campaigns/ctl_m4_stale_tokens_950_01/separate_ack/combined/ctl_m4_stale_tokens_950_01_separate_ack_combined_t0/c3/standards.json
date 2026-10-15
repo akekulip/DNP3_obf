@@ -1,0 +1,423 @@
+{
+ "schema_version": "dnp3-standards-v3",
+ "run": {
+  "run_id": "ctl_m4_stale_tokens_950_01",
+  "trial": "ctl_m4_stale_tokens_950_01_separate_ack_combined_t0",
+  "connection": "c3",
+  "arm": "combined"
+ },
+ "identity": {
+  "candidate_source_sha256": "35e896ebcd11f461ea947db3b0fa5198770c547d680ffb4bdec5d885465c79cf",
+  "build": "ctl_timing_m4_01",
+  "build_hashes": {
+   "bfrt.json": "cdadfef1375f605ec27b24489677600f28aa021f26c385d2134291d94a0585c4",
+   "p0/tofino.bin": "fa44665eebcbccc8cb8e8a8c0f6d16fd78a9e3d728129fb15c3f6e0b0bd3b2fb",
+   "p1/tofino.bin": "737674d1a491ff5a255104ac02ec7dc4799f3fa4ed6efc71ff210a34f76b66b0",
+   "p1/response_only.bfa": "1159294b3b1cbbd369206214b4ca3448ac57d293de1a7e62ba9f64c1edf8a497"
+  },
+  "profile": "candidate61",
+  "profile_hash": "8812f794db401a3d9a1c0c2f114b9a93fce46f209b79e27d56be02df7f02e8db",
+  "effective_config_sha256": "d9a6fda441bcd22c0835a5a97f450a2bd1f574e4d181afde9e1d6cf53524830a"
+ },
+ "checker": {
+  "version": "fa5886e307a65f3447a53b57f92c48ce0840e326b8b686d5511bf5bf93cd3065",
+  "dependency_closure_sha256": "fa5886e307a65f3447a53b57f92c48ce0840e326b8b686d5511bf5bf93cd3065"
+ },
+ "expected": {
+  "counts": {
+   "READ": 1,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "captures": {
+  "calibration_expected": {
+   "sha256": "ac461fc2f018f16b7313b00b7ce39d006f69781e42a0a60ca49b27e96840f51e"
+  },
+  "calibration_in": {
+   "sha256": "b2be39e4bc53d90b257d3d5cfcbbc37614d9d65a38c25b0a7163eb3ecb768835"
+  },
+  "calibration_out": {
+   "sha256": "7ed85cbf650e43eafabe67d847edbb09b8010caf5c509cba89ad21cf9ec8639b"
+  },
+  "calibration_result": {
+   "sha256": "21ddb793f66f3f5914e59b992a2a3e7e33f33f4908bef47f05af39f9ae09685f"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "3806ab5d82899c06ca13637a3c5c9dbfd26aa48d6c61aa846a33d2833599b328"
+  },
+  "out": {
+   "sha256": "c4487f7a5ed70522bd89d2b293bca3f0d27d5e4090e3c0ced1b0dffc5d5195f7"
+  },
+  "run_result": {
+   "sha256": "2a5f1568e0ed0d5c28146d9cdf6d452306fb3c74a6b6100e477dacf125a1309b"
+  }
+ },
+ "observed": {
+  "checker_result": {
+   "run_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/c3",
+   "master_port": 59721,
+   "responses": 3,
+   "verdicts": [
+    {
+     "index": 0,
+     "native_len": 49,
+     "wire_len": 61,
+     "segments": 1,
+     "native_transport_seq": 0,
+     "wire_transport_seq": 0,
+     "native_app_sha256": "4fea136343dabc876857162aadce45a36c257a4c7f98075c47d553b29f72f4f5",
+     "wire_app_sha256": "affe0eee42d832bb9e69c69badf322bb92539a119aaaa3737162fb321bc699ce",
+     "native_image_sha256": "1525a322efd856201f2e63f43a4a5905a4aeec7dd06d989312178cfbd47547da",
+     "wire_image_sha256": "cbb99130b17a43f8aa8c923e2d48e968dd3de9f065e5093491d0d2fba5e504ca",
+     "wire_frame_sha256": [
+      "cbb99130b17a43f8aa8c923e2d48e968dd3de9f065e5093491d0d2fba5e504ca"
+     ],
+     "wire_frame_count": 1,
+     "tuple": {
+      "src": {
+       "ip": "192.168.10.62",
+       "port": 20000
+      },
+      "dst": {
+       "ip": "192.168.10.61",
+       "port": 59721
+      },
+      "incarnation": 0
+     },
+     "request_serial": 0,
+     "request_function": 1,
+     "request_app_seq": 0,
+     "app_seq": 0,
+     "native_app_seq": 0,
+     "wire_app_seq": 0,
+     "request_app_sha256": "a204d429d5e372de1cba2433b32df411bac9ec2e9b2284919f1dfc3e22e76e4e",
+     "kind": "READ",
+     "transport_ok": true,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "native_len": 37,
+     "wire_len": 61,
+     "segments": 3,
+     "native_transport_seq": 1,
+     "wire_transport_seq": 1,
+     "native_app_sha256": "d94bb7f38dcc8302ea11a7b3d9c0340ded5ac433a33e0c03b6ed33badda84fe9",
+     "wire_app_sha256": "d94bb7f38dcc8302ea11a7b3d9c0340ded5ac433a33e0c03b6ed33badda84fe9",
+     "native_image_sha256": "b7bdfba408d042edaa5487898b29b9566e28f31ce00ec42c947ba129107bb8ab",
+     "wire_image_sha256": "cc5f498983f8bad3ffee4b870614d84cfe6c56c181d756f08ff5804eedc107b8",
+     "wire_frame_sha256": [
+      "c8b719ee5eb7dd5b2b0ecd1b01283544444def83cc358fa0dd86a3b596f6a466",
+      "037e74bb6fa195864431400ebe387963a3775b25e80719faeee15f80f0bdbe34",
+      "666dc48a2a413312bfb98e86b6bcf178f4a3bf2aebb6f2fb81d2444235df7114"
+     ],
+     "wire_frame_count": 3,
+     "tuple": {
+      "src": {
+       "ip": "192.168.10.62",
+       "port": 20000
+      },
+      "dst": {
+       "ip": "192.168.10.61",
+       "port": 59721
+      },
+      "incarnation": 0
+     },
+     "request_serial": 1,
+     "request_function": 3,
+     "request_app_seq": 1,
+     "app_seq": 1,
+     "native_app_seq": 1,
+     "wire_app_seq": 1,
+     "request_app_sha256": "8c2a8b2023ce8e61b1b67f7686ef5f52662a4b3d6c18b234c34b6171b346ca9d",
+     "kind": "SELECT",
+     "transport_ok": true,
+     "select_authorizes_operate": true,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "native_len": 37,
+     "wire_len": 61,
+     "segments": 3,
+     "native_transport_seq": 2,
+     "wire_transport_seq": 2,
+     "native_app_sha256": "e122142a0655bae4d43037261024b14bee7c85fc7123467a3aaa25532356d67b",
+     "wire_app_sha256": "e122142a0655bae4d43037261024b14bee7c85fc7123467a3aaa25532356d67b",
+     "native_image_sha256": "4802ba9dd688f1254775bfa6d4ead89440421c16d7831a3c39a304e479acf508",
+     "wire_image_sha256": "27cce233ab04f9976283f04269eee221e91423223b4e61033256e230c61577db",
+     "wire_frame_sha256": [
+      "5b25944a2bbf830cc4eb2dc7df73ff6c2380e4f7211cfa228b6f69435de3a3f9",
+      "0e12ce971ede404762dd196a6e060e53187ae8cf49537ec97cc71170efdfca57",
+      "29651efd7630fda69f78bda2cb7b40eaf49fc299928412d39112894664c49c19"
+     ],
+     "wire_frame_count": 3,
+     "tuple": {
+      "src": {
+       "ip": "192.168.10.62",
+       "port": 20000
+      },
+      "dst": {
+       "ip": "192.168.10.61",
+       "port": 59721
+      },
+      "incarnation": 0
+     },
+     "request_serial": 2,
+     "request_function": 4,
+     "request_app_seq": 2,
+     "app_seq": 2,
+     "native_app_seq": 2,
+     "wire_app_seq": 2,
+     "request_app_sha256": "54ec0016a4ddbd69018a5f8a3b1877dea945ba3ee07b8ace02729b3d3b4334ef",
+     "kind": "OPERATE",
+     "transport_ok": true,
+     "operate_success": true,
+     "ok": true
+    }
+   ],
+   "failures": [],
+   "conformant": true,
+   "require_handshake": true,
+   "outstation_port": 20000,
+   "expected_lengths": {
+    "READ": [
+     61
+    ],
+    "SELECT": [
+     61
+    ],
+    "OPERATE": [
+     61
+    ]
+   },
+   "expected_counts": {
+    "READ": 1,
+    "SELECT": 1,
+    "OPERATE": 1
+   },
+   "raw_result": {
+    "run_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m4_stale_tokens_950_01/separate_ack/combined/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0/c3",
+    "master_port": 59721,
+    "responses": 3,
+    "verdicts": [
+     {
+      "index": 0,
+      "native_len": 49,
+      "wire_len": 61,
+      "segments": 1,
+      "native_transport_seq": 0,
+      "wire_transport_seq": 0,
+      "native_app_sha256": "4fea136343dabc876857162aadce45a36c257a4c7f98075c47d553b29f72f4f5",
+      "wire_app_sha256": "affe0eee42d832bb9e69c69badf322bb92539a119aaaa3737162fb321bc699ce",
+      "native_image_sha256": "1525a322efd856201f2e63f43a4a5905a4aeec7dd06d989312178cfbd47547da",
+      "wire_image_sha256": "cbb99130b17a43f8aa8c923e2d48e968dd3de9f065e5093491d0d2fba5e504ca",
+      "wire_frame_sha256": [
+       "cbb99130b17a43f8aa8c923e2d48e968dd3de9f065e5093491d0d2fba5e504ca"
+      ],
+      "wire_frame_count": 1,
+      "tuple": {
+       "src": {
+        "ip": "192.168.10.62",
+        "port": 20000
+       },
+       "dst": {
+        "ip": "192.168.10.61",
+        "port": 59721
+       },
+       "incarnation": 0
+      },
+      "request_serial": 0,
+      "request_function": 1,
+      "request_app_seq": 0,
+      "app_seq": 0,
+      "native_app_seq": 0,
+      "wire_app_seq": 0,
+      "request_app_sha256": "a204d429d5e372de1cba2433b32df411bac9ec2e9b2284919f1dfc3e22e76e4e",
+      "kind": "READ",
+      "transport_ok": true,
+      "ok": true
+     },
+     {
+      "index": 1,
+      "native_len": 37,
+      "wire_len": 61,
+      "segments": 3,
+      "native_transport_seq": 1,
+      "wire_transport_seq": 1,
+      "native_app_sha256": "d94bb7f38dcc8302ea11a7b3d9c0340ded5ac433a33e0c03b6ed33badda84fe9",
+      "wire_app_sha256": "d94bb7f38dcc8302ea11a7b3d9c0340ded5ac433a33e0c03b6ed33badda84fe9",
+      "native_image_sha256": "b7bdfba408d042edaa5487898b29b9566e28f31ce00ec42c947ba129107bb8ab",
+      "wire_image_sha256": "cc5f498983f8bad3ffee4b870614d84cfe6c56c181d756f08ff5804eedc107b8",
+      "wire_frame_sha256": [
+       "c8b719ee5eb7dd5b2b0ecd1b01283544444def83cc358fa0dd86a3b596f6a466",
+       "037e74bb6fa195864431400ebe387963a3775b25e80719faeee15f80f0bdbe34",
+       "666dc48a2a413312bfb98e86b6bcf178f4a3bf2aebb6f2fb81d2444235df7114"
+      ],
+      "wire_frame_count": 3,
+      "tuple": {
+       "src": {
+        "ip": "192.168.10.62",
+        "port": 20000
+       },
+       "dst": {
+        "ip": "192.168.10.61",
+        "port": 59721
+       },
+       "incarnation": 0
+      },
+      "request_serial": 1,
+      "request_function": 3,
+      "request_app_seq": 1,
+      "app_seq": 1,
+      "native_app_seq": 1,
+      "wire_app_seq": 1,
+      "request_app_sha256": "8c2a8b2023ce8e61b1b67f7686ef5f52662a4b3d6c18b234c34b6171b346ca9d",
+      "kind": "SELECT",
+      "transport_ok": true,
+      "select_authorizes_operate": true,
+      "ok": true
+     },
+     {
+      "index": 2,
+      "native_len": 37,
+      "wire_len": 61,
+      "segments": 3,
+      "native_transport_seq": 2,
+      "wire_transport_seq": 2,
+      "native_app_sha256": "e122142a0655bae4d43037261024b14bee7c85fc7123467a3aaa25532356d67b",
+      "wire_app_sha256": "e122142a0655bae4d43037261024b14bee7c85fc7123467a3aaa25532356d67b",
+      "native_image_sha256": "4802ba9dd688f1254775bfa6d4ead89440421c16d7831a3c39a304e479acf508",
+      "wire_image_sha256": "27cce233ab04f9976283f04269eee221e91423223b4e61033256e230c61577db",
+      "wire_frame_sha256": [
+       "5b25944a2bbf830cc4eb2dc7df73ff6c2380e4f7211cfa228b6f69435de3a3f9",
+       "0e12ce971ede404762dd196a6e060e53187ae8cf49537ec97cc71170efdfca57",
+       "29651efd7630fda69f78bda2cb7b40eaf49fc299928412d39112894664c49c19"
+      ],
+      "wire_frame_count": 3,
+      "tuple": {
+       "src": {
+        "ip": "192.168.10.62",
+        "port": 20000
+       },
+       "dst": {
+        "ip": "192.168.10.61",
+        "port": 59721
+       },
+       "incarnation": 0
+      },
+      "request_serial": 2,
+      "request_function": 4,
+      "request_app_seq": 2,
+      "app_seq": 2,
+      "native_app_seq": 2,
+      "wire_app_seq": 2,
+      "request_app_sha256": "54ec0016a4ddbd69018a5f8a3b1877dea945ba3ee07b8ace02729b3d3b4334ef",
+      "kind": "OPERATE",
+      "transport_ok": true,
+      "operate_success": true,
+      "ok": true
+     }
+    ],
+    "failures": [],
+    "conformant": true
+   },
+   "result_sha256": "55e2971f1c60f6a909eb52e3c8ea6d2aa7e6127292e9eee9c4d8962d5d108f64"
+  },
+  "exchanges": [
+   {
+    "kind": "OPERATE",
+    "count": 1,
+    "resp_len": [
+     61
+    ],
+    "complete": 1,
+    "failures": []
+   },
+   {
+    "kind": "READ",
+    "count": 1,
+    "resp_len": [
+     61
+    ],
+    "complete": 1,
+    "failures": []
+   },
+   {
+    "kind": "SELECT",
+    "count": 1,
+    "resp_len": [
+     61
+    ],
+    "complete": 1,
+    "failures": []
+   }
+  ],
+  "failures": [],
+  "transport_ok": true,
+  "select_authorizes_operate": true,
+  "operate_success": true,
+  "aggregate_verdict": true,
+  "precision": {
+   "required": false,
+   "status": "not_applicable",
+   "reasons": [
+    "isolation: stale_source_characterization, never precision qualification"
+   ],
+   "evidence": null
+  },
+  "objectives": {
+   "select_precision": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "READ precision disabled for stale_source_characterization"
+    ],
+    "evidence": null
+   },
+   "operate_precision": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "READ precision disabled for stale_source_characterization"
+    ],
+    "evidence": null
+   },
+   "piggyback_latency": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "fixture separate_ack: no piggyback latency target"
+    ],
+    "evidence": null
+   },
+   "operate_hold": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": true,
+    "reasons": [
+     "exempted: this runner evaluates no timing objectives beyond READ precision"
+    ],
+    "evidence": null
+   }
+  }
+ }
+}

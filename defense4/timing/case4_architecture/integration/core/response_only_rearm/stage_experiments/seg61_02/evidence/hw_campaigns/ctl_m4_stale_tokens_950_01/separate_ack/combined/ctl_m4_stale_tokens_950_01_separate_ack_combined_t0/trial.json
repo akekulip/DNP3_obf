@@ -1,0 +1,233 @@
+{
+  "fixture": "separate_ack",
+  "label": "ctl_m4_stale_tokens_950_01_separate_ack_combined_t0",
+  "master_port": 59721,
+  "reads": 1,
+  "ok": false,
+  "failures": [
+    "banks: missing quiet snapshots",
+    "window: missing token window",
+    "missing full-run rejection evidence: 'after'",
+    "switch: T on: READ trigger delta 4, expected 6",
+    "switch: T on: generated READ packets delta 13, expected 24 (2k = 4 per trigger)",
+    "switch: T on: generated OPERATE packets delta 9, expected 12 (2k = 4 per trigger)",
+    "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 19 exceeds the build bound 12",
+    "old batch did not finish with time to restore before new READ"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 5,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65509,
+      "read": 65503
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": {
+      "operate": 25,
+      "read": 31
+    },
+    "reserves": {
+      "operate": 25,
+      "read": 31
+    },
+    "snapshot": {
+      "bfrt_sha256": "cdadfef1375f605ec27b24489677600f28aa021f26c385d2134291d94a0585c4",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1792055529.9558508,
+      "valid": true
+    },
+    "time": 1792055529.970734,
+    "budget": {
+      "reads": 1,
+      "sbo_cycles": 1,
+      "cancelled_selects": 0,
+      "connections": 3,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 3,
+      "operate_per_connection": 1,
+      "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m4_stale_tokens_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+  },
+  "qualification": {
+    "c1": "measurement_only",
+    "c2": "measurement_only",
+    "c3": "measurement_only"
+  },
+  "scenario": {
+    "policy": "real_old_token_isolation",
+    "connections": {
+      "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 384045607,
+          "server_isn": 128623166,
+          "frontiers": {
+            "client": 384045698,
+            "server": 128623290
+          }
+        }
+      },
+      "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 468405848,
+          "server_isn": 212983096,
+          "frontiers": {
+            "client": 468405939,
+            "server": 212983220
+          }
+        }
+      },
+      "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 708988921,
+          "server_isn": 453566506,
+          "frontiers": {
+            "client": 708989012,
+            "server": 453566630
+          }
+        }
+      }
+    }
+  },
+  "observed": {
+    "bank_isolation": {
+      "ok": false,
+      "failures": [
+        "missing quiet snapshots"
+      ]
+    },
+    "old_token_window": {
+      "ok": false,
+      "failures": [
+        "missing token window"
+      ]
+    },
+    "old_rejection_delta": null,
+    "quiet_rejections": null,
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 3842,
+        "OUT_ACK_COMMIT": 9,
+        "OUT_RESP_RELEASE": 9,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 19,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 8,
+        "RAW_READ_TIMER_STALE": 11,
+        "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 19,
+      "generation_exhausted": 0,
+      "pktgen": {
+        "READ": {
+          "triggers": 4,
+          "pkts": 13
+        },
+        "OPERATE": {
+          "triggers": 3,
+          "pkts": 9
+        }
+      },
+      "token_stale_bound": 12,
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 60,
+      "external_growth_expected": 60,
+      "unacked": 0,
+      "held_operate_dup_drops": 0
+    },
+    "lifecycle": {
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 29,
+          "E": 29,
+          "T": 29
+        },
+        "E_raw": 2147483677,
+        "T_raw": 2147483677,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 42
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "precision_qualified": false
+  }
+}

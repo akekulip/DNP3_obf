@@ -1,0 +1,114 @@
+{
+ "ok": true,
+ "failures": [],
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "d64995407318417e6d95c47c688a7b13b892e7f86ae3382a6200f2ba9c88ac57"
+  },
+  "calibration_in": {
+   "sha256": "d7a8b9c66e0fb13ca5496baebd8386bd2c1d41f328358a1a9a036ef5236a238c"
+  },
+  "calibration_out": {
+   "sha256": "60f609ba42e2657dd1b103a3aee5e138fcf5747125890aae7c3b954f5232e44a"
+  },
+  "calibration_result": {
+   "sha256": "7cf51fa88dcd50a551adab083f00815531ba4483fbab9abd68236fb79b582f55"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "hold": {
+   "sha256": "5f6d1b6ec3ee853762f71d49f65618f5595a2b082ce7aa3908ec3f8b6b333b13"
+  },
+  "in": {
+   "sha256": "fc44f6212cece180e60c0364ea85cc9838d9501d1804feac4f737a090590dc41"
+  },
+  "out": {
+   "sha256": "87dbbf82daa7c3c48a87dccee6f1792041dc70f99bd9de7433ffa182703883e1"
+  },
+  "run_result": {
+   "sha256": "0c56a6961b22357fc9d958e9daf257962a64893113dc4f361e46110ac7dabfb4"
+  }
+ },
+ "precision": {
+  "required": false,
+  "status": "not_applicable",
+  "reasons": [
+   "fixture piggyback: READ CLRT undefined or precision disabled"
+  ],
+  "evidence": {
+   "gap_us": 950.0,
+   "read_rows": 65,
+   "eligible": 1,
+   "excluded": {
+    "incomplete": 0,
+    "piggyback": 64,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": {
+    "n": 1,
+    "min": 7.0,
+    "median": 7,
+    "iqr": 0.0,
+    "p95": 7.0,
+    "p99": 7.0,
+    "max": 7.0,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "signed_error_us": {
+    "n": 1,
+    "min": 7.0,
+    "median": 7,
+    "iqr": 0.0,
+    "p95": 7.0,
+    "p99": 7.0,
+    "max": 7.0,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "tails": [
+    {
+     "t_req": 1792057326498520,
+     "clrt_us": 957,
+     "error_us": 7.0
+    }
+   ],
+   "pass": false,
+   "p99_nearest_rank_abs_error_us": 7.0,
+   "gated": false
+  }
+ },
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "pass",
+  "operate_hold": "pass"
+ },
+ "qualification": "qualified",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}
