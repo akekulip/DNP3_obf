@@ -49,7 +49,8 @@ class Markers(unittest.TestCase):
     def test_the_build_dependent_tests_carry_the_markers(self):
         out = pytest(['--collect-only', '-m', 'build_tree or evidence_tree']).stdout
         for name in ('test_shipped_config_is_fully_bound_with_the_real_pins', 'test_validate_passes_with_the_real_pins',
-                     'test_run_deploys_before_it_observes_the_switch', 'RealEvidence'):
+                     'test_run_deploys_before_it_observes_the_switch', 'RealEvidence',
+                     'test_name_check_refuses_pb_mismatch_both_ways'):
             self.assertIn(name, out)
 
     def test_without_the_tree_they_skip_and_nothing_fails(self):

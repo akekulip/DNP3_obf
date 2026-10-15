@@ -79,7 +79,13 @@ def fake_standards_observed(self, ev, failures, *, transport_ok, select_ok, oper
     return observed
 
 
+def fake_hold_analyzer(self, out_pcap, in_pcap, master_port, outstation_port):
+    """The placeholder captures cannot be parsed; the validator's recomputation reads the FakeRunner's hold.json."""
+    return json.loads((Path(out_pcap).parent / 'hold.json').read_text())
+
+
 cp.Campaign._load_standards_checker = fake_load_standards_checker
+cp.Campaign.hold_analyzer = fake_hold_analyzer
 cp.Campaign.standards_observed = fake_standards_observed
 
 class FakeRunner:
@@ -138,6 +144,8 @@ class FakeRunner:
         elif 'clrt_check.py' in cmd and '--json ' in cmd:
             rc = self.clrt_rc
             (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['timing']))
+        elif 'hold_check.py' in cmd and '--json ' in cmd:
+            (Path(cmd.split('--json ')[1].split()[0])).write_text(json.dumps(self.evidence(cmd)['hold']))
         return runmod_result(rc, out, '')
 
     def evidence(self, text):
@@ -278,11 +286,13 @@ class Sequence(Base):
         self.assertEqual(quals, [{'trial': 'qualified'}] * 2)            # reaches the run record downstream
 
     def _failing_precision(self):
+        # the READ gate of every new evaluation is read_precision_gate (nearest-rank p99, v3 artifacts)
         failing = {'pass': False, 'eligible': 50, 'minimum_eligible': 20, 'maximum_p99_absolute_error_us': 100,
-                   'absolute_error_us': {'p99': 144.0}, 'signed_error_us': None, 'excluded': {}, 'tails': []}
-        original = cp.checks.read_precision
-        cp.checks.read_precision = lambda *a, **kw: dict(failing)
-        self.addCleanup(setattr, cp.checks, 'read_precision', original)
+                   'absolute_error_us': {'p99': 144.0}, 'p99_nearest_rank_abs_error_us': 144.0,
+                   'signed_error_us': None, 'excluded': {}, 'tails': []}
+        original = cp.checks.read_precision_gate
+        cp.checks.read_precision_gate = lambda *a, **kw: dict(failing)
+        self.addCleanup(setattr, cp.checks, 'read_precision_gate', original)
 
     def test_precision_failure_in_qualification_is_rejected_and_still_restores(self):
         self._failing_precision()
@@ -967,6 +977,7 @@ class EmittedFlagsExist(Base):
             'vision_run.py': self.help_flags(HERE.parent / 'vision_run.py'),
             'wire_check.py': self.help_flags(HERE.parent / 'wire_check.py'),
             'clrt_check.py': self.help_flags(HERE.parent / 'clrt_check.py'),
+            'hold_check.py': self.help_flags(HERE.parent / 'hold_check.py'),
             'restore_ports.py': self.source_flags(HERE.parents[3] / 'framework' / 'control' / 'restore_ports.py'),
         }
         checked = set()

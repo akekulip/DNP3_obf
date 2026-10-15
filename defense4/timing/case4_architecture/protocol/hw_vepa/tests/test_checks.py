@@ -61,7 +61,10 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
         'outstation': {'select_real': 1, 'select_decoy': 0, 'operate_real': 1, 'operate_decoy': 0},
         'wire': {'returned_integrity': {'dnp3_crc_bad': [], 'tcp_checksum_bad': [], 'tcp_checksum_offloaded': []}},
         'timing': {'summary': {'READ': kind(reads, read_len, piggy), 'SELECT': kind(1, sbo_len),
-                               'OPERATE': kind(1, sbo_len)}, 'exchanges': ex}}
+                               'OPERATE': kind(1, sbo_len)}, 'exchanges': ex},
+        # hold_check.analyze(): the one OPERATE, held past op_j (2.4 ms) on a timed arm
+        'hold': {'operates': [{'seq': 1000, 'app_seq': 2, 'tx_attempts': 1, 'observed': True,
+                               'transit_us': 2450.0 if T else 30.0}]}}
 
 
 def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None, mirror_k=None, max_stale=0):

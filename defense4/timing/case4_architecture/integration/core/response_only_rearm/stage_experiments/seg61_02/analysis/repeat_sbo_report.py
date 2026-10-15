@@ -27,6 +27,7 @@ sys.path.insert(0, str(HERE.parents[1] / 'read_reencode_01'))
 import capture  # noqa: E402
 import dnp3_std as std  # noqa: E402
 import eval_summary as es  # noqa: E402
+import hold_check  # noqa: E402
 
 OUTSTATION_PORT = 20000
 
@@ -62,22 +63,10 @@ def wire_controls(in_pcap, master_port):
 
 
 def request_transit_us(d, master_port):
-    """Per function code, master TX (out.pcap) to outstation RX (in.pcap) of each request, in microseconds. Both taps
-    are Vision's switch-facing port, so this is the switch's hold of the request: the OPERATE command hold J
-    (independent of CLRT) and the unheld READ/SELECT transit."""
-    def requests(path):
-        out = {}
-        for r in capture.tcp_records(path):
-            p = r['payload']
-            if r['src'][1] == master_port and r['dst'][1] == OUTSTATION_PORT and len(p) >= 13 and p[:2] == b'\x05\x64':
-                out.setdefault((r['seq'], p[12]), []).append(r['time'])
-        return out
-    sent, arrived = requests(d / 'out.pcap'), requests(d / 'in.pcap')
-    transit = {}
-    for key, times in sent.items():
-        if key in arrived:
-            transit.setdefault(key[1], []).append(round((min(arrived[key]) - min(times)) * 1e6, 1))
-    return transit
+    """Per function code, master TX (out.pcap) to outstation RX (in.pcap) of each request, in microseconds: the
+    OPERATE command hold J (independent of CLRT) and the unheld READ/SELECT transit. The matcher is the shared
+    hw_vepa/hold_check.py helper the campaign gate uses, so the report and the verdict read the same intervals."""
+    return hold_check.request_transit_us(d / 'out.pcap', d / 'in.pcap', master_port, OUTSTATION_PORT)
 
 
 def trial_cycles(d, gap_us):

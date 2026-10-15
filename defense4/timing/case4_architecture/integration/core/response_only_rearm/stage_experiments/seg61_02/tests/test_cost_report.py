@@ -17,7 +17,8 @@ def test_untimed_arms_do_almost_no_internal_work_and_timed_arms_do_much_more():
     out = cr.report([str(RUN)])
     off = out['arms']['separate_ack/off']['per_exchange']
     timed = out['arms']['separate_ack/combined']['per_exchange']
-    assert off['held_rewaits']['median'] == 0 and off['blocker_packets']['median'] == 0
+    assert off['held_rewaits']['median'] == 0 and off['pktgen_seed_packets']['median'] == 0
+    assert 'blocker_packets' not in off and 'blocker_packets' not in out['runs'][0]
     assert timed['rx_frames']['median'] > 50 * off['rx_frames']['median']
     for row in out['runs']:
         assert sum(row['exchanges'].values()) == 65 + 2 * 64

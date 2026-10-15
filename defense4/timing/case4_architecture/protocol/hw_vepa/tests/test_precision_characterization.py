@@ -125,3 +125,50 @@ def test_effective_precision_gate_default_is_recorded_for_characterization(tmp_p
     record = json.loads((tmp_path / 'evidence/c1/campaign_run.json').read_text())
     assert record['effective']['evaluation'] == {'purpose': 'timing_precision_characterization', 'read_precision': True}
     assert len(record['soft_failures']) == 3
+
+
+class HoldShort(FakeRunner):
+    """READ precision passes; the one OPERATE reaches the outstation side before op_j (2.4 ms)."""
+    def __init__(self, observed=True):
+        super().__init__()
+        self.observed_operate = observed
+
+    def evidence(self, text):
+        ev = super().evidence(text)
+        for row in ev['timing']['exchanges']:
+            if row['kind'] == 'READ':
+                row['clrt_us'] = 950
+        ev['hold']['operates'][0].update(transit_us=100.0 if self.observed_operate else None,
+                                         observed=self.observed_operate)
+        return ev
+
+
+def execute_hold(tmp_path, purpose='timing_precision_characterization', observed=True):
+    cfg = config(tmp_path, purpose)
+    c = cp.Campaign(cfg, HoldShort(observed), 'c1', arms=['combined'])
+    rc = c.execute()
+    return rc, json.loads((tmp_path / 'evidence/c1/campaign_run.json').read_text())
+
+
+def test_hold_threshold_only_failures_continue_in_timing_characterization(tmp_path):
+    rc, record = execute_hold(tmp_path)
+    assert rc == 1 and record['failure'] is None
+    trials = record['arms'][0]['trials']
+    assert len(trials) == len(record['soft_failures']) == 3
+    for trial in trials:
+        assert all(f.startswith('OPERATE hold:') for f in trial['failures']), trial['failures']
+        assert trial['continuation'] == {'purpose': 'timing_precision_characterization', 'allowed': True,
+                                         'reason': 'timing objective thresholds only: operate_hold'}
+        assert trial['qualification'] == {'trial': 'measurement_only'}
+
+
+def test_hold_failure_is_hard_in_qualification(tmp_path):
+    rc, record = execute_hold(tmp_path, purpose='qualification')
+    assert rc == 1 and record['failure']
+    assert len(record['arms'][0]['trials']) == 1 and not record.get('soft_failures')
+
+
+def test_unobserved_operate_is_not_a_threshold_deferral(tmp_path):
+    rc, record = execute_hold(tmp_path, observed=False)
+    assert rc == 1 and record['failure']
+    assert len(record['arms'][0]['trials']) == 1 and not record.get('soft_failures')

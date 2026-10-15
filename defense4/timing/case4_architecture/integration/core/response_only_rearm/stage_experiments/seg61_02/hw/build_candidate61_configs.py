@@ -171,6 +171,9 @@ def make_build(profile, source_sha256, compile_info, image_len, control_padding,
         'control_padding': control_padding,
         'strict_controls_native': not control_padding,
         'lifecycle_rearm': True,
+        # T outcome index declaring GEN_EXHAUSTED (t_OUT_GEN_EXHAUSTED = 15 in full_04, ctl_timing m3 and
+        # dup_hold_01 full_02_strict); checks.evaluate fails any drop it counts and a missing counter
+        'gen_exhausted_outcome': 15,
         'hashes': compile_info['artifact_sha256'],
         '_note': note,
     }
@@ -374,12 +377,21 @@ for filename, template, order, block in repeat_orders:
 # request->response (previously the 30 ms readiness fallback); it must exceed op_j (2.4 ms), because an
 # OPERATE's piggybacked response cannot arrive before its J hold ends.
 CTL_PB_NS = 4000000
-ctl_specs = [('ctl_timing_repeat_sbo_950_b%d.json', 'separate_ack', 59600),
-             ('ctl_timing_piggyback_950_b%d.json', 'piggyback', 59610)]
-for pattern, fixture, port in ctl_specs:
+# Characterization blocks (run, Gate 3) and their qualification twins: the same build, endpoint, workload and
+# shaping with evaluation purpose qualification, so every timing objective the build claims (READ/SELECT/OPERATE
+# CLRT, piggyback latency, OPERATE hold J) is a hard gate. Each family has its own master port range.
+ctl_specs = [('ctl_timing_repeat_sbo_950_b%d.json', 'separate_ack', 59600, 'timing_precision_characterization',
+              'ctl_timing_m3_%s_64'),
+             ('ctl_timing_piggyback_950_b%d.json', 'piggyback', 59610, 'timing_precision_characterization',
+              'ctl_timing_m3_%s_64'),
+             ('ctl_timing_qual_repeat_sbo_950_b%d.json', 'separate_ack', 59620, 'qualification',
+              'ctl_timing_m3_qual_%s_64'),
+             ('ctl_timing_qual_piggyback_950_b%d.json', 'piggyback', 59630, 'qualification',
+              'ctl_timing_m3_qual_%s_64')]
+for pattern, fixture, port, purpose, label in ctl_specs:
     for filename, template, order, block in repeat_orders:
-        data = transform(load(template), purpose={'purpose': 'timing_precision_characterization', 'read_precision': True,
-            'candidate61_label': 'ctl_timing_m3_%s_64' % fixture, 'block': block, 'arm_order': order}, arms=order,
+        data = transform(load(template), purpose={'purpose': purpose, 'read_precision': True,
+            'candidate61_label': label % fixture, 'block': block, 'arm_order': order}, arms=order,
             reads=65, trials=1, preset='shape_59570', gap=950000, port_first=port, port_last=port + 3, start_delay_ms=50,
             loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
             build_name=CTL_BUILD, build_spec=ctl_build, fixtures=[fixture])

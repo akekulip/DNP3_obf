@@ -8,7 +8,9 @@ Per trial (after minus before snapshot):
                   held_return), each role counted once; a loop port's transmit and receive are the same packets,
                   so nothing is counted twice
   re-waits        OUT_HELD_REWAIT: laps of held originals (ACKs and responses waiting for their deadline)
-  blocker work    generated pktgen packets (READ and OPERATE apps)
+  pktgen seeds    pktgen_seed_packets: packets the packet generator emitted (READ and OPERATE apps,
+                  pkt_counter). They are generated seed packets, not blocker recirculation; the total loop-port
+                  RX frames and octets above remain the authoritative internal-work figures
   exchanges       complete READ + SELECT + OPERATE exchanges from timing.json (external transactions)
 External growth (master-visible bytes) is reported by step4_report/repeat_sbo_report, not here. Peak queue
 watermarks are not used as occupancy. Retained snapshots are read only.
@@ -36,16 +38,16 @@ def trial_cost(d, label):
     rx_octets = sum(delta(after, before, ('loop_ports', r, '$OctetsReceived')) for r in ROLES)
     per_role = {r: delta(after, before, ('loop_ports', r, '$FramesReceivedAll')) for r in ROLES}
     rewait = delta(after, before, ('outcomes', 'OUT_HELD_REWAIT'))
-    blockers = sum(delta(after, before, ('pktgen', app, 'pkt_counter')) for app in ('READ', 'OPERATE'))
+    seeds = sum(delta(after, before, ('pktgen', app, 'pkt_counter')) for app in ('READ', 'OPERATE'))
     summary = json.load(open(d / 'timing.json'))['summary']
     exchanges = {k: (summary.get(k) or {}).get('complete', 0) for k in ('READ', 'SELECT', 'OPERATE')}
     n = sum(exchanges.values())
     return {'exchanges': exchanges, 'internal_rx_frames': rx_frames, 'internal_rx_octets': rx_octets,
-            'rx_frames_by_role': per_role, 'held_rewaits': rewait, 'blocker_packets': blockers,
+            'rx_frames_by_role': per_role, 'held_rewaits': rewait, 'pktgen_seed_packets': seeds,
             'per_exchange': {'rx_frames': round(rx_frames / n, 1) if n else None,
                              'rx_octets': round(rx_octets / n, 1) if n else None,
                              'held_rewaits': round(rewait / n, 1) if n else None,
-                             'blocker_packets': round(blockers / n, 2) if n else None}}
+                             'pktgen_seed_packets': round(seeds / n, 2) if n else None}}
 
 
 def report(roots):
@@ -81,9 +83,9 @@ def main(argv=None):
     Path(a.output).write_text(json.dumps(out, indent=1) + '\n')
     for name, agg in sorted(out['arms'].items()):
         pe = agg['per_exchange']
-        print('%-28s trials=%d  rx frames/exch %s  rx octets/exch %s  re-waits/exch %s  blockers/exch %s' % (
+        print('%-28s trials=%d  rx frames/exch %s  rx octets/exch %s  re-waits/exch %s  pktgen seeds/exch %s' % (
             name, agg['trials'], pe['rx_frames']['median'], pe['rx_octets']['median'], pe['held_rewaits']['median'],
-            pe['blocker_packets']['median']))
+            pe['pktgen_seed_packets']['median']))
     return 0
 
 

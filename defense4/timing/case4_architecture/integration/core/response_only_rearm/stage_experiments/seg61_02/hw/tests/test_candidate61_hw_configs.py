@@ -123,7 +123,7 @@ class Candidate61HardwareConfigTests(unittest.TestCase):
     def test_all_builds_have_profile_source_and_hash_pins(self):
         configs = sorted(CFG.glob('candidate61_*.json')) + sorted(CFG.glob('strict_comparison_*.json'))
         self.assertEqual(len(configs), 20)
-        self.assertEqual(len(list(CFG.glob('ctl_timing_*.json'))), 6)
+        self.assertEqual(len(list(CFG.glob('ctl_timing_*.json'))), 12)   # 6 characterization + 6 qualification
         for path in configs:
             data = load_path(path)
             self.assertIn('candidate61_identity', data)
@@ -274,7 +274,14 @@ class ControlTimingConfigs(unittest.TestCase):
             self.assertEqual(data['hosts']['vision_run_dir'], '/home/decps/pad58b_repeat_sbo_20261014c')
             campaign.load_config(str(path))
             fixtures += data['fixture']['modes']
-        self.assertEqual(sorted(fixtures), ['piggyback'] * 3 + ['separate_ack'] * 3)
+            qual = path.name.startswith('ctl_timing_qual_')
+            self.assertEqual(data['evaluation']['purpose'],
+                             'qualification' if qual else 'timing_precision_characterization', path.name)
+            ports = data['traffic']['master_port_range']
+            want = {('separate_ack', False): 59600, ('piggyback', False): 59610,
+                    ('separate_ack', True): 59620, ('piggyback', True): 59630}[(data['fixture']['modes'][0], qual)]
+            self.assertEqual((ports['first'], ports['last']), (want, want + 3), path.name)
+        self.assertEqual(sorted(fixtures), ['piggyback'] * 6 + ['separate_ack'] * 6)
 
 
 if __name__ == '__main__':

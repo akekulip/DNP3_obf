@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE.parents[2] / 'integration/core/response_only/hw'))
@@ -72,6 +74,7 @@ class InstallerRefusesMismatch(unittest.TestCase):
         import check_names
         return check_names.load(path, str(self.SCHEMA))
 
+    @pytest.mark.build_tree
     def test_name_check_refuses_pb_mismatch_both_ways(self):
         import check_names
         m3, c61 = self.tables('ctl_timing_01/evidence/m3_01'), self.tables('seg61_02/evidence/full_04')
