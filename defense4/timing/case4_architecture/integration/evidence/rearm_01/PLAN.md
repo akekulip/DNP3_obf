@@ -114,7 +114,7 @@ Milestones:
 - [x] M1 generation budget: per-role, control-timed reserves; boundary tests.
 - [x] M2 acceptance: per-function CLRT, piggyback latency and J verdicts bound to the run; qualification configs; source-only marker; seed label.
 - [x] M3 m4: Table 4-9 cancellation/replacement in N (E unchanged); asserted race/RESET/duplicate/exhaustion model cases; both SDK compiles.
-- [x] M4 silicon (recovery passed except stale-token isolation; repeated-SBO qualification rejected on the host-path index-127 delay; piggyback qualified): recovery gates + qualification blocks + piggyback availability on m4 (or m3 characterization under the fallback).
+- [x] M4 silicon (recovery passed except stale-token isolation; repeated-SBO qualification rejected on the index-127 timing outlier of unresolved origin; piggyback qualified): recovery gates + qualification blocks + piggyback availability on m4 (or m3 characterization under the fallback).
 - [x] M5 asymmetric shaping (confirmed on three matched pairs): ACK_HOLD 14,892 with RESP/OP 59,570, screening pair then matched repetitions.
 - [ ] M6 optional offline (not done: recovery and the matched comparison took the night): leakage note, splitting, tail wording.
 - [x] M7 report `seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.

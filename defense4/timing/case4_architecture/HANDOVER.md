@@ -66,18 +66,21 @@ Design: `X/ctl_timing_01/DESIGN.md` (m4 section at the end). Resource review: `X
   blocker tokens lengthen the old batch; hypothesis recorded, not fixed).
 - m4 piggyback qualification (3 blocks): **qualified**.
 - m4 repeated-SBO qualification (3 blocks): **rejected**. Cause: exactly one exchange per timed connection near request
-  index 116–127 whose ACK arrives ~1 ms late with the response on time (host path, after switch release; also in m3 and
-  candidate61 data and on untimed traffic). Nearest-rank p99 at n=64 = the maximum, so it fails the 100 us gate. Without
-  that exchange every arm ≤ 94 us. The gate was NOT loosened. **m4 is not fully qualified.**
-- Asymmetric shaping (unchanged binary): ACK_HOLD 14,892 PPS, RESP/OP HOLD and all BLOCK 59,570 — confirmed on three
-  matched pairs: −19..−25 % internal frames, −18..−24 % octets per exchange, request→ACK +6..+50 us, objectives unchanged.
+  index 116–127 whose ACK arrives ~1 ms late with the response on time — a **timing outlier of unresolved origin**
+  (consistent with a delay after switch release, not localized; also in m3 and candidate61 data and on untimed
+  traffic). Nearest-rank p99 at n=64 = the maximum, so it fails the 100 us gate. Retrospective exclusion only (decides
+  nothing): without that exchange every arm ≤ 94 us. The gate was NOT loosened. **m4 is not fully qualified.**
+- Asymmetric shaping (unchanged binary): ACK_HOLD 14,892 PPS, RESP/OP HOLD and all BLOCK 59,570 — **efficiency
+  measured; correctness not passed (shared timing outlier)**: −19..−25 % internal frames, −18..−24 % octets per
+  exchange, request→ACK +6..+50 us; pilot b2 fails SELECT CLRT on the full gate (S0 comparator: full gate, no exclusion; a new failure against base b2, while the same outlier fails baselines b1).
+  Experimental; reconfirm on m5 only after m5 correctness passes.
   ACK_HOLD 3,723 screened only (−26 % frames, +125..+220 us). Zero-pause block robust.
 - Open N limitation: ACK and response microseconds apart can busy-drop the response (single N work cell); TCP
   retransmission recovers it late and un-normalized. Model asserts the two known paths; never acceptance evidence.
 
 ## 4. Open decisions (Philip's; do not decide them)
 
-1. The index-127 host delay: authorize NIC/driver localization (Vision i40e; NIC-wide changes need explicit
+1. The index-127 timing outlier of unresolved origin: authorize NIC/driver localization (Vision i40e; NIC-wide changes need explicit
    authorization), or rule on the gate.
 2. Whether m4 becomes the candidate and ACK_HOLD 14,892 its default shaping.
 3. Real-relay READ qualification; default promotion. Physical relay OPERATE is attended-only, always.

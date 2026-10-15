@@ -6,7 +6,7 @@
 For every hw_campaigns/ctl_m4_* run: the runner's block outcome, restore verification, and for each recorded
 trial its ok flag, qualification, each timing objective's status and key numbers, the switch outcome counters
 that identify recovery behaviour, and every failure string. CLRT tails beyond 100 us are listed with their
-exchange index so the request-127 host-path ACK delay is visible.
+exchange index so the index-127 timing outlier of unresolved origin is visible.
 """
 import argparse
 import json

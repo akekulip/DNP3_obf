@@ -1,11 +1,12 @@
 # Generation-safe rearm evidence
 
+**2026-10-15 m5 S0: shaping comparator judges correctness on full gates (shared failures fail; savings = efficiency only); QUALIFICATION_9c4a2cfdc.md reports p99 and maximum separately, outlier of unresolved origin, retrospective exclusions labelled; ACK_HOLD 14,892 = efficiency measured, correctness not passed.**
 **2026-10-15 m5 cycle started: approved plan `PLAN_m5.md`; T0 transfer package committed; next S0.**
 
 **2026-10-15 overnight result (9c4a2cfdc audit): report `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.**
 - Candidate m4 (`ctl_timing_01/evidence/m4_01`, `35e896eb…79cf`, E `a144cd30…1c10`, N11/E12/T11 both SDKs): Table 4-9 selection cancellation/replacement in N, fail-closed OPERATE lane exhaustion in T. Model suites all pass on the current drivers.
-- Silicon on m4, every block restore-verified (`rearm_01/hw/restore_verify.py`): held OPERATE, persistence graceful/RST, seven-class loss and protected reconnect pass; stale-token isolation unmet (diagnostic sized for candidate61); piggyback qualification qualified (3 blocks); repeated-SBO qualification rejected in 3 blocks, each on one exchange near index 127 delayed ~1 ms after release (host path; also on m3/candidate61). m4 is not fully qualified.
-- Asymmetric shaping ACK_HOLD 14,892 (others 59,570) confirmed on three matched pairs: -19..-25 % internal frames, -18..-24 % octets, request->ACK +6..+50 us. Not promoted.
+- Silicon on m4, every block restore-verified (`rearm_01/hw/restore_verify.py`): held OPERATE, persistence graceful/RST, seven-class loss and protected reconnect pass; stale-token isolation unmet (diagnostic sized for candidate61); piggyback qualification qualified (3 blocks); repeated-SBO qualification rejected in 3 blocks, each on one timing outlier of unresolved origin near index 127 (ACK ~1 ms late, response on time; also on m3/candidate61). m4 is not fully qualified.
+- Asymmetric shaping ACK_HOLD 14,892 (others 59,570): efficiency measured on three matched pairs (-19..-25 % internal frames, -18..-24 % octets, request->ACK +6..+50 us); correctness not passed (shared timing outlier; revised by m5 S0). Not promoted.
 - Generation budget, acceptance objectives (v3 artifacts, nearest-rank) and harness control-timed counting fixed; nothing pushed.
 
 **2026-10-15 9c4a2cfdc checkpoint (overnight correctness/qualification/overhead; `DNP3_9c4a2cfdc_Audit.md`).**

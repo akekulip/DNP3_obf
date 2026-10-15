@@ -109,8 +109,14 @@
     "internal_mbps": 37.644,
     "latency": {
      "READ": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 29.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [
+        127
+       ],
+       "clrt_p99_abs_error_us": 29.0,
+       "clrt_max_abs_error_us": 29.0,
+       "clrt_pass": true
+      },
       "n": 65,
       "ack_median_us": 5431,
       "ack_p99_us": 5576,
@@ -120,8 +126,14 @@
       "clrt_pass": true
      },
      "SELECT": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 33.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [
+        127
+       ],
+       "clrt_p99_abs_error_us": 33.0,
+       "clrt_max_abs_error_us": 33.0,
+       "clrt_pass": true
+      },
       "n": 64,
       "ack_median_us": 5427.0,
       "ack_p99_us": 6768,
@@ -131,8 +143,14 @@
       "clrt_pass": false
      },
      "OPERATE": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 45.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [
+        127
+       ],
+       "clrt_p99_abs_error_us": 45.0,
+       "clrt_max_abs_error_us": 45.0,
+       "clrt_pass": true
+      },
       "n": 64,
       "ack_median_us": 7857.5,
       "ack_p99_us": 7948,
@@ -159,7 +177,7 @@
      "reasons": [],
      "pass": true
     },
-    "host_tail_exchanges": [
+    "retrospective_exclusion_exchanges": [
      127
     ]
    },
@@ -265,8 +283,12 @@
     "internal_mbps": 28.421,
     "latency": {
      "READ": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 44.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [],
+       "clrt_p99_abs_error_us": 44.0,
+       "clrt_max_abs_error_us": 44.0,
+       "clrt_pass": true
+      },
       "n": 65,
       "ack_median_us": 5651,
       "ack_p99_us": 5878,
@@ -276,8 +298,12 @@
       "clrt_pass": true
      },
      "SELECT": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 47.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [],
+       "clrt_p99_abs_error_us": 47.0,
+       "clrt_max_abs_error_us": 47.0,
+       "clrt_pass": true
+      },
       "n": 64,
       "ack_median_us": 5627.5,
       "ack_p99_us": 5796,
@@ -287,8 +313,12 @@
       "clrt_pass": true
      },
      "OPERATE": {
-      "clrt_p99_abs_error_us_excluding_host_tail": 63.0,
-      "clrt_pass_excluding_host_tail": true,
+      "retrospective_exclusion": {
+       "excluded_exchanges": [],
+       "clrt_p99_abs_error_us": 63.0,
+       "clrt_max_abs_error_us": 63.0,
+       "clrt_pass": true
+      },
       "n": 64,
       "ack_median_us": 7982.0,
       "ack_p99_us": 8249,
@@ -315,23 +345,30 @@
      "reasons": [],
      "pass": true
     },
-    "host_tail_exchanges": []
+    "retrospective_exclusion_exchanges": []
    },
    "comparison": {
     "base": "ctl_m4_shape_59570_b1_02",
     "pilot": "ctl_m4_shape_ack3723_b1_01",
-    "frames_change": -0.2603,
-    "octets_change": -0.2444,
-    "ack_median_change_us": {
-     "READ": 220,
-     "SELECT": 200.5,
-     "OPERATE": 124.5
-    },
     "pilot_correct": true,
+    "pilot_failures": [],
+    "base_failures": [
+     "SELECT"
+    ],
     "pilot_new_failures": [],
     "within_ack_budget": true,
-    "decision": "promising"
+    "decision": "promising",
+    "efficiency_only": {
+     "frames_change": -0.2603,
+     "octets_change": -0.2444,
+     "ack_median_change_us": {
+      "READ": 220,
+      "SELECT": 200.5,
+      "OPERATE": 124.5
+     }
+    }
    }
   }
- ]
+ ],
+ "correctness_pass": true
 }
