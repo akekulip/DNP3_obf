@@ -1,5 +1,9 @@
 # Rearm checkpoint
 
+**Current state (2026-10-15): see `defense4/timing/case4_architecture/HANDOVER.md` section "START HERE" and
+`STATUS.md` (newest first). Everything below is the 2026-10-12 checkpoint, kept as history.**
+
+
 - HEAD: b066ec95abc643fc257425e326569634c473fb03, main.
 - Preexisting tracked edits preserved: make_diag_t.py; dnp3_read_client.py.
 - Task 1 capture: c1/c2 software endpoints complete20READ+SBO; c3 same54500 sends5SYN/in0, rc2, connecttimeout5.015s. Independent verification PASS; all five restoration steps rc0; sole bf_switchd PID186537 uses case4_response_path. Campaign rc1 was the known collapsed native SBO-length gate defect.

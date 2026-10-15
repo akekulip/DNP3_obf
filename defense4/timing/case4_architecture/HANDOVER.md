@@ -1,3 +1,113 @@
+# Case 4 handover — START HERE (current as of 2026-10-15 07:10 EDT, HEAD d50ed9b78 = origin/main)
+
+Everything below the line "HISTORY" is older and partly superseded; trust this section first, then the
+documents it links. Written so a different model can continue without the conversation.
+
+## 1. Where things stand
+
+- **Repository:** `/home/philip/Projects/DNP3`, branch `main` only, pushed to `origin/main` (`d50ed9b78`).
+  Philip-owned uncommitted paths that must be preserved and never committed by you: `WORKING_NOTES.md`
+  (append/prepend notes only), the deleted `DNP3_Implementation_Directive_492013014.md`, root audit/prompt/zip files.
+- **Latest audit cycle:** `DNP3_9c4a2cfdc_Audit.md` + `DNP3_Next_Efficiency_Correctness_Prompt_9c4a2cfdc.md`
+  (root, untracked). Overnight execution and results: **`integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`**
+  (read it fully). Plan with Philip's eight binding execution requirements: `integration/evidence/rearm_01/PLAN.md`,
+  section "9c4a2cfdc audit: overnight plan (2026-10-15)". Status log: `integration/evidence/rearm_01/STATUS.md` (newest first).
+- **Switch:** production `case4_response_path` running (verified 06:55 2026-10-15). No candidate is loaded; no
+  default is promoted.
+
+## 2. Builds (abbreviation X = integration/core/response_only_rearm/stage_experiments)
+
+| build | path | source SHA256 | role |
+|---|---|---|---|
+| candidate61 | `X/seg61_02/evidence/full_04` | `1b2d62d1…65aa` | encoding reference (61-octet READ/SELECT/OPERATE), READ timed only |
+| ctl_timing m3 | `X/ctl_timing_01/evidence/m3_01` | `c4819dba…9204` | SELECT/OPERATE CLRT timed, piggyback bound pb |
+| **ctl_timing m4** | `X/ctl_timing_01/evidence/m4_01` | `35e896eb…79cf` | **current candidate**: m3 + IEEE 1815 Table 4-9 selection cancel/replace in N + fail-closed OPERATE lane exhaustion in T |
+
+All three share E byte-identical (`a144cd30…1c10`); N11/E12/T11 on SDK 9.13.1 (local) and 9.13.2 (switch);
+mirror guard PASS. Generator: `X/ctl_timing_01/generate.py OUT_DIR m4` (m1–m4 reproduce byte for byte; tests assert it).
+Design: `X/ctl_timing_01/DESIGN.md` (m4 section at the end). Resource review: `X/ctl_timing_01/resource_review.py BUILD`.
+
+## 3. Results that matter (details in QUALIFICATION_9c4a2cfdc.md)
+
+- m4 model: all suites pass on the current drivers (`X/ctl_timing_01/evidence/m4_01/model_summary.json`).
+- m4 silicon recovery: held OPERATE 350 ms, persistence graceful/RST, seven loss classes, protected reconnect PASS.
+  **Stale-token isolation UNMET** (`candidate_isolation.py` window sized for candidate61's READ-only tokens; m4's SELECT
+  blocker tokens lengthen the old batch; hypothesis recorded, not fixed).
+- m4 piggyback qualification (3 blocks): **qualified**.
+- m4 repeated-SBO qualification (3 blocks): **rejected**. Cause: exactly one exchange per timed connection near request
+  index 116–127 whose ACK arrives ~1 ms late with the response on time (host path, after switch release; also in m3 and
+  candidate61 data and on untimed traffic). Nearest-rank p99 at n=64 = the maximum, so it fails the 100 us gate. Without
+  that exchange every arm ≤ 94 us. The gate was NOT loosened. **m4 is not fully qualified.**
+- Asymmetric shaping (unchanged binary): ACK_HOLD 14,892 PPS, RESP/OP HOLD and all BLOCK 59,570 — confirmed on three
+  matched pairs: −19..−25 % internal frames, −18..−24 % octets per exchange, request→ACK +6..+50 us, objectives unchanged.
+  ACK_HOLD 3,723 screened only (−26 % frames, +125..+220 us). Zero-pause block robust.
+- Open N limitation: ACK and response microseconds apart can busy-drop the response (single N work cell); TCP
+  retransmission recovers it late and un-normalized. Model asserts the two known paths; never acceptance evidence.
+
+## 4. Open decisions (Philip's; do not decide them)
+
+1. The index-127 host delay: authorize NIC/driver localization (Vision i40e; NIC-wide changes need explicit
+   authorization), or rule on the gate.
+2. Whether m4 becomes the candidate and ACK_HOLD 14,892 its default shaping.
+3. Real-relay READ qualification; default promotion. Physical relay OPERATE is attended-only, always.
+
+## 5. Ready next work (no new authorization needed for offline items)
+
+- Adapt `integration/evidence/rearm_01/hw/candidate_isolation.py` for control-timed builds (old-token batch size /
+  window), then rerun `ctl_m4_stale_tokens_950` (hardware: within the overnight-style authorization only if Philip renews it).
+- Endpoint response-delay control so piggyback response availability can be set below/near/above pb (fixtures are
+  integer-ms netem on the data path, producing separate-ACK exchanges; `protocol/hw_vepa/vision_run.py`).
+- Optional offline: splitting analysis (61 vs 28+33 vs 28/19/14; audit table), residual request→ACK leakage note for
+  Dr. Lin (request→ACK still tracks the fixture), tail observation-point map (Ubuntu 6.8.0-146 i40e vs upstream v6.8).
+- Review suggestion not applied (needs recompile + full model rerun): move m4's new T `tin_verdict` OPERATE-exhaustion
+  row after the `enabled==0` passthrough row (`X/ctl_timing_01/DESIGN.md`).
+
+## 6. How to work here (commands)
+
+```bash
+cd /home/philip/Projects/DNP3
+C4=defense4/timing/case4_architecture; E=$C4/integration/core/response_only_rearm/stage_experiments
+# integrated suite (commit gate; must exit 0; 873 passed on 2026-10-15)
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider "$E/read_reencode_01/tests" "$E/seg61_01/tests" \
+  "$E/seg61_02/tests" "$E/seg61_02/hw/tests" "$C4/protocol/hw_vepa/tests" "$C4/integration/evidence/rearm_01/hw/tests" \
+  "$C4/integration/evidence/rearm_01/repeat_sbo_endpoint/tests" "$E/seg61_e_crc_01/tests" "$E/ctl_timing_01/tests"
+git status --porcelain $C4/integration/evidence/rearm_01/candidate_endpoint   # must be empty after the suite
+# model run (local tofino-model, no hardware): BUILD must have compile_local/out
+python3 $E/ctl_timing_01/run_model.py evidence/m4_01 {control_timing|select_lifecycle|smoke|packets|rearm|dup|repeat} N --milestone m4 [--pb 300000000 for seg61_02 drivers]
+# ('abandon' asserts m3's wedge and fails on m4 by design; select_lifecycle replaces it. N = a new attempt number; evidence is never overwritten)
+# compile: local  python3 $C4/build.py SRC OUT --compiler /home/philip/bf-sde-9.13.1/install/bin/bf-p4c
+#          switch python3 $E/ctl_timing_01/compile_switch_orchestrator.py BUILD_DIR SOURCE_SHA256
+# configs: python3 $E/seg61_02/hw/build_candidate61_configs.py   (needs compiler out/ trees; existing configs must stay byte-identical)
+# one hardware block (only with Philip's authorization): plan, run --apply, independent restore check; exit 2 = STOP everything
+bash $C4/integration/evidence/rearm_01/hw/run_block.sh candidate_campaign CONFIG RUN_ID --arms ... --fixtures ...
+# analysis
+python3 $E/seg61_02/analysis/m4_summary.py -o out.json
+python3 $E/seg61_02/analysis/shaping_pilot.py --pair BASE_RUN PILOT_RUN -o out.json
+```
+
+## 7. Rules and traps (each cost time)
+
+- Commits: author and committer `akekulip <akekulip@gmail.com>`, **no Co-Authored-By trailer**. Never push, force-push or
+  rewrite history without Philip saying so in the current conversation. Do not edit `paper/rewrite/` or frozen trees
+  (`defense4/timing/implementation/`, campaign_v1/final_read_sbo raw_pcaps). Codename must not appear in files.
+- Barred tools here: `remove-ai-marks`, watermark/detector-evasion tools, the generic humanizer.
+- Never `git add -f` evidence (pulls ignored `*.out`). Logs > 50 MiB stay untracked and go in `UNTRACKED_LARGE_LOGS.sha256`.
+  `*_token*` is gitignored: stale-token configs/evidence need the narrow exceptions already in `.gitignore`.
+- Any new runner/verdict path must pass `control_timed`, `piggyback_bound` and `gen_exhausted_outcome` from the build to
+  `checks.evaluate`/`evaluate_switch` — four paths missed this on 2026-10-15 and failed m4's first recovery runs.
+- New standards artifacts are schema v3 and must carry `observed.objectives`; p99 is nearest-rank everywhere in gates.
+- A model PASS counts only for the source SHA and driver SHA recorded in its `launch_command.json`.
+- The model's N laps are slow (ms): the ACK/response race and capture windows behave differently from silicon.
+  Reconnects in model drivers need increasing client ISNs (N refuses an older SYN as stale).
+- After every hardware block run `rearm_01/hw/restore_verify.py` (run_block.sh does it); on failure stop all hardware,
+  preserve state, follow `seg61_02/hw/RUNBOOK.md`. Vision restore baseline: `rearm_01/hw/restore_baseline/vision_state_20261015.txt`.
+- Hosts: switch `decps@10.10.54.81` (SDE 9.13.2), Vision `decps@10.10.54.19`; repeated-SBO endpoint dir
+  `/home/decps/pad58b_repeat_sbo_20261014c`, recovery endpoint dir `/home/decps/pad58b_rearm_controls_20261012`.
+
+---
+
+HISTORY (pre-2026-10-15 handover text follows unchanged)
+
 # Case4 continuation checkpoint — 2026-10-07 (size pattern updated 2026-10-08; T's status corrected same day)
 
 Resumed at the user's request from commit190a4c603 and [lab checkpoint](integration/evidence/rearm_01/PAUSE.md). Candidate55 fully compiles on both SDK versions: N12/E12/T12, mirror guard PASS,42 source tests and private compiled-model80/80+382/382 PASS. First hardware attempt stopped at installer dry-run before traffic; all five baseline restorations passed. A candidate-only provenance parser port-check repair passes120 helper tests; review/retry and silicon qualification remain pending. Root remains the sole hardware owner.
