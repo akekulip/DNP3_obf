@@ -1,5 +1,11 @@
 # Generation-safe rearm evidence
 
+**2026-10-15 9c4a2cfdc checkpoint (overnight correctness/qualification/overhead; `DNP3_9c4a2cfdc_Audit.md`).**
+- HEAD `9c4a2cfdc` on `main` (= `origin/main`). Philip-owned dirty paths preserved: `WORKING_NOTES.md`, the deleted `DNP3_Implementation_Directive_492013014.md`, root prompt/audit/zip files.
+- Candidates: candidate61 `full_04` (`1b2d62d1…65aa`) encoding reference; ctl_timing m3 (`c4819dba…9204`, E `a144cd30…1c10`) full-feature development reference; m4 (N lifecycle correction) planned.
+- Live switch at start (2026-10-14 23:39, read-only ps): production `case4_response_path_conf.json` under SDE 9.13.2.
+- Open: generation budget undercounts control-timed lanes; SELECT/OPERATE/piggyback/J not gated; abandoned SELECT wedges N; m3 lacks its own silicon recovery qualification; source-only marker regression. Plan: `PLAN.md` section "9c4a2cfdc audit: overnight plan".
+
 **2026-10-14 f0baa724a checkpoint (mechanism completion, `DNP3_Next_Implementation_Prompt_f0baa724a.md` + `DNP3_f0baa724a_Audit.md`).**
 - HEAD `f0baa724a` on `main` (= `origin/main`). Dirty paths owned by Philip and preserved: `WORKING_NOTES.md`, the two root prompt/audit files, untracked old evidence and paper corpus. `DNP3_f0baa724a_Reproduction.zip` is not on disk; the audit probes are reproduced from its text.
 - Candidate: `seg61_02/evidence/full_04/response_only.p4` SHA256 `1b2d62d1…65aa` (regenerates byte-identically), SDK 9.13.2 bfrt `e32df204…`, p4pp `3306c394…`; strict comparison source `2ad71761…`.

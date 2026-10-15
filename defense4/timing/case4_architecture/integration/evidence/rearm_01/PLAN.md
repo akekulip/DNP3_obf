@@ -95,3 +95,28 @@ Approved in the current conversation on 2026-10-12. Apply tofino-p4. Work direct
 5. Qualify complete source/interpreter/model invariants, full9.13.2 composite and compiled mirror guard/resources<=12stages/direction. Silicon: at least3 successive same-tuple protected connections for graceful-close/RST without reset/reseed; retainedoldpacket/token rejection, mapping/padding/checksum/SBO integrity and800/950 precision; allfourarmssmoke. Seven deterministic single-loss classes, exactdrop/recovery<=5s/no duplicate effects. Restore baseline each hardware block. Update concise current PLAN/HANDOVER/WORKING_NOTES checkpoint.
 
 Success requires all gates; source/model/compile/receiver/silicon evidence are separate. Baseline is never overwritten. No physical relay OPERATE in unattended tests.
+
+## 9c4a2cfdc audit: overnight plan (2026-10-15)
+
+Inputs: `DNP3_9c4a2cfdc_Audit.md`, `DNP3_Next_Efficiency_Correctness_Prompt_9c4a2cfdc.md`, `DNP3_9c4a2cfdc_Reproduction.zip` (repo root, untracked; manifest verified). Philip authorized unattended software-endpoint switch blocks under the full restore procedure; no NIC-wide Vision changes, no relay OPERATE, no push.
+
+Execution requirements (Philip, binding):
+1. m4 is the correctness target. If m4 misses the hour-5 checkpoint, m3 gets recovery *characterization* and the shaping experiment; m3 is never called fully qualified while abandoned-SELECT recovery is broken. Report which candidate passed each gate.
+2. Evidence-based stopping: no repeat of a failed command without a changed hypothesis; parking an approach never removes a required gate.
+3. Complete generation budgeting from the actual code paths, with just-enough/one-short tests per allocator and model exhaustion tests.
+4. Acceptance enforces separate READ/SELECT/OPERATE precision, the piggyback latency objective and the observed OPERATE hold; missing evidence fails; conformance, timing, recovery and workload coverage stay separate verdicts; historical records unchanged.
+5. A model PASS counts only for the exact compiled source, config and driver recorded in its manifest; E stays `a144cd30…1c10`.
+6. Complete restoration after every block, including failed ones; on failure stop, preserve state, follow the RUNBOOK recovery.
+7. First shaping pair is screening; predeclared budget: request->ACK median increase <= 1 ms and every CLRT/J/piggyback gate passing. Noisy differences are inconclusive.
+8. Tail research and splitting only after recovery qualification and the matched overhead comparison.
+
+Milestones:
+- [ ] M1 generation budget: per-role, control-timed reserves; boundary tests.
+- [ ] M2 acceptance: per-function CLRT, piggyback latency and J verdicts bound to the run; qualification configs; source-only marker; seed label.
+- [ ] M3 m4: Table 4-9 cancellation/replacement in N (E unchanged); asserted race/RESET/duplicate/exhaustion model cases; both SDK compiles.
+- [ ] M4 silicon: recovery gates + qualification blocks + piggyback availability on m4 (or m3 characterization under the fallback).
+- [ ] M5 asymmetric shaping: ACK_HOLD 14,892 with RESP/OP 59,570, screening pair then matched repetitions.
+- [ ] M6 optional offline: leakage note, splitting, tail wording.
+- [ ] M7 report `seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.
+
+Morning deliverable: one identified candidate with enforced acceptance, demonstrated recovery and a measured overhead/latency trade-off, failed gates stated plainly.
