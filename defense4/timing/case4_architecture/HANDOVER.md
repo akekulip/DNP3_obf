@@ -1,11 +1,11 @@
-# Case 4 handover — START HERE (current as of 2026-10-15 07:10 EDT, HEAD d50ed9b78 = origin/main)
+# Case 4 handover — START HERE (current as of 2026-10-15 07:15 EDT; origin/main = d50ed9b78, plus local unpushed handover-doc commits)
 
 Everything below the line "HISTORY" is older and partly superseded; trust this section first, then the
 documents it links. Written so a different model can continue without the conversation.
 
 ## 1. Where things stand
 
-- **Repository:** `/home/philip/Projects/DNP3`, branch `main` only, pushed to `origin/main` (`d50ed9b78`).
+- **Repository:** `/home/philip/Projects/DNP3`, branch `main` only. All work through `d50ed9b78` is pushed to `origin/main`; the handover-doc commits after it are local until Philip says push (`git log origin/main..main`).
   Philip-owned uncommitted paths that must be preserved and never committed by you: `WORKING_NOTES.md`
   (append/prepend notes only), the deleted `DNP3_Implementation_Directive_492013014.md`, root audit/prompt/zip files.
 - **Latest audit cycle:** `DNP3_9c4a2cfdc_Audit.md` + `DNP3_Next_Efficiency_Correctness_Prompt_9c4a2cfdc.md`
