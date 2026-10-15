@@ -382,3 +382,12 @@ def test_control_timed_series_switch_gate_counts_each_connections_select_and_ope
         cfg['builds'][cfg['arms'][0]['build']]['control_timed'] = False
         failures, _ = module.series_switch_gate(cfg, cfg['arms'][0], reads, ev, lifecycle)
         assert any('OUT_ACK_COMMIT' in f for f in failures)
+
+
+def test_lifecycle_m5_retry_epoch_is_recorded_not_mistaken_for_n_epoch():
+    module, _ = configured()
+    snapshot = actual_lifecycle()
+    snapshot['registers']['p0.n_Ingress.retry_epoch'] = {'n_Ingress.retry_epoch.f1': [145]}
+    failures, observed = module.lifecycle_gate(snapshot)
+    assert failures == [] and observed['epochs']['values'] == {'N': 145, 'E': 145, 'T': 145}
+    assert observed['n_retry_epoch'] == 145

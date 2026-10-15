@@ -110,8 +110,12 @@ def lifecycle_gate(snapshot, close_mode='graceful'):
     if snapshot.get('valid') is not True or snapshot.get('errors') or snapshot.get('software_read_fallbacks'):
         failures.append('lifecycle snapshot is not a complete hardware read')
     try:
+        # ctl_timing m5 adds N's retry_epoch (the retry incarnation): recorded below, never N's epoch
         n_epoch = _pick(registers, 'N epoch',
-                        lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])n(_|[.]|$)|[.]N[.]', name))
+                        lambda name: 'epoch' in name.lower() and 'retry_epoch' not in name.lower()
+                        and re.search(r'(^|[.])n(_|[.]|$)|[.]N[.]', name))
+        if 'p0.n_Ingress.retry_epoch' in registers:
+            observed['n_retry_epoch'] = _field_int(registers, 'p0.n_Ingress.retry_epoch')
         e_epoch = _pick(registers, 'E epoch',
                         lambda name: 'epoch' in name.lower() and re.search(r'(^|[.])(e|r)_?egress|[.]E[.]', name, re.I))
         t_epoch = _pick(registers, 'T epoch',
