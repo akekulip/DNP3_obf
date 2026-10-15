@@ -4,6 +4,7 @@
 Uses the same CLI as protocol/hw_vepa/campaign.py. Every selected build must
 declare lifecycle_rearm:true; frozen baseline campaigns use their original CLI.
 """
+import importlib.util
 import sys
 import os
 import json
@@ -15,6 +16,16 @@ sys.path.insert(0, str(ARCH / 'protocol' / 'hw_vepa'))
 import campaign as base
 
 CANDIDATE = 'integration/core/response_only_rearm'
+_spec = importlib.util.spec_from_file_location('candidate_generation_headroom',
+                                               ARCH / CANDIDATE / 'hw/generation_headroom.py')
+HEADROOM = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(HEADROOM)
+# Sources whose T admits SELECT and OPERATE on the read lane (ctl_timing_01 m3 and later); a build of one of
+# these must declare control_timed, or its generation budget would be READ-only.
+CONTROL_TIMED_SOURCES = frozenset({
+    'c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204',   # ctl_timing_01 m3
+    'a2d6442f00858799052b9532817d4c97d28cb8fea4ff0ea3dddb575645c8e446',   # ctl_timing_01 m4
+})
 EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
                CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py',
                CANDIDATE + '/hw/generation_headroom.py')
@@ -86,16 +97,45 @@ class CandidateCampaign(base.Campaign):
                     build.get('packet_boundary_required') or
                     self.cfg.get('standards', {}).get('packet_boundary_required'))
 
-    def _headroom_reserve(self, trial):
+    def _headroom_reserve(self, trial, rec=None):
         reads = trial.get('reads')
         if not isinstance(reads, int) or isinstance(reads, bool) or reads < 1:
             raise ValueError('generation headroom requires a positive trial read count')
         connections = int(self.record.get('candidate_series', {}).get('connections') or 1)
         if self.scenario is not None:
             connections = max(connections, 3)
-        reserve = reads * connections + 2 * connections + 16
-        return reserve, {'reads': reads, 'connections': connections, 'open_close_per_connection': 2,
-                         'margin': 16, 'source': 'verified T allocator lifecycle counts'}
+        if rec is None or rec.get('build') not in self.cfg.get('builds', {}):
+            raise HEADROOM.HeadroomError('generation budget needs the arm build')
+        build = self.cfg['builds'][rec['build']]
+        control_timed = build.get('control_timed', False)
+        if not isinstance(control_timed, bool):
+            raise HEADROOM.HeadroomError('build %s control_timed must be a boolean' % rec['build'])
+        if build.get('source_sha256') in CONTROL_TIMED_SOURCES and not control_timed:
+            raise HEADROOM.HeadroomError('build %s is a control-timed source but does not declare control_timed'
+                                         % rec['build'])
+        traffic = self.cfg.get('traffic', {})
+        return HEADROOM.workload_reserve(
+            reads, base.checks.sbo_count(traffic), connections, control_timed,
+            timed=bool(rec.get('T', True)), cancelled_selects=traffic.get('cancelled_selects', 0))
+
+    def preflight(self):
+        """Budget every unit before the switch is touched: a refused or malformed budget is a preflight error,
+        not an exception between install and collection."""
+        errs = super().preflight()
+        for unit in self.units():
+            arm = unit['arm']
+            rec = {'build': arm.get('build'), 'T': arm.get('T')}
+            if not self._headroom_required(rec):
+                continue
+            try:
+                reserve, _budget = self._headroom_reserve({'reads': unit['reads']}, rec)
+            except (ValueError, TypeError) as error:
+                errs.append('generation budget for %s: %s' % (self.label(unit), error))
+                continue
+            over = {role: value for role, value in reserve.items() if value > HEADROOM.MAX_GENERATION}
+            if over:
+                errs.append('generation budget for %s exceeds one incarnation: %s' % (self.label(unit), over))
+        return errs
 
     def _parse_headroom_result(self, result):
         lines = [line for line in (result.out or '').splitlines() if line.strip()]
@@ -121,11 +161,11 @@ class CandidateCampaign(base.Campaign):
         })
 
     def _check_generation_headroom(self, out_remote, name, rec, trial):
-        reserve, budget = self._headroom_reserve(trial)
+        reserve, budget = self._headroom_reserve(trial, rec)
         output = '%s/snap/%s_generation_headroom.json' % (self.R, name)
         cmd = ('python3 %s/src/%s/hw/generation_headroom.py --build-out %s --switch-tools %s/%s '
-               '--reserve %d --output %s' %
-               (self.R, CANDIDATE, out_remote, self.R, base.HW, reserve, output))
+               '--reserve-read %d --reserve-operate %d --output %s' %
+               (self.R, CANDIDATE, out_remote, self.R, base.HW, reserve['read'], reserve['operate'], output))
         if self.rn.dry:
             self.step('switch', 'generation headroom precheck %s' % name, self.hw_env(cmd))
             evidence = {'ok': None, 'dry_run': True, 'reserve': reserve,

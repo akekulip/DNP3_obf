@@ -71,15 +71,73 @@ def current_generations(snapshot):
     return {role: _one_int(registers, table) for role, table in REGISTERS.items()}
 
 
+LIFECYCLE_PER_CONNECTION = 2      # OPEN and the live RESET each bump both allocators
+MARGIN = 16
+
+
+def _count(name, value):
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise HeadroomError('generation budget %s must be a non-negative integer, got %r' % (name, value))
+    return value
+
+
+def workload_reserve(reads, sbo, connections, control_timed, timed=True, cancelled_selects=0, margin=MARGIN):
+    """Per-allocator reserve for one installed incarnation, from the configured workload (never from
+    endpoint self-reports). Allocation sites in the T source (m3 line numbers; candidate61 identical except
+    as noted):
+      read lane gen_alloc_reg, table gen_access: OPEN and live RESET bump (live_reset_gen) whether or not T
+        is enabled; an enabled REQUEST admits (live_admit_gen); in control-timed builds an enabled OPERATE
+        admits too (m2 rows; candidate61 has none). N emits REQUEST for a first READ (kind 9) and, in
+        control-timed builds, a first SELECT (kind 5 -> commit_before_t(9)); OPERATE kind 7 -> T kind 12.
+      operate gen op_gen_alloc_reg, table operate_generation_access: OPEN and live RESET bump; an enabled
+        OPERATE bumps. A duplicate close (e_bad 2) bumps neither.
+    Retransmitted or resent requests never allocate: N's first_event sends them to forward_original,
+    count_resent or OPERATE_DUP (T kind 15, no allocator row). A cancelled SELECT (no OPERATE follows) costs
+    its own REQUEST only. With T disabled no request or OPERATE allocates; OPEN/RESET still do.
+    ctl_timing m4 adds first_event rows that admit a READ or a new SELECT while a selection is in effect; they
+    emit the same REQUEST events, so `cancelled_selects` counts every SELECT beyond the SBO cycles (cancelled,
+    replaced or retried)."""
+    reads, sbo = _count('reads', reads), _count('sbo', sbo)
+    connections, cancelled = _count('connections', connections), _count('cancelled_selects', cancelled_selects)
+    if connections < 1:
+        raise HeadroomError('generation budget needs at least one connection')
+    lifecycle = LIFECYCLE_PER_CONNECTION * connections
+    if timed:
+        lane = reads + (2 * sbo + cancelled if control_timed else 0)
+        operate = sbo
+    else:
+        lane = operate = 0
+    reserve = {'read': lane * connections + lifecycle + margin, 'operate': operate * connections + lifecycle + margin}
+    explanation = {'reads': reads, 'sbo_cycles': sbo, 'cancelled_selects': cancelled, 'connections': connections,
+                   'control_timed': bool(control_timed), 'timed': bool(timed),
+                   'open_close_per_connection': LIFECYCLE_PER_CONNECTION, 'margin': margin,
+                   'read_lane_per_connection': lane, 'operate_per_connection': operate,
+                   'source': 'T gen_access / operate_generation_access rows and N first_event (workload_reserve)'}
+    return reserve, explanation
+
+
+def _reserves(reserve):
+    if isinstance(reserve, dict):
+        if set(reserve) != set(REGISTERS):
+            raise HeadroomError('generation headroom reserve needs exactly %s' % sorted(REGISTERS))
+        out = dict(reserve)
+    else:
+        out = {role: reserve for role in REGISTERS}
+    for role, value in out.items():
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise HeadroomError('generation headroom reserve must be a positive integer (%s)' % role)
+    return out
+
+
 def evaluate_headroom(snapshot, reserve):
-    if not isinstance(reserve, int) or isinstance(reserve, bool) or reserve < 1:
-        raise HeadroomError('generation headroom reserve must be a positive integer')
+    reserves = _reserves(reserve)
     current = current_generations(snapshot)
     evidence = {
         'ok': True,
         'time': time.time(),
         'max_generation': MAX_GENERATION,
         'reserve': reserve,
+        'reserves': reserves,
         'current': current,
         'registers': dict(REGISTERS),
         'remaining_before_reserve': {},
@@ -88,10 +146,10 @@ def evaluate_headroom(snapshot, reserve):
     failures = []
     for role, value in current.items():
         evidence['remaining_before_reserve'][role] = MAX_GENERATION - value
-        evidence['remaining_after_reserve'][role] = MAX_GENERATION - value - reserve
-        if value + reserve > MAX_GENERATION:
+        evidence['remaining_after_reserve'][role] = MAX_GENERATION - value - reserves[role]
+        if value + reserves[role] > MAX_GENERATION:
             failures.append('%s generation headroom exhausted: current %d + reserve %d > %d' %
-                            (role, value, reserve, MAX_GENERATION))
+                            (role, value, reserves[role], MAX_GENERATION))
     if failures:
         evidence['ok'] = False
         evidence['failures'] = failures
@@ -152,17 +210,25 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-out', required=True, type=Path)
     parser.add_argument('--switch-tools', required=True, type=Path)
-    parser.add_argument('--reserve', required=True, type=int)
+    parser.add_argument('--reserve', type=int, help='one reserve for both allocators')
+    parser.add_argument('--reserve-read', type=int)
+    parser.add_argument('--reserve-operate', type=int)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--program', default='response_only')
     parser.add_argument('--client-id', type=int, default=217)
     args = parser.parse_args(argv)
-    record = {'ok': False, 'reserve': args.reserve, 'time': time.time()}
+    if (args.reserve is None) == (args.reserve_read is None and args.reserve_operate is None):
+        parser.error('give --reserve, or both --reserve-read and --reserve-operate')
+    if args.reserve is None and None in (args.reserve_read, args.reserve_operate):
+        parser.error('per-role reserves need both --reserve-read and --reserve-operate')
+    reserve = args.reserve if args.reserve is not None else {'read': args.reserve_read,
+                                                               'operate': args.reserve_operate}
+    record = {'ok': False, 'reserve': reserve, 'time': time.time()}
     try:
         require_authorized()
         snapshot = read_hardware(args.build_out, args.switch_tools, args.program, args.client_id)
         record.update(snapshot=snapshot)
-        record.update(evaluate_headroom(snapshot, args.reserve))
+        record.update(evaluate_headroom(snapshot, reserve))
         if record.get('ok') is not True:
             raise HeadroomError('; '.join(record.get('failures') or ['generation headroom refused']))
     except Exception as error:

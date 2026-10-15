@@ -62,3 +62,11 @@ Three blocks per fixture, 4 arms x 65 READs x 64 SBO cycles; 1,536/1,536 cycles 
 | internal RX frames / exchange | about 1,060 (candidate61 on the same workload: about 530) | about 630 |
 
 Untimed arms are unchanged (native CLRT, about 3-5 internal receives per exchange).
+
+## Generation budget and service lifetime (2026-10-14, 9c4a2cfdc audit)
+
+T has two 16-bit allocators, usable to 0xfffe. The read lane (`gen_alloc_reg`) advances once per OPEN, once per live RESET and once per enabled first request: READ in every build, plus SELECT and OPERATE in control-timed builds. The OPERATE allocator (`op_gen_alloc_reg`) advances once per OPEN, live RESET and enabled OPERATE. Retransmissions, resent requests and OPERATE duplicates allocate nothing. `generation_headroom.workload_reserve` derives both reserves from the configured workload and the build; the precheck refuses a trial that could reach either limit.
+
+- One incarnation of a control-timed build gives about 65,500 / 3 ≈ 21,800 READ+SBO cycles. At one cycle per second that is about six hours.
+- At exhaustion the allocators saturate. The read lane admits nothing past 0xfffe (0xffff means "not admitted"), so it stops timing new transactions rather than reusing a tag. The OPERATE allocator saturates at 0xffff with no such sentinel, so OPERATEs past exhaustion would share one generation; the precheck exists so that neither limit is reached within one incarnation.
+- Quiescence policy: the campaign cold-swaps and reinstalls the program for every unit (a trial; in one_connection mode, one arm and fixture; for a same-tuple series, its three connections), so each unit starts at generation 0 and is budgeted at preflight and again from hardware before traffic. A run longer than one incarnation's budget must stop and reinstall; the precheck refuses rather than letting protection lapse.
