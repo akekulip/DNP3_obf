@@ -37,7 +37,7 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm1')
-    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2'), 'OPERATE': milestone == 'm2'}
+    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3'), 'OPERATE': milestone in ('m2', 'm3')}
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: T hold/release per transaction (READ, SELECT, OPERATE)' % milestone,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -64,6 +64,8 @@ def main():
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
         params = dict(da=1_000_000, readiness=2_000_000_000, cap=1_500_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=1)
+        if milestone == 'm3':
+            params['pb'] = 20_000_000                                  # piggyback bound, model ns
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -116,10 +118,11 @@ def main():
         seqs = rb.Sequences()
         read_body = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 
-        def transaction(kind, fc, objects, body):
-            """Request, standalone ACK, response; returns the response image for later checks."""
+        def transaction(kind, fc, objects, body, mode='separate'):
+            """Request, then (mode) 'separate': standalone ACK and response; 'slow': the ACK only after the piggyback
+            bound has passed; 'piggyback': the response alone, carrying the ACK."""
             nonlocal c, s, growth
-            tag, is_timed = kind, timed[kind]
+            tag, is_timed = kind if mode == 'separate' else '%s_%s' % (kind, mode), timed[kind]
             before, gen_before = outcomes(), gen()
             request, app = seqs.request(fc, objects)
             seqs.next_app()
@@ -139,14 +142,17 @@ def main():
             c += len(request)
             report.add('%s_lane_generation' % tag, gen_before + (1 if is_timed else 0), gen())
             ack, want_ack = vectors.packet(16, s, c, reverse=True), vectors.packet(16, s + growth, c, reverse=True)
-            m.drain(ports)
-            m.send(RELAY.dev_port, ack)
-            early = timed_capture(0.15, 0.05)
-            if is_timed:
-                report.add('%s_ACK_held_until_response' % tag, 0, len(early))
-            else:
-                report.add('%s_ACK_forwarded_at_once' % tag, True,
-                           len(early) == 1 and same_frame(early[0][2], want_ack, ack))
+            if mode == 'slow':
+                time.sleep(0.1)                                        # far beyond pb in model time
+            if mode != 'piggyback':
+                m.drain(ports)
+                m.send(RELAY.dev_port, ack)
+                early = timed_capture(0.15, 0.05)
+                if is_timed:
+                    report.add('%s_ACK_held_until_response' % tag, 0, len(early))
+                else:
+                    report.add('%s_ACK_forwarded_at_once' % tag, True,
+                               len(early) == 1 and same_frame(early[0][2], want_ack, ack))
             native = seqs.response(app, body, kind)
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
             sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
@@ -156,7 +162,14 @@ def main():
             m.send(RELAY.dev_port, sent_rsp)
             got = timed_capture(3.0, 0.3)
             frames = [(t, f) for t, p, f in got if p == MASTER.dev_port]
-            if is_timed:
+            if mode == 'piggyback':
+                after = outcomes()
+                report.add('%s_released_by_bound' % tag, True,
+                           len(frames) == 1 and same_frame(frames[0][1], want_rsp, sent_rsp), frames=[f.hex() for _t, f in frames])
+                report.add('%s_counters' % tag, {'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0},
+                           {k: after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE', 'ACK_FALLBACK', 'RESP_FALLBACK')},
+                           all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
+            elif is_timed:
                 ok = (len(frames) == 2 and same_frame(frames[0][1], want_ack, ack)
                       and same_frame(frames[1][1], want_rsp, sent_rsp))
                 clrt = frames[1][0] - frames[0][0] if len(frames) == 2 else None
@@ -189,6 +202,12 @@ def main():
         transaction('READ', 1, rb.READ_OBJECTS, read_body)
         sbo(101)
         transaction('READ', 1, rb.READ_OBJECTS, read_body)
+        if milestone == 'm3':
+            transaction('READ', 1, rb.READ_OBJECTS, read_body, 'piggyback')
+            transaction('SELECT', 3, rb.crob(102), bytes(2) + rb.crob(102), 'piggyback')
+            transaction('OPERATE', 4, rb.crob(102), bytes(2) + rb.crob(102), 'piggyback')
+            transaction('READ', 1, rb.READ_OBJECTS, read_body, 'slow')
+            transaction('READ', 1, rb.READ_OBJECTS, read_body)
         report.record['meta']['final_outcomes'] = outcomes()
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
     except Exception:

@@ -91,11 +91,84 @@ def transform_t_m2(t):
     return t
 
 
+def transform_t_m3(t):
+    """m2, plus a per-response piggyback bound (DESIGN.md, change 5 as revised): ack_seen_reg records the lane
+    generation of the last standalone ACK; a held response whose generation saw no ACK (piggybacked) may go at
+    t0 + pb. Separate-ACK responses keep a_commit + gap and the readiness fallback. pb is set_params' last
+    argument; its default equals the readiness default, so an unset pb changes nothing."""
+    t = transform_t_m2(t)
+    t = once(t, """    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                      bit<32> budget, bit<32> enabled) {
+        md.da = da; md.readiness = readiness; md.gap = gap; md.op_j = op_j;
+        md.budget_cap = budget; md.enabled = enabled;
+    }""", """    action set_params(bit<32> da, bit<32> readiness, bit<32> cap, bit<32> gap, bit<32> op_j,
+                      bit<32> budget, bit<32> enabled, bit<32> pb) {
+        md.da = da; md.readiness = readiness; md.gap = gap; md.op_j = op_j;
+        md.budget_cap = budget; md.enabled = enabled; md.pb_bound = pb;
+    }""")
+    t = once(t, "default_action = set_params(2000000, 12000000, 16000000, 800000, 2400000, 240000, 1); size = 1;",
+             "default_action = set_params(2000000, 12000000, 16000000, 800000, 2400000, 240000, 1, 12000000); size = 1;")
+    t = once(t, "    bit<32> now_m_readiness; bit<32> readiness_delta;",
+             "    bit<32> now_m_readiness; bit<32> readiness_delta;\n"
+             "    bit<32> pb_bound; bit<32> now_m_pb; bit<32> pb_delta; bit<32> ack_seen_diff;")
+    t = once(t, "        md.now_m_da = md.now - md.da; md.now_m_readiness = md.now - md.readiness; md.now_m_gap = md.now - md.gap;\n    }",
+             "        md.now_m_da = md.now - md.da; md.now_m_readiness = md.now - md.readiness; md.now_m_gap = md.now - md.gap;\n"
+             "        md.now_m_pb = md.now - md.pb_bound;\n    }\n"
+             "    action compute_pb_delta() { md.pb_delta = md.now_m_pb - md.t0_v; }")
+    t = once(t, """    table child_seen0_access {""", """    // Piggyback detection: the last lane generation a standalone ACK was seen in. A response held in a
+    // generation with no ACK (TCP piggybacked the ACK on it) reads a non-zero diff.
+    Register<bit<32>, bit<1>>(1, 0xffffffff) ack_seen_reg;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_seen_reg) ack_seen_mark = {
+        void apply(inout bit<32> value, out bit<32> out_value) { out_value = 0; value = md.cur_gen; }
+    };
+    RegisterAction<bit<32>, bit<1>, bit<32>>(ack_seen_reg) ack_seen_read = {
+        void apply(inout bit<32> value, out bit<32> out_value) { out_value = value ^ md.cur_gen; }
+    };
+    action mark_ack_seen() { md.ack_seen_diff = ack_seen_mark.execute(0); }
+    action read_ack_seen() { md.ack_seen_diff = ack_seen_read.execute(0); }
+    table ack_seen_access {
+        key = { ig_intr_md.ingress_port : ternary; md.event_kind : ternary; hdr.ladder.role : ternary;
+                md.e_bad : ternary; }
+        actions = { mark_ack_seen; read_ack_seen; NoAction; }
+        const entries = {
+            (t_T_IN, t_KIND_ACK, _, 0) : mark_ack_seen();
+            (t_HELD_RETURN, _, t_ROLE_RESP_HELD, _) : read_ack_seen();
+        }
+        default_action = NoAction(); size = 2;
+    }
+    table child_seen0_access {""")
+    t = once(t, """        key = { md.e_bad : ternary; md.enabled : ternary; md.lgen_diff : ternary; md.readiness_delta : ternary;
+                md.gap_delta : ternary; md.commit_diff : ternary; }
+        actions = { set_resp_go; }
+        const entries = {
+            (0, 0, _, _, _, _) : set_resp_go(0);
+            (0, _, 0, 32w0 &&& 32w0x80000000, _, _) : set_resp_go(1);
+            (0, _, 0, _, 32w0 &&& 32w0x80000000, 0) : set_resp_go(1);
+        }
+        default_action = set_resp_go(0); size = 3;""", """        key = { md.e_bad : ternary; md.enabled : ternary; md.lgen_diff : ternary; md.readiness_delta : ternary;
+                md.gap_delta : ternary; md.commit_diff : ternary; md.ack_seen_diff : ternary; md.pb_delta : ternary; }
+        actions = { set_resp_go; }
+        const entries = {
+            (0, 0, _, _, _, _, _, _) : set_resp_go(0);
+            (0, _, 0, 32w0 &&& 32w0x80000000, _, _, _, _) : set_resp_go(1);
+            (0, _, 0, _, 32w0 &&& 32w0x80000000, 0, _, _) : set_resp_go(1);
+            (0, _, 0, _, _, _, 0, _) : set_resp_go(0);                          // a standalone ACK was seen
+            (0, _, 0, _, _, _, _, 32w0 &&& 32w0x80000000) : set_resp_go(1);     // piggybacked: t0 + pb passed
+        }
+        default_action = set_resp_go(0); size = 5;""")
+    t = once(t, "        child_seen0_access.apply(); child_seen1_access.apply(); child_seen2_access.apply();\n",
+             "        child_seen0_access.apply(); child_seen1_access.apply(); child_seen2_access.apply();\n"
+             "        ack_seen_access.apply();\n")
+    t = once(t, "            compute_da_delta(); compute_readiness_delta(); read_lgen_diff();",
+             "            compute_da_delta(); compute_readiness_delta(); compute_pb_delta(); read_lgen_diff();")
+    return t
+
+
 def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
-    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2}[milestone](old_n)
-    new_t = {'m1': lambda t: t, 'm2': transform_t_m2}[milestone](old_t)
+    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2}[milestone](old_n)
+    new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
@@ -121,5 +194,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3]')
     write(sys.argv[1], *(sys.argv[2:]))
