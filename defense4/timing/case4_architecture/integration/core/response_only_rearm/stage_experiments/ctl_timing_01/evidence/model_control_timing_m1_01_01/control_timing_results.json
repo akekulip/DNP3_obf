@@ -1,0 +1,507 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": 2,
+   "name": "READ_lane_generation",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 1,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007950181000829a000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_s": null,
+   "expected": true,
+   "name": "READ_response_after_gap_before_readiness",
+   "observed": false,
+   "ok": false,
+   "response_after_send_s": 0.08045191899873316
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 1,
+    "RESP_FALLBACK": 1,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+  },
+  {
+   "expected": 3,
+   "name": "SELECT_lane_generation",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_s": null,
+   "expected": true,
+   "name": "SELECT_response_after_gap_before_readiness",
+   "observed": false,
+   "ok": false,
+   "response_after_send_s": null
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003ff0000009c50101000c3e50000"
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 2,
+   "name": "OPERATE_lane_generation",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "OPERATE_ACK_forwarded_at_once",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_61_response_untimed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "OPERATE_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000bf00000400501810002a1a000005640dc400000100f387c3c3010a02000016caf7"
+  },
+  {
+   "expected": 3,
+   "name": "READ_lane_generation",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_s": null,
+   "expected": true,
+   "name": "READ_response_after_gap_before_readiness",
+   "observed": false,
+   "ok": false,
+   "response_after_send_s": null
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000d300000431501810003dfa000005641ac40a0001008a1cc4c4030c012801000100010165000000e0176400000000005b"
+  },
+  {
+   "expected": 3,
+   "name": "SELECT_lane_generation",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_s": null,
+   "expected": true,
+   "name": "SELECT_response_after_gap_before_readiness",
+   "observed": false,
+   "ok": false,
+   "response_after_send_s": null
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004b6000000f650101000c2d40000"
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 2,
+   "name": "OPERATE_lane_generation",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "OPERATE_ACK_forwarded_at_once",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_61_response_untimed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "OPERATE_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001190000047b50181000ed63000005640dc400000100f387c6c6010a0200001603d6"
+  },
+  {
+   "expected": 3,
+   "name": "READ_lane_generation",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "clrt_s": null,
+   "expected": true,
+   "name": "READ_response_after_gap_before_readiness",
+   "observed": false,
+   "ok": false,
+   "response_after_send_s": null
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "b96454cb8dd8221f1f77456637473b9cad5d8fda1a7030c0e2f5861f1ec59861",
+  "final_outcomes": {
+   "ACK_COMMIT": 0,
+   "ACK_FALLBACK": 1,
+   "OP_RELEASE": 0,
+   "RESP_FALLBACK": 1,
+   "RESP_RELEASE": 0
+  },
+  "physical": false,
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "0000000100000385d5506300e6090000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000003c200000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "000000010000038500000000e1000000"
+    },
+    "frames": 10,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "0000000100000385d550630009000000",
+     "0x0a00": "0000000100000000f49b40000a000000",
+     "0x0b00": "0000000100000000fd9f25000b000000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "119": "0000000100000000fd9f25000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "0000000100000385d550630009000000"
+    },
+    "frames": 4,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000200000001001122334455aabb",
+     "68": "0e00000200000001001122334455aabb"
+    },
+    "frames": 2,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m1: T hold/release per transaction (READ, SELECT, OPERATE)"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "READ_ACK_held_until_response",
+   "READ_ACK_then_61_response",
+   "READ_response_after_gap_before_readiness",
+   "READ_counters",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_response_after_gap_before_readiness",
+   "SELECT_counters",
+   "stray_ACK_state_0xa_forwarded",
+   "OPERATE_request_held_J_then_relayed",
+   "OPERATE_ACK_forwarded_at_once",
+   "OPERATE_61_response_untimed",
+   "READ_request",
+   "READ_lane_generation",
+   "READ_ACK_then_61_response",
+   "READ_response_after_gap_before_readiness",
+   "READ_counters",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_response_after_gap_before_readiness",
+   "SELECT_counters",
+   "stray_ACK_state_0xa_forwarded",
+   "OPERATE_request_held_J_then_relayed",
+   "OPERATE_ACK_forwarded_at_once",
+   "OPERATE_61_response_untimed",
+   "READ_request",
+   "READ_lane_generation",
+   "READ_ACK_then_61_response",
+   "READ_response_after_gap_before_readiness",
+   "READ_counters"
+  ],
+  "passed": 13,
+  "total": 45
+ }
+}
