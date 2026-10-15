@@ -1,0 +1,337 @@
+{
+ "budget": {
+  "ack_median_increase_us_max": 1000.0,
+  "noise": 0.05
+ },
+ "pairs": [
+  {
+   "base": {
+    "run": "ctl_m4_shape_59570_b1_02",
+    "trial_ok": false,
+    "trial_failures": [
+     "SELECT precision: eligible=64 (minimum20), nearest-rank p99 absolute CLRT error=919.0 us (maximum100)"
+    ],
+    "achieved_shaping": {
+     "ACK_BLOCK": {
+      "dev_port": 182,
+      "qid": 7,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "ACK_HOLD": {
+      "dev_port": 182,
+      "qid": 6,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 1
+     },
+     "RESP_BLOCK": {
+      "dev_port": 182,
+      "qid": 5,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "RESP_HOLD": {
+      "dev_port": 182,
+      "qid": 4,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 1
+     },
+     "OP_BLOCK": {
+      "dev_port": 181,
+      "qid": 3,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "OP_HOLD": {
+      "dev_port": 181,
+      "qid": 2,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 1
+     }
+    },
+    "requested_shaping": {
+     "preset": "shape_59570",
+     "hold_pps": {
+      "ack": 59570,
+      "resp": 59570,
+      "op": 59570
+     },
+     "block_pps": {
+      "ack": 59570,
+      "resp": 59570,
+      "op": 59570
+     },
+     "block_burst": 64
+    },
+    "cost": {
+     "exchanges": {
+      "READ": 65,
+      "SELECT": 64,
+      "OPERATE": 64
+     },
+     "internal_rx_frames": 203064,
+     "internal_rx_octets": 15406372,
+     "rx_frames_by_role": {
+      "n_ack_return": 393,
+      "t_in": 582,
+      "hb_return": 23286,
+      "held_return": 178803
+     },
+     "held_rewaits": 81144,
+     "pktgen_seed_packets": 772,
+     "per_exchange": {
+      "rx_frames": 1052.1,
+      "rx_octets": 79825.8,
+      "held_rewaits": 420.4,
+      "pktgen_seed_packets": 4.0
+     }
+    },
+    "duration_s": 3.274,
+    "internal_pps": 62021.4,
+    "internal_mbps": 37.644,
+    "latency": {
+     "READ": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 29.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 65,
+      "ack_median_us": 5431,
+      "ack_p99_us": 5576,
+      "rt_median_us": 6388,
+      "clrt_p99_abs_error_us": 29.0,
+      "clrt_max_abs_error_us": 29.0,
+      "clrt_pass": true
+     },
+     "SELECT": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 33.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 64,
+      "ack_median_us": 5427.0,
+      "ack_p99_us": 6768,
+      "rt_median_us": 6384.5,
+      "clrt_p99_abs_error_us": 919.0,
+      "clrt_max_abs_error_us": 919.0,
+      "clrt_pass": false
+     },
+     "OPERATE": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 45.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 64,
+      "ack_median_us": 7857.5,
+      "ack_p99_us": 7948,
+      "rt_median_us": 8824.0,
+      "clrt_p99_abs_error_us": 45.0,
+      "clrt_max_abs_error_us": 45.0,
+      "clrt_pass": true
+     }
+    },
+    "operate_hold": {
+     "op_j_us": 2400.0,
+     "observation": {
+      "tx": "out.pcap master-side tap",
+      "rx": "in.pcap outstation-side tap",
+      "includes": "path and capture delay; not an ASIC residency timestamp"
+     },
+     "sent": 64,
+     "observed": 64,
+     "complete_operates": 64,
+     "expected_operates": 64,
+     "min_transit_us": 2488.1,
+     "below_op_j": [],
+     "sufficient": true,
+     "reasons": [],
+     "pass": true
+    },
+    "host_tail_exchanges": [
+     127
+    ]
+   },
+   "pilot": {
+    "run": "ctl_m4_shape_ack3723_b1_01",
+    "trial_ok": true,
+    "trial_failures": [],
+    "achieved_shaping": {
+     "ACK_BLOCK": {
+      "dev_port": 182,
+      "qid": 7,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "ACK_HOLD": {
+      "dev_port": 182,
+      "qid": 6,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 3723,
+      "achieved_pps": 3723,
+      "max_burst_size": 1
+     },
+     "RESP_BLOCK": {
+      "dev_port": 182,
+      "qid": 5,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "RESP_HOLD": {
+      "dev_port": 182,
+      "qid": 4,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 1
+     },
+     "OP_BLOCK": {
+      "dev_port": 181,
+      "qid": 3,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 64
+     },
+     "OP_HOLD": {
+      "dev_port": 181,
+      "qid": 2,
+      "max_rate_enable": true,
+      "unit": "PPS",
+      "requested_pps": 59570,
+      "achieved_pps": 59570,
+      "max_burst_size": 1
+     }
+    },
+    "requested_shaping": {
+     "preset": "shape_ack3723",
+     "hold_pps": {
+      "ack": 3723,
+      "resp": 59570,
+      "op": 59570
+     },
+     "block_pps": {
+      "ack": 59570,
+      "resp": 59570,
+      "op": 59570
+     },
+     "block_burst": 64
+    },
+    "cost": {
+     "exchanges": {
+      "READ": 65,
+      "SELECT": 64,
+      "OPERATE": 64
+     },
+     "internal_rx_frames": 150183,
+     "internal_rx_octets": 11641187,
+     "rx_frames_by_role": {
+      "n_ack_return": 393,
+      "t_in": 582,
+      "hb_return": 23223,
+      "held_return": 125985
+     },
+     "held_rewaits": 25980,
+     "pktgen_seed_packets": 772,
+     "per_exchange": {
+      "rx_frames": 778.2,
+      "rx_octets": 60317.0,
+      "held_rewaits": 134.6,
+      "pktgen_seed_packets": 4.0
+     }
+    },
+    "duration_s": 3.277,
+    "internal_pps": 45833.2,
+    "internal_mbps": 28.421,
+    "latency": {
+     "READ": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 44.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 65,
+      "ack_median_us": 5651,
+      "ack_p99_us": 5878,
+      "rt_median_us": 6614,
+      "clrt_p99_abs_error_us": 44.0,
+      "clrt_max_abs_error_us": 44.0,
+      "clrt_pass": true
+     },
+     "SELECT": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 47.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 64,
+      "ack_median_us": 5627.5,
+      "ack_p99_us": 5796,
+      "rt_median_us": 6591.0,
+      "clrt_p99_abs_error_us": 47.0,
+      "clrt_max_abs_error_us": 47.0,
+      "clrt_pass": true
+     },
+     "OPERATE": {
+      "clrt_p99_abs_error_us_excluding_host_tail": 63.0,
+      "clrt_pass_excluding_host_tail": true,
+      "n": 64,
+      "ack_median_us": 7982.0,
+      "ack_p99_us": 8249,
+      "rt_median_us": 8974.0,
+      "clrt_p99_abs_error_us": 63.0,
+      "clrt_max_abs_error_us": 63.0,
+      "clrt_pass": true
+     }
+    },
+    "operate_hold": {
+     "op_j_us": 2400.0,
+     "observation": {
+      "tx": "out.pcap master-side tap",
+      "rx": "in.pcap outstation-side tap",
+      "includes": "path and capture delay; not an ASIC residency timestamp"
+     },
+     "sent": 64,
+     "observed": 64,
+     "complete_operates": 64,
+     "expected_operates": 64,
+     "min_transit_us": 2487.9,
+     "below_op_j": [],
+     "sufficient": true,
+     "reasons": [],
+     "pass": true
+    },
+    "host_tail_exchanges": []
+   },
+   "comparison": {
+    "base": "ctl_m4_shape_59570_b1_02",
+    "pilot": "ctl_m4_shape_ack3723_b1_01",
+    "frames_change": -0.2603,
+    "octets_change": -0.2444,
+    "ack_median_change_us": {
+     "READ": 220,
+     "SELECT": 200.5,
+     "OPERATE": 124.5
+    },
+    "pilot_correct": true,
+    "pilot_new_failures": [],
+    "within_ack_budget": true,
+    "decision": "promising"
+   }
+  }
+ ]
+}

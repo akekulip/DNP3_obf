@@ -65,7 +65,7 @@ There are two builds:
 
 ## Tails (Gate 5)
 
-Verdict: **unresolved**. One lead is documented and one factor is ruled out. No component is isolated.
+Verdict: **unresolved**. One lead is documented; one setting change did not remove it. No component is isolated.
 
 **What the tail is.** On the off arm the switch neither holds nor rewrites, so each packet in Vision's TX capture can be matched to the same packet in its RX capture. `analysis/transit_report.py` does this per leg. Transit is normally a few microseconds. In some runs three packets per 502-request connection take 1.1 to 1.5 ms instead.
 
@@ -87,7 +87,7 @@ So the period is 128 exchanges, counted per connection, and it is intermittent: 
 - **Environment recorded** (`evidence/tail_environment_vision.txt`, read-only snapshot taken after the runs, with every field back at its recorded value). The Vision NIC is i40e. Coalescing is adaptive rx/tx on, rx-usecs 50, tx-usecs 50, tx-frames-irq 256. The qdisc is fq_codel per queue.
 - **Hardware timestamps:** `ethtool -T` lists hardware receive filters for PTP only, with no `all` mode, so there are no hardware timestamps for TCP. The rerun with hardware timestamps that the plan allowed for was not possible.
 
-**What this rules out.** Changing tx-frames-irq from 256 to 64 leaves the 127/255/275 signature in place (txirq64_07), so the NIC's TX interrupt batching at 256 frames is not the cause. Seven runs per condition cannot separate the event rates (4/10 against 2/7).
+**What this shows (corrected 2026-10-15, 9c4a2cfdc audit).** Changing tx-frames-irq from 256 to 64 did not eliminate the 127/255/275 signature (txirq64_07). That does not rule out NIC/driver batching or interrupt moderation as a class: upstream Linux 6.8 i40e maps tx-frames-irq to the TX-cleaning work budget (`work_limit` in `i40e_clean_tx_irq`), not to an interrupt every 256 frames, and the exact Ubuntu 6.8.0-146 driver source is not yet confirmed. Seven runs per condition cannot separate the event rates (4/10 against 2/7). On 2026-10-15 the same ~1 ms delay hit the timed SELECT at exchange index 127 in every m4 repeated-SBO qualification block (`QUALIFICATION_9c4a2cfdc.md`).
 
 **What is still open.** The index-exact period points to something that counts per-connection packets or segments: the endpoints' TCP stacks (delayed ACK, window updates), the capture path, or the endpoint applications. It does not point to wall-clock time. The next single factors to test are adaptive coalescing off, a capture with a different snapshot or buffer size, and the production program on the same traffic. Each needs Philip's go-ahead. Until a factor moves the signature, the tail attribution stays "unresolved", and nothing here attributes the tail to the switch.
 

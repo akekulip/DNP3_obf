@@ -111,12 +111,12 @@ Execution requirements (Philip, binding):
 8. Tail research and splitting only after recovery qualification and the matched overhead comparison.
 
 Milestones:
-- [ ] M1 generation budget: per-role, control-timed reserves; boundary tests.
-- [ ] M2 acceptance: per-function CLRT, piggyback latency and J verdicts bound to the run; qualification configs; source-only marker; seed label.
-- [ ] M3 m4: Table 4-9 cancellation/replacement in N (E unchanged); asserted race/RESET/duplicate/exhaustion model cases; both SDK compiles.
-- [ ] M4 silicon: recovery gates + qualification blocks + piggyback availability on m4 (or m3 characterization under the fallback).
-- [ ] M5 asymmetric shaping: ACK_HOLD 14,892 with RESP/OP 59,570, screening pair then matched repetitions.
-- [ ] M6 optional offline: leakage note, splitting, tail wording.
-- [ ] M7 report `seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.
+- [x] M1 generation budget: per-role, control-timed reserves; boundary tests.
+- [x] M2 acceptance: per-function CLRT, piggyback latency and J verdicts bound to the run; qualification configs; source-only marker; seed label.
+- [x] M3 m4: Table 4-9 cancellation/replacement in N (E unchanged); asserted race/RESET/duplicate/exhaustion model cases; both SDK compiles.
+- [x] M4 silicon (recovery passed except stale-token isolation; repeated-SBO qualification rejected on the host-path index-127 delay; piggyback qualified): recovery gates + qualification blocks + piggyback availability on m4 (or m3 characterization under the fallback).
+- [x] M5 asymmetric shaping (confirmed on three matched pairs): ACK_HOLD 14,892 with RESP/OP 59,570, screening pair then matched repetitions.
+- [ ] M6 optional offline (not done: recovery and the matched comparison took the night): leakage note, splitting, tail wording.
+- [x] M7 report `seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.
 
 Morning deliverable: one identified candidate with enforced acceptance, demonstrated recovery and a measured overhead/latency trade-off, failed gates stated plainly.
