@@ -1,0 +1,104 @@
+{
+ "ok": true,
+ "failures": [],
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    49
+   ],
+   "SELECT": [
+    37
+   ],
+   "OPERATE": [
+    37
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "d64995407318417e6d95c47c688a7b13b892e7f86ae3382a6200f2ba9c88ac57"
+  },
+  "calibration_in": {
+   "sha256": "0e0a84edb7d5c52a916cf83155759435ec2fe6b7bf302f197073ccc846940434"
+  },
+  "calibration_out": {
+   "sha256": "94e2351a3e09eef89bd416c0a0090a910cb707419e39b5ae8d4f897b73a709b7"
+  },
+  "calibration_result": {
+   "sha256": "8d7f2c7f10d6643728d0fb6de58da03ec46f331eb22df6d1cc8ef1ed46baa49a"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "83e04c9178e30780c8f45fb01b508661ccb41c200b2294795e6cf44cb9d00b30"
+  },
+  "out": {
+   "sha256": "fe715dba9ca378ddacd0df5b8bbbd44bf965b6cb595b5556ef59ede7ecf9fe26"
+  },
+  "run_result": {
+   "sha256": "dff7efec2f5ce8ededae7b4eb1d1856059dcd70f27c51d451373bc288a601c0d"
+  }
+ },
+ "precision": {
+  "required": false,
+  "status": "not_applicable",
+  "reasons": [
+   "arm off has no timing target (T=0)"
+  ],
+  "evidence": {
+   "gap_us": 950.0,
+   "read_rows": 65,
+   "eligible": 1,
+   "excluded": {
+    "incomplete": 0,
+    "piggyback": 64,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": {
+    "n": 1,
+    "min": 536.0,
+    "median": 536,
+    "iqr": 0.0,
+    "p95": 536.0,
+    "p99": 536.0,
+    "max": 536.0,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "signed_error_us": {
+    "n": 1,
+    "min": -536.0,
+    "median": -536,
+    "iqr": 0.0,
+    "p95": -536.0,
+    "p99": -536.0,
+    "max": -536.0,
+    "sd_population": 0.0,
+    "sd_sample": 0.0
+   },
+   "tails": [
+    {
+     "t_req": 1792027513288294,
+     "clrt_us": 414,
+     "error_us": -536.0
+    }
+   ],
+   "pass": false,
+   "gated": false
+  }
+ },
+ "qualification": "measurement_only",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}

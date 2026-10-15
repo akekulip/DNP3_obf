@@ -1,0 +1,1960 @@
+{
+ "run_id": "ctl_timing_repeat_sbo_950_b2",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "ctl_timing_m3_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+     "master_port": 59600,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57202
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65451,
+       "read": 65451
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 83,
+      "snapshot": {
+       "bfrt_sha256": "57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792026254.8653965,
+       "valid": true
+      },
+      "time": 1792026254.8730273,
+      "budget": {
+       "reads": 65,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+      "master_port": 59600,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57202,
+      "start_delay_ms_applied": 16,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59600,
+       "polls": 1,
+       "elapsed_s": 0.034,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.906,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 3852,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 0.0,
+        "median": 5,
+        "iqr": 7.0,
+        "p95": 14.0,
+        "p99": 57.0,
+        "max": 919.0,
+        "sd_population": 112.6,
+        "sd_sample": 113.5
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": -919.0,
+        "median": 2,
+        "iqr": 8.0,
+        "p95": 14.0,
+        "p99": 18.0,
+        "max": 57.0,
+        "sd_population": 113.9,
+        "sd_sample": 114.8
+       },
+       "tails": [
+        {
+         "t_req": 1792026259825711,
+         "clrt_us": 31,
+         "error_us": -919.0
+        },
+        {
+         "t_req": 1792026258531133,
+         "clrt_us": 1007,
+         "error_us": 57.0
+        },
+        {
+         "t_req": 1792026259155842,
+         "clrt_us": 968,
+         "error_us": 18.0
+        },
+        {
+         "t_req": 1792026257951564,
+         "clrt_us": 964,
+         "error_us": 14.0
+        },
+        {
+         "t_req": 1792026260674271,
+         "clrt_us": 964,
+         "error_us": 14.0
+        }
+       ],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 58776,
+       "OUT_ACK_COMMIT": 193,
+       "OUT_RESP_RELEASE": 193,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 64,
+       "OUT_TOKEN_STALE": 94,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 94,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 94,
+      "pktgen": {
+       "READ": {
+        "triggers": 129,
+        "pkts": 516
+       },
+       "OPERATE": {
+        "triggers": 64,
+        "pkts": 256
+       }
+      },
+      "token_stale_bound": 256,
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "off",
+   "T": 0,
+   "padding": 0,
+   "build": "ctl_timing_m3_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+     "master_port": 59601,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57203
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65451,
+       "read": 65451
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 83,
+      "snapshot": {
+       "bfrt_sha256": "57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792026332.0887566,
+       "valid": true
+      },
+      "time": 1792026332.0964658,
+      "budget": {
+       "reads": 65,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+      "master_port": 59601,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57203,
+      "start_delay_ms_applied": 1,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59601,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.488,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 2252.0,
+        "median": 2395,
+        "iqr": 43.0,
+        "p95": 2444.0,
+        "p99": 2452.0,
+        "max": 2529.0,
+        "sd_population": 38.7,
+        "sd_sample": 39.0
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": 2252.0,
+        "median": 2395,
+        "iqr": 43.0,
+        "p95": 2444.0,
+        "p99": 2452.0,
+        "max": 2529.0,
+        "sd_population": 38.7,
+        "sd_sample": 39.0
+       },
+       "tails": [
+        {
+         "t_req": 1792026335165706,
+         "clrt_us": 3479,
+         "error_us": 2529.0
+        },
+        {
+         "t_req": 1792026337338855,
+         "clrt_us": 3402,
+         "error_us": 2452.0
+        },
+        {
+         "t_req": 1792026336423879,
+         "clrt_us": 3396,
+         "error_us": 2446.0
+        },
+        {
+         "t_req": 1792026335851834,
+         "clrt_us": 3394,
+         "error_us": 2444.0
+        },
+        {
+         "t_req": 1792026335279832,
+         "clrt_us": 3393,
+         "error_us": 2443.0
+        }
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "T": 1,
+   "padding": 0,
+   "build": "ctl_timing_m3_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+     "master_port": 59602,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57204
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65451,
+       "read": 65451
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 83,
+      "snapshot": {
+       "bfrt_sha256": "57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792026408.818557,
+       "valid": true
+      },
+      "time": 1792026408.8264244,
+      "budget": {
+       "reads": 65,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+      "master_port": 59602,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57204,
+      "start_delay_ms_applied": 18,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59602,
+       "polls": 1,
+       "elapsed_s": 0.035,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.905,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 0.0,
+        "median": 5,
+        "iqr": 5.0,
+        "p95": 11.0,
+        "p99": 13.0,
+        "max": 17.0,
+        "sd_population": 3.6,
+        "sd_sample": 3.6
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": -17.0,
+        "median": 2,
+        "iqr": 10.0,
+        "p95": 11.0,
+        "p99": 12.0,
+        "max": 13.0,
+        "sd_population": 6.5,
+        "sd_sample": 6.5
+       },
+       "tails": [
+        {
+         "t_req": 1792026411958775,
+         "clrt_us": 933,
+         "error_us": -17.0
+        },
+        {
+         "t_req": 1792026414011889,
+         "clrt_us": 963,
+         "error_us": 13.0
+        },
+        {
+         "t_req": 1792026413208485,
+         "clrt_us": 962,
+         "error_us": 12.0
+        },
+        {
+         "t_req": 1792026412628219,
+         "clrt_us": 961,
+         "error_us": 11.0
+        },
+        {
+         "t_req": 1792026412717497,
+         "clrt_us": 961,
+         "error_us": 11.0
+        }
+       ],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 58777,
+       "OUT_ACK_COMMIT": 193,
+       "OUT_RESP_RELEASE": 193,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 64,
+       "OUT_TOKEN_STALE": 92,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 92,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 92,
+      "pktgen": {
+       "READ": {
+        "triggers": 129,
+        "pkts": 516
+       },
+       "OPERATE": {
+        "triggers": 64,
+        "pkts": 256
+       }
+      },
+      "token_stale_bound": 256,
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "build": "ctl_timing_m3_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+     "master_port": 59603,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 3,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57205
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65451,
+       "read": 65451
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": 83,
+      "snapshot": {
+       "bfrt_sha256": "57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792026486.0187192,
+       "valid": true
+      },
+      "time": 1792026486.0262592,
+      "budget": {
+       "reads": 65,
+       "connections": 1,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "source": "verified T allocator lifecycle counts"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+      "master_port": 59603,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57205,
+      "start_delay_ms_applied": 24,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59603,
+       "polls": 1,
+       "elapsed_s": 0.029,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.487,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 3852,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 2309.0,
+        "median": 2396,
+        "iqr": 30.0,
+        "p95": 2430.0,
+        "p99": 2439.0,
+        "max": 2474.0,
+        "sd_population": 27.3,
+        "sd_sample": 27.5
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": 2309.0,
+        "median": 2396,
+        "iqr": 30.0,
+        "p95": 2430.0,
+        "p99": 2439.0,
+        "max": 2474.0,
+        "sd_population": 27.3,
+        "sd_sample": 27.5
+       },
+       "tails": [
+        {
+         "t_req": 1792026489114401,
+         "clrt_us": 3424,
+         "error_us": 2474.0
+        },
+        {
+         "t_req": 1792026489609832,
+         "clrt_us": 3389,
+         "error_us": 2439.0
+        },
+        {
+         "t_req": 1792026490219821,
+         "clrt_us": 3384,
+         "error_us": 2434.0
+        },
+        {
+         "t_req": 1792026489381200,
+         "clrt_us": 3380,
+         "error_us": 2430.0
+        },
+        {
+         "t_req": 1792026489343065,
+         "clrt_us": 3379,
+         "error_us": 2429.0
+        }
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59600,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0.json"
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "fixture": "separate_ack",
+   "arm": "off",
+   "trial": 0,
+   "master_port": 59601,
+   "padding": 0,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0.json"
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "trial": 0,
+   "master_port": 59602,
+   "padding": 0,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0.json"
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "trial": 0,
+   "master_port": 59603,
+   "padding": 1,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "df88756b7291d2844026f42bff5530fc90962f100ccddba0d5019217379c3abe",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "6e0818591616b940141937339dcb9bfbc0c561fd5d80f7088838dd1d47aae9db",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "00a0e4f2928fc9f5e86168687a0a7878c11171e18c5659d8860bd40fc586fc44"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_repeat_sbo_20261014c/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_repeat_sbo_20261014c/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": 83,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65451,
+    "read": 65451
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_off_t0",
+   "ok": true,
+   "reserve": 83,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65451,
+    "read": 65451
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_timing_only_t0",
+   "ok": true,
+   "reserve": 83,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65451,
+    "read": 65451
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_timing_repeat_sbo_950_b2_separate_ack_size_only_t0",
+   "ok": true,
+   "reserve": 83,
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65451,
+    "read": 65451
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 3,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 65,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59600,
+    "last": 59603
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 50,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0,
+   "sbo_cycles": 64
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "timing_precision_characterization",
+   "read_precision": true,
+   "candidate61_label": "ctl_timing_m3_separate_ack_64",
+   "block": 2,
+   "arm_order": [
+    "combined",
+    "off",
+    "timing_only",
+    "size_only"
+   ]
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "ctl_timing_m3_01": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22",
+   "source_files": {
+    "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   },
+   "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py"
+  },
+  "vision_run_dir": "/home/decps/pad58b_repeat_sbo_20261014c"
+ },
+ "config_sha256": "9f299b05313378130a7a74c8fe6cb3965df64356240969d5596ff5994b616054",
+ "config_file_sha256": "c39c79ae49ce0704f2815308f3663854b1777326018e29ce82bf71f8d51af80d",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "99e6d828b5266decea6245c38a00b158f3241b7455289518b306921b8b668b15",
+   "checks.py": "a63b1655aac4acfdf7dac7a1c59938b56e28afbf558debddc2de920542b892b8",
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "build_sources": {
+   "ctl_timing_m3_01": {
+    "source_sha256": "c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204",
+    "source_files": {
+     "response_only.p4": "c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "ctl_timing_m3_01": {
+   "bfrt.json": "57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84",
+   "p0/tofino.bin": "6636fa1e459a7b793def48b36b827495e1d99fb6d632622cb28cb81f99cd6c59",
+   "p1/tofino.bin": "7a0da71217bc6a773646eed36e62787595627e7edca80cc2928996f3e96dc330",
+   "p1/response_only.bfa": "b304b78638ebf5419d6aade88d8f25efad8e3694d89526e992f3d913cd13c809"
+  }
+ },
+ "paired_block": null,
+ "time": 1792026563.784309
+}

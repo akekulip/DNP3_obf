@@ -186,7 +186,7 @@ def report(roots):
                 gap = gap_us if arm.get('T') else 0.0
                 for r in t['rows']:                                   # CLRT minus the configured gap, timed arms
                     for kind in ('select', 'operate'):
-                        if isinstance(r[kind].get('clrt_us'), (int, float)) and arm.get('T'):
+                        if isinstance(r[kind].get('clrt_us'), (int, float)) and arm.get('T') and not r[kind].get('piggyback'):
                             v.setdefault('%s_clrt_error_us' % kind, []).append(r[kind]['clrt_us'] - gap)
                             v.setdefault('%s_abs_clrt_error_us' % kind, []).append(abs(r[kind]['clrt_us'] - gap))
     for agg in out['arms'].values():

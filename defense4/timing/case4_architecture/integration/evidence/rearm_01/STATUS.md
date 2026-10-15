@@ -7,9 +7,9 @@
 - Decisions (Philip, 2026-10-14): normalize all three CLRTs (READ, SELECT, OPERATE) in a separate control-timing candidate while keeping the OPERATE command hold J as its own objective; piggyback gets a response-aware bounded latency (global readiness unchanged); silicon authorized for Gates 2, 3 and 5 with software endpoints only and no relay OPERATE; model gates only after functional changes; the E-stage CRC change is an experiment.
 - Gate 1 (acceptance and reproducibility): committed `2cad04ff6`, `d4c785844` after one review and one independent verification.
 - Gate 2 (repeated SBO): committed `ab191033f`, `876bc216c`. Silicon `candidate61_repeat_sbo_950_b1_02`, `_b2`, `_b3`: 768/768 cycles verified per cycle; failed `_b1` retained (stale endpoint build). Model `model_repeat_04` 520/520, `model_abandon_03` 15/15. Limitation: an abandoned SELECT stalls the connection until reset.
-- Gate 3 step 1 (contract table): `TIMING_CONTRACT.md`; SELECT/OPERATE CLRT native (~5.3 ms, n=192/arm). Control-timing candidate not started.
+- Gate 3 (control timing): `ctl_timing_01` m3 (N + T changes, E identical) passes all model suites and, on silicon, normalizes SELECT and OPERATE CLRT (abs p99 55-92 us) with the OPERATE J hold kept (min 2.47 ms) and piggybacked request->response bounded at about 4.1 ms (was 30.1 ms); internal receives per exchange about double. Not a default; candidate61 remains the qualified encoding baseline.
 - Gate 4 (CRC experiment): committed `7202358fd`; no stage recovered (E12 on both SDKs, N 11->12), baseline kept.
-- Open: Gate 3 control-timing candidate and piggyback bound; Gate 5 cost and tail localization; final mechanism report.
+- Open: Gate 5 tail localization (lead: outstation-side events every 128 exchanges, consistent with NIC tx-frames-irq 256); final mechanism report.
 
 **2026-10-14 candidate61 qualification complete (PLAN steps 1-5).** Report: `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_REPORT.md`. Later pushed to `origin/main` at `f0baa724a`; no defaults promoted; repeated SBO and control-CLRT normalization remain open (f0baa724a audit); real-relay compatibility and the transit-path tail source remain open.
 

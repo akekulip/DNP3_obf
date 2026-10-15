@@ -47,3 +47,18 @@ N classifies each packet (`packet_kind`) and, at the end of a Work, `read_termin
 - SELECT and OPERATE responses are released at `a_commit + gap`, like READ. OPERATE keeps its command hold J (`op_go_check`). A piggybacked response, with no standalone ACK in its lane generation, is released at `t0 + pb`.
 - **Request→ACK is not normalized**, for any kind. The ACK is held until the response is seen, so request→ACK carries the outstation's response latency: about 5.3 ms in the separate-ACK fixture, and for OPERATE `J` plus that latency.
 - The independent J check is measured from the captures: master transmit to outstation receive of each OPERATE (`repeat_sbo_report.py`, `operate_request_transit_us`).
+
+### Measured on silicon (2026-10-14, ctl_timing m3, 59,570 PPS / 950 us, pb 4 ms)
+
+Three blocks per fixture, 4 arms x 65 READs x 64 SBO cycles; 1,536/1,536 cycles verified per cycle; every block restored and pinged. Summaries: `seg61_02/evidence/ctl_timing_separate_ack_summary.json`, `ctl_timing_piggyback_summary.json`, `ctl_timing_cost_summary.json`.
+
+| Measure (timed arms) | Separate ACK | Piggyback |
+|---|---|---|
+| SELECT CLRT - gap | median +4 to +4.5 us, abs p99 55-56 us (n = 192 per arm) | undefined (ACK on the response) |
+| OPERATE CLRT - gap | median +5 to +10 us, abs p99 87-92 us | undefined |
+| READ CLRT - gap | median +4 to +5 us | undefined |
+| OPERATE command hold J (master TX to outstation RX) | min 2468 us, median 2527 us | min 2438 us |
+| request->response | READ 6.46 ms, OPERATE 8.9 ms (median) | READ median 4.12 ms, p99 4.16 ms; SELECT and OPERATE about 4.12 ms (candidate61: 30.1 ms) |
+| internal RX frames / exchange | about 1,060 (candidate61 on the same workload: about 530) | about 630 |
+
+Untimed arms are unchanged (native CLRT, about 3-5 internal receives per exchange).
