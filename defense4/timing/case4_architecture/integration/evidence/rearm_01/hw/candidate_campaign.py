@@ -24,7 +24,7 @@ _spec.loader.exec_module(HEADROOM)
 # these must declare control_timed, or its generation budget would be READ-only.
 CONTROL_TIMED_SOURCES = frozenset({
     'c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204',   # ctl_timing_01 m3
-    'a2d6442f00858799052b9532817d4c97d28cb8fea4ff0ea3dddb575645c8e446',   # ctl_timing_01 m4
+    '35e896ebcd11f461ea947db3b0fa5198770c547d680ffb4bdec5d885465c79cf',   # ctl_timing_01 m4
 })
 EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
                CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py',

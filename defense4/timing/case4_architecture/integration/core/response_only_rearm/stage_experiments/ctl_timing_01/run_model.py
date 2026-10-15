@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DRIVERS = {'control_timing': HERE / 'model_control_timing.py'}
+DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py'}
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
 

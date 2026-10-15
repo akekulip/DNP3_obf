@@ -1,0 +1,149 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS SYN                                expected=one exact frame observed=1 frames
+PASS SYNACK                             expected=one exact frame observed=1 frames
+PASS final_ACK                          expected=one exact frame observed=1 frames
+PASS READ_request                       expected=one exact frame observed=1 frames
+PASS READ_lane_generation               expected=2          observed=2
+PASS READ_ACK_held_until_response       expected=0          observed=0
+PASS READ_ACK_then_61_response          expected=True       observed=True
+PASS READ_counters                      expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_request                     expected=one exact frame observed=1 frames
+PASS SELECT_lane_generation             expected=3          observed=3
+PASS SELECT_ACK_held_until_response     expected=0          observed=0
+PASS SELECT_ACK_then_61_response        expected=True       observed=True
+PASS SELECT_counters                    expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS stray_ACK_state_0xa_forwarded      expected=one exact frame observed=1 frames
+PASS OPERATE_request_held_J_then_relayed expected=True       observed=True
+PASS OPERATE_one_OP_RELEASE             expected=1          observed=1
+PASS OPERATE_lane_generation            expected=4          observed=4
+PASS OPERATE_ACK_held_until_response    expected=0          observed=0
+PASS OPERATE_ACK_then_61_response       expected=True       observed=True
+PASS OPERATE_counters                   expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS READ_request                       expected=one exact frame observed=1 frames
+PASS READ_lane_generation               expected=5          observed=5
+PASS READ_ACK_held_until_response       expected=0          observed=0
+PASS READ_ACK_then_61_response          expected=True       observed=True
+PASS READ_counters                      expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_request                     expected=one exact frame observed=1 frames
+PASS SELECT_lane_generation             expected=6          observed=6
+PASS SELECT_ACK_held_until_response     expected=0          observed=0
+PASS SELECT_ACK_then_61_response        expected=True       observed=True
+PASS SELECT_counters                    expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS stray_ACK_state_0xa_forwarded      expected=one exact frame observed=1 frames
+PASS OPERATE_request_held_J_then_relayed expected=True       observed=True
+PASS OPERATE_one_OP_RELEASE             expected=1          observed=1
+PASS OPERATE_lane_generation            expected=7          observed=7
+PASS OPERATE_ACK_held_until_response    expected=0          observed=0
+PASS OPERATE_ACK_then_61_response       expected=True       observed=True
+PASS OPERATE_counters                   expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS READ_request                       expected=one exact frame observed=1 frames
+PASS READ_lane_generation               expected=8          observed=8
+PASS READ_ACK_held_until_response       expected=0          observed=0
+PASS READ_ACK_then_61_response          expected=True       observed=True
+PASS READ_counters                      expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS READ_piggyback_request             expected=one exact frame observed=1 frames
+PASS READ_piggyback_lane_generation     expected=9          observed=9
+PASS READ_piggyback_released_by_bound   expected=True       observed=True
+PASS READ_piggyback_not_before_t0_plus_pb expected=True       observed=True
+PASS READ_piggyback_before_readiness_fallback expected=True       observed=True
+PASS READ_piggyback_counters            expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_piggyback_request           expected=one exact frame observed=1 frames
+PASS SELECT_piggyback_lane_generation   expected=10         observed=10
+PASS SELECT_piggyback_released_by_bound expected=True       observed=True
+PASS SELECT_piggyback_not_before_t0_plus_pb expected=True       observed=True
+PASS SELECT_piggyback_before_readiness_fallback expected=True       observed=True
+PASS SELECT_piggyback_counters          expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS OPERATE_piggyback_request_held_J_then_relayed expected=True       observed=True
+PASS OPERATE_piggyback_one_OP_RELEASE   expected=1          observed=1
+PASS OPERATE_piggyback_lane_generation  expected=11         observed=11
+PASS OPERATE_piggyback_released_by_bound expected=True       observed=True
+PASS OPERATE_piggyback_not_before_t0_plus_pb expected=True       observed=True
+PASS OPERATE_piggyback_before_readiness_fallback expected=True       observed=True
+PASS OPERATE_piggyback_counters         expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS READ_slow_request                  expected=one exact frame observed=1 frames
+PASS READ_slow_lane_generation          expected=12         observed=12
+PASS READ_slow_ACK_held_until_response  expected=0          observed=0
+PASS READ_slow_ACK_then_61_response     expected=True       observed=True
+PASS READ_slow_counters                 expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS READ_request                       expected=one exact frame observed=1 frames
+PASS READ_lane_generation               expected=13         observed=13
+PASS READ_ACK_held_until_response       expected=0          observed=0
+PASS READ_ACK_then_61_response          expected=True       observed=True
+PASS READ_counters                      expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_dupack_request              expected=one exact frame observed=1 frames
+PASS SELECT_dupack_lane_generation      expected=14         observed=14
+PASS SELECT_dupack_ACK_held_until_response expected=0          observed=0
+PASS SELECT_dupack_ACKs_then_one_61_response expected=True       observed=True
+PASS SELECT_dupack_counters             expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS OPERATE_dupack_request_held_J_then_relayed expected=True       observed=True
+PASS OPERATE_dupack_one_OP_RELEASE      expected=1          observed=1
+PASS OPERATE_dupack_lane_generation     expected=15         observed=15
+PASS OPERATE_dupack_ACK_held_until_response expected=0          observed=0
+PASS OPERATE_dupack_ACKs_then_one_61_response expected=True       observed=True
+PASS OPERATE_dupack_counters            expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_request                     expected=one exact frame observed=1 frames
+PASS SELECT_lane_generation             expected=16         observed=16
+PASS SELECT_ACK_held_until_response     expected=0          observed=0
+PASS SELECT_ACK_then_61_response        expected=True       observed=True
+PASS SELECT_counters                    expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS SELECT_request                     expected=one exact frame observed=1 frames
+PASS SELECT_lane_generation             expected=17         observed=17
+PASS late_old_SELECT_response_dropped   expected=0          observed=0
+PASS SELECT_ACK_held_until_response     expected=0          observed=0
+PASS SELECT_ACK_then_61_response        expected=True       observed=True
+PASS SELECT_counters                    expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS OPERATE_request_held_J_then_relayed expected=True       observed=True
+PASS OPERATE_one_OP_RELEASE             expected=1          observed=1
+PASS OPERATE_lane_generation            expected=18         observed=18
+PASS OPERATE_ACK_held_until_response    expected=0          observed=0
+PASS OPERATE_ACK_then_61_response       expected=True       observed=True
+PASS OPERATE_counters                   expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+PASS reset_READ_request                 expected=one exact frame observed=1 frames
+PASS reset_ACK_held                     expected=0          observed=0
+PASS reset_RST_forwarded_once           expected=True       observed=True
+FAIL reset_nothing_released_to_master   expected=0          observed=1
+PASS reset_no_commit_or_release         expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 0}
+PASS exhaust_read_SYN                   expected=one exact frame observed=1 frames
+PASS exhaust_read_SYNACK                expected=one exact frame observed=1 frames
+PASS exhaust_read_final_ACK             expected=one exact frame observed=1 frames
+PASS exhausted_READ_dropped             expected=drop       observed=drop
+PASS exhausted_READ_counted             expected=1          observed=1
+FAIL exhaust_read_RST                   expected=one exact frame observed=drop
+FAIL exhaust_operate_SYN                expected=one exact frame observed=drop
+FAIL exhaust_operate_SYNACK             expected=one exact frame observed=drop
+FAIL exhaust_operate_final_ACK          expected=one exact frame observed=drop
+FAIL SELECT_request                     expected=one exact frame observed=drop
+FAIL SELECT_lane_generation             expected=65534      observed=65533
+PASS SELECT_ACK_held_until_response     expected=0          observed=0
+FAIL SELECT_ACK_then_61_response        expected=True       observed=False
+FAIL SELECT_counters                    expected={'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 0, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+FAIL exhausted_OPERATE_dropped_and_counted expected={'relayed': 0, 'GEN_EXHAUSTED': 1, 'OP_RELEASE': 0} observed={'GEN_EXHAUSTED': 0, 'OP_RELEASE': 0, 'relayed': 0}
+FAIL exhaust_operate_RST                expected=one exact frame observed=drop
+FAIL race_SYN                           expected=one exact frame observed=drop
+FAIL race_SYNACK                        expected=one exact frame observed=drop
+FAIL race_final_ACK                     expected=one exact frame observed=drop
+FAIL race_READ_request                  expected=one exact frame observed=drop
+FAIL race_ACK_then_one_61_response_exact expected=True       observed=False
+FAIL race_one_release_path              expected=True       observed=False
+FAIL race_RST                           expected=one exact frame observed=drop
+FAIL t_off_SYN                          expected=one exact frame observed=drop
+FAIL t_off_SYNACK                       expected=one exact frame observed=drop
+FAIL t_off_final_ACK                    expected=one exact frame observed=drop
+FAIL READ_request                       expected=one exact frame observed=drop
+PASS READ_lane_generation               expected=100        observed=100
+FAIL READ_ACK_forwarded_at_once         expected=True       observed=False
+FAIL READ_61_response_untimed           expected=True       observed=False
+PASS READ_no_lane_counters              expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 0}
+FAIL SELECT_request                     expected=one exact frame observed=drop
+PASS SELECT_lane_generation             expected=100        observed=100
+FAIL SELECT_ACK_forwarded_at_once       expected=True       observed=False
+FAIL SELECT_61_response_untimed         expected=True       observed=False
+PASS SELECT_no_lane_counters            expected={'ACK_COMMIT': 0, 'RESP_RELEASE': 0} observed={'ACK_COMMIT': 0, 'RESP_RELEASE': 0}
+PASS T_off_no_lane_generation           expected=100        observed=100
+SUMMARY {'total': 141, 'passed': 114, 'failed': ['reset_nothing_released_to_master', 'exhaust_read_RST', 'exhaust_operate_SYN', 'exhaust_operate_SYNACK', 'exhaust_operate_final_ACK', 'SELECT_request', 'SELECT_lane_generation', 'SELECT_ACK_then_61_response', 'SELECT_counters', 'exhausted_OPERATE_dropped_and_counted', 'exhaust_operate_RST', 'race_SYN', 'race_SYNACK', 'race_final_ACK', 'race_READ_request', 'race_ACK_then_one_61_response_exact', 'race_one_release_path', 'race_RST', 't_off_SYN', 't_off_SYNACK', 't_off_final_ACK', 'READ_request', 'READ_ACK_forwarded_at_once', 'READ_61_response_untimed', 'SELECT_request', 'SELECT_ACK_forwarded_at_once', 'SELECT_61_response_untimed']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

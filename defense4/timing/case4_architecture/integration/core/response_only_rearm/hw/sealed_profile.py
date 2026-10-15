@@ -5,6 +5,14 @@ from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
 PROFILES = {
+    # ctl_timing_01 m4 (m3 + Table 4-9 selection lifecycle in N, fail-closed OPERATE lane exhaustion in T; E
+    # identical): SDK 9.13.2, then 9.13.1.
+    'cdadfef1375f605ec27b24489677600f28aa021f26c385d2134291d94a0585c4': {
+        '10674c46e60aaefc498801389f931fc128d83e4f5716c2b372cf85efc477d77c',
+    },
+    '3e9d933e970c3accc5b51d14f0c84ab5301d99b9c5ed79b3dabaf4b699ab6a61': {
+        'b4e7a61a4873f9a842596803d84566dd2a8b6273b8683f689900347c6c585302',
+    },
     # ctl_timing_01 m3 (control timing + piggyback bound; E identical to candidate61): SDK 9.13.2, then 9.13.1.
     '57123e535817a26aa7a305535de928fbe9b65a6c6d0dc05594141f767c611e84': {
         '258d12bb39806f70c6a8530ba876604e016f18c1444543dfb5a4c0b1903be0c5',

@@ -164,11 +164,41 @@ def transform_t_m3(t):
     return t
 
 
+def transform_n_m4(n):
+    """m2, plus IEEE 1815-2012 section 4.4.4.3 Rule 4 / Table 4-9 while a selection is in effect (owner state 0xa,
+    the SELECT response already delivered): a READ ("neither select nor operate") terminates the selection and is
+    admitted as an ordinary READ; a new SELECT (a replacement, or an identical retry) is admitted as a SELECT and
+    re-stores the selection. Both rows precede the kind-5/kind-9 count_refused catch-alls. The owner CAS rows
+    (claim_read/claim_select) key on stage/kind/phase, not on the prior owner state, so they apply from 0xa.
+    first_operate still requires owner 0xa and a matching object, so an OPERATE after cancellation cannot match.
+    T (transform_t_m4) also drops and counts an OPERATE on an exhausted read lane.
+    Owner state 9 (SELECT response outstanding) is unchanged: admitting a request there would let the late
+    response arrive in another state and be refused, which a TCP byte stream cannot survive."""
+    n = transform_n_m2(n)
+    n = once(n, '(8w7,3w1,1w1,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_):first_operate();',
+             '(8w7,3w1,1w1,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_):first_operate();'
+             '(8w9,3w1,1w0,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_):first_read_request();'
+             '(8w5,3w1,1w0,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_):first_select();')
+    return n
+
+
+def transform_t_m4(t):
+    """m3, plus fail-closed lane exhaustion for OPERATE: an OPERATE admitted on an exhausted read lane
+    (new_gen 0xffff) is dropped and counted (GEN_EXHAUSTED) like a REQUEST, instead of keeping its J hold while
+    its ACK/response go untimed. The generation precheck keeps this unreachable in a budgeted run."""
+    t = transform_t_m3(t)
+    t = once(t, "            (t_KIND_OPERATE, _, 0, _, _, _, _, 32w0xffff) : drop_exhausted();\n",
+             "            (t_KIND_OPERATE, _, 0, _, _, _, _, 32w0xffff) : drop_exhausted();\n"
+             "            (t_KIND_OPERATE, _, 0, _, _, _, 32w0xffff, _) : drop_exhausted();\n")
+    t = once(t, "        default_action = drop_old_epoch(); size = 22;", "        default_action = drop_old_epoch(); size = 23;")
+    return t
+
+
 def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
-    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2}[milestone](old_n)
-    new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3}[milestone](old_t)
+    new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4}[milestone](old_n)
+    new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
@@ -194,5 +224,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4]')
     write(sys.argv[1], *(sys.argv[2:]))

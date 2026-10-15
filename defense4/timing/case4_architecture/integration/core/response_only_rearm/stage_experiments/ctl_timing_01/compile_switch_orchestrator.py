@@ -1,9 +1,14 @@
 from pathlib import Path
 import hashlib, json, shlex, subprocess, sys
 ARCH=Path('/home/philip/Projects/DNP3/defense4/timing/case4_architecture')
+# usage: compile_switch_orchestrator.py [BUILD_DIR SOURCE_SHA256]; default is the m3 build it first compiled.
 SOURCE=ARCH/'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m3_01/response_only.p4'
-OUT=SOURCE.parent/'compile_switch_9132'
 EXPECTED='c4819dbac643048c16a9a0534337a938ca2820add0aae5a5bcda43e8b43a9204'
+if len(sys.argv) not in (1, 3):
+    sys.exit('usage: compile_switch_orchestrator.py [BUILD_DIR SOURCE_SHA256]')
+if len(sys.argv)==3:
+    SOURCE,EXPECTED=Path(sys.argv[1]).resolve()/'response_only.p4',sys.argv[2]
+OUT=SOURCE.parent/'compile_switch_9132'
 HOST='decps@10.10.54.81'
 COMPILER='/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c'
 assert hashlib.sha256(SOURCE.read_bytes()).hexdigest()==EXPECTED

@@ -6,7 +6,8 @@ native response (mod 64), and each cycle's CROB on-time is 100 + cycle so every 
 images come from the seg61_01 encode61 oracle; requests must reach the relay unchanged except for the normalized
 acknowledgment. Phase A runs with T disabled (size and N authority); phase B repeats a few cycles with T enabled
 and checks one OPERATE release per cycle. Probes (T enabled): a READ after an SBO, or a READ alone, authorizes no
-OPERATE (dropped, nothing released); a SELECT followed by a READ is unsupported (READ dropped; reset recovers).
+OPERATE (dropped, nothing released); a SELECT followed by a READ is unsupported (READ dropped; reset recovers),
+except under MILESTONE=m4, where the READ cancels the selection (Table 4-9) and is answered.
 Queue timing observed here is model behavior, not host timing or ASIC evidence. No register clear or CPU rearm.
 
   REPEAT_CYCLES (default 64), REPEAT_TIMED_CYCLES (default 3)
@@ -263,12 +264,18 @@ def main():
         unpaired_operate('probe2_READ_then_no_SELECT')
         # SELECT then READ (an abandoned SELECT) is an unsupported shape: N admits only the matching OPERATE, so the
         # READ is dropped and the connection must be reset (model_abandon.py characterizes it in detail).
+        # ctl_timing m4 (MILESTONE=m4) implements Table 4-9 instead: the READ cancels the selection and is answered.
         reconnect('probe3', 40000, 50000)
         exchange('probe3', 'SELECT', 3, crob(500), control_body(500), False)
-        request, _app = seqs.request(1, READ_OBJECTS)
-        seqs.next_app()
-        got = m.exchange(MASTER.dev_port, vectors.packet(24, c, s + growth, payload=request), ports, timeout=3, quiet=.15)
-        report.add('probe3_READ_after_SELECT_dropped_unsupported_shape', 0, sum(len(v) for v in got.values()), received=got)
+        if os.environ.get('MILESTONE') == 'm4':
+            report.add('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))
+        else:
+            request, _app = seqs.request(1, READ_OBJECTS)
+            seqs.next_app()
+            got = m.exchange(MASTER.dev_port, vectors.packet(24, c, s + growth, payload=request), ports, timeout=3,
+                             quiet=.15)
+            report.add('probe3_READ_after_SELECT_dropped_unsupported_shape', 0, sum(len(v) for v in got.values()),
+                       received=got)
         reconnect('probe4', 60000, 70000)
         read('probe4_after_reset')
         report.record['meta']['final_snapshot'] = snapshot()
