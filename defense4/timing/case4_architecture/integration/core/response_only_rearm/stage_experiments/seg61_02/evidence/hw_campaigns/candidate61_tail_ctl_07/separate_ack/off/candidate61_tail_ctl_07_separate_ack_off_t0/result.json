@@ -1,0 +1,69 @@
+{
+ "label": "candidate61_tail_ctl_07_separate_ack_off_t0",
+ "master_port": 59560,
+ "reads": 500,
+ "range": 8,
+ "gap_ms": 0,
+ "start_delay_ms_max": 50,
+ "start_seed": 57101,
+ "start_delay_ms_applied": 8,
+ "endpoint_controls": {
+  "read_pause_ms": 25,
+  "run_sbo": true,
+  "close_grace_ms": 0
+ },
+ "capture_immediate": false,
+ "qualify_capture": true,
+ "capture_commands": {
+  "out": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "out",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_tail_ctl_07_separate_ack_off_t0/out.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ],
+  "in": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "in",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/candidate61_tail_ctl_07_separate_ack_off_t0/in.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ]
+ },
+ "source_port_wait": {
+  "port": 59560,
+  "polls": 1,
+  "elapsed_s": 0.033,
+  "result": "free"
+ },
+ "outstation_ready": true,
+ "master_rc": 0,
+ "master_wall_s": 15.861,
+ "tcpdump": {
+  "out": {
+   "captured": 1514,
+   "received": 3028,
+   "dropped_kernel": 0
+  },
+  "in": {
+   "captured": 1514,
+   "received": 3028,
+   "dropped_kernel": 0
+  }
+ },
+ "frames_out": 1514,
+ "frames_in": 1514,
+ "ok": true
+}

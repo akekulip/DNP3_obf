@@ -98,7 +98,7 @@ def main(argv=None):
             record['restore_error'] = str(error)
         record.update(campaign_rc=rc, restore_ok=restore_ok)
         cfg = json.load(open(a.config))
-        root = HERE.parents[4] / cfg['evidence_dir'] / a.run_id
+        root = HERE.parents[3] / cfg['evidence_dir'] / a.run_id      # HERE = rearm_01/hw -> case4_architecture
         root.mkdir(parents=True, exist_ok=True)
         (root / 'tail_factor.json').write_text(json.dumps(record, indent=1) + '\n')
         print(json.dumps({k: record.get(k) for k in ('requested', 'campaign_rc', 'restore_ok')}))
