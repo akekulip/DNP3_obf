@@ -120,3 +120,11 @@ Milestones:
 - [x] M7 report `seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.
 
 Morning deliverable: one identified candidate with enforced acceptance, demonstrated recovery and a measured overhead/latency trade-off, failed gates stated plainly.
+
+## m5 plan (2026-10-15)
+
+Approved plan for the next cycle: [`PLAN_m5.md`](PLAN_m5.md). It fixes N's ACK/response work-cell contention
+(N only; E and T byte-identical to m4), keeps the original failing race as a regression, repairs stale-token isolation
+for control-timed builds and the shaping comparator, qualifies the exact compiled m5 on silicon, and only then
+reconfirms ACK_HOLD 14,892. Timing gates are unchanged and no outlier is excluded to obtain acceptance.
+Execution order: T0 → S0 → S1 → S2 (S3 in parallel) → S4 → S5. Progress is logged in `STATUS.md`.

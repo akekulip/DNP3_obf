@@ -1,5 +1,7 @@
 # Generation-safe rearm evidence
 
+**2026-10-15 m5 cycle started: approved plan `PLAN_m5.md`; T0 transfer package committed; next S0.**
+
 **2026-10-15 overnight result (9c4a2cfdc audit): report `core/response_only_rearm/stage_experiments/seg61_02/evidence/QUALIFICATION_9c4a2cfdc.md`.**
 - Candidate m4 (`ctl_timing_01/evidence/m4_01`, `35e896eb…79cf`, E `a144cd30…1c10`, N11/E12/T11 both SDKs): Table 4-9 selection cancellation/replacement in N, fail-closed OPERATE lane exhaustion in T. Model suites all pass on the current drivers.
 - Silicon on m4, every block restore-verified (`rearm_01/hw/restore_verify.py`): held OPERATE, persistence graceful/RST, seven-class loss and protected reconnect pass; stale-token isolation unmet (diagnostic sized for candidate61); piggyback qualification qualified (3 blocks); repeated-SBO qualification rejected in 3 blocks, each on one exchange near index 127 delayed ~1 ms after release (host path; also on m3/candidate61). m4 is not fully qualified.

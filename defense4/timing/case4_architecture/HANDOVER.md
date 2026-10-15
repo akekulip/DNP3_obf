@@ -1,7 +1,38 @@
-# Case 4 handover — START HERE (current as of 2026-10-15 07:15 EDT; origin/main = d50ed9b78, plus local unpushed handover-doc commits)
+# Case 4 handover — START HERE (current as of 2026-10-15 m5 cycle; origin/main = d50ed9b78, plus local unpushed commits)
 
 Everything below the line "HISTORY" is older and partly superseded; trust this section first, then the
 documents it links. Written so a different model can continue without the conversation.
+
+## 0. Current cycle: m5 (approved 2026-10-15) — read this first
+
+**Plan:** `integration/evidence/rearm_01/PLAN_m5.md` (verbatim approved plan, with the full read-in-order file index).
+**Next action:** S0 (comparator and report wording), then S1 (failing regressions on m4 before any N change),
+S2 (m5 build and model proof), S3 (stale-token isolation, in parallel), S4 (m5 silicon), S5 (ACK_HOLD 14,892 on m5).
+Progress: `integration/evidence/rearm_01/STATUS.md` (newest first).
+
+The five amendments that bind m5 (details in PLAN_m5.md "Design"):
+1. **Generation accounting:** every `allocate` and register write on the retry path is traced; preferably a retry
+   allocates an N generation only when it obtains the work cell; otherwise allocations are bounded, budgeted and
+   exhaustion is tested.
+2. **Incarnation isolation:** a retry carrying a different epoch or connection identity is dropped and counted before
+   it can claim the cell or touch connection state; tested with RESET and same-tuple reconnect while responses wait.
+3. **Budget from measurement:** retry budget chosen from the measured spacing sweep, competing connections,
+   duplicates and RESET; exhaustion is a counted drop and a failed delivery objective. Success = zero
+   switch-induced retransmissions and zero exhaustion drops on the supported workload.
+4. **Strict validation:** the stage-0 exception to the port-68 deny gateway admits only the complete retry form
+   (port, marker, reserved, budget range, epoch, identity); every other port-68 frame stays denied; mutation tests.
+5. **No E side effects:** retries bypass E; mapper registers unchanged by retry laps; exact 61-octet image and growth
+   on the eventual delivery.
+
+Philip's constraints for this cycle: N-only change, E and T byte-identical to m4; retain the original failing race;
+delivery across spacing, competing connections, duplicates, RESET and reconnect; qualify the exact compiled successor
+before reconfirming shaping; never change timing gates or exclude outliers to obtain acceptance; report p99 and
+maximum separately, and call the index-127 delay a "timing outlier of unresolved origin" until localized. Silicon
+runs unattended on the overnight terms (software endpoints, `run_block.sh` + `restore_verify.py` per block, stop on
+an unverified restore, no NIC-wide Vision change, no relay OPERATE). Splitting and default promotion are deferred.
+
+Open decisions still Philip's: push (local commits after `d50ed9b78`); NIC/driver localization of the timing outlier;
+m4/m5 as candidate; real-relay READ; promotion.
 
 ## 1. Where things stand
 
