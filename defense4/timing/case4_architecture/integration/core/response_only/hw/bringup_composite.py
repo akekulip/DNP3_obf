@@ -55,6 +55,8 @@ def parse(argv):
     ap.add_argument('--read-src', type=lambda s: int(s, 0), default=0x0100)
     for k, v in tc.T_PARAM_DEFAULTS.items():
         ap.add_argument('--t-' + k.replace('_', '-'), dest='t_' + k, type=int, default=v)
+    ap.add_argument('--t-pb', dest='t_pb', type=int, default=None,
+                    help='piggyback response bound (ns); only for builds whose set_params takes pb')
     ap.add_argument('--pad-enable', type=int, choices=(0, 1), default=1,
                     help='E padding policy on the fwd_conn row: 1 pads (default), 0 = policy-off control '
                          '(mapper armed and translating, no growth)')
@@ -136,7 +138,10 @@ def build_ports_for(a):
 
 
 def params(a):
-    return {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
+    values = {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
+    if getattr(a, 't_pb', None) is not None:
+        values['pb'] = a.t_pb
+    return values
 
 
 def plan(a, ports):

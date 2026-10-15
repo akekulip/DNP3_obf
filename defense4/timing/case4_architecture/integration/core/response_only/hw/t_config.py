@@ -56,7 +56,8 @@ def queue_plan(ports):
 
 def params_op(values):
     return dict(kind='default', table='p1.t_Ingress.params', pipe=ALL_PIPES, action='t_Ingress.set_params',
-                data=[(k, values[k]) for k in ('da', 'readiness', 'cap', 'gap', 'op_j', 'budget', 'enabled')])
+                data=[(k, values[k]) for k in ('da', 'readiness', 'cap', 'gap', 'op_j', 'budget', 'enabled')]
+                + ([('pb', values['pb'])] if values.get('pb') is not None else []))
 
 
 def loopback_ops(ports):
@@ -160,7 +161,11 @@ def check_params(values):
         errs.append('T param budget=%d must be > 0' % values['budget'])
     if values['enabled'] not in (0, 1):
         errs.append('T param enabled=%d must be 0 or 1' % values['enabled'])
-    errs += ['T param %s=%d >= 2^31' % (k, v) for k, v in values.items() if v >= 1 << 31]
+    errs += ['T param %s=%d >= 2^31' % (k, v) for k, v in values.items() if v is not None and v >= 1 << 31]
+    # pb (ctl_timing_01 m3 builds only): the piggyback response bound. bfrt name checking already refuses a
+    # build/params mismatch either way; here it must be a real bound below readiness, never 0 (release at t0).
+    if values.get('pb') is not None and not 0 < values['pb'] < values['readiness']:
+        errs.append('T param pb=%d must satisfy 0 < pb < readiness=%d' % (values['pb'], values['readiness']))
     if not values['da'] < values['readiness'] <= values['cap']:
         errs.append('T params must satisfy da < readiness <= cap (da=%d readiness=%d cap=%d)'
                     % (values['da'], values['readiness'], values['cap']))

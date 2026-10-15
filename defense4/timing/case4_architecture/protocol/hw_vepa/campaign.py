@@ -93,6 +93,8 @@ def load_config(path):
     if missing:
         raise ValueError('config missing required sections: %s' % ', '.join(missing))
     t = cfg['timing_params_ns']
+    if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and 0 < t['pb'] < t['readiness']):
+        raise ValueError('timing_params_ns.pb (piggyback bound, ctl_timing builds only) must be an int in 0 < pb < readiness')
     if not (t['da'] < t['readiness'] <= t['cap']):
         raise ValueError('timing params must satisfy da < readiness <= cap (got da=%d readiness=%d cap=%d)'
                          % (t['da'], t['readiness'], t['cap']))
@@ -1361,7 +1363,8 @@ class Campaign:
                 % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'],
                    e['outstation_ip'], e['outstation_port'], pm['relay_dev'], e['read_dst'], e['read_src'],
                    t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], c['service']['k'],
-                   shaping_args(c, preset=preset), pad))
+                   shaping_args(c, preset=preset), pad)
+                + (' --t-pb %d' % t['pb'] if t.get('pb') is not None else ''))
 
     def snapshot(self, out_remote, name, check=True, preset=None):
         return self.step('switch', 'counter snapshot %s' % name, check=check, cmd=self.hw_env(self.switch_cmd(
