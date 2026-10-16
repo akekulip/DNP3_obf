@@ -14,6 +14,7 @@ own verdict (isolation_verdict.json), never as precision qualification.
 import argparse
 import copy
 import json
+import os
 import re
 from pathlib import Path
 import sys
@@ -29,7 +30,7 @@ from token_window import (RESTORE_ALLOWANCE_NS, ABORT_MARGIN_NS, DRAIN_BEFORE_C2
                           rejection_delta, rejection_counts, full_run_rejections, operate_rejection_proof,
                           old_token_population, plan_isolation, drained, overran, cleanup_proof,
                           restore_proof, quiet_poll_proof, expected_generations, post_traffic_authority,
-                          endpoint_capability, permit_conditions)
+                          endpoint_capability, permit_conditions, authority)
 from privileged_python import authorized_python
 
 base, ARCH=cs.base,cs.ARCH
@@ -46,6 +47,67 @@ ABORT_PREFLIGHT_MAX_S=0.8   # the abort path must answer within this wall time b
 MARKER_READ_RETRIES=3       # consecutive failed marker reads tolerated while waiting for c2
 ABORT_RETRY_S=0.5
 ABORT_MAX_ATTEMPTS=240
+# C3 diagnostic (seg61_02/.../ctl_m5_stale_iso20_950_01/C3_DIAGNOSTIC_PLAN_20261016.md): observation and control
+# modes of this block, never qualification. 'isolation' is the delayed old-token block unchanged; 'control' is the
+# same block without the READ-IPG delay (so without restore and without the old-arrivals-after-readiness checks).
+DIAGNOSTIC_PURPOSE='diagnostic'
+DIAGNOSTIC_MODES=('isolation','control')
+DIAGNOSTIC_KEYS={'poller','period_s','mode'}
+POLLER_PERIOD_RANGE_S=(0.05,1.0)
+POLLER_WAIT_S=10
+POLLER_STOP_S=5
+POLLER_MAX_DURATION_S=180   # poller self-limit sized to one block (c1, the 20 s pause, c2, c3, snapshots)
+# The bracket keeps the pattern from matching the ssh shell running pgrep itself; it matches only a running poll.
+LEFTOVER_POLLER_CHECK=("pids=$(pgrep -f 'aux/diag_poll[.]py poll'); if [ -n \"$pids\" ]; then kill -KILL $pids; "
+                       "echo \"LEFTOVER $pids\"; exit 3; fi")
+CONTROL_NOT_APPLICABLE=('control mode: no READ-IPG delay was written, so there is no delayed old cohort, no IPG '
+                        'restore and no old arrival after c2 readiness to prove')
+
+
+def diagnostic_settings(cfg):
+    """The validated cfg['diagnostic'] section, or None for every ordinary block. Fail closed: the section is
+    accepted only with cfg['purpose'] == 'diagnostic', and that purpose only with the section."""
+    section,purpose=cfg.get('diagnostic'),cfg.get('purpose')
+    if section is None and purpose is None:
+        return None
+    if purpose!=DIAGNOSTIC_PURPOSE or section is None:
+        raise ValueError("diagnostic modes require cfg['purpose'] == 'diagnostic' and a cfg['diagnostic'] section")
+    if not isinstance(section,dict) or set(section)!=DIAGNOSTIC_KEYS:
+        raise ValueError('diagnostic section must have exactly the keys %s' % sorted(DIAGNOSTIC_KEYS))
+    period=section['period_s']
+    if type(section['poller']) is not bool or type(period) not in (int,float) or \
+            not POLLER_PERIOD_RANGE_S[0]<=period<=POLLER_PERIOD_RANGE_S[1]:
+        raise ValueError('diagnostic.poller must be a boolean and diagnostic.period_s a number in %s..%s s'
+                         % POLLER_PERIOD_RANGE_S)
+    if section['mode'] not in DIAGNOSTIC_MODES:
+        raise ValueError('diagnostic.mode must be one of %s' % (DIAGNOSTIC_MODES,))
+    return dict(section,purpose=DIAGNOSTIC_PURPOSE)
+
+
+def control_permit_conditions(before,polls,population,drained_tick_ns,pause_deadline_ns,connection_generation=2):
+    """Control-mode permit: every role drained (the generator counters reached the old population), authority
+    unchanged from the c2-ready snapshot through every poll with owner = c2, and the drained poll observed on Vision
+    before c2's pause deadline. Restore is not applicable; old arrivals after readiness are NOT required."""
+    if not isinstance(polls,list) or not polls:
+        return ['permit: no quiet poll observed']
+    failures=[]
+    try:
+        if not drained(polls[-1],population):
+            failures.append('permit: old cohorts not drained by role')
+    except (KeyError,TypeError,ValueError) as error:
+        failures.append('permit: '+str(error))
+    try:
+        start=authority(before)
+        if start['owner_generation']!=connection_generation:
+            failures.append('permit: owner is not the current connection')
+        for index,poll in enumerate(polls):
+            if authority(poll)!=start:
+                failures.append('permit: authority changed at poll%02d' % index)
+    except (KeyError,TypeError,ValueError) as error:
+        failures.append('permit: authority: '+str(error))
+    if type(pause_deadline_ns) is not int or type(drained_tick_ns) is not int or drained_tick_ns>=pause_deadline_ns:
+        failures.append('permit: drained poll not observed before the c2 pause deadline')
+    return failures
 
 
 def installed_app_ipgs(k):
@@ -126,6 +188,14 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             (Path(__file__),HERE/'token_window.py',HERE/'isolation_gate.py',HERE/'candidate_series.py',
              HERE/'snapshot_lifecycle.py',HERE/'candidate_campaign.py',HERE/'privileged_python.py')}
         self.active_unit=None
+        self.diagnostic=diagnostic_settings(self.cfg)
+        if self.diagnostic and not self.USES_TOKEN_PLAN:
+            raise ValueError('C3 diagnostic modes apply only to the delayed old-token isolation block')
+        self.control=bool(self.diagnostic) and self.diagnostic['mode']=='control'
+        if self.diagnostic:
+            self.record['isolation_source_identity'][str(HERE/'diag_poll.py')]=base.sha256_file(HERE/'diag_poll.py')
+            self.record['c3_diagnostic']=dict(self.diagnostic,qualification=False,counted_as_qualification=False,
+                                              units={})
         build=self.cfg['builds'][self.arms[0]['build']]
         control_timed=build.get('control_timed',False)
         if not isinstance(control_timed,bool):
@@ -135,9 +205,17 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         self.population=old_token_population(k,1,sbo,control_timed)
         self.installed_ipg=installed_app_ipgs(k)
         self.endpoint_name,self.capability=endpoint_capability(self.cfg['endpoint'])
+        if self.control:
+            # control: plan_isolation derives no delay IPG; c2 pauses the endpoint maximum exactly as in isolation
+            self.plan=dict(mode='control',delay_ipg_ns=None,delay_ipg_source='control: no READ-IPG delay (installed '
+                           'IPG kept)',bound=None,pause=dict(pause_ms=self.capability['max_pause_ms'],
+                           derived_pause_ms=None,source='endpoint maximum; plan_isolation not used'),legacy=False,
+                           capability=self.capability,activation=self.USES_TOKEN_PLAN and not analysis_only)
+        else:
+            self.plan=None
         # candidate61 (one READ-lane batch) keeps its retained 2.5 s delay (legacy plan); a plan that does not fit
         # the selected endpoint's capability refuses every new activation (analysis_only only records it)
-        self.plan=plan_isolation(self.population,self.installed_ipg['OPERATE'],
+        self.plan=self.plan or plan_isolation(self.population,self.installed_ipg['OPERATE'],
                                  self.cfg.get('isolation',{}).get('delay_ipg_ns'),legacy=not control_timed,
                                  capability=self.capability,
                                  activation=self.USES_TOKEN_PLAN and not analysis_only)
@@ -226,6 +304,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
     def deploy_switch(self):
         super().deploy_switch()
         self._copy_verify('switch',[HERE/'delay_read_tokens.py'],self.R+'/aux','isolation_switch_identity')
+        if self.diagnostic and self.diagnostic['poller']:
+            self._copy_verify('switch',[HERE/'diag_poll.py'],self.R+'/aux','diagnostic_switch_identity')
 
     def series_vision_cmd(self,label,master_port,reads,*args,**kwargs):
         if reads!=1 or any(kwargs.get(key) for key in ('connect_must_fail','drop','scenario','reconnect_port')):
@@ -258,6 +338,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         try:
             return super().run_unit(unit,port)
         finally:
+            # KeyboardInterrupt or any uncaught error skips collect_unit: the poller is still stopped (no-op if done)
+            self.stop_poller(self.label(unit))
             self.active_unit=None
 
     def delay_command(self,record,restore=None,budget_s=None):
@@ -274,15 +356,150 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         return self.hw_env(command)
 
     def snapshot(self,out_remote,name,check=True,preset=None):
+        if name.endswith('_after'):
+            self.stop_poller(name[:-len('_after')])         # after the Vision step, before the after snapshot
         result=super().snapshot(out_remote,name,check,preset)
         if name.endswith('_before'):
-            remote=self.R+'/snap/'+name+'_token_delay.json'
-            self.window['delay_remote']=remote
-            delayed=self.step('switch','delay fresh READ app only',self.delay_command(remote))
-            if not self.rn.dry:
-                # switch clock; the cleanup anchor only if c1's first READ issue is not recoverable
-                self.window['delay_time']=json.loads(delayed.out.strip().splitlines()[-1])['time']
+            if self.control:
+                self.window['delay']=dict(skipped=True,reason=CONTROL_NOT_APPLICABLE)
+                self.window['restore_step']=dict(skipped=True,reason=CONTROL_NOT_APPLICABLE)
+            else:
+                remote=self.R+'/snap/'+name+'_token_delay.json'
+                self.window['delay_remote']=remote
+                delayed=self.step('switch','delay fresh READ app only',self.delay_command(remote))
+                if not self.rn.dry:
+                    # switch clock; the cleanup anchor only if c1's first READ issue is not recoverable
+                    self.window['delay_time']=json.loads(delayed.out.strip().splitlines()[-1])['time']
+            self.start_poller(name[:-len('_before')],out_remote,self._headroom_trial(name)[1])
         return result
+
+    def poller_paths(self,label):
+        stem=self.R+'/snap/'+label+'_diag_poll'
+        return dict(output=stem+'.jsonl',stop=stem+'.stop',pid=stem+'.pid',log=stem+'.log')
+
+    def _poller_files(self,paths):
+        return '--output %s --stop-file %s --pid-file %s' % tuple(base.q(paths[k]) for k in ('output','stop','pid'))
+
+    def start_poller(self,label,out_remote,trial=None):
+        """Background the read-only poller (C3 diagnostic) and wait for a complete first sample. A poller that does
+        not start is stopped (stop file, SIGTERM, SIGKILL) and the block ends with StepFailed BEFORE any Vision
+        traffic; the after snapshot, teardown and restore then run as for any pre-traffic failure."""
+        if not (self.diagnostic and self.diagnostic['poller']):
+            return
+        paths=self.poller_paths(label)
+        state=self.record['c3_diagnostic']['units'].setdefault(label,dict(paths=paths))
+        state.update(start_attempted=True,started=False)
+        tool=base.q(self.R+'/aux/diag_poll.py')
+        command=('test ! -e %s && test ! -e %s && test ! -e %s && (nohup python3 %s poll --build-out %s '
+                 '--switch-tools %s/%s --period-s %s --max-duration-s %d %s > %s 2>&1 < /dev/null &) && '
+                 'python3 %s wait-start %s --timeout-s %d') % (
+                     base.q(paths['output']),base.q(paths['stop']),base.q(paths['pid']),tool,out_remote,self.R,
+                     base.HW,repr(float(self.diagnostic['period_s'])),POLLER_MAX_DURATION_S,
+                     self._poller_files(paths),base.q(paths['log']),tool,self._poller_files(paths),POLLER_WAIT_S)
+        report,failure=None,None
+        try:
+            result=self.step('switch','C3 diagnostic: start the read-only poller in the background',command,
+                             check=False,timeout=POLLER_WAIT_S+20)
+            state['start']=dict(rc=result.rc,out=result.out[-500:],err=result.err[-500:])
+            try:
+                report=json.loads(result.out.strip().splitlines()[-1])
+            except (ValueError,IndexError,AttributeError):
+                report=None
+            if not self.rn.dry and (result.rc!=0 or not isinstance(report,dict) or report.get('started') is not True):
+                failure='rc %s: %s' % (result.rc,(report or {}).get('reason') or (result.err or result.out)[-300:])
+        except Exception as error:
+            failure='%s: %s' % (type(error).__name__,error)
+        state['first_sample_ns']=(report or {}).get('first_sample_ns')
+        if trial is not None:
+            trial['diagnostic_poller']=dict(first_sample_ns=state['first_sample_ns'],started=failure is None)
+        if failure is not None:
+            state['start_error']=failure
+            self.stop_poller(label)
+            raise base.StepFailed('C3 diagnostic poller did not start (%s): block stopped before traffic' % failure)
+        state['started']=True
+
+    def stop_poller(self,label):
+        """Stop the poller once (stop file, SIGTERM, SIGKILL) and check its summary line. Never raises."""
+        state=(self.record.get('c3_diagnostic') or {}).get('units',{}).get(label)
+        if not state or not state.get('start_attempted') or state.get('stop_attempted'):
+            return
+        state.update(stop_attempted=True,stopped=False)
+        paths=state['paths']
+        command='python3 %s stop %s --timeout-s %d' % (base.q(self.R+'/aux/diag_poll.py'),self._poller_files(paths),
+                                                       POLLER_STOP_S)
+        try:
+            result=self.step('switch','C3 diagnostic: stop the poller (stop file, then SIGTERM, then SIGKILL)',command,
+                             check=False,timeout=3*POLLER_STOP_S+20)
+            state.update(stopped=bool(self.rn.dry or result.rc==0),stop=dict(rc=result.rc,out=result.out[-500:],
+                                                                                 err=result.err[-500:]))
+            try:
+                state['ended_by']=json.loads(result.out.strip().splitlines()[-1]).get('ended_by')
+            except (ValueError,IndexError,AttributeError):
+                state['ended_by']=None
+        except Exception as error:
+            state['stop_error']='%s: %s' % (type(error).__name__,error)
+
+    def check_leftover_poller(self,before):
+        """Before teardown and before the restore cold swap: no diag_poll may still run on the switch. A leftover is
+        killed (SIGKILL) and the block is marked failed; never raises, so restoration always proceeds."""
+        if not (self.diagnostic and self.diagnostic['poller']):
+            return
+        record=self.record['c3_diagnostic']
+        try:
+            result=self.step('switch','C3 diagnostic: no poller may remain before '+before,LEFTOVER_POLLER_CHECK,
+                             check=False,timeout=30)
+            found=result.rc!=0 and not self.rn.dry
+            entry=dict(before=before,rc=result.rc,out=result.out[-300:])
+        except Exception as error:
+            found,entry=True,dict(before=before,error='%s: %s' % (type(error).__name__,error))
+        record.setdefault('leftover_checks',[]).append(entry)
+        if found:
+            record['poller_left_running']=True
+            if 'diagnostic poller left running' not in self.soft_failures:
+                self.soft_failures.append('diagnostic poller left running')
+
+    def restore(self):
+        self.check_leftover_poller('the restore cold swap')
+        return super().restore()
+
+    def collect_unit(self,label,dest,out_remote,manifest,log,state,preset=None):
+        self.stop_poller(label)            # no-op when the after snapshot already stopped it; always before teardown
+        self.check_leftover_poller('teardown')
+        try:
+            super().collect_unit(label,dest,out_remote,manifest,log,state,preset)
+        finally:
+            self.collect_poller(label,dest)
+
+    def collect_poller(self,label,dest):
+        unit=(self.record.get('c3_diagnostic') or {}).get('units',{}).get(label)
+        if not unit or not unit.get('start_attempted'):
+            if self.diagnostic and self.diagnostic['poller']:
+                self.record['c3_diagnostic']['units'].setdefault(label,{}).update(
+                    diagnostic_incomplete=True,incomplete_reasons=['poller never started'])
+            return
+        host,paths=self.cfg['hosts']['switch'],unit['paths']
+        local=os.path.join(dest,'diag_poll.jsonl')
+        self.collect(label,'C3 diagnostic poller samples','local','scp -q %s:%s %s' % (host,base.q(paths['output']),
+                                                                                      base.q(local)))
+        self.collect(label,'C3 diagnostic poller log','local','scp -q %s:%s %s' % (host,base.q(paths['log']),
+                                                                                  base.q(os.path.join(dest,'diag_poll.log'))))
+        if self.rn.dry:
+            return
+        reasons=[]
+        if not unit.get('started'):
+            reasons.append('poller did not start')
+        if not unit.get('stopped'):
+            reasons.append('poller did not stop cleanly with a summary')
+        last=None
+        try:
+            lines=[line for line in Path(local).read_text().splitlines() if line.strip()]
+            last=json.loads(lines[-1]) if lines else None
+            unit['samples']=sum(1 for line in lines if '"seq"' in line)
+        except (OSError,ValueError) as error:
+            reasons.append('poller file missing or unreadable: '+str(error))
+        if not isinstance(last,dict) or last.get('summary') is not True:
+            reasons.append('collected poller file has no summary line')
+        unit.update(diagnostic_incomplete=bool(reasons),incomplete_reasons=reasons)
 
     def quiet_snapshot(self,label,suffix):
         unit,_,_=self.active_unit
@@ -335,7 +552,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                               label='read c1 first READ issue')
             c1=json.loads(first.out).get('marker') if not first.rc else None
             self.window['c1_first_read_issued_ns']=(c1 or {}).get('first_read_issued_ns')
-            if before.get('read_app_after',{}).get('pkt_counter',pop['READ']['tokens'])>=pop['READ']['tokens']:
+            if not self.control and \
+                    before.get('read_app_after',{}).get('pkt_counter',pop['READ']['tokens'])>=pop['READ']['tokens']:
                 raise ValueError('c2 became ready after all old tokens; isolation cannot qualify')
             ticks=self.window.setdefault('poll_vision_ns',[])
             # the last Vision tick at which a restore may start: it must finish (restore allowance) before the
@@ -369,20 +587,25 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                                pause_deadline_local=pause_local,abort_at_local=abort_at)
             if remaining<=0 or dog.fired_at is not None:
                 raise ValueError('no time left to restore the READ IPG before the abort point')
-            self.step('switch','restore READ IPG after the old READ-lane batches drained',
-                      self.delay_command(restored,self.window['delay_remote'],remaining),timeout=remaining)
-            tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),
-                           timeout=max(0.1,abort_at-time.monotonic()))
-            restored_ns=json.loads(tick.out)['vision_ns']
-            if restored_ns>=pause_deadline:
-                raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
-            if not dog.confirm():
-                raise ValueError('restore not confirmed before the abort point; c2 was aborted')
-            self.window['restored_vision_ns']=restored_ns
+            if self.control:
+                # no delay was written, so nothing to restore; the watchdog is confirmed at the same point
+                if not dog.confirm():
+                    raise ValueError('watchdog fired before the control permit; c2 was aborted')
+            else:
+                self.step('switch','restore READ IPG after the old READ-lane batches drained',
+                          self.delay_command(restored,self.window['delay_remote'],remaining),timeout=remaining)
+                tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),
+                               timeout=max(0.1,abort_at-time.monotonic()))
+                restored_ns=json.loads(tick.out)['vision_ns']
+                if restored_ns>=pause_deadline:
+                    raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
+                if not dog.confirm():
+                    raise ValueError('restore not confirmed before the abort point; c2 was aborted')
+                self.window['restored_vision_ns']=restored_ns
             self.window['runtime_slack_ns']=restore_gate-self.window['drained_vision_ns']
             if self.capability['permit']:
                 self.grant_permit(label,observed['marker'],pause_deadline,pause_local)
-            for name,remote in [('delay',self.window['delay_remote']),('restore',restored)]:
+            for name,remote in ([] if self.control else [('delay',self.window['delay_remote']),('restore',restored)]):
                 self.step('local','collect token '+name,'scp -q %s:%s %s' % (
                     self.cfg['hosts']['switch'],base.q(remote),base.q(Path(self.root)/('token_'+name+'.json'))),timeout=5)
             self.window['monitor_ok']=True
@@ -404,9 +627,13 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         helper re-checks the marker binding and that Vision's monotonic clock is before c2's scheduled READ
         (pause_deadline = ready + pause, Vision clock). Any failure raises; the endpoint then exits without a
         READ at scheduled + PERMIT_GRACE_MS, and the caller's abort path stops c2 as well."""
-        failures=permit_conditions(self.window['before'],self.window.get('polls'),self.population,
-                                   self.window.get('drained_vision_ns'),self.window.get('restored_vision_ns'),
-                                   pause_deadline)
+        if self.control:
+            failures=control_permit_conditions(self.window['before'],self.window.get('polls'),self.population,
+                                               self.window.get('drained_vision_ns'),pause_deadline)
+        else:
+            failures=permit_conditions(self.window['before'],self.window.get('polls'),self.population,
+                                       self.window.get('drained_vision_ns'),self.window.get('restored_vision_ns'),
+                                       pause_deadline)
         self.window['permit_conditions']=dict(ok=not failures,failures=failures)
         if failures:
             raise ValueError('c2 permit withheld: '+'; '.join(failures))
@@ -428,6 +655,11 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                 not marker['pre_read_ready_ns']<report['granted_ns']<pause_deadline:
             raise ValueError('c2 permit not granted (rc %s, %s)' % (result.rc,(report or {}).get('reason',result.err)))
         self.window['permit_granted_vision_ns']=report['granted_ns']
+        if self.diagnostic:
+            # switch-free marker of the grant; the running poller supplies the post-permit switch samples
+            self.window['diagnostic_permit_marker']=dict(granted_vision_ns=report['granted_ns'],
+                                                         local_monotonic_s=time.monotonic(),local_wall_time=time.time(),
+                                                         poller=self.diagnostic['poller'])
 
     def _watchdog_abort(self,label):
         self.out('[isolation] watchdog: restore not confirmed before the abort point; aborting c2')
@@ -579,29 +811,45 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             marker=self.window['marker_observation']['marker']
             master=cs._load_json(Path(dest)/'c2/master.json') or {}
             drain_tick=self.window.get('drained_vision_ns')
-            if type(self.window.get('c1_first_read_issued_ns')) is int:
+            if self.control:
+                pass       # cleanup, restore and the delayed-cohort window are not applicable (set below)
+            elif type(self.window.get('c1_first_read_issued_ns')) is int:
                 cleanup=cleanup_proof(self.window['c1_first_read_issued_ns'],drain_tick,self.plan['bound'])
             else:
                 delay,done=self.window.get('delay_time'),self.window['after'].get('completed_time')
                 cleanup=cleanup_proof(int(delay*1e9) if type(delay) is float else None,
                                       int(done*1e9) if type(done) is float else None,self.plan['bound'],
                                       anchor='switch: delay record (c1 first READ issue was not recorded)')
-            restore=restore_proof(drain_tick,self.window.get('restored_vision_ns'))
+            if not self.control:
+                restore=restore_proof(drain_tick,self.window.get('restored_vision_ns'))
             quiet=quiet_poll_proof(self.window['before'],self.window.get('polls'),self.window.get('poll_vision_ns'),
                                    master.get('first_read_issued_ns'),self.generations['at_c2_ready'])
             if self.window['before'].get('operate_app_after',{}).get('ipg')!=self.installed_ipg['OPERATE']:
                 isolation_failures.append('OPERATE app IPG differs from the configured installer IPG')
             bank=compare_quiet_generation(self.window['before'],self.window['after'],2,
                                            connections['c2']['fresh_mapping']['server_isn'])
-            window=window_proof(marker,master,self.window['before'],self.window['after'],self.window['restored_vision_ns'],
-                                population=pop,cleanup=cleanup,delay_ipg_ns=self.delay_ipg_ns,pause_ms=self.pause_ms)
+            if not self.control:
+                window=window_proof(marker,master,self.window['before'],self.window['after'],
+                                    self.window['restored_vision_ns'],population=pop,cleanup=cleanup,
+                                    delay_ipg_ns=self.delay_ipg_ns,pause_ms=self.pause_ms)
+        if self.control:
+            cleanup,restore,window=(dict(ok=None,not_applicable=True,failures=[],reason=CONTROL_NOT_APPLICABLE)
+                                    for _ in range(3))
         isolation_failures.extend('banks: '+f for f in bank['failures'])
         isolation_failures.extend('window: '+f for f in window['failures'])
         isolation_failures.extend('restore: '+f for f in restore['failures'])
         isolation_failures.extend('quiet: '+f for f in quiet['failures'])
         rejection_delta_value=None
         quiet_rejections=None
-        if window.get('ok'):
+        comparison=None
+        if self.control and self.window.get('monitor_ok') is True:
+            # control: the quiet-window raw rejection counts are recorded for comparison with D1 only, never gated
+            try:
+                quiet_rejections=rejection_counts(self.window['before'],self.window['after'])
+                comparison=dict(quiet_rejections=quiet_rejections,gated=False)
+            except (KeyError,TypeError,ValueError) as error:
+                comparison=dict(quiet_rejections=None,gated=False,error=str(error))
+        if window.get('ok') and not self.control:
             try:
                 quiet_rejections=rejection_counts(self.window['before'],self.window['after'])
                 rejection_delta_value=rejection_delta(self.window['before'],self.window['after'])
@@ -643,6 +891,20 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             failures.append('c2 fail-safe abort not confirmed: '+abort.get('note',''))
             isolation_failures.append('c2 fail-safe abort not confirmed: '+abort.get('note',''))
         isolation_failures.extend('switch: '+f for f in sfail)
+        diagnostic=None
+        if self.diagnostic:
+            unit=self.record['c3_diagnostic']['units'].get(label,{})
+            if self.diagnostic['poller'] and unit.get('diagnostic_incomplete') is not False:
+                reason='diagnostic incomplete: '+'; '.join(unit.get('incomplete_reasons') or ['poller state missing'])
+                isolation_failures.append(reason);failures.append(reason)
+            if self.record['c3_diagnostic'].get('poller_left_running'):
+                isolation_failures.append('diagnostic poller left running')
+                failures.append('diagnostic poller left running')
+            diagnostic=dict(self.diagnostic,qualification=False,counted_as_qualification=False,
+                            control_rejection_comparison=comparison,
+                            poller_unit=unit,permit_marker=self.window.get('diagnostic_permit_marker'),
+                            not_applicable=(['cleanup','restore','old_token_window','old_rejection_delta']
+                                            if self.control else []))
         isolation=dict(ok=not isolation_failures,failures=isolation_failures,separate_from_precision=True,
                        precision_qualified=False,design=DRAIN_BEFORE_C2_RATIONALE,rollback=TEARDOWN_RESTORES_GENERATOR,
                        c2_abort=self.window.get('c2_abort'),c2_abort_attempts=self.window.get('c2_abort_attempts'),
@@ -654,8 +916,13 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                        vision_series_ok=series_ok,cleanup=cleanup,restore=restore,quiet_polls=quiet,
                        bank_isolation=bank,old_token_window=window,old_rejection_delta=rejection_delta_value,
                        quiet_rejections=quiet_rejections,full_run=sobs,post_traffic_authority=authority)
+        if diagnostic:
+            isolation.update(purpose=DIAGNOSTIC_PURPOSE,diagnostic=diagnostic,qualification=False)
         (Path(dest)/'isolation_verdict.json').write_text(json.dumps(isolation,indent=2)+'\n')
-        trial.update(ok=not failures,failures=failures,scenario=dict(policy='real_old_token_isolation',connections=connections),
+        policy='c3_diagnostic_'+self.diagnostic['mode'] if self.diagnostic else 'real_old_token_isolation'
+        if diagnostic:
+            trial.update(purpose=DIAGNOSTIC_PURPOSE,qualification=False)
+        trial.update(ok=not failures,failures=failures,scenario=dict(policy=policy,connections=connections),
                      observed=dict(bank_isolation=bank,old_token_window=window,old_rejection_delta=rejection_delta_value,
                                    quiet_rejections=quiet_rejections,isolation_verdict=isolation,
                                    switch=sobs,lifecycle=lobs,precision_qualified=False))
