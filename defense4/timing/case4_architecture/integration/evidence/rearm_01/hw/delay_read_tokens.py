@@ -61,6 +61,16 @@ def check_app(entry, restore=False, old_triggers=1):
         raise ValueError('missing or malformed prior IPG')
 
 
+WRITE_ALLOWANCE_S = 0.5     # disable, configure, enable and read back
+
+
+def check_budget(started, budget_s, now):
+    """Refuse the writes when they could not finish inside the caller's budget."""
+    if budget_s is not None and now - started + WRITE_ALLOWANCE_S > budget_s:
+        raise ValueError('restore budget %.3f s expired before the IPG writes (%.3f s elapsed)'
+                         % (budget_s, now - started))
+
+
 def check_change(before, after, value):
     if after.get('ipg') != value:
         raise ValueError('READ IPG did not read back')
@@ -85,8 +95,13 @@ def main():
     parser.add_argument('--ipg-ns', type=int, default=3_000_000_000)
     parser.add_argument('--old-triggers', type=int, default=1, choices=(1, 2),
                         help='READ-lane batches c1 left (restore only): 2 when SELECT also triggers the READ app')
+    parser.add_argument('--budget-s', type=float,
+                        help='restore only: refuse to start the IPG writes once this many seconds have passed since '
+                             'this process started (the harness passes the time left before c2 may READ; ssh '
+                             'connection time before process start is not counted)')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args()
+    started = time.monotonic()
     if not 1_000_000_000 <= args.ipg_ns <= 4_000_000_000:
         parser.error('delay IPG must be 1..4 seconds in nanoseconds')
     schema = args.build_out / 'bfrt.json'
@@ -133,6 +148,7 @@ def main():
             raise ValueError('current IPG differs from the saved delay')
         record['software_read_fallbacks_before'] = sorted(sw.sw_read)
         args.record.write_text(json.dumps(record, indent=2) + '\n')
+        check_budget(started, args.budget_s, time.monotonic())
         after = change_ipg(sw, before, value, args.old_triggers)
         record['after'] = after
         record['software_read_fallbacks_after'] = sorted(sw.sw_read)

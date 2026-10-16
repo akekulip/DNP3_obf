@@ -146,16 +146,24 @@ def plan_isolation(population, operate_ipg_ns, configured_delay_ipg_ns=None, leg
     """Delay IPG, cleanup bound and c2 pause for one block.
 
     legacy (single READ-lane batch, candidate61): the retained parameters run unchanged, 2.5 s delay and the
-    10000 ms pause; the derived requirement is recorded, never used to refuse. Control-timed: a configured
+    10000 ms pause; the derived requirement is recorded, never used to refuse. Every plan that fits pauses c2
+    for the endpoint maximum (PAUSE_MAX_MS); the derived pause and the resulting slack are recorded. Control-timed: a configured
     delay IPG must satisfy both bounds; otherwise the largest 250 ms grid IPG in [1 s, 2.5 s] that does is chosen.
     """
     def plan(ipg):
         bound = cleanup_bound(population, {'READ': ipg, 'OPERATE': operate_ipg_ns})
         return bound, pause_requirement(bound)
+
+    def maximum_pause(pause):
+        # When the derived pause fits, c2 pauses for the endpoint maximum: the difference is runtime slack.
+        out = dict(pause, derived_pause_ms=pause['pause_ms'], pause_ms=PAUSE_MAX_MS,
+                   planned_slack_ns=PAUSE_MAX_MS * 1_000_000 - pause['required_ns'],
+                   slack_formula='slack = pause - restore allowance - worst drained tick after c2 ready '
+                                 '(bound - minimum c1->c2 ready) = pause - required')
+        return out
     if legacy:
         bound, pause = plan(DEFAULT_DELAY_IPG_NS)
-        pause = dict(pause, derived_pause_ms=pause['pause_ms'], pause_ms=PRE_READ_GRACE_MS,
-                     upper_ok=pause['required_ns'] <= PRE_READ_GRACE_NS,
+        pause = dict(maximum_pause(pause), upper_ok=pause['required_ns'] <= PRE_READ_GRACE_NS,
                      upper_margin_ns=PRE_READ_GRACE_NS - pause['required_ns'])
         pause['fits'] = pause['upper_ok'] and pause['lower_ok']
         return dict(delay_ipg_ns=DEFAULT_DELAY_IPG_NS, delay_ipg_source='legacy candidate61 parameters (unchanged)',
@@ -169,13 +177,13 @@ def plan_isolation(population, operate_ipg_ns, configured_delay_ipg_ns=None, leg
                              % (pause['pause_ms'], PAUSE_MAX_MS))
         if not pause['lower_ok']:
             raise ValueError('configured delay IPG drains the old READ tokens before the c2-ready snapshot')
-        return dict(delay_ipg_ns=configured_delay_ipg_ns, delay_ipg_source='configured', bound=bound, pause=pause,
-                    legacy=False)
+        return dict(delay_ipg_ns=configured_delay_ipg_ns, delay_ipg_source='configured', bound=bound,
+                    pause=maximum_pause(pause), legacy=False)
     for ipg in range(DEFAULT_DELAY_IPG_NS, DELAY_IPG_MIN_NS - 1, -DELAY_IPG_GRID_NS):
         bound, pause = plan(ipg)
         if pause['fits']:
             return dict(delay_ipg_ns=ipg, delay_ipg_source='derived: largest 250 ms grid IPG <= 2.5 s meeting both bounds',
-                        bound=bound, pause=pause, legacy=False)
+                        bound=bound, pause=maximum_pause(pause), legacy=False)
     raise ValueError('no delay IPG in 1..2.5 s meets both the endpoint pause maximum and the old-token lower bound')
 
 

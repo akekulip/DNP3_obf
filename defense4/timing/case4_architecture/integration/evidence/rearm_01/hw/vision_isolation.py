@@ -27,6 +27,60 @@ import vision_candidate as vc
 from token_window import PRE_READ_GRACE_MS
 
 
+def abort_c2(label, runs=None, proc='/proc', settle_s=1.0):
+    """Fail-safe run as root through the permitted sudo Python entry point: SIGKILL every process whose argv
+    contains the exact c2 master stop path, then rescan until none remains or settle_s passes. Matching a
+    whole argv element (never a regex over this process's own command line) cannot select this process."""
+    import os
+    import signal
+    import time
+    if not re.fullmatch('[A-Za-z0-9_]+', label):
+        raise ValueError('invalid label')
+    target = str(Path(runs or vc.vr.RUNS) / label / 'c2' / 'stop.master').encode()
+
+    def scan():
+        found = []
+        for entry in Path(proc).iterdir():
+            if not entry.name.isdigit() or int(entry.name) == os.getpid():
+                continue
+            try:
+                argv = (entry / 'cmdline').read_bytes().split(b'\0')
+            except OSError:
+                continue
+            if target in argv:
+                found.append(int(entry.name))
+        return sorted(found)
+    matched, killed, errors = scan(), [], []
+    for pid in matched:
+        try:
+            os.kill(pid, signal.SIGKILL)
+            killed.append(pid)
+        except ProcessLookupError:
+            pass
+        except OSError as error:
+            errors.append('%d: %s' % (pid, error))
+    remaining = scan()
+    end = time.monotonic() + settle_s
+    while remaining and time.monotonic() < end:
+        time.sleep(0.05)
+        remaining = scan()
+    return dict(target=target.decode(), matched=matched, killed=killed, remaining=remaining, errors=errors,
+                c2_already_exited=not matched)
+
+
+def abort_exit_code(result):
+    """0 killed and none remains, 1 no c2 master matched (already exited), 3 one remains or a kill failed."""
+    if result['remaining'] or result['errors']:
+        return 3
+    return 1 if result['c2_already_exited'] else 0
+
+
+def abort_main(argv):
+    result = abort_c2(argv[0])
+    print(json.dumps(result))
+    return abort_exit_code(result)
+
+
 def source_paths():
     """Every Vision-side file this scenario runs; candidate_isolation.verdict pins exactly these names."""
     return (Path(__file__), Path(vc.__file__), Path(vc.vr.__file__), Path(vc.wc.__file__), Path(vc.clrt.__file__),
@@ -140,6 +194,8 @@ def main(argv=None):
 
 if __name__ == '__main__':
     try:
+        if sys.argv[1:2] == ['abort-c2']:
+            sys.exit(abort_main(sys.argv[2:]))
         sys.exit(main())
     except (ValueError, OSError) as error:
         sys.stderr.write('Vision isolation refused: %s\n' % error)

@@ -138,9 +138,11 @@ def test_bound_and_pause_against_hand_computed_numbers(m4, c61):
         assert (req['pause_ms'], req['upper_ok'], req['lower_ok']) == (pause_ms, upper, lower)
         assert req['lower_floor_ns'] == floor
     plan = tw.plan_isolation(population(m4['cfg']), 0)
-    assert (plan['delay_ipg_ns'], plan['pause']['pause_ms']) == (1_250_000_000, 9_102)
-    assert (plan['pause']['upper_margin_ns'], plan['pause']['lower_margin_over_floor_ns']) == (898_000_000,
-                                                                                               484_581_413)
+    # the plan fits, so c2 pauses for the endpoint maximum and the 898 ms difference is runtime slack
+    assert (plan['delay_ipg_ns'], plan['pause']['pause_ms'], plan['pause']['derived_pause_ms']) == \
+        (1_250_000_000, 10_000, 9_102)
+    assert (plan['pause']['planned_slack_ns'], plan['pause']['lower_margin_over_floor_ns']) == (898_073_266,
+                                                                                                484_581_413)
     with pytest.raises(ValueError, match='before the c2-ready snapshot'):
         tw.plan_isolation(population(m4['cfg']), 0, 1_000_000_000)
     # candidate61 keeps its retained 2.5 s / 10000 ms; the derived requirement (7.5 + 3.001 + 4 - 5.399 s =
@@ -357,11 +359,11 @@ def campaign(name, **isolation):
 def test_harness_derives_population_ipg_pause_and_restore_from_configured_workload():
     ci, m4run = campaign(M4)
     assert m4run.population['READ']['triggers'] == 2 and m4run.installed_ipg == {'READ': 0, 'OPERATE': 0}
-    assert (m4run.delay_ipg_ns, m4run.pause_ms) == (1_250_000_000, 9_102)
+    assert (m4run.delay_ipg_ns, m4run.pause_ms) == (1_250_000_000, 10_000)
     _, c61run = campaign(C61)
     assert c61run.population == tw.LEGACY_POPULATION and (c61run.delay_ipg_ns, c61run.pause_ms) == (2_500_000_000,
                                                                                                    10_000)
-    for run_, triggers, ipg, pause in ((m4run, 2, 1_250_000_000, 9_102), (c61run, 1, 2_500_000_000, 10_000)):
+    for run_, triggers, ipg, pause in ((m4run, 2, 1_250_000_000, 10_000), (c61run, 1, 2_500_000_000, 10_000)):
         run_.active_unit = (run_.units()[0], 0, 'x')
         command = run_.delay_command('/r.json', '/d.json')
         assert '--ipg-ns %d' % ipg in command and '--old-triggers %d' % triggers in command
@@ -390,7 +392,7 @@ def test_extra_trigger_at_drain_is_rejected_even_with_exact_packets(m4):
 # ---------------------------------------------------------------- the derived control-timed plan, end to end
 
 def test_model_only_derived_m4_plan_passes_window_and_cleanup(m4):
-    """MODEL-ONLY: m4's derived plan (1.25 s delay, 9102 ms c2 pause) with retained m4 counts; timestamps are
+    """MODEL-ONLY: m4's derived plan (1.25 s delay, 10000 ms c2 pause) with retained m4 counts; timestamps are
     synthetic but placed by the plan: c2 ready at the measured minimum after c1's first READ, last old READ
     token at 7.5 s, drained poll observed within the bound, restore inside its allowance, c2 READ at the pause."""
     pop, plan = population(m4['cfg']), tw.plan_isolation(population(m4['cfg']), 0)
@@ -414,33 +416,60 @@ def test_model_only_derived_m4_plan_passes_window_and_cleanup(m4):
     assert window['ok'], window['failures']
     assert tw.restore_proof(drained_tick, restored)['ok']
     assert restored < ready + pause_ms * 1_000_000
-    # the same evidence judged against the fixed 10 s pause or the retained 2.5 s delay is refused
+    # the same evidence judged against another pause (the minimum 9102 ms) or the retained 2.5 s delay is refused
     assert not tw.window_proof(marker, master, before, drain, restored, population=pop, cleanup=cleanup,
-                               delay_ipg_ns=ipg)['ok']
+                               delay_ipg_ns=ipg, pause_ms=plan['pause']['derived_pause_ms'])['ok']
     assert not tw.window_proof(marker, master, before, drain, restored, population=pop, cleanup=cleanup,
                                pause_ms=pause_ms)['ok']
 
 
 # ---------------------------------------------------------------- monitor(): derived-pause marker, fail-safe
 
+RUNS = '/home/decps/run/runs'
+
+
+def fake_proc(root, processes):
+    """A /proc stand-in: one numbered directory per process with a NUL-separated cmdline."""
+    for pid, argv in processes.items():
+        (root / str(pid)).mkdir(parents=True)
+        (root / str(pid) / 'cmdline').write_bytes(b'\0'.join(a.encode() for a in argv) + b'\0')
+    (root / 'self').mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def c2_master(label='lbl'):
+    return ['/opt/case4/socket_gate', 'master', '192.168.10.62', '20000', '%s/%s/c2/stop.master' % (RUNS, label), '1']
+
+
 class FakeVision:
-    """Vision stand-in. Holds a process table with the paused c2 master; pkill/pgrep match their regex against
-    it AND against their own command line (as on Linux, where `sudo pkill -f PATTERN` matches its own argv and
-    kills its sudo parent: rc 137). sudo_refused and unkillable simulate a refused sudo and a surviving master."""
+    """Vision stand-in. The abort command runs the REAL vision_isolation.abort_c2 over a fake /proc; os.kill is
+    replaced so a killed process disappears (or, unkillable, survives). sudo_refused models `sudo -n` refusal.
+    done is set after stop_after_aborts abort calls, as the Vision series would end."""
     dry = False
 
-    def __init__(self, marker, c1_first, ticks, label='lbl', sudo_refused=False, unkillable=False):
+    def __init__(self, marker, c1_first, ticks, proc, done, sudo_refused=False, unkillable=False,
+                 marker_failures=0, stop_after_aborts=1, processes=None, kill_error=False):
         self.marker, self.c1_first, self.ticks, self.calls = marker, c1_first, list(ticks), []
-        self.sudo_refused, self.unkillable = sudo_refused, unkillable
-        self.processes = ['/opt/case4/socket_gate master 192.168.10.62 20000 /home/decps/run/runs/%s/c2/stop.master 1'
-                          % label]
+        self.proc, self.done = proc, done
+        self.sudo_refused, self.unkillable, self.marker_failures = sudo_refused, unkillable, marker_failures
+        self.stop_after_aborts, self.aborts, self.kill_error = stop_after_aborts, [], kill_error
+        fake_proc(proc, {4242: c2_master()} if processes is None else processes)
+
+    def kill(self, pid, sig):
+        if not self.unkillable:
+            import shutil
+            shutil.rmtree(self.proc / str(pid))
+        if self.kill_error:                         # the process went away, but the kill itself reported an error
+            raise PermissionError(1, 'Operation not permitted')
 
     def run(self, where, cmd, cwd=None, timeout=None, label=None):
-        import re
-        import shlex
+        import time as clock
         import candidate_isolation as ci
-        self.calls.append((where, label, cmd))
+        self.calls.append((where, label, cmd, clock.monotonic()))
         if label == 'wait for c2 marker':
+            if self.marker_failures:
+                self.marker_failures -= 1
+                return ci.base.Result(255, '', 'ssh: connect to host vision: Connection timed out')
             return ci.base.Result(0, json.dumps(dict(marker=self.marker, marker_status='complete',
                                                      vision_ns=self.marker['pre_read_ready_ns'] + 1)), '')
         if label == 'read c1 first READ issue':
@@ -450,32 +479,34 @@ class FakeVision:
             if tick is None:
                 return ci.base.Result(1, '', 'marker read failed')
             return ci.base.Result(0, json.dumps(dict(vision_ns=tick)), '')
-        argv = shlex.split(cmd)
-        if argv[:2] == ['sudo', '-n'] and argv[2] == 'pkill':
+        if 'abort-c2' in cmd:
+            assert cmd.startswith('sudo -n python3 -c ') and cmd.endswith(' abort-c2 lbl')
+            self.aborts.append(clock.monotonic())
+            if len(self.aborts) >= self.stop_after_aborts:
+                self.done.set()
             if self.sudo_refused:
                 return ci.base.Result(1, '', 'sudo: a password is required')
-            pattern = argv[-1]
-            matched = [p for p in self.processes if re.search(pattern, p)]
-            if not self.unkillable:
-                self.processes = [p for p in self.processes if p not in matched]
-            if re.search(pattern, cmd):
-                return ci.base.Result(137, '', '')           # pkill killed its own sudo parent
-            return ci.base.Result(0 if matched else 1, '', '')
-        if argv[0] == 'pgrep':
-            pattern = argv[-1]
-            found = [p for p in self.processes + [cmd] if re.search(pattern, p)]
-            return ci.base.Result(0 if found else 1, '\n'.join(str(n) for n in range(len(found))), '')
+            import os
+            import vision_isolation as vi
+            real = os.kill
+            os.kill = self.kill
+            try:
+                result = vi.abort_c2('lbl', runs=RUNS, proc=str(self.proc), settle_s=0)
+            finally:
+                os.kill = real
+            return ci.base.Result(vi.abort_exit_code(result), json.dumps(result), '')
         return ci.base.Result(0, '', '')
 
 
-def monitor_run(m4, tmp_path, snapshots, ticks, **vision_kwargs):
+def monitor_run(m4, tmp_path, snapshots, ticks, restore=None, **vision_kwargs):
     import threading
     ci, run = campaign(M4)
     ready = 1_000_000_000_000
     marker = dict(tcp_open=True, opens=1, pre_read_grace_ms=run.pause_ms, pre_read_ready_ns=ready,
                   first_read_issued_ns=0)
+    done = threading.Event()
     vision = FakeVision(marker, ready - tw.C1_TO_C2_READY_MIN_NS, [None if t is None else ready + t for t in ticks],
-                        **vision_kwargs)
+                        tmp_path / 'proc', done, **vision_kwargs)
     run.rn = vision
     run.root = str(tmp_path)
     run.active_unit = (run.units()[0], 0, 'lbl')
@@ -483,16 +514,18 @@ def monitor_run(m4, tmp_path, snapshots, ticks, **vision_kwargs):
     queue = list(snapshots)
 
     def snapshot(label, suffix):
-        vision.calls.append(('switch', 'quiet snapshot ' + suffix, ''))
+        vision.calls.append(('switch', 'quiet snapshot ' + suffix, '', 0))
         return queue.pop(0)
     run.quiet_snapshot = snapshot
     steps = []
 
     def step(where, label, cmd, cwd=None, check=True, timeout=3600):
         steps.append((where, label, cmd, timeout))
+        if restore and label.startswith('restore READ IPG'):
+            return restore(timeout)
         return vision.run(where, cmd, label=label)
     run.step = step
-    run.monitor(threading.Event())
+    run.monitor(done)
     return run, vision, steps
 
 
@@ -507,64 +540,132 @@ def restores(steps):
     return [s for s in steps if s[1].startswith('restore READ IPG')]
 
 
-def test_monitor_accepts_the_derived_pause_marker_and_restores_before_c2_read(m4, tmp_path):
+def test_monitor_accepts_the_endpoint_maximum_pause_and_restores_before_c2_read(m4, tmp_path):
     before, mid, drain = m4_monitor_snapshots(m4)
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, 5_000_000_000,
                                                                           6_000_000_000])
+    assert run.pause_ms == 10_000
     assert run.window['monitor_ok'] is True, run.window.get('error')
-    assert run.window['drained_vision_ns'] - 1_000_000_000_000 == 5_000_000_000
     restore = restores(steps)
-    assert len(restore) == 1 and '--old-triggers 2' in restore[0][2]
-    assert restore[0][3] == pytest.approx((9_102_000_000 - 5_000_000_000) / 1e9)     # remaining pause as timeout
-    assert 'c2_abort' not in run.window
-    order = [label for _, label, _ in vision.calls]
+    assert len(restore) == 1 and '--old-triggers 2' in restore[0][2] and '--budget-s ' in restore[0][2]
+    # 10 s pause - 5 s drained tick - 1.5 s abort margin, measured on the local monotonic clock
+    assert 3.0 < restore[0][3] <= 3.5
+    assert run.window['runtime_slack_ns'] == 10_000_000_000 - tw.RESTORE_ALLOWANCE_NS - 5_000_000_000
+    assert vision.aborts == [] and 'c2_abort' not in run.window
+    order = [call[1] for call in vision.calls]
     assert order.index('read c1 first READ issue') > order.index('quiet snapshot before')   # no added latency
     assert json.loads((tmp_path / 'token_window_observer.json').read_text())['monitor_ok'] is True
 
 
-@pytest.mark.parametrize('drain_tick', [9_102_000_000 - tw.RESTORE_ALLOWANCE_NS, 9_000_000_000, None])
+@pytest.mark.parametrize('drain_tick', [10_000_000_000 - tw.RESTORE_ALLOWANCE_NS, 9_000_000_000, None])
 def test_drained_poll_with_a_late_or_missing_tick_aborts_and_never_restores(m4, tmp_path, drain_tick):
     before, mid, drain = m4_monitor_snapshots(m4)
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, drain_tick])
     assert run.window['monitor_ok'] is False and 'did not drain with time to restore' in run.window['error']
     assert restores(steps) == [] and not any(s[0] == 'switch' for s in steps)
-    assert run.window['c2_abort']['aborted'] is True
+    assert run.window['c2_abort']['aborted'] is True and run.window['c2_abort_confirmed'] is True
 
 
 def test_monitor_without_drain_before_the_deadline_aborts_c2_and_never_restores(m4, tmp_path):
     before, mid, _ = m4_monitor_snapshots(m4)
-    late = 9_102_000_000 - tw.RESTORE_ALLOWANCE_NS
+    late = 10_000_000_000 - tw.RESTORE_ALLOWANCE_NS
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, copy.deepcopy(mid)], [3_000_000_000, late])
     assert run.window['monitor_ok'] is False and 'did not drain' in run.window['error']
     assert restores(steps) == []
     abort = run.window['c2_abort']
-    assert abort['pattern'] == '/runs/lbl/c2/[s]top\\.master'
-    assert (abort['pkill_rc'], abort['pgrep_rc'], abort['aborted']) == (0, 1, True)
-    assert vision.processes == []                          # the paused master was killed, pkill survived
+    assert (abort['rc'], abort['aborted'], abort['report']['matched'], abort['report']['remaining']) == \
+        (0, True, [4242], [])
+    assert not (tmp_path / 'proc' / '4242').exists()
 
 
-@pytest.mark.parametrize('kwargs,meaning', [(dict(sudo_refused=True), 'no process matched (or sudo refused)'),
-                                            (dict(unkillable=True), 'a c2 master matched and was signalled')])
-def test_abort_that_does_not_remove_the_master_is_recorded_as_not_aborted(m4, tmp_path, kwargs, meaning):
+@pytest.mark.parametrize('kwargs,meaning', [(dict(sudo_refused=True), 'sudo refused the permitted helper'),
+                                            (dict(unkillable=True), 'a c2 master remains or a kill failed'),
+                                            (dict(processes={}), 'no c2 master process matched'),
+                                            (dict(kill_error=True), 'a c2 master remains or a kill failed')])
+def test_abort_that_does_not_kill_a_c2_master_is_recorded_as_not_aborted(m4, tmp_path, kwargs, meaning):
     before, mid, _ = m4_monitor_snapshots(m4)
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, copy.deepcopy(mid)],
-                                     [3_000_000_000, 9_102_000_000], **kwargs)
+                                     [3_000_000_000, 10_000_000_000], stop_after_aborts=2, **kwargs)
     abort = run.window['c2_abort']
-    assert abort['aborted'] is False and 'ABORT NOT CONFIRMED' in abort['note']
-    assert abort['pkill_meaning'] == meaning and abort['pgrep_rc'] == 0
+    assert abort['aborted'] is False and run.window['c2_abort_history'][0]['meaning'] == meaning
+    assert run.window['c2_abort_confirmed'] is False and run.window['c2_abort_attempts'] == 2
+    assert 'ABORT NOT CONFIRMED' in abort['note']
     assert abort['sudo_refused'] is bool(kwargs.get('sudo_refused'))
+    # the last attempt finds nothing left when the first already removed the master (kill_error) or none existed
+    assert abort['c2_already_exited'] is ('processes' in kwargs or 'kill_error' in kwargs)
 
 
 def test_monitor_with_a_wrong_pause_marker_fails_and_aborts_c2(m4, tmp_path):
     import threading
     ci, run = campaign(M4)
-    marker = dict(tcp_open=True, opens=1, pre_read_grace_ms=tw.PRE_READ_GRACE_MS, pre_read_ready_ns=10 ** 12,
+    marker = dict(tcp_open=True, opens=1, pre_read_grace_ms=tw.PRE_READ_GRACE_MS - 1, pre_read_ready_ns=10 ** 12,
                   first_read_issued_ns=0)
-    vision = FakeVision(marker, 1, [])
+    done = threading.Event()
+    vision = FakeVision(marker, 1, [], tmp_path / 'proc', done)
     run.rn, run.root, run.active_unit = vision, str(tmp_path), (run.units()[0], 0, 'lbl')
-    run.monitor(threading.Event())
+    run.monitor(done)
     assert run.window['monitor_ok'] is False and 'bounded%dms pause' % run.pause_ms in run.window['error']
-    assert run.window['c2_abort']['aborted'] is True
+    assert run.window['c2_abort_confirmed'] is True
+
+
+def test_marker_reads_are_retried_and_a_lost_observer_keeps_aborting_until_the_series_ends(m4, tmp_path):
+    before, mid, drain = m4_monitor_snapshots(m4)
+    ok, *_ = monitor_run(m4, tmp_path / 'ok', [before, mid, drain], [3_000_000_000, 5_000_000_000, 6_000_000_000],
+                         marker_failures=2)
+    assert ok.window['monitor_ok'] is True, ok.window.get('error')
+    lost, vision, steps = monitor_run(m4, tmp_path / 'lost', [], [], marker_failures=3, stop_after_aborts=3,
+                                      processes={})
+    assert lost.window['monitor_ok'] is False and '3 consecutive' in lost.window['error']
+    assert 'marker_observation' not in lost.window                # aborts start before the marker is seen
+    assert len(vision.aborts) == 3 and lost.window['c2_abort_attempts'] == 3
+    assert lost.window['c2_abort']['c2_already_exited'] is True
+
+
+def test_restore_timeout_aborts_c2_before_the_pause_deadline(m4, tmp_path, monkeypatch):
+    import time as clock
+    import candidate_isolation as ci
+    monkeypatch.setattr(ci, 'ABORT_MARGIN_S', 3.8)      # keep the test short: abort point ~0.3 s after drain
+
+    def hang(timeout):
+        clock.sleep(timeout + 0.1)
+        raise ci.base.StepFailed('restore step timed out after %.3f s' % timeout)
+    before, mid, drain = m4_monitor_snapshots(m4)
+    run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain],
+                                     [3_000_000_000, 5_900_000_000], restore=hang, stop_after_aborts=1)
+    assert run.window['monitor_ok'] is False
+    assert vision.aborts and vision.aborts[0] < run.window['pause_deadline_local']
+    assert run.window['watchdog_fired_local'] >= run.window['abort_at_local'] - 0.01
+    assert run.window['c2_abort_confirmed'] is True and restores(steps)[0][3] <= 0.3     # 10 - 5.9 - 3.8 s
+
+
+def test_vision_abort_kills_only_the_exact_c2_master_and_never_itself(tmp_path, monkeypatch):
+    import os
+    import vision_isolation as vi
+    proc = fake_proc(tmp_path / 'proc', {
+        4242: c2_master(),
+        4243: c2_master('other'),                                              # another label's c2
+        4244: ['sudo', '-n', 'python3', '-c', 'x', '/v/vision_isolation.py', 'abort-c2', 'lbl'],  # the helper
+        4245: ['/opt/case4/socket_gate', 'master', '%s/lbl/c1/stop.master' % RUNS]})        # c1, not c2
+    killed = []
+
+    def kill(pid, sig):
+        killed.append(pid)
+        import shutil
+        shutil.rmtree(proc / str(pid))
+    monkeypatch.setattr(os, 'kill', kill)
+    result = vi.abort_c2('lbl', runs=RUNS, proc=str(proc), settle_s=0)
+    assert (result['matched'], killed, result['remaining']) == ([4242], [4242], [])
+    assert vi.abort_exit_code(result) == 0
+    assert vi.abort_exit_code(vi.abort_c2('lbl', runs=RUNS, proc=str(proc), settle_s=0)) == 1
+    with pytest.raises(ValueError):
+        vi.abort_c2('lbl;rm', runs=RUNS, proc=str(proc))
+
+
+def test_restore_budget_refuses_late_writes():
+    delay.check_budget(10.0, None, 99.0)
+    delay.check_budget(10.0, 2.0, 11.4)
+    with pytest.raises(ValueError, match='budget'):
+        delay.check_budget(10.0, 2.0, 11.6)
 
 
 # ---------------------------------------------------------------- verdict(): real proofs on retained candidate61

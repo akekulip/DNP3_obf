@@ -34,6 +34,10 @@ from privileged_python import authorized_python
 base, ARCH=cs.base,cs.ARCH
 BARRIER_DIRECTORY='/home/decps/pad58b_rearm_barrier_10s_20261012'
 BARRIER_BINARY='8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158'
+ABORT_MARGIN_S=1.5          # local time kept for the fail-safe abort before c2's pause deadline
+MARKER_READ_RETRIES=3       # consecutive failed marker reads tolerated while waiting for c2
+ABORT_RETRY_S=0.5
+ABORT_MAX_ATTEMPTS=240
 
 
 def installed_app_ipgs(k):
@@ -157,7 +161,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         finally:
             self.active_unit=None
 
-    def delay_command(self,record,restore=None):
+    def delay_command(self,record,restore=None,budget_s=None):
         unit,_,_=self.active_unit
         build=unit['arm']['build']; data=self.cfg['builds'][build]
         command=('python3 %s/aux/delay_read_tokens.py --build-out %s/out_%s '
@@ -166,6 +170,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             self.R,self.R,build,data['hashes']['bfrt.json'],self.R,base.HW,base.q(record),self.delay_ipg_ns)
         if restore:
             command+=' --restore '+base.q(restore)+' --old-triggers %d' % self.population['READ']['triggers']
+            if budget_s is not None:
+                command+=' --budget-s %.3f' % budget_s
         return self.hw_env(command)
 
     def snapshot(self,out_remote,name,check=True,preset=None):
@@ -196,10 +202,15 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         try:
             deadline=time.monotonic()+90
             observed=None
+            misses=0
             while not done.is_set() and time.monotonic()<deadline:
                 result=self.rn.run('vision',marker_command(marker),timeout=5,label='wait for c2 marker')
                 if result.rc:
-                    raise ValueError('c2 readiness observer failed')
+                    misses+=1
+                    if misses>=MARKER_READ_RETRIES:
+                        raise ValueError('c2 readiness observer failed %d consecutive times' % misses)
+                    done.wait(0.1);continue
+                misses=0
                 observed=json.loads(result.out)
                 if observed['marker'] is not None:
                     self.window['marker_observation']=observed      # c2 is paused from here: abort on any failure
@@ -224,6 +235,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             while not done.is_set():
                 after=self.quiet_snapshot(label,'after_%02d' % len(self.window.setdefault('polls',[])))
                 self.window['polls'].append(after)
+                asked=time.monotonic()      # the Vision clock is sampled after this instant
                 tick=self.rn.run('vision',marker_command(marker),timeout=5,label='observe bounded pause')
                 ticks.append(json.loads(tick.out)['vision_ns'] if not tick.rc else None)
                 if overran(after,pop):
@@ -233,48 +245,99 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                 if tick.rc or ticks[-1] is None or ticks[-1]>=pause_deadline-RESTORE_ALLOWANCE_NS:
                     raise ValueError('old batches did not drain with time to restore before c2 READ')
                 if drained(after,pop):
-                    self.window['after']=after;self.window['drained_vision_ns']=ticks[-1];break
+                    self.window['after']=after;self.window['drained_vision_ns']=ticks[-1]
+                    # local monotonic image of c2's pause deadline: conservative, since the tick was taken after
+                    # `asked`
+                    pause_local=asked+(pause_deadline-ticks[-1])/1e9
+                    break
                 done.wait(0.1)
             else:
                 raise ValueError('Vision series ended before old batch completed')
             restored=self.R+'/snap/'+label+'_token_restore.json'
-            remaining=(pause_deadline-self.window['drained_vision_ns'])/1e9
-            self.window['restore_timeout_s']=remaining
-            self.step('switch','restore READ IPG after the old READ-lane batches drained',
-                      self.delay_command(restored,self.window['delay_remote']),timeout=remaining)
-            tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),timeout=5)
-            self.window['restored_vision_ns']=json.loads(tick.out)['vision_ns']
-            if self.window['restored_vision_ns']>=pause_deadline:
-                raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
+            abort_at=pause_local-ABORT_MARGIN_S
+            remaining=abort_at-time.monotonic()
+            self.window.update(restore_timeout_s=remaining,abort_margin_s=ABORT_MARGIN_S,
+                               pause_deadline_local=pause_local,abort_at_local=abort_at)
+            if remaining<=0:
+                raise ValueError('no time left to restore the READ IPG before the abort point')
+            confirmed=threading.Event()
+
+            def watchdog():
+                if not confirmed.is_set():
+                    self.window['watchdog_fired_local']=time.monotonic()
+                    self.abort_c2(label)
+            timer=threading.Timer(remaining,watchdog);timer.daemon=True;timer.start()
+            try:
+                self.step('switch','restore READ IPG after the old READ-lane batches drained',
+                          self.delay_command(restored,self.window['delay_remote'],remaining),timeout=remaining)
+                tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),
+                               timeout=max(0.1,abort_at-time.monotonic()))
+                self.window['restored_vision_ns']=json.loads(tick.out)['vision_ns']
+                if self.window['restored_vision_ns']>=pause_deadline:
+                    raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
+                confirmed.set()
+            finally:
+                timer.cancel()
+            if self.window.get('watchdog_fired_local'):
+                raise ValueError('restore not confirmed before the abort point; c2 was aborted')
+            self.window['runtime_slack_ns']=pause_deadline-RESTORE_ALLOWANCE_NS-self.window['drained_vision_ns']
             for name,remote in [('delay',self.window['delay_remote']),('restore',restored)]:
                 self.step('local','collect token '+name,'scp -q %s:%s %s' % (
                     self.cfg['hosts']['switch'],base.q(remote),base.q(Path(self.root)/('token_'+name+'.json'))),timeout=5)
             self.window['monitor_ok']=True
         except Exception as error:
             self.window.update(monitor_ok=False,error=str(error))
-            # fail safe: the IPG may still be delayed, so c2 must not issue its READ. Stop the paused c2 master on
-            # Vision (no switch or generator write during traffic); the series then fails and c3 never starts.
-            if self.window.get('marker_observation'):
-                self.abort_c2(label)
+            # fail safe: the IPG may still be delayed, so c2 must not issue its READ. Stop the c2 master on Vision
+            # (no switch or generator write during traffic), and keep stopping it until the series ends, since
+            # before its marker c2 may not have started yet; the series then fails and c3 never starts.
+            self.abort_until_done(label,done)
         finally:
             (Path(self.root)/'token_window_observer.json').write_text(json.dumps(self.window,indent=2)+'\n')
 
+    def abort_until_done(self,label,done):
+        attempts=[]
+        while len(attempts)<ABORT_MAX_ATTEMPTS:
+            attempts.append(self.abort_c2(label))
+            if done.wait(ABORT_RETRY_S):
+                break
+        self.window['c2_abort_attempts']=len(attempts)
+        # sticky: a kill confirmed by the restore watchdog or any earlier attempt counts
+        self.window['c2_abort_confirmed']=bool(self.window.get('c2_abort_confirmed')) or \
+            any(item['aborted'] for item in attempts)
+        if not self.window['c2_abort_confirmed']:
+            self.window['c2_abort']['note']=('ABORT NOT CONFIRMED in %d attempts: sudo refused, a c2 master remained, '
+                                             'or no c2 master was ever found' % len(attempts))
+
     def abort_c2(self,label):
-        # [s] keeps the pattern from matching its own sudo/pkill argv (which would kill pkill's parent, rc 137)
-        pattern='/runs/%s/c2/[s]top\\.master' % re.escape(label)
-        kill=self.rn.run('vision','sudo -n pkill -KILL -f -- '+base.q(pattern),timeout=5,
-                         label='fail-safe: stop the paused c2 master before its first READ')
-        left=self.rn.run('vision','pgrep -f -- '+base.q(pattern),timeout=5,
-                         label='fail-safe: confirm no c2 master remains')
-        refused='sudo:' in (kill.err or '')
-        meaning={0:'a c2 master matched and was signalled',1:'no process matched (or sudo refused)'}.get(
-            kill.rc,'pkill error or killed by signal')
-        self.window['c2_abort']=dict(pattern=pattern,pkill_rc=kill.rc,pkill_meaning=meaning,pkill_err=kill.err,
-                                     sudo_refused=refused,pgrep_rc=left.rc,remaining=left.out.split(),
-                                     aborted=left.rc==1 and not refused)
-        if not self.window['c2_abort']['aborted']:
-            self.window['c2_abort']['note']=('ABORT NOT CONFIRMED: sudo refused or a c2 master process remains; '
-                                             'c2 may issue its READ with the delay IPG in place')
+        """Kill the c2 master through the permitted sudo Python entry point (vision_isolation.py abort-c2: exact
+        stop-path argv match over /proc, SIGKILL, rescan with the same privilege)."""
+        result=self.rn.run('vision',authorized_python(self.V+'/vision_isolation.py',['abort-c2',label]),timeout=5,
+                           label='fail-safe: stop the c2 master before its first READ')
+        report=None
+        try:
+            report=json.loads(result.out.strip().splitlines()[-1])
+        except (ValueError,IndexError,AttributeError):
+            pass
+        refused=result.rc!=0 and report is None and 'sudo:' in (result.err or '')
+        if refused:
+            meaning='sudo refused the permitted helper'
+        elif report is None:
+            meaning='helper failed (no report)'
+        else:
+            meaning={0:'c2 master matched, killed, none remains',1:'no c2 master process matched',
+                     3:'a c2 master remains or a kill failed'}.get(result.rc,'helper failed')
+        record=dict(rc=result.rc,meaning=meaning,err=result.err,report=report,sudo_refused=refused,
+                    c2_already_exited=bool(report and report.get('c2_already_exited')),
+                    aborted=result.rc==0 and bool(report) and bool(report.get('matched'))
+                    and report.get('remaining')==[] and not refused)
+        if not record['aborted']:
+            record['note']='ABORT NOT CONFIRMED: '+meaning
+        self.window['c2_abort']=record
+        self.window.setdefault('c2_abort_history',[]).append(dict(rc=record['rc'],aborted=record['aborted'],
+                                                                   meaning=meaning))
+        if record['aborted']:
+            self.window['c2_abort_confirmed']=True
+        return record
 
     def step(self,where,label,cmd,cwd=None,check=True,timeout=3600):
         if where!='vision' or ': traffic + capture on master port ' not in label or self.rn.dry:
@@ -428,13 +491,16 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             failures.append(self.window['error'])
             isolation_failures.append(self.window['error'])
         abort=self.window.get('c2_abort')
-        if abort and abort.get('aborted') is not True:
+        if abort and self.window.get('c2_abort_confirmed') is not True and abort.get('aborted') is not True:
             failures.append('c2 fail-safe abort not confirmed: '+abort.get('note',''))
             isolation_failures.append('c2 fail-safe abort not confirmed: '+abort.get('note',''))
         isolation_failures.extend('switch: '+f for f in sfail)
         isolation=dict(ok=not isolation_failures,failures=isolation_failures,separate_from_precision=True,
                        precision_qualified=False,design=DRAIN_BEFORE_C2_RATIONALE,rollback=TEARDOWN_RESTORES_GENERATOR,
-                       c2_abort=self.window.get('c2_abort'),estimates=ESTIMATES,population=pop,plan=self.plan,
+                       c2_abort=self.window.get('c2_abort'),c2_abort_attempts=self.window.get('c2_abort_attempts'),
+                       runtime_slack_ns=self.window.get('runtime_slack_ns'),
+                       planned_slack_ns=self.plan['pause'].get('planned_slack_ns'),
+                       estimates=ESTIMATES,population=pop,plan=self.plan,
                        installed_app_ipg_ns=self.installed_ipg,expected_generations=self.generations,
                        connections={cn:dict(ok=c['ok'],failures=c['failures']) for cn,c in connections.items()},
                        vision_series_ok=series_ok,cleanup=cleanup,restore=restore,quiet_polls=quiet,
