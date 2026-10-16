@@ -102,3 +102,11 @@ D1 also failed `cleanup bound exceeded: old tokens observed drained 18597019124 
   Vision tick. The original run passed on poll phase alone.
 
 This is a harness-bound finding, recorded for review. The bound is not changed.
+
+## Correction to the plan (2026-10-16, after code review)
+
+The plan says neither simulator reproduces stale-blocker retirement, so attribution needs silicon. The compiled-model
+part of that rests on absence only. `model_isolation_cleanup_m5_10_01` paces each step with at least 1.5 s of quiet,
+which lets every blocker stop silently before the next lane-generation advance. It never creates the precondition for
+outcome 6. See `ctl_timing_01/evidence/model_isolation_cleanup_m5_10_01/README.md`. The attribution above uses only
+silicon observations and the m5_10 source.

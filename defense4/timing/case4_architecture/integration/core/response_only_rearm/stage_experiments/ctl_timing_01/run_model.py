@@ -13,7 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
-           'contention': HERE / 'model_contention.py'}
+           'contention': HERE / 'model_contention.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py'}
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
 
