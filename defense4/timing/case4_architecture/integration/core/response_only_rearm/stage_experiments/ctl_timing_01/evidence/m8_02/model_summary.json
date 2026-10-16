@@ -1,7 +1,14 @@
 {
- "m8_02_source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
- "counted_passes_m8_02": {
-  "contention": "model_contention_m8_02_01",
+ "build": "m8_02",
+ "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
+ "generated_by": "ctl_timing_01/model_summary.py",
+ "qualification": "blocked",
+ "blocked_reasons": [
+  "contention: latest attempt model_contention_m8_02_02 did not pass on this source (223/300, exit 1)",
+  "model_contention_m8_02_02: unresolved FAILURE_20261016.md"
+ ],
+ "latest_by_driver": {
+  "contention": "model_contention_m8_02_02",
   "control_timing": "model_control_timing_m8_02_01",
   "dup": "model_dup_m8_02_01",
   "packets": "model_packets_m8_02_01",
@@ -14,6 +21,7 @@
   {
    "run": "model_contention_m8_02_01",
    "driver": "contention",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "777afdd9f752efcbb8ee291fa2947a7fd8c4c91171508009a0e4afe84111938a",
    "milestone": "m8",
@@ -21,11 +29,113 @@
    "exit_code": 0,
    "passed": 283,
    "total": 283,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "contention_results.json"
+   ]
+  },
+  {
+   "run": "model_contention_m8_02_02",
+   "driver": "contention",
+   "attempt": 2,
+   "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
+   "driver_sha256": "2ab01e89a5c2ddd5a6c817f87740b03006264ab9b668a7f2720325f69f7b477a",
+   "milestone": "m8",
+   "pb_injected": null,
+   "exit_code": 1,
+   "passed": 223,
+   "total": 300,
+   "failed": [
+    "dup_SELECT_RST_relayed",
+    "second_connection_READ_SYN",
+    "second_connection_READ_SYNACK",
+    "second_connection_READ_final_ACK",
+    "second_connection_READ_request_relayed",
+    "second_connection_READ_delivered_once_committed",
+    "second_connection_READ_original_delivered_once",
+    "second_connection_READ_RST_relayed",
+    "second_connection_SELECT_SYN",
+    "second_connection_SELECT_SYNACK",
+    "second_connection_SELECT_final_ACK",
+    "second_connection_SELECT_request_relayed",
+    "second_connection_SELECT_delivered_once_committed",
+    "second_connection_SELECT_original_delivered_once",
+    "second_connection_SELECT_RST_relayed",
+    "reset_during_wait_READ_SYN",
+    "reset_during_wait_READ_SYNACK",
+    "reset_during_wait_READ_final_ACK",
+    "reset_during_wait_READ_first_RST_relayed",
+    "reset_during_wait_SELECT_SYN",
+    "reset_during_wait_SELECT_SYNACK",
+    "reset_during_wait_SELECT_final_ACK",
+    "reset_during_wait_SELECT_first_RST_relayed",
+    "outstation_abort_while_held_READ_SYN",
+    "outstation_abort_while_held_READ_SYNACK",
+    "outstation_abort_while_held_READ_final_ACK",
+    "outstation_abort_while_held_READ_request_relayed",
+    "outstation_abort_while_held_READ_master_reset_at_rcv_nxt",
+    "outstation_abort_while_held_SELECT_SYN",
+    "outstation_abort_while_held_SELECT_SYNACK",
+    "outstation_abort_while_held_SELECT_final_ACK",
+    "outstation_abort_while_held_SELECT_request_relayed",
+    "outstation_abort_while_held_SELECT_master_reset_at_rcv_nxt",
+    "outstation_abort_while_held_OPERATE_SYN",
+    "outstation_abort_while_held_OPERATE_SYNACK",
+    "outstation_abort_while_held_OPERATE_final_ACK",
+    "outstation_abort_while_held_OPERATE_setup_SELECT_completed",
+    "outstation_abort_while_held_OPERATE_request_relayed",
+    "outstation_abort_while_held_OPERATE_master_reset_at_rcv_nxt",
+    "reconnect_during_wait_READ_SYN",
+    "reconnect_during_wait_READ_SYNACK",
+    "reconnect_during_wait_READ_final_ACK",
+    "reconnect_during_wait_READ_first_RST_relayed",
+    "reconnect_during_wait_READ_new_READ_request_relayed",
+    "reconnect_during_wait_READ_new_READ_delivered_once_committed",
+    "reconnect_during_wait_READ_new_READ_original_delivered_once",
+    "reconnect_during_wait_READ_RST_relayed",
+    "reconnect_during_wait_SELECT_SYN",
+    "reconnect_during_wait_SELECT_SYNACK",
+    "reconnect_during_wait_SELECT_final_ACK",
+    "reconnect_during_wait_SELECT_first_RST_relayed",
+    "reconnect_during_wait_SELECT_new_READ_request_relayed",
+    "reconnect_during_wait_SELECT_new_READ_delivered_once_committed",
+    "reconnect_during_wait_SELECT_new_READ_original_delivered_once",
+    "reconnect_during_wait_SELECT_RST_relayed",
+    "post_release_duplicate_READ_SYN",
+    "post_release_duplicate_READ_SYNACK",
+    "post_release_duplicate_READ_final_ACK",
+    "post_release_duplicate_READ_request_relayed",
+    "post_release_duplicate_READ_delivered_once_committed",
+    "post_release_duplicate_READ_original_delivered_once",
+    "post_release_duplicate_READ_resend_passes_once_same_image",
+    "post_release_duplicate_READ_RST_relayed",
+    "post_release_duplicate_SELECT_SYN",
+    "post_release_duplicate_SELECT_SYNACK",
+    "post_release_duplicate_SELECT_final_ACK",
+    "post_release_duplicate_SELECT_request_relayed",
+    "post_release_duplicate_SELECT_delivered_once_committed",
+    "post_release_duplicate_SELECT_original_delivered_once",
+    "post_release_duplicate_SELECT_resend_passes_once_same_image",
+    "post_release_duplicate_SELECT_RST_relayed",
+    "loss_recovery_READ_SYN",
+    "loss_recovery_READ_SYNACK",
+    "loss_recovery_READ_final_ACK",
+    "loss_recovery_READ_request_relayed",
+    "loss_recovery_READ_exactly_one_response",
+    "loss_recovery_READ_RST_relayed"
+   ],
+   "unresolved_failure_notes": [
+    "FAILURE_20261016.md"
+   ],
+   "results_files": [
+    "contention_results.json"
+   ]
   },
   {
    "run": "model_control_timing_m8_02_01",
    "driver": "control_timing",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "c5c0d24896a46c912305d50136ac7c60a9806b2d9195bb205e40759cab9f2127",
    "milestone": "m8",
@@ -33,11 +143,16 @@
    "exit_code": 0,
    "passed": 141,
    "total": 141,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "control_timing_results.json"
+   ]
   },
   {
    "run": "model_dup_m8_02_01",
    "driver": "dup",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "15042711098f24f874f33da953a3fee7dc3267769835b717e7ee717c35247137",
    "milestone": "m8",
@@ -45,11 +160,16 @@
    "exit_code": 0,
    "passed": 102,
    "total": 102,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "dup_results.json"
+   ]
   },
   {
    "run": "model_packets_m8_02_01",
    "driver": "packets",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "263ca299c24f97f3c848c4710b4c0e8d42758da0d5f9174b8261a6424873045c",
    "milestone": "m8",
@@ -57,11 +177,16 @@
    "exit_code": 0,
    "passed": 622,
    "total": 622,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "packet_results.json"
+   ]
   },
   {
    "run": "model_rearm_m8_02_01",
    "driver": "rearm",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "b12d0c2d8ec71df8f45ef6871505576780e9741a8c35a85902c1d083ee8a5456",
    "milestone": "m8",
@@ -69,11 +194,16 @@
    "exit_code": 0,
    "passed": 399,
    "total": 399,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "rearm_results.json"
+   ]
   },
   {
    "run": "model_repeat_m8_02_01",
    "driver": "repeat",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "5965417f420dde5940884b3857fe4c440bef9bffaa52c610a85ee66f488b47ed",
    "milestone": "m8",
@@ -81,11 +211,16 @@
    "exit_code": 0,
    "passed": 523,
    "total": 523,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "repeat_results.json"
+   ]
   },
   {
    "run": "model_select_lifecycle_m8_02_01",
    "driver": "select_lifecycle",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "c0b22305cc4896819198d8f76a92312128311b1b2762a20ee0949c213f5716f6",
    "milestone": "m8",
@@ -93,11 +228,16 @@
    "exit_code": 0,
    "passed": 120,
    "total": 120,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "select_lifecycle_results.json"
+   ]
   },
   {
    "run": "model_smoke_m8_02_01",
    "driver": "smoke",
+   "attempt": 1,
    "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
    "driver_sha256": "d51e0522a5166a94ca6b0942ac3142cf864ef77abbd00b6cad1e14402a3cc195",
    "milestone": "m8",
@@ -105,8 +245,12 @@
    "exit_code": 0,
    "passed": 30,
    "total": 30,
-   "failed": []
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "smoke_results.json"
+   ]
   }
  ],
- "note": "every attempt listed; counted = latest passing run bound to this source sha"
+ "note": "every attempt listed; a driver is judged by its latest attempt; an earlier pass never stands in for a later failure"
 }

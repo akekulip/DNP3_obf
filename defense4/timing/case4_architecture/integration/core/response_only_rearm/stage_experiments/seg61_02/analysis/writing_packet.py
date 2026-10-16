@@ -208,8 +208,13 @@ def models(inputs):
             continue
         s = load(summary, inputs)
         counted = set(next((v for k, v in s.items() if k.startswith('counted_passes')), {}).values())
+        # ctl_timing_01/model_summary.py summaries: a blocked build counts nothing, whatever earlier attempts passed
+        qualification = s.get('qualification', 'hand_summary')
+        if 'qualification' in s:
+            counted = set(s['latest_by_driver'].values()) if qualification == 'model_gate_passed' else set()
         for r in s.get('runs', []):                       # every attempt, failed ones included
             rows.append(dict(build=build.name, milestone=name, driver=r.get('driver') or r['run'].split('_')[1],
+                             build_qualification=qualification,
                              run=r['run'], counted=r['run'] in counted, passed=r.get('passed'),
                              total=r.get('total'), exit_code=r.get('exit_code'),
                              failed='; '.join(r.get('failed') or []), source_sha256=r.get('source_sha256'),
