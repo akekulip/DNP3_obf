@@ -28,8 +28,12 @@ base,ARCH=cs.base,cs.ARCH
 
 
 class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
+    USES_TOKEN_PLAN=False   # no delayed generator tokens: the inherited token plan is recorded, never used
+
     def __init__(self,*args,old_graceful,old_rst,**kwargs):
         super().__init__(*args,**kwargs)
+        if self.endpoint_name!='barrier_10s':
+            raise ValueError('external replay supports only the 10 s barrier endpoint (no permit gate)')
         if self.ports()!=[59400]:
             raise ValueError('external archives require the fixed software source port59400')
         pools={}

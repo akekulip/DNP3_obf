@@ -12,10 +12,20 @@ issues one READ plus SBO, and the existing observer uses the actual kernel's
 ss -K after the OPERATE response. The application, capture, controls and RST
 proof gates must pass before the next leg starts. No setup or switch calls are
 made here. Runtime requires the isolated pre-READ endpoint binary for c2.
+
+--endpoint isolation_20s (opt-in, the 20 s endpoint_isolation_20s binary only): c2 may pause up to 20000 ms and
+its master also gets CASE4_PRE_READ_PERMIT/CASE4_PRE_READ_RUN, so it issues its first READ only after the
+switch-side harness grants an endpoint-local permit through the grant-permit subcommand:
+  sudo env DEFENSE4_HW_AUTHORIZED=1 python3 vision_isolation.py grant-permit LABEL \
+    --ready-ns N --opens 1 --deadline-ns D
+grant-permit writes runs/LABEL/c2/pre_read_permit.json atomically only if c2's marker binds to N/opens and
+Vision's monotonic clock is still before D (c2's scheduled first READ). The default (barrier_10s) is unchanged.
 """
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -24,7 +34,119 @@ import threading
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import vision_candidate as vc
-from token_window import PRE_READ_GRACE_MS
+from token_window import PRE_READ_GRACE_MS, ENDPOINT_CAPABILITIES, PERMIT_GRACE_MS
+
+PERMIT_KEYS = ('CASE4_PRE_READ_PERMIT', 'CASE4_PRE_READ_RUN')
+# vision_run.run_connection's master timeout for one READ + SBO with read pause 25 ms and close grace 1000 ms:
+# reads*4 + 30 + ceil((25 + 1000) / 1000) s. The master's worst case: connect 5 s, pause, permit poll window,
+# READ 3 s + 25 ms pause, SBO 3 s, close grace 1 s.
+MASTER_BUDGET_S = 1 * 4 + 30 + 2
+MASTER_FIXED_WORST_S = 5 + 3 + 0.025 + 3 + 1
+
+
+def master_budget(pause_ms, permit):
+    worst = MASTER_FIXED_WORST_S + pause_ms / 1000.0 + (PERMIT_GRACE_MS / 1000.0 if permit else 0.0)
+    return dict(worst_s=worst, budget_s=MASTER_BUDGET_S, ok=worst < MASTER_BUDGET_S)
+
+
+@contextmanager
+def permit_controls(dest, run_label, enabled):
+    """Set the permit controls for one master only when enabled; always restore the caller's environment."""
+    prior = {key: os.environ.get(key) for key in PERMIT_KEYS}
+    for key in PERMIT_KEYS:
+        os.environ.pop(key, None)
+    if enabled:
+        os.environ[PERMIT_KEYS[0]] = str(Path(dest) / 'pre_read_permit.json')
+        os.environ[PERMIT_KEYS[1]] = run_label
+    try:
+        yield
+    finally:
+        for key, value in prior.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+def permit_evidence(dest, run_label, grace):
+    """c2's final master JSON must show the permit it accepted, bound to this run and readiness instance."""
+    failures = []
+    try:
+        master = json.loads((Path(dest) / 'master.json').read_text())
+        permit = json.loads((Path(dest) / 'pre_read_permit.json').read_text())
+    except (OSError, ValueError):
+        return ['missing or malformed permit evidence (master.json / pre_read_permit.json)']
+    accepted = master.get('pre_read_permit') if isinstance(master, dict) else None
+    ready, issued = master.get('pre_read_ready_ns'), master.get('first_read_issued_ns')
+    if not isinstance(accepted, dict) or accepted.get('run') != run_label or not isinstance(permit, dict):
+        return ['c2 master did not report the accepted permit for ' + run_label]
+    granted = accepted.get('granted_ns')
+    if any(type(value) is not int for value in (ready, issued, granted, accepted.get('accepted_ns'))) or \
+            permit.get('granted_ns') != granted or permit.get('ready_ns') != ready or permit.get('run') != run_label \
+            or permit.get('grant') is not True or not ready < granted <= accepted['accepted_ns'] <= issued:
+        failures.append('permit evidence does not bind c2 readiness, grant and first READ in order')
+    elif granted >= ready + grace * 1_000_000:
+        failures.append('permit granted after c2 scheduled first READ')
+    return failures
+
+
+def grant_permit(label, ready_ns, opens, deadline_ns, runs=None, clock=None):
+    """Write c2's permit atomically, once, only if its marker binds to ready_ns/opens and Vision's monotonic
+    clock is before deadline_ns (the harness passes c2's scheduled first READ, ready + pause)."""
+    import time
+    clock = clock or time.monotonic_ns
+    if not re.fullmatch('[A-Za-z0-9_]+', label):
+        raise ValueError('invalid label')
+    if any(type(value) is not int or value <= 0 for value in (ready_ns, opens, deadline_ns)) or deadline_ns <= ready_ns:
+        raise ValueError('ready_ns, opens and deadline_ns must be positive integers, deadline after readiness')
+    c2 = Path(runs or vc.vr.RUNS) / label / 'c2'
+    target = c2 / 'pre_read_permit.json'
+    report = dict(path=str(target), written=False, ready_ns=ready_ns, opens=opens, deadline_ns=deadline_ns)
+    try:
+        marker = json.loads((c2 / 'pre_read_ready.json').read_text())
+    except (OSError, ValueError):
+        return dict(report, reason='c2 marker missing or incomplete')
+    if not isinstance(marker, dict) or marker.get('pre_read_ready_ns') != ready_ns or marker.get('opens') != opens \
+            or marker.get('first_read_issued_ns') != 0 or marker.get('tcp_open') is not True:
+        return dict(report, reason='c2 marker does not bind this readiness instance')
+    if os.path.lexists(target):
+        return dict(report, reason='permit already exists')
+    granted = clock()
+    report['granted_ns'] = granted
+    if not ready_ns < granted < deadline_ns:
+        return dict(report, reason='late or stale: Vision clock %d not inside (ready %d, deadline %d)'
+                    % (granted, ready_ns, deadline_ns))
+    body = json.dumps(dict(run=label + '_c2', ready_ns=ready_ns, opens=opens, grant=True, granted_ns=granted))
+    tmp = c2 / ('.pre_read_permit.%d.tmp' % os.getpid())
+    fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    try:
+        with os.fdopen(fd, 'w') as handle:
+            handle.write(body)
+            handle.flush()
+            os.fsync(handle.fileno())
+        written = clock()
+        if written >= deadline_ns:
+            os.unlink(str(tmp))
+            return dict(report, reason='late: write finished at %d, deadline %d' % (written, deadline_ns))
+        os.link(str(tmp), str(target))       # fails if a permit appeared meanwhile: never overwrite
+    finally:
+        if os.path.lexists(str(tmp)):
+            os.unlink(str(tmp))
+    return dict(report, written=True, written_ns=written, reason='granted')
+
+
+def grant_main(argv):
+    parser = argparse.ArgumentParser(prog='vision_isolation.py grant-permit')
+    parser.add_argument('label')
+    parser.add_argument('--ready-ns', type=int, required=True)
+    parser.add_argument('--opens', type=int, required=True)
+    parser.add_argument('--deadline-ns', type=int, required=True)
+    args = parser.parse_args(argv)
+    if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
+        raise ValueError('grant-permit requires DEFENSE4_HW_AUTHORIZED=1')
+    report = grant_permit(args.label, args.ready_ns, args.opens, args.deadline_ns)
+    print(json.dumps(report))
+    return 0 if report['written'] else 1
 
 
 def abort_c2(label, runs=None, proc='/proc', settle_s=1.0):
@@ -89,10 +211,16 @@ def source_paths():
 
 
 def scenario(label, port, padding, apply=False, control_padding=1, image_len=58, qualify_capture=False,
-             pre_read_grace_ms=PRE_READ_GRACE_MS):
+             pre_read_grace_ms=PRE_READ_GRACE_MS, endpoint='barrier_10s'):
     vc.guard(port, apply)
-    if type(pre_read_grace_ms) is not int or not 1 <= pre_read_grace_ms <= PRE_READ_GRACE_MS:
-        raise ValueError('c2 pre-READ pause must be an integer in 1..%d ms' % PRE_READ_GRACE_MS)
+    if endpoint not in ENDPOINT_CAPABILITIES:
+        raise ValueError('unknown isolation endpoint capability')
+    capability = ENDPOINT_CAPABILITIES[endpoint]
+    if type(pre_read_grace_ms) is not int or not 1 <= pre_read_grace_ms <= capability['max_pause_ms']:
+        raise ValueError('c2 pre-READ pause must be an integer in 1..%d ms' % capability['max_pause_ms'])
+    budget = master_budget(pre_read_grace_ms, capability['permit'])
+    if not budget['ok']:
+        raise ValueError('c2 worst case %.3f s exceeds the master timeout %d s' % (budget['worst_s'], budget['budget_s']))
     graces = (0, pre_read_grace_ms, 0)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or type(padding) is not int or padding not in (0, 1):
         raise ValueError('invalid label or padding')
@@ -103,12 +231,16 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58,
                  pre_read_grace_ms=grace,
                  marker_path=str(parent / ('c%d' % index) / 'pre_read_ready.json') if grace else None)
             for index, grace in enumerate(graces, 1)]
+    if capability['permit']:                 # only c2, only on the opt-in isolation endpoint
+        plan[1].update(permit_path=str(parent / 'c2' / 'pre_read_permit.json'), permit_run=label + '_c2')
     record = dict(scenario='candidate_same_tuple_isolation', label=label, master_port=port,
                   tuple=[vc.MASTER, port, vc.OUTSTATION, vc.SERVER_PORT],
                   namespaces=[vc.NAMESPACE_M, vc.NAMESPACE_O], nic=vc.NIC,
                   padding=padding, reads=1, read_pause_ms=25, close_mode='rst', close_grace_ms=1000,
                   qualify_capture=qualify_capture,
                   switch_mutations=False, applied=apply, plan=plan, connections=[], ok=False)
+    if endpoint != 'barrier_10s':            # retained barrier_10s records keep their exact shape
+        record.update(endpoint=endpoint, endpoint_capability=dict(capability), master_budget=budget)
     if not apply:
         record['ok'] = True
         return record
@@ -130,7 +262,8 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58,
             worker = threading.Thread(target=watch, daemon=True)
             worker.start()
             try:
-                with vc.pre_read_controls(dest, leg['pre_read_grace_ms']):
+                with vc.pre_read_controls(dest, leg['pre_read_grace_ms']), \
+                        permit_controls(dest, leg.get('permit_run', ''), 'permit_run' in leg):
                     kwargs = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=1000, capture_immediate=True)
                     if qualify_capture:
                         kwargs['qualify_capture'] = True
@@ -154,6 +287,8 @@ def scenario(label, port, padding, apply=False, control_padding=1, image_len=58,
                                                   rst_grace_ms=1000, reads=1,
                                                   pre_read_grace_ms=leg['pre_read_grace_ms'],
                                                   control_padding=control_padding, image_len=image_len)
+            if 'permit_run' in leg:
+                connection['failures'] += permit_evidence(dest, leg['permit_run'], leg['pre_read_grace_ms'])
             connection['pre_read_hook'] = vc.pre_read_evidence(dest, leg['pre_read_grace_ms'])[1]
             connection['ok'] = not connection['failures']
             vc.write_json(dest / 'verdict.json', connection)
@@ -183,11 +318,13 @@ def main(argv=None):
                         help='opt-in physical packet-boundary qualification evidence for each leg')
     parser.add_argument('--pre-read-grace-ms', type=int, default=PRE_READ_GRACE_MS,
                         help='c2 pre-READ pause, derived by the switch-side harness from the cleanup bound')
+    parser.add_argument('--endpoint', choices=sorted(ENDPOINT_CAPABILITIES), default='barrier_10s',
+                        help='isolation_20s: opt-in 20 s endpoint whose c2 READ waits for grant-permit')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.padding, args.apply, control_padding=args.control_padding,
                       image_len=args.image_len, qualify_capture=args.qualify_capture,
-                      pre_read_grace_ms=args.pre_read_grace_ms)
+                      pre_read_grace_ms=args.pre_read_grace_ms, endpoint=args.endpoint)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 
@@ -196,6 +333,8 @@ if __name__ == '__main__':
     try:
         if sys.argv[1:2] == ['abort-c2']:
             sys.exit(abort_main(sys.argv[2:]))
+        if sys.argv[1:2] == ['grant-permit']:
+            sys.exit(grant_main(sys.argv[2:]))
         sys.exit(main())
     except (ValueError, OSError) as error:
         sys.stderr.write('Vision isolation refused: %s\n' % error)

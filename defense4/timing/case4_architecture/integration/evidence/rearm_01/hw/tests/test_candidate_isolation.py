@@ -11,7 +11,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import candidate_isolation as ci
 
 
-def config():
+def barrier_config():
+    """The legacy (candidate61-shaped, one READ-lane batch) diagnostic on the 10 s barrier: its derived pause
+    (10602 ms) exceeds the 10000 ms capability, so since 2026-10-16 it is analysis-only (refused for activation)."""
     cfg=ci.base.load_config(str(ci.ARCH/'protocol/hw_vepa/config/precision_5ms_gap800us_14892.json'))
     cfg['builds']['mirror_fix_01']['lifecycle_rearm']=True
     cfg['trials']=dict(reads_per_trial=1,trials_per_arm=1)
@@ -20,6 +22,42 @@ def config():
     cfg['hosts']['vision_run_dir']=ci.BARRIER_DIRECTORY
     cfg['endpoint']['binary_sha256']=ci.BARRIER_BINARY
     return cfg
+
+
+def config():
+    """The same diagnostic on the opt-in 20 s isolation endpoint (declared capability + its own pins)."""
+    cfg=barrier_config()
+    cfg['hosts']['vision_run_dir']=ci.ISOLATION_DIRECTORY
+    cfg['endpoint'].update(binary_sha256=ci.ISOLATION_BINARY,max_pause_ms=20000,permit=True)
+    return cfg
+
+
+def test_legacy_barrier_plan_that_does_not_fit_is_refused_for_activation_and_analysis_only_cannot_run():
+    with pytest.raises(ValueError,match='new activation refused'):
+        ci.TokenIsolationCampaign(barrier_config(),ci.base.DryRunner(),'legacy',arms=['combined'],fixtures=['separate_ack'])
+    run=ci.TokenIsolationCampaign(barrier_config(),ci.base.DryRunner(),'legacy',arms=['combined'],
+                                  fixtures=['separate_ack'],analysis_only=True)
+    assert run.plan['pause']['fits'] is False and run.plan['activation'] is False
+    assert (run.endpoint_name,run.pause_ms,run.plan['pause']['derived_pause_ms'])==('barrier_10s',10_000,10_602)
+    for method in (run.execute,run.deploy_only):
+        with pytest.raises(ci.base.StepFailed,match='analysis-only'):method()
+
+
+def test_isolation_endpoint_is_accepted_only_with_its_declared_capability_and_pins():
+    run=ci.TokenIsolationCampaign(config(),ci.base.DryRunner(),'iso',arms=['combined'],fixtures=['separate_ack'])
+    assert (run.endpoint_name,run.capability,run.pause_ms)==('isolation_20s',dict(max_pause_ms=20000,permit=True),20_000)
+    assert run.plan['pause']['fits'] is True and run.plan['pause']['derived_pause_ms']==10_602
+    bad=[]
+    for change in (dict(permit=False),dict(max_pause_ms=10000),dict(max_pause_ms=20001),dict(binary_sha256=ci.BARRIER_BINARY),
+                   dict(permit='true'),dict(max_pause_ms=20000.0)):
+        cfg=config();cfg['endpoint'].update(change);bad.append(cfg)
+    cfg=config();cfg['hosts']['vision_run_dir']=ci.BARRIER_DIRECTORY;bad.append(cfg)
+    cfg=barrier_config();cfg['endpoint']['binary_sha256']=ci.ISOLATION_BINARY;bad.append(cfg)     # 20 s binary, 10 s claim
+    cfg=barrier_config();cfg['hosts']['vision_run_dir']=ci.ISOLATION_DIRECTORY;bad.append(cfg)
+    for cfg in bad:
+        with pytest.raises(ValueError):
+            ci.TokenIsolationCampaign(cfg,ci.base.DryRunner(),'bad',arms=['combined'],fixtures=['separate_ack'],
+                                      analysis_only=True)
 
 
 def test_diagnostic_cannot_use_legacy_endpoint_or_qualify_precision():
@@ -39,6 +77,11 @@ def test_fixed_isolation_command_has_one_read_and_no_external_replay():
     run._series_padding=1
     command=run.series_vision_cmd('fixed',59412,1,8,0)
     assert 'vision_isolation.py fixed --master-port 59412 --padding 1 --control-padding 1 --image-len 58 --apply' in command
+    assert command.endswith('--pre-read-grace-ms 20000 --endpoint isolation_20s')
+    legacy=ci.TokenIsolationCampaign(barrier_config(),ci.base.DryRunner(),'legacy',arms=['combined'],
+                                     fixtures=['separate_ack'],analysis_only=True)
+    legacy._series_padding=1
+    assert legacy.series_vision_cmd('fixed',59412,1,8,0).endswith('--apply --pre-read-grace-ms 10000')
     assert 'vision_candidate.py' not in command and 'replay' not in command
 
 
@@ -88,6 +131,18 @@ PROFILE_INJECTED = 'profile: profile not conformant: attempt #3 (READ): injected
 
 @pytest.mark.parametrize('rejection', [[], [INJECTED], [PROFILE_INJECTED]])
 def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatch,tmp_path,rejection):
+    _standards_verdict(monkeypatch,tmp_path,rejection)
+
+
+@pytest.mark.parametrize('accepted', [6, None])
+def test_verdict_fails_when_c2_did_not_read_under_the_granted_permit(monkeypatch,tmp_path,accepted):
+    with pytest.raises(ci.base.StepFailed,match='c2 did not READ under the permit'):
+        _standards_verdict(monkeypatch,tmp_path,[],accepted_granted_ns=accepted)
+    isolation=json.loads((tmp_path/'isolation_verdict.json').read_text())
+    assert isolation['ok'] is False and 'c2 did not READ under the permit this monitor granted' in isolation['failures']
+
+
+def _standards_verdict(monkeypatch,tmp_path,rejection,accepted_granted_ns=5):
     import vision_candidate
     runner=ci.base.DryRunner();runner.dry=False
     run=ci.TokenIsolationCampaign(config(),runner,'iso_standards',arms=['combined'],fixtures=['separate_ack'],out=lambda *_:None)
@@ -99,12 +154,15 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
         ok=True,source_sha256=pins,scenario='candidate_same_tuple_isolation',applied=True,padding=1,reads=1,
         master_port=59412,read_pause_ms=25,close_mode='rst',close_grace_ms=1000,
         tuple=['192.168.10.61',59412,'192.168.10.62',20000],namespaces=['ns_vepa_a','ns_vepa_b'],
-        nic='enp59s0f0np0',switch_mutations=False,
-        plan=[dict(pre_read_grace_ms=grace) for grace in (0,run.pause_ms,0)])))
+        nic='enp59s0f0np0',switch_mutations=False,endpoint='isolation_20s',
+        plan=[dict(pre_read_grace_ms=0),dict(pre_read_grace_ms=run.pause_ms,permit_run='iso_standards_c2'),
+              dict(pre_read_grace_ms=0)])))
     for cn in ('c1','c2','c3'):
         (tmp_path/cn).mkdir();(tmp_path/cn/'verdict.json').write_text(json.dumps(dict(ok=True)))
+    (tmp_path/'c2'/'master.json').write_text(json.dumps(dict(pre_read_permit=dict(run='iso_standards_c2',
+                                                                                  granted_ns=accepted_granted_ns))))
     run.window.update(monitor_ok=True,marker_observation=dict(marker={}),before=dict(operate_app_after=dict(ipg=0)),
-                      after={},restored_vision_ns=0)
+                      after={},restored_vision_ns=0,permit_granted_vision_ns=5)
     # Every other collaborator passes, so the standards wrapper is the only possible failure.
     monkeypatch.setattr(ci.cs.checks,'application_checks',lambda *a,**kw:[])
     monkeypatch.setattr(ci.cs.wc,'parse',lambda path:([],[]))
@@ -125,6 +183,8 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
     calls=[]
     monkeypatch.setattr(run,'validate_standards_file',lambda *a,**kw:calls.append(kw['connection_id']) or list(rejection))
     trial=dict(reads=1,master_port=59412);arm=run.arms[0];vision=ci.base.Result(0,'','')
+    if accepted_granted_ns!=5:
+        run.verdict(trial,{},'iso_standards',str(tmp_path),vision,arm,'separate_ack')
     if not rejection:
         run.verdict(trial,{},'iso_standards',str(tmp_path),vision,arm,'separate_ack')
         assert trial['ok'] is True and trial['failures']==[]

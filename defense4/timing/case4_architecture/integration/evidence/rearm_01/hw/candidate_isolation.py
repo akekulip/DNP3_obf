@@ -28,12 +28,19 @@ from isolation_gate import compare_quiet_generation
 from token_window import (RESTORE_ALLOWANCE_NS, ABORT_MARGIN_NS, DRAIN_BEFORE_C2_RATIONALE, TEARDOWN_RESTORES_GENERATOR, ESTIMATES, require_marker, window_proof,
                           rejection_delta, rejection_counts, full_run_rejections, operate_rejection_proof,
                           old_token_population, plan_isolation, drained, overran, cleanup_proof,
-                          restore_proof, quiet_poll_proof, expected_generations, post_traffic_authority)
+                          restore_proof, quiet_poll_proof, expected_generations, post_traffic_authority,
+                          endpoint_capability, permit_conditions)
 from privileged_python import authorized_python
 
 base, ARCH=cs.base,cs.ARCH
 BARRIER_DIRECTORY='/home/decps/pad58b_rearm_barrier_10s_20261012'
 BARRIER_BINARY='8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158'
+# The opt-in 20 s isolation endpoint (rearm_01/endpoint_isolation_20s, manifest/build_manifest.json): accepted
+# ONLY when cfg['endpoint'] declares its capability (max_pause_ms 20000, permit true); its own new directory.
+ISOLATION_DIRECTORY='/home/decps/pad58b_isolation_20s_20261016'
+ISOLATION_BINARY='c73290162d0f0b1934f13da77c1354cec110a9d29d38e4a170470432b4bae7c0'
+ENDPOINT_IDENTITIES={'barrier_10s':dict(directory=BARRIER_DIRECTORY,binary=BARRIER_BINARY),
+                     'isolation_20s':dict(directory=ISOLATION_DIRECTORY,binary=ISOLATION_BINARY)}
 ABORT_MARGIN_S=ABORT_MARGIN_NS/1e9   # local time kept for the fail-safe abort before c2's pause deadline
 ABORT_PREFLIGHT_MAX_S=0.8   # the abort path must answer within this wall time before any traffic
 MARKER_READ_RETRIES=3       # consecutive failed marker reads tolerated while waiting for c2
@@ -104,7 +111,14 @@ class Watchdog:
 
 
 class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
-    def __init__(self,*args,**kwargs):
+    # The delayed-token plan gates activation only for campaigns that delay generator tokens; external packet
+    # replay (candidate_external) inherits the class but never uses the plan, so it overrides this.
+    USES_TOKEN_PLAN=True
+
+    def __init__(self,*args,analysis_only=False,**kwargs):
+        """analysis_only=True builds the campaign to analyse retained evidence only: a plan that does not fit is
+        recorded instead of refused, and execute()/deploy_only() refuse. Every new activation uses the default."""
+        self.analysis_only=analysis_only
         super().__init__(*args,close_mode='rst',rst_grace_ms=1000,**kwargs)
         self.window={}
         self.record['token_isolation']=self.window
@@ -120,14 +134,20 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         sbo=cs.checks.sbo_count(self.cfg['traffic'])
         self.population=old_token_population(k,1,sbo,control_timed)
         self.installed_ipg=installed_app_ipgs(k)
-        # candidate61 (one READ-lane batch) keeps its retained 2.5 s / 10000 ms parameters (legacy plan)
+        self.endpoint_name,self.capability=endpoint_capability(self.cfg['endpoint'])
+        # candidate61 (one READ-lane batch) keeps its retained 2.5 s delay (legacy plan); a plan that does not fit
+        # the selected endpoint's capability refuses every new activation (analysis_only only records it)
         self.plan=plan_isolation(self.population,self.installed_ipg['OPERATE'],
-                                 self.cfg.get('isolation',{}).get('delay_ipg_ns'),legacy=not control_timed)
+                                 self.cfg.get('isolation',{}).get('delay_ipg_ns'),legacy=not control_timed,
+                                 capability=self.capability,
+                                 activation=self.USES_TOKEN_PLAN and not analysis_only)
         self.delay_ipg_ns=self.plan['delay_ipg_ns']
         self.pause_ms=self.plan['pause']['pause_ms']
         _,reserve=cc.HEADROOM.workload_reserve(1,sbo,1,control_timed)
         self.generations=expected_generations(reserve['read_lane_per_connection'],reserve['operate_per_connection'],
                                               reserve['open_close_per_connection'])
+        self.record['isolation_endpoint']=dict(name=self.endpoint_name,capability=self.capability,
+                                               analysis_only=analysis_only)
         self.window.update(population=self.population,plan=self.plan,installed_app_ipg_ns=self.installed_ipg,
                            expected_generations=self.generations,design=DRAIN_BEFORE_C2_RATIONALE,
                            rollback=TEARDOWN_RESTORES_GENERATOR)
@@ -145,9 +165,22 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if (traffic['range'],traffic['gap_ms'],traffic['start_delay_ms'],traffic.get('read_pause_ms'),
                 traffic.get('run_sbo'),self.cfg['seeds']['rng_seed'])!=(8,0,0,25,True,12345):
             raise ValueError('isolation requires range8/gap0/start0/pause25/SBO/seed12345')
-        if self.cfg['hosts']['vision_run_dir']!=BARRIER_DIRECTORY or \
-                self.cfg['endpoint']['binary_sha256']!=BARRIER_BINARY:
-            raise ValueError('isolation requires the exact pinned pre-READ barrier endpoint')
+        name,_=endpoint_capability(self.cfg['endpoint'])
+        identity=ENDPOINT_IDENTITIES[name]
+        if self.cfg['hosts']['vision_run_dir']!=identity['directory'] or \
+                self.cfg['endpoint']['binary_sha256']!=identity['binary']:
+            raise ValueError('isolation requires the exact pinned pre-READ endpoint for its declared capability (%s)'
+                             % name)
+
+    def execute(self):
+        if self.analysis_only:
+            raise base.StepFailed('analysis-only isolation campaign: no activation')
+        return super().execute()
+
+    def deploy_only(self):
+        if self.analysis_only:
+            raise base.StepFailed('analysis-only isolation campaign: no activation')
+        return super().deploy_only()
 
     def _copy_verify(self,where,files,directory,identity_key):
         host=self.cfg['hosts'][where]
@@ -200,6 +233,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         args = [label, '--master-port', master_port, '--padding', 1,
                 '--control-padding', self._control_padding(), '--image-len', self._image_len(), '--apply',
                 '--pre-read-grace-ms', self.pause_ms]
+        if self.endpoint_name!='barrier_10s':
+            args += ['--endpoint', self.endpoint_name]
         if self._qualify_capture():
             args.append('--qualify-capture')
         return authorized_python(base.runner.V_RUN + '/vision_isolation.py', args)
@@ -345,6 +380,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                 raise ValueError('restore not confirmed before the abort point; c2 was aborted')
             self.window['restored_vision_ns']=restored_ns
             self.window['runtime_slack_ns']=restore_gate-self.window['drained_vision_ns']
+            if self.capability['permit']:
+                self.grant_permit(label,observed['marker'],pause_deadline,pause_local)
             for name,remote in [('delay',self.window['delay_remote']),('restore',restored)]:
                 self.step('local','collect token '+name,'scp -q %s:%s %s' % (
                     self.cfg['hosts']['switch'],base.q(remote),base.q(Path(self.root)/('token_'+name+'.json'))),timeout=5)
@@ -361,6 +398,36 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             if dog.fired_at is not None:
                 self.window['watchdog_fired_local']=dog.fired_at
             (Path(self.root)/'token_window_observer.json').write_text(json.dumps(self.window,indent=2)+'\n')
+
+    def grant_permit(self,label,marker,pause_deadline,pause_local):
+        """isolation_20s only: grant c2's endpoint-local permit after the harness-side conditions hold. The Vision
+        helper re-checks the marker binding and that Vision's monotonic clock is before c2's scheduled READ
+        (pause_deadline = ready + pause, Vision clock). Any failure raises; the endpoint then exits without a
+        READ at scheduled + PERMIT_GRACE_MS, and the caller's abort path stops c2 as well."""
+        failures=permit_conditions(self.window['before'],self.window.get('polls'),self.population,
+                                   self.window.get('drained_vision_ns'),self.window.get('restored_vision_ns'),
+                                   pause_deadline)
+        self.window['permit_conditions']=dict(ok=not failures,failures=failures)
+        if failures:
+            raise ValueError('c2 permit withheld: '+'; '.join(failures))
+        remaining=pause_local-time.monotonic()
+        if remaining<=0:
+            raise ValueError('no time left to grant the c2 permit before its scheduled READ')
+        result=self.rn.run('vision',authorized_python(self.V+'/vision_isolation.py',
+                           ['grant-permit',label,'--ready-ns',marker['pre_read_ready_ns'],'--opens',marker['opens'],
+                            '--deadline-ns',pause_deadline]),timeout=remaining,
+                           label='grant c2 pre-READ permit on the Vision clock')
+        report=None
+        try:
+            report=json.loads(result.out.strip().splitlines()[-1])
+        except (ValueError,IndexError,AttributeError):
+            pass
+        self.window['permit']=dict(rc=result.rc,report=report,err=result.err)
+        if result.rc!=0 or not isinstance(report,dict) or report.get('written') is not True or \
+                type(report.get('granted_ns')) is not int or \
+                not marker['pre_read_ready_ns']<report['granted_ns']<pause_deadline:
+            raise ValueError('c2 permit not granted (rc %s, %s)' % (result.rc,(report or {}).get('reason',result.err)))
+        self.window['permit_granted_vision_ns']=report['granted_ns']
 
     def _watchdog_abort(self,label):
         self.out('[isolation] watchdog: restore not confirmed before the abort point; aborting c2')
@@ -489,6 +556,14 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         plan=[leg.get('pre_read_grace_ms') for leg in scenario.get('plan') or []]
         isolation_failures=[f for f in failures if f.startswith(('collected Vision scenario source pins',
                                                                    'collected isolation scenario'))]
+        if self.capability['permit']:
+            c2_plan=(scenario.get('plan') or [{}, {}])[1] if len(scenario.get('plan') or [])==3 else {}
+            if scenario.get('endpoint')!=self.endpoint_name or c2_plan.get('permit_run')!=label+'_c2':
+                isolation_failures.append('collected Vision scenario did not run c2 behind the endpoint permit')
+            accepted=(cs._load_json(Path(dest)/'c2/master.json') or {}).get('pre_read_permit') or {}
+            if type(self.window.get('permit_granted_vision_ns')) is not int or \
+                    accepted.get('granted_ns')!=self.window['permit_granted_vision_ns']:
+                isolation_failures.append('c2 did not READ under the permit this monitor granted')
         if plan!=[0,self.pause_ms,0]:
             isolation_failures.append('collected Vision plan pauses %r differ from the derived c2 pause %d ms'
                                       % (plan,self.pause_ms))

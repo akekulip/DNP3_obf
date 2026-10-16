@@ -155,8 +155,11 @@ def test_bound_and_pause_against_hand_computed_numbers(m4, c61):
     with pytest.raises(ValueError, match='before the c2-ready snapshot'):
         tw.plan_isolation(population(m4['cfg']), 0, 1_000_000_000)
     # candidate61 keeps its retained 2.5 s / 10000 ms; its derived requirement (7.5 + 3.001 + 4 + 1.5 - 5.399 s
-    # = 10.602 s) no longer fits, which is recorded (fits False, slack -0.602 s), not used to refuse
-    legacy = tw.plan_isolation(population(c61['cfg']), 0, legacy=True)
+    # = 10.602 s) no longer fits the 10 s barrier. Since 2026-10-16 that REFUSES any new activation; only an
+    # analysis of the retained run (activation=False) records it (fits False, slack -0.602 s)
+    with pytest.raises(ValueError, match='new activation refused'):
+        tw.plan_isolation(population(c61['cfg']), 0, legacy=True)
+    legacy = tw.plan_isolation(population(c61['cfg']), 0, legacy=True, activation=False)
     assert (legacy['delay_ipg_ns'], legacy['pause']['pause_ms'], legacy['pause']['derived_pause_ms']) == \
         (2_500_000_000, 10_000, 10_602)
     assert legacy['pause']['fits'] is False and legacy['pause']['planned_slack_ns'] == -601_926_734
@@ -364,16 +367,20 @@ def test_cleanup_bound_exceeded_or_slow_restore_or_unquiet_poll_is_rejected(m4):
 
 # ---------------------------------------------------------------- harness wiring
 
-def campaign(name, model_only=False, **isolation):
+ISO20 = HW.parent / 'config/ctl_m5_stale_iso20_950.json'
+
+
+def campaign(name, model_only=False, analysis_only=False, **isolation):
     import candidate_isolation as ci
-    cfg = ci.base.load_config(str(SEG / 'hw/config' / (name.rsplit('_', 1)[0] + '.json')))
+    path = ISO20 if name == 'iso20' else SEG / 'hw/config' / (name.rsplit('_', 1)[0] + '.json')
+    cfg = ci.base.load_config(str(path))
     if isolation:
         cfg['isolation'] = isolation
     with pytest.MonkeyPatch.context() as mp:
         if model_only:
             hypothetical(mp)
         return ci, ci.TokenIsolationCampaign(cfg, ci.base.DryRunner(), 'token_s3', arms=['combined'],
-                                             fixtures=['separate_ack'])
+                                             fixtures=['separate_ack'], analysis_only=analysis_only)
 
 
 def test_harness_derives_population_ipg_pause_and_restore_from_configured_workload():
@@ -382,7 +389,10 @@ def test_harness_derives_population_ipg_pause_and_restore_from_configured_worklo
     ci, m4run = campaign(M4, model_only=True)
     assert m4run.population['READ']['triggers'] == 2 and m4run.installed_ipg == {'READ': 0, 'OPERATE': 0}
     assert (m4run.delay_ipg_ns, m4run.pause_ms) == (1_000_000_000, 10_000)
-    _, c61run = campaign(C61)
+    with pytest.raises(ValueError, match='new activation refused'):   # legacy no longer admitted when not fits
+        campaign(C61)
+    _, c61run = campaign(C61, analysis_only=True)
+    assert c61run.plan['pause']['fits'] is False
     assert c61run.population == tw.LEGACY_POPULATION and (c61run.delay_ipg_ns, c61run.pause_ms) == (2_500_000_000,
                                                                                                    10_000)
     for run_, triggers, ipg, pause in ((m4run, 2, 1_000_000_000, 10_000), (c61run, 1, 2_500_000_000, 10_000)):
@@ -713,7 +723,7 @@ def _c61_verdict_inprocess(tmp_path, failing=(), refresh_pins=True, inject_lifec
         def run(self, where, cmd, cwd=None, timeout=None, label=None):
             rc = int(any(key in (label or '') for key in failing))
             return ci.base.Result(rc, '', '')
-    _, run = campaign(C61)
+    _, run = campaign(C61, analysis_only=True)      # analysis of the retained run only
     run.rn = Runner()
     run.out = lambda *a, **k: None
     scenario = load(dest / 'scenario.json')
@@ -820,7 +830,7 @@ NO_MASTER = json.dumps(dict(target='x', matched=[], killed=[], remaining=[], err
 
 
 def test_abort_preflight_accepts_a_fast_no_master_answer():
-    ci, run = campaign(C61)
+    ci, run = campaign('iso20')
     run.rn = PreflightRunner(1, NO_MASTER)
     run.abort_preflight()
     record = run.record['abort_preflight']
@@ -833,7 +843,7 @@ def test_abort_preflight_accepts_a_fast_no_master_answer():
                                               (1, '', 0.0, 'sudo: a password is required'),   # refused
                                               (1, json.dumps(dict(matched=[7], c2_already_exited=False)), 0.0, '')])
 def test_abort_preflight_refuses_the_block(rc, out, delay, err):
-    ci, run = campaign(C61)
+    ci, run = campaign('iso20')
     run.rn = PreflightRunner(rc, out, delay, err)
     with pytest.raises(ci.base.StepFailed, match='block refused'):
         run.abort_preflight()
@@ -943,7 +953,7 @@ def test_watchdog_never_aborts_after_confirmation_and_cancel_waits_for_a_running
 
 def test_vision_identity_runs_the_abort_preflight_before_any_traffic(monkeypatch):
     import candidate_isolation as ci
-    _, run = campaign(C61)
+    _, run = campaign('iso20')
     calls = []
     monkeypatch.setattr(ci.cs.CandidateSeriesCampaign, 'vision_identity', lambda self: calls.append('series'))
     monkeypatch.setattr(run, '_copy_verify', lambda *a: calls.append('copy'))

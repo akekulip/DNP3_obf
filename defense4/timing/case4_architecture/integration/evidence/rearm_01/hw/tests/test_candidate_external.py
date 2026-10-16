@@ -7,7 +7,7 @@ import pytest
 HW=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(HW))
 import candidate_external as ce
-from test_candidate_isolation import config
+from test_candidate_isolation import barrier_config as config
 from test_vision_replay import artifacts, vp
 
 

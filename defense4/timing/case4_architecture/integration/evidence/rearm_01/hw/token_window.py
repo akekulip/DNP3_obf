@@ -12,6 +12,29 @@ RAW_INDICES = (6, 14, 23, 24)
 PRE_READ_GRACE_MS = 10000              # the candidate61 fixed pause, and the pinned barrier endpoint's maximum
 PRE_READ_GRACE_NS = PRE_READ_GRACE_MS * 1_000_000
 PAUSE_MAX_MS = PRE_READ_GRACE_MS
+# Endpoint capability is explicit configuration (cfg['endpoint'].max_pause_ms / .permit), never a global: the
+# 10 s barrier (8270...) is the default for every config that names neither; the 20 s isolation endpoint
+# (endpoint_isolation_20s) also gates its first READ on an endpoint-local permit file (PERMIT_GRACE_MS after the
+# scheduled READ, then exit 75/76 before any READ).
+ENDPOINT_CAPABILITIES = {'barrier_10s': dict(max_pause_ms=PRE_READ_GRACE_MS, permit=False),
+                         'isolation_20s': dict(max_pause_ms=20000, permit=True)}
+LEGACY_CAPABILITY = ENDPOINT_CAPABILITIES['barrier_10s']
+PERMIT_GRACE_MS = 2000                 # the endpoint's fixed poll window after the scheduled first READ
+PERMIT_ABSENT_RC, PERMIT_REFUSED_RC = 75, 76
+
+
+def endpoint_capability(endpoint):
+    """(name, capability) for a config's endpoint section; absent fields mean the 10 s barrier."""
+    if not isinstance(endpoint, dict):
+        raise ValueError('endpoint section must be an object')
+    declared = dict(max_pause_ms=endpoint.get('max_pause_ms', LEGACY_CAPABILITY['max_pause_ms']),
+                    permit=endpoint.get('permit', LEGACY_CAPABILITY['permit']))
+    if type(declared['max_pause_ms']) is not int or type(declared['permit']) is not bool:
+        raise ValueError('endpoint.max_pause_ms must be an integer and endpoint.permit a boolean')
+    for name, capability in ENDPOINT_CAPABILITIES.items():
+        if capability == declared:
+            return name, dict(capability)
+    raise ValueError('endpoint capability %r matches no known isolation endpoint' % declared)
 DEFAULT_DELAY_IPG_NS = 2_500_000_000
 DELAY_IPG_MIN_NS, DELAY_IPG_GRID_NS = 1_000_000_000, 250_000_000   # delay_read_tokens accepts 1..4 s
 ROLES = (('READ', 'read', 0), ('OPERATE', 'operate', 1))
@@ -121,11 +144,12 @@ def cleanup_bound(population, ipg_by_role):
                         'span = triggers x (2k-1) x IPG; OPERATE drain bounded by the READ span (empirical)')
 
 
-def pause_requirement(bound, credit_ns=C1_TO_C2_READY_MIN_NS, lower_credit_ns=C1_TO_C2_READY_MAX_NS):
+def pause_requirement(bound, credit_ns=C1_TO_C2_READY_MIN_NS, lower_credit_ns=C1_TO_C2_READY_MAX_NS,
+                      maximum_ms=PAUSE_MAX_MS):
     """c2's pre-READ pause (upper bound) and the old-token lower bound for one plan.
 
     upper: pause = ceil_ms(bound + restore allowance + abort margin - credit) <= PAUSE_MAX_MS, credit the measured
-    minimum c1 first READ -> c2 ready. lower: the last old READ token must leave after the c2-ready snapshot,
+    minimum c1 first READ -> c2 ready; maximum_ms is the selected endpoint's capability. lower: the last old READ token must leave after the c2-ready snapshot,
     last_old_read_token > maximum credit + first snapshot + margin, or no old token arrives inside c2's pause.
     The upper bound uses the minimum measured c1 -> c2-ready time, the lower bound the maximum.
     """
@@ -133,60 +157,74 @@ def pause_requirement(bound, credit_ns=C1_TO_C2_READY_MIN_NS, lower_credit_ns=C1
     pause_ms = max(1, -(-required // 1_000_000))
     floor = lower_credit_ns + FIRST_SNAPSHOT_NS + LOWER_MARGIN_NS
     last = bound['last_old_read_token_ns']
-    return dict(required_ns=required, pause_ms=pause_ms, maximum_ms=PAUSE_MAX_MS, upper_ok=pause_ms <= PAUSE_MAX_MS,
+    return dict(required_ns=required, pause_ms=pause_ms, maximum_ms=maximum_ms, upper_ok=pause_ms <= maximum_ms,
                 last_old_read_token_ns=last, lower_floor_ns=floor, lower_ok=last > floor,
-                fits=pause_ms <= PAUSE_MAX_MS and last > floor,
+                fits=pause_ms <= maximum_ms and last > floor,
                 restore_allowance_ns=RESTORE_ALLOWANCE_NS, abort_margin_ns=ABORT_MARGIN_NS, c1_credit_ns=credit_ns, c1_lower_credit_ns=lower_credit_ns,
-                upper_margin_ns=PAUSE_MAX_MS * 1_000_000 - pause_ms * 1_000_000, lower_margin_over_floor_ns=last - floor,
+                upper_margin_ns=maximum_ms * 1_000_000 - pause_ms * 1_000_000, lower_margin_over_floor_ns=last - floor,
                 estimates=ESTIMATES,
                 first_snapshot_ns=FIRST_SNAPSHOT_NS, lower_margin_ns=LOWER_MARGIN_NS,
                 formula='upper: pause = ceil_ms(bound + restore allowance + abort margin - c1->c2 ready minimum) '
                         '<= %d ms; lower: '
-                        'READ span > c1->c2 ready maximum + first snapshot + margin' % PAUSE_MAX_MS)
+                        'READ span > c1->c2 ready maximum + first snapshot + margin' % maximum_ms)
 
 
-def plan_isolation(population, operate_ipg_ns, configured_delay_ipg_ns=None, legacy=False):
-    """Delay IPG, cleanup bound and c2 pause for one block.
+def plan_isolation(population, operate_ipg_ns, configured_delay_ipg_ns=None, legacy=False, capability=None,
+                   activation=True):
+    """Delay IPG, cleanup bound and c2 pause for one block, for one endpoint capability.
 
-    legacy (single READ-lane batch, candidate61): the retained parameters run unchanged, 2.5 s delay and the
-    10000 ms pause; the derived requirement is recorded, never used to refuse. Every plan that fits pauses c2
-    for the endpoint maximum (PAUSE_MAX_MS); the derived pause and the resulting slack are recorded. Control-timed: a configured
-    delay IPG must satisfy both bounds; otherwise the largest 250 ms grid IPG in [1 s, 2.5 s] that does is chosen.
+    capability (endpoint_capability()[1]; default the 10 s barrier) supplies the pause maximum. Every plan that
+    fits pauses c2 for that maximum; the derived pause and the resulting slack are recorded. legacy (single
+    READ-lane batch, candidate61): the retained 2.5 s delay. Since 2026-10-16 a legacy plan that does not fit is
+    REFUSED for any new activation; activation=False only analyses retained runs (the plan is returned with
+    fits False and must never authorize hardware). Control-timed: a configured delay IPG must satisfy both
+    bounds; otherwise the largest 250 ms grid IPG in [1 s, 2.5 s] that does is chosen.
     """
+    capability = dict(LEGACY_CAPABILITY if capability is None else capability)
+    if type(capability.get('max_pause_ms')) is not int or capability['max_pause_ms'] <= 0 or \
+            type(capability.get('permit')) is not bool:
+        raise ValueError('endpoint capability needs an integer max_pause_ms and a boolean permit')
+    maximum_ms = capability['max_pause_ms']
+
     def plan(ipg):
         bound = cleanup_bound(population, {'READ': ipg, 'OPERATE': operate_ipg_ns})
-        return bound, pause_requirement(bound)
+        return bound, pause_requirement(bound, maximum_ms=maximum_ms)
 
     def maximum_pause(pause):
         # When the derived pause fits, c2 pauses for the endpoint maximum: the difference is runtime slack.
-        out = dict(pause, derived_pause_ms=pause['pause_ms'], pause_ms=PAUSE_MAX_MS,
-                   planned_slack_ns=PAUSE_MAX_MS * 1_000_000 - pause['required_ns'],
+        out = dict(pause, derived_pause_ms=pause['pause_ms'], pause_ms=maximum_ms,
+                   planned_slack_ns=maximum_ms * 1_000_000 - pause['required_ns'],
                    slack_formula='slack = pause - restore allowance - worst drained tick after c2 ready '
                                  '(bound - minimum c1->c2 ready) = pause - required')
         return out
     if legacy:
         bound, pause = plan(DEFAULT_DELAY_IPG_NS)
-        pause = dict(maximum_pause(pause), upper_ok=pause['required_ns'] <= PRE_READ_GRACE_NS,
-                     upper_margin_ns=PRE_READ_GRACE_NS - pause['required_ns'])
+        pause = dict(maximum_pause(pause), upper_ok=pause['required_ns'] <= maximum_ms * 1_000_000,
+                     upper_margin_ns=maximum_ms * 1_000_000 - pause['required_ns'])
         pause['fits'] = pause['upper_ok'] and pause['lower_ok']
+        if activation and not pause['fits']:
+            raise ValueError('legacy candidate61 parameters need a %d ms c2 pause (lower bound %s) against the '
+                             'endpoint maximum %d ms: new activation refused'
+                             % (pause['derived_pause_ms'], 'ok' if pause['lower_ok'] else 'failed', maximum_ms))
         return dict(delay_ipg_ns=DEFAULT_DELAY_IPG_NS, delay_ipg_source='legacy candidate61 parameters (unchanged)',
-                    bound=bound, pause=pause, legacy=True)
+                    bound=bound, pause=pause, legacy=True, capability=capability, activation=activation)
     if configured_delay_ipg_ns is not None:
         if type(configured_delay_ipg_ns) is not int or not DELAY_IPG_MIN_NS <= configured_delay_ipg_ns <= 4_000_000_000:
             raise ValueError('isolation.delay_ipg_ns must be an integer in 1..4 seconds')
         bound, pause = plan(configured_delay_ipg_ns)
         if not pause['upper_ok']:
             raise ValueError('configured delay IPG needs a %d ms c2 pause, above the endpoint maximum %d ms'
-                             % (pause['pause_ms'], PAUSE_MAX_MS))
+                             % (pause['pause_ms'], maximum_ms))
         if not pause['lower_ok']:
             raise ValueError('configured delay IPG drains the old READ tokens before the c2-ready snapshot')
         return dict(delay_ipg_ns=configured_delay_ipg_ns, delay_ipg_source='configured', bound=bound,
-                    pause=maximum_pause(pause), legacy=False)
+                    pause=maximum_pause(pause), legacy=False, capability=capability, activation=activation)
     for ipg in range(DEFAULT_DELAY_IPG_NS, DELAY_IPG_MIN_NS - 1, -DELAY_IPG_GRID_NS):
         bound, pause = plan(ipg)
         if pause['fits']:
             return dict(delay_ipg_ns=ipg, delay_ipg_source='derived: largest 250 ms grid IPG <= 2.5 s meeting both bounds',
-                        bound=bound, pause=maximum_pause(pause), legacy=False)
+                        bound=bound, pause=maximum_pause(pause), legacy=False, capability=capability,
+                        activation=activation)
     raise ValueError('no delay IPG in 1..2.5 s meets both the endpoint pause maximum and the old-token lower bound')
 
 
@@ -513,3 +551,52 @@ def post_traffic_authority(lifecycle_before, lifecycle_after, expected_after_c3,
         failures.append('after c3: owner connection generation %d, expected %d' % (end['owner_generation'],
                                                                                   last_connection))
     return dict(ok=not failures, failures=failures, before=start, after=end, expected=expected_after_c3)
+
+
+def permit_conditions(before, polls, population, drained_tick_ns, restored_ns, pause_deadline_ns,
+                      connection_generation=2):
+    """Harness-side conditions for granting c2's endpoint-local pre-READ permit (isolation_20s only).
+
+    All must hold, each on one clock: (1) old tokens arrived after c2 readiness and were rejected, by role: the
+    READ cohort's later tokens arrived (pkt_counter rose from the c2-ready snapshot) and the split READ timer
+    rejections rose by exactly that count; the OPERATE cohort is complete; (2) every role drained (drained());
+    (3) current authority unchanged from the c2-ready snapshot through every poll, owner = c2; (4) the pktgen
+    restore was confirmed on Vision within its allowance of the drained poll's Vision tick and before c2's pause
+    deadline (Vision monotonic clock: drained_tick_ns, restored_ns and pause_deadline_ns all come from Vision).
+    The Vision helper re-checks the deadline on its own clock immediately before writing the permit.
+    Returns a list of failures; empty means the permit may be granted.
+    """
+    failures = []
+    if not isinstance(polls, list) or not polls:
+        return ['permit: no quiet poll observed']
+    after = polls[-1]
+    try:
+        if not drained(after, population):
+            failures.append('permit: old cohorts not drained by role')
+        old = before['read_app_after'].get('pkt_counter')
+        new = after['read_app_before'].get('pkt_counter')
+        if type(old) is not int or type(new) is not int or new - old < 1:
+            failures.append('permit: no old READ token arrived after c2 readiness')
+        else:
+            rejected = rejection_counts(before, after)['24']
+            if rejected != new - old:
+                failures.append('permit: READ arrivals %d but READ timer rejections %d' % (new - old, rejected))
+        op = after['operate_app_before'].get('pkt_counter')
+        if op != population['OPERATE']['tokens']:
+            failures.append('permit: old OPERATE cohort incomplete')
+    except (KeyError, TypeError, ValueError) as error:
+        failures.append('permit: ' + str(error))
+    try:
+        start = authority(before)
+        if start['owner_generation'] != connection_generation:
+            failures.append('permit: owner is not the current connection')
+        for index, poll in enumerate(polls):
+            if authority(poll) != start:
+                failures.append('permit: authority changed at poll%02d' % index)
+    except (KeyError, TypeError, ValueError) as error:
+        failures.append('permit: authority: ' + str(error))
+    restore = restore_proof(drained_tick_ns, restored_ns)
+    failures.extend('permit: ' + failure for failure in restore['failures'])
+    if type(pause_deadline_ns) is not int or type(restored_ns) is not int or restored_ns >= pause_deadline_ns:
+        failures.append('permit: restore not confirmed before the c2 pause deadline')
+    return failures
