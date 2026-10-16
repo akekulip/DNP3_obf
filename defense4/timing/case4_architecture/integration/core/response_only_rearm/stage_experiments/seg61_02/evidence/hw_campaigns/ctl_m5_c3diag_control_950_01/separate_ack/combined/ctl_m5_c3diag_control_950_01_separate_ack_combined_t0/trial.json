@@ -1,0 +1,566 @@
+{
+  "fixture": "separate_ack",
+  "label": "ctl_m5_c3diag_control_950_01_separate_ack_combined_t0",
+  "master_port": 59871,
+  "reads": 1,
+  "ok": false,
+  "failures": [
+    "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 5,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65509,
+      "read": 65503
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": {
+      "operate": 25,
+      "read": 31
+    },
+    "reserves": {
+      "operate": 25,
+      "read": 31
+    },
+    "snapshot": {
+      "bfrt_sha256": "b5b01ee99142b02df66bad8bc180e77859d0e829fd136bde905f9e6deda1977c",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1792187349.348547,
+      "valid": true
+    },
+    "time": 1792187349.3582218,
+    "budget": {
+      "reads": 1,
+      "sbo_cycles": 1,
+      "cancelled_selects": 0,
+      "connections": 3,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 3,
+      "operate_per_connection": 1,
+      "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+  },
+  "diagnostic_poller": {
+    "first_sample_ns": 50702346,
+    "started": true
+  },
+  "qualification": false,
+  "purpose": "diagnostic",
+  "scenario": {
+    "policy": "c3_diagnostic_control",
+    "connections": {
+      "c1": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 2947774823,
+          "server_isn": 2878995896,
+          "frontiers": {
+            "client": 2947774914,
+            "server": 2878996020
+          }
+        }
+      },
+      "c2": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 3032241387,
+          "server_isn": 2963462010,
+          "frontiers": {
+            "client": 3032241478,
+            "server": 2963462134
+          }
+        }
+      },
+      "c3": {
+        "ok": true,
+        "failures": [],
+        "fresh_mapping": {
+          "client_isn": 3430437923,
+          "server_isn": 3361657575,
+          "frontiers": {
+            "client": 3430438014,
+            "server": 3361657699
+          }
+        }
+      }
+    }
+  },
+  "observed": {
+    "bank_isolation": {
+      "ok": true,
+      "failures": [],
+      "allowed_changes": [],
+      "observed": {
+        "before": {
+          "epochs": {
+            "N": 15,
+            "E": 15,
+            "T": 15
+          },
+          "work_phase": 4,
+          "work_generation": 17,
+          "owner": 327682,
+          "mapper": {
+            "front": 2963462011,
+            "lo": 2963462011,
+            "hi": 0
+          }
+        },
+        "after": {
+          "epochs": {
+            "N": 15,
+            "E": 15,
+            "T": 15
+          },
+          "work_phase": 4,
+          "work_generation": 17,
+          "owner": 327682,
+          "mapper": {
+            "front": 2963462011,
+            "lo": 2963462011,
+            "hi": 0
+          }
+        }
+      }
+    },
+    "old_token_window": {
+      "ok": null,
+      "not_applicable": true,
+      "failures": [],
+      "reason": "control mode: no READ-IPG delay was written, so there is no delayed old cohort, no IPG restore and no old arrival after c2 readiness to prove"
+    },
+    "old_rejection_delta": null,
+    "quiet_rejections": {
+      "6": 0,
+      "14": 0,
+      "23": 0,
+      "24": 0
+    },
+    "isolation_verdict": {
+      "ok": false,
+      "failures": [
+        "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER"
+      ],
+      "separate_from_precision": true,
+      "precision_qualified": false,
+      "design": "Old tokens are drained, and the READ IPG restored, before c2 issues its first READ by design. A pktgen configuration write or a delayed batch overlapping c2/c3 traffic loses generator triggers: the retained m4 block ctl_m4_stale_tokens_950_01 left the 2.5 s IPG in place while c2/c3 ran and its full-run counters show READ trigger delta 4 against 6 expected and READ packets 13 against 24 expected (trial.json), so c2/c3 tokens cannot be separated from old ones once they overlap. No full-bank snapshot is taken during measured traffic.",
+      "rollback": "Block-end rollback rewrites the generator: bringup_teardown.py disables both pktgen apps and restores tf1.pktgen.app_cfg READ and OPERATE to their pre-install entries (retained m4 teardown.log lines 1-2, 24-25, 45-46: \"left disabled (default was a disabled one-shot)\"), and the block restore cold-swaps the production program (m4 restore_verify.json ok). A delay IPG left in place by a failed monitor therefore does not survive the block, but it does affect any c2/c3 traffic that runs before teardown; the monitor aborts c2 instead.",
+      "c2_abort": null,
+      "c2_abort_attempts": null,
+      "runtime_slack_ns": 9220960109,
+      "planned_slack_ns": null,
+      "estimates": "SNAPSHOT_ALLOWANCE_NS, RESTORE_ALLOWANCE_NS, C1_TO_C2_READY_MIN_NS/MAX_NS, FIRST_SNAPSHOT_NS and the OPERATE drain model are estimates or allowances from two retained runs (m4, candidate61), not generator or endpoint specifications.",
+      "population": {
+        "k": 2,
+        "tokens_per_trigger": 4,
+        "control_timed": true,
+        "reads": 1,
+        "sbo": 1,
+        "formula": "tokens(role) = triggers(role) x 2k; triggers(READ) = reads + (sbo if control_timed else 0); triggers(OPERATE) = sbo; expected raw stale: READ tokens - 1, OPERATE tokens",
+        "READ": {
+          "app_id": 0,
+          "triggers": 2,
+          "tokens": 8,
+          "expected_raw_stale": 7,
+          "raw_index": "24"
+        },
+        "OPERATE": {
+          "app_id": 1,
+          "triggers": 1,
+          "tokens": 4,
+          "expected_raw_stale": 4,
+          "raw_index": "23"
+        }
+      },
+      "plan": {
+        "mode": "control",
+        "delay_ipg_ns": null,
+        "delay_ipg_source": "control: no READ-IPG delay (installed IPG kept)",
+        "bound": null,
+        "pause": {
+          "pause_ms": 20000,
+          "derived_pause_ms": null,
+          "source": "endpoint maximum; plan_isolation not used"
+        },
+        "legacy": false,
+        "capability": {
+          "max_pause_ms": 20000,
+          "permit": true
+        },
+        "activation": true
+      },
+      "installed_app_ipg_ns": {
+        "OPERATE": 0,
+        "READ": 0
+      },
+      "expected_generations": {
+        "at_c2_ready": {
+          "T_read_generation": 6,
+          "T_operate_generation": 4
+        },
+        "after_c3": {
+          "T_read_generation": 15,
+          "T_operate_generation": 9
+        },
+        "per_connection": {
+          "T_read_generation": 5,
+          "T_operate_generation": 3
+        }
+      },
+      "connections": {
+        "c1": {
+          "ok": true,
+          "failures": []
+        },
+        "c2": {
+          "ok": true,
+          "failures": []
+        },
+        "c3": {
+          "ok": true,
+          "failures": []
+        }
+      },
+      "vision_series_ok": true,
+      "cleanup": {
+        "ok": null,
+        "not_applicable": true,
+        "failures": [],
+        "reason": "control mode: no READ-IPG delay was written, so there is no delayed old cohort, no IPG restore and no old arrival after c2 readiness to prove"
+      },
+      "restore": {
+        "ok": null,
+        "not_applicable": true,
+        "failures": [],
+        "reason": "control mode: no READ-IPG delay was written, so there is no delayed old cohort, no IPG restore and no old arrival after c2 readiness to prove"
+      },
+      "quiet_polls": {
+        "ok": true,
+        "failures": [],
+        "observed": [
+          {
+            "N_epoch": 15,
+            "T_epoch": 15,
+            "owner_generation": 2,
+            "T_read_generation": 6,
+            "T_operate_generation": 4,
+            "N_work_generation": 17,
+            "label": "before"
+          },
+          {
+            "N_epoch": 15,
+            "T_epoch": 15,
+            "owner_generation": 2,
+            "T_read_generation": 6,
+            "T_operate_generation": 4,
+            "N_work_generation": 17,
+            "label": "poll00"
+          }
+        ]
+      },
+      "bank_isolation": {
+        "ok": true,
+        "failures": [],
+        "allowed_changes": [],
+        "observed": {
+          "before": {
+            "epochs": {
+              "N": 15,
+              "E": 15,
+              "T": 15
+            },
+            "work_phase": 4,
+            "work_generation": 17,
+            "owner": 327682,
+            "mapper": {
+              "front": 2963462011,
+              "lo": 2963462011,
+              "hi": 0
+            }
+          },
+          "after": {
+            "epochs": {
+              "N": 15,
+              "E": 15,
+              "T": 15
+            },
+            "work_phase": 4,
+            "work_generation": 17,
+            "owner": 327682,
+            "mapper": {
+              "front": 2963462011,
+              "lo": 2963462011,
+              "hi": 0
+            }
+          }
+        }
+      },
+      "old_token_window": {
+        "ok": null,
+        "not_applicable": true,
+        "failures": [],
+        "reason": "control mode: no READ-IPG delay was written, so there is no delayed old cohort, no IPG restore and no old arrival after c2 readiness to prove"
+      },
+      "old_rejection_delta": null,
+      "quiet_rejections": {
+        "6": 0,
+        "14": 0,
+        "23": 0,
+        "24": 0
+      },
+      "full_run": {
+        "outcomes": {
+          "OUT_UNMATCHED": 0,
+          "OUT_HELD_REWAIT": 3831,
+          "OUT_ACK_COMMIT": 9,
+          "OUT_RESP_RELEASE": 9,
+          "OUT_RESP_DUP_DROP": 0,
+          "OUT_OP_RELEASE": 3,
+          "OUT_TOKEN_STALE": 4,
+          "OUT_HELD_STALE_FLUSH": 0,
+          "OUT_ACK_FALLBACK": 0,
+          "OUT_RESP_FALLBACK": 0,
+          "OUT_TOKEN_TMO": 0,
+          "OUT_HELD_OFF_FLUSH": 0,
+          "OUT_TOKEN_OFF": 0,
+          "OUT_REQ_BYPASS": 0,
+          "index_14": 0,
+          "index_15": 0,
+          "STALE_BLOCKER": 4,
+          "RAW_OPERATE_TIMER_STALE": 0,
+          "RAW_READ_TIMER_STALE": 0,
+          "OUT_OP_DUP_DROP": 0
+        },
+        "token_stale": 4,
+        "generation_exhausted": 0,
+        "pktgen": {
+          "READ": {
+            "triggers": 6,
+            "pkts": 24
+          },
+          "OPERATE": {
+            "triggers": 3,
+            "pkts": 12
+          }
+        },
+        "token_stale_bound": 12,
+        "loop_octet_gap": {
+          "n_ack_return": 0,
+          "t_in": 0,
+          "hb_return": 0,
+          "held_return": 0
+        },
+        "external_growth_bytes": 60,
+        "external_growth_expected": 60,
+        "unacked": 0,
+        "held_operate_dup_drops": 0
+      },
+      "post_traffic_authority": {
+        "ok": true,
+        "failures": [],
+        "before": {
+          "N_epoch": 0,
+          "T_epoch": 0,
+          "owner_generation": 0,
+          "T_read_generation": 0,
+          "T_operate_generation": 0,
+          "N_work_generation": 0
+        },
+        "after": {
+          "N_epoch": 29,
+          "T_epoch": 29,
+          "owner_generation": 3,
+          "T_read_generation": 15,
+          "T_operate_generation": 9,
+          "N_work_generation": 42
+        },
+        "expected": {
+          "T_read_generation": 15,
+          "T_operate_generation": 9
+        }
+      },
+      "purpose": "diagnostic",
+      "diagnostic": {
+        "poller": true,
+        "period_s": 0.1,
+        "mode": "control",
+        "purpose": "diagnostic",
+        "qualification": false,
+        "counted_as_qualification": false,
+        "control_rejection_comparison": {
+          "quiet_rejections": {
+            "6": 0,
+            "14": 0,
+            "23": 0,
+            "24": 0
+          },
+          "gated": false
+        },
+        "poller_unit": {
+          "paths": {
+            "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0_diag_poll.jsonl",
+            "stop": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0_diag_poll.stop",
+            "pid": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0_diag_poll.pid",
+            "log": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0_diag_poll.log"
+          },
+          "start_attempted": true,
+          "started": true,
+          "start": {
+            "rc": 0,
+            "out": "{\"started\": true, \"pid\": 1027686, \"first_t_start_ns\": 1224962714987769, \"first_sample_ns\": 50702346}\n",
+            "err": ""
+          },
+          "first_sample_ns": 50702346,
+          "stop_attempted": true,
+          "stopped": true,
+          "stop": {
+            "rc": 0,
+            "out": "{\"stopped\": true, \"pid\": 1027686, \"exited\": true, \"ended_by\": \"stop_file\", \"samples\": 366, \"summary\": {\"error\": null, \"max_sample_ns\": 61258637, \"mean_sample_ns\": 53333712, \"period_s\": 0.1, \"samples\": 366, \"samples_with_errors\": 0, \"stopped_by\": \"stop_file\", \"summary\": true, \"wall_end\": 1792187389.98419, \"wall_start\": 1792187351.5964644}}\n",
+            "err": ""
+          },
+          "ended_by": "stop_file",
+          "samples": 366,
+          "diagnostic_incomplete": false,
+          "incomplete_reasons": []
+        },
+        "permit_marker": {
+          "granted_vision_ns": 959289085283610,
+          "local_monotonic_s": 1052093.416116724,
+          "local_wall_time": 1792187366.1175869,
+          "poller": true
+        },
+        "not_applicable": [
+          "cleanup",
+          "restore",
+          "old_token_window",
+          "old_rejection_delta"
+        ]
+      },
+      "qualification": false
+    },
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 3831,
+        "OUT_ACK_COMMIT": 9,
+        "OUT_RESP_RELEASE": 9,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 4,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 4,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 4,
+      "generation_exhausted": 0,
+      "pktgen": {
+        "READ": {
+          "triggers": 6,
+          "pkts": 24
+        },
+        "OPERATE": {
+          "triggers": 3,
+          "pkts": 12
+        }
+      },
+      "token_stale_bound": 12,
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 60,
+      "external_growth_expected": 60,
+      "unacked": 0,
+      "held_operate_dup_drops": 0
+    },
+    "lifecycle": {
+      "n_retry_epoch": 0,
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 29,
+          "E": 29,
+          "T": 29
+        },
+        "E_raw": 2147483677,
+        "T_raw": 2147483677,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 42
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "precision_qualified": false
+  }
+}
