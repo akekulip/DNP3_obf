@@ -3,6 +3,12 @@
 Everything below the line "HISTORY" is older and partly superseded; trust this section first, then the
 documents it links. Written so a different model can continue without the conversation.
 
+## 0a. Current night: m6 continuation (from 72d85875b; started 2026-10-15 22:11 EDT)
+
+Plan: `integration/evidence/rearm_01/PLAN_m5.md`, section "m6 continuation" (directive at the repo root,
+`DNP3_m5_Continuation_Prompt_72d85875b.md`). Candidate under qualification tonight: the N successor m6 (to be
+generated); m5_10 stays the immutable record. Progress: `integration/evidence/rearm_01/STATUS.md` (newest first).
+
 ## 0. Current cycle: m5 (approved 2026-10-15) — read this first
 
 **Plan:** `integration/evidence/rearm_01/PLAN_m5.md` (verbatim approved plan, with the full read-in-order file index).

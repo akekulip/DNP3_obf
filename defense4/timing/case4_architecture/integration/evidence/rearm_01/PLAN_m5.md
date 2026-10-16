@@ -98,3 +98,25 @@ Piggyback availability below/near/above pb (needs an outstation app-level respon
 - Every commit: integrated suite exit 0; candidate_endpoint fixtures clean; generator reproduces m1–m5; m5 E and T SHAs equal m4's.
 - S1 regressions fail on m4, pass on m5 (both recorded); model PASS only on recorded source+driver SHAs.
 - Silicon: every block restore-verified; m5 verdicts from unchanged gates; zero busy drops, zero retry exhaustion, zero switch-induced retransmissions on the supported workload.
+
+
+## m6 continuation (72d85875b directive, 2026-10-15 night)
+
+Governing directive: `DNP3_m5_Continuation_Prompt_72d85875b.md` (repo root) as amended by Philip on 2026-10-15
+(ten-hour overnight budget, candidate freeze, writing-readiness verdict, writing package under
+`stage_experiments/seg61_02/evidence/writing_packet_72d85875b/`). This section replaces any competing plan.
+
+Retained m5 record (unchanged by this continuation): the 14-block m5_10 sequence. Held-OPERATE `_01` is a superseded
+harness attempt (lifecycle gate confused `retry_epoch` with N's epoch), not a qualification result; repeated-SBO b2
+and b3 are **rejected, incomplete** blocks (stopped at the first failing arm), not four-arm qualification blocks;
+S3 (stale-token isolation) was not run on m5 (refused by its own plan); S5 not run; retry laps zero on silicon.
+
+Work order (decision points, not promises): W0 reconcile/record; W1 strict aggregate verdict
+(`seg61_02/analysis/m5_summary.py --strict`); W2 opt-in 20 s isolation endpoint with an endpoint-local release
+permission (`endpoint_isolation_20s/`), then one quiet new-incarnation isolation block on m5_10; W3 N successor
+**m6** (`transform_n_m6`): valid RST while a response is held, retry-epoch invalidation only at a proven close,
+response retransmission routed through T's release gate (failing-on-m5 source regressions first); W4 dual-SDK
+compile and compiled-model gates, select and freeze one successor; W5 silicon contention probe (nonzero retries)
+and successor qualification; S5 held unless successor correctness and precision pass. Hour-5 gate: without a
+reviewed successor passing compile/model, no improvised hardware candidate. Every commit gated on the integrated
+suite in a clean worktree of the staged change.
