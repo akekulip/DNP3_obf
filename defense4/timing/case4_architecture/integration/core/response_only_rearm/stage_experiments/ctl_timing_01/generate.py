@@ -438,7 +438,8 @@ def transform_n_m6(n):
 
 E_M8_ACTION = ('    action out_drop(bit<8> why) { m.result = why; md.drop_ctl = 3w1; }',
                '    action out_drop(bit<8> why) { m.result = why; md.drop_ctl = 3w1; }\n'
-               '    action out_reset_front() { m.qx = m.qf; m.result = r_OUT_RESET_FRONT; m.changed = 1; }')
+               '    action out_reset_front_49() { m.qx = m.q - 32w49; m.result = r_OUT_RESET_FRONT; m.changed = 1; }\n'
+               '    action out_reset_front_37() { m.qx = m.q - 32w37; m.result = r_OUT_RESET_FRONT; m.changed = 1; }')
 
 
 def transform_e_m8(e):
@@ -448,25 +449,21 @@ def transform_e_m8(e):
     49 for READ, 37 for control): the master never received those bytes, so classify_fwd dropped it as
     OUT_DROP_AHEAD and the master's connection stayed open. Measured on Linux 5.15 (evidence/support_20261016/rst_linux.py, 2026-10-16):
     an RST at the receiver's RCV.NXT resets; one ahead inside the window only draws a challenge ACK. m8 therefore
-    places such an RST at the frontier: qx = q - front_ret is the frontier's offset from the image end, so img_wend_t
+    places such an RST at the frontier: qx = q - front_ret (49 or 37) is the frontier's offset from the image end, so img_wend_t
     writes the master-visible RCV.NXT. Only RST-bearing segments exactly 49 or 37 octets ahead; every other ahead
     segment still drops. New outcome code 16 (the outcome counter has 32 cells). Nothing else in E changes."""
     e = once(e, 'const bit<8> r_OUT_DROP_MERGED = 15;',
              'const bit<8> r_OUT_DROP_MERGED = 15; const bit<8> r_OUT_RESET_FRONT = 16;')
     e = once(e, *E_M8_ACTION)
-    # qf = q - front_ret is computed by its own action after img_end_t (m7_01 did it inside the verdict action and
-    # failed bf-p4c's action constraints); out_reset_front then only moves it, as the other verdicts move q or pm
-    e = once(e, '    bit<32> front_ret; bit<1> grant;', '    bit<32> front_ret; bit<1> grant; bit<32> qf;')
-    e = once(e, '        img_end_t.apply();\n',
-             '        img_end_t.apply();\n        front_q_t.apply();\n')
-    e = once(e, '    table classify_fwd {',
-             '    action front_q() { m.qf = m.q - m.front_ret; }\n'
-             '    table front_q_t { actions = { front_q; } size = 1; const default_action = front_q(); }\n'
-             '    table classify_fwd {')
+    # Placement (retained attempts): q - front_ret in the verdict action (m7_01, m8_01) or precomputed into a new
+    # field (m7_02) repacked m.q and broke rev_translate's action constraints; rewriting hdr.tcp.seq (16-bit halves)
+    # and subtracting action data were refused too. The rows are exact (front_ret 49 or 37), so q - front_ret is
+    # q minus a literal constant, one action per held length; this places at N12/E12/T11.
     e = once(e, 'actions = { out_commit; out_translate; out_zero; out_replay; out_stale; out_drop; } size = 24;',
-             'actions = { out_commit; out_translate; out_zero; out_replay; out_stale; out_drop; out_reset_front; } size = 24;')
+             'actions = { out_commit; out_translate; out_zero; out_replay; out_stale; out_drop; out_reset_front_49; '
+             'out_reset_front_37; } size = 24;')
     ahead = '(32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _): out_drop(r_OUT_DROP_AHEAD);'
-    rows = ''.join('(32w%d, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front();' % n
+    rows = ''.join('(32w%d, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_%d();' % (n, n)
                    for n in (49, 37))
     return once(e, ahead, rows + ahead)
 

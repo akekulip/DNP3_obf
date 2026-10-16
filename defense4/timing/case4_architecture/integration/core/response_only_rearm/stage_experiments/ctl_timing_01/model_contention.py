@@ -403,6 +403,39 @@ def main():
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                 capture(0.6, 0.3)
 
+        # ---- the outstation aborts while T holds its response (directive ba50eac69 section 2; m8) ----------------
+        # m8 places the outstation's RST at the master's RCV.NXT (E reset at the frontier): the master receives exactly
+        # one RST, at s+g if the held response was flushed, or at s+g+61 if T had already released it (then the
+        # response reached the master once). m6/m7 drop a held-ahead RST in E (characterization, recorded only).
+        for kind in ('READ', 'SELECT'):
+            tag = 'outstation_abort_while_held_%s' % kind
+            reconnect(tag)
+            fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else (3, rb.crob(200), bytes(2) + rb.crob(200))
+            app, ok = request(kind, fc, objects)
+            c, s, g = st['c'], st['s'], st['growth']
+            abort = {}
+
+            def outstation_rst(rsp, c=c, s=s, abort=abort):
+                native_len = len(rsp) - 54
+                abort['rst'] = vectors.packet(20, s + native_len, c, reverse=True)
+                m.send(RELAY.dev_port, abort['rst'])
+            got, native, _ack, _rsp = respond(kind, app, body, 0, during=outstation_rst)
+            image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
+            to_master = [f for _t, p, f in got if p == MASTER.dev_port and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
+            resets = [int.from_bytes(f[38:42], 'big') for f in to_master if f[47] & 0x04]
+            responses = [f for f in to_master if f.endswith(image)]
+            row = dict(tag=tag, kind=kind, resets_seq=resets, responses=len(responses), expected_flushed=s + g,
+                       expected_released=s + g + IMAGE_LEN)
+            points.append(row)
+            if milestone == 'm8':
+                exact = (resets == [s + g] and not responses) or (resets == [s + g + IMAGE_LEN] and len(responses) == 1)
+                report.add('%s_master_reset_at_rcv_nxt' % tag, True, exact, **row)
+            else:
+                report.record['meta'].setdefault('outstation_abort_characterization', []).append(row)
+            # the connection is gone at both ends on m8; elsewhere close N with the master's own RST (cleanup only)
+            m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
+            capture(0.6, 0.3)
+
         # ---- RST and same-tuple reconnect while the response waits ----------------------------------------------
         for kind in ('READ', 'SELECT'):
             tag = 'reconnect_during_wait_%s' % kind

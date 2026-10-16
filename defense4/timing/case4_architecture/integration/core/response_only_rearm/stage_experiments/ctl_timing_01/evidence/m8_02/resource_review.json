@@ -1,0 +1,44 @@
+{
+ "E_byte_identical": false,
+ "E_sha256": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+ "candidate_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
+ "compiles": {
+  "compile_local": {
+   "baseline_stages": {
+    "E": 12,
+    "N": 11,
+    "T": 11
+   },
+   "bfrt_json_sha256": "7ac66cd62e53bff047a76348a8127d83c71c50eee468aeb028adad0365dadfec",
+   "compiler": "p4c 9.13.1 (SHA: e558d01)",
+   "exit_code": 0,
+   "mirror_guard": "PASS select 0: session $tmp4 from H2 shared with ['md.op_gen'];select 1: session md.clone_ses from H1;unconditional mirror_type=1: tbl_response_only2461;non-clone entries [0] are unreachable; clone session and select containers are solitary",
+   "p4pp_sha256": "b71f478eabb8b1ba7f4fe9ccdd622368ad39991f54b1ef76badc946709ca8561",
+   "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
+   "stages": {
+    "E": 12,
+    "N": 12,
+    "T": 11
+   }
+  },
+  "compile_switch_9132": {
+   "baseline_stages": {
+    "E": 12,
+    "N": 11,
+    "T": 11
+   },
+   "bfrt_json_sha256": "47b76ff37a38594bcbb80ab4aa019ddc396bbe3d0d7456cb3a975766ddc0a4a8",
+   "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+   "exit_code": 0,
+   "mirror_guard": "PASS select 0: session $tmp4 from H2 shared with ['md.op_gen'];select 1: session md.clone_ses from H1;unconditional mirror_type=1: tbl_response_only2461;non-clone entries [0] are unreachable; clone session and select containers are solitary",
+   "p4pp_sha256": "859aed3886954e55d93422fd0cab16c5e8a19b081e3b1c2e336db48a1b3a71db",
+   "source_sha256": "26c89821af585e186c65b16a8e40ae4739dfeddd142777c8aed8c1159fb53f86",
+   "stages": {
+    "E": 12,
+    "N": 12,
+    "T": 11
+   }
+  }
+ },
+ "source_matches_compiles": true
+}
