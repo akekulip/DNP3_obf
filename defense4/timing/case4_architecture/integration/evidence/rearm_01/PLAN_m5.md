@@ -120,3 +120,16 @@ compile and compiled-model gates, select and freeze one successor; W5 silicon co
 and successor qualification; S5 held unless successor correctness and precision pass. Hour-5 gate: without a
 reviewed successor passing compile/model, no improvised hardware candidate. Every commit gated on the integrated
 suite in a clean worktree of the staged change.
+
+### m6 night outcome (2026-10-16)
+
+| step | result |
+|---|---|
+| W0 reconcile | done (`e116af7d2`) |
+| W1 strict verdict | done, reviewed (`4920206bf`, `d0b238afa`) |
+| W2 isolation endpoint | done, reviewed (`06ff460a6`); silicon block on m5_10 FAIL, restore verified (`e1744034b`) |
+| W3 m6 successor | m6_07 (`3335479b…e142`), six earlier attempts retained; every delta reviewed (final review: source-level freeze acceptable, model failure open) |
+| W4 compile/model | m6_07 compiles N12/E12/T11 on both SDKs; model: all drivers pass except contention 240/241 (silent loss of a retried SELECT response, undiagnosed); summaries `ctl_timing_01/evidence/m6_0N/model_summary.json`; not frozen |
+| hour-5 gate | missed: no m6 hardware, no freeze, no m6 configs |
+| W5 silicon | contention probe offline only (`9c66ce69e`); m6 qualification not run; S5 held |
+| delivery | writing package `seg61_02/evidence/writing_packet_72d85875b/` |

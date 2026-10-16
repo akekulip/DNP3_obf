@@ -6,8 +6,19 @@ documents it links. Written so a different model can continue without the conver
 ## 0a. Current night: m6 continuation (from 72d85875b; started 2026-10-15 22:11 EDT)
 
 Plan: `integration/evidence/rearm_01/PLAN_m5.md`, section "m6 continuation" (directive at the repo root,
-`DNP3_m5_Continuation_Prompt_72d85875b.md`). Candidate under qualification tonight: the N successor m6 (to be
-generated); m5_10 stays the immutable record. Progress: `integration/evidence/rearm_01/STATUS.md` (newest first).
+`DNP3_m5_Continuation_Prompt_72d85875b.md`). m5_10 stays the immutable record. Progress:
+`integration/evidence/rearm_01/STATUS.md` (newest first).
+
+Outcome (2026-10-16 morning): successor `ctl_timing_01/evidence/m6_07` compiled and source-tested, **not run on
+silicon** (hour-5 gate missed). Quiet isolation on m5_10 FAILED its verdict with delivery correct and restore
+verified (drain test reads generator counters, not pipeline rejections). Contention probe offline only. Writing
+package `stage_experiments/seg61_02/evidence/writing_packet_72d85875b/` (CLAIMS.md first).
+
+Next action, in order: (1) classify the m6_07 model failure (`ctl_timing_01/evidence/model_contention_m6_07_01`, `sweep_SELECT_000ms`: a retried SELECT response lost with no counter) before freezing m6_07 (its N diff is reviewed);
+(2) fix the isolation drain test to require the raw timer-stale counters to reach the old-token population before
+the permit, and attribute STALE_BLOCKER by connection, then one block; (3) the 14-block qualification set on
+m6_07 on a new port range (configs not yet built: sealed profile bfrt -> p4pp, CONTROL_TIMED_SOURCES,
+build_candidate61_configs.py `ctl_m6_*`); (4) contention probe after switch rows for its tuple are authorized.
 
 ## 0. Current cycle: m5 (approved 2026-10-15) — read this first
 
