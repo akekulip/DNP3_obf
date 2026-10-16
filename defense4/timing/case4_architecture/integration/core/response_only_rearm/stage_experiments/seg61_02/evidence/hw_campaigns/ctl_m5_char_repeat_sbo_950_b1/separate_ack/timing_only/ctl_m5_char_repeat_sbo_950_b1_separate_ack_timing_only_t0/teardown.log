@@ -1,0 +1,54 @@
+disable       tf1.pktgen.app_cfg OPERATE
+disable       tf1.pktgen.app_cfg READ
+t_off         p1.t_Ingress.params []
+delete        p0.n_Ingress.connection [3232238142, 3232238141, 20000, 59861, 68]
+delete        p0.n_Ingress.connection [3232238142, 3232238141, 20000, 59861, 9]
+delete        p0.n_Ingress.connection [3232238141, 3232238142, 59861, 20000, 68]
+delete        p0.n_Ingress.connection [3232238141, 3232238142, 59861, 20000, 48]
+delete        p0.n_Ingress.data_connection [3232238142, 3232238141, 20000, 59861]
+delete        p0.n_Ingress.data_connection [3232238141, 3232238142, 59861, 20000]
+delete        p0.n_Ingress.read_connection [3232238142, 3232238141, 20000, 59861]
+delete        p0.n_Ingress.read_connection [3232238141, 3232238142, 59861, 20000]
+delete        p0.n_Ingress.ports [68, 0, 0, 0]
+delete        p0.n_Ingress.ports [48, 0, 0, 0]
+delete        p0.n_Ingress.ports [9, 0, 0, 0]
+delete        p0.n_Ingress.ports [9, 1, 0, 3232238142]
+delete        p0.n_Ingress.ports [9, 1, 6, 3232238141]
+delete        p0.r_Egress.conn [3232238141, 3232238142, 59861, 20000, 9]
+delete        p0.r_Egress.odd_ip_t [3232238141, 3232238142]
+delete        p0.r_Egress.odd_ip_t [3232238142, 3232238141]
+delete        p0.r_Egress.conn [3232238141, 3232238142, 59861, 20000, 48]
+delete        p0.r_Egress.conn [3232238142, 3232238141, 20000, 59861, 9]
+default_reset p1.t_Ingress.params []
+delete        $mirror.cfg [7]
+restore       tf1.pktgen.app_cfg READ
+restore       tf1.pktgen.app_cfg OPERATE
+restore       tf1.pktgen.pkt_buffer [0, 60]
+restore       tf1.pktgen.port_cfg [196]
+restore       tf1.tm.queue.sched_shaping OP_HOLD@59570pps
+restore       tf1.tm.queue.sched_cfg OP_HOLD
+restore       tf1.tm.queue.sched_shaping OP_BLOCK@59570pps
+restore       tf1.tm.queue.sched_cfg OP_BLOCK
+restore       tf1.tm.queue.sched_shaping RESP_HOLD@59570pps
+restore       tf1.tm.queue.sched_cfg RESP_HOLD
+restore       tf1.tm.queue.sched_shaping RESP_BLOCK@59570pps
+restore       tf1.tm.queue.sched_cfg RESP_BLOCK
+restore       tf1.tm.queue.sched_shaping ACK_HOLD@59570pps
+restore       tf1.tm.queue.sched_cfg ACK_HOLD
+restore       tf1.tm.queue.sched_shaping ACK_BLOCK@59570pps
+restore       tf1.tm.queue.sched_cfg ACK_BLOCK
+restore       $PORT held_return dev 182
+restore       $PORT hb_return dev 181
+restore       $PORT t_in dev 180
+restore       $PORT n_ack_return dev 48
+settled: OUT_HELD_OFF_FLUSH=0 OUT_TOKEN_OFF=0
+tf1.pktgen.app_cfg READ: left disabled (default was a disabled one-shot)
+tf1.pktgen.app_cfg OPERATE: left disabled (default was a disabled one-shot)
+UNDONE and read back 43 of 43
+
+--- stderr ---
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 121, device 0

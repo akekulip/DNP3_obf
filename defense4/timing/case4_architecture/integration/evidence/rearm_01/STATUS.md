@@ -1,5 +1,7 @@
 # Generation-safe rearm evidence
 
+**2026-10-15 m5 S4 silicon (m5_10, every block restore-verified; `seg61_02/evidence/m5_silicon_summary.json`): recovery pass (held OPERATE 350, persistence graceful/RST, seven loss classes, protected reconnect); piggyback qualification b1-b3 qualified; repeated-SBO qualification b1 QUALIFIED all four arms, b2 and b3 rejected on the index-127 timing outlier of unresolved origin (SELECT p99 = max 920/917 us; same signature as m4; characterization twins show it at 40, 126-127, 168, plus one late READ at 126, +1,142 us); N contention gate clean on every trial (0 busy drop, 0 exhaustion, 0 stale; 0 retries: the software endpoint cannot produce contention, so the fix is proven on the model and source only). Stale-token isolation (S3) not yet run; S5 held: m5 timing qualification is not fully passed.**
+
 **2026-10-15 m5 S0: shaping comparator judges correctness on full gates (shared failures fail; savings = efficiency only); QUALIFICATION_9c4a2cfdc.md reports p99 and maximum separately, outlier of unresolved origin, retrospective exclusions labelled; ACK_HOLD 14,892 = efficiency measured, correctness not passed.**
 **2026-10-15 m5 cycle started: approved plan `PLAN_m5.md`; T0 transfer package committed; next S0.**
 

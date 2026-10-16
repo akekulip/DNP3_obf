@@ -6,8 +6,9 @@ documents it links. Written so a different model can continue without the conver
 ## 0. Current cycle: m5 (approved 2026-10-15) — read this first
 
 **Plan:** `integration/evidence/rearm_01/PLAN_m5.md` (verbatim approved plan, with the full read-in-order file index).
-**Next action:** S0 (comparator and report wording), then S1 (failing regressions on m4 before any N change),
-S2 (m5 build and model proof), S3 (stale-token isolation, in parallel), S4 (m5 silicon), S5 (ACK_HOLD 14,892 on m5).
+**Progress (2026-10-15 evening, pushed through a6e4c4bef):** T0, S0, S1, S2 (m5_10 `b758c981…`, model: every driver passes) and S3 (offline) committed; S4 silicon run (STATUS.md, newest first): recovery and piggyback pass, repeated-SBO b1 qualified, b2/b3 rejected on the index-127 timing outlier; N contention gate clean.
+**Next action:** S3's three silicon-safety fixes (restore deadline, 10 s pause option, Vision kill permission; WIP saved in the session scratchpad), then `ctl_m5_stale_tokens_950`. S5 waits for Philip: m5 timing qualification is not fully passed (outlier), so the plan's "after m5 correctness passes" precondition is not met.
+**Open decisions for Philip:** RST refused after an admitted response (pre-existing m4 behaviour, ctl_timing_01/DESIGN.md m5); S3 drains old tokens before c2 instead of during c2/c3 (commit ed9907f89); whether to run S5 with the outlier unresolved.
 Progress: `integration/evidence/rearm_01/STATUS.md` (newest first).
 
 The five amendments that bind m5 (details in PLAN_m5.md "Design"):
