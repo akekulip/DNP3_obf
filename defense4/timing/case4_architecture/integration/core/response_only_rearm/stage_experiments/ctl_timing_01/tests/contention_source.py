@@ -32,6 +32,8 @@ def _module(name, path):
 
 combined = _module('contention_combined', CTL.parent / 'combined_nt_01/generate.py')
 
+sys.path.insert(0, str(RR.parents[1] / 'core/response_only/hw'))
+import t_config  # noqa: E402  the one T-duration writer (t_units) and the clock reader (t_time_of_source)
 import make_e  # noqa: E402
 import make_n  # noqa: E402
 import make_t  # noqa: E402
@@ -76,10 +78,17 @@ class LapPipeline(sp.SourcePipeline):
         finally:
             for p in self._patches:
                 p.stop()
-        # control-timed T (m3+) takes the piggyback bound pb as an eighth set_params argument
-        if len(self.t.src.controls['Ingress'].actions['set_params'][0]) == 8:
-            self.t.src.controls['Ingress'].tables['params']['runtime'] = []
-            self.t.src.install('params', (), 'set_params', qs.params(**timing) + [pb])
+        # Durations are configured in ns and written in the build's T units by t_config.t_units (ctl_timing m7+:
+        # 256 ns units on a 512 ns grid; earlier T: ns, unchanged). Control-timed T (m3+) takes pb as an 8th argument.
+        self.t_time = t_config.t_time_of_source(role(text, 'T'))
+        names = ('da', 'readiness', 'cap', 'gap', 'op_j', 'budget', 'enabled')
+        values = dict(zip(names, qs.params(**{k: v for k, v in timing.items() if k in names})))
+        eight = len(self.t.src.controls['Ingress'].actions['set_params'][0]) == 8
+        if eight:
+            values['pb'] = pb
+        values = t_config.t_units(values, **self.t_time)
+        self.t.src.controls['Ingress'].tables['params']['runtime'] = []
+        self.t.src.install('params', (), 'set_params', [values[k] for k in names] + ([values['pb']] if eight else []))
         self.lap_ns, self.heap, self.order = lap_ns, [], 0
         self.passes = []          # (time, port, frame, events, egress or None, drop reason or None)
 

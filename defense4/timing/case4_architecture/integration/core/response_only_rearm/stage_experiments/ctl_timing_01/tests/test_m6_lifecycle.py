@@ -270,13 +270,16 @@ def _outstation_rst(kind):
 
 @pytest.mark.parametrize('kind', ('READ', 'SELECT'))
 @pytest.mark.parametrize('rst_laps', (0, 1, 5))
-def test_m6_outstation_reset_while_held_takes_effect(kind, rst_laps):
+def test_m6_outstation_reset_while_held_closes_n_only_characterization(kind, rst_laps):
     """The outstation's RST|ACK `rst_laps` laps (+2 ns) after its own response, which T holds. At 0 and 1 laps the
     response's lifecycle still holds N's cell, so the RST retries (count_busy[2]) and then closes; m6_01 lost it
     there (the retry forced the lapped path onto a native RST) and m5 denied it, both releasing the response."""
     p, frames, _rsp = held(M6, kind, extra=[(rst_laps * 1000 + 2, _outstation_rst(kind), False)])
     assert owner_state(p) == 0x200 and cs.n_state(p)['retry_epoch'] == 0
-    assert frames == []                                              # nothing reaches the master
+    # CHARACTERIZATION of an inherited defect, not acceptance: nothing reaches the master, not even the RST (E drops
+    # it as OUT_DROP_AHEAD, front_ret 49/37), so the master's connection stays open. m8 completes the abort
+    # (tests/test_m8_abort.py; directive ba50eac69 section 2).
+    assert frames == []
     assert p.busy(cs.BUSY_DROP) == p.busy(cs.EXHAUSTED) == p.busy(cs.STALE) == 0
     if rst_laps in (0, 1):
         assert p.busy(cs.RETRY) > 0 and loop_frames(p, RST_RETRY_EVENT)

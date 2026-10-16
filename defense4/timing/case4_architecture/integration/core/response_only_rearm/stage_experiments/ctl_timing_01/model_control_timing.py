@@ -38,12 +38,12 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm1')
-    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6'),
-             'OPERATE': milestone in ('m2', 'm3', 'm4', 'm5', 'm6')}
-    bounded = milestone in ('m3', 'm4', 'm5', 'm6')
+    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8'),
+             'OPERATE': milestone in ('m2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8')}
+    bounded = milestone in ('m3', 'm4', 'm5', 'm6', 'm7', 'm8')
     # m5 changes only N's busy handling (DESIGN.md m5): every m4 expectation holds, and the ACK/response race may
     # take only the committed path (the busy-drop path is the m4 defect m5 removes)
-    m4_rows = milestone in ('m4', 'm5', 'm6')
+    m4_rows = milestone in ('m4', 'm5', 'm6', 'm7', 'm8')
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: T hold/release per transaction (READ, SELECT, OPERATE)' % milestone,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -141,16 +141,29 @@ def main():
                 t_sent = time.monotonic()
                 m.send(MASTER.dev_port, sent_req)
                 got = timed_capture(OP_J_S * 3, 0.15)
+                # Causality, not a pass condition: the outstation cannot ACK a command it has not received, so keep
+                # capturing (bounded) until the relayed command appears. In model_control_timing_m7_03_02 the model
+                # lagged the driver by more than the 0.6 s capture (host load), the ACKs were sent first, N busy-
+                # dropped the command, and this master never retransmits: every later case on the connection broke.
+                end = time.monotonic() + 3.0
+                while not any(p == RELAY.dev_port for _t, p, _f in got) and time.monotonic() < end:
+                    got += timed_capture(0.5, 0.15)
                 arrivals = [(t, p, f) for t, p, f in got if p == RELAY.dev_port]
+                j_samples = clock.get('j_wall_s') or []
                 report.add('%s_request_held_J_then_relayed' % tag, True,
-                           len(arrivals) == 1 and same_frame(arrivals[0][2], want_req, sent_req),
-                           delay_s=[round(t - t_sent, 4) for t, _p, _f in arrivals])
+                           len(arrivals) == 1 and same_frame(arrivals[0][2], want_req, sent_req)
+                           and (not j_samples or arrivals[0][0] - t_sent <= 2 * min(j_samples)),
+                           delay_s=[round(t - t_sent, 4) for t, _p, _f in arrivals],
+                           j_upper_bound_s=2 * min(j_samples) if j_samples else None)
                 report.add('%s_one_OP_RELEASE' % tag, 1, outcomes()['OP_RELEASE'] - before['OP_RELEASE'])
                 if arrivals and mode == 'separate':
-                    # model-time calibration from the median J hold of every separate-mode OPERATE so far; one
-                    # sample varied 553M..725M model ns per wall second between runs (_m4_01_09.._11)
+                    # model-time calibration from the J holds of every separate-mode OPERATE so far (one sample varied
+                    # 553M..725M model ns per wall second between runs, _m4_01_09.._11). A host stall can only lengthen
+                    # a hold's wall time, so the shortest hold is the least biased estimate: in model_control_timing_
+                    # m7_03_01 one 0.432 s sample among 0.27-0.29 s ones moved the median and failed the piggyback
+                    # check, while T's own pb_delta at those releases was >= 0 (TRACE_piggyback.md there)
                     clock.setdefault('j_wall_s', []).append(arrivals[0][0] - t_sent)
-                    clock['ns_per_s'] = params['op_j'] / max(statistics.median(clock['j_wall_s']), 1e-6)
+                    clock['ns_per_s'] = params['op_j'] / max(min(clock['j_wall_s']), 1e-6)
                     report.record['meta']['model_ns_per_wall_s'] = clock['ns_per_s']
                     report.record['meta']['j_wall_s'] = list(clock['j_wall_s'])
             else:
@@ -401,7 +414,7 @@ def main():
         # A real check that the race takes one of the two KNOWN paths (anything else fails). Only 'committed' keeps
         # the timing objective; 'busy_drop_retransmitted' is an open N limitation (one work cell), never acceptance
         # evidence: delivery then waits for the outstation's TCP retransmission and that CLRT is not normalized.
-        allowed = ('committed',) if milestone in ('m5', 'm6') else ('committed', 'busy_drop_retransmitted')
+        allowed = ('committed',) if milestone in ('m5', 'm6', 'm7', 'm8') else ('committed', 'busy_drop_retransmitted')
         report.add('race_known_release_path', True, path in allowed and retransmitted == (path != 'committed'),
                    deltas=deltas, path=path, all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
         report.record['meta']['race_path'] = path

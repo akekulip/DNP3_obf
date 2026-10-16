@@ -144,6 +144,17 @@ def params(a):
     return values
 
 
+def dataplane_params_op(a):
+    """T's params write in the build's own time units (directive ba50eac69, C1): the command line is ns, checked by
+    tc.check_params; the build's compiled source decides the units (tc.t_time_of_source on response_only.p4pp) and
+    tc.t_units converts, rounding up. ns, units and time base are kept on the op, so the manifest records all three."""
+    values_ns = params(a)
+    t_time = tc.t_time_of_source((Path(a.build_out) / 'response_only.p4pp').read_text())
+    op = tc.params_op(tc.t_units(values_ns, **t_time))
+    op.update(values_ns=values_ns, t_time=t_time)
+    return op
+
+
 def plan(a, ports):
     """Write order: loopback of the build's front-panel looping ports, then T-side state, E, and N last with
     its connection rows at the very end, so no master packet is bound by N before everything it hands to T
@@ -157,7 +168,7 @@ def plan(a, ports):
     shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
     block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
     return (tc.loopback_ops(ports) + tc.queue_ops(ports, shape, block, a.block_burst) + tc.pktgen_ops(a.k, ports)
-            + [tc.mirror_op(ports), tc.params_op(params(a))] + e_rows + n_rest + n_conn)
+            + [tc.mirror_op(ports), dataplane_params_op(a)] + e_rows + n_rest + n_conn)
 
 
 def show(op):

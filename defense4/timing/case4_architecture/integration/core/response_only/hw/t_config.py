@@ -13,9 +13,46 @@ ALL_PIPES = 0xffff
 # Clone = 4 B tag + 16 B tev + the whole original frame. Frames on these links are at most 1514 B (1500 B IP
 # MTU), so 1514 + 20 = 1534 B fits under 2048 with margin. The model driver set no $max_pkt_len.
 MIRROR_MAX_PKT_LEN = 2048
-# set_params default in read_queue_timing.p4; units are ns of ig.global_tstamp on silicon.
+# set_params defaults, in ns (the configuration unit). The dataplane value is t_units(...) of these: ns for every
+# T before ctl_timing m7, 256 ns units for m7+ (bringup_composite.dataplane_params_op).
 T_PARAM_DEFAULTS = dict(da=2000000, readiness=12000000, cap=16000000, gap=800000, op_j=2400000,
                         budget=240000, enabled=1)
+# T time units (directive ba50eac69, C1). External configuration is always ns. A T counts either in ns sampled on a
+# 256 ns grid (every T up to ctl_timing m6: global_tstamp[31:0] & ~0xff) or in 256 ns units sampled on a 512 ns grid
+# (ctl_timing m7+: global_tstamp[39:8] & ~1). A build declares which in its inputs.json "t_time".
+T_TIME_NS = dict(unit_ns=1, grid_ns=256)
+T_DURATIONS = ('da', 'readiness', 'cap', 'gap', 'op_j', 'pb')
+
+
+def t_units(values_ns, unit_ns=1, grid_ns=256):
+    """The one writer conversion of T durations from ns to a build's T units. For a unit-converting T every duration
+    D becomes ceil((D + grid) / unit): the anchor and `now` are both floored to the grid, so the quantized elapsed
+    time can exceed the true one by up to one grid; adding a grid before rounding up means a deadline never resolves
+    before D ns have truly elapsed. budget (laps) and enabled pass through. unit_ns 1 (every T before m7) returns the
+    values unchanged, preserving those builds' measured behaviour."""
+    out = dict(values_ns)
+    if unit_ns == 1:
+        return out
+    for key in T_DURATIONS:
+        if out.get(key) is not None:
+            if int(out[key]) < 0:
+                raise ValueError('T duration %s=%r ns is negative' % (key, out[key]))
+            value = -(-(int(out[key]) + grid_ns) // unit_ns)
+            if not 0 <= value < 1 << 31:
+                raise ValueError('T duration %s=%r ns does not fit the signed T range' % (key, out[key]))
+            out[key] = value
+    return out
+
+
+def t_time_of_source(text):
+    """The T time base a P4 source actually implements, read from its clock_sample action."""
+    if 'md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe;' in text:
+        return dict(unit_ns=256, grid_ns=512)
+    if 'md.now = ((bit<32>)ig_prsr_md.global_tstamp) & 32w0xffffff00;' in text or 'global_tstamp' not in text:
+        return dict(T_TIME_NS)          # the ns clock, or a source with no T clock at all (test stubs)
+    raise ValueError('unrecognised T clock: refusing to guess its units')
+
+
 # (role of the port, qid, label): strict priority, qid == max_priority, descending within each port.
 LADDER = (('held_return', 7, 'ACK_BLOCK'), ('held_return', 6, 'ACK_HOLD'), ('held_return', 5, 'RESP_BLOCK'),
           ('held_return', 4, 'RESP_HOLD'), ('hb_return', 3, 'OP_BLOCK'), ('hb_return', 2, 'OP_HOLD'))

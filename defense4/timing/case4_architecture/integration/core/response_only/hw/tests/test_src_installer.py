@@ -323,3 +323,30 @@ class OutDirName(unittest.TestCase):
         import check_mirror_select as cms
         self.assertTrue(cms.check_out(fx.OUT)[0])
         self.assertTrue(cms.check(fx.BUILD)[0] is False)        # check(build) still means <build>/out: absent here
+
+
+class TimeUnits(unittest.TestCase):
+    """Directive ba50eac69 C1: the installer writes T durations in the build's own units (t_config.t_units)."""
+
+    def _op(self, p4pp_text):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / 'response_only.p4pp').write_text(p4pp_text)
+            a = bc.parse(['--build-out', d, '--fixed-schema-dir', fx.FIXED] + fx.ENDPOINTS)
+            return bc.dataplane_params_op(a), bc.params(a)
+
+    def test_m7_clock_gets_rounded_up_units_and_the_manifest_keeps_ns(self):
+        op, ns = self._op('action clock_sample() { md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe; }')
+        data = dict(op['data'])
+        self.assertEqual(data['op_j'], -(-(ns['op_j'] + 512) // 256))
+        self.assertEqual(data['budget'], ns['budget'])
+        self.assertEqual((op['values_ns'], op['t_time']), (ns, dict(unit_ns=256, grid_ns=512)))
+
+    def test_ns_clock_is_written_unchanged(self):
+        op, ns = self._op('action clock_sample() { md.now = ((bit<32>)ig_prsr_md.global_tstamp) & 32w0xffffff00; }')
+        self.assertEqual(dict(op['data']), {k: ns[k] for k in dict(op['data'])})
+
+    def test_an_unknown_clock_is_refused(self):
+        with self.assertRaises(ValueError):
+            self._op('action clock_sample() { md.now = ig_prsr_md.global_tstamp[40:9] & 32w0xfffffffe; }')
+        with self.assertRaises(ValueError):
+            tc.t_units(dict(op_j=-1), 256, 512)

@@ -31,6 +31,8 @@ def main():
     sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
     manifest = json.loads((build / 'compile_local/manifest.json').read_text())
     assert sha == inputs['source_sha256'] == manifest['source_sha256'] and manifest['exit_code'] == 0
+    if inputs.get('milestone') and args.milestone != inputs['milestone']:
+        raise SystemExit('--milestone %s does not match the build (%s)' % (args.milestone, inputs['milestone']))
     out = HERE / ('evidence/model_%s_%s_%02d' % (args.driver, build.name, args.attempt))
     assert not out.exists(), 'evidence must not be overwritten'
     driver = DRIVERS[args.driver]
@@ -48,6 +50,9 @@ def main():
             'command': command, 'PORT_MAP': env['PORT_MAP'], 'PAD_ENABLE': '1', 'MILESTONE': args.milestone,
             'pb_injected': args.pb,
             'hardware': False, 'source_sha256': sha, 'driver_sha256': hashlib.sha256(driver.read_bytes()).hexdigest(),
+            # the shared libraries that convert and install T parameters (review W5)
+            'library_sha256': {name: hashlib.sha256((HERE.parents[2] / name).read_bytes()).hexdigest()
+                               for name in ('model_driver.py', '../core/response_only/hw/t_config.py')},
             'exit_code': result.returncode}, indent=2) + '\n')
     return result.returncode
 

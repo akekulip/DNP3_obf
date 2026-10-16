@@ -436,20 +436,82 @@ def transform_n_m6(n):
     return n
 
 
+E_M8_ACTION = ('    action out_drop(bit<8> why) { m.result = why; md.drop_ctl = 3w1; }',
+               '    action out_drop(bit<8> why) { m.result = why; md.drop_ctl = 3w1; }\n'
+               '    action out_reset_front() { m.qx = m.qf; m.result = r_OUT_RESET_FRONT; m.changed = 1; }')
+
+
+def transform_e_m8(e):
+    """The one E exception of m8 = m7 + this (directive ba50eac69, section 2: abort completion; kept separate from
+    m7's T clock so each resource failure has one cause; m7_01/m7_02 combined attempts failed PHV, retained). An outstation RST that N has
+    validated and closed while T held its response arrives exactly one held response ahead of E's frontier (front_ret
+    49 for READ, 37 for control): the master never received those bytes, so classify_fwd dropped it as
+    OUT_DROP_AHEAD and the master's connection stayed open. Measured on Linux 5.15 (evidence/support_20261016/rst_linux.py, 2026-10-16):
+    an RST at the receiver's RCV.NXT resets; one ahead inside the window only draws a challenge ACK. m8 therefore
+    places such an RST at the frontier: qx = q - front_ret is the frontier's offset from the image end, so img_wend_t
+    writes the master-visible RCV.NXT. Only RST-bearing segments exactly 49 or 37 octets ahead; every other ahead
+    segment still drops. New outcome code 16 (the outcome counter has 32 cells). Nothing else in E changes."""
+    e = once(e, 'const bit<8> r_OUT_DROP_MERGED = 15;',
+             'const bit<8> r_OUT_DROP_MERGED = 15; const bit<8> r_OUT_RESET_FRONT = 16;')
+    e = once(e, *E_M8_ACTION)
+    # qf = q - front_ret is computed by its own action after img_end_t (m7_01 did it inside the verdict action and
+    # failed bf-p4c's action constraints); out_reset_front then only moves it, as the other verdicts move q or pm
+    e = once(e, '    bit<32> front_ret; bit<1> grant;', '    bit<32> front_ret; bit<1> grant; bit<32> qf;')
+    e = once(e, '        img_end_t.apply();\n',
+             '        img_end_t.apply();\n        front_q_t.apply();\n')
+    e = once(e, '    table classify_fwd {',
+             '    action front_q() { m.qf = m.q - m.front_ret; }\n'
+             '    table front_q_t { actions = { front_q; } size = 1; const default_action = front_q(); }\n'
+             '    table classify_fwd {')
+    e = once(e, 'actions = { out_commit; out_translate; out_zero; out_replay; out_stale; out_drop; } size = 24;',
+             'actions = { out_commit; out_translate; out_zero; out_replay; out_stale; out_drop; out_reset_front; } size = 24;')
+    ahead = '(32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _): out_drop(r_OUT_DROP_AHEAD);'
+    rows = ''.join('(32w%d, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front();' % n
+                   for n in (49, 37))
+    return once(e, ahead, rows + ahead)
+
+
+T_TIME_M7 = dict(unit_ns=256, grid_ns=512, source='global_tstamp[39:8] & ~1')
+
+
+def transform_t_m7(t):
+    """m7's only change (directive ba50eac69, C1; Philip 2026-10-16). T's clock was the low 32 bits of global_tstamp
+    in ns on a 256 ns grid, and every deadline is the sign bit of a 32-bit difference, so an anchor older than
+    readiness + 2^31 ns read as "not ready" and one older than 2^32 ns aliased to a fresh exchange
+    (evidence/model_contention_m6_07_01/TRACE_sweep_SELECT_000ms.md; the arithmetic is shared by every earlier T
+    build, these tests reproduce it on m6, they do not show m6 introduced it). m7's T counts in 256 ns units from the
+    byte-aligned slice global_tstamp[39:8] (the [40:9] slice, a shift and a two-word concatenation all failed PHV
+    allocation), with bit 0 kept free for the OPERATE anchor flag: a 512 ns sampling grid, a signed horizon of
+    2^31 x 256 ns = 9.16 minutes and a full wrap of 18.33 minutes. It widens the supported range; it does not remove
+    wrap ambiguity: a deadline that has passed reads as passed until D + 2^31 units after its anchor, so T must
+    resolve every held packet within 9.16 minutes of its anchor (declared bound; rollover test). set_params is unchanged: durations arrive in T units, converted from ns by the one shared writer function
+    core/response_only/hw/t_config.t_units, which rounds up over both the anchor grid and the unit
+    (ceil((D + 512 ns) / 256 ns)) so no deadline resolves before its ns duration (phase-sweep test)."""
+    return once(t, 'action clock_sample() { md.now = ((bit<32>)ig_prsr_md.global_tstamp) & 32w0xffffff00; }',
+                'action clock_sample() { md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe; }')
+
+
 def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
     new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
-             'm5': transform_n_m5, 'm6': transform_n_m6}[milestone](old_n)
+             'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6}[milestone](old_n)
     new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
-             'm5': transform_t_m4, 'm6': transform_t_m4}[milestone](old_t)
+             'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
-    if milestone in ('m5', 'm6'):             # N only: E and T byte-identical to m4
+    if milestone in ('m5', 'm6', 'm7', 'm8'):  # N only here; m7/m8 add their named T/E changes below
         m4 = full_source('m4')
         assert combined.segment(text, 'T') == combined.segment(m4, 'T')
         assert combined.segment(text, 'E') == combined.segment(m4, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
+    if milestone in ('m7', 'm8'):             # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
+        old_t7 = combined.segment(text, 'T')
+        text = text.replace(old_t7, transform_t_m7(old_t7), 1)
+        if milestone == 'm8':
+            old_e = combined.segment(text, 'E')
+            text = text.replace(old_e, transform_e_m8(old_e), 1)
+        assert combined.segment(text, 'N') == combined.segment(full_source('m6'), 'N')
     return text
 
 
@@ -464,7 +526,8 @@ def write(directory, milestone='m1'):
                     source_sha256=digest(text.encode()),
                     candidate61_source={'path': str(SOURCE), 'sha256': SOURCE_SHA256},
                     generator_sha256=digest(Path(__file__).read_bytes()),
-                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T'],
+                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone == 'm8' else ['N', 'T'],
+                    t_time=T_TIME_M7 if milestone in ('m7', 'm8') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
                     segment_sha256={name: digest(combined.segment(text, name).encode()) for name in ('N', 'E', 'T')})
     (directory / 'response_only.inputs.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(json.dumps({'source_sha256': metadata['source_sha256'], 'segments': metadata['segment_sha256']}, indent=1))
@@ -472,5 +535,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8]')
     write(sys.argv[1], *(sys.argv[2:]))

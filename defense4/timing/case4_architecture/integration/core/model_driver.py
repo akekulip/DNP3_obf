@@ -39,6 +39,35 @@ def veth_for(port):
     return 'veth%d' % (2 * port + 1)
 
 
+def t_params_for_build(values_ns):
+    """T durations are configured in ns and written in the build's T units through the one shared writer conversion,
+    t_config.t_units. The units come from the build's compiled source (t_config.t_time_of_source on the
+    response_only.p4 beside PORT_MAP's inputs.json) and must agree with the inputs.json "t_time" declaration (absent:
+    ns); a disagreement fails closed. The values written are appended to $OUT/t_params_written.json."""
+    import json
+    import os
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent / 'response_only/hw'))
+    import t_config
+    port_map = os.environ.get('PORT_MAP')
+    if not port_map:
+        return values_ns
+    inputs = Path(port_map)
+    declared = json.loads(inputs.read_text()).get('t_time') or dict(t_config.T_TIME_NS)
+    source = inputs.parent / 'response_only.p4'
+    actual = t_config.t_time_of_source(source.read_text()) if source.is_file() else None
+    if actual is not None and (actual['unit_ns'], actual['grid_ns']) != (declared['unit_ns'], declared['grid_ns']):
+        raise ValueError('T time base: inputs.json declares %r, the source implements %r' % (declared, actual))
+    written = t_config.t_units(values_ns, declared['unit_ns'], declared['grid_ns'])
+    if os.environ.get('OUT'):
+        log = Path(os.environ['OUT']) / 't_params_written.json'
+        rows = json.loads(log.read_text()) if log.is_file() else []
+        rows.append(dict(values_ns=values_ns, t_time=declared, written=written))
+        log.write_text(json.dumps(rows, indent=1) + '\n')
+    return written
+
+
 class Model:
     def __init__(self, prog=None, grpc=None, ports=None, enable=True, speed='BF_SPEED_10G',
                  pipe=0xffff, settle=2.0, client_id=1):
@@ -98,6 +127,8 @@ class Model:
         t.entry_add(self.target if pipe is None else gc.Target(device_id=0, pipe_id=pipe), [self._key(t, keys, priority)], [d])
 
     def set_default(self, table, action, data=None):
+        if action == 't_Ingress.set_params' and data is not None:
+            data = t_params_for_build(data)
         t = self.table(table)
         t.default_entry_set(self.target, t.make_data([gc.DataTuple(k, v) for k, v in (data or {}).items()], action))
 

@@ -198,3 +198,50 @@ Successor candidate `evidence/m6_07/response_only.p4` (`3335479b…e142`), gener
 **Source evidence.** `tests/test_m6_lifecycle.py` (m5/m6 side by side on the lap-scheduled pipeline): master and outstation RST at laps 0/1/5/40 for READ, SELECT and OPERATE, then a fresh handshake and READ; the exact ACK sets above; RST retry exhaustion, stale RST retry after close and reconnect, RST during a response retry; a refused master FIN keeps retry authority and a later contended READ is delivered; delayed close passes of an old incarnation (0x0104, 0x0204) leave the new authority; duplicates during retry, while held, after release, after the next READ, after reconnect and across sequence wrap. `tests/test_contention_source.py` runs m4/m5/m6. Each fix's test fails on the build before it (the m6_06 epoch-0 case: `test_busy_master_rst_with_normalized_epoch_zero_ends_like_a_free_one`).
 
 **Model evidence.** `model_contention.py` m6 expectations: the master's first RST must take effect in every reset and reconnect case (no "refused after admitted response" exemption); a third outcome `flushed_by_reset` (response admitted and held, flushed by the reset); a duplicate sent during the wait may reach the master only after the timed original with identical bytes (the model's laps take milliseconds, so the copy reaches T after the release; on silicon laps are about a microsecond against a 950 us hold, but that is a source-level statement, not a measurement); a post-release duplicate passes once with no T release or fallback (N generation delta recorded, not gated). Results per build in `evidence/model_*_m6_0N_01`; m6_01's contention run (234/241) failed on its own duplicate/generation expectations, since corrected, and on OPERATE sweep points at 8 and 45 ms (fallback, request not relayed) that did not recur on m6_05 (241/241) and were not diagnosed; m6_01's rearm run never started (bf_switchd gRPC did not come up while a compile ran). m6_06: contention 241/241, control_timing 141/141 (suite stopped there, superseded). **m6_07: contention 240/241 FAIL**, every other driver passes (control_timing 141, select_lifecycle 120, smoke 30, packets 622, rearm 399, dup 102, repeat 523). The failure is `sweep_SELECT_000ms`: the response retried 3 laps (no busy drop, exhaustion or stale) and then never reached the master; T counted ACK_FALLBACK 1 and neither RESP_RELEASE nor RESP_FALLBACK, so the response was lost without any counter (the master got it only from the driver's cleanup retransmission). The same point passed on m6_05 (1 retry) and m6_06 (0 retries). Not diagnosed: the source harness delivers 3-retry SELECT responses at microsecond laps, and its handshake does not run at model-scale laps. Until classified, a silently lost retried response is an open delivery defect of the retry path on the model, not attributed to the m6_07 delta. Model summaries: `evidence/m6_0N/model_summary.json`.
+
+## m7: T time base without 32-bit aliasing, durations rounded up (2026-10-16, directive ba50eac69 C1)
+
+`evidence/m7_03/response_only.p4` (`8f51fb67…d28b`), from `generate.py OUT m7`. It is m6's N with one changed T line
+(`transform_t_m7`); E is byte-identical to m5/m6. Compiles on SDK 9.13.1 and 9.13.2 at N12/E12/T11, mirror guard PASS.
+Model: all eight drivers pass (`evidence/m7_03/model_summary.json`, every attempt listed). Not frozen; not run on
+silicon.
+
+**Defect (shared by every earlier T; reproduced here on m6, not introduced by it).** T decides each deadline by the sign
+bit of the 32-bit ns value now − D − t0. An anchor older than D + 2^31 ns reads as "not ready", and one older than
+2^32 ns aliases to a fresh exchange. This caused the m6_07 model loss (`evidence/model_contention_m6_07_01/
+TRACE_sweep_SELECT_000ms.md`). The exposure of earlier measurements is assessed separately in
+`evidence/T_ALIASING_EXPOSURE_20261016.md`; no measured exchange was affected, and the stale-token runs are open.
+
+**Change.**
+- **Clock:** `md.now = global_tstamp[39:8] & ~1`. That is 256 ns units on a 512 ns sampling grid, with bit 0 left free for
+  the OPERATE anchor flag. The signed horizon is 2^31 × 256 ns = 9.16 min and the full wrap 18.33 min. A passed deadline
+  reads as passed until D + 2^31 units after its anchor; declared bound: T resolves every held packet within 9.16
+  minutes of its anchor.
+- **Placement:** the `[40:9]` slice, a shift and a two-word concatenation all failed PHV allocation (bisect in
+  scratch). Shifting the action-data parameters in `set_params` crashed bf-p4c. The byte-aligned `[39:8]` slice places
+  at the old stage counts.
+- **Durations:** configured in ns everywhere and written in T units by one shared function,
+  `core/response_only/hw/t_config.t_units`: ceil((D + 512 ns) / 256 ns). Its writers are the hardware bring-up
+  (`dataplane_params_op`, which records ns, units and time base in the manifest), the model driver (`Model.set_default`,
+  cross-checked against the source clock and logged to `t_params_written.json`) and the source pipeline (`LapPipeline`).
+  A build declares its unit in `inputs.json` `t_time`. Earlier builds stay in ns.
+- **Early decisions:** the anchor and now are both floored to the grid, so the bound covers anchor quantization and the
+  unit conversion together. No deadline resolves before its ns duration. Tests (`tests/test_t_phase_sweep.py`):
+  - an exact 1,024-phase sweep against the unquantized reference;
+  - a check that the pre-m7 T (255 ns) and a naive >> 9 conversion (767 ns at J = 2.4 ms, Philip's counterexample) are
+    early;
+  - an end-to-end OPERATE J sample on the real P4, plus a full 1,024-phase end-to-end record in
+    `evidence/m7_03/phase_sweep_end_to_end.json`;
+  - rollover across the 2^40 ns wrap, and the lifetime bound.
+- **Cost:** release up to about one grid later than the ns duration (≤ 2 grids + 1 unit).
+
+**Harness corrections found while gating** (each retained with its trace):
+- **contention:** the capture now waits for T's response release or fallback, and the work cell must be idle at each
+  point.
+- **control_timing, clock:** J calibration uses the shortest J sample (`model_control_timing_m7_03_01/TRACE_piggyback.md`).
+- **control_timing, OPERATE:** the outstation ACK is sent only after the relayed command appears
+  (`model_control_timing_m7_03_02/TRACE_operate_dupack.md`; the model lagged the driver under host load).
+
+**m8** (= m7 + E reset at the frontier, `transform_e_m8`) is kept separate so that each resource failure has a single
+cause. Its source tests are in `tests/test_m8_abort.py`. Its earlier compile attempts (m7_01 and m7_02, then labelled
+m7) combined the E change with an older T draft and failed PHV allocation; they are retained.

@@ -41,13 +41,16 @@ COMMITTED = {'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBA
 DELAYS_MS = (0, 8, 15, 22, 30, 45, 60, 90, 120)
 WAIT_S, QUIET_S = 8.0, 1.5     # > T's readiness fallback in wall time (about 3 s at ~6.8e8 model ns/s)
 OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
+# TRACE_sweep_SELECT_000ms.md (m6_07): a point's verdict is T's own lane (commit and release required). Before m7, T's lane
+# could be fooled by 32-bit readiness aliasing past 2^32 ns (_02); m7's clock moves that to 9.16 minutes. The request-
+# to-ACK wall time is recorded only; model-time stimulus checks are read from the model log (trace_model_log.py).
 READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
     bounded = milestone not in ('m1', 'm2')
-    retrying = milestone in ('m5', 'm6')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
+    retrying = milestone in ('m5', 'm6', 'm7', 'm8')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -154,6 +157,7 @@ def main():
             m.send(MASTER.dev_port, sent)
             got = capture(OP_HOLD_S * 3 if kind == 'OPERATE' else 1.0, OP_HOLD_S if kind == 'OPERATE' else 0.2)
             relayed = [f for _t, p, f in got if p == RELAY.dev_port]
+            st['t_relayed'] = next((t for t, p, _f in got if p == RELAY.dev_port), None)
             ok = len(relayed) == 1 and same_frame(relayed[0], want, sent)
             if not ok:
                 report.record['meta'].setdefault('request_not_relayed', []).append(
@@ -170,6 +174,7 @@ def main():
             sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
             m.drain(ports)
             m.send(RELAY.dev_port, ack)
+            st['t_ack_sent'] = time.monotonic()
             if d_ms:
                 time.sleep(d_ms / 1000.0)
             if send_response:
@@ -186,19 +191,39 @@ def main():
             # the contended connection's frames only (a second connection's packets also reach the master port)
             to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port
                          and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
+            extended = False
+            if not any(same_frame(f, want_rsp, want_rsp) for _t, f in to_master):
+                extended = True
+                # The capture stops QUIET_S after the last frame, earlier than T's bounded response fallback: keep
+                # observing until T has released or fallen back on a response, or WAIT_S passes (trace finding 2)
+                end = time.monotonic() + WAIT_S
+                while time.monotonic() < end:
+                    seen = outcomes()
+                    if seen['RESP_RELEASE'] + seen['RESP_FALLBACK'] > before['RESP_RELEASE'] + before['RESP_FALLBACK']:
+                        got = got + capture(QUIET_S, QUIET_S)
+                        break
+                    got = got + capture(0.5, 0.5)
+                to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port
+                             and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
             after, busy1 = outcomes(), busy()
             lane = {k: after[k] - before[k] for k in LANE}
             counts = [b - a for a, b in zip(busy0, busy1)]
+            stimulus = (st['t_ack_sent'] - st['t_relayed']) if st.get('t_relayed') and st.get('t_ack_sent') else None
             delivered = (len(to_master) == 2 and same_frame(to_master[0][1], want_ack, ack)
                          and same_frame(to_master[1][1], want_rsp, want_rsp))
             # m6 (directive: suppress a duplicate while its original is held; after release a copy is loss
             # recovery): a duplicate copy may follow the timed original, never precede it, and must be identical.
             # The model's laps take milliseconds, so a copy sent during the wait can reach T after the release.
-            copy_after_release = (milestone == 'm6' and (extra or {}).get('duplicate_sent') and len(to_master) == 3
+            copy_after_release = (milestone in ('m6', 'm7', 'm8') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
                                   and same_frame(to_master[0][1], want_ack, ack)
                                   and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
-            ok = (delivered or copy_after_release) and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
+            # a committed release found only by the extended capture is late: it must not pass (review W3)
+            ok = ((delivered or copy_after_release) and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
+                  and not extended)
             row = dict(tag=tag, kind=kind, delivered_without_resend=delivered, lane=lane, count_busy_delta=counts,
+                       request_to_ack_wall_s=round(stimulus, 4) if stimulus is not None else None,
+                       extended_capture_used=extended,
+
                        clrt_wall_s=(to_master[1][0] - to_master[0][0]) if len(to_master) >= 2 else None,
                        frames_to_master=len(to_master), copy_after_release=bool(copy_after_release),
                        resp_dup_drop=after['RESP_DUP_DROP'] - before['RESP_DUP_DROP'],
@@ -216,6 +241,16 @@ def main():
                     p == MASTER.dev_port and same_frame(f, want_rsp, want_rsp) for _t, p, f in late)
             points.append(row)
             report.add('%s_delivered_once_committed' % tag, True, ok, **row)
+            if not ok and not (extra or {}).get('duplicate_sent'):
+                # a fallback or a miss fails the point above; whether the original still reached the master exactly
+                # once, after the ACK (bounded fallback, never a vanish or a double) is recorded as its own check
+                labels = [label for _t, _n, label in row['frame_log']]
+                report.add('%s_original_delivered_once' % tag, True,
+                           labels.count('response') == 1 and 'ack' in labels
+                           and labels.index('ack') < labels.index('response')
+                           and counts[0] == counts[3] == counts[4] == 0
+                           and lane['ACK_COMMIT'] + lane['ACK_FALLBACK'] == 1
+                           and lane['RESP_RELEASE'] + lane['RESP_FALLBACK'] == 1)
             st['s'] += len(native)
             st['growth'] += IMAGE_LEN - len(native)
             return ok
@@ -232,7 +267,19 @@ def main():
             st['s'] += len(native)
             st['growth'] += IMAGE_LEN - len(native)
 
+        def settled(tag):
+            """N's work cell must be idle (phase 4) before a point starts: the previous point's lifecycle, retries and
+            close have finished (trace finding: settlement was assumed from fixed wall-time quiet intervals)."""
+            try:
+                cell = m.register_read('p0.n_Ingress.work.work', 0, pipe=0)
+                phase = scalar({k: v for k, v in cell.items() if k.endswith('.phase')})
+            except Exception as error:
+                phase = 'unavailable: %s' % str(error)[:120]
+            report.add('%s_work_cell_idle_at_start' % tag, 4, phase)
+
         def point(tag, kind, d_ms, during=None, send_response=True, retransmit_after_s=None, on_ms=200):
+            settled(tag)
+            st['tag'] = tag
             reconnect(tag)
             fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else \
                 (3 if kind == 'SELECT' else 4, rb.crob(on_ms), bytes(2) + rb.crob(on_ms))
@@ -328,7 +375,7 @@ def main():
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
                 # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
                 # nothing reaches the master and nothing is busy-dropped, exhausted or stale
-                flushed = (milestone == 'm6' and not payload_to_master and lane['RESP_RELEASE'] == 0
+                flushed = (milestone in ('m6', 'm7', 'm8') and not payload_to_master and lane['RESP_RELEASE'] == 0
                            and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
                 refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
@@ -344,7 +391,7 @@ def main():
             # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
             # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
             # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
-            if row['outcome'] == 'admitted_before_reset' and milestone != 'm6':
+            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8'):
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
             else:
@@ -394,7 +441,7 @@ def main():
             # the old response may have been admitted before the RST (slow model laps: released once, before the new
             # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
             late = [t for t, _f in old_to_master if t >= new['syn_t']]
-            if old_to_master and milestone != 'm6':
+            if old_to_master and milestone not in ('m6', 'm7', 'm8'):
                 # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
@@ -415,7 +462,7 @@ def main():
             rst(tag)
 
         # ---- m6: a duplicate of a released response (loss beyond the switch) passes, with the same image ---------
-        if milestone == 'm6':
+        if milestone in ('m6', 'm7', 'm8'):
             for kind in ('READ', 'SELECT'):
                 tag = 'post_release_duplicate_%s' % kind
                 got, native, ack, before, busy0, extra = point(tag, kind, 120)
