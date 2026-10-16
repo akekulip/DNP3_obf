@@ -47,6 +47,7 @@ READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
     bounded = milestone not in ('m1', 'm2')
+    retrying = milestone in ('m5', 'm6')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -88,11 +89,11 @@ def main():
         def outcomes():
             return {k: scalar(m.register_read('p1.t_Ingress.outcomes', i, pipe=1)) for k, i in OUT.items()}
 
-        cells = 8 if milestone == 'm5' else 4          # m5 grows count_busy to 8 (2 retry, 3 exhaustion, 4 stale)
+        cells = 8 if retrying else 4          # m5 grows count_busy to 8 (2 retry, 3 exhaustion, 4 stale)
 
         def busy():
             row = [scalar(m.register_read('p0.n_Ingress.count_busy', i, pipe=0)) for i in range(cells)]
-            if milestone == 'm5':                       # count_term[0]: retried duplicates aborted
+            if retrying:                                # count_term[0]: retried duplicates aborted
                 row.append(scalar(m.register_read('p0.n_Ingress.count_term', 0, pipe=0)))
             return row
 
@@ -154,6 +155,9 @@ def main():
             got = capture(OP_HOLD_S * 3 if kind == 'OPERATE' else 1.0, OP_HOLD_S if kind == 'OPERATE' else 0.2)
             relayed = [f for _t, p, f in got if p == RELAY.dev_port]
             ok = len(relayed) == 1 and same_frame(relayed[0], want, sent)
+            if not ok:
+                report.record['meta'].setdefault('request_not_relayed', []).append(
+                    dict(kind=kind, relayed=len(relayed), frames=[(round(t, 4), p, len(f)) for t, p, f in got]))
             st['c'] += len(req)
             return app, ok
 
@@ -187,10 +191,21 @@ def main():
             counts = [b - a for a, b in zip(busy0, busy1)]
             delivered = (len(to_master) == 2 and same_frame(to_master[0][1], want_ack, ack)
                          and same_frame(to_master[1][1], want_rsp, want_rsp))
-            ok = delivered and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
+            # m6 (directive: suppress a duplicate while its original is held; after release a copy is loss
+            # recovery): a duplicate copy may follow the timed original, never precede it, and must be identical.
+            # The model's laps take milliseconds, so a copy sent during the wait can reach T after the release.
+            copy_after_release = (milestone == 'm6' and (extra or {}).get('duplicate_sent') and len(to_master) == 3
+                                  and same_frame(to_master[0][1], want_ack, ack)
+                                  and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
+            ok = (delivered or copy_after_release) and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
             row = dict(tag=tag, kind=kind, delivered_without_resend=delivered, lane=lane, count_busy_delta=counts,
-                       clrt_wall_s=(to_master[1][0] - to_master[0][0]) if len(to_master) == 2 else None,
-                       frames_to_master=len(to_master), **(extra or {}))
+                       clrt_wall_s=(to_master[1][0] - to_master[0][0]) if len(to_master) >= 2 else None,
+                       frames_to_master=len(to_master), copy_after_release=bool(copy_after_release),
+                       resp_dup_drop=after['RESP_DUP_DROP'] - before['RESP_DUP_DROP'],
+                       frame_log=[(round(t - to_master[0][0], 4), len(f),
+                                   'ack' if same_frame(f, want_ack, ack) else
+                                   'response' if same_frame(f, want_rsp, want_rsp) else 'other')
+                                  for t, f in to_master], **(extra or {}))
             if not any(same_frame(f, want_rsp, want_rsp) for _t, f in to_master) and sent_rsp is not None:
                 # CLEANUP ONLY, after the verdict above: the outstation's TCP retransmission, so N's sequence
                 # state admits the next RST (as model_control_timing's race case does); never acceptance evidence
@@ -303,19 +318,25 @@ def main():
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
             lane = row['lane']
             admitted = (len(payload_to_master) == 1 and payload_to_master[0].endswith(image) and lane == COMMITTED
-                        and (milestone != 'm5' or row['count_busy_delta'][4] == 0))
+                        and (not retrying or row['count_busy_delta'][4] == 0))
             counts = row['count_busy_delta']
-            if milestone == 'm5':
+            flushed = False
+            if retrying:
                 # admitted: nothing exhausted or stale; refused: a counted stale drop, nothing busy-dropped or exhausted
                 admitted = admitted and counts[3] == 0
                 refused = (not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
+                # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
+                # nothing reaches the master and nothing is busy-dropped, exhausted or stale
+                flushed = (milestone == 'm6' and not payload_to_master and lane['RESP_RELEASE'] == 0
+                           and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
                 refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
-            row['outcome'] = 'admitted_before_reset' if admitted else 'refused_after_reset' if refused else 'other'
+            row['outcome'] = ('admitted_before_reset' if admitted else 'refused_after_reset' if refused
+                              else 'flushed_by_reset' if flushed else 'other')
             row['first_rst_relayed'] = first_rst.get('relayed')
             points.append(row)
-            report.add('%s_known_outcome' % tag, True, admitted or refused, **row)
+            report.add('%s_known_outcome' % tag, True, admitted or refused or flushed, **row)
             # its own verdict: the master's single RST must take effect (relayed to the outstation). An RST that meets
             # an in-flight N lifecycle is refused by N's owner-state check (m4 behaviour); a real stack never repeats it
             # The master's RST acks only what it has (the pre-response sequence). Once N has admitted the response,
@@ -323,7 +344,7 @@ def main():
             # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
             # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
             # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
-            if row['outcome'] == 'admitted_before_reset':
+            if row['outcome'] == 'admitted_before_reset' and milestone != 'm6':
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
             else:
@@ -373,7 +394,7 @@ def main():
             # the old response may have been admitted before the RST (slow model laps: released once, before the new
             # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
             late = [t for t, _f in old_to_master if t >= new['syn_t']]
-            if old_to_master:
+            if old_to_master and milestone != 'm6':
                 # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
@@ -392,6 +413,36 @@ def main():
                                old_response_after_new_syn=len(late),
                                count_busy_delta=[b - a for a, b in zip(busy0, busy())]))
             rst(tag)
+
+        # ---- m6: a duplicate of a released response (loss beyond the switch) passes, with the same image ---------
+        if milestone == 'm6':
+            for kind in ('READ', 'SELECT'):
+                tag = 'post_release_duplicate_%s' % kind
+                got, native, ack, before, busy0, extra = point(tag, kind, 120)
+                s0, g0, c0 = st['s'], st['growth'], st['c']
+                sent_rsp = extra.pop('sent_rsp')
+                ok = judge(tag, kind, native, ack, got, before, busy0, extra, sent_rsp=sent_rsp)
+                image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
+                want = vectors.packet(24, s0 + g0, c0, reverse=True, payload=image)
+                gen0, before2, busy2 = scalar(m.register_read('p0.n_Ingress.counter', 0, pipe=0)), outcomes(), busy()
+                m.drain(ports)
+                m.send(RELAY.dev_port, sent_rsp)
+                late = capture(WAIT_S, QUIET_S)
+                copies = [f for _t, p, f in late if p == MASTER.dev_port and same_frame(f, want, want)]
+                after2 = outcomes()
+                row = dict(tag=tag + '_resend', copies_to_master=len(copies),
+                           frames_to_master=sum(1 for _t, p, _f in late if p == MASTER.dev_port),
+                           generation_delta=scalar(m.register_read('p0.n_Ingress.counter', 0, pipe=0)) - gen0,
+                           lane={k: after2[k] - before2[k] for k in LANE},
+                           count_busy_delta=[b - a for a, b in zip(busy2, busy())])
+                points.append(row)
+                # N's go_new allocates an N generation for the copy's lifecycle, as m5's forward_original path did
+                # (recorded, not gated); T allocates nothing: no release, no fallback
+                report.add('%s_resend_passes_once_same_image' % tag, True,
+                           ok and len(copies) == 1 and row['frames_to_master'] == 1
+                           and all(v == 0 for v in row['lane'].values())
+                           and row['count_busy_delta'][0] == 0, **row)
+                rst(tag)
 
         # ---- a lost response, recovered by the outstation's retransmission ----------------------------------------
         tag = 'loss_recovery_READ'

@@ -18,19 +18,25 @@ import os
 import tempfile
 
 
-def _generated_m5():
-    """The m5 source as the generator produces it now, so the successor cases always run in the suite."""
+def _generated(milestone='m5'):
+    """The source as the generator produces it now, so the successor cases always run in the suite."""
     spec = importlib.util.spec_from_file_location('contention_generate', EVIDENCE.parent / 'generate.py')
     gen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gen)
-    path = Path(tempfile.mkdtemp(prefix='m5_generated_')) / 'response_only.p4'
-    path.write_text(gen.full_source('m5'))
+    path = Path(tempfile.mkdtemp(prefix='%s_generated_' % milestone)) / 'response_only.p4'
+    path.write_text(gen.full_source(milestone))
     return path
 
 
-SUCCESSORS = [_generated_m5()] + [p for p in (EVIDENCE / 'm5_10/response_only.p4',) if p.is_file()] + \
+SUCCESSORS = [_generated('m5')] + [p for p in (EVIDENCE / 'm5_10/response_only.p4',) if p.is_file()] + \
     [Path(x) for x in os.environ.get('CONTENTION_EXTRA_SOURCES', '').split(':') if x]
 IDS = ['generated_m5'] + [p.parent.name for p in SUCCESSORS[1:]]
+# m6 (DESIGN.md m6): the generated source; CONTENTION_M6_SOURCES (':'-separated) replaces it, e.g. with a retained
+# build, to show which m6 expectations pin a fix
+M6S = [Path(x) for x in os.environ.get('CONTENTION_M6_SOURCES', '').split(':') if x] or [_generated('m6')]
+M6_IDS = ['generated_m6' if 'm6_generated_' in str(p) else p.parent.name for p in M6S]
+ALL = SUCCESSORS + M6S
+ALL_IDS = IDS + M6_IDS
 KINDS = ('READ', 'SELECT', 'OPERATE')
 OFFSETS = range(5)
 M4_BUSY_OFFSETS = {0, 1, 2}        # the ACK's passes 1-3 still hold the cell; its 4th pass frees it
@@ -50,7 +56,7 @@ def test_m4_keeps_the_original_race(kind, offset):
         assert cs.delivered_once_after_ack(r), r['outcomes']
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 @pytest.mark.parametrize('kind', KINDS)
 @pytest.mark.parametrize('offset', OFFSETS)
 def test_successor_delivers_at_every_offset(source, kind, offset):
@@ -66,7 +72,7 @@ def _busy_retry(source):
     return cs.contended(source, 'READ', 0)
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_retry_allocates_no_generation_and_touches_nothing_else(source):
     contended, clean = _busy_retry(source), cs.contended(source, 'READ', 6)
     assert contended['busy'][cs.RETRY] >= 1 and clean['busy'][cs.RETRY] == 0
@@ -78,9 +84,9 @@ def test_retry_allocates_no_generation_and_touches_nothing_else(source):
     assert [raw for _t, raw in contended['master']] == [raw for _t, raw in clean['master']]
 
 
-def _duplicate(source, first_laps, second_laps):
+def _duplicate(source, first_laps, second_laps, kind='READ'):
     p = cs.LapPipeline(source).handshake()
-    request, ack, response = cs.transaction('READ')
+    request, ack, response = cs.transaction(kind)
     seen, t = len(p.to_master()), p.now + 100_000
     t_ack = t + cs.REQ_TO_ACK_NS
     p.at(t, request, master=True)
@@ -125,6 +131,33 @@ def test_post_lifecycle_native_duplicate_keeps_m4_behaviour(source):
     assert [n for _t, n in frames] == [n for _t, n in m4_frames]
 
 
+@pytest.mark.parametrize('source', M6S, ids=M6_IDS)
+@pytest.mark.parametrize('kind, owner', [('READ', 0x5), ('SELECT', 0xa)])
+@pytest.mark.parametrize('first, second', [(0, 0), (1, 1), (5, 6)])
+def test_m6_retried_duplicate_is_dropped_by_t(source, kind, owner, first, second):
+    """m6 (DESIGN.md m6 D): the copy is no longer aborted as a retried duplicate in N (count_term[0] stays 0); in
+    owner states 5 and 0xa it becomes event 0x0119 and T's release gate drops it while the original is held. The
+    master still sees exactly the ACK and one response, both timed."""
+    p, frames = _duplicate(source, first, second, kind)
+    o = cs.outcomes(p)
+    assert (o['ACK_COMMIT'], o['RESP_RELEASE'], o['ACK_FALLBACK'], o['RESP_FALLBACK']) == (1, 1, 0, 0)
+    assert [n for _t, n in frames] == [cs.ACK_LEN, cs.RESPONSE_LEN] and frames[0][0] < frames[1][0]
+    assert o['RESP_DUP_DROP'] == 1 and p.retried_duplicates() == 0
+    assert p.busy(cs.BUSY_DROP) == 0 and p.busy(cs.EXHAUSTED) == 0 and p.busy(cs.STALE) == 0
+    assert p.n.state()['owner'] >> 16 == owner and p.n.state()['work']['phase'] == 4
+
+
+@pytest.mark.parametrize('source', M6S, ids=M6_IDS)
+def test_m6_post_lifecycle_duplicate_goes_through_t(source):
+    """m6 corrects m4/m5's native path here: a copy arriving after the original's lifecycle, while T still holds
+    the original, is dropped by T instead of leaving untimed ahead of the ACK."""
+    p, frames = _duplicate(source, 5, 12)
+    _p4, m4_frames = _duplicate(M4, 5, 12)
+    assert [n for _t, n in m4_frames] == [cs.RESPONSE_LEN, cs.ACK_LEN, cs.RESPONSE_LEN]
+    assert [n for _t, n in frames] == [cs.ACK_LEN, cs.RESPONSE_LEN]
+    assert cs.outcomes(p)['RESP_DUP_DROP'] == 1 and p.retried_duplicates() == 0
+
+
 def _waiting_retry(source, kind='READ'):
     """A pipeline right after a genuine retry frame was produced, and that frame."""
     r = cs.contended(source, kind, 0)
@@ -142,7 +175,7 @@ def _inject(p, port, raw):
     return before, cs.n_state(p), [p.busy(i) - busy0[i] for i in range(8)], p.wire[seen:]
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_genuine_retry_form_claims_when_current(source):
     """Positive control for the mutation cases: the captured retry frame, replayed while its connection is still
     current and the cell free, is accepted (it claims and runs a lifecycle), so a refusal below is meaningful."""
@@ -151,7 +184,7 @@ def test_genuine_retry_form_claims_when_current(source):
     assert busy[cs.STALE] == 0 and after['work']['generation'] == int.from_bytes(frame[4:8], 'big')
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 @pytest.mark.parametrize('kind', ('READ', 'SELECT'))
 @pytest.mark.parametrize('mutation, stale', [
     (dict(event=0x0401), False), (dict(event=0x0500), False), (dict(event=0x0c00), False),
@@ -167,7 +200,7 @@ def test_mutated_retry_form_never_claims(source, kind, mutation, stale):
     assert not wire and p.injected_passes == 1   # dropped on its single pass: no recirculation
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_retry_form_on_another_connection_or_port_never_claims(source):
     p, frame = _waiting_retry(source)
     tcp = 16 + 14 + 20
@@ -190,7 +223,7 @@ def test_retry_form_on_another_connection_or_port_never_claims(source):
         assert after == before and busy[cs.STALE] == 0
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_retry_from_a_reset_or_reconnected_connection_is_refused_before_claiming(source):
     p, frame = _waiting_retry(source)
     p.send(cs.vectors.packet(20, 121, 962))            # master RST: retry_epoch cleared
@@ -204,7 +237,7 @@ def test_retry_from_a_reset_or_reconnected_connection_is_refused_before_claiming
     assert after == before and busy[cs.STALE] == 1 and not wire
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_exhausted_budget_is_a_counted_drop(source):
     """The work cell held by a lifecycle that never returns (forced): the response retries exactly the budget,
     then is dropped and counted, and never reaches the master."""
@@ -223,7 +256,7 @@ def test_exhausted_budget_is_a_counted_drop(source):
     assert not p.to_master()[seen:]
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 @pytest.mark.parametrize('kind, table', [('READ', 'connection'), ('READ', 'read_connection'),
                                          ('SELECT', 'connection'), ('SELECT', 'data_connection')])
 def test_retry_whose_connection_rows_were_removed_is_counted_on_one_pass(source, kind, table):
@@ -236,7 +269,7 @@ def test_retry_whose_connection_rows_were_removed_is_counted_on_one_pass(source,
     assert after == before and not wire and p.injected_passes == 1 and busy[cs.STALE] == 1
 
 
-@pytest.mark.parametrize('source', SUCCESSORS, ids=IDS)
+@pytest.mark.parametrize('source', ALL, ids=ALL_IDS)
 def test_waiting_retry_keeps_its_own_epoch_across_a_new_incarnation(source):
     """A retry keeps the epoch it was created with on every lap. If the connection's epoch and retry_epoch both move
     to a new incarnation while it waits (forced here; the m5_09 review's window), it is refused as stale when the
@@ -292,3 +325,16 @@ def test_rst_after_a_contended_response_matches_m4_uncontended(source, rst_laps)
     assert m4[1][-2:] == m5[1][-2:] == [cs.ACK_LEN, cs.RESPONSE_LEN]
     m4_contended = _rst_after_response(M4, 0, rst_laps)
     assert m4_contended[0] == 0x200 and cs.RESPONSE_LEN not in m4_contended[1]      # dropped, then reset
+
+
+@pytest.mark.parametrize('source', M6S, ids=M6_IDS)
+@pytest.mark.parametrize('rst_laps', (1, 5, 40))
+def test_m6_rst_after_a_contended_response_resets(source, rst_laps):
+    """m6 (DESIGN.md m6 R): the RST acking only the pre-response sequence now resets the connection whether or not
+    the response was contended, and the held response is never released -- the outcome m4 reached on its contended
+    path only by busy-dropping the response."""
+    for response_laps in (0, 6):
+        owner, lens = _rst_after_response(source, response_laps, rst_laps)
+        assert owner == 0x200 and lens == [58]       # the master saw only the SYN-ACK: neither ACK nor response
+    m4_contended = _rst_after_response(M4, 0, rst_laps)
+    assert m4_contended[0] == 0x200 and cs.RESPONSE_LEN not in m4_contended[1]

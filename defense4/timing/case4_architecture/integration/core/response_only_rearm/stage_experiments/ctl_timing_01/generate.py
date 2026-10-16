@@ -312,16 +312,140 @@ def transform_n_m5(n):
     return n
 
 
+def transform_n_m6(n):
+    """m5 plus three N lifecycle corrections (PLAN_m5.md "m6 continuation"; DESIGN.md m6). N only; E and T
+    byte-identical to m5.
+
+    R  Reset while a response is held. A master RST|ACK is checked like any ACK-bearing segment, so N required its
+       ACK to equal the server register, which already counts the response T is still holding; a master that has
+       not received that response acks the pre-response sequence and was refused. RFC 9293 3.10.7.4 validates a
+       reset by its SEQ. New first_event rows accept, with SEQ exact (client_diff 0), an ACK one response behind
+       the server register in N's native coordinates (-49 or -37 in owner state 5; -37 in state 0xa). The reset is
+       therefore validated by its exact SEQ, as a bare RST (flags 4) already was on m4/m5; the ACK restriction is
+       in native coordinates only, so in master-visible coordinates several ACKs pass (an ACK inside the padded
+       61-octet image normalizes to the native response start; tests/test_m6_lifecycle.py pins the exact sets).
+       Every SEQ mismatch is refused (review of m6_01, H2).
+    E  Retry incarnation cleared only at a proven close. m5 cleared retry_epoch on every stage-1 close pass, before
+       the owner CAS, so a refused close disabled live retries. A successful close now takes one more pass
+       (reset_boundary keyed on stage: stage-1 CAS success -> reset_continue -> stage 2 -> emit_reset), and
+       retry_epoch is cleared on that stage-2 pass, as it is for the kind-17 close, whose stage-2 pass already
+       follows its CAS.
+    D  Response retransmission through T's release gate. A seq_retx copy of the response in an owner state with no
+       newer transaction open (READ: 5; control: 0xa, 5) becomes event 0x0119 (kind 25): the kind-8 lifecycle, but
+       handed to T as a RESPONSE, so T drops it while the original is held (RESP_DUP_DROP) and passes it after
+       release (loss recovery beyond the switch). States 0xe/0xc keep forward_original: a newer transaction is
+       open there and T would take an old copy as the new response."""
+    n = transform_n_m5(n)
+    # R: three acceptance rows (first_event size 163 holds them: 159 -> 162)
+    anchor = '(8w4,3w1,1w0,32w0x50000&&&32w0xffff0000,_,_,_,_,_,_):first_close();'
+    n = once(n, anchor, anchor +
+             '(8w4,3w2,1w0,32w0x50000&&&32w0xffff0000,32w0,32w0xffffffcf,2w1,8w20,_,_):first_close();'
+             '(8w4,3w2,1w0,32w0x50000&&&32w0xffff0000,32w0,32w0xffffffdb,2w1,8w20,_,_):first_close();'
+             '(8w4,3w2,1w0,32w0xa0000&&&32w0xffff0000,32w0,32w0xffffffdb,2w1,8w20,_,_):first_close();')
+    # E: the stage-2 close pass, and retry_epoch cleared there
+    n = once(n, '16w0x0104:origin;', '16w0x0104:origin;16w0x0204:origin;')
+    n = once(n, 'table reset_boundary{key={m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}'
+                'actions={emit_reset;terminal_abort;}size=1;const entries={(1w1,32w0,32w0):emit_reset();}'
+                'const default_action=terminal_abort();}',
+             'action reset_continue(){hdr.expected_cell.expected_cell=m.desired;hdr.event.event=hdr.event.event+16w0x100;'
+             'm.emit_loop=(bit<1>)(8w1);tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;}\n'
+             'table reset_boundary{key={m.stage:exact;m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}'
+             'actions={reset_continue;emit_reset;terminal_abort;}size=2;const entries={'
+             '(2w1,1w1,32w0,32w0):reset_continue();(2w2,1w0,32w0,32w0):emit_reset();}'
+             'const default_action=terminal_abort();}')
+    n = once(n, '(2w1,8w4,2w0):retry_epoch_clear();(2w1,8w17,2w0):retry_epoch_clear();',
+             '(2w2,8w4,2w0):retry_epoch_clear();(2w2,8w17,2w0):retry_epoch_clear();')
+    # ...and only the incarnation that closed: the clear is conditional on the stored epoch being the close pass's
+    # own envelope epoch, so a delayed close pass of an older incarnation cannot clear a newer one's retry
+    # authority (m6 test-matrix finding: replaying an old 0x0204 after a fresh handshake cleared it, and the next
+    # contended READ was refused as stale; m5's stage-1 clear had the same gap)
+    n = once(n, 'clear_retry_epoch={void apply(inout bit<32> v,out bit<2> r){v=32w0;r=2w0;}}',
+             'clear_retry_epoch={void apply(inout bit<32> v,out bit<2> r){if(v==hdr.envelope.epoch){v=32w0;}r=2w0;}}')
+    # D: the response-retransmission event 0x0119 (kind 25)
+    n = once(n, 'action forward_original(){hdr.event.event=16w0x0108;}',
+             'action forward_original(){hdr.event.event=16w0x0108;}\n action first_response_dup(){hdr.event.event=16w0x0119;}')
+    n = once(n, 'forward_original;first_operate_dup;close_forward;NoAction;}size=163;',
+             'forward_original;first_operate_dup;first_response_dup;close_forward;NoAction;}size=163;')
+    for row in ('(8w11,3w2,_,32w0x50000&&&32w0xffff0000,_,32w0xffffffcf,_,_,_,_):',
+                '(8w6,3w2,_,32w0xa0000&&&32w0xffff0000,_,32w0xffffffdb,_,_,_,_):',
+                '(8w6,3w2,_,32w0x50000&&&32w0xffff0000,_,32w0xffffffdb,_,_,_,_):'):
+        n = once(n, row + 'forward_original();', row + 'first_response_dup();')
+    n = once(n, '16w0x0108:origin;', '16w0x0108:origin;16w0x0119:origin;16w0x0219:origin;16w0x0319:origin;')
+    for packet_kind in ('8w6', '8w11'):
+        tail = ('16w0x993a,16w0x993a,_,16w0x993a' if packet_kind == '8w6' else
+                '16w0x993a,16w0x993a,16w0x993a,16w0x993a')
+        row = '(_,%s,8w8,_,_,1w1,8w1,1w0,%s,_,_):go_ret_work();' % (packet_kind, tail)
+        n = once(n, row, row + row.replace(',8w8,', ',8w25,'))
+    row = '(1w1,8w8,8w24,false,16w0xffeb,8w1..8w255,4w0,16w0):network_accept();'      # network size 32 holds 30+2
+    n = once(n, row, row + row.replace(',8w8,', ',8w25,') + row.replace(',8w8,8w24,', ',8w25,8w16,'))
+    n = once(n, 'else if(m.kind==8w8||m.kind==8w24||', 'else if(m.kind==8w8||m.kind==8w25||m.kind==8w24||')
+    n = once(n, '(8w16,32w0,32w0,_):emit_tev(16w0x0b00);',
+             '(8w16,32w0,32w0,_):emit_tev(16w0x0b00);(8w25,32w0,32w0,_):emit_tev(16w0x0b00);')
+    n = once(n, 'terminal_strip;terminal_abort;}size=13;', 'terminal_strip;terminal_abort;}size=14;')
+    # R (busy cell): an RST whose stage-0 pass finds the work cell busy was denied. It now retries like a response,
+    # as event 0x0800 (stage 0, kind 0) carrying the origin header so the master's normalize-lap values (wire ack,
+    # normalized epoch) survive; m5's validation applies (current epoch, budget), any direction (RSTs come from both
+    # ends). go_keep re-enters the native RST path; no generation is allocated (generation 1 = marker only). The
+    # retried pass must take the snapshot path its first pass took. Every master segment (direction 1) reaches N
+    # after its normalize lap and every outstation segment (direction 2) natively, so snapshot_t keys retry frames
+    # on m.direction (recomputed on each pass): the master's RST retry takes snapshot_lap, exactly as its first
+    # pass did, including a lap whose normalized epoch is 0 (E's unbound slot), which dies on both passes alike;
+    # the outstation's takes snapshot. Review of m6_01 (H1): forcing m.lap 1 gave a native RST envelope epoch 0, so
+    # it was lost. Carrying the lap in the generation field failed to compile (m6_02 parser match registers, m6_03
+    # PARDE alignment, m6_04 PHV); keying on normalized_epoch (m6_05, m6_06) let a busy master RST with normalized
+    # epoch 0 succeed where the same RST with the cell free is denied (review of m6_06). The busy retry covers every
+    # kind-4 segment that close_shape admits: RST (flags 4, 20) and FIN|ACK (17); a busy FIN|ACK, denied on m5, now
+    # retries into the same first_event close rows (tests/test_m6_lifecycle.py).
+    n = once(n, 'table snapshot_t{key={m.lap:ternary;m.epoch:ternary;}actions={snapshot;snapshot_lap;snapshot_epoch_zero;}'
+                'size=2;const entries={(1w1,_):snapshot_lap();(_,32w0):snapshot_epoch_zero();}',
+             'table snapshot_t{key={m.lap:ternary;m.epoch:ternary;m.retry:ternary;m.direction:ternary;}'
+             'actions={snapshot;snapshot_lap;snapshot_epoch_zero;}size=4;const entries={(1w1,_,_,_):snapshot_lap();'
+             '(_,32w0,_,_):snapshot_epoch_zero();(_,_,2w1,2w1):snapshot_lap();(_,_,2w1,_):snapshot();}')
+    n = once(n, '%s:retry_input;' % RETRY_EVENT, '%s:retry_input;16w0x0800:retry_rst_input;' % RETRY_EVENT)
+    n = once(n, ' state retry_input{m.retry=2w1;transition eth;}',
+             ' state retry_input{m.retry=2w1;transition eth;}\n'
+             ' state retry_rst_input{m.retry=2w1;transition origin;}')
+    n = once(n, "action busy_exhausted(){",
+             "action busy_retry_rst(){hdr.envelope.epoch=m.epoch;hdr.work_generation.generation=32w1;"
+             "hdr.event.event=16w0x0800;hdr.event.reserved=16w0;hdr.origin.setValid();hdr.origin.wire_ack=m.wire_ack;"
+             "hdr.origin.normalized_epoch=m.normalized_epoch;hdr.expected_cell.expected_cell=n_RETRY_BUDGET;"
+             "tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;count_busy_bump.execute(4w2);}\n"
+             "action busy_retry_rst_next(){hdr.expected_cell.expected_cell=hdr.expected_cell.expected_cell-32w1;"
+             "tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;count_busy_bump.execute(4w2);}\n"
+             "action busy_exhausted(){")
+    n = once(n, "actions={busy_drop;busy_pass;busy_retry;busy_retry_next;busy_exhausted;retry_stale;}size=16;",
+             "actions={busy_drop;busy_pass;busy_retry;busy_retry_next;busy_retry_rst;busy_retry_rst_next;busy_exhausted;"
+             "retry_stale;}size=16;")
+    n = once(n, "(8w11,2w1,_):busy_retry_next();",
+             "(8w11,2w1,_):busy_retry_next();(8w4,2w0,_):busy_retry_rst();(8w4,2w1,6w1):busy_exhausted();"
+             "(8w4,2w1,_):busy_retry_rst_next();")
+    n = once(n, '(2w1,2w2,32w0&&&32w0xffffffe0):NoAction();(2w1,2w2,32w32):NoAction();}}',
+             '(2w1,2w2,32w0&&&32w0xffffffe0):NoAction();(2w1,2w2,32w32):NoAction();'
+             '(2w1,2w1,32w0&&&32w0xffffffe0):NoAction();(2w1,2w1,32w32):NoAction();}}')
+    n = once(n, 'hdr.expected_cell.expected_cell:ternary;}actions={retry_mark_stale;NoAction;}size=5;',
+             'hdr.expected_cell.expected_cell:ternary;}actions={retry_mark_stale;NoAction;}size=7;')
+    # guard: an RST retry (either direction) re-enters go_keep ahead of the catch-all stale rows; guard size 48 -> 50
+    n = once(n, '(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale();',
+             '(2w0,8w4,8w0,2w1,1w1,_,_,_,_,_,_,_,_,2w1):go_keep(8w4);(2w0,8w4,8w0,2w2,1w1,_,_,_,_,_,_,_,_,2w1):go_keep(8w4);'
+             '(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale();')
+    n = once(n, 'refuse_n_ack_return;NoAction;}size=48;', 'refuse_n_ack_return;NoAction;}size=50;')
+    # one busy_t apply site: a shape-valid RST that finds the cell busy retries instead of being denied
+    n = once(n, '}else if(m.work_op==8w1||m.retry==2w2){busy_t.apply();}else if(m.kind==8w4){deny();}',
+             '}else if(m.work_op==8w1||m.retry==2w2||(m.kind==8w4&&(bit<8>)m.shape_valid==8w1)){busy_t.apply();}'
+             'else if(m.kind==8w4){deny();}')
+    return n
+
+
 def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
     new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
-             'm5': transform_n_m5}[milestone](old_n)
+             'm5': transform_n_m5, 'm6': transform_n_m6}[milestone](old_n)
     new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
-             'm5': transform_t_m4}[milestone](old_t)
+             'm5': transform_t_m4, 'm6': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
-    if milestone == 'm5':                     # N only: E and T byte-identical to m4
+    if milestone in ('m5', 'm6'):             # N only: E and T byte-identical to m4
         m4 = full_source('m4')
         assert combined.segment(text, 'T') == combined.segment(m4, 'T')
         assert combined.segment(text, 'E') == combined.segment(m4, 'E')
@@ -348,5 +472,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6]')
     write(sys.argv[1], *(sys.argv[2:]))

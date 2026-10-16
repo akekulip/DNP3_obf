@@ -104,3 +104,13 @@ def test_m5_retry_rows_precede_the_native_rows_and_requests_keep_busy_drop():
     retained = HERE / 'evidence/m5_10/response_only.p4'
     if retained.is_file():
         assert gen.full_source('m5') == retained.read_text()
+
+
+def test_m6_changes_n_only_relative_to_m5():
+    m5, m6 = gen.full_source('m5'), gen.full_source('m6')
+    assert seg(m6, 'N') != seg(m5, 'N')
+    assert seg(m6, 'E') == seg(m5, 'E') and seg(m6, 'T') == seg(m5, 'T')
+    assert m6.replace(seg(m6, 'N'), seg(m5, 'N'), 1) == m5
+    retained = HERE / 'evidence/m6_07/response_only.p4'   # the m6 successor; m6_01-m6_06 are retained attempts
+    if retained.is_file():
+        assert gen.full_source('m6') == retained.read_text()

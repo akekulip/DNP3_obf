@@ -1,0 +1,113 @@
+{
+ "m6_07_source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+ "counted_passes_m6_07": {
+  "control_timing": "model_control_timing_m6_07_01",
+  "dup": "model_dup_m6_07_01",
+  "packets": "model_packets_m6_07_01",
+  "rearm": "model_rearm_m6_07_01",
+  "repeat": "model_repeat_m6_07_01",
+  "select_lifecycle": "model_select_lifecycle_m6_07_01",
+  "smoke": "model_smoke_m6_07_01"
+ },
+ "runs": [
+  {
+   "run": "model_contention_m6_07_01",
+   "driver": "contention",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "4c3a920daaf0575c512451e0b073b98053ba01e1e768867e20b95fa3edb90b09",
+   "milestone": "m6",
+   "pb_injected": null,
+   "exit_code": 1,
+   "passed": 240,
+   "total": 241,
+   "failed": [
+    "sweep_SELECT_000ms_delivered_once_committed"
+   ]
+  },
+  {
+   "run": "model_control_timing_m6_07_01",
+   "driver": "control_timing",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "3c1fab881359418fbc528c985c484281efc59d4339a2a0f28f7986766dce76de",
+   "milestone": "m6",
+   "pb_injected": null,
+   "exit_code": 0,
+   "passed": 141,
+   "total": 141,
+   "failed": []
+  },
+  {
+   "run": "model_dup_m6_07_01",
+   "driver": "dup",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "15042711098f24f874f33da953a3fee7dc3267769835b717e7ee717c35247137",
+   "milestone": "m6",
+   "pb_injected": 300000000,
+   "exit_code": 0,
+   "passed": 102,
+   "total": 102,
+   "failed": []
+  },
+  {
+   "run": "model_packets_m6_07_01",
+   "driver": "packets",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "263ca299c24f97f3c848c4710b4c0e8d42758da0d5f9174b8261a6424873045c",
+   "milestone": "m6",
+   "pb_injected": 300000000,
+   "exit_code": 0,
+   "passed": 622,
+   "total": 622,
+   "failed": []
+  },
+  {
+   "run": "model_rearm_m6_07_01",
+   "driver": "rearm",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "b12d0c2d8ec71df8f45ef6871505576780e9741a8c35a85902c1d083ee8a5456",
+   "milestone": "m6",
+   "pb_injected": 300000000,
+   "exit_code": 0,
+   "passed": 399,
+   "total": 399,
+   "failed": []
+  },
+  {
+   "run": "model_repeat_m6_07_01",
+   "driver": "repeat",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "1970368a0819622eccb434872e1478903da7b7ed945ee30e59bfcef6ffce665b",
+   "milestone": "m6",
+   "pb_injected": 300000000,
+   "exit_code": 0,
+   "passed": 523,
+   "total": 523,
+   "failed": []
+  },
+  {
+   "run": "model_select_lifecycle_m6_07_01",
+   "driver": "select_lifecycle",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "c0b22305cc4896819198d8f76a92312128311b1b2762a20ee0949c213f5716f6",
+   "milestone": "m6",
+   "pb_injected": null,
+   "exit_code": 0,
+   "passed": 120,
+   "total": 120,
+   "failed": []
+  },
+  {
+   "run": "model_smoke_m6_07_01",
+   "driver": "smoke",
+   "source_sha256": "3335479b45a9e6b0867df3eadcb6d055c31bd6c49b14f0d4d6bdcec464b0e142",
+   "driver_sha256": "d51e0522a5166a94ca6b0942ac3142cf864ef77abbd00b6cad1e14402a3cc195",
+   "milestone": "m6",
+   "pb_injected": 300000000,
+   "exit_code": 0,
+   "passed": 30,
+   "total": 30,
+   "failed": []
+  }
+ ],
+ "note": "every attempt listed; counted = latest passing run bound to this source sha"
+}
