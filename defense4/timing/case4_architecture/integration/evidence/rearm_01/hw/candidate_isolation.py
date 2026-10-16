@@ -25,7 +25,7 @@ sys.path.insert(0,str(HERE))
 import candidate_series as cs
 import candidate_campaign as cc
 from isolation_gate import compare_quiet_generation
-from token_window import (RESTORE_ALLOWANCE_NS, DRAIN_BEFORE_C2_RATIONALE, TEARDOWN_RESTORES_GENERATOR, ESTIMATES, require_marker, window_proof,
+from token_window import (RESTORE_ALLOWANCE_NS, ABORT_MARGIN_NS, DRAIN_BEFORE_C2_RATIONALE, TEARDOWN_RESTORES_GENERATOR, ESTIMATES, require_marker, window_proof,
                           rejection_delta, rejection_counts, full_run_rejections, operate_rejection_proof,
                           old_token_population, plan_isolation, drained, overran, cleanup_proof,
                           restore_proof, quiet_poll_proof, expected_generations, post_traffic_authority)
@@ -34,7 +34,8 @@ from privileged_python import authorized_python
 base, ARCH=cs.base,cs.ARCH
 BARRIER_DIRECTORY='/home/decps/pad58b_rearm_barrier_10s_20261012'
 BARRIER_BINARY='8270132ea76123e72cb5f4d196d5726c49f5f95d2516a468fc882bed84127158'
-ABORT_MARGIN_S=1.5          # local time kept for the fail-safe abort before c2's pause deadline
+ABORT_MARGIN_S=ABORT_MARGIN_NS/1e9   # local time kept for the fail-safe abort before c2's pause deadline
+ABORT_PREFLIGHT_MAX_S=0.8   # the abort path must answer within this wall time before any traffic
 MARKER_READ_RETRIES=3       # consecutive failed marker reads tolerated while waiting for c2
 ABORT_RETRY_S=0.5
 ABORT_MAX_ATTEMPTS=240
@@ -60,6 +61,46 @@ def marker_command(path):
             'except (OSError,ValueError):\n status="incomplete"\n'
             'print(json.dumps(dict(marker=value,marker_status=status,vision_ns=time.monotonic_ns())))') % path
     return 'python3 -c '+base.q(script)
+
+
+class Watchdog:
+    """Aborts c2 at a local monotonic deadline unless the IPG restore is confirmed first. The lock makes
+    'fired' and 'confirmed' mutually exclusive: the timer aborts only if not confirmed, and the main thread
+    confirms only if the timer has not fired."""
+
+    def __init__(self,abort,clock=time.monotonic):
+        self.abort,self.clock,self.lock=abort,clock,threading.Lock()
+        self.timer,self.fired_at,self.confirmed,self.armed_at=None,None,False,None
+
+    def _fire(self):
+        with self.lock:
+            if self.confirmed:
+                return
+            self.fired_at=self.clock()
+        self.abort()
+
+    def arm(self,at_local):
+        self.cancel()
+        self.armed_at=at_local
+        self.timer=threading.Timer(max(0.0,at_local-self.clock()),self._fire)
+        self.timer.daemon=True
+        self.timer.start()
+
+    def cancel(self):
+        if self.timer is not None:
+            self.timer.cancel()
+            if self.timer is not threading.current_thread():
+                self.timer.join()
+            self.timer=None
+
+    def confirm(self):
+        """True when the restore is confirmed in time; False when the watchdog already fired (c2 aborted)."""
+        with self.lock:
+            if self.fired_at is not None:
+                return False
+            self.confirmed=True
+        self.cancel()
+        return True
 
 
 class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
@@ -125,6 +166,29 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         super().vision_identity()
         self._copy_verify('vision',[HERE/'vision_isolation.py', HERE/'token_window.py', HERE/'snapshot_lifecycle.py'],
                           self.V,'isolation_vision_identity')
+        if not self.rn.dry:
+            self.abort_preflight()
+
+    def abort_preflight(self):
+        """Before any traffic: exercise the exact fail-safe path on a label no process can carry; it must answer
+        'no c2 master' (exit 1) with a report, quickly. Otherwise the block is refused."""
+        label='abortpreflight'+re.sub('[^A-Za-z0-9]','',self.run_id)
+        started=time.monotonic()
+        result=self.rn.run('vision',authorized_python(self.V+'/vision_isolation.py',['abort-c2',label]),timeout=5,
+                           label='preflight: exercise the c2 abort path on an unused label')
+        wall=time.monotonic()-started
+        report=None
+        try:
+            report=json.loads(result.out.strip().splitlines()[-1])
+        except (ValueError,IndexError,AttributeError):
+            pass
+        record=dict(label=label,rc=result.rc,wall_s=wall,report=report,err=result.err,max_wall_s=ABORT_PREFLIGHT_MAX_S)
+        record['ok']=(result.rc==1 and isinstance(report,dict) and report.get('matched')==[] and
+                      report.get('c2_already_exited') is True and wall<ABORT_PREFLIGHT_MAX_S)
+        self.record['abort_preflight']=record
+        if not record['ok']:
+            raise base.StepFailed('c2 abort path preflight failed (rc %s, %.3f s, report %r): block refused'
+                                  % (result.rc,wall,report))
 
     def deploy_switch(self):
         super().deploy_switch()
@@ -199,11 +263,13 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
     def monitor(self,done):
         unit,port,label=self.active_unit
         marker=self.V+'/runs/'+label+'/c2/pre_read_ready.json'
+        dog=Watchdog(lambda:self._watchdog_abort(label))
         try:
             deadline=time.monotonic()+90
             observed=None
             misses=0
             while not done.is_set() and time.monotonic()<deadline:
+                asked=time.monotonic()      # Vision samples its clock after this instant
                 result=self.rn.run('vision',marker_command(marker),timeout=5,label='wait for c2 marker')
                 if result.rc:
                     misses+=1
@@ -214,11 +280,17 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                 observed=json.loads(result.out)
                 if observed['marker'] is not None:
                     self.window['marker_observation']=observed      # c2 is paused from here: abort on any failure
-                    require_marker(observed['marker'],self.pause_ms);break
+                    require_marker(observed['marker'],self.pause_ms)
+                    pause_deadline=observed['marker']['pre_read_ready_ns']+self.pause_ms*1_000_000
+                    # local image of c2's pause deadline (early, since Vision sampled after `asked`); the watchdog
+                    # is armed now so a hung poll cannot let c2 READ with the delayed IPG
+                    pause_local=asked+(pause_deadline-observed['vision_ns'])/1e9
+                    dog.arm(pause_local-ABORT_MARGIN_S)
+                    self.window.update(pause_deadline_local=pause_local,abort_at_local=pause_local-ABORT_MARGIN_S)
+                    break
                 done.wait(0.1)
             else:
                 raise ValueError('c2 marker did not arrive before bounded observer deadline')
-            self.window['marker_observation']=observed
             pop=self.population
             before=self.quiet_snapshot(label,'before')
             self.window['before']=before
@@ -230,69 +302,69 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
             self.window['c1_first_read_issued_ns']=(c1 or {}).get('first_read_issued_ns')
             if before.get('read_app_after',{}).get('pkt_counter',pop['READ']['tokens'])>=pop['READ']['tokens']:
                 raise ValueError('c2 became ready after all old tokens; isolation cannot qualify')
-            pause_deadline=observed['marker']['pre_read_ready_ns']+self.pause_ms*1_000_000
             ticks=self.window.setdefault('poll_vision_ns',[])
+            # the last Vision tick at which a restore may start: it must finish (restore allowance) before the
+            # abort point (pause deadline - abort margin)
+            restore_gate=pause_deadline-RESTORE_ALLOWANCE_NS-ABORT_MARGIN_NS
+            self.window['restore_gate_vision_ns']=restore_gate
             while not done.is_set():
                 after=self.quiet_snapshot(label,'after_%02d' % len(self.window.setdefault('polls',[])))
                 self.window['polls'].append(after)
-                asked=time.monotonic()      # the Vision clock is sampled after this instant
+                asked=time.monotonic()
                 tick=self.rn.run('vision',marker_command(marker),timeout=5,label='observe bounded pause')
                 ticks.append(json.loads(tick.out)['vision_ns'] if not tick.rc else None)
                 if overran(after,pop):
                     raise ValueError('a generator counter passed the old population before it drained')
                 # no restore (a pktgen disable/write/enable) unless this poll is proven early enough on Vision's
-                # clock that the restore cannot overlap c2's first READ
-                if tick.rc or ticks[-1] is None or ticks[-1]>=pause_deadline-RESTORE_ALLOWANCE_NS:
+                # clock that the restore can finish before the abort point
+                if tick.rc or ticks[-1] is None or ticks[-1]>=restore_gate:
                     raise ValueError('old batches did not drain with time to restore before c2 READ')
                 if drained(after,pop):
                     self.window['after']=after;self.window['drained_vision_ns']=ticks[-1]
-                    # local monotonic image of c2's pause deadline: conservative, since the tick was taken after
-                    # `asked`
-                    pause_local=asked+(pause_deadline-ticks[-1])/1e9
+                    pause_local=min(pause_local,asked+(pause_deadline-ticks[-1])/1e9)
                     break
                 done.wait(0.1)
             else:
                 raise ValueError('Vision series ended before old batch completed')
             restored=self.R+'/snap/'+label+'_token_restore.json'
             abort_at=pause_local-ABORT_MARGIN_S
+            dog.arm(abort_at)                                      # re-armed on the tighter restore-phase image
             remaining=abort_at-time.monotonic()
             self.window.update(restore_timeout_s=remaining,abort_margin_s=ABORT_MARGIN_S,
                                pause_deadline_local=pause_local,abort_at_local=abort_at)
-            if remaining<=0:
+            if remaining<=0 or dog.fired_at is not None:
                 raise ValueError('no time left to restore the READ IPG before the abort point')
-            confirmed=threading.Event()
-
-            def watchdog():
-                if not confirmed.is_set():
-                    self.window['watchdog_fired_local']=time.monotonic()
-                    self.abort_c2(label)
-            timer=threading.Timer(remaining,watchdog);timer.daemon=True;timer.start()
-            try:
-                self.step('switch','restore READ IPG after the old READ-lane batches drained',
-                          self.delay_command(restored,self.window['delay_remote'],remaining),timeout=remaining)
-                tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),
-                               timeout=max(0.1,abort_at-time.monotonic()))
-                self.window['restored_vision_ns']=json.loads(tick.out)['vision_ns']
-                if self.window['restored_vision_ns']>=pause_deadline:
-                    raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
-                confirmed.set()
-            finally:
-                timer.cancel()
-            if self.window.get('watchdog_fired_local'):
+            self.step('switch','restore READ IPG after the old READ-lane batches drained',
+                      self.delay_command(restored,self.window['delay_remote'],remaining),timeout=remaining)
+            tick=self.step('vision','confirm IPG restore completion on Vision clock',marker_command(marker),
+                           timeout=max(0.1,abort_at-time.monotonic()))
+            restored_ns=json.loads(tick.out)['vision_ns']
+            if restored_ns>=pause_deadline:
+                raise ValueError('IPG restore confirmation missed bounded pre-READ pause')
+            if not dog.confirm():
                 raise ValueError('restore not confirmed before the abort point; c2 was aborted')
-            self.window['runtime_slack_ns']=pause_deadline-RESTORE_ALLOWANCE_NS-self.window['drained_vision_ns']
+            self.window['restored_vision_ns']=restored_ns
+            self.window['runtime_slack_ns']=restore_gate-self.window['drained_vision_ns']
             for name,remote in [('delay',self.window['delay_remote']),('restore',restored)]:
                 self.step('local','collect token '+name,'scp -q %s:%s %s' % (
                     self.cfg['hosts']['switch'],base.q(remote),base.q(Path(self.root)/('token_'+name+'.json'))),timeout=5)
             self.window['monitor_ok']=True
         except Exception as error:
+            dog.cancel()
             self.window.update(monitor_ok=False,error=str(error))
             # fail safe: the IPG may still be delayed, so c2 must not issue its READ. Stop the c2 master on Vision
             # (no switch or generator write during traffic), and keep stopping it until the series ends, since
             # before its marker c2 may not have started yet; the series then fails and c3 never starts.
             self.abort_until_done(label,done)
         finally:
+            dog.cancel()
+            if dog.fired_at is not None:
+                self.window['watchdog_fired_local']=dog.fired_at
             (Path(self.root)/'token_window_observer.json').write_text(json.dumps(self.window,indent=2)+'\n')
+
+    def _watchdog_abort(self,label):
+        self.out('[isolation] watchdog: restore not confirmed before the abort point; aborting c2')
+        self.abort_c2(label)
 
     def abort_until_done(self,label,done):
         attempts=[]
@@ -333,6 +405,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if not record['aborted']:
             record['note']='ABORT NOT CONFIRMED: '+meaning
         self.window['c2_abort']=record
+        self.out('[isolation] c2 abort: rc %s, %s' % (result.rc,meaning))
         self.window.setdefault('c2_abort_history',[]).append(dict(rc=record['rc'],aborted=record['aborted'],
                                                                    meaning=meaning))
         if record['aborted']:

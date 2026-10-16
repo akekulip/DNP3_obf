@@ -102,6 +102,8 @@ def main():
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args()
     started = time.monotonic()
+    if args.budget_s is not None and args.restore is None:
+        parser.error('--budget-s applies to the restore only (requires --restore)')
     if not 1_000_000_000 <= args.ipg_ns <= 4_000_000_000:
         parser.error('delay IPG must be 1..4 seconds in nanoseconds')
     schema = args.build_out / 'bfrt.json'

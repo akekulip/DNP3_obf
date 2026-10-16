@@ -23,6 +23,8 @@ SNAPSHOT_ALLOWANCE_NS = 3_000_000_000   # drain -> drained poll read, collected 
 RESTORE_ALLOWANCE_NS = 4_000_000_000    # drained poll tick -> IPG restore confirmed on Vision (upper bound, gated);
                                         # retained candidate61: poll 0 read complete -> restore confirmed ~3.55 s
                                         # (switch->Vision clock mapped at the marker observation, an estimate)
+ABORT_MARGIN_NS = 1_500_000_000         # local time kept for the fail-safe abort before c2's pause deadline: a
+                                        # restore must finish (restore allowance) before pause - this margin
 # Measured c1 first READ issue (c1 master.json first_read_issued_ns) -> c2 readiness (c2 master.json
 # pre_read_ready_ns), Vision clock: m4 ctl_m4_stale_tokens_950_01 5.399073266 s, candidate61
 # candidate61_stale_tokens_950_02 5.515418587 s. ESTIMATE FROM TWO RUNS. The upper (pause) bound uses the
@@ -122,23 +124,24 @@ def cleanup_bound(population, ipg_by_role):
 def pause_requirement(bound, credit_ns=C1_TO_C2_READY_MIN_NS, lower_credit_ns=C1_TO_C2_READY_MAX_NS):
     """c2's pre-READ pause (upper bound) and the old-token lower bound for one plan.
 
-    upper: pause = ceil_ms(bound + restore allowance - credit) <= PAUSE_MAX_MS, where credit is the measured
+    upper: pause = ceil_ms(bound + restore allowance + abort margin - credit) <= PAUSE_MAX_MS, credit the measured
     minimum c1 first READ -> c2 ready. lower: the last old READ token must leave after the c2-ready snapshot,
     last_old_read_token > maximum credit + first snapshot + margin, or no old token arrives inside c2's pause.
     The upper bound uses the minimum measured c1 -> c2-ready time, the lower bound the maximum.
     """
-    required = bound['bound_ns'] + RESTORE_ALLOWANCE_NS - credit_ns
+    required = bound['bound_ns'] + RESTORE_ALLOWANCE_NS + ABORT_MARGIN_NS - credit_ns
     pause_ms = max(1, -(-required // 1_000_000))
     floor = lower_credit_ns + FIRST_SNAPSHOT_NS + LOWER_MARGIN_NS
     last = bound['last_old_read_token_ns']
     return dict(required_ns=required, pause_ms=pause_ms, maximum_ms=PAUSE_MAX_MS, upper_ok=pause_ms <= PAUSE_MAX_MS,
                 last_old_read_token_ns=last, lower_floor_ns=floor, lower_ok=last > floor,
                 fits=pause_ms <= PAUSE_MAX_MS and last > floor,
-                restore_allowance_ns=RESTORE_ALLOWANCE_NS, c1_credit_ns=credit_ns, c1_lower_credit_ns=lower_credit_ns,
+                restore_allowance_ns=RESTORE_ALLOWANCE_NS, abort_margin_ns=ABORT_MARGIN_NS, c1_credit_ns=credit_ns, c1_lower_credit_ns=lower_credit_ns,
                 upper_margin_ns=PAUSE_MAX_MS * 1_000_000 - pause_ms * 1_000_000, lower_margin_over_floor_ns=last - floor,
                 estimates=ESTIMATES,
                 first_snapshot_ns=FIRST_SNAPSHOT_NS, lower_margin_ns=LOWER_MARGIN_NS,
-                formula='upper: pause = ceil_ms(bound + restore allowance - c1->c2 ready minimum) <= %d ms; lower: '
+                formula='upper: pause = ceil_ms(bound + restore allowance + abort margin - c1->c2 ready minimum) '
+                        '<= %d ms; lower: '
                         'READ span > c1->c2 ready maximum + first snapshot + margin' % PAUSE_MAX_MS)
 
 

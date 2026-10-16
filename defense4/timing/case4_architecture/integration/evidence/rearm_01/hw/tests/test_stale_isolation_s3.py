@@ -120,39 +120,56 @@ def test_c1_to_c2_ready_bounds_are_the_retained_minimum_and_maximum(m4, c61):
     assert (tw.C1_TO_C2_READY_MIN_NS, tw.C1_TO_C2_READY_MAX_NS) == (min(measured), max(measured))
 
 
+HYPOTHETICAL = dict(FIRST_SNAPSHOT_NS=400_000_000, LOWER_MARGIN_NS=0)
+
+
+def hypothetical(mp):
+    """MODEL-ONLY allowances (first snapshot 0.4 s, no lower margin) under which a control-timed plan exists:
+    they let the monitor and window logic be exercised on a control-timed run; they are NOT the shipped values."""
+    for name, value in HYPOTHETICAL.items():
+        mp.setattr(tw, name, value)
+
+
 def test_bound_and_pause_against_hand_computed_numbers(m4, c61):
     floor = 5_515_418_587 + 1_000_000_000 + 500_000_000       # maximum c1->c2 ready + first snapshot + margin
     # m4 at the retained 2.5 s: READ span 2*3*2.5 s = 15 s (OPERATE IPG 0, paced inside it);
-    # bound = 15 s + 1 ms trigger latency + 3 s snapshot = 18.001 s; pause = 18.001 + 4 - 5.399073266 s
+    # bound = 15 s + 1 ms trigger latency + 3 s snapshot = 18.001 s;
+    # pause = 18.001 + 4 restore + 1.5 abort margin - 5.399073266 s -> 18102 ms
     bound = tw.cleanup_bound(population(m4['cfg']), {'READ': 2_500_000_000, 'OPERATE': 0})
     assert (bound['emission_ns'], bound['bound_ns']) == (15_000_000_000, 18_001_000_000)
-    assert tw.pause_requirement(bound)['pause_ms'] == 16_602
-    with pytest.raises(ValueError, match='16602 ms'):
+    assert tw.pause_requirement(bound)['pause_ms'] == 18_102
+    with pytest.raises(ValueError, match='18102 ms'):
         tw.plan_isolation(population(m4['cfg']), 0, 2_500_000_000)
-    # upper uses the minimum c1->c2 ready (5.399073266 s), lower the maximum (floor 7.015418587 s):
-    # 1.5 s: span 9 s, pause 12.001 + 4 - 5.399 -> 10602 ms (too long); 1.25 s: span 7.5 s > 7.015 s,
-    # pause 10.501 + 4 - 5.399 -> 9102 ms; 1.0 s: span 6 s < 7.015 s (too short)
-    for ipg, pause_ms, upper, lower in ((1_500_000_000, 10_602, False, True), (1_250_000_000, 9_102, True, True),
-                                        (1_000_000_000, 7_602, True, False)):
+    # upper uses the minimum c1->c2 ready (5.399073266 s) and now the 1.5 s abort margin, lower the maximum
+    # (floor 7.015418587 s): 1.25 s: pause 10.501 + 5.5 - 5.399 -> 10602 ms (too long); 1.0 s: pause 9102 ms
+    # but span 6 s < 7.015 s (too short). Continuous: upper needs span <= 6.898 s, lower span > 7.015 s.
+    for ipg, pause_ms, upper, lower in ((1_500_000_000, 12_102, False, True), (1_250_000_000, 10_602, False, True),
+                                        (1_000_000_000, 9_102, True, False)):
         req = tw.pause_requirement(tw.cleanup_bound(population(m4['cfg']), {'READ': ipg, 'OPERATE': 0}))
         assert (req['pause_ms'], req['upper_ok'], req['lower_ok']) == (pause_ms, upper, lower)
         assert req['lower_floor_ns'] == floor
-    plan = tw.plan_isolation(population(m4['cfg']), 0)
-    # the plan fits, so c2 pauses for the endpoint maximum and the 898 ms difference is runtime slack
-    assert (plan['delay_ipg_ns'], plan['pause']['pause_ms'], plan['pause']['derived_pause_ms']) == \
-        (1_250_000_000, 10_000, 9_102)
-    assert (plan['pause']['planned_slack_ns'], plan['pause']['lower_margin_over_floor_ns']) == (898_073_266,
-                                                                                                484_581_413)
+    with pytest.raises(ValueError, match='no delay IPG'):    # the control-timed plan is now infeasible
+        tw.plan_isolation(population(m4['cfg']), 0)
+    with pytest.raises(ValueError, match='above the endpoint maximum'):
+        tw.plan_isolation(population(m4['cfg']), 0, 1_250_000_000)
     with pytest.raises(ValueError, match='before the c2-ready snapshot'):
         tw.plan_isolation(population(m4['cfg']), 0, 1_000_000_000)
-    # candidate61 keeps its retained 2.5 s / 10000 ms; the derived requirement (7.5 + 3.001 + 4 - 5.399 s =
-    # 9.102 s) is recorded and is met by the retained pause
+    # candidate61 keeps its retained 2.5 s / 10000 ms; its derived requirement (7.5 + 3.001 + 4 + 1.5 - 5.399 s
+    # = 10.602 s) no longer fits, which is recorded (fits False, slack -0.602 s), not used to refuse
     legacy = tw.plan_isolation(population(c61['cfg']), 0, legacy=True)
     assert (legacy['delay_ipg_ns'], legacy['pause']['pause_ms'], legacy['pause']['derived_pause_ms']) == \
-        (2_500_000_000, 10_000, 9_102)
-    assert legacy['pause']['fits']
+        (2_500_000_000, 10_000, 10_602)
+    assert legacy['pause']['fits'] is False and legacy['pause']['planned_slack_ns'] == -601_926_734
     with pytest.raises(ValueError, match='no delay IPG'):    # two SBO cycles cannot fit at any IPG
         tw.plan_isolation(tw.old_token_population(2, 1, 2, True), 0)
+
+
+def test_model_only_allowances_give_a_control_timed_plan(m4, monkeypatch):
+    hypothetical(monkeypatch)
+    plan = tw.plan_isolation(population(m4['cfg']), 0)
+    # floor 5.515 + 0.4 + 0 = 5.915 s < 6 s span at 1.0 s; pause 9102 ms -> 10000 ms with 898 ms slack
+    assert (plan['delay_ipg_ns'], plan['pause']['pause_ms'], plan['pause']['derived_pause_ms'],
+            plan['pause']['planned_slack_ns']) == (1_000_000_000, 10_000, 9_102, 898_073_266)
 
 
 def test_retained_lifecycle_generations_equal_the_configured_workload(m4, c61):
@@ -347,23 +364,28 @@ def test_cleanup_bound_exceeded_or_slow_restore_or_unquiet_poll_is_rejected(m4):
 
 # ---------------------------------------------------------------- harness wiring
 
-def campaign(name, **isolation):
+def campaign(name, model_only=False, **isolation):
     import candidate_isolation as ci
     cfg = ci.base.load_config(str(SEG / 'hw/config' / (name.rsplit('_', 1)[0] + '.json')))
     if isolation:
         cfg['isolation'] = isolation
-    return ci, ci.TokenIsolationCampaign(cfg, ci.base.DryRunner(), 'token_s3', arms=['combined'],
-                                         fixtures=['separate_ack'])
+    with pytest.MonkeyPatch.context() as mp:
+        if model_only:
+            hypothetical(mp)
+        return ci, ci.TokenIsolationCampaign(cfg, ci.base.DryRunner(), 'token_s3', arms=['combined'],
+                                             fixtures=['separate_ack'])
 
 
 def test_harness_derives_population_ipg_pause_and_restore_from_configured_workload():
-    ci, m4run = campaign(M4)
+    with pytest.raises(ValueError, match='no delay IPG'):      # shipped allowances: the m4/m5 block is refused
+        campaign(M4)
+    ci, m4run = campaign(M4, model_only=True)
     assert m4run.population['READ']['triggers'] == 2 and m4run.installed_ipg == {'READ': 0, 'OPERATE': 0}
-    assert (m4run.delay_ipg_ns, m4run.pause_ms) == (1_250_000_000, 10_000)
+    assert (m4run.delay_ipg_ns, m4run.pause_ms) == (1_000_000_000, 10_000)
     _, c61run = campaign(C61)
     assert c61run.population == tw.LEGACY_POPULATION and (c61run.delay_ipg_ns, c61run.pause_ms) == (2_500_000_000,
                                                                                                    10_000)
-    for run_, triggers, ipg, pause in ((m4run, 2, 1_250_000_000, 10_000), (c61run, 1, 2_500_000_000, 10_000)):
+    for run_, triggers, ipg, pause in ((m4run, 2, 1_000_000_000, 10_000), (c61run, 1, 2_500_000_000, 10_000)):
         run_.active_unit = (run_.units()[0], 0, 'x')
         command = run_.delay_command('/r.json', '/d.json')
         assert '--ipg-ns %d' % ipg in command and '--old-triggers %d' % triggers in command
@@ -391,12 +413,14 @@ def test_extra_trigger_at_drain_is_rejected_even_with_exact_packets(m4):
 
 # ---------------------------------------------------------------- the derived control-timed plan, end to end
 
-def test_model_only_derived_m4_plan_passes_window_and_cleanup(m4):
+def test_model_only_derived_m4_plan_passes_window_and_cleanup(m4, monkeypatch):
     """MODEL-ONLY: m4's derived plan (1.25 s delay, 10000 ms c2 pause) with retained m4 counts; timestamps are
     synthetic but placed by the plan: c2 ready at the measured minimum after c1's first READ, last old READ
     token at 7.5 s, drained poll observed within the bound, restore inside its allowance, c2 READ at the pause."""
+    hypothetical(monkeypatch)
     pop, plan = population(m4['cfg']), tw.plan_isolation(population(m4['cfg']), 0)
     ipg, pause_ms = plan['delay_ipg_ns'], plan['pause']['pause_ms']
+    span = plan['bound']['last_old_read_token_ns']
     anchor = m4['c1']['first_read_issued_ns']
     ready = anchor + tw.C1_TO_C2_READY_MIN_NS
     marker = dict(m4['observer']['marker_observation']['marker'], pre_read_grace_ms=pause_ms, pre_read_ready_ns=ready)
@@ -407,10 +431,11 @@ def test_model_only_derived_m4_plan_passes_window_and_cleanup(m4):
     for snap in (before, drain):
         set_app(snap, 'read', ipg=ipg)
     set_app(drain, 'read', pkt_counter=8); set_raw(drain, '24', 7)
-    drained_tick = anchor + 7_500_000_000 + 2_600_000_000              # last old token + one poll period
+    drained_tick = anchor + span + 2_600_000_000                        # last old token + one poll period
+    assert drained_tick < ready + pause_ms * 1_000_000 - tw.RESTORE_ALLOWANCE_NS - tw.ABORT_MARGIN_NS
     restored = drained_tick + 3_500_000_000
     cleanup = tw.cleanup_proof(anchor, drained_tick, plan['bound'])
-    assert cleanup['ok'] and cleanup['elapsed_ns'] <= plan['bound']['bound_ns'] == 10_501_000_000
+    assert cleanup['ok'] and cleanup['elapsed_ns'] <= plan['bound']['bound_ns'] == 9_001_000_000
     window = tw.window_proof(marker, master, before, drain, restored, population=pop, cleanup=cleanup,
                              delay_ipg_ns=ipg, pause_ms=pause_ms)
     assert window['ok'], window['failures']
@@ -498,9 +523,9 @@ class FakeVision:
         return ci.base.Result(0, '', '')
 
 
-def monitor_run(m4, tmp_path, snapshots, ticks, restore=None, **vision_kwargs):
+def monitor_run(m4, tmp_path, snapshots, ticks, restore=None, snapshot=None, **vision_kwargs):
     import threading
-    ci, run = campaign(M4)
+    ci, run = campaign(M4, model_only=True)
     ready = 1_000_000_000_000
     marker = dict(tcp_open=True, opens=1, pre_read_grace_ms=run.pause_ms, pre_read_ready_ns=ready,
                   first_read_issued_ns=0)
@@ -513,10 +538,10 @@ def monitor_run(m4, tmp_path, snapshots, ticks, restore=None, **vision_kwargs):
     run.window.update(delay_remote='/snap/delay.json', delay_time=1.0)
     queue = list(snapshots)
 
-    def snapshot(label, suffix):
+    def queued(label, suffix):
         vision.calls.append(('switch', 'quiet snapshot ' + suffix, '', 0))
         return queue.pop(0)
-    run.quiet_snapshot = snapshot
+    run.quiet_snapshot = snapshot or queued
     steps = []
 
     def step(where, label, cmd, cwd=None, check=True, timeout=3600):
@@ -542,22 +567,23 @@ def restores(steps):
 
 def test_monitor_accepts_the_endpoint_maximum_pause_and_restores_before_c2_read(m4, tmp_path):
     before, mid, drain = m4_monitor_snapshots(m4)
-    run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, 5_000_000_000,
-                                                                          6_000_000_000])
+    run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, 4_000_000_000,
+                                                                          5_000_000_000])
     assert run.pause_ms == 10_000
     assert run.window['monitor_ok'] is True, run.window.get('error')
     restore = restores(steps)
     assert len(restore) == 1 and '--old-triggers 2' in restore[0][2] and '--budget-s ' in restore[0][2]
-    # 10 s pause - 5 s drained tick - 1.5 s abort margin, measured on the local monotonic clock
-    assert 3.0 < restore[0][3] <= 3.5
-    assert run.window['runtime_slack_ns'] == 10_000_000_000 - tw.RESTORE_ALLOWANCE_NS - 5_000_000_000
+    # 10 s pause - 4 s drained tick - 1.5 s abort margin, measured on the local monotonic clock
+    assert 4.0 < restore[0][3] <= 4.5
+    # restore gate (10 - 4 - 1.5 = 4.5 s) - drained tick 4 s
+    assert run.window['runtime_slack_ns'] == 500_000_000
     assert vision.aborts == [] and 'c2_abort' not in run.window
     order = [call[1] for call in vision.calls]
     assert order.index('read c1 first READ issue') > order.index('quiet snapshot before')   # no added latency
     assert json.loads((tmp_path / 'token_window_observer.json').read_text())['monitor_ok'] is True
 
 
-@pytest.mark.parametrize('drain_tick', [10_000_000_000 - tw.RESTORE_ALLOWANCE_NS, 9_000_000_000, None])
+@pytest.mark.parametrize('drain_tick', [10_000_000_000 - tw.RESTORE_ALLOWANCE_NS - tw.ABORT_MARGIN_NS, 6_000_000_000, None])
 def test_drained_poll_with_a_late_or_missing_tick_aborts_and_never_restores(m4, tmp_path, drain_tick):
     before, mid, drain = m4_monitor_snapshots(m4)
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, drain_tick])
@@ -568,7 +594,7 @@ def test_drained_poll_with_a_late_or_missing_tick_aborts_and_never_restores(m4, 
 
 def test_monitor_without_drain_before_the_deadline_aborts_c2_and_never_restores(m4, tmp_path):
     before, mid, _ = m4_monitor_snapshots(m4)
-    late = 10_000_000_000 - tw.RESTORE_ALLOWANCE_NS
+    late = 10_000_000_000 - tw.RESTORE_ALLOWANCE_NS - tw.ABORT_MARGIN_NS
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, copy.deepcopy(mid)], [3_000_000_000, late])
     assert run.window['monitor_ok'] is False and 'did not drain' in run.window['error']
     assert restores(steps) == []
@@ -597,7 +623,7 @@ def test_abort_that_does_not_kill_a_c2_master_is_recorded_as_not_aborted(m4, tmp
 
 def test_monitor_with_a_wrong_pause_marker_fails_and_aborts_c2(m4, tmp_path):
     import threading
-    ci, run = campaign(M4)
+    ci, run = campaign(M4, model_only=True)
     marker = dict(tcp_open=True, opens=1, pre_read_grace_ms=tw.PRE_READ_GRACE_MS - 1, pre_read_ready_ns=10 ** 12,
                   first_read_issued_ns=0)
     done = threading.Event()
@@ -610,7 +636,7 @@ def test_monitor_with_a_wrong_pause_marker_fails_and_aborts_c2(m4, tmp_path):
 
 def test_marker_reads_are_retried_and_a_lost_observer_keeps_aborting_until_the_series_ends(m4, tmp_path):
     before, mid, drain = m4_monitor_snapshots(m4)
-    ok, *_ = monitor_run(m4, tmp_path / 'ok', [before, mid, drain], [3_000_000_000, 5_000_000_000, 6_000_000_000],
+    ok, *_ = monitor_run(m4, tmp_path / 'ok', [before, mid, drain], [3_000_000_000, 4_000_000_000, 5_000_000_000],
                          marker_failures=2)
     assert ok.window['monitor_ok'] is True, ok.window.get('error')
     lost, vision, steps = monitor_run(m4, tmp_path / 'lost', [], [], marker_failures=3, stop_after_aborts=3,
@@ -624,18 +650,18 @@ def test_marker_reads_are_retried_and_a_lost_observer_keeps_aborting_until_the_s
 def test_restore_timeout_aborts_c2_before_the_pause_deadline(m4, tmp_path, monkeypatch):
     import time as clock
     import candidate_isolation as ci
-    monkeypatch.setattr(ci, 'ABORT_MARGIN_S', 3.8)      # keep the test short: abort point ~0.3 s after drain
+    monkeypatch.setattr(ci, 'ABORT_MARGIN_S', 5.0)      # keep the test short: abort point ~0.6 s after drain
 
     def hang(timeout):
         clock.sleep(timeout + 0.1)
         raise ci.base.StepFailed('restore step timed out after %.3f s' % timeout)
     before, mid, drain = m4_monitor_snapshots(m4)
     run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain],
-                                     [3_000_000_000, 5_900_000_000], restore=hang, stop_after_aborts=1)
+                                     [3_000_000_000, 4_400_000_000], restore=hang, stop_after_aborts=1)
     assert run.window['monitor_ok'] is False
     assert vision.aborts and vision.aborts[0] < run.window['pause_deadline_local']
     assert run.window['watchdog_fired_local'] >= run.window['abort_at_local'] - 0.01
-    assert run.window['c2_abort_confirmed'] is True and restores(steps)[0][3] <= 0.3     # 10 - 5.9 - 3.8 s
+    assert run.window['c2_abort_confirmed'] is True and restores(steps)[0][3] <= 0.6     # 10 - 4.4 - 5.0 s
 
 
 def test_vision_abort_kills_only_the_exact_c2_master_and_never_itself(tmp_path, monkeypatch):
@@ -772,3 +798,156 @@ def test_planner_refuses_when_only_the_lower_bound_fails():
 def test_an_unconfirmed_c2_abort_fails_the_isolation_verdict(tmp_path):
     _, isolation = c61_verdict(tmp_path, abort_unconfirmed=True)
     assert not isolation['ok'] and any(f.startswith('c2 fail-safe abort not confirmed') for f in isolation['failures'])
+
+
+# ---------------------------------------------------------------- W2: abort-path preflight before any traffic
+
+class PreflightRunner:
+    dry = False
+
+    def __init__(self, rc, out, delay=0.0, err=''):
+        self.rc, self.out, self.delay, self.err, self.calls = rc, out, delay, err, []
+
+    def run(self, where, cmd, cwd=None, timeout=None, label=None):
+        import time as clock
+        import candidate_isolation as ci
+        self.calls.append(cmd)
+        clock.sleep(self.delay)
+        return ci.base.Result(self.rc, self.out, self.err)
+
+
+NO_MASTER = json.dumps(dict(target='x', matched=[], killed=[], remaining=[], errors=[], c2_already_exited=True))
+
+
+def test_abort_preflight_accepts_a_fast_no_master_answer():
+    ci, run = campaign(C61)
+    run.rn = PreflightRunner(1, NO_MASTER)
+    run.abort_preflight()
+    record = run.record['abort_preflight']
+    assert record['ok'] is True and record['wall_s'] < ci.ABORT_PREFLIGHT_MAX_S
+    assert run.rn.calls[0].startswith('sudo -n python3 -c ') and ' abort-c2 abortpreflighttokens3' in run.rn.calls[0]
+
+
+@pytest.mark.parametrize('rc,out,delay,err', [(1, NO_MASTER, 0.85, ''),                       # too slow
+                                              (0, NO_MASTER, 0.0, ''),                        # wrong exit
+                                              (1, '', 0.0, 'sudo: a password is required'),   # refused
+                                              (1, json.dumps(dict(matched=[7], c2_already_exited=False)), 0.0, '')])
+def test_abort_preflight_refuses_the_block(rc, out, delay, err):
+    ci, run = campaign(C61)
+    run.rn = PreflightRunner(rc, out, delay, err)
+    with pytest.raises(ci.base.StepFailed, match='block refused'):
+        run.abort_preflight()
+    assert run.record['abort_preflight']['ok'] is False
+
+
+# ---------------------------------------------------------------- W4/W5: watchdog armed at the marker, lock
+
+def test_watchdog_armed_at_the_marker_aborts_c2_during_a_hung_quiet_poll(m4, tmp_path, monkeypatch):
+    import time as clock
+    import candidate_isolation as ci
+    monkeypatch.setattr(ci, 'ABORT_MARGIN_S', 9.7)     # abort point 0.3 s after the marker, for a short test
+    before, mid, _ = m4_monitor_snapshots(m4)
+    order = []
+
+    def hung_poll(label, suffix):
+        if suffix != 'before':
+            clock.sleep(0.8)                             # a poll that hangs past the abort point
+            order.append(('poll returned', clock.monotonic()))
+            raise ci.base.StepFailed('quiet snapshot timed out')
+        return before
+    run, vision, steps = monitor_run(m4, tmp_path, [], [], stop_after_aborts=2, snapshot=hung_poll)
+    assert vision.aborts[0] < order[0][1] and vision.aborts[0] < run.window['pause_deadline_local']
+    assert run.window['watchdog_fired_local'] >= run.window['abort_at_local'] - 0.01
+    assert restores(steps) == [] and run.window['monitor_ok'] is False
+    assert run.window['c2_abort_confirmed'] is True
+
+
+def test_watchdog_lock_makes_fired_and_confirmed_exclusive():
+    import time as clock
+    import candidate_isolation as ci
+    aborts = []
+    dog = ci.Watchdog(lambda: aborts.append(clock.monotonic()))
+    dog.arm(clock.monotonic())                       # fires at once
+    clock.sleep(0.2)
+    assert aborts and dog.fired_at is not None
+    assert dog.confirm() is False                    # a restore confirmed just after the watchdog fired is refused
+    dog = ci.Watchdog(lambda: aborts.append('late'))
+    dog.arm(clock.monotonic() + 0.3)
+    assert dog.confirm() is True and dog.timer is None
+    clock.sleep(0.4)
+    assert 'late' not in aborts                      # cancelled and joined: it never fires after confirmation
+
+
+def test_restore_that_succeeds_just_after_the_watchdog_fired_fails_the_monitor(m4, tmp_path, monkeypatch):
+    import time as clock
+    import candidate_isolation as ci
+    monkeypatch.setattr(ci, 'ABORT_MARGIN_S', 5.2)   # abort point ~0.4 s after the drained poll
+
+    def slow_but_ok(timeout):
+        clock.sleep(timeout + 0.1)                   # finishes just after the watchdog fired
+        return ci.base.Result(0, '', '')
+    before, mid, drain = m4_monitor_snapshots(m4)
+    run, vision, steps = monitor_run(m4, tmp_path, [before, mid, drain], [3_000_000_000, 4_400_000_000,
+                                                                          4_600_000_000],
+                                     restore=slow_but_ok, stop_after_aborts=1)
+    assert run.window['monitor_ok'] is False and 'c2 was aborted' in run.window['error']
+    assert 'restored_vision_ns' not in run.window and run.window['c2_abort_confirmed'] is True
+
+
+# ---------------------------------------------------------------- S2/S4: helper matching and the restore CLI
+
+@pytest.mark.parametrize('argv', [['/opt/case4/socket_gate', 'outstation', '192.168.10.62', '20000',
+                                   RUNS + '/lbl/c2/stop', '60'],
+                                  ['/opt/case4/socket_gate', 'master', RUNS + '/lbl/c2/stop.master.x']])
+def test_vision_abort_ignores_the_outstation_and_suffixed_paths(tmp_path, monkeypatch, argv):
+    import os
+    import vision_isolation as vi
+    proc = fake_proc(tmp_path / 'proc', {5000: argv})
+    monkeypatch.setattr(os, 'kill', lambda *a: pytest.fail('nothing may be killed'))
+    result = vi.abort_c2('lbl', runs=RUNS, proc=str(proc), settle_s=0)
+    assert result['matched'] == [] and vi.abort_exit_code(result) == 1
+
+
+def test_restore_cli_checks_the_budget_before_writing_and_rejects_budget_without_restore(tmp_path):
+    import inspect
+    import subprocess
+    body = inspect.getsource(delay.main)
+    assert body.index('check_budget(started') < body.index('change_ipg(sw')
+    result = subprocess.run([sys.executable, str(HW / 'delay_read_tokens.py'), '--build-out', str(tmp_path),
+                             '--expected-bfrt-sha256', '0' * 64, '--switch-tools', str(tmp_path),
+                             '--record', str(tmp_path / 'r.json'), '--budget-s', '1'],
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 2 and 'requires --restore' in result.stderr
+
+
+def test_watchdog_never_aborts_after_confirmation_and_cancel_waits_for_a_running_abort():
+    import time as clock
+    import candidate_isolation as ci
+    aborts = []
+    dog = ci.Watchdog(lambda: aborts.append('fired'))
+    dog.arm(clock.monotonic() + 5)
+    assert dog.confirm() is True
+    dog._fire()                                      # a timer callback that raced the confirmation
+    assert aborts == []
+    finished = []
+
+    def slow_abort():
+        clock.sleep(0.3)
+        finished.append(clock.monotonic())
+    dog = ci.Watchdog(slow_abort)
+    dog.arm(clock.monotonic())
+    clock.sleep(0.05)                                # the abort is running inside the timer thread
+    dog.cancel()
+    assert finished, 'cancel() returned before the running abort finished (no join)'
+
+
+def test_vision_identity_runs_the_abort_preflight_before_any_traffic(monkeypatch):
+    import candidate_isolation as ci
+    _, run = campaign(C61)
+    calls = []
+    monkeypatch.setattr(ci.cs.CandidateSeriesCampaign, 'vision_identity', lambda self: calls.append('series'))
+    monkeypatch.setattr(run, '_copy_verify', lambda *a: calls.append('copy'))
+    monkeypatch.setattr(run, 'abort_preflight', lambda: calls.append('preflight'))
+    run.rn = PreflightRunner(1, NO_MASTER)
+    run.vision_identity()
+    assert calls == ['series', 'copy', 'preflight']
