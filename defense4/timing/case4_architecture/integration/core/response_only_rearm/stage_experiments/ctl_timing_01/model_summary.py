@@ -69,15 +69,123 @@ def summarize(build):
                      'stands in for a later failure')
 
 
+# ---- summary version 2 (review of 7637390c1, finding 3; summarize() above unchanged for its recorded files) ----
+SUMMARY_V2 = 'model-summary-v2-20261017'
+# a wrapper driver runs another driver's code; its results meta records the executed driver's sha256
+WRAPPERS = {'abort': 'contention'}
+# section coverage each driver must have run (results meta 'sections'; None = the driver has no section selector)
+REQUIRED_SECTIONS = {'abort': ['abort'], 'contention': 'all'}
+REPO = HERE.parents[7]
+
+
+def _sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _resolution(note, run_dir):
+    """A FAILURE note is resolved only by a line 'RESOLVED: <reference>' whose reference names an existing path
+    (relative to the run directory, the evidence directory or the repository) or a commit known to git."""
+    import subprocess
+    for line in note.read_text().splitlines():
+        if not line.startswith('RESOLVED:'):
+            continue
+        for token in re.findall(r'[\w./-]+', line[len('RESOLVED:'):]):
+            if ('/' in token and any((base / token).exists() for base in (run_dir, run_dir.parent, REPO))) \
+                    or (token.startswith('model_') and (run_dir.parent / token).is_dir()):
+                return token
+            if re.fullmatch(r'[0-9a-f]{7,40}', token) and subprocess.run(
+                    ['git', '-C', str(REPO), 'cat-file', '-e', token + '^{commit}'],
+                    capture_output=True).returncode == 0:
+                return token
+    return None
+
+
+def _abort_negatives(results):
+    """Abort negatives (48/50 octets ahead while held): no master reset, no E-16, and the held response survives,
+    released exactly once (review finding: the driver asserted only the first two)."""
+    bad = []
+    for row in (results.get('meta') or {}).get('points', []):
+        if not str(row.get('tag', '')).startswith('abort_') or row.get('offset') not in (48, 50):
+            continue
+        released = sum((row.get('t_deltas') or {}).get(k, 0) for k in ('RESP_RELEASE', 'RESP_FALLBACK'))
+        if row.get('resets_seq') != [] or row.get('e_reset_front_delta') != 0 or row.get('responses') != 1 \
+                or released != 1:
+            bad.append(row.get('tag'))
+    return bad
+
+
+def summarize_v2(build):
+    """summarize() plus verified provenance and coverage. A driver's latest attempt passes only if:
+    - its launch record's driver_sha256 equals the sha256 of its retained driver_source.py;
+    - for a wrapper (WRAPPERS), the executed driver's sha256 (results meta driver_sha256) is recorded and equals a
+      retained driver_source.py of that driver for the same build;
+    - its results meta 'sections' equals REQUIRED_SECTIONS where listed;
+    - source, totals and exit code pass as in v1;
+    - for abort, the negatives also show the surviving response (_abort_negatives).
+    A FAILURE note anywhere blocks unless its RESOLVED line names a reference that exists (_resolution)."""
+    base = summarize(build)
+    build = Path(build).resolve()
+    reasons = list(base['blocked_reasons'])
+    reasons = [r for r in reasons if ': unresolved FAILURE_' not in r]       # re-judged below with references
+    retained = {}
+    for r in base['runs']:
+        src = build.parent / r['run'] / 'driver_source.py'
+        if src.is_file():
+            retained.setdefault(r['driver'], set()).add(_sha(src))
+    for r in base['runs']:
+        run_dir = build.parent / r['run']
+        src = run_dir / 'driver_source.py'
+        results_files = sorted(run_dir.glob('*_results.json'))
+        results = json.loads(results_files[0].read_text()) if len(results_files) == 1 else {}
+        meta = results.get('meta') or {}
+        r['driver_source_sha256'] = _sha(src) if src.is_file() else None
+        r['executed_driver_sha256'] = meta.get('driver_sha256')
+        r['sections'] = meta.get('sections')
+        problems = []
+        if not r['driver_sha256'] or r['driver_source_sha256'] != r['driver_sha256']:
+            problems.append('launch driver_sha256 missing or not the retained driver_source.py')
+        if r['driver'] in WRAPPERS:
+            inner = WRAPPERS[r['driver']]
+            if not r['executed_driver_sha256'] or r['executed_driver_sha256'] not in retained.get(inner, set()):
+                problems.append('executed %s driver %s not among the retained %s copies'
+                                % (inner, r['executed_driver_sha256'], inner))
+        if r['driver'] in REQUIRED_SECTIONS and r['sections'] != REQUIRED_SECTIONS[r['driver']]:
+            problems.append('sections %r, required %r' % (r['sections'], REQUIRED_SECTIONS[r['driver']]))
+        if r['driver'] == 'abort':
+            neg = _abort_negatives(results)
+            r['abort_negative_failures'] = neg
+            if neg or not any(str(x.get('tag', '')).endswith(('plus48', 'plus50'))
+                              for x in meta.get('points', [])):
+                problems.append('abort negatives without the surviving response: %s' % (neg or 'none run'))
+        r['provenance_problems'] = problems
+        notes = []
+        for note in sorted(run_dir.glob('FAILURE_*.md')):
+            ref = _resolution(note, run_dir)
+            notes.append(dict(note=note.name, resolution=ref))
+            if ref is None:
+                reasons.append('%s: unresolved %s (no RESOLVED reference that exists)' % (r['run'], note.name))
+        r['failure_notes'] = notes
+    for driver, run in sorted(base['latest_by_driver'].items()):
+        r = next(x for x in base['runs'] if x['run'] == run)
+        for p in r['provenance_problems']:
+            reasons.append('%s: latest attempt %s: %s' % (driver, run, p))
+    return dict(base, summary_version=SUMMARY_V2, generated_by='ctl_timing_01/model_summary.py (v2)',
+                qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('build')
     ap.add_argument('--write', action='store_true')
+    ap.add_argument('--v2', action='store_true', help='verified provenance and coverage; writes model_summary_v2.json')
+    ap.add_argument('--enforce', action='store_true', help='exit 1 unless the model gate passed')
     a = ap.parse_args(argv)
     build = (HERE / a.build) if not Path(a.build).is_absolute() else Path(a.build)
-    result = summarize(build)
+    result = summarize_v2(build) if a.v2 else summarize(build)
     text = json.dumps(result, indent=1) + '\n'
-    if a.write:
+    if a.write and a.v2:
+        (build / 'model_summary_v2.json').write_text(text)
+    elif a.write:
         target = build / 'model_summary.json'
         if target.is_file() and json.loads(target.read_text()).get('generated_by') != result['generated_by']:
             keep = build / ('model_summary_superseded_%s.json' % datetime.date.today().strftime('%Y%m%d'))
@@ -85,7 +193,7 @@ def main(argv=None):
                 keep.write_bytes(target.read_bytes())
         target.write_text(text)
     print(result['qualification'], *result['blocked_reasons'], sep='\n  ')
-    return 0
+    return 1 if a.enforce and result['qualification'] != 'model_gate_passed' else 0
 
 
 if __name__ == '__main__':

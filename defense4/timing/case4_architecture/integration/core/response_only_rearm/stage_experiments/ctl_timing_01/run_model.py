@@ -14,6 +14,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
            'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py'}
+# wrapper drivers and the driver code they execute; local modules every driver imports
+WRAPPED = {'abort': {'model_contention.py': HERE / 'model_contention.py'}}
+DEPENDENCIES = [HERE.parent / 'seg61_02' / 'model_repeat.py', HERE.parents[2] / 'response_only' / 'model_drive_composite.py']
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
 
@@ -46,6 +49,10 @@ def main():
     result = subprocess.run(command, env=env)
     if out.is_dir():
         (out / 'driver_source.py').write_bytes(driver.read_bytes())
+        # the executed closure (review of 7637390c1): a wrapper's inner driver is retained beside it, and every
+        # local module the drivers import is hashed
+        for name, path in WRAPPED.get(args.driver, {}).items():
+            (out / ('driver_dependency_%s' % name)).write_bytes(path.read_bytes())
         (out / 'launch_command.json').write_text(json.dumps({
             'command': command, 'PORT_MAP': env['PORT_MAP'], 'PAD_ENABLE': '1', 'MILESTONE': args.milestone,
             'pb_injected': args.pb,
@@ -53,6 +60,8 @@ def main():
             # the shared libraries that convert and install T parameters (review W5)
             'library_sha256': {name: hashlib.sha256((HERE.parents[2] / name).read_bytes()).hexdigest()
                                for name in ('model_driver.py', '../core/response_only/hw/t_config.py')},
+            'dependency_sha256': {str(path.relative_to(HERE.parents[2])): hashlib.sha256(path.read_bytes()).hexdigest()
+                                  for path in DEPENDENCIES + list(WRAPPED.get(args.driver, {}).values())},
             'exit_code': result.returncode}, indent=2) + '\n')
     return result.returncode
 
