@@ -492,6 +492,109 @@ def drain_timing_v2(poll_samples, emission_ns, trigger_latency_ns, detection_ela
                 detection_elapsed_ns=detection_elapsed_ns, clock='switch monotonic (poller); detection: Vision')
 
 
+# ---- acceptance version 3 (2026-10-17, review of 7637390c1; v2 kept unchanged for its recorded artifacts) ----
+ACCEPTANCE_V3 = 'isolation-v3-20261017'
+
+
+def full_run_rejections_v3(before, after, quiet_end, population=None, control=False):
+    """Version 3: every check of full_run_rejections_v2, plus joint conservation of the old seeded blockers.
+
+    v2 allowed the old tokens not rejected raw to retire before the permit, and then allowed the same population
+    again after it (review of 7637390c1, finding 1). A blocker retires once, so:
+        pre_permit <= old_seeded_max      and      post_permit <= fresh_tokens + old_seeded_max - pre_permit.
+    Still an upper bound: it does not identify blockers, nor prove every old blocker drained before the permit.
+    """
+    proof = full_run_rejections_v2(before, after, quiet_end, population, control=control)
+    seeded, pre, post = proof['old_tokens_not_rejected_raw'], proof['pre_permit_stale_blockers'], \
+        proof['post_permit_stale_blockers']
+    fresh = sum(proof['fresh_tokens_after_permit'].values())
+    if min(seeded, pre, post, fresh) < 0:
+        raise ValueError('negative population or retirement count')
+    allowance = fresh + seeded - pre
+    if post > allowance:
+        raise ValueError('stale-blocker retirements after the permit (%d) exceed fresh tokens plus the old blockers '
+                         'not already retired (%d)' % (post, allowance))
+    proof.update(acceptance=ACCEPTANCE_V3, post_permit_allowance=allowance,
+                 allowance_formula='fresh + old_seeded_max - pre_permit')
+    return proof
+
+
+V3_PASS, V3_FAIL, V3_INDETERMINATE = 'PASS', 'FAIL', 'INDETERMINATE'
+
+
+def _sample_problems(samples):
+    problems = []
+    for i, x in enumerate(samples):
+        start, end = x.get('t_start_ns'), x.get('t_end_ns')
+        if type(start) is not int or type(end) is not int or end < start:
+            problems.append('sample %d: missing or inverted read window' % i)
+        if x.get('errors'):
+            problems.append('sample %d: read errors' % i)
+        cells = x.get('outcomes')
+        if not isinstance(cells, list) or len(cells) < 25 or any(type(v) is not int for v in cells):
+            problems.append('sample %d: incomplete outcome cells' % i)
+        pk = x.get('pktgen') or {}
+        if any(type((pk.get(role) or {}).get(name)) is not int for role in ('READ', 'OPERATE')
+               for name in ('trigger_counter', 'pkt_counter')):
+            problems.append('sample %d: incomplete generator counters' % i)
+    for i in range(1, len(samples)):
+        a, b = samples[i - 1], samples[i]
+        if not problems and b['t_start_ns'] < a['t_end_ns']:
+            problems.append('sample %d: read windows overlap' % i)
+        if not problems and (any(b['outcomes'][c] < a['outcomes'][c] for c in (23, 24)) or any(
+                b['pktgen'][r][n] < a['pktgen'][r][n] for r in ('READ', 'OPERATE') for n in ('trigger_counter',
+                                                                                          'pkt_counter'))):
+            problems.append('sample %d: counter decreased' % i)
+    return problems
+
+
+def drain_timing_v3(poll_samples, population, emission_ns, trigger_latency_ns, detection_elapsed_ns=None):
+    """Version 3 of the drain judgement: PASS, FAIL or INDETERMINATE (review of 7637390c1, finding 2).
+
+    The poller reads its cells one after another inside each sample's [t_start_ns, t_end_ns] window, so a change
+    seen between samples i-1 and i happened somewhere in [t_start(i-1), t_end(i)]: the whole of both read windows,
+    never their end points alone.
+      start:  the first READ generator trigger (trigger_counter turns positive), bracketed that way;
+      drain:  the sample in which the old cohort is complete: raw READ timer rejections (24) reach the population's
+              expected count and raw OPERATE (23) likewise, never exceeded later in the series; its last needed
+              increment is bracketed the same way.
+    The drain duration lies in [lo, hi]. PASS when hi <= deadline; FAIL when lo > deadline; otherwise INDETERMINATE.
+    Missing, overlapping, decreasing or errored samples, an incomplete or exceeded cohort, or no bracket before the
+    start make the result INDETERMINATE with the reasons listed. The deadline is the old-cohort emission span plus
+    the trigger latency (plan_isolation's bound without its snapshot allowance, which belongs to detection).
+    """
+    base = dict(acceptance=ACCEPTANCE_V3, emission_bound_ns=emission_ns + trigger_latency_ns,
+                detection_elapsed_ns=detection_elapsed_ns, clock='switch monotonic (poller); detection: Vision')
+    samples = [x for x in poll_samples or [] if not x.get('summary')]
+    problems = _sample_problems(samples)
+    want_read, want_op = population['READ']['expected_raw_stale'], population['OPERATE']['expected_raw_stale']
+    if not problems and len(samples) < 3:
+        problems.append('fewer than three samples')
+    start = done = None
+    if not problems:
+        start = next((i for i, x in enumerate(samples) if x['pktgen']['READ']['trigger_counter'] > 0), None)
+        done = next((i for i, x in enumerate(samples)
+                     if x['outcomes'][24] >= want_read and x['outcomes'][23] >= want_op), None)
+        if start in (None, 0):
+            problems.append('no sample before the first READ trigger')
+        if done is None:
+            problems.append('old cohort never completed (raw READ %d/%d, raw OPERATE %d/%d)'
+                            % (samples[-1]['outcomes'][24], want_read, samples[-1]['outcomes'][23], want_op))
+        elif samples[-1]['outcomes'][24] != want_read or samples[-1]['outcomes'][23] != want_op:
+            problems.append('raw rejections exceed the old cohort later in the series')
+        elif start is not None and done <= start:
+            problems.append('cohort complete before the first trigger')
+    if problems:
+        return dict(base, verdict=V3_INDETERMINATE, reasons=problems)
+    lo = samples[done - 1]['t_start_ns'] - samples[start]['t_end_ns']
+    hi = samples[done]['t_end_ns'] - samples[start - 1]['t_start_ns']
+    bound = base['emission_bound_ns']
+    verdict = V3_PASS if hi <= bound else V3_FAIL if lo > bound else V3_INDETERMINATE
+    return dict(base, verdict=verdict, drain_ns_interval=[lo, hi], resolution_ns=hi - lo,
+                cohort=dict(raw_read=want_read, raw_operate=want_op, complete_sample=done, start_sample=start),
+                reasons=[] if verdict != V3_INDETERMINATE else ['drain interval overlaps the deadline'])
+
+
 def require_marker(marker, pause_ms=PRE_READ_GRACE_MS):
     expected = dict(opens=1, pre_read_grace_ms=pause_ms, first_read_issued_ns=0)
     if not isinstance(marker, dict) or marker.get('tcp_open') is not True or any(

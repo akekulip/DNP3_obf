@@ -1,0 +1,90 @@
+{
+ "acceptance": "isolation-v3-20261017",
+ "run": "ctl_m5_c3diag_iso20_950_01",
+ "mode": "isolation",
+ "v1_verdict_file": "separate_ack/combined/ctl_m5_c3diag_iso20_950_01_separate_ack_combined_t0/isolation_verdict.json",
+ "v1_ok": false,
+ "v1_failures": [
+  "window: cleanup bound exceeded: old tokens observed drained 18597019124 ns after the anchor, bound 18001000000 ns",
+  "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER",
+  "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 13 exceeds the build bound 12"
+ ],
+ "v1_failure_attribution": [
+  {
+   "failure": "window: cleanup bound exceeded: old tokens observed drained 18597019124 ns after the anchor, bound 18001000000 ns",
+   "component": "cleanup",
+   "replaced_by": "cleanup_deadline"
+  },
+  {
+   "failure": "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER",
+   "component": "full_run",
+   "replaced_by": "old_tokens_rejected"
+  },
+  {
+   "failure": "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 13 exceeds the build bound 12",
+   "component": "switch_stale_bound",
+   "replaced_by": "old_tokens_rejected"
+  }
+ ],
+ "unattributed_v1_failures": [],
+ "old_tokens_rejected": {
+  "verdict": "PASS",
+  "proof": {
+   "acceptance": "isolation-v3-20261017",
+   "control": false,
+   "expected_old_tokens": 7,
+   "raw_timer_rejections": 7,
+   "raw_operate_rejections": 4,
+   "pre_permit_stale_blockers": 0,
+   "post_permit_stale_blockers": 2,
+   "fresh_tokens_after_permit": {
+    "READ": 16,
+    "OPERATE": 8
+   },
+   "old_tokens_not_rejected_raw": 1,
+   "post_permit_allowance": 25,
+   "strict_stale_total": 13,
+   "allowance_formula": "fresh + old_seeded_max - pre_permit"
+  },
+  "stale_blockers": 2,
+  "token_stale_bound": [
+   12
+  ],
+  "note": "checks.py bound applied to STALE_BLOCKER only"
+ },
+ "traffic_correct": {
+  "verdict": "PASS",
+  "components": {
+   "restore": true,
+   "quiet_polls": true,
+   "bank_isolation": true,
+   "post_traffic_authority": true
+  },
+  "connections_failed": [],
+  "vision_series_ok": true,
+  "missing_components": [],
+  "unattributed_v1_failures": 0
+ },
+ "cleanup_deadline": {
+  "acceptance": "isolation-v3-20261017",
+  "emission_bound_ns": 15001000000,
+  "detection_elapsed_ns": 18597019124,
+  "clock": "switch monotonic (poller); detection: Vision",
+  "verdict": "INDETERMINATE",
+  "drain_ns_interval": [
+   14859833665,
+   15167658766
+  ],
+  "resolution_ns": 307825101,
+  "cohort": {
+   "raw_read": 7,
+   "raw_operate": 4,
+   "complete_sample": 176,
+   "start_sample": 30
+  },
+  "reasons": [
+   "drain interval overlaps the deadline"
+  ]
+ },
+ "verdict": "INDETERMINATE"
+}
