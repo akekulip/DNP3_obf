@@ -19,11 +19,21 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))         # run_model and record_closure, imported by name below
 REQUIRED = ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'select_lifecycle', 'control_timing', 'contention', 'abort')
 
 
+def _driver_names():
+    import run_model
+    return sorted(run_model.DRIVERS, key=len, reverse=True)
+
+
 def attempts(build):
-    pattern = re.compile(r'^model_(?P<driver>.+)_%s_(?P<n>\d\d)$' % re.escape(build.name))
+    # the driver is one of run_model's names, so model_abort_probe_x_m9_01_01 (build probe_x_m9_01) is not read as
+    # an attempt of build m9_01 (found 2026-10-17: '.+' let efficiency-probe runs block m9_01's re-evaluation)
+    pattern = re.compile(r'^model_(?P<driver>%s)_%s_(?P<n>\d\d)$'
+                         % ('|'.join(map(re.escape, _driver_names())), re.escape(build.name)))
     for path in sorted(build.parent.glob('model_*_%s_*' % build.name)):
         match = pattern.match(path.name)
         if not match or not path.is_dir():
@@ -72,9 +82,9 @@ def summarize(build):
 # ---- summary version 2 (review of 7637390c1, finding 3; summarize() above unchanged for its recorded files) ----
 SUMMARY_V2 = 'model-summary-v2-20261017'
 # a wrapper driver runs another driver's code; its results meta records the executed driver's sha256
-WRAPPERS = {'abort': 'contention'}
+WRAPPERS = {'abort': 'contention', 'egress_diag': 'contention'}
 # section coverage each driver must have run (results meta 'sections'; None = the driver has no section selector)
-REQUIRED_SECTIONS = {'abort': ['abort'], 'contention': 'all'}
+REQUIRED_SECTIONS = {'abort': ['abort'], 'egress_diag': ['egress_diag'], 'contention': 'all'}
 REPO = HERE.parents[7]
 
 
@@ -103,9 +113,15 @@ def _resolution(note, run_dir):
 def _abort_negatives(results):
     """Abort negatives (48/50 octets ahead while held): no master reset, no E-16, and the held response survives,
     released exactly once (review finding: the driver asserted only the first two)."""
-    bad = []
-    for row in (results.get('meta') or {}).get('points', []):
-        if not str(row.get('tag', '')).startswith('abort_') or row.get('offset') not in (48, 50):
+    expected = {'abort_held_%s_plus%d' % (kind, offset)
+                for kind in ('READ', 'SELECT') for offset in (48, 50)}
+    points = (results.get('meta') or {}).get('points', [])
+    tags = [row.get('tag') for row in points if row.get('tag') in expected]
+    bad = ['missing or duplicate: ' + tag for tag in sorted(expected) if tags.count(tag) != 1]
+    for row in points:
+        # selected by tag as well as offset (review finding 5: a required tag without a usable offset was skipped)
+        if row.get('tag') not in expected and (not str(row.get('tag', '')).startswith('abort_')
+                                               or row.get('offset') not in (48, 50)):
             continue
         released = sum((row.get('t_deltas') or {}).get(k, 0) for k in ('RESP_RELEASE', 'RESP_FALLBACK'))
         if row.get('resets_seq') != [] or row.get('e_reset_front_delta') != 0 or row.get('responses') != 1 \
@@ -173,17 +189,86 @@ def summarize_v2(build):
                 qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons)
 
 
+# ---- summary version 3 (review of af7bd434; Philip 2026-10-17: dependency evidence is mandatory for new runs) ----
+SUMMARY_V3 = 'model-summary-v3-20261017'
+
+
+def _closure_problems(build, r):
+    """Why one attempt's dependency evidence does not qualify it ([] when it does).
+
+    run_model.py launches every driver through record_closure.py, which writes dependency_closure.json: each
+    repository file the driver executed, hashed when it ran. Required:
+    - the closure exists, is the version record_closure writes, and its sha256 is the one launch_command.json records;
+    - it contains the driver itself with the driver_sha256 of the launch record, and a wrapper's inner driver;
+    - every listed file still exists with that sha256, so the run used the files the candidate now carries (the
+      candidate freeze then pins the same list)."""
+    import run_model
+    import record_closure
+    run_dir = build.parent / r['run']
+    path = run_dir / 'dependency_closure.json'
+    if not path.is_file():
+        return ['no dependency_closure.json (dependency evidence missing)']
+    launch = json.loads((run_dir / 'launch_command.json').read_text()) if (run_dir / 'launch_command.json').is_file() else {}
+    closure = json.loads(path.read_text())
+    problems = []
+    if launch.get('dependency_closure_sha256') != _sha(path):
+        problems.append('launch record does not bind dependency_closure.json')
+    if closure.get('closure_version') != record_closure.CLOSURE_VERSION:
+        problems.append('closure version %r' % closure.get('closure_version'))
+    files = closure.get('files') or {}
+    needed = {str(run_model.DRIVERS[r['driver']].resolve().relative_to(REPO)): r['driver_sha256']}
+    if r['driver'] in WRAPPERS:
+        inner = run_model.DRIVERS[WRAPPERS[r['driver']]]
+        needed[str(inner.resolve().relative_to(REPO))] = r.get('executed_driver_sha256')
+    for rel, sha in needed.items():
+        if files.get(rel) is None or files.get(rel) != sha:
+            problems.append('closure lacks %s at the recorded sha256' % rel)
+    for rel, sha in sorted(files.items()):
+        target = REPO / rel
+        if not target.is_file():
+            problems.append('closure file absent now: %s' % rel)
+        elif _sha(target) != sha:
+            problems.append('closure file changed since the run: %s' % rel)
+    return problems
+
+
+def summarize_v3(build):
+    """summarize_v2() plus mandatory dependency evidence: a driver's latest attempt must carry a verified
+    dependency closure (_closure_problems). For a build whose runs predate the closure recorder this blocks, and
+    the summary says so under provenance_limitations; such a build keeps the status of its own retained v2
+    summary, and its v3 result is a statement of the limitation, not a new verdict on its behaviour."""
+    base = summarize_v2(build)
+    build = Path(build).resolve()
+    reasons = list(base['blocked_reasons'])
+    limitations = []
+    for driver, run in sorted(base['latest_by_driver'].items()):
+        r = next(x for x in base['runs'] if x['run'] == run)
+        problems = _closure_problems(build, r)
+        r['dependency_problems'] = problems
+        for p in problems:
+            reasons.append('%s: latest attempt %s: %s' % (driver, run, p))
+            if p.startswith('no dependency_closure.json'):
+                limitations.append('%s: %s predates mandatory dependency evidence' % (driver, run))
+    return dict(base, summary_version=SUMMARY_V3, generated_by='ctl_timing_01/model_summary.py (v3)',
+                qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons,
+                provenance_limitations=limitations)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('build')
     ap.add_argument('--write', action='store_true')
     ap.add_argument('--v2', action='store_true', help='verified provenance and coverage; writes model_summary_v2.json')
+    ap.add_argument('--v3', action='store_true', help='v2 plus mandatory dependency evidence; writes '
+                    'model_summary_v3.json. Required for every new qualifying build')
     ap.add_argument('--enforce', action='store_true', help='exit 1 unless the model gate passed')
     a = ap.parse_args(argv)
     build = (HERE / a.build) if not Path(a.build).is_absolute() else Path(a.build)
-    result = summarize_v2(build) if a.v2 else summarize(build)
+    result = summarize_v3(build) if a.v3 else summarize_v2(build) if a.v2 else summarize(build)
     text = json.dumps(result, indent=1) + '\n'
-    if a.write and a.v2:
+    if a.write and a.v3:
+        (build / 'model_summary_v3.json').write_text(text)
+    elif a.write and a.v2:
         (build / 'model_summary_v2.json').write_text(text)
     elif a.write:
         target = build / 'model_summary.json'

@@ -69,3 +69,15 @@ def test_binding_requires_the_runs_own_config_and_this_acceptance_version(tmp_pa
     config.write_text(json.dumps({'acceptance_version': 'isolation-v2-20261016'}))
     r = iso.recompute(run, config)
     assert r['acceptance_binding']['ok'] is False and r['verdict'] == 'FAIL'
+
+
+@pytest.mark.parametrize('missing', ('c1', 'c2', 'c3'))
+def test_each_required_connection_must_be_present(tmp_path, missing):
+    run = copy_run(tmp_path, 'ctl_m5_c3diag_control_950_01')
+    verdict = next(run.glob('*/*/*/isolation_verdict.json'))
+    v = json.loads(verdict.read_text())
+    v['connections'].pop(missing)
+    verdict.write_text(json.dumps(v))
+    result = iso.recompute(run)
+    assert result['traffic_correct']['verdict'] == 'FAIL'
+    assert 'connections.' + missing in result['traffic_correct']['missing_components']

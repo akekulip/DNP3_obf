@@ -66,3 +66,41 @@
   - an established isolation cleanup deadline;
   - exactly-once delivery;
   - size, splitting or real-relay behaviour.
+
+## Corrections (2026-10-17, review af7bd434)
+
+The table above is kept as written. Where it conflicts with this section, this section holds.
+
+1. **Row 6b, denominator.** m9d ran 12 arms of 193 exchanges: 2,316 exchanges in all, every one matched to its
+   register entry. Six arms are timed: **1,158 timed exchanges** in 18 kind-and-arm groups. The 7 µs maximum
+   switch-side error is over those 1,158, not over 2,316. Recomputed from `ack_diag.json`. The review's
+   independent decoder (`../../review_af7bd434/package/verify_diag_pcaps.py`) reproduces the same counts from the raw
+   captures, byte for byte (`../../review_af7bd434/reproduced/independent_diag.json`).
+2. **Row 6a, observation point.**
+   - The diagnostic timestamp is sampled at E's egress parser: after the traffic manager's final queue, but before
+     the rest of egress processing, the deparser, the MAC, the link and the receiving host.
+   - What is established is that the ~1 ms delay arises **downstream of the egress-parser observation point**.
+   - It is not established that the host or its NIC alone adds the delay, and the timestamp is not a wire transmit
+     time.
+   - The host p99 failures and every tail stay in the primary results (row 6).
+3. **Row 7, wording.** Delete "and none outlives its bound". Count conservation shows every old token was
+   rejected. It does not show when the last one was rejected, and row 9's interval (14.82–15.13 s) straddles the
+   15.001 s deadline. The supported claim is "old generator tokens are rejected".
+4. **m9d silicon had an unmet model gate.**
+   - The six m9d blocks were diagnostic work.
+   - m9d_01's `model_summary_v2.json` is `blocked`: the ordinary drivers were not run on that source, and the
+     latest contention attempt fails 378/379 on the reset race (row 3).
+   - The freeze recorded file hashes. It did not record a functional model gate, so nothing here claims that every
+     model prerequisite for m9d passed.
+   - Its measurements localize the tail. They do not qualify any candidate.
+5. **Payload-length check.** The review decoder confirms 579 combined and 579 size-only responses of 61 octets, and
+   in each of timing-only and off, 195 native 49-octet READ and 384 native 37-octet control responses. This is
+   payload-length and correlation evidence only. The standards and CRC checker remains the encoding evidence.
+6. **Model summary re-evaluation.** After this round's efficiency probes, a re-run of `model_summary.py --v2` on
+   m9_01 reported `blocked`. The cause was the attempt pattern: it read the probe build's runs
+   (`model_*_probe_n_zero_unused_timestamp_m9_01_01`) as m9_01's own. The pattern now accepts only run_model's
+   driver names, and the re-evaluation equals the retained `model_summary_v2.json` again (`model_gate_passed`,
+   same latest attempts).
+7. **Dependency evidence.** m9_01's model runs predate mandatory dependency evidence (summary v3). They keep their
+   recorded v2 status. The provenance limitation is that no executed-closure hashes were recorded; only the driver,
+   one wrapped driver and two listed modules were hashed.

@@ -95,8 +95,10 @@ def recompute(run, config=None):
     conns = window.get('connections') or v1.get('connections') or {}
     conn_bad = [k for k, x in (conns.items() if isinstance(conns, dict) else []) if not (isinstance(x, dict)
                 and x.get('ok') is True)]
-    if not conns:
-        missing.append('connections')
+    if not isinstance(conns, dict):
+        missing.append('connections: expected a mapping')
+    else:
+        missing.extend('connections.' + key for key in ('c1', 'c2', 'c3') if key not in conns)
     series = v1.get('vision_series_ok')
     out['traffic_correct'] = dict(
         verdict=tw.V3_PASS if not (missing or bad or conn_bad) and series is True and not unknown else tw.V3_FAIL,

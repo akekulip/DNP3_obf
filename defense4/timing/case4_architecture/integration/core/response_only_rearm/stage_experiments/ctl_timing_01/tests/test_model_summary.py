@@ -156,9 +156,6 @@ def test_v2_blocks_missing_driver_hashes_where_v1_passed(tmp_path):
 def test_v2_blocks_wrapper_identity_coverage_or_weak_negatives(tmp_path, abort):
     build, sha = make_build(tmp_path)
     all_pass_v2(tmp_path, build, sha, **abort)
-    if abort.get('points') == NEG[:1]:
-        assert ms.summarize_v2(build)['qualification'] == 'model_gate_passed'     # one negative run, and it holds
-        return
     assert ms.summarize_v2(build)['qualification'] == 'blocked'
 
 
@@ -192,3 +189,111 @@ def test_enforce_exits_nonzero_when_blocked(tmp_path):
     all_pass_v2(tmp_path, build, sha, inner='f' * 64)
     assert ms.main([str(build), '--v2']) == 0
     assert ms.main([str(build), '--v2', '--enforce']) == 1
+
+
+def test_runs_of_another_build_with_a_suffix_name_are_not_attempts(tmp_path):
+    """Found 2026-10-17: model_abort_probe_x_m9_01_01 belongs to build probe_x_m9_01, not m9_01."""
+    build, sha = make_build(tmp_path)
+    all_pass_v2(tmp_path, build, sha)
+    other = tmp_path / 'model_contention_probe_x_m9_01_01'
+    other.mkdir()
+    (other / 'launch_command.json').write_text(json.dumps(dict(source_sha256='f' * 64, exit_code=1)))
+    s = ms.summarize_v2(build)
+    assert s['qualification'] == 'model_gate_passed' and other.name not in {r['run'] for r in s['runs']}
+
+
+# ---- summary v3: mandatory dependency evidence (review of af7bd434; Philip 2026-10-17) -----------------------------
+sys.path.insert(0, str(HERE.parent))
+import record_closure  # noqa: E402
+import run_model  # noqa: E402
+
+
+@pytest.fixture
+def v3(tmp_path, monkeypatch):
+    """A build whose every latest attempt carries a dependency closure over files in a temporary repository."""
+    repo = tmp_path / 'repo'
+    (repo / 'drivers').mkdir(parents=True)
+    (repo / 'lib.py').write_text('shared library\n')
+    monkeypatch.setattr(ms, 'REPO', repo)
+    drivers = {}
+    build, sha = make_build(tmp_path)
+    all_pass_v2(tmp_path, build, sha)
+    for d in sorted(tmp_path.glob('model_*_m9_01_*')):
+        driver = d.name[len('model_'):-len('_m9_01_01')]
+        path = repo / 'drivers' / (driver + '.py')
+        path.write_bytes((d / 'driver_source.py').read_bytes())
+        drivers[driver] = path
+    monkeypatch.setattr(run_model, 'DRIVERS', drivers)
+    for d in sorted(tmp_path.glob('model_*_m9_01_*')):
+        driver = d.name[len('model_'):-len('_m9_01_01')]
+        files = {'lib.py': hashlib.sha256(b'shared library\n').hexdigest(),
+                 'drivers/%s.py' % driver: hashlib.sha256(drivers[driver].read_bytes()).hexdigest()}
+        if driver in ms.WRAPPERS:
+            inner = drivers[ms.WRAPPERS[driver]]
+            files['drivers/%s.py' % ms.WRAPPERS[driver]] = hashlib.sha256(inner.read_bytes()).hexdigest()
+        closure = d / 'dependency_closure.json'
+        closure.write_text(json.dumps(dict(closure_version=record_closure.CLOSURE_VERSION, files=files)))
+        record = json.loads((d / 'launch_command.json').read_text())
+        record['dependency_closure_sha256'] = hashlib.sha256(closure.read_bytes()).hexdigest()
+        (d / 'launch_command.json').write_text(json.dumps(record))
+    return build, repo
+
+
+def test_v3_passes_with_verified_dependency_evidence(v3):
+    build, _ = v3
+    s = ms.summarize_v3(build)
+    assert s['qualification'] == 'model_gate_passed' and s['provenance_limitations'] == []
+
+
+def test_v3_blocks_a_run_without_dependency_evidence_and_states_the_limitation(v3):
+    build, _ = v3
+    (build.parent / 'model_dup_m9_01_01' / 'dependency_closure.json').unlink()
+    s = ms.summarize_v3(build)
+    assert ms.summarize_v2(build)['qualification'] == 'model_gate_passed'          # v2 status unchanged
+    assert s['qualification'] == 'blocked' and s['provenance_limitations'] == [
+        'dup: model_dup_m9_01_01 predates mandatory dependency evidence']
+
+
+@pytest.mark.parametrize('case', ('unbound', 'changed_dependency', 'absent_dependency', 'no_inner_driver',
+                                  'wrong_version'))
+def test_v3_blocks_mismatched_dependency_evidence(v3, case):
+    build, repo = v3
+    run = build.parent / 'model_abort_m9_01_01'
+    closure = run / 'dependency_closure.json'
+    data = json.loads(closure.read_text())
+    if case == 'unbound':
+        closure.write_text(closure.read_text() + ' ')
+    elif case == 'changed_dependency':
+        (repo / 'lib.py').write_text('changed\n')
+    elif case == 'absent_dependency':
+        (repo / 'lib.py').unlink()
+    elif case in ('no_inner_driver', 'wrong_version'):
+        if case == 'no_inner_driver':
+            data['files'].pop('drivers/contention.py')
+        else:
+            data['closure_version'] = 'v0'
+        closure.write_text(json.dumps(data))
+        record = json.loads((run / 'launch_command.json').read_text())
+        record['dependency_closure_sha256'] = hashlib.sha256(closure.read_bytes()).hexdigest()
+        (run / 'launch_command.json').write_text(json.dumps(record))
+    assert ms.summarize_v3(build)['qualification'] == 'blocked'
+
+
+def test_enforce_exits_nonzero_unless_v3_passes(v3):
+    build, _ = v3
+    assert ms.main([str(build), '--v3', '--enforce']) == 0
+    (build.parent / 'model_smoke_m9_01_01' / 'dependency_closure.json').unlink()
+    assert ms.main([str(build), '--v3', '--enforce']) == 1
+
+
+@pytest.mark.parametrize('offset', (None, '48'))
+def test_v2_judges_a_required_abort_tag_even_without_a_usable_offset(tmp_path, offset):
+    """Review finding 5: a required tag whose offset is absent or a string was skipped by the survival check."""
+    build, sha = make_build(tmp_path)
+    row = dict(NEG[0], resets_seq=[1], responses=0)
+    if offset is None:
+        row.pop('offset')
+    else:
+        row['offset'] = offset
+    all_pass_v2(tmp_path, build, sha, points=[row] + NEG[1:])
+    assert ms.summarize_v2(build)['qualification'] == 'blocked'

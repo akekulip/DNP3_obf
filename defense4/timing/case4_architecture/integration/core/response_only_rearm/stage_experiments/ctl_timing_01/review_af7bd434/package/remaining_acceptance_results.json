@@ -1,0 +1,24 @@
+{
+  "three_missing_abort_negatives": {
+    "actual": "model_gate_passed",
+    "expected": "blocked: required READ/SELECT x 48/50 matrix is incomplete",
+    "reasons": []
+  },
+  "missing_c2_c3": {
+    "actual": "PASS",
+    "expected": "FAIL: new-connection evidence absent",
+    "detail": {
+      "verdict": "PASS",
+      "components": {
+        "restore": true,
+        "quiet_polls": true,
+        "bank_isolation": true,
+        "post_traffic_authority": true
+      },
+      "connections_failed": [],
+      "vision_series_ok": true,
+      "missing_components": [],
+      "unattributed_v1_failures": 0
+    }
+  }
+}

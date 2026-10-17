@@ -40,10 +40,13 @@ def main():
     assert not out.exists(), 'evidence must not be overwritten'
     driver = DRIVERS[args.driver]
     launched = HERE / 'with_pb.py' if args.pb is not None else driver
+    # every run goes through record_closure.py, which records each repository file the driver executed (review
+    # of af7bd434: a wrapper plus one inner driver is not the imported closure)
     command = ['bash', str(HERE.parents[2] / 'launch_model.sh'), '-p', str(build / 'compile_local/out'),
-               '-o', str(out), '-P', '9 48 68 180 181 182 196', '-d', str(launched)]
+               '-o', str(out), '-P', '9 48 68 180 181 182 196', '-d', str(HERE / 'record_closure.py')]
     env = dict(os.environ, PORT_MAP=str(build / 'response_only.inputs.json'), PAD_ENABLE='1',
-               MILESTONE=args.milestone)
+               MILESTONE=args.milestone, CTL_CLOSURE_TARGET=str(launched),
+               CTL_CLOSURE_OUT=str(out / 'dependency_closure.json'))
     if args.pb is not None:
         env.update(CTL_PB=str(args.pb), CTL_TARGET_DRIVER=str(driver))
     result = subprocess.run(command, env=env)
@@ -62,6 +65,9 @@ def main():
                                for name in ('model_driver.py', '../core/response_only/hw/t_config.py')},
             'dependency_sha256': {str(path.relative_to(HERE.parents[2])): hashlib.sha256(path.read_bytes()).hexdigest()
                                   for path in DEPENDENCIES + list(WRAPPED.get(args.driver, {}).values())},
+            'closure_target': str(launched),
+            'dependency_closure_sha256': (hashlib.sha256((out / 'dependency_closure.json').read_bytes()).hexdigest()
+                                          if (out / 'dependency_closure.json').is_file() else None),
             'exit_code': result.returncode}, indent=2) + '\n')
     return result.returncode
 
