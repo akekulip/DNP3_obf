@@ -1,0 +1,24 @@
+2026-10-16T22:59:08-04:00 START candidate_series ctl_m9_persistence_graceful_950_01 --arms combined --fixtures separate_ack --close-mode graceful
+2026-10-16T23:04:22-04:00 END ctl_m9_persistence_graceful_950_01 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:04:22-04:00 START candidate_series ctl_m9_persistence_rst_950_01 --arms combined --fixtures separate_ack --close-mode rst --rst-grace-ms 1000
+2026-10-16T23:07:30-04:00 END ctl_m9_persistence_rst_950_01 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:07:30-04:00 START candidate_campaign ctl_m9_loss_core_950_01 --arms combined --fixtures separate_ack --loss core
+2026-10-16T23:17:52-04:00 END ctl_m9_loss_core_950_01 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:17:54-04:00 START candidate_campaign ctl_m9_reconnect_950_01 --arms combined --fixtures separate_ack --scenario reconnect --reconnect-policy protected
+2026-10-16T23:21:50-04:00 END ctl_m9_reconnect_950_01 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:21:50-04:00 START candidate_series ctl_m9_held_operate_350_01 --arms combined --fixtures separate_ack --close-mode graceful
+2026-10-16T23:26:55-04:00 END ctl_m9_held_operate_350_01 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:26:55-04:00 START candidate_campaign ctl_m9_qual_repeat_sbo_950_b1 --arms off,timing_only,size_only,combined --fixtures separate_ack
+2026-10-16T23:31:03-04:00 END ctl_m9_qual_repeat_sbo_950_b1 block_rc=1 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:31:03-04:00 START candidate_campaign ctl_m9_qual_repeat_sbo_950_b2 --arms combined,off,timing_only,size_only --fixtures separate_ack
+2026-10-16T23:37:46-04:00 END ctl_m9_qual_repeat_sbo_950_b2 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:37:46-04:00 START candidate_campaign ctl_m9_qual_repeat_sbo_950_b3 --arms size_only,combined,off,timing_only --fixtures separate_ack
+2026-10-16T23:41:55-04:00 END ctl_m9_qual_repeat_sbo_950_b3 block_rc=1 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:41:55-04:00 START candidate_campaign ctl_m9_qual_piggyback_950_b1 --arms off,timing_only,size_only,combined --fixtures piggyback
+2026-10-16T23:48:37-04:00 END ctl_m9_qual_piggyback_950_b1 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:48:37-04:00 START candidate_campaign ctl_m9_qual_piggyback_950_b2 --arms combined,off,timing_only,size_only --fixtures piggyback
+2026-10-16T23:55:18-04:00 END ctl_m9_qual_piggyback_950_b2 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-16T23:55:18-04:00 START candidate_campaign ctl_m9_qual_piggyback_950_b3 --arms size_only,combined,off,timing_only --fixtures piggyback
+2026-10-17T00:01:59-04:00 END ctl_m9_qual_piggyback_950_b3 block_rc=0 restore_verify_rc=0 {"ok": true, "failures": []}
+2026-10-17T00:01:59-04:00 START candidate_isolation ctl_m9_stale_iso20_950_01 
+2026-10-17T00:05:29-04:00 END ctl_m9_stale_iso20_950_01 block_rc=1 restore_verify_rc=0 {"ok": true, "failures": []}

@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "response": {
+    "response_index": 12,
+    "t_us": 1792209844130513,
+    "app_seq": 2,
+    "frame_sha256": "e50a2e44f3232727ab40d55a7504e178621d23f69d78cc90477650fa97229f1e",
+    "checksum_valid": true,
+    "dnp3_crc_valid": true
+  },
+  "error": null,
+  "commands": [
+    {
+      "argv": [
+        "ss",
+        "-H",
+        "-4",
+        "-t",
+        "-n",
+        "state",
+        "established",
+        "( src 192.168.10.61 and sport = :59920 and dst 192.168.10.62 and dport = :20000 )"
+      ],
+      "namespace": "ns_vepa_a",
+      "rc": 0,
+      "stdout": "0      0      192.168.10.61:59920 192.168.10.62:20000\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "ss",
+        "-H",
+        "-4",
+        "-t",
+        "-n",
+        "-K",
+        "state",
+        "established",
+        "( src 192.168.10.61 and sport = :59920 and dst 192.168.10.62 and dport = :20000 )"
+      ],
+      "namespace": "ns_vepa_a",
+      "rc": 0,
+      "stdout": "0      0      192.168.10.61:59920 192.168.10.62:20000\n",
+      "stderr": ""
+    }
+  ]
+}

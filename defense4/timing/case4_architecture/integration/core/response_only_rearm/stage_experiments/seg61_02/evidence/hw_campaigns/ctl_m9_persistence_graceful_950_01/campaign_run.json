@@ -1,0 +1,1202 @@
+{
+ "run_id": "ctl_m9_persistence_graceful_950_01",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "ctl_timing_m9_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+     "master_port": 59880,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65509,
+       "read": 65446
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 25,
+       "read": 88
+      },
+      "reserves": {
+       "operate": 25,
+       "read": 88
+      },
+      "snapshot": {
+       "bfrt_sha256": "f54acf2e7d598c2b3ad0bad4871f60cd3c6c83e96319d0d66e9c88ac82e42369",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792206043.0717332,
+       "valid": true
+      },
+      "time": 1792206043.0863857,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 3,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "qualification": {
+      "c1": "measurement_only",
+      "c2": "measurement_only",
+      "c3": "measurement_only"
+     },
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "vision": {
+      "scenario": "candidate_same_tuple",
+      "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+      "close_mode": "graceful",
+      "master_port": 59880,
+      "tuple": [
+       "192.168.10.61",
+       59880,
+       "192.168.10.62",
+       20000
+      ],
+      "namespaces": [
+       "ns_vepa_a",
+       "ns_vepa_b"
+      ],
+      "nic": "enp59s0f0np0",
+      "padding": 1,
+      "reads": 20,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "pre_read_grace_ms": 0,
+      "qualify_capture": true,
+      "switch_mutations": false,
+      "applied": true,
+      "connections": [
+       {
+        "name": "c1",
+        "master_port": 59880,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0_c1",
+         "master_port": 59880,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12345,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c1/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c1/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59880,
+          "polls": 1,
+          "elapsed_s": 0.032,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 0.709,
+         "tcpdump": {
+          "out": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 74,
+         "frames_in": 74,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       },
+       {
+        "name": "c2",
+        "master_port": 59880,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0_c2",
+         "master_port": 59880,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12346,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c2/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c2/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59880,
+          "polls": 59,
+          "elapsed_s": 60.016,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 0.71,
+         "tcpdump": {
+          "out": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 74,
+         "frames_in": 74,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       },
+       {
+        "name": "c3",
+        "master_port": 59880,
+        "ok": true,
+        "failures": [],
+        "result": {
+         "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0_c3",
+         "master_port": 59880,
+         "reads": 20,
+         "range": 8,
+         "gap_ms": 0,
+         "start_delay_ms_max": 0,
+         "start_seed": 12347,
+         "start_delay_ms_applied": 0,
+         "endpoint_controls": {
+          "read_pause_ms": 25,
+          "run_sbo": true,
+          "close_grace_ms": 0
+         },
+         "capture_immediate": false,
+         "qualify_capture": true,
+         "capture_commands": {
+          "out": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "out",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c3/out.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ],
+          "in": [
+           "tcpdump",
+           "-i",
+           "enp59s0f0np0",
+           "-Q",
+           "in",
+           "-s0",
+           "-U",
+           "-n",
+           "-w",
+           "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0/c3/in.pcap",
+           "tcp and host 192.168.10.61 and host 192.168.10.62"
+          ]
+         },
+         "source_port_wait": {
+          "port": 59880,
+          "polls": 59,
+          "elapsed_s": 60.06,
+          "result": "free"
+         },
+         "outstation_ready": true,
+         "master_rc": 0,
+         "master_wall_s": 0.71,
+         "tcpdump": {
+          "out": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          },
+          "in": {
+           "captured": 74,
+           "received": 148,
+           "dropped_kernel": 0
+          }
+         },
+         "frames_out": 74,
+         "frames_in": 74,
+         "ok": true
+        },
+        "pre_read_hook": {
+         "requested_pre_read_grace_ms": 0,
+         "supported": false,
+         "observed_pre_read_grace_ms": null,
+         "pre_read_ready_ns": null,
+         "first_read_issued_ns": null,
+         "marker_path": null,
+         "marker_sha256": null
+        }
+       }
+      ],
+      "ok": true,
+      "preflight": [
+       {
+        "namespace": null,
+        "argv": [
+         "ip",
+         "-j",
+         "link",
+         "show",
+         "dev",
+         "enp59s0f0np0"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":2,\"ifname\":\"enp59s0f0np0\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"mq\",\"operstate\":\"UP\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"3c:fd:fe:cc:5d:c0\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"vfinfo_list\":[]}]\n",
+        "stderr": ""
+       },
+       {
+        "namespace": "ns_vepa_a",
+        "argv": [
+         "ip",
+         "-j",
+         "address",
+         "show",
+         "dev",
+         "mvA"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":12,\"link_index\":2,\"ifname\":\"mvA\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"noqueue\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"d2:9d:1d:1c:f4:dd\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.61\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvA\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::d09d:1dff:fe1c:f4dd\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+        "stderr": ""
+       },
+       {
+        "namespace": "ns_vepa_b",
+        "argv": [
+         "ip",
+         "-j",
+         "address",
+         "show",
+         "dev",
+         "mvB"
+        ],
+        "rc": 0,
+        "stdout": "[{\"ifindex\":13,\"link_index\":2,\"ifname\":\"mvB\",\"flags\":[\"BROADCAST\",\"MULTICAST\",\"UP\",\"LOWER_UP\"],\"mtu\":1500,\"qdisc\":\"prio\",\"operstate\":\"UP\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"ee:df:16:18:b0:a5\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"link_netnsid\":0,\"addr_info\":[{\"family\":\"inet\",\"local\":\"192.168.10.62\",\"prefixlen\":24,\"scope\":\"global\",\"label\":\"mvB\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"fe80::ecdf:16ff:fe18:b0a5\",\"prefixlen\":64,\"scope\":\"link\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+        "stderr": ""
+       }
+      ],
+      "source_sha256": {
+       "/home/decps/pad58b_rearm_controls_20261012/vision_candidate.py": "c1ffac8605872e91fb8e3260863d057629f388e9dd8c0f46e660ceb57470f2a0",
+       "/home/decps/pad58b_rearm_controls_20261012/vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+       "/home/decps/pad58b_rearm_controls_20261012/wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+       "/home/decps/pad58b_rearm_controls_20261012/clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+       "/home/decps/pad58b_rearm_controls_20261012/checks.py": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9",
+       "/home/decps/pad58b_rearm_controls_20261012/token_window.py": "cff92298cbcad0b8bf7309d5893e1e6e5740608a4f0acc5fa44c0d1bac50c07c",
+       "/home/decps/pad58b_rearm_controls_20261012/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+      },
+      "hashes": {
+       "c1/timing.json": "5726fc477edc1f74be68bc2b1c33373b60f5f89e5c01bd98ec6431f9c89fe902",
+       "c1/in.pcap": "2fb05989cd1a8abe3cd19a34dd774a12de899a6516b8c302143461a4926c9457",
+       "c1/master.json": "28fa5e9755e75c3068a760a49d1ba135fbab22bf30403f3f617cf3704456fa43",
+       "c1/verdict.json": "7b2de7e35909781ec73f4916d922ba13a4347ebb6c848a6acc7cf8d7470c0492",
+       "c1/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c1/calibration_out.pcap": "e3682a0e76aa98c81942b1f051a4955052865a7168c0dad1453eb46c612cddff",
+       "c1/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c1/outstation.json": "b5f43345bea85396b7b82fa8cdf01a19c2af28651d65ebbcef1a9d982e068bbb",
+       "c1/calibration_result.json": "2c9d5dd61c559d028e1d3a84f951e7b2e38de01064c1e63bb93733244ffb9e38",
+       "c1/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c1/calibration_in.pcap": "41dac01d62bebb51288d87bc1a1e935b799da58611f2c131d4df4b387ebd443e",
+       "c1/state.txt": "2ab8d6e6ed51c36902dca54b69920f716873d3c745e19bfac0d163c0ff24f8ff",
+       "c1/out.pcap": "e9854ef3cb6ad87dabac0f008c6d14afd04f03bf644fd5c87a9a6f732b0c9a52",
+       "c1/wire.json": "86478d56e9819e11b23511c09a9c0c35d93ef588e8241ab3066568e0cd5a751f",
+       "c1/result.json": "fa522f06f8e621576baa7cde7820c52e74c031810cb949b146d9d4fe795f0066",
+       "c3/timing.json": "a49e53459a27ed247acac6422a9fec37dee8f783341315b36e4b5c9d6066f2e8",
+       "c3/in.pcap": "851d7654faaf6e742eecde6d4bf4dba70c1aeeb56e4d1a8689c4c2f942e6a0c2",
+       "c3/master.json": "eb372ef25f570058fed9c8d61ea0c606452c72d9ae8fb24f9242ff3c4d272796",
+       "c3/verdict.json": "39db08a4256a9ab0d3baf6e2d9a3279e6ddf10d8f84e994a7e738028a2097a5f",
+       "c3/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c3/calibration_out.pcap": "82ff0fd444c3c3347ee5036731572cfaeb645275312317fee030cdea9b104fc3",
+       "c3/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c3/outstation.json": "0edf7de260c424e8905c30ca5babe01e5ec6fdaf1fedb834bc858bb4f16e9f03",
+       "c3/calibration_result.json": "22515f5278df6a368c2849933d4d9a4b9671438b49a2566953963758b3fd9772",
+       "c3/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c3/calibration_in.pcap": "ec9741659658e78b562dc5658c3fd64f1da9318c3057743a96c2532a34bd01a7",
+       "c3/state.txt": "e397129944f6b7944c16c06d19341f191fa61761944008492f8eaf985704285f",
+       "c3/out.pcap": "ef3a31e34db543ffb1423f93d7ce45d009336d89fe1793b904acd643b0421cd3",
+       "c3/wire.json": "7b8ca2fd3ab38c4d8542e32ac183639f7d640a1bf83a2802d120ac215fe3d2b3",
+       "c3/result.json": "49c0aad75c381244b9247d173090c5e9789d637e5066cf777a9d23e04873a734",
+       "c2/timing.json": "a108a9acb92c94ac493162dc8be845275396102aecef1c3b9ee4fdf6e653c290",
+       "c2/in.pcap": "1d3e8057b34d7fcfc17432f11ad270f8a07d9a1cf48f7db8b5e4e2399085b084",
+       "c2/master.json": "0ef19cb589da35262b3cfb4f52fc756da6d72f311a033e0c4cf4a129f1f940c8",
+       "c2/verdict.json": "92aeb48fc59ea89f70adae2757d5c5d9d6ebcc07f7341067b64c989e3a5f19fe",
+       "c2/capture_offloads.json": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f",
+       "c2/calibration_out.pcap": "85091447c8297f0b2ad3ee63d2acde856f84b70ff3f25fa24e163031d1c12cfb",
+       "c2/calibration_expected.json": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2",
+       "c2/outstation.json": "a23692210dd1258f985b53e13c58948faf5c3dbe92a7e473e7e7dd1e5e9a8857",
+       "c2/calibration_result.json": "5980b98a8bf9dbdc896745e56efcc1122d62c3f1ec02cb1bcb43b514e26f3b47",
+       "c2/stop": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "c2/calibration_in.pcap": "d65d7f2bdaf19c04fcd30876ba77a12f3728a498eec89bc7e03e4505cc7776df",
+       "c2/state.txt": "e397129944f6b7944c16c06d19341f191fa61761944008492f8eaf985704285f",
+       "c2/out.pcap": "9879ae6edb511c16d1e29b444d125307eff4f2f8037f8bbf8fce8e2b2c475406",
+       "c2/wire.json": "63a818f912dfbe63dc4d7a1414684ee83dd47f0c3abb247e8fe81722fd041fd8",
+       "c2/result.json": "1717cb2ea23962f67f2a0de44a5dd00950720ba0347e98a6b2698a19dcc4fa59"
+      }
+     },
+     "scenario": {
+      "policy": "candidate_same_tuple_protected",
+      "connections": {
+       "c1": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 0.0,
+          "median": 3,
+          "iqr": 4.0,
+          "p95": 10.0,
+          "p99": 10.0,
+          "max": 10.0,
+          "sd_population": 3.0,
+          "sd_sample": 3.0
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -10.0,
+          "median": 1,
+          "iqr": 6.0,
+          "p95": 8.0,
+          "p99": 10.0,
+          "max": 10.0,
+          "sd_population": 5.1,
+          "sd_sample": 5.2
+         },
+         "tails": [
+          {
+           "t_req": 1792206047738777,
+           "clrt_us": 940,
+           "error_us": -10.0
+          },
+          {
+           "t_req": 1792206048009394,
+           "clrt_us": 960,
+           "error_us": 10.0
+          },
+          {
+           "t_req": 1792206047975630,
+           "clrt_us": 958,
+           "error_us": 8.0
+          },
+          {
+           "t_req": 1792206047704942,
+           "clrt_us": 957,
+           "error_us": 7.0
+          },
+          {
+           "t_req": 1792206047840228,
+           "clrt_us": 943,
+           "error_us": -7.0
+          }
+         ],
+         "pass": true,
+         "p99_nearest_rank_abs_error_us": 10.0,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 2321449090,
+         "server_isn": 121478311,
+         "frontiers": {
+          "client": 2321449562,
+          "server": 121479367
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       },
+       "c2": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 0.0,
+          "median": 3,
+          "iqr": 6.0,
+          "p95": 9.0,
+          "p99": 54.0,
+          "max": 54.0,
+          "sd_population": 11.3,
+          "sd_sample": 11.6
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -4.0,
+          "median": 2,
+          "iqr": 8.0,
+          "p95": 9.0,
+          "p99": 54.0,
+          "max": 54.0,
+          "sd_population": 11.9,
+          "sd_sample": 12.2
+         },
+         "tails": [
+          {
+           "t_req": 1792206113036021,
+           "clrt_us": 1004,
+           "error_us": 54.0
+          },
+          {
+           "t_req": 1792206112900658,
+           "clrt_us": 959,
+           "error_us": 9.0
+          },
+          {
+           "t_req": 1792206112968266,
+           "clrt_us": 959,
+           "error_us": 9.0
+          },
+          {
+           "t_req": 1792206112799264,
+           "clrt_us": 958,
+           "error_us": 8.0
+          },
+          {
+           "t_req": 1792206112866835,
+           "clrt_us": 958,
+           "error_us": 8.0
+          }
+         ],
+         "pass": true,
+         "p99_nearest_rank_abs_error_us": 54.0,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 3339076833,
+         "server_isn": 1139106160,
+         "frontiers": {
+          "client": 3339077305,
+          "server": 1139107216
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       },
+       "c3": {
+        "ok": true,
+        "failures": [],
+        "read_precision": {
+         "gap_us": 950.0,
+         "read_rows": 20,
+         "eligible": 20,
+         "excluded": {
+          "incomplete": 0,
+          "piggyback": 0,
+          "multiple_attempts": 0,
+          "missing_clrt": 0
+         },
+         "minimum_eligible": 20,
+         "maximum_p99_absolute_error_us": 100,
+         "absolute_error_us": {
+          "n": 20,
+          "min": 1.0,
+          "median": 4,
+          "iqr": 5.0,
+          "p95": 10.0,
+          "p99": 15.0,
+          "max": 15.0,
+          "sd_population": 3.6,
+          "sd_sample": 3.7
+         },
+         "signed_error_us": {
+          "n": 20,
+          "min": -15.0,
+          "median": 3,
+          "iqr": 6.0,
+          "p95": 10.0,
+          "p99": 10.0,
+          "max": 10.0,
+          "sd_population": 6.1,
+          "sd_sample": 6.3
+         },
+         "tails": [
+          {
+           "t_req": 1792206178475514,
+           "clrt_us": 935,
+           "error_us": -15.0
+          },
+          {
+           "t_req": 1792206177934422,
+           "clrt_us": 960,
+           "error_us": 10.0
+          },
+          {
+           "t_req": 1792206178238733,
+           "clrt_us": 960,
+           "error_us": 10.0
+          },
+          {
+           "t_req": 1792206178204865,
+           "clrt_us": 959,
+           "error_us": 9.0
+          },
+          {
+           "t_req": 1792206178543169,
+           "clrt_us": 959,
+           "error_us": 9.0
+          }
+         ],
+         "pass": true,
+         "p99_nearest_rank_abs_error_us": 15.0,
+         "gated": true
+        },
+        "fresh_mapping": {
+         "client_isn": 62367860,
+         "server_isn": 2157364455,
+         "frontiers": {
+          "client": 62368332,
+          "server": 2157365511
+         }
+        },
+        "wire_rc": 0,
+        "clrt_rc": 0
+       }
+      },
+      "installed_connections_expected": 3,
+      "old_replay_and_token_proofs": "separate diagnostics"
+     },
+     "observed": {
+      "switch": {
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 25224,
+        "OUT_ACK_COMMIT": 66,
+        "OUT_RESP_RELEASE": 66,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 3,
+        "OUT_TOKEN_STALE": 2,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 2,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 2,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 63,
+         "pkts": 252
+        },
+        "OPERATE": {
+         "triggers": 3,
+         "pkts": 12
+        }
+       },
+       "token_stale_bound": 12,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       },
+       "external_growth_bytes": 288,
+       "external_growth_expected": 288,
+       "unacked": 0,
+       "held_operate_dup_drops": 0
+      },
+      "lifecycle": {
+       "n_retry_epoch": 0,
+       "epochs": {
+        "registers": {
+         "N": "p0.n_Ingress.epoch",
+         "E": "p0.r_Egress.epoch",
+         "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+         "N": 145,
+         "E": 145,
+         "T": 145
+        },
+        "E_raw": 2147483793,
+        "T_raw": 2147483793,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+       },
+       "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 216
+       },
+       "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 17760259,
+        "phase": 271,
+        "generation": 3
+       }
+      }
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59880,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "before lifecycle snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "what": "after lifecycle snapshot",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "54e7849cf642e164b36564c687461ee8334ffbd5ae72cf44cf56f4d723ff80f4",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "1203128a65e941339e32fea5a91d68da03278f6b891dcf6f7a2ea58906e89112",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c"
+ },
+ "candidate_series": {
+  "close_mode": "graceful",
+  "rst_grace_ms": 5000,
+  "connections": 3,
+  "effective_endpoint_controls": {
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "limitations": [
+   "old retained packet replay is proven by replay_old_packets.py, not this series harness",
+   "delayed internal token proof is a separate IPG diagnostic, not a precision qualification"
+  ]
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "candidate_series_vision_identity": {
+  "token_window.py": "cff92298cbcad0b8bf7309d5893e1e6e5740608a4f0acc5fa44c0d1bac50c07c",
+  "snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+  "vision_candidate.py": "c1ffac8605872e91fb8e3260863d057629f388e9dd8c0f46e660ceb57470f2a0",
+  "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+  "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+  "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+  "checks.py": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9"
+ },
+ "candidate_series_switch_identity": {
+  "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "ctl_m9_persistence_graceful_950_01_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 25,
+    "read": 88
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65509,
+    "read": 65446
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 20,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59880,
+    "last": 59880
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "candidate61_label": "m9_persistence_graceful"
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "ctl_timing_m9_01": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "ce30e347efb38fb52f86b80dca207aacdf8dd21b812c4845962cf5da66a0878e",
+ "config_file_sha256": "174848b0adb516ede93bde2dd5fffcc7f3b71f1ee7bf9a65f5263b438055c2e4",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "10546932eb50f366467b922558a1b936b714758795f1ec87b7a75edcc7b6f522",
+   "checks.py": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9",
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303"
+  },
+  "build_sources": {
+   "ctl_timing_m9_01": {
+    "source_sha256": "6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f",
+    "source_files": {
+     "response_only.p4": "6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "ctl_timing_m9_01": {
+   "bfrt.json": "f54acf2e7d598c2b3ad0bad4871f60cd3c6c83e96319d0d66e9c88ac82e42369",
+   "p0/tofino.bin": "d1885aa5e68e01c6a6a31309399b29f913a20d841a8038d4f156567c01b7cf6c",
+   "p1/tofino.bin": "946c32dd3dd9bf29bce38593151a7f0d2c94b429f08cd4325ffd8fab2fd9109d",
+   "p1/response_only.bfa": "18d8f4b858b02226ef72f458b5f18d5d2ec90df2249516c116ce4c4e04c70b9e"
+  }
+ },
+ "paired_block": null,
+ "time": 1792206254.2784107
+}
