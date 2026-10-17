@@ -51,17 +51,19 @@ DIAG_EGRESS = 'p0.r_Egress.diag_egress_ts'
 
 def read_egress_diag(sw):
     """Non-zero entries of the diagnostic register, {index: [lo, hi]} on pipe 0, read in one bulk call; None when
-    the loaded build has no such register."""
+    the loaded build has no such register. BF Runtime names the data fields after bfrt.json, without the pipe
+    prefix (r_Egress.diag_egress_ts.lo / .hi), so fields are matched by suffix (review of round 2: an exact
+    'p0.' name raised KeyError on hardware)."""
     try:
         t = sw.table(DIAG_EGRESS)
-    except Exception:
+    except KeyError:                    # BF Runtime: the loaded build has no such table; any other error propagates
         return None
     out = {}
     for data, key in t.entry_get(sw.target(0), None, {'from_hw': True}):
         d, k = data.to_dict(), key.to_dict()
         index = k['$REGISTER_INDEX']['value']
-        lo = d[DIAG_EGRESS + '.lo']
-        hi = d[DIAG_EGRESS + '.hi']
+        lo = next(v for f, v in d.items() if f.endswith('diag_egress_ts.lo'))
+        hi = next(v for f, v in d.items() if f.endswith('diag_egress_ts.hi'))
         lo = lo[0] if isinstance(lo, list) else lo
         hi = hi[0] if isinstance(hi, list) else hi
         if lo or hi:
@@ -80,9 +82,17 @@ def add_n_counters(args):
     a, _ = ap.parse_known_args(args)
     from switch import Switch
     sw = Switch(a.program, a.client_id)
+    diag, diag_error = None, None
     try:
         counters = read_n_counters(sw, snapshot.tc.ALL_PIPES)
-        diag = read_egress_diag(sw)
+        # the diagnostic register only after a trial (never in a _before snapshot, so a m9d unit does not wait on a
+        # 16,384-entry read between selecting T and starting traffic), and in its own try: whatever happens there,
+        # n_counters are written and the snapshot does not fail
+        if not Path(a.output).name.endswith('_before.json'):
+            try:
+                diag = read_egress_diag(sw)
+            except Exception as error:
+                diag_error = '%s: %s' % (type(error).__name__, str(error)[:300])
     finally:
         sw.close()
     path = Path(a.output)
@@ -91,6 +101,8 @@ def add_n_counters(args):
     if diag is not None:
         data['egress_diag'] = dict(register=DIAG_EGRESS, units='ns, egress parser global_tstamp[31:0], pipe 0',
                                    index='master-visible tcp.ack[13:0]', lo='pure ACK', hi='response', entries=diag)
+    if diag_error is not None:
+        data['egress_diag_error'] = diag_error
     path.write_text(json.dumps(data, indent=1, default=str) + '\n')
     return 0
 

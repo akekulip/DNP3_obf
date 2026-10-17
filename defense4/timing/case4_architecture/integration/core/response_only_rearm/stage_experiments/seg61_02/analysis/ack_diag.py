@@ -23,6 +23,21 @@ import subprocess
 from pathlib import Path
 
 GAP_US, TOL_US = 950.0, 100.0
+M9D_SOURCE = '74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f'   # the m9d diagnostic build
+
+
+def instrumented(run):
+    """Whether the block ran the m9d diagnostic build, from its own run record (not from whether the snapshot carries
+    egress_diag: a failed read on m9d must show as missing, never as a control)."""
+    record = json.loads((Path(run) / 'campaign_run.json').read_text())
+    builds = (record.get('source_identity') or {}).get('build_sources') or {}
+    return any((b or {}).get('source_sha256') == M9D_SOURCE for b in builds.values())
+
+
+def signed32(delta):
+    """(hi - lo) mod 2^32 as a signed ns difference: a response before its ACK is negative, not 4.29 s."""
+    d = delta & 0xffffffff
+    return d - (1 << 32) if d >= 1 << 31 else d
 
 
 def frames(pcap):
@@ -53,10 +68,12 @@ def nearest(fr, t, want_payload, tol_us=3):
     return best
 
 
-def trial_rows(trial):
+def trial_rows(trial, is_instrumented):
     ex = json.loads((trial / 'timing.json').read_text())['exchanges']
     snaps = sorted((trial / 'snapshots').glob('*_after.json'))
-    diag = json.loads(snaps[0].read_text()).get('egress_diag') if snaps else None
+    snap = json.loads(snaps[0].read_text()) if snaps else {}
+    diag = snap.get('egress_diag')
+    diag_error = snap.get('egress_diag_error')
     entries = {int(k): v for k, v in ((diag or {}).get('entries') or {}).items()}
     rx = frames(trial / 'in.pcap')
     rows = []
@@ -66,36 +83,45 @@ def trial_rows(trial):
         ack_frame = nearest(rx, e['t_req'] + e['ack_lat_us'], False)
         rsp_frame = nearest(rx, e['t_req'] + e['rt_us'], True) if e.get('rt_us') is not None else None
         ackv = ack_frame[3] if ack_frame else None
-        entry = entries.get(ackv & 0x3fff) if ackv is not None and diag is not None else None
-        switch_clrt = ((entry[1] - entry[0]) & 0xffffffff) / 1000.0 if entry and entry[0] and entry[1] else None
+        rsp_ack = rsp_frame[3] if rsp_frame else None
+        # the plan requires both the ACK and the response to have the entry: the response must ack the same request
+        entry = entries.get(ackv & 0x3fff) if ackv is not None and rsp_ack == ackv and diag is not None else None
+        switch_clrt = signed32(entry[1] - entry[0]) / 1000.0 if entry and entry[0] and entry[1] else None
         rows.append(dict(index=i, kind=e['kind'], clrt_us=e['clrt_us'], ack_lat_us=e['ack_lat_us'], rt_us=e.get('rt_us'),
-                         ack=ackv, response_ack=rsp_frame[3] if rsp_frame else None, diag_present=diag is not None,
+                         ack=ackv, response_ack=rsp_ack, instrumented=is_instrumented, diag_present=diag is not None,
+                         diag_error=diag_error, attempts=e.get('attempts'), retransmitted=e.get('retransmitted'),
                          switch_clrt_us=switch_clrt))
     return rows
 
 
-def classify(rows):
+def kind_medians(rows):
     med = {}
     for kind in {r['kind'] for r in rows}:
         rs = [r for r in rows if r['kind'] == kind]
         med[kind] = dict(ack=statistics.median(r['ack_lat_us'] for r in rs), rt=statistics.median(r['rt_us'] for r in rs
                                                                                                   if r['rt_us']))
+    return med
+
+
+def classify(rows, med):
     tails = []
     for r in rows:
         if abs(r['clrt_us'] - GAP_US) <= TOL_US:
             continue
         m = med[r['kind']]
         sig = r['ack_lat_us'] - m['ack'] > 500 and r['rt_us'] is not None and abs(r['rt_us'] - m['rt']) <= 300
-        if not r['diag_present']:
+        if not r['instrumented']:
             where = 'no instrument (control)'
         elif r['switch_clrt_us'] is None:
-            where = 'unmatched'
+            where = 'unmatched' + (' (snapshot error: %s)' % r['diag_error'] if r['diag_error'] else
+                                   '' if r['diag_present'] else ' (no egress_diag in the snapshot)')
         elif abs(r['switch_clrt_us'] - GAP_US) <= TOL_US:
             where = 'downstream of the egress parser'
         else:
             where = 'at or before the egress parser'
-        tails.append(dict(r, signature=sig, kind_median_ack_us=m['ack'], kind_median_rt_us=m['rt'], localized=where))
-    return med, tails
+        tails.append(dict(r, signature=sig, kind_median_ack_us=m['ack'], kind_median_rt_us=m['rt'], localized=where,
+                          overwrite_possible=bool((r['attempts'] or 1) > 1 or r['retransmitted'])))
+    return tails
 
 
 def p99(values):
@@ -105,15 +131,14 @@ def p99(values):
 
 def analyse(run):
     run = Path(run)
-    out = dict(run=run.name, trials=[])
-    for trial in sorted(run.glob('*/*/*_t*')):
-        if not (trial / 'timing.json').is_file():
-            continue
-        rows = trial_rows(trial)
-        arm = trial.parent.name
-        med, tails = classify(rows)
-        if arm not in ('timing_only', 'combined'):          # untimed arms have no 950 us target: no tails
-            tails = []
+    is_instr = instrumented(run)
+    out = dict(run=run.name, instrumented=is_instr, trials=[])
+    trials = [(t, t.parent.name, trial_rows(t, is_instr)) for t in sorted(run.glob('*/*/*_t*'))
+              if (t / 'timing.json').is_file()]
+    # the signature's medians are the block's, over its timed arms, per kind (plan: "that kind's block median")
+    med = kind_medians([r for _t, arm, rows in trials if arm in ('timing_only', 'combined') for r in rows])
+    for trial, arm, rows in trials:
+        tails = classify(rows, med) if arm in ('timing_only', 'combined') else []   # untimed arms: no 950 us target
         per_kind = {}
         for kind in sorted({r['kind'] for r in rows}):
             rs = [r for r in rows if r['kind'] == kind]
@@ -124,10 +149,43 @@ def analyse(run):
         corr = [r['clrt_us'] - r['switch_clrt_us'] for r in matched]
         out['trials'].append(dict(
             trial=trial.name, arm=arm, timed=arm in ('timing_only', 'combined'), per_kind=per_kind, tails=tails,
-            instrumented=any(r['diag_present'] for r in rows), matched=len(matched), exchanges=len(rows),
+            instrumented=is_instr, diag_present=any(r['diag_present'] for r in rows),
+            diag_error=next((r['diag_error'] for r in rows if r['diag_error']), None), matched=len(matched),
+            exchanges=len(rows),
             host_minus_switch_clrt_us=dict(median=statistics.median(corr), p99=p99([abs(c) for c in corr]),
                                            max=max(corr, key=abs)) if corr else None))
     return out
+
+
+def compare(results):
+    """Plan: m9d against its control, per kind and timed arm. A median CLRT shift above 10 us, or a precision
+    objective (p99 abs error <= 100 us) passing on one build and failing on the other, is a possible instrumentation
+    effect. Blocks pair by their b<N> number."""
+    import re
+    by = {}
+    for r in results:
+        m = re.search(r'_b(\d)', r['run'])
+        if m:
+            by.setdefault(m.group(1), {})['diag' if r['instrumented'] else 'control'] = r
+    rows = []
+    for block, pair in sorted(by.items()):
+        if set(pair) != {'diag', 'control'}:
+            continue
+        for td in pair['diag']['trials']:
+            tc = next((t for t in pair['control']['trials'] if t['arm'] == td['arm']), None)
+            if not td['timed'] or tc is None:
+                continue
+            for kind, kd in td['per_kind'].items():
+                kc = tc['per_kind'].get(kind)
+                if not kc:
+                    continue
+                shift = kd['median_clrt_us'] - kc['median_clrt_us']
+                status = lambda k: (k['p99_abs_error_us'] or 0) <= TOL_US
+                rows.append(dict(block=block, arm=td['arm'], kind=kind, median_shift_us=shift,
+                                 diag_p99=kd['p99_abs_error_us'], control_p99=kc['p99_abs_error_us'],
+                                 diag_tails=kd['tails'], control_tails=kc['tails'],
+                                 possible_effect=abs(shift) > 10 or status(kd) != status(kc)))
+    return rows
 
 
 def markdown(results):
@@ -161,7 +219,8 @@ def main(argv=None):
     ap.add_argument('--md')
     a = ap.parse_args(argv)
     results = [analyse(r) for r in a.runs]
-    Path(a.output).write_text(json.dumps(results, indent=1) + '\n')
+    comparison = compare(results)
+    Path(a.output).write_text(json.dumps(dict(runs=results, instrumentation_comparison=comparison), indent=1) + '\n')
     if a.md:
         Path(a.md).write_text(markdown(results))
     for r in results:

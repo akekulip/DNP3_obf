@@ -34,6 +34,10 @@ def repo(tmp_path, monkeypatch):
         for f in fg.COMPILE_FILES:
             (build / c / f).parent.mkdir(parents=True, exist_ok=True)
             (build / c / f).write_text(c + f + '\n')
+    for d in fg.BASELINE_DIRS:
+        (root / d).mkdir(parents=True, exist_ok=True)
+        (root / d / 'state.txt').write_text('baseline\n')
+    (root / fg.A / 'protocol/hw_vepa/switch_swap.sh').write_text('# swap\n')
     config = root / 'config.json'
     config.write_text('{}\n')
     subprocess.run(['git', 'init', '-q', str(root)], check=True)
@@ -56,6 +60,9 @@ def test_freeze_covers_the_acceptance_modules_named_by_the_review(tmp_path, repo
     for name in ('token_window.py', 'candidate_isolation.py', 'freeze_gate.py'):
         assert fg.A + 'integration/evidence/rearm_01/hw/' + name in files
     assert fg.A + 'integration/evidence/rearm_01/hw/run_block.sh' in files
+    assert fg.A + 'protocol/hw_vepa/switch_swap.sh' in files
+    assert any('restore_baseline/state.txt' in f for f in files)
+    assert fg.A + 'integration/core/response_only/cp.py' in files
     assert any(f.endswith('analysis/isolation_v3.py') for f in files) and 'config.json' in files
 
 

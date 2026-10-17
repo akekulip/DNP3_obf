@@ -2,6 +2,9 @@
 """Recompute a retained isolation block under acceptance version 3, as a separate file (review of 7637390c1).
 
   python3 isolation_v3.py RUN_DIR [RUN_DIR ...]      # writes RUN_DIR/isolation_v3.json for each
+  python3 isolation_v3.py RUN_DIR --config CONFIG     # also binds the verdict to the block's own config: its sha256
+                                                     # must be the run's config_file_sha256 and its
+                                                     # acceptance_version this version, else the verdict is FAIL
 
 Version 3 (rearm_01/hw/token_window.py: full_run_rejections_v3, drain_timing_v3) answers three questions apart:
   old_tokens_rejected   the old cohort was conserved: raw rejections equal the derived population, none after drain,
@@ -39,7 +42,18 @@ def one(path, pattern):
     return found[0]
 
 
-def recompute(run):
+def binding(run, config):
+    """The acceptance version a block was bound to, checked against the run's own record."""
+    import hashlib
+    record = json.loads((run / 'campaign_run.json').read_text())
+    sha = hashlib.sha256(Path(config).read_bytes()).hexdigest()
+    version = json.loads(Path(config).read_text()).get('acceptance_version')
+    ok = sha == record.get('config_file_sha256') and version == tw.ACCEPTANCE_V3
+    return dict(config=str(config), config_sha256=sha, run_config_sha256=record.get('config_file_sha256'),
+                acceptance_version=version, ok=ok)
+
+
+def recompute(run, config=None):
     run = Path(run)
     verdict_path = one(run, '*/*/*/isolation_verdict.json')
     trial = verdict_path.parent
@@ -103,6 +117,10 @@ def recompute(run):
                                                      (v1.get('cleanup') or {}).get('elapsed_ns'))
     states = [out['old_tokens_rejected']['verdict'], out['traffic_correct']['verdict'],
               out['cleanup_deadline']['verdict']]
+    if config is not None:
+        out['acceptance_binding'] = binding(run, config)
+        if not out['acceptance_binding']['ok']:
+            states.append(tw.V3_FAIL)
     out['verdict'] = tw.V3_FAIL if tw.V3_FAIL in states else tw.V3_INDETERMINATE if tw.V3_INDETERMINATE in states \
         else tw.V3_PASS
     (run / 'isolation_v3.json').write_text(json.dumps(out, indent=1) + '\n')
@@ -110,8 +128,13 @@ def recompute(run):
 
 
 if __name__ == '__main__':
-    for path in sys.argv[1:]:
-        r = recompute(path)
+    args = sys.argv[1:]
+    config = None
+    if '--config' in args:
+        i = args.index('--config')
+        config, args = args[i + 1], args[:i] + args[i + 2:]
+    for path in args:
+        r = recompute(path, config)
         print(r['run'], r['mode'], '-> old_tokens', r['old_tokens_rejected']['verdict'], '| traffic',
               r['traffic_correct']['verdict'], '| cleanup', r['cleanup_deadline']['verdict'], '| overall', r['verdict'],
               '| unattributed', len(r['unattributed_v1_failures']))

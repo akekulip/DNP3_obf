@@ -30,10 +30,16 @@ REPO = HW.parents[6]
 A = 'defense4/timing/case4_architecture/'
 HARNESS_DIRS = (A + 'protocol/hw_vepa', A + 'integration/evidence/rearm_01/hw',
                 A + 'integration/core/response_only_rearm/hw', A + 'integration/core/response_only/hw')
-HARNESS_FILES = (A + 'integration/evidence/rearm_01/hw/run_block.sh', A + 'integration/core/response_only_rearm/cp.py')
+HARNESS_FILES = (A + 'integration/evidence/rearm_01/hw/run_block.sh', A + 'integration/core/response_only_rearm/cp.py',
+                 # row builders and the switch-side scripts that install and restore (review of round 2)
+                 A + 'integration/core/response_only/cp.py', A + 'integration/core/response_only/port_map.py',
+                 A + 'protocol/response_path_cp.py')
+HARNESS_GLOBS = ('*.py', '*.sh')                 # in every HARNESS_DIRS directory
+BASELINE_DIRS = (A + 'integration/evidence/rearm_01/hw/restore_baseline',)
 ANALYSIS = (A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/m5_summary.py',
             A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/isolation_v3.py',
-            A + 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py')
+            A + 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/ack_diag.py')
 BUILD_FILES = ('response_only.p4', 'response_only.inputs.json', 'generate.py', 'resource_review.json')
 COMPILE_FILES = ('manifest.json', 'out/bfrt.json', 'out/response_only.p4pp', 'out/p0/tofino.bin', 'out/p1/tofino.bin')
 
@@ -55,7 +61,10 @@ def collect(build, configs):
     files = [rel(build / f) for f in BUILD_FILES if (build / f).is_file()]
     files += [rel(build / c / f) for c in ('compile_local', 'compile_switch_9132') for f in COMPILE_FILES]
     for d in HARNESS_DIRS:
-        files += [rel(p) for p in sorted((REPO / d).glob('*.py'))]
+        for g in HARNESS_GLOBS:
+            files += [rel(p) for p in sorted((REPO / d).glob(g))]
+    for d in BASELINE_DIRS:
+        files += [rel(p) for p in sorted((REPO / d).rglob('*')) if p.is_file()]
     files += list(HARNESS_FILES) + list(ANALYSIS) + [rel(c) for c in configs]
     return sorted(set(files))
 

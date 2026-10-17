@@ -55,3 +55,17 @@ def test_a_missing_traffic_component_blocks(tmp_path):
     v.pop('bank_isolation')
     verdict.write_text(json.dumps(v))
     assert iso.recompute(run)['traffic_correct']['verdict'] == 'FAIL'
+
+
+def test_binding_requires_the_runs_own_config_and_this_acceptance_version(tmp_path):
+    run = copy_run(tmp_path, 'ctl_m5_c3diag_control_950_01')
+    record = json.loads((run / 'campaign_run.json').read_text())
+    config = tmp_path / 'config.json'
+    config.write_text(json.dumps({'acceptance_version': iso.tw.ACCEPTANCE_V3}))
+    import hashlib
+    record['config_file_sha256'] = hashlib.sha256(config.read_bytes()).hexdigest()
+    (run / 'campaign_run.json').write_text(json.dumps(record))
+    assert iso.recompute(run, config)['acceptance_binding']['ok'] is True
+    config.write_text(json.dumps({'acceptance_version': 'isolation-v2-20261016'}))
+    r = iso.recompute(run, config)
+    assert r['acceptance_binding']['ok'] is False and r['verdict'] == 'FAIL'
