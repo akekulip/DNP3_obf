@@ -1,0 +1,45 @@
+{
+ "acceptance": "isolation-v2-20261016",
+ "run": "ctl_m5_stale_iso20_950_01",
+ "v1_verdict_file": "separate_ack/combined/ctl_m5_stale_iso20_950_01_separate_ack_combined_t0/isolation_verdict.json",
+ "v1_ok": false,
+ "v1_failures": [
+  "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER",
+  "switch: T on, mirror_fix build: OUT_TOKEN_STALE delta 13 exceeds the build bound 12"
+ ],
+ "rejections": {
+  "ok": true,
+  "acceptance": "isolation-v2-20261016",
+  "control": false,
+  "expected_old_tokens": 7,
+  "raw_timer_rejections": 7,
+  "raw_operate_rejections": 4,
+  "pre_permit_stale_blockers": 0,
+  "post_permit_stale_blockers": 2,
+  "fresh_tokens_after_permit": {
+   "READ": 16,
+   "OPERATE": 8
+  },
+  "old_tokens_not_rejected_raw": 1,
+  "post_permit_allowance": 25,
+  "strict_stale_total": 13
+ },
+ "drain": {
+  "acceptance": "isolation-v2-20261016",
+  "verdict": "unobserved",
+  "detection_elapsed_ns": 16241822095
+ },
+ "build_stale_bound_v2": {
+  "ok": true,
+  "stale_blockers": 2,
+  "token_stale_bound": 12,
+  "basis": "checks.py bound, applied to STALE_BLOCKER only"
+ },
+ "mode": "isolation",
+ "cleanup_v2": {
+  "ok": true,
+  "basis": "v1 detection bound (no poller)"
+ },
+ "other_v1_failures": [],
+ "ok": true
+}

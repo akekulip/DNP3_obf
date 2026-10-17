@@ -1,0 +1,44 @@
+{
+ "acceptance": "isolation-v2-20261016",
+ "run": "ctl_m5_c3diag_control_950_01",
+ "v1_verdict_file": "separate_ack/combined/ctl_m5_c3diag_control_950_01_separate_ack_combined_t0/isolation_verdict.json",
+ "v1_ok": false,
+ "v1_failures": [
+  "missing full-run rejection evidence: new traffic caused rejection after old batches drained: STALE_BLOCKER"
+ ],
+ "rejections": {
+  "ok": true,
+  "acceptance": "isolation-v2-20261016",
+  "control": true,
+  "expected_old_tokens": null,
+  "raw_timer_rejections": 0,
+  "raw_operate_rejections": 0,
+  "pre_permit_stale_blockers": 2,
+  "post_permit_stale_blockers": 2,
+  "fresh_tokens_after_permit": {
+   "READ": 16,
+   "OPERATE": 8
+  },
+  "old_tokens_not_rejected_raw": 12,
+  "post_permit_allowance": 36,
+  "strict_stale_total": 4
+ },
+ "drain": {
+  "acceptance": "isolation-v2-20261016",
+  "verdict": "not_applicable",
+  "reason": "control: no delayed cohort, so no cleanup bound"
+ },
+ "build_stale_bound_v2": {
+  "ok": true,
+  "stale_blockers": 4,
+  "token_stale_bound": 12,
+  "basis": "checks.py bound, applied to STALE_BLOCKER only"
+ },
+ "mode": "control",
+ "cleanup_v2": {
+  "ok": true,
+  "basis": "control: not applicable"
+ },
+ "other_v1_failures": [],
+ "ok": true
+}

@@ -110,3 +110,52 @@ part of that rests on absence only. `model_isolation_cleanup_m5_10_01` paces eac
 which lets every blocker stop silently before the next lane-generation advance. It never creates the precondition for
 outcome 6. See `ctl_timing_01/evidence/model_isolation_cleanup_m5_10_01/README.md`. The attribution above uses only
 silicon observations and the m5_10 source.
+
+## Review corrections and acceptance version 2 (2026-10-16, after the 2990864ec review)
+
+### Wording
+
+- **E2 (fresh-connection cleanup) is supported by the matched control, not proven.** The poller does not identify
+  the role or generation of a retired blocker, so no single retirement is attributed to an exchange. The source
+  argument above establishes that a blocker alive at a lane-generation advance is retired on its next pass. It
+  does not establish when that pass occurs: the lap time is unobserved.
+- **E1 is excluded only to the same extent.** A c1 blocker would have had to survive c2's generation advances
+  without being retired. The source says that cannot happen, and the poller recorded no outcome-6 event in the
+  c2 window.
+
+### Acceptance version 2 (`token_window.full_run_rejections_v2`, `drain_timing_v2`)
+
+These versions are derived from the seeding and retirement paths in the source.
+- **Seeding.** `token_verdict` seeds at most one blocker per token, and only when the token's generation is the live
+  one. Older tokens are raw rejections (23/24) and seed nothing.
+- **Retirement.** `held_verdict` and `hb_verdict` retire each blocker exactly once, by stop, timeout, off, or
+  stale (6).
+
+**v2 keeps from v1:**
+- the old-cohort conservation;
+- no raw rejection after drain;
+- the aggregate identity.
+
+**v2 changes:**
+- **Stale-blocker retirements.** Before the permit they are bounded by the old tokens not rejected raw. After the
+  permit they are bounded by the fresh tokens plus those old tokens. Both bounds are upper limits; neither one
+  classifies an individual retirement as fresh.
+- **The `checks.py` build bound.** It is `max_stale + 2k` per SBO (recorded as 12) and is meant for the blockers an
+  SBO strands. v1 applied it to all of OUT_TOKEN_STALE, raw cohort included. v2 applies it to STALE_BLOCKER only,
+  with its value unchanged.
+- **Drain.** The actual drain is bracketed on the switch clock from the poller: from the first READ trigger to the
+  last raw READ rejection. It is judged on the bracket's lower edge against the emission bound. The harness
+  detection time (Vision clock) is reported beside it, not compared across clocks. Without a poller, v1's detection
+  bound stays the cleanup check.
+
+**Recomputation** (`seg61_02/analysis/isolation_v2.py`; each `isolation_v2.json` is new, every v1
+`isolation_verdict.json` is byte-unchanged):
+
+| block | v1 | v2 | post-permit stale blockers / allowance | drain (switch clock) |
+|---|---|---|---|---|
+| ctl_m5_stale_iso20_950_01 (original) | FAIL | PASS | 2 / 25 | unobserved (no poller); v1 detection 16.24 s ≤ 18.00 s |
+| ctl_m5_c3diag_iso20_950_01 (D1) | FAIL | PASS | 2 / 25 | 14.95–15.11 s against the 15.001 s bound: consistent; detection 18.60 s |
+| ctl_m5_c3diag_control_950_01 (D2) | FAIL | PASS (control) | 2 / 36; 2 before the permit (bound 12) | not applicable |
+
+The original FAIL stands as recorded under v1. The v2 PASS is a separate result. These are m5_10 diagnostics and
+history, not qualification of any build.

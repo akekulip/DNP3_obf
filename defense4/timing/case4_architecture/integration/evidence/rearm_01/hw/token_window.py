@@ -373,6 +373,125 @@ def full_run_rejections(before, after, quiet_end, population=None):
                 old_epoch_cleanup=delta['index_14'], old_rejections_total=aggregate+delta['index_14'])
 
 
+# ---- acceptance version 2 (2026-10-16, completion plan gate 3; full_run_rejections and cleanup_proof unchanged) ----
+ACCEPTANCE_V2 = 'isolation-v2-20261016'
+
+
+def full_run_rejections_v2(before, after, quiet_end, population=None, control=False):
+    """Version 2 of full_run_rejections. The old-cohort checks are unchanged:
+    - a clean baseline;
+    - raw READ rejections (24) equal the delayed old READ tokens;
+    - raw OPERATE rejections (23) equal the completed old OPERATE cohort;
+    - neither raw cell grows after the old batches drained;
+    - OUT_TOKEN_STALE equals the sum of 6, 23 and 24.
+
+    What changes is stale-blocker retirement (outcome 6) after the permit. v1 required it to equal the quiet-end count,
+    which rejects normal traffic: the matched control ctl_m5_c3diag_control_950_01 has no delayed cohort and fails it.
+
+    Source bound (m5_10 T; the seeding and retirement paths are unchanged through m9):
+    - token_verdict seeds at most one blocker per token, and only when the token's generation matches the live one;
+      an older token is a raw rejection (23/24) and seeds nothing;
+    - held_verdict/hb_verdict end each blocker exactly once: stop, timeout, off, or stale (6).
+
+    Hence:
+    - retirements before the permit <= old tokens not rejected raw;
+    - retirements after the permit <= tokens emitted after the permit (pktgen pkt_counter, both apps) + old tokens
+      not rejected raw. An old blocker could in principle outlive the permit; ruling that out would need its lap
+      timing, which counters do not give.
+    The blocker's role and generation are not observed, so the result does not say which post-permit retirements
+    were old and which fresh. The matched control attributes them; this rule only bounds them. control=True (the matched normal-traffic control, no delayed cohort) skips only the two raw-count
+    equalities, which describe the delayed cohort; every other check applies.
+    """
+    pop = population or LEGACY_POPULATION
+    read_stale, op_stale = pop['READ']['expected_raw_stale'], pop['OPERATE']['expected_raw_stale']
+    end = raw_counts(quiet_end, 'after')
+    for role in ('READ', 'OPERATE'):
+        for name in ('trigger_counter', 'batch_counter', 'pkt_counter'):
+            value = before['pktgen'][role].get(name)
+            if type(value) is not int or value != 0:
+                raise ValueError('dirty old-batch generator baseline: ' + role + '.' + name)
+    for name in ('STALE_BLOCKER', 'RAW_OPERATE_TIMER_STALE', 'RAW_READ_TIMER_STALE', 'OUT_TOKEN_STALE'):
+        value = before['outcomes'].get(name)
+        if type(value) is not int or value != 0:
+            raise ValueError('dirty raw rejection baseline: ' + name)
+    names = {'6': 'STALE_BLOCKER', '23': 'RAW_OPERATE_TIMER_STALE', '24': 'RAW_READ_TIMER_STALE'}
+    delta = {}
+    for index, name in names.items():
+        values = [snapshot['outcomes'].get(name) for snapshot in (before, after)]
+        if any(type(value) is not int or value < 0 for value in values) or values[1] < values[0]:
+            raise ValueError('missing or nonmonotonic rejection outcome ' + name)
+        if type(end.get(index)) is not int or end[index] < values[0] or end[index] > values[1]:
+            raise ValueError('quiet-end rejection count outside the run for ' + name)
+        delta[name] = values[1] - values[0]
+    for index in ('23', '24'):
+        if after['outcomes'][names[index]] != end[index]:
+            raise ValueError('raw timer rejection after old batches drained: ' + names[index])
+    op_packets = quiet_end['operate_app_after'].get('pkt_counter')
+    if type(op_packets) is not int:
+        raise ValueError('missing OPERATE generator counter at the quiet end')
+    if not control:
+        if op_packets != op_stale or delta['RAW_OPERATE_TIMER_STALE'] != op_packets:
+            raise ValueError('raw OPERATE rejects must equal the completed old OPERATE cohort (%d)' % op_stale)
+        if delta['RAW_READ_TIMER_STALE'] != read_stale:
+            raise ValueError('raw READ timer rejection count must equal exactly the %d delayed c1 tokens' % read_stale)
+    # before the permit the same bound: each old token either was rejected raw or seeded at most one blocker
+    seeded_max = (quiet_end['read_app_after'].get('pkt_counter', -1) - delta['RAW_READ_TIMER_STALE']
+                  + op_packets - delta['RAW_OPERATE_TIMER_STALE'])
+    if end['6'] - before['outcomes']['STALE_BLOCKER'] > seeded_max:
+        raise ValueError('stale-blocker retirements before the permit exceed the old tokens not rejected raw')
+    fresh = {}
+    for role, key in (('READ', 'read_app_after'), ('OPERATE', 'operate_app_after')):
+        at_end, at_quiet = after['pktgen'][role].get('pkt_counter'), quiet_end[key].get('pkt_counter')
+        if type(at_end) is not int or type(at_quiet) is not int or at_end < at_quiet:
+            raise ValueError('missing or nonmonotonic generator counter for ' + role)
+        fresh[role] = at_end - at_quiet
+    post_permit = after['outcomes']['STALE_BLOCKER'] - end['6']
+    allowance = fresh['READ'] + fresh['OPERATE'] + seeded_max
+    if post_permit > allowance:
+        raise ValueError('stale-blocker retirements after the permit (%d) exceed the tokens that could have seeded '
+                         'them (%d)' % (post_permit, allowance))
+    aggregate = sum(delta.values())
+    observed = after['outcomes']['OUT_TOKEN_STALE'] - before['outcomes']['OUT_TOKEN_STALE']
+    if observed != aggregate:
+        raise ValueError('ordinary stale aggregate differs from raw timer and blocker sum')
+    return dict(acceptance=ACCEPTANCE_V2, control=control, expected_old_tokens=None if control else read_stale,
+                raw_timer_rejections=delta['RAW_READ_TIMER_STALE'],
+                raw_operate_rejections=delta['RAW_OPERATE_TIMER_STALE'], pre_permit_stale_blockers=end['6'],
+                post_permit_stale_blockers=post_permit, fresh_tokens_after_permit=fresh,
+                old_tokens_not_rejected_raw=seeded_max,
+                post_permit_allowance=allowance, strict_stale_total=aggregate)
+
+
+def drain_timing_v2(poll_samples, emission_ns, trigger_latency_ns, detection_elapsed_ns=None):
+    """The actual drain, separated from when the harness observed it.
+
+    poll_samples are the switch poller's samples (rearm_01/hw/diag_poll.py), all on the switch's monotonic clock.
+    - Start: the first READ generator trigger, bracketed by the sample before it and the sample that saw it.
+    - Drain: the last raw READ timer rejection (cell 24), likewise bracketed.
+
+    The drain duration therefore lies in [lo, hi]; hi - lo is the sampling resolution. 'consistent' means lo does
+    not exceed the emission bound (old-cohort span + trigger latency), i.e. the drain is not slower than derived to
+    within that resolution. The harness detection time (Vision clock, c1 first READ anchor) is reported beside it,
+    not compared across clocks. Without poller samples the result is 'unobserved', and v1's detection bound stays
+    the only cleanup check.
+    """
+    samples = [x for x in poll_samples or [] if isinstance(x.get('outcomes'), list)
+               and isinstance((x.get('pktgen') or {}).get('READ', {}).get('trigger_counter'), int)]
+    if len(samples) < 2:
+        return dict(acceptance=ACCEPTANCE_V2, verdict='unobserved', detection_elapsed_ns=detection_elapsed_ns)
+    start = next((i for i, x in enumerate(samples) if x['pktgen']['READ']['trigger_counter'] > 0), None)
+    last = max((i for i in range(1, len(samples)) if samples[i]['outcomes'][24] > samples[i - 1]['outcomes'][24]),
+               default=None)
+    if start in (None, 0) or last is None or last < start:
+        return dict(acceptance=ACCEPTANCE_V2, verdict='unobserved', detection_elapsed_ns=detection_elapsed_ns)
+    lo = samples[last - 1]['t_end_ns'] - samples[start]['t_start_ns']
+    hi = samples[last]['t_end_ns'] - samples[start - 1]['t_end_ns']
+    bound = emission_ns + trigger_latency_ns
+    return dict(acceptance=ACCEPTANCE_V2, verdict='consistent' if lo <= bound else 'slower_than_derived',
+                drain_ns_interval=[lo, hi], resolution_ns=hi - lo, emission_bound_ns=bound,
+                detection_elapsed_ns=detection_elapsed_ns, clock='switch monotonic (poller); detection: Vision')
+
+
 def require_marker(marker, pause_ms=PRE_READ_GRACE_MS):
     expected = dict(opens=1, pre_read_grace_ms=pause_ms, first_read_issued_ns=0)
     if not isinstance(marker, dict) or marker.get('tcp_open') is not True or any(
