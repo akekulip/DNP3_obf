@@ -85,6 +85,16 @@ def main():
             check = subprocess.run([sys.executable, str(HERE / 'reset_application_check.py'), str(out)],
                                    capture_output=True, text=True)
             (out / 'reset_application.json').write_text(check.stdout)
+        if args.driver == 'contention':
+            # classifies each committed-path point by its precondition (response at T before t0 + readiness); it
+            # changes no verdict (committed_precondition_check.py)
+            check = subprocess.run([sys.executable, str(HERE / 'committed_precondition_check.py'), str(out)],
+                                   capture_output=True, text=True)
+            # 0 = all measured, 2 = classified, 3 = checker error (its own JSON record); anything else (an
+            # interpreter failure) is recorded here rather than left empty
+            (out / 'committed_precondition.json').write_text(
+                check.stdout if check.returncode in (0, 2, 3) and check.stdout.strip() else
+                json.dumps(dict(error=True, returncode=check.returncode, stderr=check.stderr[-4000:]), indent=1) + '\n')
     return result.returncode
 
 

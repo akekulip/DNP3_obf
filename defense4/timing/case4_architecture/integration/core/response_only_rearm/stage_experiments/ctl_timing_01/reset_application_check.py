@@ -39,7 +39,8 @@ def ingress_records(lines):
             continue
         wall, pipe, text = m.group(1), int(m.group(2)), m.group(3).strip()
         if text.startswith('==========') and 'Ingress Pkt from port' in text:
-            rec = dict(wall=wall, pipe=pipe, frame='', actions=[])
+            port = re.search(r'Ingress Pkt from port (\d+)', text)
+            rec = dict(wall=wall, pipe=pipe, frame='', actions=[], t_units=None, port=int(port.group(1)))
             records.append(rec)
             current[pipe] = rec
             dumping[pipe] = 'header'
@@ -55,6 +56,11 @@ def ingress_records(lines):
             current[pipe]['frame'] += text.replace(' ', '')
             continue
         dumping[pipe] = None if dumping.get(pipe) == 'ingress' else dumping.get(pipe)
+        if 'global_tstamp[39:8]' in text and 'to value' in text and pipe in current \
+                and current[pipe].get('t_units') is None:
+            # T's clock (md.now = global_tstamp[39:8] & ~1, 256 ns units), taken by this ingress pass's parser
+            current[pipe]['t_units'] = int(re.search(r'to value\s+(0x[0-9a-f]+)', text).group(1), 16)
+            continue
         a = ACTION.search(text)
         if a:
             owner_pipe = 1 if a.group(1).startswith('t_') else 0

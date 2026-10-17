@@ -83,3 +83,17 @@ def test_the_recorded_attempt_02_run_cannot_be_verified_under_the_revised_contra
     the revised contract can only report 'unattributed', even though the one release found preceded the reset."""
     sel = rac.check(EV / 'model_contention_m10_03_02')['restart_SELECT']
     assert sel['verdict'] == 'unattributed' and len(sel['released_before']) == 1 and sel['released_after'] == []
+
+
+TSTAMP_LOG = """\
+:10-17 12:45:20.857867:    :0xd7d:0xd7c:<0,1,0>:========== Ingress Pkt from port 182 (103 bytes)  ==========
+:10-17 12:45:20.857870:        :0xd7d:-:<0,1,->:Ingress Parser state '$entry_point.start': extracted 0x0268d564, updating PHV word   0 to value 0x0268d564 I [ig_intr_md_from_prsr.global_tstamp[39:8]]
+:10-17 12:45:20.857880:        :0xd7d:0xd7c:<0,1,0>:	ig_intr_md_from_prsr.global_tstamp[39:8] = 0x9999999
+:10-17 12:45:20.858100:    :0xd7d:0xd7c:<0,1,0>:Execute Action: t_Ingress.admit_response
+"""
+
+
+def test_each_ingress_record_carries_t_clock_from_its_own_parser():
+    """committed_precondition_check reads T's clock per pass: the parser's extracted value, not a later dump line."""
+    records = rac.ingress_records(TSTAMP_LOG.splitlines(True))
+    assert records[0]['t_units'] == 0x0268d564 and records[0]['actions'] == ['t_Ingress.admit_response']

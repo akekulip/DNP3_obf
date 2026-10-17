@@ -1,0 +1,12 @@
+# attempt 05, OPERATE sweep points: from the response's switch ingress (pipe 0, port 9) to its first T pass.
+# passes-with-response = model-log ingress records whose frame carries the response's sequence and first payload
+# octets; max-idle = largest wall-clock gap between consecutive ingress records (any pipe) in that interval.
+sweep_OPERATE_000ms    passes-with-response  4 (pipe0  4)  records-between   9  max-idle 0.016s  wall 0.114s
+sweep_OPERATE_008ms    passes-with-response  5 (pipe0  5)  records-between  11  max-idle 0.016s  wall 0.145s
+sweep_OPERATE_015ms    passes-with-response  3 (pipe0  3)  records-between   7  max-idle 0.015s  wall 0.089s
+sweep_OPERATE_022ms    passes-with-response  3 (pipe0  3)  records-between   7  max-idle 0.015s  wall 0.089s
+sweep_OPERATE_030ms    passes-with-response  3 (pipe0  3)  records-between   6  max-idle 0.016s  wall 0.081s
+sweep_OPERATE_045ms    passes-with-response  3 (pipe0  3)  records-between   6  max-idle 0.016s  wall 0.081s
+sweep_OPERATE_060ms    passes-with-response  3 (pipe0  3)  records-between   6  max-idle 0.016s  wall 0.084s
+sweep_OPERATE_090ms    passes-with-response  3 (pipe0  3)  records-between   5  max-idle 0.148s  wall 0.226s
+sweep_OPERATE_120ms    passes-with-response  3 (pipe0  3)  records-between   6  max-idle 0.016s  wall 0.080s
