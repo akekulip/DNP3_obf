@@ -468,6 +468,47 @@ def transform_e_m8(e):
     return once(e, ahead, rows + ahead)
 
 
+def transform_n_m9(n):
+    """m9 = m8 + this one N correction (gate 1 of the completion plan; evidence/model_contention_m8_02_02/
+    FAILURE_20261016.md, tests/test_reset_then_syn.py). A master RST closes in two passes: stage 0 validates it and
+    runs first_close without claiming N's work cell; stage 1 then needs the cell idle (owner_command close_owner,
+    work_phase 4). Any event that claimed the cell in between (a same-tuple SYN one lap later, reproduced; in the
+    model a 0.7 s stall queued the dup_READ RST directly before the dup_SELECT SYN) left the stage-1 pass without
+    close_owner, so reset_boundary's default terminal_abort dropped the RST: the outstation never saw it, N kept
+    the old connection, and every later same-tuple SYN was denied. Now a stage-1 close that finds the cell busy
+    with its epoch and owner unchanged waits: it recirculates at stage 1, counting laps in the event header's
+    reserved field (zeroed by first_close), and closes once the cell is idle; after n_RETRY_BUDGET laps it aborts
+    as before. A changed epoch or owner still aborts at once. The parser followed an envelope's event only when
+    reserved was 0, and the apply block ran the guard on a later-stage pass only when reserved was 0; both now
+    accept 0-63 (only reset_wait writes a non-zero value, at most 32, and only N's own recirculation reaches
+    RETURN_PORT), so the waiting RST keeps its origin header and reaches reset_boundary. E and T are m8's,
+    byte-identical."""
+    n = once(n, "((bit<8>)m.stage==8w0||hdr.event.reserved==16w0)){",
+             "((bit<8>)m.stage==8w0||hdr.event.reserved[15:6]==10w0)){")
+    # the wait count ends at stage 1: reset_continue zeroes it, so stage 2 and the handoff to T carry reserved 0
+    n = once(n, 'action reset_continue(){hdr.expected_cell.expected_cell=m.desired;hdr.event.event=hdr.event.event+'
+                '16w0x100;m.emit_loop=(bit<1>)(8w1);',
+             'action reset_continue(){hdr.expected_cell.expected_cell=m.desired;hdr.event.event=hdr.event.event+'
+             '16w0x100;hdr.event.reserved=16w0;m.emit_loop=(bit<1>)(8w1);')
+    n = once(n, 'state envelope_reserved{transition select(hdr.event.reserved){16w0:envelope_event;default:accept;}}',
+             'state envelope_reserved{transition select(hdr.event.reserved){16w0&&&16w0xffc0:envelope_event;'
+             'default:accept;}}')
+    n = once(n, 'action first_close(){hdr.origin.normalized_epoch=m.desired;hdr.event.event=16w0x0104;'
+                'hdr.work_generation.generation=hdr.envelope.epoch;}',
+             'action first_close(){hdr.origin.normalized_epoch=m.desired;hdr.event.event=16w0x0104;'
+             'hdr.work_generation.generation=hdr.envelope.epoch;hdr.event.reserved=16w0;}')
+    return once(n, 'table reset_boundary{key={m.stage:exact;m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;}'
+                   'actions={reset_continue;emit_reset;terminal_abort;}size=2;const entries={(2w1,1w1,32w0,32w0):'
+                   'reset_continue();(2w2,1w0,32w0,32w0):emit_reset();}const default_action=terminal_abort();}',
+                'action reset_wait(){hdr.event.reserved=hdr.event.reserved+16w1;tm.ucast_egress_port=n_RETURN_PORT;'
+                'tm.bypass_egress=1w1;}\n'
+                'table reset_boundary{key={m.stage:exact;m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;'
+                'hdr.event.reserved:ternary;}actions={reset_continue;emit_reset;reset_wait;terminal_abort;}size=4;'
+                'const entries={(2w1,1w1,32w0,32w0,_):reset_continue();(2w2,1w0,32w0,32w0,_):emit_reset();'
+                '(2w1,1w0,32w0,32w0,16w32):terminal_abort();(2w1,1w0,32w0,32w0,_):reset_wait();}'
+                'const default_action=terminal_abort();}')
+
+
 T_TIME_M7 = dict(unit_ns=256, grid_ns=512, source='global_tstamp[39:8] & ~1')
 
 
@@ -492,23 +533,27 @@ def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
     new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
-             'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6}[milestone](old_n)
+             'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6, 'm9': transform_n_m6}[milestone](old_n)
     new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
-             'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4}[milestone](old_t)
+             'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4, 'm9': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
-    if milestone in ('m5', 'm6', 'm7', 'm8'):  # N only here; m7/m8 add their named T/E changes below
+    if milestone in ('m5', 'm6', 'm7', 'm8', 'm9'):  # N only here; m7/m8/m9 add their named changes below
         m4 = full_source('m4')
         assert combined.segment(text, 'T') == combined.segment(m4, 'T')
         assert combined.segment(text, 'E') == combined.segment(m4, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
-    if milestone in ('m7', 'm8'):             # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
+    if milestone in ('m7', 'm8', 'm9'):       # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
         old_t7 = combined.segment(text, 'T')
         text = text.replace(old_t7, transform_t_m7(old_t7), 1)
         if milestone == 'm8':
             old_e = combined.segment(text, 'E')
             text = text.replace(old_e, transform_e_m8(old_e), 1)
         assert combined.segment(text, 'N') == combined.segment(full_source('m6'), 'N')
+    if milestone == 'm9':                     # m8 + N reset wait (transform_n_m9); E and T byte-identical to m8
+        m8 = full_source('m8')
+        text = m8.replace(combined.segment(m8, 'N'), transform_n_m9(combined.segment(m8, 'N')), 1)
+        assert all(combined.segment(text, r) == combined.segment(m8, r) for r in ('E', 'T'))
     return text
 
 
@@ -523,8 +568,8 @@ def write(directory, milestone='m1'):
                     source_sha256=digest(text.encode()),
                     candidate61_source={'path': str(SOURCE), 'sha256': SOURCE_SHA256},
                     generator_sha256=digest(Path(__file__).read_bytes()),
-                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone == 'm8' else ['N', 'T'],
-                    t_time=T_TIME_M7 if milestone in ('m7', 'm8') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
+                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone in ('m8', 'm9') else ['N', 'T'],
+                    t_time=T_TIME_M7 if milestone in ('m7', 'm8', 'm9') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
                     segment_sha256={name: digest(combined.segment(text, name).encode()) for name in ('N', 'E', 'T')})
     (directory / 'response_only.inputs.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(json.dumps({'source_sha256': metadata['source_sha256'], 'segments': metadata['segment_sha256']}, indent=1))
@@ -532,5 +577,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8|m9]')
     write(sys.argv[1], *(sys.argv[2:]))

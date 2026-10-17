@@ -44,7 +44,7 @@ READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
     bounded = milestone not in ('m1', 'm2')
-    retrying = milestone in ('m5', 'm6', 'm7', 'm8')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
+    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: blocker retirement by connection in the quiet-isolation workload (C3)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())

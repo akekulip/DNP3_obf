@@ -59,8 +59,8 @@ def test_a_later_failure_blocks_although_an_earlier_attempt_passed(tmp_path):
 def test_an_unresolved_failure_note_blocks_even_if_a_later_attempt_passes(tmp_path):
     build, sha = make_build(tmp_path)
     all_pass(tmp_path, build, sha)
-    attempt(tmp_path, build, 'abort', 1, sha, 1, 2, exit_code=1, note='cause not determined\n')
-    attempt(tmp_path, build, 'abort', 2, sha, 2, 2)
+    attempt(tmp_path, build, 'abort', 2, sha, 1, 2, exit_code=1, note='cause not determined\n')
+    attempt(tmp_path, build, 'abort', 3, sha, 2, 2)
     s = ms.summarize(build)
     assert s['qualification'] == 'blocked'
     assert any('unresolved FAILURE_20261016.md' in r for r in s['blocked_reasons'])
@@ -69,8 +69,8 @@ def test_an_unresolved_failure_note_blocks_even_if_a_later_attempt_passes(tmp_pa
 def test_a_resolved_failure_note_does_not_block(tmp_path):
     build, sha = make_build(tmp_path)
     all_pass(tmp_path, build, sha)
-    attempt(tmp_path, build, 'abort', 1, sha, 1, 2, exit_code=1, note='RESOLVED: see the fix\n')
-    attempt(tmp_path, build, 'abort', 2, sha, 2, 2)
+    attempt(tmp_path, build, 'abort', 2, sha, 1, 2, exit_code=1, note='RESOLVED: see the fix\n')
+    attempt(tmp_path, build, 'abort', 3, sha, 2, 2)
     assert ms.summarize(build)['qualification'] == 'model_gate_passed'
 
 

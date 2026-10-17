@@ -50,11 +50,17 @@ READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
     bounded = milestone not in ('m1', 'm2')
-    retrying = milestone in ('m5', 'm6', 'm7', 'm8')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
+    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     points = report.record['meta'].setdefault('points', [])
+    # CONTENTION_SECTIONS (comma list) runs only the named sections; model_abort.py sets it to 'abort'
+    sections = [x for x in os.environ.get('CONTENTION_SECTIONS', '').split(',') if x]
+    report.record['meta']['sections'] = sections or 'all'
+
+    def section_on(name):
+        return not sections or name in sections
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -214,7 +220,7 @@ def main():
             # m6 (directive: suppress a duplicate while its original is held; after release a copy is loss
             # recovery): a duplicate copy may follow the timed original, never precede it, and must be identical.
             # The model's laps take milliseconds, so a copy sent during the wait can reach T after the release.
-            copy_after_release = (milestone in ('m6', 'm7', 'm8') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
+            copy_after_release = (milestone in ('m6', 'm7', 'm8', 'm9') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
                                   and same_frame(to_master[0][1], want_ack, ack)
                                   and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
             # a committed release found only by the extended capture is late: it must not pass (review W3)
@@ -298,7 +304,7 @@ def main():
             return got, native, ack, before, busy0, extra
 
         # ---- spacing sweep -------------------------------------------------------------------------------------
-        for kind in ('READ', 'SELECT', 'OPERATE'):
+        for kind in ('READ', 'SELECT', 'OPERATE') if section_on('sweep') else ():
             for d in DELAYS_MS:
                 tag = 'sweep_%s_%03dms' % (kind, d)
                 got, native, ack, before, busy0, extra = point(tag, kind, d)
@@ -306,7 +312,7 @@ def main():
                 rst(tag)
 
         # ---- duplicate response while the first waits ------------------------------------------------------------
-        for kind in ('READ', 'SELECT'):
+        for kind in ('READ', 'SELECT') if section_on('dup') else ():
             tag = 'dup_%s' % kind
             got, native, ack, before, busy0, extra = point(
                 tag, kind, 0, during=lambda rsp: m.send(RELAY.dev_port, rsp))
@@ -323,7 +329,7 @@ def main():
                 m.send(MASTER.dev_port if master else RELAY.dev_port,
                        vectors.packet(flags, seq, 0 if flags == 2 else 1, reverse=not master,
                                       mss=1460 if flags in (2, 18) else None, tuple4=other))
-        for kind in ('READ', 'SELECT'):
+        for kind in ('READ', 'SELECT') if section_on('second') else ():
             tag = 'second_connection_%s' % kind
             got, native, ack, before, busy0, extra = point(tag, kind, 0, during=other_connection)
             extra['second_connection_packets'] = 3
@@ -331,7 +337,7 @@ def main():
             rst(tag)
 
         # ---- master RST while the response waits: nothing may reach the master afterwards -------------------------
-        for kind in ('READ', 'SELECT'):
+        for kind in ('READ', 'SELECT') if section_on('reset_wait') else ():
             tag = 'reset_during_wait_%s' % kind
             reconnect(tag)
             fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else (3, rb.crob(200), bytes(2) + rb.crob(200))
@@ -375,7 +381,7 @@ def main():
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
                 # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
                 # nothing reaches the master and nothing is busy-dropped, exhausted or stale
-                flushed = (milestone in ('m6', 'm7', 'm8') and not payload_to_master and lane['RESP_RELEASE'] == 0
+                flushed = (milestone in ('m6', 'm7', 'm8', 'm9') and not payload_to_master and lane['RESP_RELEASE'] == 0
                            and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
                 refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
@@ -391,7 +397,7 @@ def main():
             # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
             # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
             # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
-            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8'):
+            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8', 'm9'):
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
             else:
@@ -403,14 +409,27 @@ def main():
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                 capture(0.6, 0.3)
 
-        # ---- the outstation aborts while T holds its response (directive ba50eac69 section 2; m8) ----------------
-        # m8 places the outstation's RST at the master's RCV.NXT (E reset at the frontier, E outcome 16): the master
-        # receives exactly one RST, at s+g if T flushed the held response, or at s+g+61 if T had already released it
-        # (then the response reached the master once). The branch is decided by counters, not inferred from frames:
-        # flushed = one E-16 and no T response release/fallback; released = no E-16 and one T release/fallback. The
-        # capture is extended until T resolves the response (release, fallback or flush) or WAIT_S passes, as judge()
-        # does, so a late fallback cannot be dropped by the next case. m6/m7 drop a held-ahead RST in E
-        # (characterization, recorded only). Review 2026-10-16 (evidence/m8_02/REVIEW_GAPS_20261016.md).
+        # ---- the outstation aborts its connection (directive ba50eac69 section 2; completion gate 2) -------------
+        # m8/m9 place an outstation RST that is exactly one held response ahead of E's frontier (49 READ, 37 control)
+        # at the master's RCV.NXT (E outcome 16). Each kind runs two deterministic branches, decided by construction
+        # and confirmed by counters:
+        #   held:     the response carries the ACK (no standalone ACK), so T holds it until t0 + pb (1 s model); T
+        #             holding it is confirmed (no response release or fallback yet), then the outstation RST is sent.
+        #             Required: exactly one RST to the master at s+g, valid checksums, ACK = c; no response to the
+        #             master, ever (capture extended until T resolves); E-16 +1; T released nothing and discarded
+        #             the held response. The discard is counted as OLD_EPOCH_DROP: N's close runs T's close_epoch, so
+        #             the held response fails T's epoch check and held_verdict's last row drops it (m9 T source;
+        #             model_abort_m9_01_01 showed it; a flush counter is accepted too).
+        #   OPERATE:  T anchors t0 when the command is admitted and holds the command for J (200 ms) >> D (1 ms), so
+        #             the OPERATE response is due on arrival and is never held: the 'held' construction must
+        #             observe the response released before the RST and then meet the released-branch requirements
+        #             (model_abort_m9_01_01 showed exactly this). OPERATE abort while held is therefore not a reachable
+        #             state of the supported profile, on the model or on silicon (J > D there too).
+        #   released: standalone ACK, then the response; once the response has reached the master the RST follows
+        #             at the new frontier. Required: one response, then one RST at s+g+61; E-16 unchanged.
+        # Then the same tuple must reconnect. Negatives for the new exception (held, RST 48 or 50 octets ahead, and
+        # 49/37 ahead with nothing held) are recorded with their outcome; the first two must not reset the master.
+        # m6/m7 drop a held-ahead RST in E (characterization only). Review 2026-10-16 (m8_02/REVIEW_GAPS).
         e_counter = m.table('p0.r_Egress.outcome')
 
         def e_count(code):
@@ -434,9 +453,12 @@ def main():
             return vectors.checksum(f[14:14 + ihl]) == 0 and vectors.checksum(pseudo + seg) == 0
 
         E_RESET_FRONT = 16
-        RESOLVED = ('RESP_RELEASE', 'RESP_FALLBACK', 'HELD_STALE_FLUSH', 'HELD_OFF_FLUSH')
-        for kind in ('READ', 'SELECT', 'OPERATE'):
-            tag = 'outstation_abort_while_held_%s' % kind
+        RELEASED = ('RESP_RELEASE', 'RESP_FALLBACK')
+        FLUSHED = ('HELD_STALE_FLUSH', 'HELD_OFF_FLUSH')
+
+        def abort_case(kind, branch, offset=None):
+            """offset: octets the outstation RST lies ahead of the frontier; None = exactly one held response."""
+            tag = 'abort_%s_%s%s' % (branch, kind, '' if offset is None else '_plus%d' % offset)
             settled(tag)
             reconnect(tag)
             fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else \
@@ -447,54 +469,85 @@ def main():
             app, ok = request(kind, fc, objects)
             report.add('%s_request_relayed' % tag, True, ok)
             c, s, g = st['c'], st['s'], st['growth']
-            abort = {}
-
-            def outstation_rst(rsp, c=c, s=s, abort=abort):
-                native_len = len(rsp) - 54
-                abort['rst'] = vectors.packet(20, s + native_len, c, reverse=True)
-                m.send(RELAY.dev_port, abort['rst'])
-            got, native, _ack, _rsp = respond(kind, app, body, 0, during=outstation_rst)
-            end = time.monotonic() + WAIT_S
-            while time.monotonic() < end and \
-                    sum(outcomes()[k] - t0[k] for k in RESOLVED) == 0:
-                got = got + capture(0.5, 0.5)
-            got = got + capture(QUIET_S, QUIET_S)
-            t1, e1 = outcomes(), e_count(E_RESET_FRONT)
+            native = st['seqs'].response(app, body, kind)
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-            to_master = [f for _t, p, f in got if p == MASTER.dev_port and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
+            sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
+            m.drain(ports)
+            got = []
+            if branch == 'released':
+                m.send(RELAY.dev_port, vectors.packet(16, s, c, reverse=True))
+                m.send(RELAY.dev_port, sent_rsp)
+                got += capture(WAIT_S, QUIET_S)
+                held_ok = None
+            else:
+                m.send(RELAY.dev_port, sent_rsp)
+                got += capture(0.3, 0.3)
+                mid = outcomes()
+                held_ok = sum(mid[k] - t0[k] for k in RELEASED) == 0     # T still holds the response
+            ahead = len(native) + (0 if offset is None else offset - (49 if kind == 'READ' else 37))
+            rst = vectors.packet(20, s + ahead, c, reverse=True)
+            m.send(RELAY.dev_port, rst)
+            end = time.monotonic() + WAIT_S
+            while time.monotonic() < end and sum(outcomes()[k] - t0[k] for k in RELEASED + FLUSHED) == 0:
+                got += capture(0.5, 0.5)
+            got += capture(QUIET_S, QUIET_S)
+            t1, e1 = outcomes(), e_count(E_RESET_FRONT)
+            to_master = [f for _t, p, f in got if p == MASTER.dev_port
+                         and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
             rst_frames = [f for f in to_master if f[47] & 0x04]
-            resets = [int.from_bytes(f[38:42], 'big') for f in rst_frames]
             responses = [f for f in to_master if f.endswith(image)]
             dt = {k: t1[k] - t0[k] for k in NAMES if t1[k] != t0[k]}
-            released = dt.get('RESP_RELEASE', 0) + dt.get('RESP_FALLBACK', 0)
-            flushed = dt.get('HELD_STALE_FLUSH', 0) + dt.get('HELD_OFF_FLUSH', 0)
-            row = dict(tag=tag, kind=kind, request_relayed=ok, resets_seq=resets, responses=len(responses),
-                       expected_flushed=s + g, expected_released=s + g + IMAGE_LEN, e_reset_front_delta=e1 - e0,
-                       t_deltas=dt, rst_checksums_ok=[tcp_ok(f) for f in rst_frames],
-                       rst_ack=[int.from_bytes(f[42:46], 'big') for f in rst_frames], expected_rst_ack=c)
-            branch = 'flushed' if (resets == [s + g] and not responses and e1 - e0 == 1 and released == 0
-                                   and flushed >= 1) else \
-                'released' if (resets == [s + g + IMAGE_LEN] and len(responses) == 1 and e1 - e0 == 0
-                               and released == 1) else None
-            row['branch'] = branch
+            row = dict(tag=tag, kind=kind, branch=branch, offset=offset, request_relayed=ok, held_before_rst=held_ok,
+                       resets_seq=[int.from_bytes(f[38:42], 'big') for f in rst_frames],
+                       rst_ack=[int.from_bytes(f[42:46], 'big') for f in rst_frames],
+                       rst_checksums_ok=[tcp_ok(f) for f in rst_frames], responses=len(responses),
+                       frames_to_master=len(to_master), e_reset_front_delta=e1 - e0, t_deltas=dt,
+                       expected_flushed=s + g, expected_released=s + g + IMAGE_LEN, expected_rst_ack=c)
             points.append(row)
-            if milestone == 'm8':
-                exact = ok and branch is not None and all(row['rst_checksums_ok']) and row['rst_ack'] == [c]
+            released = sum(dt.get(k, 0) for k in RELEASED)
+            flushed = sum(dt.get(k, 0) for k in FLUSHED)
+            good_rst = row['rst_ack'] == [c] and all(row['rst_checksums_ok'])
+            if offset is not None:
+                # negative controls: 48/50 must not reset the master; 49/37 with nothing held is recorded only
+                if offset in (48, 50):
+                    report.add('%s_no_master_reset' % tag, True, ok and rst_frames == [] and e1 - e0 == 0, **row)
+                else:
+                    report.record['meta'].setdefault('abort_negative_characterization', []).append(row)
+            elif milestone in ('m8', 'm9'):
+                if branch == 'held' and kind != 'OPERATE':
+                    exact = (ok and held_ok and row['resets_seq'] == [s + g] and good_rst and not responses
+                             and e1 - e0 == 1 and released == 0 and flushed + dt.get('OLD_EPOCH_DROP', 0) >= 1)
+                else:
+                    exact = (ok and row['resets_seq'] == [s + g + IMAGE_LEN] and good_rst and len(responses) == 1
+                             and e1 - e0 == 0 and released == 1
+                             and (branch == 'released' or held_ok is False))   # OPERATE 'held': released first
                 report.add('%s_master_reset_at_rcv_nxt' % tag, True, exact, **row)
             else:
                 report.record['meta'].setdefault('outstation_abort_characterization', []).append(row)
-            # the connection is gone at both ends on m8; elsewhere close N with the master's own RST (cleanup only)
+            # close N with the master's own RST if the connection survived (no-op when it was reset), then the same
+            # tuple must accept a fresh connection
             m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
             capture(0.6, 0.3)
+            st['s'] += len(native)
+            st['growth'] += IMAGE_LEN - len(native)
 
-        # m8: which held lengths were actually shown to fire (READ 49, control 37); recorded, not required per run
-        if milestone == 'm8':
-            report.record['meta']['m8_reset_rows_fired'] = sorted(
-                {('READ_49' if r['kind'] == 'READ' else 'CONTROL_37') for r in points
-                 if str(r.get('tag', '')).startswith('outstation_abort') and r.get('branch') == 'flushed'})
+        if section_on('abort'):
+            for kind in ('READ', 'SELECT', 'OPERATE'):
+                abort_case(kind, 'held')
+                abort_case(kind, 'released')
+            for kind in ('READ', 'SELECT'):
+                abort_case(kind, 'held', offset=48)
+                abort_case(kind, 'held', offset=50)
+            abort_case('READ', 'released', offset=49)            # 49 ahead with nothing held: recorded only
+            abort_case('SELECT', 'released', offset=37)
+            # the tuple still works afterwards: one ordinary READ through T's committed path
+            tag = 'abort_followed_by_READ'
+            got, native, ack, before, busy0, extra = point(tag, 'READ', 0)
+            judge(tag, 'READ', native, ack, got, before, busy0, extra, sent_rsp=extra.pop('sent_rsp'))
+            rst(tag)
 
         # ---- RST and same-tuple reconnect while the response waits ----------------------------------------------
-        for kind in ('READ', 'SELECT'):
+        for kind in ('READ', 'SELECT') if section_on('reconnect') else ():
             tag = 'reconnect_during_wait_%s' % kind
             reconnect(tag)
             fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else (3, rb.crob(200), bytes(2) + rb.crob(200))
@@ -531,7 +584,7 @@ def main():
             # the old response may have been admitted before the RST (slow model laps: released once, before the new
             # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
             late = [t for t, _f in old_to_master if t >= new['syn_t']]
-            if old_to_master and milestone not in ('m6', 'm7', 'm8'):
+            if old_to_master and milestone not in ('m6', 'm7', 'm8', 'm9'):
                 # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
@@ -552,7 +605,7 @@ def main():
             rst(tag)
 
         # ---- m6: a duplicate of a released response (loss beyond the switch) passes, with the same image ---------
-        if milestone in ('m6', 'm7', 'm8'):
+        if milestone in ('m6', 'm7', 'm8', 'm9') and section_on('post_release'):
             for kind in ('READ', 'SELECT'):
                 tag = 'post_release_duplicate_%s' % kind
                 got, native, ack, before, busy0, extra = point(tag, kind, 120)
@@ -582,30 +635,31 @@ def main():
                 rst(tag)
 
         # ---- a lost response, recovered by the outstation's retransmission ----------------------------------------
-        tag = 'loss_recovery_READ'
-        got, native, ack, before, busy0, extra = point(tag, 'READ', 0, send_response=False, retransmit_after_s=0.3)
-        extra.pop('sent_rsp')
-        s, g, c = st['s'], st['growth'], st['c']
-        image = encode61.read61(native)
-        to_master = [f for _t, p, f in got if p == MASTER.dev_port]
-        rsp = [f for f in to_master if same_frame(f, vectors.packet(24, s + g, c, reverse=True, payload=image),
-                                                  vectors.packet(24, s + g, c, reverse=True, payload=image))]
-        after = outcomes()
-        row = dict(tag=tag, kind='READ', responses_to_master=len(rsp), frames_to_master=len(to_master),
-                   lane={k: after[k] - before[k] for k in LANE},
-                   count_busy_delta=[b - a for a, b in zip(busy0, busy())])
-        points.append(row)
-        report.add('%s_exactly_one_response' % tag, 1, len(rsp), **row)
-        st['s'] += len(native)
-        st['growth'] += IMAGE_LEN - len(native)
-        rst(tag)
+        if section_on('loss'):
+            tag = 'loss_recovery_READ'
+            got, native, ack, before, busy0, extra = point(tag, 'READ', 0, send_response=False, retransmit_after_s=0.3)
+            extra.pop('sent_rsp')
+            s, g, c = st['s'], st['growth'], st['c']
+            image = encode61.read61(native)
+            to_master = [f for _t, p, f in got if p == MASTER.dev_port]
+            rsp = [f for f in to_master if same_frame(f, vectors.packet(24, s + g, c, reverse=True, payload=image),
+                                                      vectors.packet(24, s + g, c, reverse=True, payload=image))]
+            after = outcomes()
+            row = dict(tag=tag, kind='READ', responses_to_master=len(rsp), frames_to_master=len(to_master),
+                       lane={k: after[k] - before[k] for k in LANE},
+                       count_busy_delta=[b - a for a, b in zip(busy0, busy())])
+            points.append(row)
+            report.add('%s_exactly_one_response' % tag, 1, len(rsp), **row)
+            st['s'] += len(native)
+            st['growth'] += IMAGE_LEN - len(native)
+            rst(tag)
         report.record['meta']['final_outcomes'] = outcomes()
         report.record['meta']['final_count_busy'] = busy()
         report.record['meta']['n_generation_counter'] = scalar(m.register_read('p0.n_Ingress.counter', 0, pipe=0))
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
     except Exception:
         report.add('exception', 'none', traceback.format_exc(), ok=False)
-    ok = report.finish(Path(os.environ['OUT']) / 'contention_results.json')
+    ok = report.finish(Path(os.environ['OUT']) / ('abort_results.json' if sections == ['abort'] else 'contention_results.json'))
     return 0 if ok else 1
 
 
