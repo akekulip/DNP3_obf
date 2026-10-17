@@ -25,7 +25,8 @@ def configure(build_out):
 
 
 # N's diagnostic counters (ctl_timing m5, PLAN_m5.md S4): count_busy 0 busy drop, 1 busy pass, 2 retry lap,
-# 3 retry exhaustion, 4 stale retry; count_term 0 retried duplicate aborted. Read-only; a cell the loaded build
+# 3 retry exhaustion, 4 stale retry, 5 stage-1 RST restart (m10); count_term 0 retried duplicate
+# aborted. Read-only; a cell the loaded build
 # does not have (m4: count_busy has 4) reads back None.
 N_COUNTERS = (('count_busy', 8), ('count_term', 4))
 

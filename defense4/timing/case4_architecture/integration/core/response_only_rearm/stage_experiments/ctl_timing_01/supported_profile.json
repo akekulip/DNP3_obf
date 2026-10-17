@@ -1,0 +1,106 @@
+{
+ "profile_version": "supported-profile-v1-20261017",
+ "_note": "The one supported P4 profile of the ctl_timing_01 candidate (review af7bd434, section 6). Each value is stated once here and cross-checked against its source by tests/test_supported_profile.py. Arbitrary input sizes are not supported.",
+ "candidate": {
+  "build": "ctl_timing_01/evidence/m10_03",
+  "milestone": "m10",
+  "source_sha256": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc",
+  "segment_sha256": {
+   "N": "6ec6a24c9a1b794b27373a1946bdaed0ccf35306cb47f0fed31f87d110bf9962",
+   "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+   "T": "7efd3a4667213d0072dfcc3686c8f0f769be2026caf2cba0e910208f73754739"
+  },
+  "artifact_sha256": {
+   "compile_local": {
+    "bfrt.json": "1124d21138570d1d2af4c16bafe9bea3a20049bd79fa94497340626379f981f1",
+    "p0/context.json": "ce06e34ffb2850768825122ac6c809108f6040fb011af8eaf34ff87355a2e67a",
+    "p0/response_only.bfa": "afb4d7be5e19063b29037b1c74301a5bec8e103839358da485524ff54bc20383",
+    "p0/tofino.bin": "68fb2be51378fa3a195cbfa8a5083cdecc4b8d597e9cdbac87a79289e97057ed",
+    "p1/context.json": "1b538ea28e0eb45eae27a0d4ff0e3ba4c03d1e8691cd77b949fb186dbe83b29d",
+    "p1/response_only.bfa": "bfca7d6858bfbb5c3c6911e8f310e38d38df97e91a980e575091389b9041b81a",
+    "p1/tofino.bin": "fcb2b13bae40abb6a9c4202afacb0cdc83d0b84d7f88157070603c52b588ae26",
+    "response_only.conf": "879c63e66b9749495153e2d06e963184207560b90ace1b341241d8d28679d4bc"
+   },
+   "compile_switch_9132": {
+    "bfrt.json": "df6b191450db62c1f17f56be5320032aca80a50eec09ee91540f55b7104b4a2c",
+    "p0/context.json": "52d95d8a362732f22b368491db674fd7d4e5c7bcbe474aeff10c33a136461690",
+    "p0/response_only.bfa": "8a040c1a0d434f04e0d5ddc86b9572a64bc2e1d1d99409dc3cd2f11210f057a5",
+    "p0/tofino.bin": "7db033abdd621c2cdb21b428873ec2096d46bdd2f1e281ec1694998ace89cc78",
+    "p1/context.json": "dc2c1998a23ddd323ebad3ea23fc756b6266473264425dcf137055f034206d48",
+    "p1/response_only.bfa": "b5f3bc0c4abf175ba5a942619c06b3231414a6b6ea635dc58220229cd64f860f",
+    "p1/tofino.bin": "856ea43018a46b79a717dc371a6de492394bfce291d7a5c67c695f3d3c113aac",
+    "response_only.conf": "fe37d22308cde3cfb2cae0082f322b55d41a03a3a08d02fa9d3fff6d64e98378"
+   }
+  }
+ },
+ "encoding": {
+  "native_input_octets": {
+   "READ": 49,
+   "SELECT": 37,
+   "OPERATE": 37
+  },
+  "output_octets": 61,
+  "read_ranges": [
+   [
+    0,
+    0,
+    5
+   ],
+   [
+    0,
+    6,
+    9
+   ],
+   [
+    1,
+    10,
+    22
+   ]
+  ],
+  "read_ranges_note": "(qualifier, start, stop) of the G10V2 re-encoding (read_reencode_01/profile_check.py READ_RANGES)",
+  "control_application_partition": [
+   15,
+   6,
+   1
+  ],
+  "control_partition_note": "the 22 native SELECT/OPERATE application octets split 15/6/1 into transport frames 28/19/14"
+ },
+ "clock": {
+  "t_unit_ns": 256,
+  "t_grid_ns": 512,
+  "t_source": "global_tstamp[39:8] & ~1",
+  "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+ },
+ "timing_ns": {
+  "D_release_budget": 950000,
+  "J_operate_hold": 2400000,
+  "pb_piggyback_bound": 4000000,
+  "readiness": 30000000,
+  "da": 2000000,
+  "cap": 40000000,
+  "held_operate_overrides": {
+   "D_release_budget": 800000,
+   "J_operate_hold": 350000000,
+   "pb_piggyback_bound": 360000000,
+   "readiness": 380000000,
+   "cap": 400000000
+  },
+  "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+ },
+ "n": {
+  "retry_budget_laps": 32,
+  "restart_counter": "count_busy[5]"
+ },
+ "ports": {
+  "master_dev": 9,
+  "relay_dev": 9,
+  "n_ack_return": 48,
+  "t_in": 180,
+  "hb_return": 181,
+  "held_return": 182,
+  "recirc": 68,
+  "stat_ports": "9,64",
+  "note": "the ctl_m10_* configs' ports_map: both software endpoints on device port 9 (VEPA hairpin); no physical relay in this profile"
+ },
+ "t_child_count": 3
+}

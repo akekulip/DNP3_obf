@@ -114,6 +114,19 @@ def validate_schedule(plan):
                              % (where, (src, dst, sport, dport)))
 
 
+def tcpdump_stats(stderr):
+    """tcpdump's closing statistics (protocol/hw_vepa/vision_run.parse_tcpdump_stats; inlined, this file runs alone
+    on Vision). A judge treats a missing count, or any kernel or interface drop, as an invalid capture."""
+    import re
+    out = {}
+    for label, key in (('captured', 'captured'), ('received by filter', 'received'),
+                       ('dropped by kernel', 'dropped_kernel'), ('dropped by interface', 'dropped_interface')):
+        match = re.search(r'(\d+)\s+packets?\s+' + re.escape(label), stderr or '')
+        if match:
+            out[key] = int(match.group(1))
+    return out
+
+
 def capture_commands(run_dir, master_ip, outstation_ip):
     flt = 'tcp and host %s and host %s' % (master_ip, outstation_ip)
     return {d: ['tcpdump', '-i', INTERFACE, '--immediate-mode', '-Q', d, '-s0', '-U', '-n',
@@ -168,12 +181,17 @@ def run(args):
         time.sleep(1.0)
         record['applied'] = True
     finally:
-        for proc in captures.values():
+        record['tcpdump'] = {}
+        for d, proc in captures.items():
             proc.terminate()
             try:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
+            try:
+                record['tcpdump'][d] = tcpdump_stats(proc.stderr.read())
+            except (OSError, ValueError):
+                record['tcpdump'][d] = {}
     (run_dir / 'inject.json').write_text(json.dumps(record, indent=2) + '\n')
     print(json.dumps(record, indent=2))
     return 0

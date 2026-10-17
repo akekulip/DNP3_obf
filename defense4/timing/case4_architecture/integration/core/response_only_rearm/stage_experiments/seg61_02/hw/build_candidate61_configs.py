@@ -22,6 +22,9 @@ M5_SOURCE_SHA = 'b758c98199dddd36f8df4a90ce7a1e2301b63e95c2ac766aafa20b5b9f15e98
 M9 = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9_01'
 M9_BUILD = 'ctl_timing_m9_01'
 M9_SOURCE_SHA = '6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f'
+M10 = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m10_03'
+M10_BUILD = 'ctl_timing_m10_03'
+M10_SOURCE_SHA = 'd9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc'
 M9D = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9d_01'
 M9D_BUILD = 'ctl_timing_m9d_01'
 M9D_SOURCE_SHA = '74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f'
@@ -133,6 +136,9 @@ if m5_switch['source_sha256'] != M5_SOURCE_SHA:
 m9_switch = compile_identity(M9)
 if m9_switch['source_sha256'] != M9_SOURCE_SHA:
     raise ValueError('ctl_timing m9 source SHA mismatch')
+m10_switch = compile_identity(M10)
+if m10_switch['source_sha256'] != M10_SOURCE_SHA:
+    raise ValueError('ctl_timing m10 source SHA mismatch')
 m9d_switch = compile_identity(M9D)
 if m9d_switch['source_sha256'] != M9D_SOURCE_SHA:
     raise ValueError('ctl_timing m9d source SHA mismatch')
@@ -226,6 +232,11 @@ m9_build = dict(make_build(
     'candidate61', M9_SOURCE_SHA, m9_switch, 61, True,
     'ctl_timing_01 m9: m6 N lifecycle corrections, m7 T time base (256 ns units), m8 E reset at the frontier, and '
     'the m9 N reset wait (a master RST no longer lost to a busy work cell).'),
+    control_timed=True, piggyback_bound=True)
+m10_build = dict(make_build(
+    'candidate61', M10_SOURCE_SHA, m10_switch, 61, True,
+    'ctl_timing_01 m10: m9 plus the N stage-1 RST restart (a validated master RST survives a same-incarnation '
+    'owner change; count_busy[5] counts restarts). E and T identical to m9.'),
     control_timed=True, piggyback_bound=True)
 strict_build = make_build(
     'strict_comparison', STRICT_SOURCE_SHA, strict_switch, 58, False,
@@ -618,6 +629,52 @@ for pattern, fixture, port, purpose, label in (
             start_delay_ms=50, loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT,
             vision_run_dir=REPEAT_VISION_DIR, fixtures=[fixture], **M9B)))
 
+# m10 (review af7bd434, step 4): the recovery set on the exact m10_03 image, its own port range 59950-59960. The
+# restart path (count_busy[5]) is judged from the snapshots: a block whose counter stays 0 did not exercise it.
+M10_IDENTITY = {'source_sha256': M10_SOURCE_SHA, 'switch_compile': m10_switch,
+                'design': 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/generate.py (transform_n_m10)'}
+
+
+def m10(data, pb=CTL_PB_NS):
+    data['timing_params_ns']['pb'] = pb
+    data['ctl_timing_identity'] = M10_IDENTITY
+    return data
+
+
+M10B = dict(build_name=M10_BUILD, build_spec=m10_build)
+write('ctl_m10_persistence_graceful_950.json', m10(transform(load('candidate57s_graceful_800.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_persistence_graceful'},
+    gap=950000, port_first=59950, port_last=59950, **M10B)))
+write('ctl_m10_persistence_rst_950.json', m10(transform(load('candidate57s_rst_950.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_persistence_rst'},
+    port_first=59951, port_last=59951, **M10B)))
+write('ctl_m10_loss_core_950.json', m10(transform(load('candidate57s_single_loss.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_loss_core'},
+    port_first=59952, port_last=59958, **M10B)))
+write('ctl_m10_reconnect_950.json', m10(transform(load('candidate57s_rst_950.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_reconnect_protected'},
+    port_first=59959, port_last=59959, **M10B)))
+held10 = m10(transform(load('candidate57s_dup_hold_350.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_held_operate'},
+    gap=800000, port_first=59960, port_last=59960, held=True, **M10B), pb=360000000)
+held10['timing_params_ns'].update(readiness=380000000, cap=400000000)
+write('ctl_m10_held_operate_350.json', held10)
+# Step 4b, the bounded reset-interleaving block (rearm_01/hw/candidate_interleave.py): the probe tuple on addresses
+# no Vision interface owns (TEST-NET-1, vision_contention.guard refuses otherwise), one master port, and the link
+# addresses of the probe's own frames (contention_probe READ head 0x0000 <- 0x0100, the installer default), so the
+# installed rows are exactly the probe's.
+inter10 = m10(transform(load('candidate57s_rst_950.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm10_reset_interleave'},
+    reads=1, trials=1, port_first=59970, port_last=59970, **M10B))
+inter10['endpoints'].update(master_ip='192.0.2.61', outstation_ip='192.0.2.62', outstation_port=20000,
+                            read_dst=0x0000, read_src=0x0100,
+                            link_note='read_dst 0x0000 <- read_src 0x0100: the link addresses of the probe frames '
+                                      '(contention_probe READ head), not the OpenDNP3 outstation (10)')
+inter10['interleave'] = {'master_mac': '02:00:00:00:00:61', 'outstation_mac': '02:00:00:00:00:62',
+                         'next_hop_mac': '02:00:00:00:00:09',
+                         '_note': 'plan from interleave_probe.build_interleave_plan; judged by judge_interleave'}
+write('ctl_m10_interleave_950.json', inter10)
+
 # ACK-delay localization (ctl_timing_01/evidence/m9d_01/ACK_DIAG_PLAN_20261017.md): six predefined blocks, the
 # qualification repeated-SBO workload and arm orders, purpose characterization so every arm runs. Three on m9_01 (the
 # control) and three on the m9d diagnostic build (m9 + E egress timestamps), each pair on its own port range.
@@ -674,5 +731,5 @@ write('candidate61_compare_14892_950.json', transform(load('precision_10_950_rem
     gap=950000, arms=['combined'], reads=50, trials=3, port_first=59580, port_last=59582))
 
 print('wrote', sum(len(list(DST.glob(g))) for g in ('candidate61_*.json', 'strict_comparison_*.json', 'ctl_timing_*.json', 'ctl_m4_*.json',
-                                                 'ctl_m5_*.json', 'ctl_m9_*.json', 'ctl_m9d_*.json')),
+                                                 'ctl_m5_*.json', 'ctl_m9_*.json', 'ctl_m9d_*.json', 'ctl_m10_*.json')),
       'configs to', DST)

@@ -5,6 +5,13 @@ from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
 PROFILES = {
+    # ctl_timing_01 m10 (m10_03: m9 + the N stage-1 RST restart; source d9b84fcc): SDK 9.13.2, then 9.13.1.
+    'df6b191450db62c1f17f56be5320032aca80a50eec09ee91540f55b7104b4a2c': {
+        '4d2dd07a56f1071f37b32b735d50ed33aaa04c0fcff438ddae1abdce0b405be3',
+    },
+    '1124d21138570d1d2af4c16bafe9bea3a20049bd79fa94497340626379f981f1': {
+        '87c9013b1da973c1161cd6b231201b1cd672e45e3c1cf5e94b8c23486f4e13c1',
+    },
     # DIAGNOSTIC ctl_timing_01 m9d (m9d_01: m9 + E egress timestamps; source 74c9cdcd): SDK 9.13.2, then 9.13.1.
     '79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46': {
         'cfd9363340368bb3b121e789c71c68f404385a2d028da18460f2ad1d594491fd',
