@@ -1,0 +1,980 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_response_61",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007950181000829a000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007950181000829a000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_SELECT_response_61",
+   "observed": "1 frames",
+   "ok": false,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004d00014000400626a80a0000020a0000014e207531000003c20000009c501810006ef6000005641c4401000a007636c1c18100000c01280100010001016400482800006400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003c20000009c501810002f1000000564154401000a004d1941c18100000c01280100010001016400441f05640c4401000a00b74e0200006400000049980564074401000a003b4783007b54"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_OPERATE_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e200000009c000003db501810007ffc000005641ac40a0001008a1cc2c2040c012801000100010164000000a0a46400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_OPERATE_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003ff000000bf50181000cacf00000564154401000a004d1942c28100000c01280100010001016400f87b05640c4401000a00b74e030000640000002bc70564074401000a003b4784001ad3"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000bf00000400501810002a1a000005640dc400000100f387c3c3010a02000016caf7"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000043c000000d350101000c3710000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "c00_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000043c000000d3501810000a22000005643244010000008042c3c38180000a02000005000102030405dae40a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "phaseA_end_wire_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000d30000043150101000c37c0000"
+  },
+  {
+   "expected": null,
+   "name": "phaseA_all_cycles_exact",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": {
+    "OPERATE": 64,
+    "READ": 65,
+    "SELECT": 64
+   },
+   "name": "phaseA_counts",
+   "observed": {
+    "OPERATE": 1,
+    "READ": 2,
+    "SELECT": 1
+   },
+   "ok": false
+  },
+  {
+   "expected": 3852,
+   "name": "phaseA_growth_12_per_READ_24_per_control",
+   "observed": 72,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "phaseA_master_transport_wrapped",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "phaseA_application_sequence_wrapped",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "phaseA_outstation_transport_wrapped",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "timed_lead_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000d300000431501810001087000005640dc400000100f387c4c4010a02000016e344"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "timed_lead_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100000479000000e750101000c3200000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "timed_lead_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000479000000e750181000ada6000005643244010000008042c4c48180000a02000005000102030405360e0a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000e70000046250181000f0ae000005641ac40a0001008a1cc5c5030c01280100010001012c010000651c6400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_SELECT_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004b60000010a501810008cbb00000564154401000a004d1945c58100000c01280100010001012c01f56305640c4401000a00b74e06000064000000b8a80564074401000a003b478700b163"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_OPERATE_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e200000010a000004875018100049c2000005641ac40a0001008a1cc6c6040c01280100010001012c01000009c06400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_OPERATE_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004f30000012d50181000c00000000564154401000a004d1946c68100000c01280100010001012c01490705640c4401000a00b74e07000064000000daf70564074401000a003b478800448b"
+  },
+  {
+   "expected": 1,
+   "name": "t00_one_OPERATE_release",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000012d000004ac501810007c54000005640dc400000100f387c7c7010a02000016739f"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000005300000014150101000c20f0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t00_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000053000000141501810005536000005643244010000008042c7c78180000a020000050001020304058a6a0a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000141000004dd50181000c0d0000005641ac40a0001008a1cc8c8030c01280100010001012d01000090226400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_SELECT_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000056d0000016450181000378f00000564154401000a004d1948c88100000c01280100010001012d01a63405640c4401000a00b74e090000640000000d180564074401000a003b478a00a190"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_OPERATE_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000164000005025018100079f0000005641ac40a0001008a1cc9c9040c01280100010001012d010000d4b96400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_OPERATE_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000005aa00000187501810001c5e00000564154401000a004d1949c98100000c01280100010001012d01321705640c4401000a00b74e0a000064000000abf90564074401000a003b478b00ef3b"
+  },
+  {
+   "expected": 2,
+   "name": "t01_one_OPERATE_release",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000187000005275018100023ac000005640dc400000100f387caca010a02000016c86f"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000005e70000019b50101000c0fe0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t01_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000005e70000019b5018100043f6000005643244010000008042caca8180000a0200000500010203040597960a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e200000019b0000055850181000dece000005641ac40a0001008a1ccbcb030c01280100010001012e0100006d4c6400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_SELECT_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000624000001be501810003d1c00000564154401000a004d194bcb8100000c01280100010001012e01b1e005640c4401000a00b74e0c0000640000009e770564074401000a003b478d00c017"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_OPERATE_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001be0000057d50181000f8b3000005641ac40a0001008a1ccccc040c01280100010001012e010000511e6400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_OPERATE_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e20753100000661000001e1501810004e8700000564154401000a004d194ccc8100000c01280100010001012e015d0a05640c4401000a00b74e0d000064000000fc280564074401000a003b478e006ba7"
+  },
+  {
+   "expected": 3,
+   "name": "t02_one_OPERATE_release",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001e1000005a2501810000667000005640dc400000100f387cdcd010a02000016e1dc"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000069e000001f550101000bfed0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t02_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000069e000001f5501810005bfc000005643244010000008042cdcd8180000a020000050001020304057b7c0a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "phaseB_end_wire_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000001f5000005d350101000c0b80000"
+  },
+  {
+   "expected": 3,
+   "name": "phaseB_releases",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe1_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001f5000005d35018100075f6000005640dc400000100f387cece010a020000167107"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe1_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000006db0000020950101000bf9c0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe1_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000006db00000209501810000f0e000005643244010000008042cece8180000a02000005000102030405c7180a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": 0,
+   "name": "probe1_SBO_READ_then_OPERATE_dropped",
+   "observed": 0,
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": 0,
+   "name": "probe1_SBO_READ_then_no_OPERATE_release",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "probe1_SBO_READ_then_no_OPERATE_generation",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_qualified_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000002090000060450141000c06f0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000004e20000000006002100062b20000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000753000004e2160121000ed700000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000004e210000753150101000052e0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000004e210000753150181000df54000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000753100004e3550101000051a0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe2_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000753100004e3550181000c331000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": 0,
+   "name": "probe2_READ_then_no_SELECT_OPERATE_dropped",
+   "observed": 0,
+   "ok": true,
+   "received": {
+    "9": []
+   }
+  },
+  {
+   "expected": 0,
+   "name": "probe2_READ_then_no_SELECT_no_OPERATE_release",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "probe2_READ_then_no_SELECT_no_OPERATE_generation",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_qualified_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000004e35000075625014100004e50000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000009c40000000006002100014920000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000c35000009c416012100051300000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c410000c3515010100068ed0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000009c410000c351501810001c9c000005641ac40a0001008a1cc0c0030c0128010001000101f40100001be96400000000005b"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_SELECT_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000c35100009c645018100073a800000564154401000a004d1940c08100000c0128010001000101f40189ce05640c4401000a00b74e01000064000000ef790564074401000a003b47820035ff"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_cancel_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000009c640000c376501810007192000005640dc400000100f387c1c1010a020000162a65"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_cancel_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000c38e00009c785010100068790000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe3_cancel_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e2075310000c38e00009c7850181000996c000005643244010000008042c1c18180000a02000005000102030405f2a30a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  },
+  {
+   "expected": true,
+   "name": "probe3_READ_after_SELECT_cancels_selection",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_qualified_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c780000c3a750141000685c0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000ea600000000060021000c6710000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000111700000ea6160121000b4ef0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000ea610001117150101000ccac0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_after_reset_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000ea610001117150181000a6d3000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_after_reset_READ_server_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000111710000ea7550101000cc980000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "probe4_after_reset_READ_response_61",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000111710000ea75501810008ab0000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+  }
+ ],
+ "meta": {
+  "cycles": 64,
+  "driver_sha256": "fd1cfa95f0f1339ed4522391a82173115f4e6cb6cc821062e7c670b682241eb8",
+  "final_snapshot": {
+   "E": {
+    "acct": 999,
+    "front": 987,
+    "img_end": 950,
+    "img_start": 901,
+    "img_wend": 962
+   },
+   "N": {
+    "epoch": 1,
+    "owner": 655361
+   },
+   "T": {
+    "gen_alloc_reg": 1,
+    "op_done_reg": 0,
+    "op_gen_alloc_reg": 1
+   }
+  },
+  "phaseA_end_snapshot": {
+   "E": {
+    "acct": 999,
+    "front": 987,
+    "img_end": 950,
+    "img_start": 901,
+    "img_wend": 962
+   },
+   "N": {
+    "epoch": 1,
+    "owner": 655361
+   },
+   "T": {
+    "gen_alloc_reg": 1,
+    "op_done_reg": 0,
+    "op_gen_alloc_reg": 1
+   }
+  },
+  "phaseA_wraps": {
+   "application": 0,
+   "master_transport": 0,
+   "outstation_transport": 0
+  },
+  "physical": false,
+  "port_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000003859c2b0600e6090000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000003c200000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "000000010000038500000000e1000000"
+    },
+    "frames": 36,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "00000001000003859c2b060009000000",
+     "0x0a00": "0000000100000000ae58f4000a000000",
+     "0x0b00": "0000000100000000be83e7000b000000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000000000000000009000000",
+     "107": "0000000100000000000000000b000000",
+     "119": "0000000100000000be83e7000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000003859c2b060009000000"
+    },
+    "frames": 6,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   }
+  },
+  "scope": "E61 compiled repeated SBO: READ, 64 x (SELECT, OPERATE, READ) on one connection, then 3 timed cycles; sequence wraps; unpaired OPERATE after READ",
+  "start_snapshot": {
+   "E": {
+    "acct": 901,
+    "front": 901,
+    "img_end": 901,
+    "img_start": 840,
+    "img_wend": 901
+   },
+   "N": {
+    "epoch": 1,
+    "owner": 327681
+   },
+   "T": {
+    "gen_alloc_reg": 1,
+    "op_done_reg": 0,
+    "op_gen_alloc_reg": 1
+   }
+  },
+  "timed_cycles": 3
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "c00_SELECT_response_61",
+   "c00_OPERATE_request",
+   "c00_OPERATE_response_61",
+   "c00_READ_request",
+   "c00_READ_server_ACK",
+   "c00_READ_response_61",
+   "phaseA_end_wire_ACK",
+   "phaseA_all_cycles_exact",
+   "phaseA_counts",
+   "phaseA_growth_12_per_READ_24_per_control",
+   "phaseA_master_transport_wrapped",
+   "phaseA_application_sequence_wrapped",
+   "phaseA_outstation_transport_wrapped",
+   "timed_lead_READ_request",
+   "timed_lead_READ_server_ACK",
+   "timed_lead_READ_response_61",
+   "t00_SELECT_request",
+   "t00_SELECT_response_61",
+   "t00_OPERATE_request",
+   "t00_OPERATE_response_61",
+   "t00_one_OPERATE_release",
+   "t00_READ_request",
+   "t00_READ_server_ACK",
+   "t00_READ_response_61",
+   "t01_SELECT_request",
+   "t01_SELECT_response_61",
+   "t01_OPERATE_request",
+   "t01_OPERATE_response_61",
+   "t01_one_OPERATE_release",
+   "t01_READ_request",
+   "t01_READ_server_ACK",
+   "t01_READ_response_61",
+   "t02_SELECT_request",
+   "t02_SELECT_response_61",
+   "t02_OPERATE_request",
+   "t02_OPERATE_response_61",
+   "t02_one_OPERATE_release",
+   "t02_READ_request",
+   "t02_READ_server_ACK",
+   "t02_READ_response_61",
+   "phaseB_end_wire_ACK",
+   "phaseB_releases",
+   "probe1_READ_request",
+   "probe1_READ_server_ACK",
+   "probe1_READ_response_61",
+   "probe2_qualified_RST",
+   "probe2_SYN",
+   "probe2_SYNACK",
+   "probe2_final_ACK",
+   "probe2_READ_request",
+   "probe2_READ_server_ACK",
+   "probe2_READ_response_61",
+   "probe3_qualified_RST",
+   "probe3_SYN",
+   "probe3_SYNACK",
+   "probe3_final_ACK",
+   "probe3_SELECT_request",
+   "probe3_SELECT_response_61",
+   "probe3_cancel_READ_request",
+   "probe3_cancel_READ_server_ACK",
+   "probe3_cancel_READ_response_61",
+   "probe3_READ_after_SELECT_cancels_selection",
+   "probe4_qualified_RST",
+   "probe4_SYN",
+   "probe4_SYNACK",
+   "probe4_final_ACK",
+   "probe4_after_reset_READ_request",
+   "probe4_after_reset_READ_server_ACK",
+   "probe4_after_reset_READ_response_61"
+  ],
+  "passed": 13,
+  "total": 82
+ }
+}

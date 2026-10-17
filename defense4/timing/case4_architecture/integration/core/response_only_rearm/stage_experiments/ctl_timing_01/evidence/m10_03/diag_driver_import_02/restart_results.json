@@ -1,0 +1,515 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000753000000000600210003ba20000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000088b80000753160121000b2d80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000007531000088b950101000ca950000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_READ_restart_counted",
+   "observed": false,
+   "ok": false,
+   "restarts": 0
+  },
+  {
+   "expected": true,
+   "name": "restart_READ_first_RST_relayed_once",
+   "observed": true,
+   "ok": true,
+   "relayed": 1
+  },
+  {
+   "copies": 0,
+   "expected": true,
+   "name": "restart_READ_no_response_to_master",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_new_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000009c40000000006002100014920000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_new_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000afc800009c416012100064b80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_READ_new_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c410000afc9501010007c750000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_READ_new_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05253360094502568,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0525,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "restart_READ_new_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4433,
+   "resp_dup_drop": 0,
+   "tag": "restart_READ_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "restart_READ_new_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000c3500000000060021000ed810000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000d6d80000c3516012100016980000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000c3510000d6d9501010002e550000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_SELECT_restart_counted",
+   "observed": true,
+   "ok": true,
+   "restarts": 1
+  },
+  {
+   "expected": true,
+   "name": "restart_SELECT_first_RST_relayed_once",
+   "observed": true,
+   "ok": true,
+   "relayed": 1
+  },
+  {
+   "copies": 1,
+   "expected": true,
+   "name": "restart_SELECT_no_response_to_master",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_new_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000ea600000000060021000c6710000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_new_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000fde80000ea6160121000c8770000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_SELECT_new_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000ea610000fde950101000e0340000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_SELECT_new_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.0482177899684757,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0482,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "restart_SELECT_new_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4356,
+   "resp_dup_drop": 0,
+   "tag": "restart_SELECT_new_READ"
+  },
+  {
+   "expected": true,
+   "name": "restart_SELECT_new_RST_relayed",
+   "observed": true,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "8d50f745fdcbcd88d6e216d19889fd3c9505228119c87490781cb51729670b7f",
+  "final_count_busy": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "final_outcomes": {
+   "ACK_COMMIT": 3,
+   "ACK_FALLBACK": 0,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 64,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 1,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 0,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 3,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "n_generation_counter": 24,
+  "physical": false,
+  "points": [
+   {
+    "clrt_wall_s": 0.05253360094502568,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0525,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4433,
+    "resp_dup_drop": 0,
+    "tag": "restart_READ_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "kind": "READ",
+    "relayed_resets": 1,
+    "response_copies_to_master": 0,
+    "restarts": 0,
+    "tag": "restart_READ"
+   },
+   {
+    "clrt_wall_s": 0.0482177899684757,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0482,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4356,
+    "resp_dup_drop": 0,
+    "tag": "restart_SELECT_new_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "kind": "SELECT",
+    "relayed_resets": 1,
+    "response_copies_to_master": 1,
+    "restarts": 1,
+    "tag": "restart_SELECT"
+   }
+  ],
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000088b9da616200e6090000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "0000000d0000d6d900000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "00000001000088b900000000e1000000"
+    },
+    "frames": 20,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "00000001000088b9da61620009000000",
+     "0x0a00": "0000000100000000fe24a8000a000000",
+     "0x0b00": "00000007000000001505b7000b000000",
+     "0x0d01": "00000001000088b9000000000d010000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "0000000d0000d6d90000000009000000",
+     "107": "0000000d00000000000000000b000000",
+     "119": "00000007000000001505b7000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000088b9da61620009000000"
+    },
+    "frames": 19,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000500000007001122334455aabb",
+     "68": "0e00000200000001001122334455aabb",
+     "99": "0f0000080000000d001122334455aabb"
+    },
+    "frames": 71,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m10: ACK/response contention for N's work cell (spacing sweep, edges)",
+  "sections": [
+   "restart"
+  ]
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "restart_READ_restart_counted",
+   "restart_SELECT_no_response_to_master"
+  ],
+  "passed": 22,
+  "total": 24
+ }
+}

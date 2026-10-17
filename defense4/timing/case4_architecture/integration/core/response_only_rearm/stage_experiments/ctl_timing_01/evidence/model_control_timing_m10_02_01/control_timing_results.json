@@ -1,0 +1,1524 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": 2,
+   "name": "READ_lane_generation",
+   "observed": 2,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000",
+    "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000003850000007950181000829a000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+   ],
+   "name": "READ_ACK_then_61_response",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 20,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+  },
+  {
+   "expected": 3,
+   "name": "SELECT_lane_generation",
+   "observed": 3,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [
+    "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003c20000009c50101000c4220000000000000000",
+    "001122334455aabbccddeeff08004500004d00014000400626a80a0000020a0000014e207531000003c20000009c501810006ef6000005641c4401000a007636c1c18100000c01280100010001016400482800006400000000005b"
+   ],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 19,
+    "RESP_RELEASE": 1
+   },
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "1 frames",
+   "ok": false,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003e70000009c50101000c3fd0000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003ff0000009c50101000c3e50000"
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "j_upper_bound_s": null,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_one_OP_RELEASE",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000000bf00000400501810002a1a000005640dc400000100f387c3c3010a02000016caf7"
+  },
+  {
+   "expected": 4,
+   "name": "READ_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000000d300000431501810003dfa000005641ac40a0001008a1cc4c4030c012801000100010165000000e0176400000000005b"
+  },
+  {
+   "expected": 4,
+   "name": "SELECT_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "stray_ACK_state_0xa_forwarded",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000004b6000000f650101000c2d40000"
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "j_upper_bound_s": null,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_one_OP_RELEASE",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20000001190000047b50181000ed63000005640dc400000100f387c6c6010a0200001603d6"
+  },
+  {
+   "expected": 4,
+   "name": "READ_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_piggyback_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000012d000004ac501810007c54000005640dc400000100f387c7c7010a02000016739f"
+  },
+  {
+   "expected": 4,
+   "name": "READ_piggyback_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_piggyback_released_by_bound",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "READ_piggyback_not_before_t0_plus_pb",
+   "observed": false,
+   "ok": false,
+   "pb_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "expected": true,
+   "name": "READ_piggyback_before_readiness_fallback",
+   "observed": false,
+   "ok": false,
+   "readiness_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_piggyback_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000141000004dd50181000ef31000005641ac40a0001008a1cc8c8030c01280100010001016600000028c26400000000005b"
+  },
+  {
+   "expected": 4,
+   "name": "SELECT_piggyback_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_piggyback_released_by_bound",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "SELECT_piggyback_not_before_t0_plus_pb",
+   "observed": false,
+   "ok": false,
+   "pb_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "expected": true,
+   "name": "SELECT_piggyback_before_readiness_fallback",
+   "observed": false,
+   "ok": false,
+   "readiness_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "j_upper_bound_s": null,
+   "name": "OPERATE_piggyback_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_piggyback_one_OP_RELEASE",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_piggyback_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_piggyback_released_by_bound",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "name": "OPERATE_piggyback_not_before_t0_plus_pb",
+   "observed": false,
+   "ok": false,
+   "pb_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "expected": true,
+   "name": "OPERATE_piggyback_before_readiness_fallback",
+   "observed": false,
+   "ok": false,
+   "readiness_in_wall_s": null,
+   "release_after_request_s": null
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_piggyback_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_slow_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000000187000005275018100023ac000005640dc400000100f387caca010a02000016c86f"
+  },
+  {
+   "expected": 4,
+   "name": "READ_slow_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_slow_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_slow_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_slow_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000019b000005585018100032af000005640dc400000100f387cbcb010a02000016b826"
+  },
+  {
+   "expected": 4,
+   "name": "READ_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "READ_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "READ_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_dupack_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001af0000058950181000b31c000005641ac40a0001008a1ccccc030c01280100010001016e00000057b96400000000005b"
+  },
+  {
+   "expected": 4,
+   "name": "SELECT_dupack_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_dupack_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "ack_copies": 0,
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_dupack_ACKs_then_one_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "deltas": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "expected": true,
+   "name": "SELECT_dupack_counters",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "j_upper_bound_s": null,
+   "name": "OPERATE_dupack_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_dupack_one_OP_RELEASE",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_dupack_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_dupack_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "ack_copies": 0,
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_dupack_ACKs_then_one_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "deltas": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "expected": true,
+   "name": "OPERATE_dupack_counters",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e20000001f5000005d3501810007007000005641ac40a0001008a1ccece030c01280100010001016f000000973c6400000000005b"
+  },
+  {
+   "expected": 4,
+   "name": "SELECT_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000218000005f850181000a35f000005641ac40a0001008a1ccfcf030c012801000100010170000000619b6400000000005b"
+  },
+  {
+   "expected": 4,
+   "name": "SELECT_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "late_old_SELECT_response_dropped",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "delay_s": [],
+   "expected": true,
+   "j_upper_bound_s": null,
+   "name": "OPERATE_request_held_J_then_relayed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": 1,
+   "name": "OPERATE_one_OP_RELEASE",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 4,
+   "name": "OPERATE_lane_generation",
+   "observed": 3,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "OPERATE_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "OPERATE_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "OPERATE_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "reset_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000025e00000642501810006fe9000005640dc400000100f387d1c1010a020000167349"
+  },
+  {
+   "expected": 0,
+   "name": "reset_ACK_held",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "reset_RST_forwarded_once",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": 0,
+   "frames_to_master": [],
+   "name": "reset_nothing_released_to_master",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "reset_no_commit_or_release",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_read_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000007d00000000060021000a9020000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_read_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100000bb8000007d1601210009d390000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_read_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000007d100000bb950101000b4f60000"
+  },
+  {
+   "expected": "drop",
+   "name": "exhausted_READ_dropped",
+   "observed": "drop",
+   "ok": true,
+   "received": {
+    "9": []
+   },
+   "want": ""
+  },
+  {
+   "expected": 1,
+   "name": "exhausted_READ_counted",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_read_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000007e500000bb950141000b4de0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_operate_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000000fa00000000060021000a1320000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_operate_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000138800000fa1601210008d990000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_operate_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000fa10000138950101000a5560000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000fa10000138950181000751a000005641ac40a0001008a1cc0c0030c0128010001000101780000007bd56400000000005b"
+  },
+  {
+   "expected": 65534,
+   "name": "SELECT_lane_generation",
+   "observed": 65533,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "SELECT_ACK_held_until_response",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_ACK_then_61_response",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "SELECT_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": {
+    "GEN_EXHAUSTED": 1,
+    "OP_RELEASE": 0,
+    "relayed": 0
+   },
+   "name": "exhausted_OPERATE_dropped_and_counted",
+   "observed": {
+    "GEN_EXHAUSTED": 0,
+    "OP_RELEASE": 0,
+    "relayed": 0
+   },
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "name": "exhaust_operate_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000000fe7000013ae50141000a4e70000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000001f40000000006002100091920000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000232800001f41601210006e590000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000001f41000023295010100086160000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000001f410000232950181000603d000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "busy_dropped": 0,
+   "capture_s": 8.0,
+   "expected": true,
+   "frames": [],
+   "name": "race_ACK_then_one_61_response_exact",
+   "observed": false,
+   "ok": false,
+   "retransmitted": false
+  },
+  {
+   "all_deltas": {},
+   "deltas": {
+    "ACK_COMMIT": 0,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 0,
+    "busy_dropped": 0
+   },
+   "expected": true,
+   "name": "race_known_release_path",
+   "observed": false,
+   "ok": false,
+   "path": "other"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "race_RST",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000001f550000235a5014100085cd0000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t_off_SYN",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000002710000000006002100089c20000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t_off_SYNACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100002af800002711601210005eb90000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "t_off_final_ACK",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000271100002af95010100076760000"
+  },
+  {
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000271100002af950181000509d000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": 100,
+   "name": "READ_lane_generation",
+   "observed": 100,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "READ_ACK_forwarded_at_once",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "READ_61_response_untimed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "READ_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "drop",
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e200000272500002b2a501810004457000005641ac40a0001008a1cc1c1030c0128010001000101670000008d726400000000005b"
+  },
+  {
+   "expected": 100,
+   "name": "SELECT_lane_generation",
+   "observed": 100,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "SELECT_ACK_forwarded_at_once",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "expected": true,
+   "frames": [],
+   "name": "SELECT_61_response_untimed",
+   "observed": false,
+   "ok": false
+  },
+  {
+   "all_deltas": {},
+   "expected": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "name": "SELECT_no_lane_counters",
+   "observed": {
+    "ACK_COMMIT": 0,
+    "RESP_RELEASE": 0
+   },
+   "ok": true
+  },
+  {
+   "expected": 100,
+   "name": "T_off_no_lane_generation",
+   "observed": 100,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "784a3303f3c524d36ab51d474cd4b92f691116a751eaee0f794b92f7de3d197e",
+  "dupack_commits": {
+   "OPERATE_dupack": 0,
+   "SELECT_dupack": 0
+  },
+  "final_outcomes": {
+   "ACK_COMMIT": 2,
+   "ACK_FALLBACK": 0,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 39,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 0,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 0,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 2,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "physical": false,
+  "race_path": "other",
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "0000000100000385a0efba00e6090000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000003c200000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "000000010000038500000000e1000000"
+    },
+    "frames": 40,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "0000000100000385a0efba0009000000",
+     "0x0a00": "0000000100000000b2d15d000a000000",
+     "0x0b00": "0000000100000000c0d32e000b000000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "00000001000000000000000009000000",
+     "107": "0000000100000000000000000b000000",
+     "119": "0000000100000000c0d32e000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "0000000100000385a0efba0009000000"
+    },
+    "frames": 7,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {},
+    "first_16_bytes_by_length": {},
+    "frames": 0,
+    "longest": 0,
+    "shortest": null
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000200000001001122334455aabb",
+     "68": "0e00000200000001001122334455aabb",
+     "99": "0f00000300000001001122334455aabb"
+    },
+    "frames": 43,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m10: T hold/release per transaction (READ, SELECT, OPERATE)",
+  "wall_clrt_s": {
+   "OPERATE": [
+    null,
+    null,
+    null
+   ],
+   "READ": [
+    0.0530448870267719,
+    null,
+    null,
+    null
+   ],
+   "READ_slow": [
+    null
+   ],
+   "SELECT": [
+    0.05082694091834128,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "SELECT_ACK_then_61_response",
+   "stray_ACK_state_0xa_forwarded",
+   "OPERATE_request_held_J_then_relayed",
+   "OPERATE_one_OP_RELEASE",
+   "OPERATE_lane_generation",
+   "OPERATE_ACK_then_61_response",
+   "OPERATE_counters",
+   "READ_request",
+   "READ_lane_generation",
+   "READ_ACK_then_61_response",
+   "READ_counters",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_counters",
+   "stray_ACK_state_0xa_forwarded",
+   "OPERATE_request_held_J_then_relayed",
+   "OPERATE_one_OP_RELEASE",
+   "OPERATE_lane_generation",
+   "OPERATE_ACK_then_61_response",
+   "OPERATE_counters",
+   "READ_request",
+   "READ_lane_generation",
+   "READ_ACK_then_61_response",
+   "READ_counters",
+   "READ_piggyback_request",
+   "READ_piggyback_lane_generation",
+   "READ_piggyback_released_by_bound",
+   "READ_piggyback_not_before_t0_plus_pb",
+   "READ_piggyback_before_readiness_fallback",
+   "READ_piggyback_counters",
+   "SELECT_piggyback_request",
+   "SELECT_piggyback_lane_generation",
+   "SELECT_piggyback_released_by_bound",
+   "SELECT_piggyback_not_before_t0_plus_pb",
+   "SELECT_piggyback_before_readiness_fallback",
+   "SELECT_piggyback_counters",
+   "OPERATE_piggyback_request_held_J_then_relayed",
+   "OPERATE_piggyback_one_OP_RELEASE",
+   "OPERATE_piggyback_lane_generation",
+   "OPERATE_piggyback_released_by_bound",
+   "OPERATE_piggyback_not_before_t0_plus_pb",
+   "OPERATE_piggyback_before_readiness_fallback",
+   "OPERATE_piggyback_counters",
+   "READ_slow_request",
+   "READ_slow_lane_generation",
+   "READ_slow_ACK_then_61_response",
+   "READ_slow_counters",
+   "READ_request",
+   "READ_lane_generation",
+   "READ_ACK_then_61_response",
+   "READ_counters",
+   "SELECT_dupack_request",
+   "SELECT_dupack_lane_generation",
+   "SELECT_dupack_ACKs_then_one_61_response",
+   "SELECT_dupack_counters",
+   "OPERATE_dupack_request_held_J_then_relayed",
+   "OPERATE_dupack_one_OP_RELEASE",
+   "OPERATE_dupack_lane_generation",
+   "OPERATE_dupack_ACKs_then_one_61_response",
+   "OPERATE_dupack_counters",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_counters",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_counters",
+   "OPERATE_request_held_J_then_relayed",
+   "OPERATE_one_OP_RELEASE",
+   "OPERATE_lane_generation",
+   "OPERATE_ACK_then_61_response",
+   "OPERATE_counters",
+   "reset_READ_request",
+   "reset_RST_forwarded_once",
+   "exhaust_read_SYN",
+   "exhaust_read_SYNACK",
+   "exhaust_read_final_ACK",
+   "exhausted_READ_counted",
+   "exhaust_read_RST",
+   "exhaust_operate_SYN",
+   "exhaust_operate_SYNACK",
+   "exhaust_operate_final_ACK",
+   "SELECT_request",
+   "SELECT_lane_generation",
+   "SELECT_ACK_then_61_response",
+   "SELECT_counters",
+   "exhausted_OPERATE_dropped_and_counted",
+   "exhaust_operate_RST",
+   "race_SYN",
+   "race_SYNACK",
+   "race_final_ACK",
+   "race_READ_request",
+   "race_ACK_then_one_61_response_exact",
+   "race_known_release_path",
+   "race_RST",
+   "t_off_SYN",
+   "t_off_SYNACK",
+   "t_off_final_ACK",
+   "READ_request",
+   "READ_ACK_forwarded_at_once",
+   "READ_61_response_untimed",
+   "SELECT_request",
+   "SELECT_ACK_forwarded_at_once",
+   "SELECT_61_response_untimed"
+  ],
+  "passed": 35,
+  "total": 141
+ }
+}

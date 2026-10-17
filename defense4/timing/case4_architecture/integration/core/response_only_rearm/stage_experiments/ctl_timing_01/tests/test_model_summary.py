@@ -297,3 +297,55 @@ def test_v2_judges_a_required_abort_tag_even_without_a_usable_offset(tmp_path, o
         row['offset'] = offset
     all_pass_v2(tmp_path, build, sha, points=[row] + NEG[1:])
     assert ms.summarize_v2(build)['qualification'] == 'blocked'
+
+
+@pytest.mark.parametrize('content, passes', ((None, False), ('{}', False),
+                                             ('{"restart_READ": {"verdict": "PASS"}, "restart_SELECT": {"verdict": "FAIL"}}', False),
+                                             ('{"restart_READ": {"verdict": "no reset applied"}}', False),
+                                             ('{"restart_READ": {"verdict": "PASS"}, "restart_SELECT": {"verdict": "PASS"}}', True)))
+def test_v3_requires_the_revised_reset_contract_for_m10_contention(v3, content, passes):
+    """Philip, 2026-10-17: the m10 contention attempt passes only with reset_application.json all PASS."""
+    build, _ = v3
+    run = build.parent / 'model_contention_m9_01_01'
+    record = json.loads((run / 'launch_command.json').read_text())
+    record['MILESTONE'] = 'm10'
+    (run / 'launch_command.json').write_text(json.dumps(record))
+    if content is not None:
+        (run / 'reset_application.json').write_text(content)
+    assert (ms.summarize_v3(build)['qualification'] == 'model_gate_passed') is passes
+
+
+def test_v3_blocks_an_m10_contention_attempt_with_an_unmeasured_committed_path(v3):
+    build, _ = v3
+    run = build.parent / 'model_contention_m9_01_01'
+    record = json.loads((run / 'launch_command.json').read_text())
+    record['MILESTONE'] = 'm10'
+    (run / 'launch_command.json').write_text(json.dumps(record))
+    (run / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    assert ms.summarize_v3(build)['qualification'] == 'model_gate_passed'
+    results = run / 'contention_results.json'
+    data = json.loads(results.read_text())
+    data['meta']['committed_path_not_measured'] = ['sweep_OPERATE_030ms']
+    results.write_text(json.dumps(data))
+    s = ms.summarize_v3(build)
+    assert s['qualification'] == 'blocked' and any('not measured' in x for x in s['blocked_reasons'])
+
+
+@pytest.mark.parametrize('mutate', ('held_unmeasured', 'no_results', 'two_results'))
+def test_v3_blocks_unmeasured_held_aborts_and_unreadable_results(v3, mutate):
+    build, _ = v3
+    run = build.parent / 'model_contention_m9_01_01'
+    record = json.loads((run / 'launch_command.json').read_text())
+    record['MILESTONE'] = 'm10'
+    (run / 'launch_command.json').write_text(json.dumps(record))
+    (run / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    results = run / 'contention_results.json'
+    if mutate == 'held_unmeasured':
+        data = json.loads(results.read_text())
+        data['meta']['abort_released_before_send'] = ['abort_held_READ']
+        results.write_text(json.dumps(data))
+    elif mutate == 'no_results':
+        results.rename(run / 'moved.json')
+    else:
+        (run / 'extra_results.json').write_text(results.read_text())
+    assert ms.summarize_v3(build)['qualification'] == 'blocked'

@@ -38,12 +38,14 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm1')
-    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d'),
-             'OPERATE': milestone in ('m2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d')}
-    bounded = milestone in ('m3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d')
+    if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
+        raise SystemExit('unknown MILESTONE %r' % milestone)
+    timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'),
+             'OPERATE': milestone in ('m2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10')}
+    bounded = milestone in ('m3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10')
     # m5 changes only N's busy handling (DESIGN.md m5): every m4 expectation holds, and the ACK/response race may
     # take only the committed path (the busy-drop path is the m4 defect m5 removes)
-    m4_rows = milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d')
+    m4_rows = milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10')
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: T hold/release per transaction (READ, SELECT, OPERATE)' % milestone,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -414,7 +416,7 @@ def main():
         # A real check that the race takes one of the two KNOWN paths (anything else fails). Only 'committed' keeps
         # the timing objective; 'busy_drop_retransmitted' is an open N limitation (one work cell), never acceptance
         # evidence: delivery then waits for the outstation's TCP retransmission and that CLRT is not normalized.
-        allowed = ('committed',) if milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d') else ('committed', 'busy_drop_retransmitted')
+        allowed = ('committed',) if milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10') else ('committed', 'busy_drop_retransmitted')
         report.add('race_known_release_path', True, path in allowed and retransmitted == (path != 'committed'),
                    deltas=deltas, path=path, all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
         report.record['meta']['race_path'] = path

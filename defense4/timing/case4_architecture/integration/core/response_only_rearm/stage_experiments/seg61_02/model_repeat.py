@@ -267,7 +267,7 @@ def main():
         # ctl_timing m4 (MILESTONE=m4) implements Table 4-9 instead: the READ cancels the selection and is answered.
         reconnect('probe3', 40000, 50000)
         exchange('probe3', 'SELECT', 3, crob(500), control_body(500), False)
-        if os.environ.get('MILESTONE') in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d'):
+        if os.environ.get('MILESTONE') in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
             report.add('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))
         else:
             request, _app = seqs.request(1, READ_OBJECTS)

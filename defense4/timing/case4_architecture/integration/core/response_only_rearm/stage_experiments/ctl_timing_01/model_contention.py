@@ -17,6 +17,7 @@ the T behaviour the driver expects (m3+: bounded, control-timed). Frame builders
 """
 import hashlib
 import importlib.util
+import json
 import os
 import select
 import sys
@@ -32,12 +33,26 @@ spec.loader.exec_module(rb)
 helpers, cp, vectors, scalar, encode61 = rb.helpers, rb.cp, rb.vectors, rb.scalar, rb.encode61
 Model, Report, gc, same_frame = rb.Model, rb.Report, rb.gc, rb.same_frame
 PM, MASTER, RELAY, IMAGE_LEN = rb.PM, rb.MASTER, rb.RELAY, rb.IMAGE_LEN
+# the contract rules (failure analysis of m10_03, 2026-10-17): judged from the dataplane's own evidence, not wall time
+_spec = importlib.util.spec_from_file_location('contention_rules', HERE / 'contention_rules.py')
+rules = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(rules)
 NAMES = ('UNMATCHED', 'HELD_REWAIT', 'ACK_COMMIT', 'RESP_RELEASE', 'RESP_DUP_DROP', 'OP_RELEASE', 'TOKEN_STALE',
          'HELD_STALE_FLUSH', 'ACK_FALLBACK', 'RESP_FALLBACK', 'TOKEN_TMO', 'HELD_OFF_FLUSH', 'TOKEN_OFF',
          'REQ_BYPASS', 'OLD_EPOCH_DROP', 'GEN_EXHAUSTED', 'OP_DUP_DROP')
 OUT = {name: i for i, name in enumerate(NAMES)}
 LANE = ('ACK_COMMIT', 'RESP_RELEASE', 'ACK_FALLBACK', 'RESP_FALLBACK')
 COMMITTED = {'ACK_COMMIT': 1, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0}
+_TIMELINE = os.environ.get('CONTENTION_TIMELINE')
+
+
+def timeline(event, **fields):
+    """Diagnostic timeline (attempt-04 stall): one JSON line per event with monotonic and wall time. A no-op unless
+    CONTENTION_TIMELINE names a file; it never changes what is sent, waited for or judged."""
+    if _TIMELINE:
+        with open(_TIMELINE, 'a') as out:
+            out.write(json.dumps(dict(fields, event=event, mono=time.monotonic(), wall=time.time()),
+                                 default=str) + '\n')
 DELAYS_MS = (0, 8, 15, 22, 30, 45, 60, 90, 120)
 WAIT_S, QUIET_S = 8.0, 1.5     # > T's readiness fallback in wall time (about 3 s at ~6.8e8 model ns/s)
 OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
@@ -49,8 +64,10 @@ READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
+    if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
+        raise SystemExit('unknown MILESTONE %r' % milestone)
     bounded = milestone not in ('m1', 'm2')
-    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
+    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -108,7 +125,9 @@ def main():
 
         def capture(timeout, quiet):
             socks = {m._listen(p): p for p in ports}
+            timeline('driver_capture_entry', timeout=timeout, quiet=quiet, ports=sorted(socks.values()))
             got, end, last = [], time.monotonic() + timeout, None
+            start = time.monotonic()
             while time.monotonic() < end:
                 ready, _, _ = select.select(list(socks), [], [], 0.01)
                 for s in ready:
@@ -122,6 +141,8 @@ def main():
                     got.append((last, socks[s], data))
                 if last and time.monotonic() - last > quiet:
                     break
+            timeline('driver_capture_exit', reason='quiet' if last and time.monotonic() < end else 'timeout',
+                     frames=len(got), elapsed_mono=time.monotonic() - start)
             return got
 
         def step(name, sent, expected, master=True):
@@ -161,8 +182,18 @@ def main():
             sent, want = vectors.packet(24, c, s + g, payload=req), vectors.packet(24, c, s, payload=req)
             m.drain(ports)
             m.send(MASTER.dev_port, sent)
+            t_sent = time.monotonic()
             got = capture(OP_HOLD_S * 3 if kind == 'OPERATE' else 1.0, OP_HOLD_S if kind == 'OPERATE' else 0.2)
+            # the contract is "relayed exactly once", not "within 1 s of host time": a stalled model (model_contention_
+            # m10_03_01, SELECT 60 ms: 3.3 s with no model activity while the request was in N) relays it later
+            while not any(p == RELAY.dev_port for _t, p, _f in got) and time.monotonic() - t_sent < WAIT_S:
+                got += capture(0.5, 0.5)
+            got += capture(0.2, 0.2) if any(p == RELAY.dev_port for _t, p, _f in got) else []
             relayed = [f for _t, p, f in got if p == RELAY.dev_port]
+            relay_delay = next((t for t, p, _f in got if p == RELAY.dev_port), t_sent) - t_sent
+            if relay_delay > 1.0:
+                report.record['meta'].setdefault('request_relay_over_1s', []).append(
+                    dict(kind=kind, delay_s=round(relay_delay, 3)))
             st['t_relayed'] = next((t for t, p, _f in got if p == RELAY.dev_port), None)
             ok = len(relayed) == 1 and same_frame(relayed[0], want, sent)
             if not ok:
@@ -220,12 +251,22 @@ def main():
             # m6 (directive: suppress a duplicate while its original is held; after release a copy is loss
             # recovery): a duplicate copy may follow the timed original, never precede it, and must be identical.
             # The model's laps take milliseconds, so a copy sent during the wait can reach T after the release.
-            copy_after_release = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
+            copy_after_release = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
                                   and same_frame(to_master[0][1], want_ack, ack)
                                   and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
             # a committed release found only by the extended capture is late: it must not pass (review W3)
             ok = ((delivered or copy_after_release) and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
                   and not extended)
+            readiness_first, readiness_evidence = False, None
+            if lane == {'ACK_COMMIT': 1, 'RESP_RELEASE': 0, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 1}:
+                # the units T was actually given (model_driver records every set_params write)
+                units = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+                t0_u = scalar(m.register_read('p1.t_Ingress.t0_reg', 0, pipe=1))
+                commit_u = scalar(m.register_read('p1.t_Ingress.ack_commit_at_reg', 0, pipe=1))
+                readiness_first = rules.readiness_reached_before_release(t0_u, commit_u, units['gap'], units['readiness'])
+                readiness_evidence = dict(t0_units=t0_u, a_commit_units=commit_u, gap_units=units['gap'],
+                                          readiness_units=units['readiness'],
+                                          commit_plus_gap_minus_t0=((commit_u - t0_u) & 0xffffffff) + units['gap'])
             row = dict(tag=tag, kind=kind, delivered_without_resend=delivered, lane=lane, count_busy_delta=counts,
                        request_to_ack_wall_s=round(stimulus, 4) if stimulus is not None else None,
                        extended_capture_used=extended,
@@ -245,8 +286,19 @@ def main():
                 late = capture(WAIT_S, QUIET_S)
                 row['cleanup_retransmission_delivered'] = any(
                     p == MASTER.dev_port and same_frame(f, want_rsp, want_rsp) for _t, p, f in late)
+            row['readiness_reached_before_release'] = readiness_first
+            row['readiness_evidence'] = readiness_evidence
             points.append(row)
-            report.add('%s_delivered_once_committed' % tag, True, ok, **row)
+            if readiness_first is None:
+                report.add('%s_readiness_registers_valid' % tag, True, False, **row)     # invalid read: never a pass
+            elif readiness_first:
+                # T's own registers show a_commit + gap at or beyond t0 + readiness in model time: the fallback is the
+                # contract outcome and this point did not measure the committed path (failure analysis 2026-10-17)
+                report.record['meta'].setdefault('committed_path_not_measured', []).append(tag)
+                report.add('%s_delivered_once_by_readiness' % tag, True, delivered and counts[0] == 0
+                           and counts[3] == 0, **row)
+            else:
+                report.add('%s_delivered_once_committed' % tag, True, ok, **row)
             if not ok and not (extra or {}).get('duplicate_sent'):
                 # a fallback or a miss fails the point above; whether the original still reached the master exactly
                 # once, after the ACK (bounded fallback, never a vanish or a double) is recorded as its own check
@@ -381,7 +433,7 @@ def main():
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
                 # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
                 # nothing reaches the master and nothing is busy-dropped, exhausted or stale
-                flushed = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and not payload_to_master and lane['RESP_RELEASE'] == 0
+                flushed = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10') and not payload_to_master and lane['RESP_RELEASE'] == 0
                            and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
                 refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
@@ -397,7 +449,7 @@ def main():
             # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
             # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
             # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
-            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d'):
+            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
             else:
@@ -482,10 +534,15 @@ def main():
             else:
                 m.send(RELAY.dev_port, sent_rsp)
                 got += capture(0.3, 0.3)
-                mid = outcomes()
-                held_ok = sum(mid[k] - t0[k] for k in RELEASED) == 0     # T still holds the response
+                held_ok = None                                   # decided by the pre-send read below
             ahead = len(native) + (0 if offset is None else offset - (49 if kind == 'READ' else 37))
             rst = vectors.packet(20, s + ahead, c, reverse=True)
+            # the order evidence, read immediately before the send (code review: a release seen only afterwards may
+            # have escaped after T applied the reset, inside the N-to-T propagation window)
+            pre = {k: scalar(m.register_read('p1.t_Ingress.outcomes', OUT[k], pipe=1)) for k in RELEASED}
+            released_before_send = sum(pre[k] - t0[k] for k in RELEASED) > 0
+            if branch != 'released':
+                held_ok = not released_before_send               # T still held the response when the RST went out
             m.send(RELAY.dev_port, rst)
             end = time.monotonic() + WAIT_S
             while time.monotonic() < end and sum(outcomes()[k] - t0[k] for k in RELEASED + FLUSHED) == 0:
@@ -513,14 +570,28 @@ def main():
                     report.add('%s_no_master_reset' % tag, True, ok and rst_frames == [] and e1 - e0 == 0, **row)
                 else:
                     report.record['meta'].setdefault('abort_negative_characterization', []).append(row)
-            elif milestone in ('m8', 'm9', 'm9d'):
-                if branch == 'held' and kind != 'OPERATE':
+            elif milestone in ('m8', 'm9', 'm9d', 'm10'):
+                order = rules.abort_branch_outcome(released_before_send, released > 0 and not released_before_send)
+                row['order_before_send'] = order
+                if branch == 'held' and kind != 'OPERATE' and order == 'released':
+                    # T had released the response before the RST was sent: the released-branch outcome is the
+                    # contract one (contention_rules.abort_branch_outcome)
+                    exact = (ok and row['resets_seq'] == [s + g + IMAGE_LEN] and good_rst and len(responses) == 1
+                             and e1 - e0 == 0 and released == 1)
+                    report.record['meta'].setdefault('abort_released_before_send', []).append(tag)
+                elif branch == 'held' and kind != 'OPERATE' and order == 'inconclusive':
+                    exact = False                       # never passed: rerun (contention_rules)
+                    report.record['meta'].setdefault('abort_order_inconclusive', []).append(tag)
+                elif branch == 'held' and kind != 'OPERATE':
                     exact = (ok and held_ok and row['resets_seq'] == [s + g] and good_rst and not responses
                              and e1 - e0 == 1 and released == 0 and flushed + dt.get('OLD_EPOCH_DROP', 0) >= 1)
                 else:
+                    # released first (the 'released' branch, and OPERATE 'held' since J > D): only when the pre-send
+                    # read shows the release; a release seen only after the send is inconclusive (code review A)
                     exact = (ok and row['resets_seq'] == [s + g + IMAGE_LEN] and good_rst and len(responses) == 1
-                             and e1 - e0 == 0 and released == 1
-                             and (branch == 'released' or held_ok is False))   # OPERATE 'held': released first
+                             and e1 - e0 == 0 and released == 1 and order == 'released')
+                    if order == 'inconclusive':
+                        report.record['meta'].setdefault('abort_order_inconclusive', []).append(tag)
                 report.add('%s_master_reset_at_rcv_nxt' % tag, True, exact, **row)
             else:
                 report.record['meta'].setdefault('outstation_abort_characterization', []).append(row)
@@ -612,7 +683,7 @@ def main():
             # the old response may have been admitted before the RST (slow model laps: released once, before the new
             # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
             late = [t for t, _f in old_to_master if t >= new['syn_t']]
-            if old_to_master and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d'):
+            if old_to_master and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
                 # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
@@ -632,8 +703,67 @@ def main():
                                count_busy_delta=[b - a for a, b in zip(busy0, busy())]))
             rst(tag)
 
+        # ---- m10: a master RST that passed stage 0 survives the response claiming N's cell before its stage 1 ------
+        # (review of af7bd434, finding 1; code review of m10_03: no compiled case exercised the restart). The ACK
+        # settles first (120 ms), so the RST's stage-0 pass finds the cell idle; the response follows at once and,
+        # the model's laps being slow, claims the cell before the RST's stage-1 pass. count_busy[5] counts restarts.
+        restart_by_kind = {}
+        for kind in ('READ', 'SELECT') if milestone == 'm10' and section_on('restart') else ():
+            tag = 'restart_%s' % kind
+            reconnect(tag)
+            fc, objects, body = (1, rb.READ_OBJECTS, READ_BODY) if kind == 'READ' else (3, rb.crob(200), bytes(2) + rb.crob(200))
+            busy0, out0 = busy(), outcomes()
+            app, ok = request(kind, fc, objects)
+            c, s, g = st['c'], st['s'], st['growth']
+            new = {}
+
+            def rst_then_response(sent_rsp, c=c, s=s, g=g):
+                m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
+                m.send(RELAY.dev_port, sent_rsp)
+                seen = capture(1.0, 0.6)
+                new['resets'] = [f for _t, p, f in seen if p == RELAY.dev_port and f[47] & 0x04]
+                new['seen'] = seen
+                if not new['resets']:            # CLEANUP ONLY, after the verdict input: close a refused connection
+                    for visible in (0, IMAGE_LEN):
+                        m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
+                        capture(0.4, 0.3)
+            got, native, _ack, _rsp = respond(kind, app, body, 120, during=rst_then_response, send_response=False)
+            got = got + new.get('seen', [])
+            image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
+            leaked = [f for _t, p, f in got if p == MASTER.dev_port and f.endswith(image)]
+            restarts = busy()[5] - busy0[5]
+            out1 = outcomes()
+            t_deltas = {k: out1[k] - out0[k] for k in NAMES if out1[k] != out0[k]}
+            restart_by_kind[kind] = restarts
+            report.add('%s_first_RST_relayed_once' % tag, True, len(new.get('resets', [])) == 1,
+                       relayed=len(new.get('resets', [])))
+            # the ORIGINAL contract ("no response reaches the master") is recorded, not gated: Philip scoped it on
+            # 2026-10-17 to T's reset-application pass, which reset_application_check.py judges from this run's model
+            # log (run_model.py retains reset_application.json; model_summary v3 requires it). At most one copy.
+            report.record['meta'].setdefault('original_contract_no_response', []).append(
+                dict(tag=tag, copies=len(leaked)))
+            report.add('%s_response_at_most_once' % tag, True, len(leaked) <= 1, copies=len(leaked))
+            reconnect('%s_new' % tag)
+            before2, busy2 = outcomes(), busy()
+            app2, ok2 = request('READ', 1, rb.READ_OBJECTS)
+            report.add('%s_new_READ_request_relayed' % tag, True, ok2)
+            got2, native2, ack2, r2 = respond('READ', app2, READ_BODY, 120)
+            judge('%s_new_READ' % tag, 'READ', native2, ack2, got2, before2, busy2, sent_rsp=r2)
+            points.append(dict(tag=tag, kind=kind, restarts=restarts, relayed_resets=len(new.get('resets', [])),
+                               response_copies_to_master=len(leaked), t_deltas=t_deltas,
+                               count_busy_delta=[b - a for a, b in zip(busy0, busy())]))
+            rst('%s_new' % tag)
+
+        if milestone == 'm10' and section_on('restart'):
+            # coverage is a run-level property: the model's timing decides whether a given point interleaves
+            # each kind must exercise the restart (code review C): the model's timing decides per point, so a kind
+            # without one leaves its restart unmeasured and the run incomplete
+            for kind in ('READ', 'SELECT'):
+                report.add('restart_%s_path_exercised' % kind, True, restart_by_kind.get(kind, 0) >= 1,
+                           restarts=restart_by_kind.get(kind, 0))
+
         # ---- m6: a duplicate of a released response (loss beyond the switch) passes, with the same image ---------
-        if milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and section_on('post_release'):
+        if milestone in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10') and section_on('post_release'):
             for kind in ('READ', 'SELECT'):
                 tag = 'post_release_duplicate_%s' % kind
                 got, native, ack, before, busy0, extra = point(tag, kind, 120)

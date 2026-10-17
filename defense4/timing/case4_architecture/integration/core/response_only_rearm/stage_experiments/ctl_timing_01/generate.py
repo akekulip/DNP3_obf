@@ -509,6 +509,89 @@ def transform_n_m9(n):
                 'const default_action=terminal_abort();}')
 
 
+def transform_n_m10(n):
+    """m10 = m9 + this one N correction (review of af7bd434, finding 1; tests/test_reset_race.py). E and T are m9's,
+    byte-identical.
+
+    The race. A validated master RST closes in two passes. Between them the outstation's response may claim N's work
+    cell and move the owner word within the same connection incarnation (READ 5 -> 15 -> 5, SELECT 5 -> 10). m9's
+    stage-1 pass then no longer matches its stage-0 snapshot, either while the cell is still busy (owner_check
+    nonzero) or after the response finished (close_owner's CAS fails), and reset_boundary's default terminal_abort
+    dropped the RST. The review's probe loses it at -3 laps for READ and SELECT.
+
+    The correction. A stage-1 RST whose owner word changed while its epoch did not (epoch_diff 0) restarts at stage 0
+    as the existing 0x0800 RST retry. Stage 0 validates it again in full against the current state: exact SEQ, the
+    m6 ACK rows of the owner state it now finds, the current epoch (retry_valid_t), and a fresh owner snapshot.
+    first_close overwrote the origin's normalized epoch with the close phase, so the restart rebuilds it as stage 0
+    first set it: the envelope epoch for a master RST (snapshot_lap copied it there), 0 for an outstation RST (native,
+    no normalize lap).
+
+    What it must not do. The owner word is state[31:16] ++ owner generation[15:0], and owner_diff is the 32-bit
+    current - expected, so its low half is 0 exactly when the owner generation is unchanged. A restart requires both
+    that and an unchanged epoch: only the state half moved, as a response moves it. A changed epoch or owner
+    generation, which is a replacement connection, still aborts at once (tests/test_m6_lifecycle.py,
+    test_close_whose_owner_cas_fails_keeps_retry_authority, with m10 substituted). The retry pass also checks the
+    current epoch again. So a reset never gains authority over a later incarnation.
+
+    Bounds. The wait laps and restarts share m9's lap counter, event.reserved: a restart adds one. On a retry frame
+    the envelope is already parsed and valid, so snapshot_t's two retry rows take snapshot variants that keep
+    reserved (snapshot_retry, snapshot_lap_retry), and first_close no longer zeroes it; every other snapshot still
+    zeroes it, and response retries always carry 0 (busy_retry). No metadata field is added: m10_02 carried the
+    counter in a new 16-bit m.rst_laps assigned in the parser, and that build failed the compiled-model smoke run
+    (origin fields shifted by 16 bits on an ACK's loop pass; evidence/m10_bisect_01). At 32
+    (n_RETRY_BUDGET) a stage-1 RST aborts as before. So there are at most 32 restarts. Each restart's stage-0 busy
+    wait has the existing 0x0800 budget (32 laps).
+
+    Scope. Only RST-bearing segments restart (the RST bit is a key). A FIN|ACK closing through the same first_close
+    and reset_boundary keeps m9's behaviour and aborts on an owner change.
+
+    The generation guarantee rests on the epoch. A restart's stage-0 pass takes a fresh owner snapshot, so the
+    owner-generation check above covers one stage-0 to stage-1 round only. Across rounds, separation comes from the
+    epoch: only claim_syn changes the owner generation, and the same SYN pass writes the epoch (store_epoch). So a
+    generation change always comes with an epoch change, and a master RST pinned to its envelope epoch aborts at
+    the next stage 1. Every retry pass also checks retry_epoch (retry_valid_t), which is how an outstation RST, whose
+    stage-0 snapshot re-binds to the current epoch, is kept from a replacement connection, as for m6's busy retry.
+
+    Worst case. Constant owner-state flapping gives at most 32 restarts, each with up to 32 stage-0 busy laps plus
+    two passes: about 1,100 recirculations for one RST, then an abort.
+
+    Counter. count_busy[5] counts restarts, so silicon can show the path was taken."""
+    n = once(n, 'hdr.work_generation.generation=hdr.envelope.epoch;hdr.event.reserved=16w0;}',
+             'hdr.work_generation.generation=hdr.envelope.epoch;}')
+    snapshot = ('action snapshot(){hdr.envelope.setValid();hdr.work_generation.setValid();hdr.expected_cell.setValid();'
+                'hdr.event.setValid();hdr.expected_cell.expected_cell=m.observed;hdr.work_generation.generation=m.generation;'
+                'hdr.envelope.epoch=m.epoch;hdr.event.event=16w0x01ff;hdr.event.reserved=16w0;hdr.origin.setValid();'
+                'hdr.origin.wire_ack=m.wire_ack;hdr.origin.normalized_epoch=m.normalized_epoch;m.emit_loop=(bit<1>)(8w1);'
+                'tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;}')
+    keep = snapshot.replace('action snapshot(){', 'action snapshot_retry(){').replace('hdr.event.reserved=16w0;', '')
+    n = once(n, snapshot, snapshot + '\n ' + keep + '\n action snapshot_lap_retry(){snapshot_retry();'
+             'hdr.envelope.epoch=m.normalized_epoch;}')
+    n = once(n, 'actions={snapshot;snapshot_lap;snapshot_epoch_zero;}size=4;const entries={(1w1,_,_,_):snapshot_lap();'
+                '(_,32w0,_,_):snapshot_epoch_zero();(_,_,2w1,2w1):snapshot_lap();(_,_,2w1,_):snapshot();}',
+             'actions={snapshot;snapshot_lap;snapshot_epoch_zero;snapshot_retry;snapshot_lap_retry;}size=4;'
+             'const entries={(1w1,_,_,_):snapshot_lap();(_,32w0,_,_):snapshot_epoch_zero();'
+             '(_,_,2w1,2w1):snapshot_lap_retry();(_,_,2w1,_):snapshot_retry();}')
+    restart = ('action reset_restart_%s(){hdr.work_generation.generation=32w1;hdr.event.event=16w0x0800;'
+               'hdr.event.reserved=hdr.event.reserved+16w1;hdr.origin.normalized_epoch=%s;'
+               'hdr.expected_cell.expected_cell=n_RETRY_BUDGET;tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;'
+               'count_busy_bump.execute(4w5);}\n')
+    return once(n, 'table reset_boundary{key={m.stage:exact;m.owner_op:exact;m.owner_diff:exact;m.epoch_diff:exact;'
+                   'hdr.event.reserved:ternary;}actions={reset_continue;emit_reset;reset_wait;terminal_abort;}size=4;'
+                   'const entries={(2w1,1w1,32w0,32w0,_):reset_continue();(2w2,1w0,32w0,32w0,_):emit_reset();'
+                   '(2w1,1w0,32w0,32w0,16w32):terminal_abort();(2w1,1w0,32w0,32w0,_):reset_wait();}'
+                   'const default_action=terminal_abort();}',
+                restart % ('master', 'hdr.envelope.epoch') + restart % ('out', '32w0') +
+                'table reset_boundary{key={m.stage:exact;m.owner_op:ternary;m.owner_diff:ternary;m.epoch_diff:exact;'
+                'hdr.event.reserved:ternary;m.direction:ternary;hdr.tcp.flags:ternary;}actions={reset_continue;emit_reset;'
+                'reset_wait;reset_restart_master;reset_restart_out;terminal_abort;}size=7;'
+                'const entries={(2w1,1w1,32w0,32w0,_,_,_):reset_continue();(2w2,1w0,32w0,32w0,_,_,_):emit_reset();'
+                '(2w1,1w0,32w0,32w0,16w32,_,_):terminal_abort();(2w1,1w0,32w0,32w0,_,_,_):reset_wait();'
+                '(2w1,_,32w0&&&32w0xffff,32w0,16w32,_,8w0x04&&&8w0x04):terminal_abort();'
+                '(2w1,_,32w0&&&32w0xffff,32w0,_,2w1,8w0x04&&&8w0x04):reset_restart_master();'
+                '(2w1,_,32w0&&&32w0xffff,32w0,_,2w2,8w0x04&&&8w0x04):reset_restart_out();}'
+                'const default_action=terminal_abort();}')
+
+
 def transform_e_diag(e):
     """m9d = m9 + this E-only instrumentation: a DIAGNOSTIC build for localizing the single-exchange ACK delay of the
     m9_01 qualification (evidence/m9_01/COMPLETION_REPORT_20261017.md). Never a candidate.
@@ -568,18 +651,18 @@ def full_source(milestone='m1'):
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
     new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
              'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6, 'm9': transform_n_m6,
-             'm9d': transform_n_m6}[milestone](old_n)
+             'm9d': transform_n_m6, 'm10': transform_n_m6}[milestone](old_n)
     new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
              'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4, 'm9': transform_t_m4,
-             'm9d': transform_t_m4}[milestone](old_t)
+             'm9d': transform_t_m4, 'm10': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
-    if milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d'):  # N only here; m7/m8/m9 add their named changes below
+    if milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):  # N only here; m7/m8/m9 add their named changes below
         m4 = full_source('m4')
         assert combined.segment(text, 'T') == combined.segment(m4, 'T')
         assert combined.segment(text, 'E') == combined.segment(m4, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
-    if milestone in ('m7', 'm8', 'm9', 'm9d'):  # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
+    if milestone in ('m7', 'm8', 'm9', 'm9d', 'm10'):  # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
         old_t7 = combined.segment(text, 'T')
         text = text.replace(old_t7, transform_t_m7(old_t7), 1)
         if milestone == 'm8':
@@ -594,6 +677,10 @@ def full_source(milestone='m1'):
         m9 = full_source('m9')
         text = m9.replace(combined.segment(m9, 'E'), transform_e_diag(combined.segment(m9, 'E')), 1)
         assert all(combined.segment(text, r) == combined.segment(m9, r) for r in ('N', 'T'))
+    if milestone == 'm10':                    # m9 + N reset restart (transform_n_m10); E and T byte-identical to m9
+        m9 = full_source('m9')
+        text = m9.replace(combined.segment(m9, 'N'), transform_n_m10(combined.segment(m9, 'N')), 1)
+        assert all(combined.segment(text, r) == combined.segment(m9, r) for r in ('E', 'T'))
     return text
 
 
@@ -608,8 +695,8 @@ def write(directory, milestone='m1'):
                     source_sha256=digest(text.encode()),
                     candidate61_source={'path': str(SOURCE), 'sha256': SOURCE_SHA256},
                     generator_sha256=digest(Path(__file__).read_bytes()),
-                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone in ('m8', 'm9', 'm9d') else ['N', 'T'],
-                    t_time=T_TIME_M7 if milestone in ('m7', 'm8', 'm9', 'm9d') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
+                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone in ('m8', 'm9', 'm9d', 'm10') else ['N', 'T'],
+                    t_time=T_TIME_M7 if milestone in ('m7', 'm8', 'm9', 'm9d', 'm10') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
                     segment_sha256={name: digest(combined.segment(text, name).encode()) for name in ('N', 'E', 'T')})
     (directory / 'response_only.inputs.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(json.dumps({'source_sha256': metadata['source_sha256'], 'segments': metadata['segment_sha256']}, indent=1))
@@ -617,5 +704,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8|m9|m9d]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8|m9|m9d|m10]')
     write(sys.argv[1], *(sys.argv[2:]))

@@ -1,0 +1,18 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS SYN                                expected=one exact frame observed=1
+PASS SYN_checksums                      expected=True       observed=True
+FAIL SYNACK                             expected=one exact frame observed=0
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/../seg61_02/model_smoke.py", line 93, in main
+    step(name, frame, frame, reverse)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/../seg61_02/model_smoke.py", line 82, in step
+    raise AssertionError(name + ': packet image/count mismatch')
+AssertionError: SYNACK: packet image/count mismatch
+
+SUMMARY {'total': 4, 'passed': 2, 'failed': ['SYNACK', 'exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

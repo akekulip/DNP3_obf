@@ -232,6 +232,43 @@ def _closure_problems(build, r):
     return problems
 
 
+def _reset_application_problems(run_dir):
+    """m10 contention: the revised reset contract (Philip, 2026-10-17; reset_application_check.py) must PASS for
+    every restart point, from the run's retained reset_application.json. Missing, unreadable or any other verdict
+    (FAIL, 'no reset applied') blocks."""
+    path = run_dir / 'reset_application.json'
+    try:
+        result = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return ['no readable reset_application.json (revised reset contract unchecked)']
+    if not result:
+        return ['reset_application.json is empty']
+    return ['revised reset contract %s: %s' % (tag, v.get('verdict')) for tag, v in sorted(result.items())
+            if v.get('verdict') != 'PASS']
+
+
+def _unmeasured_points(run_dir):
+    """Points that did not measure what their check names (code review of the m10_03 failure analysis), so the
+    attempt is incomplete and blocks; never a pass:
+    - committed_path_not_measured: a sweep point whose readiness fallback was the contract outcome;
+    - abort_released_before_send: a held-branch abort point whose response T had released before the RST, so no
+      held response was flushed by the reset.
+    An unreadable or ambiguous results file is itself a problem."""
+    files = sorted(run_dir.glob('*_results.json'))
+    if len(files) != 1:
+        return ['expected one *_results.json, found %d' % len(files)]
+    try:
+        meta = json.loads(files[0].read_text()).get('meta') or {}
+    except (OSError, ValueError) as e:
+        return ['unreadable %s (%s)' % (files[0].name, e)]
+    problems = []
+    for key, what in (('committed_path_not_measured', 'committed path not measured'),
+                      ('abort_released_before_send', 'held abort path not measured')):
+        if meta.get(key):
+            problems.append('%s (incomplete, rerun required): %s' % (what, ', '.join(meta[key])))
+    return problems
+
+
 def summarize_v3(build):
     """summarize_v2() plus mandatory dependency evidence: a driver's latest attempt must carry a verified
     dependency closure (_closure_problems). For a build whose runs predate the closure recorder this blocks, and
@@ -244,6 +281,9 @@ def summarize_v3(build):
     for driver, run in sorted(base['latest_by_driver'].items()):
         r = next(x for x in base['runs'] if x['run'] == run)
         problems = _closure_problems(build, r)
+        if driver == 'contention' and r.get('milestone') == 'm10':
+            problems += _reset_application_problems(build.parent / run)
+            problems += _unmeasured_points(build.parent / run)
         r['dependency_problems'] = problems
         for p in problems:
             reasons.append('%s: latest attempt %s: %s' % (driver, run, p))

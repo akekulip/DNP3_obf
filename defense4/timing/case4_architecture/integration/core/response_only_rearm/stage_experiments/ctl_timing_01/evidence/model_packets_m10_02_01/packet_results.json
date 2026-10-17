@@ -1,0 +1,149 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b4",
+   "name": "wrap_SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b4",
+   "name": "wrap_SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000",
+   "name": "wrap_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3",
+   "name": "wrap_read_request",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000",
+   "name": "wrap_read_server_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531fffffff1fffffff550181000556d000005643244010000008042fece8180000a0200000500010203040559b50a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd",
+   "name": "wrap_read_response61",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531fffffff1fffffff550181000556d000005643244010000008042fece8180000a0200000500010203040559b50a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff080045000059000140004006269c0a0000020a0000014e207531fffffff1fffffff550181000db83000005642644010000002f77fece8180000a020000160001020304053b97060708090a0b0c0d0e0f10111213141555eb1650f8"
+  },
+  {
+   "expected": 61,
+   "name": "wrap_read_payload_len",
+   "observed": 61,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002250101000c8680000",
+   "name": "wrap_read_mapped_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002250101000c8680000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002e50101000c85c0000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002250111000c8670000",
+   "name": "wrap_close_fin",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002250111000c8670000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20fffffff50000002e50111000c85b0000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e2075310000002efffffff650111000c85a0000",
+   "name": "wrap_close_fin_ack",
+   "observed": 0,
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e20753100000022fffffff650111000c8660000"
+  },
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 428, in model_main\n    gate.run()\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 337, in run\n    self.close(wc, wn, ww, 'wrap_close')\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 327, in close\n    self.exchange(tag + '_fin_ack', self.v.packet(17, native_sseq, cseq + 1, reverse=True),\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 271, in exchange\n    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 258, in add\n    raise AssertionError(name)\nAssertionError: wrap_close_fin_ack\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "capture_sha256": {
+   "received": "13193cd019024ed3392ed640794bb0f5c6018a2027030ac1d58c7da4baf9b571",
+   "sent": "9d1ff2a1a9f8a1eb137db3ecae18f626e3a5e16827e7341fedf7eb70944b633c"
+  },
+  "driver_sha256": "263ca299c24f97f3c848c4710b4c0e8d42758da0d5f9174b8261a6424873045c",
+  "physical": false,
+  "scope": "E61 extended compiled packet gate"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "wrap_close_fin_ack",
+   "exception"
+  ],
+  "passed": 9,
+  "total": 11
+ }
+}
