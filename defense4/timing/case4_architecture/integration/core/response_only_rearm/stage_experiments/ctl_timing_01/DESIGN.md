@@ -245,3 +245,40 @@ TRACE_sweep_SELECT_000ms.md`). The exposure of earlier measurements is assessed 
 **m8** (= m7 + E reset at the frontier, `transform_e_m8`) is kept separate so that each resource failure has a single
 cause. Its source tests are in `tests/test_m8_abort.py`. Its earlier compile attempts (m7_01 and m7_02, then labelled
 m7) combined the E change with an older T draft and failed PHV allocation; they are retained.
+
+## m8: outstation reset placed at the master's frontier (2026-10-16, directive ba50eac69 section 2)
+
+m8 = m7 + one E change (`transform_e_m8`). An outstation RST that is exactly one held response ahead of E's frontier
+(49 octets for READ, 37 for control) is written at the master's RCV.NXT and counted as E outcome 16. Before m8, E
+dropped it as `OUT_DROP_AHEAD`.
+- **What the rows key on.** The rows match the RST's distance from the frontier and the RST bit, not T's held state.
+- **Explicit limitations:**
+  - an RST at the distance of two held responses still drops;
+  - a bare RST (no ACK bit) is forwarded untranslated;
+  - with nothing held, the frontier is already the RST's position, so the rows do not fire.
+- **Review findings:** `evidence/m8_02/REVIEW_GAPS_20261016.md`.
+
+## m9: a master RST waits out a busy work cell (2026-10-16, completion plan gate 1)
+
+m9 = m8 + one N change (`transform_n_m9`); E and T are byte-identical to m8.
+- **The race.** A master RST closes in N over two passes. Stage 0 validates it without claiming the work cell; stage
+  1 needs the cell idle. An event that claimed the cell in between (a same-tuple SYN one lap later, found in
+  `model_contention_m8_02_02` and reproduced deterministically) sent the RST to `terminal_abort`. N then kept the
+  old connection and denied every later SYN. The same race explains the 12/24-octet translation difference: N and
+  E never armed the new connection, so the next RST was translated against the previous connection.
+- **The fix.**
+  - The stage-1 close now recirculates while the cell is busy and its owner and epoch are unchanged, counting laps in
+    `event.reserved`, and closes once the cell is idle.
+  - After 32 laps it aborts as before.
+  - The parser and the guard accept `reserved` values 0–63, and `reset_continue` zeroes the field before stage 2.
+- **Build and model results.**
+  - Source `6590141f`; N12/E12/T11 on both SDKs, mirror guard PASS.
+  - All eight model drivers pass, plus `model_abort` (79/79).
+  - Model summary: `evidence/m9_01/model_summary.json`.
+- **Coverage and open limitations:** `evidence/m9_01/NOTES_20261016.md`. In particular, an event that changes the
+  owner during the wait still loses the RST; a compliant master sends nothing after its RST.
+- **Abort profile** (`model_abort`, `model_contention` abort section):
+  - Held READ and SELECT: the RST lands at RCV.NXT, E-16 counts +1, and T discards the held response as
+    OLD_EPOCH_DROP.
+  - Released branch, all kinds: one response, then the RST at the new frontier.
+  - OPERATE responses are never held, because J > D, so an OPERATE abort is always the released branch.

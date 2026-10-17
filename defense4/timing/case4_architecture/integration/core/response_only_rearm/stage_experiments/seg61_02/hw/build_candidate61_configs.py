@@ -19,6 +19,9 @@ M4_SOURCE_SHA = '35e896ebcd11f461ea947db3b0fa5198770c547d680ffb4bdec5d885465c79c
 M5 = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m5_10'
 M5_BUILD = 'ctl_timing_m5_10'
 M5_SOURCE_SHA = 'b758c98199dddd36f8df4a90ce7a1e2301b63e95c2ac766aafa20b5b9f15e981'
+M9 = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9_01'
+M9_BUILD = 'ctl_timing_m9_01'
+M9_SOURCE_SHA = '6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f'
 BUILD = 'rearm_61_full04'
 STRICT_BUILD = 'strict_dup_hold_full02'
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
@@ -124,6 +127,9 @@ if m4_switch['source_sha256'] != M4_SOURCE_SHA:
 m5_switch = compile_identity(M5)
 if m5_switch['source_sha256'] != M5_SOURCE_SHA:
     raise ValueError('ctl_timing m5 source SHA mismatch')
+m9_switch = compile_identity(M9)
+if m9_switch['source_sha256'] != M9_SOURCE_SHA:
+    raise ValueError('ctl_timing m9 source SHA mismatch')
 if ctl_switch['source_sha256'] != CTL_SOURCE_SHA:
     raise ValueError('ctl_timing m3 source SHA mismatch')
 if inputs['source_sha256'] != CANDIDATE_SOURCE_SHA or candidate_switch['source_sha256'] != CANDIDATE_SOURCE_SHA:
@@ -209,6 +215,11 @@ m5_build = dict(make_build(
     'candidate61', M5_SOURCE_SHA, m5_switch, 61, True,
     'ctl_timing_01 m5: m4 plus a bounded, validated busy-retry for responses in N (ACK/response work-cell '
     'contention); E and T byte-identical to m4.'),
+    control_timed=True, piggyback_bound=True)
+m9_build = dict(make_build(
+    'candidate61', M9_SOURCE_SHA, m9_switch, 61, True,
+    'ctl_timing_01 m9: m6 N lifecycle corrections, m7 T time base (256 ns units), m8 E reset at the frontier, and '
+    'the m9 N reset wait (a master RST no longer lost to a busy work cell).'),
     control_timed=True, piggyback_bound=True)
 strict_build = make_build(
     'strict_comparison', STRICT_SOURCE_SHA, strict_switch, 58, False,
@@ -558,6 +569,49 @@ for preset in ('shape_59570', 'shape_ack14892'):
             data['shaping']['preset'] = preset
         write('ctl_m5_%s_b%d.json' % (preset, block), data)
 
+# ctl_timing m9 (completion plan gate 4): the frozen candidate. The agreed recovery and repeated timing families
+# only, same workloads, endpoints and templates as m5, on its own port range. No shaping or characterization twins.
+M9_IDENTITY = {'source_sha256': M9_SOURCE_SHA, 'switch_compile': m9_switch,
+               'design': 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/DESIGN.md (m9)'}
+
+
+def m9(data, pb=CTL_PB_NS):
+    data['timing_params_ns']['pb'] = pb
+    data['ctl_timing_identity'] = M9_IDENTITY
+    return data
+
+
+M9B = dict(build_name=M9_BUILD, build_spec=m9_build)
+write('ctl_m9_persistence_graceful_950.json', m9(transform(load('candidate57s_graceful_800.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm9_persistence_graceful'},
+    gap=950000, port_first=59880, port_last=59880, **M9B)))
+write('ctl_m9_persistence_rst_950.json', m9(transform(load('candidate57s_rst_950.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm9_persistence_rst'},
+    port_first=59881, port_last=59881, **M9B)))
+write('ctl_m9_loss_core_950.json', m9(transform(load('candidate57s_single_loss.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm9_loss_core'},
+    port_first=59882, port_last=59888, **M9B)))
+write('ctl_m9_reconnect_950.json', m9(transform(load('candidate57s_rst_950.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm9_reconnect_protected'},
+    port_first=59889, port_last=59889, **M9B)))
+write('ctl_m9_stale_tokens_950.json', m9(transform(load('candidate57s_old_tokens.json'),
+    purpose={'purpose': 'stale_source_characterization', 'read_precision': False}, reads=1, trials=1,
+    port_first=59920, port_last=59920, **M9B)))
+held9 = m9(transform(load('candidate57s_dup_hold_350.json'),
+    purpose={'purpose': 'qualification', 'read_precision': True, 'candidate61_label': 'm9_held_operate'},
+    gap=800000, port_first=59890, port_last=59890, held=True, **M9B), pb=360000000)
+held9['timing_params_ns'].update(readiness=380000000, cap=400000000)
+write('ctl_m9_held_operate_350.json', held9)
+for pattern, fixture, port, purpose, label in (
+        ('ctl_m9_qual_repeat_sbo_950_b%d.json', 'separate_ack', 59900, 'qualification', 'ctl_timing_m9_qual_%s_64'),
+        ('ctl_m9_qual_piggyback_950_b%d.json', 'piggyback', 59910, 'qualification', 'ctl_timing_m9_qual_%s_64')):
+    for filename, template, order, block in repeat_orders:
+        write(pattern % block, m9(transform(load(template), purpose={'purpose': purpose, 'read_precision': True,
+            'candidate61_label': label % fixture, 'block': block, 'arm_order': order}, arms=order,
+            reads=65, trials=1, preset='shape_59570', gap=950000, port_first=port, port_last=port + 3,
+            start_delay_ms=50, loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT,
+            vision_run_dir=REPEAT_VISION_DIR, fixtures=[fixture], **M9B)))
+
 strict_standards = {
     'packet_boundary_required': True,
     'capture_boundary_scope': 'strict_comparison_fairness',
@@ -586,5 +640,5 @@ write('candidate61_compare_14892_950.json', transform(load('precision_10_950_rem
     gap=950000, arms=['combined'], reads=50, trials=3, port_first=59580, port_last=59582))
 
 print('wrote', sum(len(list(DST.glob(g))) for g in ('candidate61_*.json', 'strict_comparison_*.json', 'ctl_timing_*.json', 'ctl_m4_*.json',
-                                                 'ctl_m5_*.json')),
+                                                 'ctl_m5_*.json', 'ctl_m9_*.json')),
       'configs to', DST)

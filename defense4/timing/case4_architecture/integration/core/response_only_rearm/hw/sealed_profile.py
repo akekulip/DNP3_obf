@@ -5,6 +5,12 @@ from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
 PROFILES = {
+    # ctl_timing_01 m9 (m9_01: m8 + the N reset wait; source 6590141f): one bfrt.json from both SDKs, p4pp 9.13.2
+    # then 9.13.1.
+    'f54acf2e7d598c2b3ad0bad4871f60cd3c6c83e96319d0d66e9c88ac82e42369': {
+        '7c15b3097935d40326a04d21d2a9b146adf38cf2dd42987791fd6396b43462bf',
+        'c74a92c764494fe9cbca2cb3b8afac1545121e901e90083e47884cc74726f9e8',
+    },
     # ctl_timing_01 m5 (m5_10: m4 + bounded, validated busy-retry for responses in N; E and T identical to m4):
     # SDK 9.13.2, then 9.13.1.
     'b5b01ee99142b02df66bad8bc180e77859d0e829fd136bde905f9e6deda1977c': {
