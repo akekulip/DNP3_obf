@@ -13,9 +13,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
-           'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py'}
+           'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'egress_diag': HERE / 'model_egress_diag.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py'}
 # wrapper drivers and the driver code they execute; local modules every driver imports
-WRAPPED = {'abort': {'model_contention.py': HERE / 'model_contention.py'}}
+WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 DEPENDENCIES = [HERE.parent / 'seg61_02' / 'model_repeat.py', HERE.parents[2] / 'response_only' / 'model_drive_composite.py']
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)

@@ -43,6 +43,32 @@ def read_n_counters(sw, all_pipes):
     return out
 
 
+# m9d diagnostic build only (ctl_timing_01 generate.transform_e_diag): E's egress-parser timestamps of master-bound
+# ACKs (lo) and responses (hi), indexed by the master-visible ack[13:0]. Any other build has no such register, and
+# the snapshot is then unchanged (key absent).
+DIAG_EGRESS = 'p0.r_Egress.diag_egress_ts'
+
+
+def read_egress_diag(sw):
+    """Non-zero entries of the diagnostic register, {index: [lo, hi]} on pipe 0, read in one bulk call; None when
+    the loaded build has no such register."""
+    try:
+        t = sw.table(DIAG_EGRESS)
+    except Exception:
+        return None
+    out = {}
+    for data, key in t.entry_get(sw.target(0), None, {'from_hw': True}):
+        d, k = data.to_dict(), key.to_dict()
+        index = k['$REGISTER_INDEX']['value']
+        lo = d[DIAG_EGRESS + '.lo']
+        hi = d[DIAG_EGRESS + '.hi']
+        lo = lo[0] if isinstance(lo, list) else lo
+        hi = hi[0] if isinstance(hi, list) else hi
+        if lo or hi:
+            out[index] = [lo, hi]
+    return out
+
+
 def add_n_counters(args):
     """After the base snapshot wrote its file, add N's counters to it with a fresh read-only client."""
     import argparse
@@ -56,11 +82,15 @@ def add_n_counters(args):
     sw = Switch(a.program, a.client_id)
     try:
         counters = read_n_counters(sw, snapshot.tc.ALL_PIPES)
+        diag = read_egress_diag(sw)
     finally:
         sw.close()
     path = Path(a.output)
     data = json.loads(path.read_text())
     data['n_counters'] = counters
+    if diag is not None:
+        data['egress_diag'] = dict(register=DIAG_EGRESS, units='ns, egress parser global_tstamp[31:0], pipe 0',
+                                   index='master-visible tcp.ack[13:0]', lo='pure ACK', hi='response', entries=diag)
     path.write_text(json.dumps(data, indent=1, default=str) + '\n')
     return 0
 

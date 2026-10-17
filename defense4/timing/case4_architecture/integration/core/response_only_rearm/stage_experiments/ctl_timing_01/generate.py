@@ -509,6 +509,40 @@ def transform_n_m9(n):
                 'const default_action=terminal_abort();}')
 
 
+def transform_e_diag(e):
+    """m9d = m9 + this E-only instrumentation: a DIAGNOSTIC build for localizing the single-exchange ACK delay of the
+    m9_01 qualification (evidence/m9_01/COMPLETION_REPORT_20261017.md). Never a candidate.
+
+    Where the timestamp is taken. At the end of E's egress control, for every TCP packet E forwards towards the master
+    (m.dir == 1) and does not drop, E stores the egress parser's global timestamp (prs.global_tstamp[31:0], ns,
+    wrapping every 4.29 s). The egress parser runs when the packet leaves the traffic manager for the master port.
+    That is after every hold queue: T's recirculating holds and the final TM queue.
+    Indexing. The index is hdr.tcp.ack[13:0], the master-visible acknowledgment. A master-bound ACK and the response
+    that follows it acknowledge the same request, so both land in one entry: lo holds the pure ACK (no payload,
+    m.leff == 0) and hi the response. A later packet with the same index overwrites, as a retransmission would. Within
+    one connection's trial the acknowledgments advance by request lengths far below 2^14 per block, so entries
+    are distinct.
+    What remains unobserved. Everything after the egress parser:
+    - E's own egress processing and the deparser, a fixed pipeline latency;
+    - the egress MAC, serdes and the cable;
+    - the receiving host's NIC, interrupt moderation, kernel and capture stack, up to the host capture timestamp.
+    It cannot show when a packet's last bit left the switch, only when it entered the egress pipeline."""
+    e = once(e, 'struct r_meta_t { bit<32> life_bad;', 'struct r_meta_t { bit<32> diag_now; bit<32> life_bad;')
+    e = once(e, '    Counter<bit<32>, bit<8>>(32, CounterType_t.PACKETS) outcome;',
+             '    Counter<bit<32>, bit<8>>(32, CounterType_t.PACKETS) outcome;\n'
+             '    Register<r_pair32, bit<14>>(16384, {0, 0}) diag_egress_ts;\n'
+             '    RegisterAction<r_pair32, bit<14>, bit<8>>(diag_egress_ts) diag_egress_write = {\n'
+             '        void apply(inout r_pair32 v) { if (m.leff == 0) { v.lo = m.diag_now; } else { v.hi = m.diag_now; } } };\n'
+             '    action diag_clock() { m.diag_now = prs.global_tstamp[31:0]; }\n'
+             '    table diag_clock_t { actions = { diag_clock; } size = 1; const default_action = diag_clock(); }\n'
+             '    action diag_write() { diag_egress_write.execute(hdr.tcp.ack[13:0]); }\n'
+             '    table diag_t { actions = { diag_write; } size = 1; const default_action = diag_write(); }')
+    return once(e, '        count_t.apply();\n',
+                '        diag_clock_t.apply();\n'
+                '        if ((bit<8>)m.dir == 1 && hdr.tcp.isValid() && md.drop_ctl == 0) { diag_t.apply(); }\n'
+                '        count_t.apply();\n')
+
+
 T_TIME_M7 = dict(unit_ns=256, grid_ns=512, source='global_tstamp[39:8] & ~1')
 
 
@@ -533,17 +567,19 @@ def full_source(milestone='m1'):
     base = frozen()
     old_n, old_t = combined.segment(base, 'N'), combined.segment(base, 'T')
     new_n = {'m1': transform_n_m1, 'm2': transform_n_m2, 'm3': transform_n_m2, 'm4': transform_n_m4,
-             'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6, 'm9': transform_n_m6}[milestone](old_n)
+             'm5': transform_n_m5, 'm6': transform_n_m6, 'm7': transform_n_m6, 'm8': transform_n_m6, 'm9': transform_n_m6,
+             'm9d': transform_n_m6}[milestone](old_n)
     new_t = {'m1': lambda t: t, 'm2': transform_t_m2, 'm3': transform_t_m3, 'm4': transform_t_m4,
-             'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4, 'm9': transform_t_m4}[milestone](old_t)
+             'm5': transform_t_m4, 'm6': transform_t_m4, 'm7': transform_t_m4, 'm8': transform_t_m4, 'm9': transform_t_m4,
+             'm9d': transform_t_m4}[milestone](old_t)
     text = base.replace(old_n, new_n, 1).replace(old_t, new_t, 1)
     assert combined.segment(text, 'E') == combined.segment(base, 'E')
-    if milestone in ('m5', 'm6', 'm7', 'm8', 'm9'):  # N only here; m7/m8/m9 add their named changes below
+    if milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d'):  # N only here; m7/m8/m9 add their named changes below
         m4 = full_source('m4')
         assert combined.segment(text, 'T') == combined.segment(m4, 'T')
         assert combined.segment(text, 'E') == combined.segment(m4, 'E')
     assert text.replace(new_n, old_n, 1).replace(new_t, old_t, 1) == base
-    if milestone in ('m7', 'm8', 'm9'):       # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
+    if milestone in ('m7', 'm8', 'm9', 'm9d'):  # m6's N; m7: T clock (transform_t_m7); m8: m7 + E reset (transform_e_m8)
         old_t7 = combined.segment(text, 'T')
         text = text.replace(old_t7, transform_t_m7(old_t7), 1)
         if milestone == 'm8':
@@ -554,6 +590,10 @@ def full_source(milestone='m1'):
         m8 = full_source('m8')
         text = m8.replace(combined.segment(m8, 'N'), transform_n_m9(combined.segment(m8, 'N')), 1)
         assert all(combined.segment(text, r) == combined.segment(m8, r) for r in ('E', 'T'))
+    if milestone == 'm9d':                    # DIAGNOSTIC: m9 + E egress timestamps (transform_e_diag); N, T = m9
+        m9 = full_source('m9')
+        text = m9.replace(combined.segment(m9, 'E'), transform_e_diag(combined.segment(m9, 'E')), 1)
+        assert all(combined.segment(text, r) == combined.segment(m9, r) for r in ('N', 'T'))
     return text
 
 
@@ -568,8 +608,8 @@ def write(directory, milestone='m1'):
                     source_sha256=digest(text.encode()),
                     candidate61_source={'path': str(SOURCE), 'sha256': SOURCE_SHA256},
                     generator_sha256=digest(Path(__file__).read_bytes()),
-                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone in ('m8', 'm9') else ['N', 'T'],
-                    t_time=T_TIME_M7 if milestone in ('m7', 'm8', 'm9') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
+                    changed_roles=['N'] if milestone == 'm1' else ['N', 'T', 'E'] if milestone in ('m8', 'm9', 'm9d') else ['N', 'T'],
+                    t_time=T_TIME_M7 if milestone in ('m7', 'm8', 'm9', 'm9d') else dict(unit_ns=1, grid_ns=256, source='global_tstamp[31:0] & ~0xff'),
                     segment_sha256={name: digest(combined.segment(text, name).encode()) for name in ('N', 'E', 'T')})
     (directory / 'response_only.inputs.json').write_text(json.dumps(metadata, indent=2) + '\n')
     print(json.dumps({'source_sha256': metadata['source_sha256'], 'segments': metadata['segment_sha256']}, indent=1))
@@ -577,5 +617,5 @@ def write(directory, milestone='m1'):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):
-        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8|m9]')
+        raise SystemExit('usage: generate.py OUT_DIR [m1|m2|m3|m4|m5|m6|m7|m8|m9|m9d]')
     write(sys.argv[1], *(sys.argv[2:]))

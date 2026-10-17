@@ -22,6 +22,9 @@ M5_SOURCE_SHA = 'b758c98199dddd36f8df4a90ce7a1e2301b63e95c2ac766aafa20b5b9f15e98
 M9 = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9_01'
 M9_BUILD = 'ctl_timing_m9_01'
 M9_SOURCE_SHA = '6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f'
+M9D = ROOT / 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9d_01'
+M9D_BUILD = 'ctl_timing_m9d_01'
+M9D_SOURCE_SHA = '74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f'
 BUILD = 'rearm_61_full04'
 STRICT_BUILD = 'strict_dup_hold_full02'
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
@@ -130,6 +133,9 @@ if m5_switch['source_sha256'] != M5_SOURCE_SHA:
 m9_switch = compile_identity(M9)
 if m9_switch['source_sha256'] != M9_SOURCE_SHA:
     raise ValueError('ctl_timing m9 source SHA mismatch')
+m9d_switch = compile_identity(M9D)
+if m9d_switch['source_sha256'] != M9D_SOURCE_SHA:
+    raise ValueError('ctl_timing m9d source SHA mismatch')
 if ctl_switch['source_sha256'] != CTL_SOURCE_SHA:
     raise ValueError('ctl_timing m3 source SHA mismatch')
 if inputs['source_sha256'] != CANDIDATE_SOURCE_SHA or candidate_switch['source_sha256'] != CANDIDATE_SOURCE_SHA:
@@ -612,6 +618,34 @@ for pattern, fixture, port, purpose, label in (
             start_delay_ms=50, loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT,
             vision_run_dir=REPEAT_VISION_DIR, fixtures=[fixture], **M9B)))
 
+# ACK-delay localization (ctl_timing_01/evidence/m9d_01/ACK_DIAG_PLAN_20261017.md): six predefined blocks, the
+# qualification repeated-SBO workload and arm orders, purpose characterization so every arm runs. Three on m9_01 (the
+# control) and three on the m9d diagnostic build (m9 + E egress timestamps), each pair on its own port range.
+m9d_build = dict(make_build(
+    'candidate61', M9D_SOURCE_SHA, m9d_switch, 61, True,
+    'DIAGNOSTIC ctl_timing_01 m9d: m9 plus E egress-parser timestamps of master-bound ACKs and responses '
+    '(generate.transform_e_diag); never a candidate.'),
+    control_timed=True, piggyback_bound=True)
+M9D_IDENTITY = {'source_sha256': M9D_SOURCE_SHA, 'switch_compile': m9d_switch,
+                'design': 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m9d_01/ACK_DIAG_PLAN_20261017.md'}
+
+
+def m9d(data, pb=CTL_PB_NS):
+    data['timing_params_ns']['pb'] = pb
+    data['ctl_timing_identity'] = M9D_IDENTITY
+    return data
+
+
+for pattern, wrap, spec, port in (('ctl_m9_ackdiag_ctrl_b%d.json', m9, M9B, 59930),
+                                  ('ctl_m9d_ackdiag_b%d.json', m9d, dict(build_name=M9D_BUILD, build_spec=m9d_build), 59940)):
+    for filename, template, order, block in repeat_orders:
+        write(pattern % block, wrap(transform(load(template), purpose={'purpose': 'timing_precision_characterization',
+            'read_precision': True, 'candidate61_label': pattern[:-len('_b%d.json')],
+            'block': block, 'arm_order': order}, arms=order,
+            reads=65, trials=1, preset='shape_59570', gap=950000, port_first=port, port_last=port + 3,
+            start_delay_ms=50, loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT,
+            vision_run_dir=REPEAT_VISION_DIR, fixtures=['separate_ack'], **spec)))
+
 strict_standards = {
     'packet_boundary_required': True,
     'capture_boundary_scope': 'strict_comparison_fairness',
@@ -640,5 +674,5 @@ write('candidate61_compare_14892_950.json', transform(load('precision_10_950_rem
     gap=950000, arms=['combined'], reads=50, trials=3, port_first=59580, port_last=59582))
 
 print('wrote', sum(len(list(DST.glob(g))) for g in ('candidate61_*.json', 'strict_comparison_*.json', 'ctl_timing_*.json', 'ctl_m4_*.json',
-                                                 'ctl_m5_*.json', 'ctl_m9_*.json')),
+                                                 'ctl_m5_*.json', 'ctl_m9_*.json', 'ctl_m9d_*.json')),
       'configs to', DST)

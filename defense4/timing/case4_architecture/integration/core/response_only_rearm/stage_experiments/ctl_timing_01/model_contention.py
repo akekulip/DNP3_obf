@@ -50,7 +50,7 @@ READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
 def main():
     milestone = os.environ.get('MILESTONE', 'm4')
     bounded = milestone not in ('m1', 'm2')
-    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
+    retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
                     % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
@@ -220,7 +220,7 @@ def main():
             # m6 (directive: suppress a duplicate while its original is held; after release a copy is loss
             # recovery): a duplicate copy may follow the timed original, never precede it, and must be identical.
             # The model's laps take milliseconds, so a copy sent during the wait can reach T after the release.
-            copy_after_release = (milestone in ('m6', 'm7', 'm8', 'm9') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
+            copy_after_release = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and (extra or {}).get('duplicate_sent') and len(to_master) == 3
                                   and same_frame(to_master[0][1], want_ack, ack)
                                   and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
             # a committed release found only by the extended capture is late: it must not pass (review W3)
@@ -381,7 +381,7 @@ def main():
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
                 # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
                 # nothing reaches the master and nothing is busy-dropped, exhausted or stale
-                flushed = (milestone in ('m6', 'm7', 'm8', 'm9') and not payload_to_master and lane['RESP_RELEASE'] == 0
+                flushed = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and not payload_to_master and lane['RESP_RELEASE'] == 0
                            and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
                 refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
@@ -397,7 +397,7 @@ def main():
             # (source probe: m4, response 6 laps after the ACK, RST 1..40 laps later: refused, owner stays 5). So:
             # refused_after_reset -> the RST must take effect; admitted_before_reset -> the m4 refusal is recorded
             # as the pre-existing limitation (DESIGN.md m5), not as an m5 verdict.
-            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8', 'm9'):
+            if row['outcome'] == 'admitted_before_reset' and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d'):
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(first_rst.get('relayed'))))
             else:
@@ -513,7 +513,7 @@ def main():
                     report.add('%s_no_master_reset' % tag, True, ok and rst_frames == [] and e1 - e0 == 0, **row)
                 else:
                     report.record['meta'].setdefault('abort_negative_characterization', []).append(row)
-            elif milestone in ('m8', 'm9'):
+            elif milestone in ('m8', 'm9', 'm9d'):
                 if branch == 'held' and kind != 'OPERATE':
                     exact = (ok and held_ok and row['resets_seq'] == [s + g] and good_rst and not responses
                              and e1 - e0 == 1 and released == 0 and flushed + dt.get('OLD_EPOCH_DROP', 0) >= 1)
@@ -545,6 +545,34 @@ def main():
             got, native, ack, before, busy0, extra = point(tag, 'READ', 0)
             judge(tag, 'READ', native, ack, got, before, busy0, extra, sent_rsp=extra.pop('sent_rsp'))
             rst(tag)
+
+        # ---- m9d diagnostic build only: E's egress timestamps of master-bound ACK (lo) and response (hi) -------------
+        # (generate.transform_e_diag). One committed exchange per kind; the entry at the master-visible ack[13:0] must
+        # hold both halves, response after ACK, and the ACK/response frames the master saw must carry that ack.
+        if section_on('egress_diag') and milestone == 'm9d':
+            def diag_entry(index):
+                raw = m.register_read('p0.r_Egress.diag_egress_ts', index, pipe=0)
+                lo = scalar({k: v for k, v in raw.items() if k.endswith('.lo')})
+                hi = scalar({k: v for k, v in raw.items() if k.endswith('.hi')})
+                return lo, hi
+            for kind in ('READ', 'SELECT', 'OPERATE'):
+                tag = 'egress_diag_%s' % kind
+                got, native, ack, before, busy0, extra = point(tag, kind, 0)
+                judge(tag, kind, native, ack, got, before, busy0, extra, sent_rsp=extra.pop('sent_rsp'))
+                to_master = [f for _t, p_, f in got if p_ == MASTER.dev_port
+                             and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
+                acks = sorted({int.from_bytes(f[42:46], 'big') for f in to_master})
+                lo, hi = diag_entry(st['c'] & 0x3fff)
+                gap = (hi - lo) & 0xffffffff
+                row = dict(tag=tag, kind=kind, master_acks=acks, expected_ack=st['c'], index=st['c'] & 0x3fff,
+                           lo=lo, hi=hi, switch_gap_ns=gap)
+                points.append(row)
+                # both halves written at the master-visible ack, response after the ACK (the model's clock between
+                # two egress passes is not ASIC time, so no duration bound is applied here); judge() has already
+                # advanced the connection state
+                report.add('%s_entry_recorded' % tag, True,
+                           acks == [st['c']] and lo != 0 and hi != 0 and 0 < gap < 0x80000000, **row)
+                rst(tag)
 
         # ---- RST and same-tuple reconnect while the response waits ----------------------------------------------
         for kind in ('READ', 'SELECT') if section_on('reconnect') else ():
@@ -584,7 +612,7 @@ def main():
             # the old response may have been admitted before the RST (slow model laps: released once, before the new
             # connection exists); it must never reach the master once the same-tuple reconnect has begun, nor twice
             late = [t for t, _f in old_to_master if t >= new['syn_t']]
-            if old_to_master and milestone not in ('m6', 'm7', 'm8', 'm9'):
+            if old_to_master and milestone not in ('m6', 'm7', 'm8', 'm9', 'm9d'):
                 # admitted before the RST: N refuses an RST that does not ack it (m4 behaviour; see the reset case)
                 report.record['meta'].setdefault('rst_refused_after_admitted_response', []).append(
                     dict(tag=tag, first_rst_relayed=bool(new.get('first_rst_relayed'))))
@@ -605,7 +633,7 @@ def main():
             rst(tag)
 
         # ---- m6: a duplicate of a released response (loss beyond the switch) passes, with the same image ---------
-        if milestone in ('m6', 'm7', 'm8', 'm9') and section_on('post_release'):
+        if milestone in ('m6', 'm7', 'm8', 'm9', 'm9d') and section_on('post_release'):
             for kind in ('READ', 'SELECT'):
                 tag = 'post_release_duplicate_%s' % kind
                 got, native, ack, before, busy0, extra = point(tag, kind, 120)
@@ -659,7 +687,7 @@ def main():
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
     except Exception:
         report.add('exception', 'none', traceback.format_exc(), ok=False)
-    ok = report.finish(Path(os.environ['OUT']) / ('abort_results.json' if sections == ['abort'] else 'contention_results.json'))
+    ok = report.finish(Path(os.environ['OUT']) / ('%s_results.json' % sections[0] if len(sections) == 1 else 'contention_results.json'))
     return 0 if ok else 1
 
 
