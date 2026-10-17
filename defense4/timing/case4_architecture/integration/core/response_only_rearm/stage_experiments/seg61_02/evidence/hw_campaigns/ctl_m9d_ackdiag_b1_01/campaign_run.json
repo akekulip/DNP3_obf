@@ -1,0 +1,5005 @@
+{
+ "run_id": "ctl_m9d_ackdiag_b1_01",
+ "ok": false,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "off",
+   "T": 0,
+   "padding": 0,
+   "build": "ctl_timing_m9d_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+     "master_port": 59940,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57101
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65516,
+       "read": 65516
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 18,
+       "read": 18
+      },
+      "reserves": {
+       "operate": 18,
+       "read": 18
+      },
+      "snapshot": {
+       "bfrt_sha256": "79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792219287.8357484,
+       "valid": true
+      },
+      "time": 1792219287.843277,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": false,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 0,
+       "operate_per_connection": 0,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m9d_ackdiag_b1_01_separate_ack_off_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+      "master_port": 59940,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57101,
+      "start_delay_ms_applied": 8,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_off_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_off_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59940,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.905,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 4300.0,
+        "median": 4396,
+        "iqr": 32.0,
+        "p95": 4423.0,
+        "p99": 4436.0,
+        "max": 4518.0,
+        "sd_population": 34.4,
+        "sd_sample": 34.7
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": 4300.0,
+        "median": 4396,
+        "iqr": 32.0,
+        "p95": 4423.0,
+        "p99": 4436.0,
+        "max": 4518.0,
+        "sd_population": 34.4,
+        "sd_sample": 34.7
+       },
+       "tails": [
+        {
+         "t_req": 1792219290831837,
+         "clrt_us": 5468,
+         "error_us": 4518.0
+        },
+        {
+         "t_req": 1792219291813615,
+         "clrt_us": 5386,
+         "error_us": 4436.0
+        },
+        {
+         "t_req": 1792219292840768,
+         "clrt_us": 5375,
+         "error_us": 4425.0
+        },
+        {
+         "t_req": 1792219292617660,
+         "clrt_us": 5373,
+         "error_us": 4423.0
+        },
+        {
+         "t_req": 1792219293510353,
+         "clrt_us": 5373,
+         "error_us": 4423.0
+        }
+       ],
+       "pass": false,
+       "p99_nearest_rank_abs_error_us": 4518.0,
+       "gated": false
+      },
+      "select_precision": {
+       "kind": "SELECT",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 4453.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 4299.0,
+        "median": 4394,
+        "iqr": 42.0,
+        "p95": 4433.0,
+        "p99": 4438.0,
+        "max": 4453.0,
+        "sd_population": 30.9,
+        "sd_sample": 31.2
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 4299.0,
+        "median": 4394,
+        "iqr": 42.0,
+        "p95": 4433.0,
+        "p99": 4438.0,
+        "max": 4453.0,
+        "sd_population": 30.9,
+        "sd_sample": 31.2
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 4453.0,
+       "tails": [
+        {
+         "t_req": 1792219290863245,
+         "app_seq": 1,
+         "clrt_us": 5403,
+         "error_us": 4453.0
+        },
+        {
+         "t_req": 1792219293274218,
+         "app_seq": 3,
+         "clrt_us": 5388,
+         "error_us": 4438.0
+        },
+        {
+         "t_req": 1792219292068879,
+         "app_seq": 2,
+         "clrt_us": 5385,
+         "error_us": 4435.0
+        },
+        {
+         "t_req": 1792219291845330,
+         "app_seq": 3,
+         "clrt_us": 5383,
+         "error_us": 4433.0
+        },
+        {
+         "t_req": 1792219291800658,
+         "app_seq": 0,
+         "clrt_us": 5381,
+         "error_us": 4431.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219290863245,
+         "app_seq": 1,
+         "clrt_us": 5403,
+         "error_us": 4453.0
+        },
+        {
+         "t_req": 1792219290907869,
+         "app_seq": 4,
+         "clrt_us": 5306,
+         "error_us": 4356.0
+        },
+        {
+         "t_req": 1792219290952427,
+         "app_seq": 7,
+         "clrt_us": 5352,
+         "error_us": 4402.0
+        },
+        {
+         "t_req": 1792219290997057,
+         "app_seq": 10,
+         "clrt_us": 5315,
+         "error_us": 4365.0
+        },
+        {
+         "t_req": 1792219291041657,
+         "app_seq": 13,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219291086310,
+         "app_seq": 0,
+         "clrt_us": 5333,
+         "error_us": 4383.0
+        },
+        {
+         "t_req": 1792219291130997,
+         "app_seq": 3,
+         "clrt_us": 5320,
+         "error_us": 4370.0
+        },
+        {
+         "t_req": 1792219291175702,
+         "app_seq": 6,
+         "clrt_us": 5353,
+         "error_us": 4403.0
+        },
+        {
+         "t_req": 1792219291220376,
+         "app_seq": 9,
+         "clrt_us": 5345,
+         "error_us": 4395.0
+        },
+        {
+         "t_req": 1792219291264991,
+         "app_seq": 12,
+         "clrt_us": 5314,
+         "error_us": 4364.0
+        },
+        {
+         "t_req": 1792219291309609,
+         "app_seq": 15,
+         "clrt_us": 5348,
+         "error_us": 4398.0
+        },
+        {
+         "t_req": 1792219291354245,
+         "app_seq": 2,
+         "clrt_us": 5314,
+         "error_us": 4364.0
+        },
+        {
+         "t_req": 1792219291398873,
+         "app_seq": 5,
+         "clrt_us": 5350,
+         "error_us": 4400.0
+        },
+        {
+         "t_req": 1792219291443461,
+         "app_seq": 8,
+         "clrt_us": 5369,
+         "error_us": 4419.0
+        },
+        {
+         "t_req": 1792219291488097,
+         "app_seq": 11,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219291532887,
+         "app_seq": 14,
+         "clrt_us": 5279,
+         "error_us": 4329.0
+        },
+        {
+         "t_req": 1792219291577493,
+         "app_seq": 1,
+         "clrt_us": 5300,
+         "error_us": 4350.0
+        },
+        {
+         "t_req": 1792219291622184,
+         "app_seq": 4,
+         "clrt_us": 5249,
+         "error_us": 4299.0
+        },
+        {
+         "t_req": 1792219291666770,
+         "app_seq": 7,
+         "clrt_us": 5295,
+         "error_us": 4345.0
+        },
+        {
+         "t_req": 1792219291711412,
+         "app_seq": 10,
+         "clrt_us": 5283,
+         "error_us": 4333.0
+        },
+        {
+         "t_req": 1792219291756025,
+         "app_seq": 13,
+         "clrt_us": 5280,
+         "error_us": 4330.0
+        },
+        {
+         "t_req": 1792219291800658,
+         "app_seq": 0,
+         "clrt_us": 5381,
+         "error_us": 4431.0
+        },
+        {
+         "t_req": 1792219291845330,
+         "app_seq": 3,
+         "clrt_us": 5383,
+         "error_us": 4433.0
+        },
+        {
+         "t_req": 1792219291890104,
+         "app_seq": 6,
+         "clrt_us": 5325,
+         "error_us": 4375.0
+        },
+        {
+         "t_req": 1792219291934856,
+         "app_seq": 9,
+         "clrt_us": 5335,
+         "error_us": 4385.0
+        },
+        {
+         "t_req": 1792219291979486,
+         "app_seq": 12,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792219292024235,
+         "app_seq": 15,
+         "clrt_us": 5344,
+         "error_us": 4394.0
+        },
+        {
+         "t_req": 1792219292068879,
+         "app_seq": 2,
+         "clrt_us": 5385,
+         "error_us": 4435.0
+        },
+        {
+         "t_req": 1792219292113481,
+         "app_seq": 5,
+         "clrt_us": 5375,
+         "error_us": 4425.0
+        },
+        {
+         "t_req": 1792219292158176,
+         "app_seq": 8,
+         "clrt_us": 5374,
+         "error_us": 4424.0
+        },
+        {
+         "t_req": 1792219292202829,
+         "app_seq": 11,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219292247484,
+         "app_seq": 14,
+         "clrt_us": 5321,
+         "error_us": 4371.0
+        },
+        {
+         "t_req": 1792219292292108,
+         "app_seq": 1,
+         "clrt_us": 5334,
+         "error_us": 4384.0
+        },
+        {
+         "t_req": 1792219292336724,
+         "app_seq": 4,
+         "clrt_us": 5269,
+         "error_us": 4319.0
+        },
+        {
+         "t_req": 1792219292381420,
+         "app_seq": 7,
+         "clrt_us": 5355,
+         "error_us": 4405.0
+        },
+        {
+         "t_req": 1792219292426092,
+         "app_seq": 10,
+         "clrt_us": 5360,
+         "error_us": 4410.0
+        },
+        {
+         "t_req": 1792219292470724,
+         "app_seq": 13,
+         "clrt_us": 5344,
+         "error_us": 4394.0
+        },
+        {
+         "t_req": 1792219292515403,
+         "app_seq": 0,
+         "clrt_us": 5302,
+         "error_us": 4352.0
+        },
+        {
+         "t_req": 1792219292560047,
+         "app_seq": 3,
+         "clrt_us": 5323,
+         "error_us": 4373.0
+        },
+        {
+         "t_req": 1792219292604675,
+         "app_seq": 6,
+         "clrt_us": 5348,
+         "error_us": 4398.0
+        },
+        {
+         "t_req": 1792219292649367,
+         "app_seq": 9,
+         "clrt_us": 5376,
+         "error_us": 4426.0
+        },
+        {
+         "t_req": 1792219292693946,
+         "app_seq": 12,
+         "clrt_us": 5339,
+         "error_us": 4389.0
+        },
+        {
+         "t_req": 1792219292738492,
+         "app_seq": 15,
+         "clrt_us": 5306,
+         "error_us": 4356.0
+        },
+        {
+         "t_req": 1792219292783217,
+         "app_seq": 2,
+         "clrt_us": 5370,
+         "error_us": 4420.0
+        },
+        {
+         "t_req": 1792219292827844,
+         "app_seq": 5,
+         "clrt_us": 5353,
+         "error_us": 4403.0
+        },
+        {
+         "t_req": 1792219292872445,
+         "app_seq": 8,
+         "clrt_us": 5359,
+         "error_us": 4409.0
+        },
+        {
+         "t_req": 1792219292917184,
+         "app_seq": 11,
+         "clrt_us": 5362,
+         "error_us": 4412.0
+        },
+        {
+         "t_req": 1792219292961730,
+         "app_seq": 14,
+         "clrt_us": 5311,
+         "error_us": 4361.0
+        },
+        {
+         "t_req": 1792219293006432,
+         "app_seq": 1,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219293051051,
+         "app_seq": 4,
+         "clrt_us": 5339,
+         "error_us": 4389.0
+        },
+        {
+         "t_req": 1792219293095616,
+         "app_seq": 7,
+         "clrt_us": 5364,
+         "error_us": 4414.0
+        },
+        {
+         "t_req": 1792219293140331,
+         "app_seq": 10,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219293184957,
+         "app_seq": 13,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219293229531,
+         "app_seq": 0,
+         "clrt_us": 5350,
+         "error_us": 4400.0
+        },
+        {
+         "t_req": 1792219293274218,
+         "app_seq": 3,
+         "clrt_us": 5388,
+         "error_us": 4438.0
+        },
+        {
+         "t_req": 1792219293318835,
+         "app_seq": 6,
+         "clrt_us": 5341,
+         "error_us": 4391.0
+        },
+        {
+         "t_req": 1792219293363489,
+         "app_seq": 9,
+         "clrt_us": 5369,
+         "error_us": 4419.0
+        },
+        {
+         "t_req": 1792219293408188,
+         "app_seq": 12,
+         "clrt_us": 5313,
+         "error_us": 4363.0
+        },
+        {
+         "t_req": 1792219293452755,
+         "app_seq": 15,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792219293497397,
+         "app_seq": 2,
+         "clrt_us": 5356,
+         "error_us": 4406.0
+        },
+        {
+         "t_req": 1792219293542067,
+         "app_seq": 5,
+         "clrt_us": 5344,
+         "error_us": 4394.0
+        },
+        {
+         "t_req": 1792219293586799,
+         "app_seq": 8,
+         "clrt_us": 5370,
+         "error_us": 4420.0
+        },
+        {
+         "t_req": 1792219293631329,
+         "app_seq": 11,
+         "clrt_us": 5309,
+         "error_us": 4359.0
+        },
+        {
+         "t_req": 1792219293675998,
+         "app_seq": 14,
+         "clrt_us": 5334,
+         "error_us": 4384.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "operate_precision": {
+       "kind": "OPERATE",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 5538.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 4267.0,
+        "median": 4365,
+        "iqr": 57.0,
+        "p95": 4401.0,
+        "p99": 4420.0,
+        "max": 5538.0,
+        "sd_population": 151.4,
+        "sd_sample": 152.6
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 4267.0,
+        "median": 4365,
+        "iqr": 57.0,
+        "p95": 4401.0,
+        "p99": 4420.0,
+        "max": 5538.0,
+        "sd_population": 151.4,
+        "sd_sample": 152.6
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 5538.0,
+       "tails": [
+        {
+         "t_req": 1792219293681665,
+         "app_seq": 15,
+         "clrt_us": 6488,
+         "error_us": 5538.0
+        },
+        {
+         "t_req": 1792219293547745,
+         "app_seq": 6,
+         "clrt_us": 5370,
+         "error_us": 4420.0
+        },
+        {
+         "t_req": 1792219292878156,
+         "app_seq": 9,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219293592501,
+         "app_seq": 9,
+         "clrt_us": 5351,
+         "error_us": 4401.0
+        },
+        {
+         "t_req": 1792219292744153,
+         "app_seq": 0,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219290869023,
+         "app_seq": 2,
+         "clrt_us": 5236,
+         "error_us": 4286.0
+        },
+        {
+         "t_req": 1792219290913534,
+         "app_seq": 5,
+         "clrt_us": 5318,
+         "error_us": 4368.0
+        },
+        {
+         "t_req": 1792219290958142,
+         "app_seq": 8,
+         "clrt_us": 5311,
+         "error_us": 4361.0
+        },
+        {
+         "t_req": 1792219291002723,
+         "app_seq": 11,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219291047368,
+         "app_seq": 14,
+         "clrt_us": 5314,
+         "error_us": 4364.0
+        },
+        {
+         "t_req": 1792219291091991,
+         "app_seq": 1,
+         "clrt_us": 5263,
+         "error_us": 4313.0
+        },
+        {
+         "t_req": 1792219291136667,
+         "app_seq": 4,
+         "clrt_us": 5264,
+         "error_us": 4314.0
+        },
+        {
+         "t_req": 1792219291181403,
+         "app_seq": 7,
+         "clrt_us": 5320,
+         "error_us": 4370.0
+        },
+        {
+         "t_req": 1792219291226065,
+         "app_seq": 10,
+         "clrt_us": 5264,
+         "error_us": 4314.0
+        },
+        {
+         "t_req": 1792219291270655,
+         "app_seq": 13,
+         "clrt_us": 5274,
+         "error_us": 4324.0
+        },
+        {
+         "t_req": 1792219291315307,
+         "app_seq": 0,
+         "clrt_us": 5342,
+         "error_us": 4392.0
+        },
+        {
+         "t_req": 1792219291359910,
+         "app_seq": 3,
+         "clrt_us": 5224,
+         "error_us": 4274.0
+        },
+        {
+         "t_req": 1792219291404569,
+         "app_seq": 6,
+         "clrt_us": 5274,
+         "error_us": 4324.0
+        },
+        {
+         "t_req": 1792219291449198,
+         "app_seq": 9,
+         "clrt_us": 5319,
+         "error_us": 4369.0
+        },
+        {
+         "t_req": 1792219291493803,
+         "app_seq": 12,
+         "clrt_us": 5307,
+         "error_us": 4357.0
+        },
+        {
+         "t_req": 1792219291538564,
+         "app_seq": 15,
+         "clrt_us": 5336,
+         "error_us": 4386.0
+        },
+        {
+         "t_req": 1792219291583213,
+         "app_seq": 2,
+         "clrt_us": 5286,
+         "error_us": 4336.0
+        },
+        {
+         "t_req": 1792219291627837,
+         "app_seq": 5,
+         "clrt_us": 5260,
+         "error_us": 4310.0
+        },
+        {
+         "t_req": 1792219291672470,
+         "app_seq": 8,
+         "clrt_us": 5262,
+         "error_us": 4312.0
+        },
+        {
+         "t_req": 1792219291717095,
+         "app_seq": 11,
+         "clrt_us": 5340,
+         "error_us": 4390.0
+        },
+        {
+         "t_req": 1792219291761710,
+         "app_seq": 14,
+         "clrt_us": 5337,
+         "error_us": 4387.0
+        },
+        {
+         "t_req": 1792219291806379,
+         "app_seq": 1,
+         "clrt_us": 5335,
+         "error_us": 4385.0
+        },
+        {
+         "t_req": 1792219291851048,
+         "app_seq": 4,
+         "clrt_us": 5275,
+         "error_us": 4325.0
+        },
+        {
+         "t_req": 1792219291895767,
+         "app_seq": 7,
+         "clrt_us": 5282,
+         "error_us": 4332.0
+        },
+        {
+         "t_req": 1792219291940525,
+         "app_seq": 10,
+         "clrt_us": 5273,
+         "error_us": 4323.0
+        },
+        {
+         "t_req": 1792219291985199,
+         "app_seq": 13,
+         "clrt_us": 5336,
+         "error_us": 4386.0
+        },
+        {
+         "t_req": 1792219292029922,
+         "app_seq": 0,
+         "clrt_us": 5312,
+         "error_us": 4362.0
+        },
+        {
+         "t_req": 1792219292074599,
+         "app_seq": 3,
+         "clrt_us": 5318,
+         "error_us": 4368.0
+        },
+        {
+         "t_req": 1792219292119207,
+         "app_seq": 6,
+         "clrt_us": 5342,
+         "error_us": 4392.0
+        },
+        {
+         "t_req": 1792219292163882,
+         "app_seq": 9,
+         "clrt_us": 5300,
+         "error_us": 4350.0
+        },
+        {
+         "t_req": 1792219292208525,
+         "app_seq": 12,
+         "clrt_us": 5328,
+         "error_us": 4378.0
+        },
+        {
+         "t_req": 1792219292253159,
+         "app_seq": 15,
+         "clrt_us": 5217,
+         "error_us": 4267.0
+        },
+        {
+         "t_req": 1792219292297791,
+         "app_seq": 2,
+         "clrt_us": 5317,
+         "error_us": 4367.0
+        },
+        {
+         "t_req": 1792219292342327,
+         "app_seq": 5,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792219292387108,
+         "app_seq": 8,
+         "clrt_us": 5279,
+         "error_us": 4329.0
+        },
+        {
+         "t_req": 1792219292431802,
+         "app_seq": 11,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792219292476401,
+         "app_seq": 14,
+         "clrt_us": 5341,
+         "error_us": 4391.0
+        },
+        {
+         "t_req": 1792219292521037,
+         "app_seq": 1,
+         "clrt_us": 5327,
+         "error_us": 4377.0
+        },
+        {
+         "t_req": 1792219292565703,
+         "app_seq": 4,
+         "clrt_us": 5258,
+         "error_us": 4308.0
+        },
+        {
+         "t_req": 1792219292610354,
+         "app_seq": 7,
+         "clrt_us": 5277,
+         "error_us": 4327.0
+        },
+        {
+         "t_req": 1792219292655079,
+         "app_seq": 10,
+         "clrt_us": 5231,
+         "error_us": 4281.0
+        },
+        {
+         "t_req": 1792219292699618,
+         "app_seq": 13,
+         "clrt_us": 5323,
+         "error_us": 4373.0
+        },
+        {
+         "t_req": 1792219292744153,
+         "app_seq": 0,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219292788919,
+         "app_seq": 3,
+         "clrt_us": 5227,
+         "error_us": 4277.0
+        },
+        {
+         "t_req": 1792219292833531,
+         "app_seq": 6,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792219292878156,
+         "app_seq": 9,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219292922876,
+         "app_seq": 12,
+         "clrt_us": 5307,
+         "error_us": 4357.0
+        },
+        {
+         "t_req": 1792219292967376,
+         "app_seq": 15,
+         "clrt_us": 5334,
+         "error_us": 4384.0
+        },
+        {
+         "t_req": 1792219293012113,
+         "app_seq": 2,
+         "clrt_us": 5294,
+         "error_us": 4344.0
+        },
+        {
+         "t_req": 1792219293056726,
+         "app_seq": 5,
+         "clrt_us": 5279,
+         "error_us": 4329.0
+        },
+        {
+         "t_req": 1792219293101316,
+         "app_seq": 8,
+         "clrt_us": 5329,
+         "error_us": 4379.0
+        },
+        {
+         "t_req": 1792219293146017,
+         "app_seq": 11,
+         "clrt_us": 5286,
+         "error_us": 4336.0
+        },
+        {
+         "t_req": 1792219293190606,
+         "app_seq": 14,
+         "clrt_us": 5329,
+         "error_us": 4379.0
+        },
+        {
+         "t_req": 1792219293235233,
+         "app_seq": 1,
+         "clrt_us": 5346,
+         "error_us": 4396.0
+        },
+        {
+         "t_req": 1792219293279939,
+         "app_seq": 4,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219293324511,
+         "app_seq": 7,
+         "clrt_us": 5333,
+         "error_us": 4383.0
+        },
+        {
+         "t_req": 1792219293369218,
+         "app_seq": 10,
+         "clrt_us": 5341,
+         "error_us": 4391.0
+        },
+        {
+         "t_req": 1792219293413835,
+         "app_seq": 13,
+         "clrt_us": 5300,
+         "error_us": 4350.0
+        },
+        {
+         "t_req": 1792219293458431,
+         "app_seq": 0,
+         "clrt_us": 5304,
+         "error_us": 4354.0
+        },
+        {
+         "t_req": 1792219293503088,
+         "app_seq": 3,
+         "clrt_us": 5279,
+         "error_us": 4329.0
+        },
+        {
+         "t_req": 1792219293547745,
+         "app_seq": 6,
+         "clrt_us": 5370,
+         "error_us": 4420.0
+        },
+        {
+         "t_req": 1792219293592501,
+         "app_seq": 9,
+         "clrt_us": 5351,
+         "error_us": 4401.0
+        },
+        {
+         "t_req": 1792219293636974,
+         "app_seq": 12,
+         "clrt_us": 5238,
+         "error_us": 4288.0
+        },
+        {
+         "t_req": 1792219293681665,
+         "app_seq": 15,
+         "clrt_us": 6488,
+         "error_us": 5538.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "piggyback_latency": {
+       "pb_us": 4000.0,
+       "margin_us": 250,
+       "target_us": 4250.0,
+       "n": 0,
+       "missing_rt": 0,
+       "minimum_samples": 20,
+       "p50": null,
+       "p99": null,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+       "max": null,
+       "rt_us_stats_round_index": null,
+       "above_target": [],
+       "sufficient": false,
+       "reasons": [
+        "insufficient piggyback samples: 0 < 20"
+       ],
+       "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+       "pass": false,
+       "gated": false
+      },
+      "operate_hold": {
+       "op_j_us": 2400.0,
+       "observation": {
+        "tx": "out.pcap master-side tap",
+        "rx": "in.pcap outstation-side tap",
+        "includes": "path and capture delay; not an ASIC residency timestamp"
+       },
+       "sent": 64,
+       "observed": 64,
+       "complete_operates": 64,
+       "expected_operates": 64,
+       "min_transit_us": 31.9,
+       "below_op_j": [
+        {
+         "seq": 2638977692,
+         "app_seq": 2,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 2638977782,
+         "app_seq": 5,
+         "transit_us": 89.2
+        },
+        {
+         "seq": 2638977872,
+         "app_seq": 8,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 2638977962,
+         "app_seq": 11,
+         "transit_us": 88.0
+        },
+        {
+         "seq": 2638978052,
+         "app_seq": 14,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 2638978142,
+         "app_seq": 1,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 2638978232,
+         "app_seq": 4,
+         "transit_us": 37.9
+        },
+        {
+         "seq": 2638978322,
+         "app_seq": 7,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978412,
+         "app_seq": 10,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978502,
+         "app_seq": 13,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978592,
+         "app_seq": 0,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978682,
+         "app_seq": 3,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978772,
+         "app_seq": 6,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978862,
+         "app_seq": 9,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 2638978952,
+         "app_seq": 12,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638979042,
+         "app_seq": 15,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638979132,
+         "app_seq": 2,
+         "transit_us": 33.9
+        },
+        {
+         "seq": 2638979222,
+         "app_seq": 5,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638979312,
+         "app_seq": 8,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638979402,
+         "app_seq": 11,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638979492,
+         "app_seq": 14,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638979582,
+         "app_seq": 1,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638979672,
+         "app_seq": 4,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638979762,
+         "app_seq": 7,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638979852,
+         "app_seq": 10,
+         "transit_us": 31.9
+        },
+        {
+         "seq": 2638979942,
+         "app_seq": 13,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638980032,
+         "app_seq": 0,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980122,
+         "app_seq": 3,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980212,
+         "app_seq": 6,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638980302,
+         "app_seq": 9,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980392,
+         "app_seq": 12,
+         "transit_us": 31.9
+        },
+        {
+         "seq": 2638980482,
+         "app_seq": 15,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980572,
+         "app_seq": 2,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638980662,
+         "app_seq": 5,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980752,
+         "app_seq": 8,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980842,
+         "app_seq": 11,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638980932,
+         "app_seq": 14,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638981022,
+         "app_seq": 1,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638981112,
+         "app_seq": 4,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638981202,
+         "app_seq": 7,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638981292,
+         "app_seq": 10,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638981382,
+         "app_seq": 13,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638981472,
+         "app_seq": 0,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638981562,
+         "app_seq": 3,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638981652,
+         "app_seq": 6,
+         "transit_us": 32.2
+        },
+        {
+         "seq": 2638981742,
+         "app_seq": 9,
+         "transit_us": 31.9
+        },
+        {
+         "seq": 2638981832,
+         "app_seq": 12,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638981922,
+         "app_seq": 15,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982012,
+         "app_seq": 2,
+         "transit_us": 47.0
+        },
+        {
+         "seq": 2638982102,
+         "app_seq": 5,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638982192,
+         "app_seq": 8,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638982282,
+         "app_seq": 11,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982372,
+         "app_seq": 14,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982462,
+         "app_seq": 1,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982552,
+         "app_seq": 4,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638982642,
+         "app_seq": 7,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982732,
+         "app_seq": 10,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982822,
+         "app_seq": 13,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638982912,
+         "app_seq": 0,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638983002,
+         "app_seq": 3,
+         "transit_us": 31.9
+        },
+        {
+         "seq": 2638983092,
+         "app_seq": 6,
+         "transit_us": 34.1
+        },
+        {
+         "seq": 2638983182,
+         "app_seq": 9,
+         "transit_us": 33.1
+        },
+        {
+         "seq": 2638983272,
+         "app_seq": 12,
+         "transit_us": 32.9
+        },
+        {
+         "seq": 2638983362,
+         "app_seq": 15,
+         "transit_us": 33.1
+        }
+       ],
+       "sufficient": true,
+       "reasons": [
+        "minimum OPERATE transit 31.9 us below op_j 2400.0 us (64 below)"
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "generation_exhausted": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "T": 1,
+   "padding": 0,
+   "build": "ctl_timing_m9d_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+     "master_port": 59941,
+     "reads": 65,
+     "ok": false,
+     "failures": [
+      "SELECT precision: eligible=64 (minimum20), nearest-rank p99 absolute CLRT error=909.0 us (maximum100)"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57102
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65452,
+       "read": 65323
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 82,
+       "read": 211
+      },
+      "reserves": {
+       "operate": 82,
+       "read": 211
+      },
+      "snapshot": {
+       "bfrt_sha256": "79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792219367.432312,
+       "valid": true
+      },
+      "time": 1792219367.446768,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 193,
+       "operate_per_connection": 64,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+      "master_port": 59941,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57102,
+      "start_delay_ms_applied": 44,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59941,
+       "polls": 1,
+       "elapsed_s": 0.032,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 3.319,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 0.0,
+        "median": 4,
+        "iqr": 5.0,
+        "p95": 39.0,
+        "p99": 50.0,
+        "max": 52.0,
+        "sd_population": 10.6,
+        "sd_sample": 10.7
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": -40.0,
+        "median": 0,
+        "iqr": 8.0,
+        "p95": 8.0,
+        "p99": 50.0,
+        "max": 52.0,
+        "sd_population": 12.8,
+        "sd_sample": 12.9
+       },
+       "tails": [
+        {
+         "t_req": 1792219370824760,
+         "clrt_us": 1002,
+         "error_us": 52.0
+        },
+        {
+         "t_req": 1792219372560870,
+         "clrt_us": 1000,
+         "error_us": 50.0
+        },
+        {
+         "t_req": 1792219373530944,
+         "clrt_us": 910,
+         "error_us": -40.0
+        },
+        {
+         "t_req": 1792219371131078,
+         "clrt_us": 911,
+         "error_us": -39.0
+        },
+        {
+         "t_req": 1792219373071319,
+         "clrt_us": 928,
+         "error_us": -22.0
+        }
+       ],
+       "pass": true,
+       "p99_nearest_rank_abs_error_us": 52.0,
+       "gated": true
+      },
+      "select_precision": {
+       "kind": "SELECT",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 909.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 0.0,
+        "median": 4,
+        "iqr": 4.0,
+        "p95": 18.0,
+        "p99": 58.0,
+        "max": 909.0,
+        "sd_population": 112.4,
+        "sd_sample": 113.3
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": -909.0,
+        "median": -1,
+        "iqr": 7.0,
+        "p95": 6.0,
+        "p99": 50.0,
+        "max": 58.0,
+        "sd_population": 113.3,
+        "sd_sample": 114.2
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 909.0,
+       "tails": [
+        {
+         "t_req": 1792219372645761,
+         "app_seq": 15,
+         "clrt_us": 41,
+         "error_us": -909.0
+        },
+        {
+         "t_req": 1792219373666844,
+         "app_seq": 11,
+         "clrt_us": 1008,
+         "error_us": 58.0
+        },
+        {
+         "t_req": 1792219373411610,
+         "app_seq": 12,
+         "clrt_us": 1000,
+         "error_us": 50.0
+        },
+        {
+         "t_req": 1792219373309551,
+         "app_seq": 6,
+         "clrt_us": 932,
+         "error_us": -18.0
+        },
+        {
+         "t_req": 1792219371573512,
+         "app_seq": 0,
+         "clrt_us": 942,
+         "error_us": -8.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219372645761,
+         "app_seq": 15,
+         "clrt_us": 41,
+         "error_us": -909.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": true
+      },
+      "operate_precision": {
+       "kind": "OPERATE",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 86.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 0.0,
+        "median": 7,
+        "iqr": 31.0,
+        "p95": 46.0,
+        "p99": 49.0,
+        "max": 86.0,
+        "sd_population": 18.5,
+        "sd_sample": 18.6
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": -49.0,
+        "median": 4,
+        "iqr": 33.0,
+        "p95": 44.0,
+        "p99": 48.0,
+        "max": 86.0,
+        "sd_population": 21.6,
+        "sd_sample": 21.8
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 86.0,
+       "tails": [
+        {
+         "t_req": 1792219371273503,
+         "app_seq": 15,
+         "clrt_us": 1036,
+         "error_us": 86.0
+        },
+        {
+         "t_req": 1792219373673415,
+         "app_seq": 12,
+         "clrt_us": 901,
+         "error_us": -49.0
+        },
+        {
+         "t_req": 1792219371426721,
+         "app_seq": 8,
+         "clrt_us": 998,
+         "error_us": 48.0
+        },
+        {
+         "t_req": 1792219371375688,
+         "app_seq": 5,
+         "clrt_us": 996,
+         "error_us": 46.0
+        },
+        {
+         "t_req": 1792219372652588,
+         "app_seq": 0,
+         "clrt_us": 994,
+         "error_us": 44.0
+        }
+       ],
+       "over_bound": [],
+       "sufficient": true,
+       "pass": true,
+       "gated": true
+      },
+      "piggyback_latency": {
+       "pb_us": 4000.0,
+       "margin_us": 250,
+       "target_us": 4250.0,
+       "n": 0,
+       "missing_rt": 0,
+       "minimum_samples": 20,
+       "p50": null,
+       "p99": null,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+       "max": null,
+       "rt_us_stats_round_index": null,
+       "above_target": [],
+       "sufficient": false,
+       "reasons": [
+        "insufficient piggyback samples: 0 < 20"
+       ],
+       "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+       "pass": false,
+       "gated": false
+      },
+      "operate_hold": {
+       "op_j_us": 2400.0,
+       "observation": {
+        "tx": "out.pcap master-side tap",
+        "rx": "in.pcap outstation-side tap",
+        "includes": "path and capture delay; not an ASIC residency timestamp"
+       },
+       "sent": 64,
+       "observed": 64,
+       "complete_operates": 64,
+       "expected_operates": 64,
+       "min_transit_us": 2486.9,
+       "below_op_j": [],
+       "sufficient": true,
+       "reasons": [],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 81554,
+       "OUT_ACK_COMMIT": 193,
+       "OUT_RESP_RELEASE": 193,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 64,
+       "OUT_TOKEN_STALE": 96,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 96,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 96,
+      "generation_exhausted": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 129,
+        "pkts": 516
+       },
+       "OPERATE": {
+        "triggers": 64,
+        "pkts": 256
+       }
+      },
+      "token_stale_bound": 256,
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": true,
+      "reason": "timing objective thresholds only: select_precision"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "build": "ctl_timing_m9d_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+     "master_port": 59942,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57103
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65516,
+       "read": 65516
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 18,
+       "read": 18
+      },
+      "reserves": {
+       "operate": 18,
+       "read": 18
+      },
+      "snapshot": {
+       "bfrt_sha256": "79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792219447.3578954,
+       "valid": true
+      },
+      "time": 1792219447.3673203,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": false,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 0,
+       "operate_per_connection": 0,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+      "master_port": 59942,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57103,
+      "start_delay_ms_applied": 31,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59942,
+       "polls": 1,
+       "elapsed_s": 0.033,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 2.906,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 3852,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 4262.0,
+        "median": 4394,
+        "iqr": 76.0,
+        "p95": 4428.0,
+        "p99": 4518.0,
+        "max": 5562.0,
+        "sd_population": 152.2,
+        "sd_sample": 153.4
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": 4262.0,
+        "median": 4394,
+        "iqr": 76.0,
+        "p95": 4428.0,
+        "p99": 4518.0,
+        "max": 5562.0,
+        "sd_population": 152.2,
+        "sd_sample": 153.4
+       },
+       "tails": [
+        {
+         "t_req": 1792219452243861,
+         "clrt_us": 6512,
+         "error_us": 5562.0
+        },
+        {
+         "t_req": 1792219450370650,
+         "clrt_us": 5468,
+         "error_us": 4518.0
+        },
+        {
+         "t_req": 1792219451797882,
+         "clrt_us": 5385,
+         "error_us": 4435.0
+        },
+        {
+         "t_req": 1792219450860873,
+         "clrt_us": 5378,
+         "error_us": 4428.0
+        },
+        {
+         "t_req": 1792219450727119,
+         "clrt_us": 5376,
+         "error_us": 4426.0
+        }
+       ],
+       "pass": false,
+       "p99_nearest_rank_abs_error_us": 5562.0,
+       "gated": false
+      },
+      "select_precision": {
+       "kind": "SELECT",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 4428.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 4242.0,
+        "median": 4387,
+        "iqr": 75.0,
+        "p95": 4416.0,
+        "p99": 4427.0,
+        "max": 4428.0,
+        "sd_population": 46.0,
+        "sd_sample": 46.3
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 4242.0,
+        "median": 4387,
+        "iqr": 75.0,
+        "p95": 4416.0,
+        "p99": 4427.0,
+        "max": 4428.0,
+        "sd_population": 46.0,
+        "sd_sample": 46.3
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 4428.0,
+       "tails": [
+        {
+         "t_req": 1792219451249427,
+         "app_seq": 10,
+         "clrt_us": 5378,
+         "error_us": 4428.0
+        },
+        {
+         "t_req": 1792219452007913,
+         "app_seq": 13,
+         "clrt_us": 5377,
+         "error_us": 4427.0
+        },
+        {
+         "t_req": 1792219452277645,
+         "app_seq": 15,
+         "clrt_us": 5377,
+         "error_us": 4427.0
+        },
+        {
+         "t_req": 1792219450446671,
+         "app_seq": 4,
+         "clrt_us": 5366,
+         "error_us": 4416.0
+        },
+        {
+         "t_req": 1792219451294059,
+         "app_seq": 13,
+         "clrt_us": 5366,
+         "error_us": 4416.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219450402041,
+         "app_seq": 1,
+         "clrt_us": 5337,
+         "error_us": 4387.0
+        },
+        {
+         "t_req": 1792219450446671,
+         "app_seq": 4,
+         "clrt_us": 5366,
+         "error_us": 4416.0
+        },
+        {
+         "t_req": 1792219450491219,
+         "app_seq": 7,
+         "clrt_us": 5342,
+         "error_us": 4392.0
+        },
+        {
+         "t_req": 1792219450535716,
+         "app_seq": 10,
+         "clrt_us": 5361,
+         "error_us": 4411.0
+        },
+        {
+         "t_req": 1792219450580353,
+         "app_seq": 13,
+         "clrt_us": 5360,
+         "error_us": 4410.0
+        },
+        {
+         "t_req": 1792219450624997,
+         "app_seq": 0,
+         "clrt_us": 5320,
+         "error_us": 4370.0
+        },
+        {
+         "t_req": 1792219450669537,
+         "app_seq": 3,
+         "clrt_us": 5339,
+         "error_us": 4389.0
+        },
+        {
+         "t_req": 1792219450714211,
+         "app_seq": 6,
+         "clrt_us": 5364,
+         "error_us": 4414.0
+        },
+        {
+         "t_req": 1792219450758836,
+         "app_seq": 9,
+         "clrt_us": 5354,
+         "error_us": 4404.0
+        },
+        {
+         "t_req": 1792219450803383,
+         "app_seq": 12,
+         "clrt_us": 5365,
+         "error_us": 4415.0
+        },
+        {
+         "t_req": 1792219450848023,
+         "app_seq": 15,
+         "clrt_us": 5321,
+         "error_us": 4371.0
+        },
+        {
+         "t_req": 1792219450892522,
+         "app_seq": 2,
+         "clrt_us": 5338,
+         "error_us": 4388.0
+        },
+        {
+         "t_req": 1792219450937206,
+         "app_seq": 5,
+         "clrt_us": 5356,
+         "error_us": 4406.0
+        },
+        {
+         "t_req": 1792219450981818,
+         "app_seq": 8,
+         "clrt_us": 5337,
+         "error_us": 4387.0
+        },
+        {
+         "t_req": 1792219451026482,
+         "app_seq": 11,
+         "clrt_us": 5332,
+         "error_us": 4382.0
+        },
+        {
+         "t_req": 1792219451071038,
+         "app_seq": 14,
+         "clrt_us": 5325,
+         "error_us": 4375.0
+        },
+        {
+         "t_req": 1792219451115689,
+         "app_seq": 1,
+         "clrt_us": 5346,
+         "error_us": 4396.0
+        },
+        {
+         "t_req": 1792219451160224,
+         "app_seq": 4,
+         "clrt_us": 5363,
+         "error_us": 4413.0
+        },
+        {
+         "t_req": 1792219451204785,
+         "app_seq": 7,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219451249427,
+         "app_seq": 10,
+         "clrt_us": 5378,
+         "error_us": 4428.0
+        },
+        {
+         "t_req": 1792219451294059,
+         "app_seq": 13,
+         "clrt_us": 5366,
+         "error_us": 4416.0
+        },
+        {
+         "t_req": 1792219451338699,
+         "app_seq": 0,
+         "clrt_us": 5336,
+         "error_us": 4386.0
+        },
+        {
+         "t_req": 1792219451383225,
+         "app_seq": 3,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219451427816,
+         "app_seq": 6,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792219451472485,
+         "app_seq": 9,
+         "clrt_us": 5327,
+         "error_us": 4377.0
+        },
+        {
+         "t_req": 1792219451517145,
+         "app_seq": 12,
+         "clrt_us": 5361,
+         "error_us": 4411.0
+        },
+        {
+         "t_req": 1792219451561791,
+         "app_seq": 15,
+         "clrt_us": 5359,
+         "error_us": 4409.0
+        },
+        {
+         "t_req": 1792219451606424,
+         "app_seq": 2,
+         "clrt_us": 5355,
+         "error_us": 4405.0
+        },
+        {
+         "t_req": 1792219451651086,
+         "app_seq": 5,
+         "clrt_us": 5320,
+         "error_us": 4370.0
+        },
+        {
+         "t_req": 1792219451695720,
+         "app_seq": 8,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792219451740312,
+         "app_seq": 11,
+         "clrt_us": 5360,
+         "error_us": 4410.0
+        },
+        {
+         "t_req": 1792219451784984,
+         "app_seq": 14,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792219451829537,
+         "app_seq": 1,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792219451874227,
+         "app_seq": 4,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792219451918792,
+         "app_seq": 7,
+         "clrt_us": 5361,
+         "error_us": 4411.0
+        },
+        {
+         "t_req": 1792219451963350,
+         "app_seq": 10,
+         "clrt_us": 5363,
+         "error_us": 4413.0
+        },
+        {
+         "t_req": 1792219452007913,
+         "app_seq": 13,
+         "clrt_us": 5377,
+         "error_us": 4427.0
+        },
+        {
+         "t_req": 1792219452052491,
+         "app_seq": 0,
+         "clrt_us": 5332,
+         "error_us": 4382.0
+        },
+        {
+         "t_req": 1792219452097161,
+         "app_seq": 3,
+         "clrt_us": 5192,
+         "error_us": 4242.0
+        },
+        {
+         "t_req": 1792219452141752,
+         "app_seq": 6,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792219452186328,
+         "app_seq": 9,
+         "clrt_us": 5289,
+         "error_us": 4339.0
+        },
+        {
+         "t_req": 1792219452230910,
+         "app_seq": 12,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792219452277645,
+         "app_seq": 15,
+         "clrt_us": 5377,
+         "error_us": 4427.0
+        },
+        {
+         "t_req": 1792219452322262,
+         "app_seq": 2,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219452366898,
+         "app_seq": 5,
+         "clrt_us": 5346,
+         "error_us": 4396.0
+        },
+        {
+         "t_req": 1792219452411482,
+         "app_seq": 8,
+         "clrt_us": 5278,
+         "error_us": 4328.0
+        },
+        {
+         "t_req": 1792219452456025,
+         "app_seq": 11,
+         "clrt_us": 5282,
+         "error_us": 4332.0
+        },
+        {
+         "t_req": 1792219452500671,
+         "app_seq": 14,
+         "clrt_us": 5291,
+         "error_us": 4341.0
+        },
+        {
+         "t_req": 1792219452545319,
+         "app_seq": 1,
+         "clrt_us": 5282,
+         "error_us": 4332.0
+        },
+        {
+         "t_req": 1792219452589969,
+         "app_seq": 4,
+         "clrt_us": 5208,
+         "error_us": 4258.0
+        },
+        {
+         "t_req": 1792219452634598,
+         "app_seq": 7,
+         "clrt_us": 5265,
+         "error_us": 4315.0
+        },
+        {
+         "t_req": 1792219452679231,
+         "app_seq": 10,
+         "clrt_us": 5240,
+         "error_us": 4290.0
+        },
+        {
+         "t_req": 1792219452723771,
+         "app_seq": 13,
+         "clrt_us": 5247,
+         "error_us": 4297.0
+        },
+        {
+         "t_req": 1792219452768372,
+         "app_seq": 0,
+         "clrt_us": 5284,
+         "error_us": 4334.0
+        },
+        {
+         "t_req": 1792219452813009,
+         "app_seq": 3,
+         "clrt_us": 5196,
+         "error_us": 4246.0
+        },
+        {
+         "t_req": 1792219452857628,
+         "app_seq": 6,
+         "clrt_us": 5258,
+         "error_us": 4308.0
+        },
+        {
+         "t_req": 1792219452902226,
+         "app_seq": 9,
+         "clrt_us": 5275,
+         "error_us": 4325.0
+        },
+        {
+         "t_req": 1792219452946862,
+         "app_seq": 12,
+         "clrt_us": 5268,
+         "error_us": 4318.0
+        },
+        {
+         "t_req": 1792219452991499,
+         "app_seq": 15,
+         "clrt_us": 5272,
+         "error_us": 4322.0
+        },
+        {
+         "t_req": 1792219453036110,
+         "app_seq": 2,
+         "clrt_us": 5279,
+         "error_us": 4329.0
+        },
+        {
+         "t_req": 1792219453080758,
+         "app_seq": 5,
+         "clrt_us": 5265,
+         "error_us": 4315.0
+        },
+        {
+         "t_req": 1792219453125459,
+         "app_seq": 8,
+         "clrt_us": 5283,
+         "error_us": 4333.0
+        },
+        {
+         "t_req": 1792219453170080,
+         "app_seq": 11,
+         "clrt_us": 5281,
+         "error_us": 4331.0
+        },
+        {
+         "t_req": 1792219453214667,
+         "app_seq": 14,
+         "clrt_us": 5291,
+         "error_us": 4341.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "operate_precision": {
+       "kind": "OPERATE",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 4408.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 4200.0,
+        "median": 4329,
+        "iqr": 78.0,
+        "p95": 4397.0,
+        "p99": 4401.0,
+        "max": 4408.0,
+        "sd_population": 47.6,
+        "sd_sample": 48.0
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 4200.0,
+        "median": 4329,
+        "iqr": 78.0,
+        "p95": 4397.0,
+        "p99": 4401.0,
+        "max": 4408.0,
+        "sd_population": 47.6,
+        "sd_sample": 48.0
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 4408.0,
+       "tails": [
+        {
+         "t_req": 1792219450452332,
+         "app_seq": 5,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219451745912,
+         "app_seq": 12,
+         "clrt_us": 5351,
+         "error_us": 4401.0
+        },
+        {
+         "t_req": 1792219450541375,
+         "app_seq": 11,
+         "clrt_us": 5349,
+         "error_us": 4399.0
+        },
+        {
+         "t_req": 1792219452013528,
+         "app_seq": 14,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219451968953,
+         "app_seq": 11,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219450407701,
+         "app_seq": 2,
+         "clrt_us": 5290,
+         "error_us": 4340.0
+        },
+        {
+         "t_req": 1792219450452332,
+         "app_seq": 5,
+         "clrt_us": 5358,
+         "error_us": 4408.0
+        },
+        {
+         "t_req": 1792219450496857,
+         "app_seq": 8,
+         "clrt_us": 5300,
+         "error_us": 4350.0
+        },
+        {
+         "t_req": 1792219450541375,
+         "app_seq": 11,
+         "clrt_us": 5349,
+         "error_us": 4399.0
+        },
+        {
+         "t_req": 1792219450586010,
+         "app_seq": 14,
+         "clrt_us": 5274,
+         "error_us": 4324.0
+        },
+        {
+         "t_req": 1792219450630612,
+         "app_seq": 1,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792219450675192,
+         "app_seq": 4,
+         "clrt_us": 5325,
+         "error_us": 4375.0
+        },
+        {
+         "t_req": 1792219450719814,
+         "app_seq": 7,
+         "clrt_us": 5312,
+         "error_us": 4362.0
+        },
+        {
+         "t_req": 1792219450764431,
+         "app_seq": 10,
+         "clrt_us": 5330,
+         "error_us": 4380.0
+        },
+        {
+         "t_req": 1792219450808988,
+         "app_seq": 13,
+         "clrt_us": 5313,
+         "error_us": 4363.0
+        },
+        {
+         "t_req": 1792219450853584,
+         "app_seq": 0,
+         "clrt_us": 5327,
+         "error_us": 4377.0
+        },
+        {
+         "t_req": 1792219450898101,
+         "app_seq": 3,
+         "clrt_us": 5251,
+         "error_us": 4301.0
+        },
+        {
+         "t_req": 1792219450942801,
+         "app_seq": 6,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219450987394,
+         "app_seq": 9,
+         "clrt_us": 5333,
+         "error_us": 4383.0
+        },
+        {
+         "t_req": 1792219451032053,
+         "app_seq": 12,
+         "clrt_us": 5251,
+         "error_us": 4301.0
+        },
+        {
+         "t_req": 1792219451076604,
+         "app_seq": 15,
+         "clrt_us": 5266,
+         "error_us": 4316.0
+        },
+        {
+         "t_req": 1792219451121288,
+         "app_seq": 2,
+         "clrt_us": 5320,
+         "error_us": 4370.0
+        },
+        {
+         "t_req": 1792219451165827,
+         "app_seq": 5,
+         "clrt_us": 5312,
+         "error_us": 4362.0
+        },
+        {
+         "t_req": 1792219451210382,
+         "app_seq": 8,
+         "clrt_us": 5327,
+         "error_us": 4377.0
+        },
+        {
+         "t_req": 1792219451255044,
+         "app_seq": 11,
+         "clrt_us": 5314,
+         "error_us": 4364.0
+        },
+        {
+         "t_req": 1792219451299665,
+         "app_seq": 14,
+         "clrt_us": 5266,
+         "error_us": 4316.0
+        },
+        {
+         "t_req": 1792219451344275,
+         "app_seq": 1,
+         "clrt_us": 5326,
+         "error_us": 4376.0
+        },
+        {
+         "t_req": 1792219451388822,
+         "app_seq": 4,
+         "clrt_us": 5300,
+         "error_us": 4350.0
+        },
+        {
+         "t_req": 1792219451433414,
+         "app_seq": 7,
+         "clrt_us": 5269,
+         "error_us": 4319.0
+        },
+        {
+         "t_req": 1792219451478051,
+         "app_seq": 10,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219451522746,
+         "app_seq": 13,
+         "clrt_us": 5265,
+         "error_us": 4315.0
+        },
+        {
+         "t_req": 1792219451567389,
+         "app_seq": 0,
+         "clrt_us": 5323,
+         "error_us": 4373.0
+        },
+        {
+         "t_req": 1792219451612020,
+         "app_seq": 3,
+         "clrt_us": 5266,
+         "error_us": 4316.0
+        },
+        {
+         "t_req": 1792219451656649,
+         "app_seq": 6,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792219451701316,
+         "app_seq": 9,
+         "clrt_us": 5326,
+         "error_us": 4376.0
+        },
+        {
+         "t_req": 1792219451745912,
+         "app_seq": 12,
+         "clrt_us": 5351,
+         "error_us": 4401.0
+        },
+        {
+         "t_req": 1792219451790581,
+         "app_seq": 15,
+         "clrt_us": 5329,
+         "error_us": 4379.0
+        },
+        {
+         "t_req": 1792219451835149,
+         "app_seq": 2,
+         "clrt_us": 5335,
+         "error_us": 4385.0
+        },
+        {
+         "t_req": 1792219451879796,
+         "app_seq": 5,
+         "clrt_us": 5285,
+         "error_us": 4335.0
+        },
+        {
+         "t_req": 1792219451924393,
+         "app_seq": 8,
+         "clrt_us": 5329,
+         "error_us": 4379.0
+        },
+        {
+         "t_req": 1792219451968953,
+         "app_seq": 11,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792219452013528,
+         "app_seq": 14,
+         "clrt_us": 5347,
+         "error_us": 4397.0
+        },
+        {
+         "t_req": 1792219452058063,
+         "app_seq": 1,
+         "clrt_us": 5251,
+         "error_us": 4301.0
+        },
+        {
+         "t_req": 1792219452102637,
+         "app_seq": 4,
+         "clrt_us": 5188,
+         "error_us": 4238.0
+        },
+        {
+         "t_req": 1792219452147380,
+         "app_seq": 7,
+         "clrt_us": 5319,
+         "error_us": 4369.0
+        },
+        {
+         "t_req": 1792219452191956,
+         "app_seq": 10,
+         "clrt_us": 5266,
+         "error_us": 4316.0
+        },
+        {
+         "t_req": 1792219452236595,
+         "app_seq": 13,
+         "clrt_us": 5188,
+         "error_us": 4238.0
+        },
+        {
+         "t_req": 1792219452283362,
+         "app_seq": 0,
+         "clrt_us": 5316,
+         "error_us": 4366.0
+        },
+        {
+         "t_req": 1792219452327949,
+         "app_seq": 3,
+         "clrt_us": 5267,
+         "error_us": 4317.0
+        },
+        {
+         "t_req": 1792219452372589,
+         "app_seq": 6,
+         "clrt_us": 5319,
+         "error_us": 4369.0
+        },
+        {
+         "t_req": 1792219452417103,
+         "app_seq": 9,
+         "clrt_us": 5195,
+         "error_us": 4245.0
+        },
+        {
+         "t_req": 1792219452461650,
+         "app_seq": 12,
+         "clrt_us": 5246,
+         "error_us": 4296.0
+        },
+        {
+         "t_req": 1792219452506302,
+         "app_seq": 15,
+         "clrt_us": 5244,
+         "error_us": 4294.0
+        },
+        {
+         "t_req": 1792219452550941,
+         "app_seq": 2,
+         "clrt_us": 5229,
+         "error_us": 4279.0
+        },
+        {
+         "t_req": 1792219452595515,
+         "app_seq": 5,
+         "clrt_us": 5245,
+         "error_us": 4295.0
+        },
+        {
+         "t_req": 1792219452640219,
+         "app_seq": 8,
+         "clrt_us": 5199,
+         "error_us": 4249.0
+        },
+        {
+         "t_req": 1792219452684757,
+         "app_seq": 11,
+         "clrt_us": 5246,
+         "error_us": 4296.0
+        },
+        {
+         "t_req": 1792219452729358,
+         "app_seq": 14,
+         "clrt_us": 5247,
+         "error_us": 4297.0
+        },
+        {
+         "t_req": 1792219452773994,
+         "app_seq": 1,
+         "clrt_us": 5230,
+         "error_us": 4280.0
+        },
+        {
+         "t_req": 1792219452818543,
+         "app_seq": 4,
+         "clrt_us": 5242,
+         "error_us": 4292.0
+        },
+        {
+         "t_req": 1792219452863240,
+         "app_seq": 7,
+         "clrt_us": 5264,
+         "error_us": 4314.0
+        },
+        {
+         "t_req": 1792219452907786,
+         "app_seq": 10,
+         "clrt_us": 5247,
+         "error_us": 4297.0
+        },
+        {
+         "t_req": 1792219452952474,
+         "app_seq": 13,
+         "clrt_us": 5248,
+         "error_us": 4298.0
+        },
+        {
+         "t_req": 1792219452997109,
+         "app_seq": 0,
+         "clrt_us": 5150,
+         "error_us": 4200.0
+        },
+        {
+         "t_req": 1792219453041740,
+         "app_seq": 3,
+         "clrt_us": 5247,
+         "error_us": 4297.0
+        },
+        {
+         "t_req": 1792219453086364,
+         "app_seq": 6,
+         "clrt_us": 5249,
+         "error_us": 4299.0
+        },
+        {
+         "t_req": 1792219453131083,
+         "app_seq": 9,
+         "clrt_us": 5199,
+         "error_us": 4249.0
+        },
+        {
+         "t_req": 1792219453175700,
+         "app_seq": 12,
+         "clrt_us": 5247,
+         "error_us": 4297.0
+        },
+        {
+         "t_req": 1792219453220296,
+         "app_seq": 15,
+         "clrt_us": 5265,
+         "error_us": 4315.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "piggyback_latency": {
+       "pb_us": 4000.0,
+       "margin_us": 250,
+       "target_us": 4250.0,
+       "n": 0,
+       "missing_rt": 0,
+       "minimum_samples": 20,
+       "p50": null,
+       "p99": null,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+       "max": null,
+       "rt_us_stats_round_index": null,
+       "above_target": [],
+       "sufficient": false,
+       "reasons": [
+        "insufficient piggyback samples: 0 < 20"
+       ],
+       "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+       "pass": false,
+       "gated": false
+      },
+      "operate_hold": {
+       "op_j_us": 2400.0,
+       "observation": {
+        "tx": "out.pcap master-side tap",
+        "rx": "in.pcap outstation-side tap",
+        "includes": "path and capture delay; not an ASIC residency timestamp"
+       },
+       "sent": 64,
+       "observed": 64,
+       "complete_operates": 64,
+       "expected_operates": 64,
+       "min_transit_us": 34.8,
+       "below_op_j": [
+        {
+         "seq": 6635683,
+         "app_seq": 2,
+         "transit_us": 88.0
+        },
+        {
+         "seq": 6635773,
+         "app_seq": 5,
+         "transit_us": 88.0
+        },
+        {
+         "seq": 6635863,
+         "app_seq": 8,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 6635953,
+         "app_seq": 11,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 6636043,
+         "app_seq": 14,
+         "transit_us": 88.0
+        },
+        {
+         "seq": 6636133,
+         "app_seq": 1,
+         "transit_us": 90.1
+        },
+        {
+         "seq": 6636223,
+         "app_seq": 4,
+         "transit_us": 44.8
+        },
+        {
+         "seq": 6636313,
+         "app_seq": 7,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6636403,
+         "app_seq": 10,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6636493,
+         "app_seq": 13,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6636583,
+         "app_seq": 0,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6636673,
+         "app_seq": 3,
+         "transit_us": 39.8
+        },
+        {
+         "seq": 6636763,
+         "app_seq": 6,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6636853,
+         "app_seq": 9,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6636943,
+         "app_seq": 12,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6637033,
+         "app_seq": 15,
+         "transit_us": 42.2
+        },
+        {
+         "seq": 6637123,
+         "app_seq": 2,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6637213,
+         "app_seq": 5,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6637303,
+         "app_seq": 8,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637393,
+         "app_seq": 11,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637483,
+         "app_seq": 14,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637573,
+         "app_seq": 1,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637663,
+         "app_seq": 4,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637753,
+         "app_seq": 7,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637843,
+         "app_seq": 10,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6637933,
+         "app_seq": 13,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6638023,
+         "app_seq": 0,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638113,
+         "app_seq": 3,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638203,
+         "app_seq": 6,
+         "transit_us": 40.8
+        },
+        {
+         "seq": 6638293,
+         "app_seq": 9,
+         "transit_us": 42.9
+        },
+        {
+         "seq": 6638383,
+         "app_seq": 12,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638473,
+         "app_seq": 15,
+         "transit_us": 41.0
+        },
+        {
+         "seq": 6638563,
+         "app_seq": 2,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638653,
+         "app_seq": 5,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638743,
+         "app_seq": 8,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6638833,
+         "app_seq": 11,
+         "transit_us": 42.2
+        },
+        {
+         "seq": 6638923,
+         "app_seq": 14,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6639013,
+         "app_seq": 1,
+         "transit_us": 42.0
+        },
+        {
+         "seq": 6639103,
+         "app_seq": 4,
+         "transit_us": 48.9
+        },
+        {
+         "seq": 6639193,
+         "app_seq": 7,
+         "transit_us": 48.9
+        },
+        {
+         "seq": 6639283,
+         "app_seq": 10,
+         "transit_us": 87.0
+        },
+        {
+         "seq": 6639373,
+         "app_seq": 13,
+         "transit_us": 89.2
+        },
+        {
+         "seq": 6639463,
+         "app_seq": 0,
+         "transit_us": 89.2
+        },
+        {
+         "seq": 6639553,
+         "app_seq": 3,
+         "transit_us": 88.9
+        },
+        {
+         "seq": 6639643,
+         "app_seq": 6,
+         "transit_us": 88.9
+        },
+        {
+         "seq": 6639733,
+         "app_seq": 9,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6639823,
+         "app_seq": 12,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6639913,
+         "app_seq": 15,
+         "transit_us": 35.8
+        },
+        {
+         "seq": 6640003,
+         "app_seq": 2,
+         "transit_us": 36.0
+        },
+        {
+         "seq": 6640093,
+         "app_seq": 5,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6640183,
+         "app_seq": 8,
+         "transit_us": 36.0
+        },
+        {
+         "seq": 6640273,
+         "app_seq": 11,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6640363,
+         "app_seq": 14,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6640453,
+         "app_seq": 1,
+         "transit_us": 36.0
+        },
+        {
+         "seq": 6640543,
+         "app_seq": 4,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6640633,
+         "app_seq": 7,
+         "transit_us": 37.0
+        },
+        {
+         "seq": 6640723,
+         "app_seq": 10,
+         "transit_us": 36.0
+        },
+        {
+         "seq": 6640813,
+         "app_seq": 13,
+         "transit_us": 34.8
+        },
+        {
+         "seq": 6640903,
+         "app_seq": 0,
+         "transit_us": 52.0
+        },
+        {
+         "seq": 6640993,
+         "app_seq": 3,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6641083,
+         "app_seq": 6,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6641173,
+         "app_seq": 9,
+         "transit_us": 36.0
+        },
+        {
+         "seq": 6641263,
+         "app_seq": 12,
+         "transit_us": 35.0
+        },
+        {
+         "seq": 6641353,
+         "app_seq": 15,
+         "transit_us": 35.0
+        }
+       ],
+       "sufficient": true,
+       "reasons": [
+        "minimum OPERATE transit 34.8 us below op_j 2400.0 us (64 below)"
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "generation_exhausted": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "trial passed"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  },
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "ctl_timing_m9d_01",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+     "master_port": 59943,
+     "reads": 65,
+     "ok": false,
+     "failures": [
+      "SELECT precision: eligible=64 (minimum20), nearest-rank p99 absolute CLRT error=911.0 us (maximum100)"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57104
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65452,
+       "read": 65323
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 82,
+       "read": 211
+      },
+      "reserves": {
+       "operate": 82,
+       "read": 211
+      },
+      "snapshot": {
+       "bfrt_sha256": "79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792219527.0238328,
+       "valid": true
+      },
+      "time": 1792219527.0314765,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 193,
+       "operate_per_connection": 64,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+      "master_port": 59943,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57104,
+      "start_delay_ms_applied": 40,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64
+      },
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 59943,
+       "polls": 1,
+       "elapsed_s": 0.036,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_wall_s": 3.323,
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 587,
+        "received": 1174,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 587,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.0,
+      "growth_bytes": 3852,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 65,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 65,
+        "min": 0.0,
+        "median": 5,
+        "iqr": 3.0,
+        "p95": 10.0,
+        "p99": 11.0,
+        "max": 17.0,
+        "sd_population": 3.2,
+        "sd_sample": 3.2
+       },
+       "signed_error_us": {
+        "n": 65,
+        "min": -11.0,
+        "median": 3,
+        "iqr": 8.0,
+        "p95": 10.0,
+        "p99": 11.0,
+        "max": 17.0,
+        "sd_population": 5.5,
+        "sd_sample": 5.5
+       },
+       "tails": [
+        {
+         "t_req": 1792219532348749,
+         "clrt_us": 967,
+         "error_us": 17.0
+        },
+        {
+         "t_req": 1792219530968260,
+         "clrt_us": 961,
+         "error_us": 11.0
+        },
+        {
+         "t_req": 1792219531581793,
+         "clrt_us": 939,
+         "error_us": -11.0
+        },
+        {
+         "t_req": 1792219530201417,
+         "clrt_us": 960,
+         "error_us": 10.0
+        },
+        {
+         "t_req": 1792219531888767,
+         "clrt_us": 960,
+         "error_us": 10.0
+        }
+       ],
+       "pass": true,
+       "p99_nearest_rank_abs_error_us": 17.0,
+       "gated": true
+      },
+      "select_precision": {
+       "kind": "SELECT",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 911.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 0.0,
+        "median": 5,
+        "iqr": 5.0,
+        "p95": 11.0,
+        "p99": 13.0,
+        "max": 911.0,
+        "sd_population": 112.4,
+        "sd_sample": 113.3
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": -911.0,
+        "median": 1,
+        "iqr": 9.0,
+        "p95": 10.0,
+        "p99": 12.0,
+        "max": 13.0,
+        "sd_population": 113.2,
+        "sd_sample": 114.1
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 911.0,
+       "tails": [
+        {
+         "t_req": 1792219532229229,
+         "app_seq": 15,
+         "clrt_us": 39,
+         "error_us": -911.0
+        },
+        {
+         "t_req": 1792219531973688,
+         "app_seq": 0,
+         "clrt_us": 963,
+         "error_us": 13.0
+        },
+        {
+         "t_req": 1792219530337326,
+         "app_seq": 0,
+         "clrt_us": 962,
+         "error_us": 12.0
+        },
+        {
+         "t_req": 1792219530286257,
+         "app_seq": 13,
+         "clrt_us": 961,
+         "error_us": 11.0
+        },
+        {
+         "t_req": 1792219531308785,
+         "app_seq": 9,
+         "clrt_us": 939,
+         "error_us": -11.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792219532229229,
+         "app_seq": 15,
+         "clrt_us": 39,
+         "error_us": -911.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": true
+      },
+      "operate_precision": {
+       "kind": "OPERATE",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 65.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 0.0,
+        "median": 11,
+        "iqr": 27.0,
+        "p95": 42.0,
+        "p99": 43.0,
+        "max": 65.0,
+        "sd_population": 15.6,
+        "sd_sample": 15.7
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": -65.0,
+        "median": 11,
+        "iqr": 29.0,
+        "p95": 41.0,
+        "p99": 43.0,
+        "max": 43.0,
+        "sd_population": 19.1,
+        "sd_sample": 19.2
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 65.0,
+       "tails": [
+        {
+         "t_req": 1792219531008750,
+         "app_seq": 8,
+         "clrt_us": 885,
+         "error_us": -65.0
+        },
+        {
+         "t_req": 1792219532951574,
+         "app_seq": 10,
+         "clrt_us": 993,
+         "error_us": 43.0
+        },
+        {
+         "t_req": 1792219533309331,
+         "app_seq": 15,
+         "clrt_us": 993,
+         "error_us": 43.0
+        },
+        {
+         "t_req": 1792219530855368,
+         "app_seq": 15,
+         "clrt_us": 992,
+         "error_us": 42.0
+        },
+        {
+         "t_req": 1792219530395074,
+         "app_seq": 4,
+         "clrt_us": 991,
+         "error_us": 41.0
+        }
+       ],
+       "over_bound": [],
+       "sufficient": true,
+       "pass": true,
+       "gated": true
+      },
+      "piggyback_latency": {
+       "pb_us": 4000.0,
+       "margin_us": 250,
+       "target_us": 4250.0,
+       "n": 0,
+       "missing_rt": 0,
+       "minimum_samples": 20,
+       "p50": null,
+       "p99": null,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+       "max": null,
+       "rt_us_stats_round_index": null,
+       "above_target": [],
+       "sufficient": false,
+       "reasons": [
+        "insufficient piggyback samples: 0 < 20"
+       ],
+       "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+       "pass": false,
+       "gated": false
+      },
+      "operate_hold": {
+       "op_j_us": 2400.0,
+       "observation": {
+        "tx": "out.pcap master-side tap",
+        "rx": "in.pcap outstation-side tap",
+        "includes": "path and capture delay; not an ASIC residency timestamp"
+       },
+       "sent": 64,
+       "observed": 64,
+       "complete_operates": 64,
+       "expected_operates": 64,
+       "min_transit_us": 2490.0,
+       "below_op_j": [],
+       "sufficient": true,
+       "reasons": [],
+       "pass": true,
+       "gated": true
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 81751,
+       "OUT_ACK_COMMIT": 193,
+       "OUT_RESP_RELEASE": 193,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 64,
+       "OUT_TOKEN_STALE": 92,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 92,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 92,
+      "generation_exhausted": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 129,
+        "pkts": 516
+       },
+       "OPERATE": {
+        "triggers": 64,
+        "pkts": 256
+       }
+      },
+      "token_stale_bound": 256,
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "measurement_only"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": true,
+      "reason": "timing objective thresholds only: select_precision"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "fixture": "separate_ack",
+   "arm": "off",
+   "trial": 0,
+   "master_port": 59940,
+   "padding": 0,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m9d_ackdiag_b1_01_separate_ack_off_t0.json"
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "fixture": "separate_ack",
+   "arm": "timing_only",
+   "trial": 0,
+   "master_port": 59941,
+   "padding": 0,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0.json"
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "fixture": "separate_ack",
+   "arm": "size_only",
+   "trial": 0,
+   "master_port": 59942,
+   "padding": 1,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0.json"
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59943,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "91729289371abf9875457afa28f41691c5d14dee4c400c5dc903af4b279f664c",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "23ada7bbf66d64d7a854fdc59148858b6b8e3be20ebd2e668a5e90f2f33c8f4c",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_repeat_sbo_20261014c/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_repeat_sbo_20261014c/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_off_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 18,
+    "read": 18
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65516,
+    "read": 65516
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 82,
+    "read": 211
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65452,
+    "read": 65323
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 18,
+    "read": 18
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65516,
+    "read": 65516
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 82,
+    "read": 211
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65452,
+    "read": 65323
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 65,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59940,
+    "last": 59943
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 50,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 0,
+   "sbo_cycles": 64
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256,
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order"
+  },
+  "evaluation": {
+   "purpose": "timing_precision_characterization",
+   "read_precision": true,
+   "candidate61_label": "ctl_m9d_ackdiag",
+   "block": 1,
+   "arm_order": [
+    "off",
+    "timing_only",
+    "size_only",
+    "combined"
+   ]
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "ctl_timing_m9d_01": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22",
+   "source_files": {
+    "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   },
+   "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py"
+  },
+  "vision_run_dir": "/home/decps/pad58b_repeat_sbo_20261014c"
+ },
+ "config_sha256": "a88ee490f3863206d92c450993fc7a1a33571ffa1bb8f4c57754b2c9a0052444",
+ "config_file_sha256": "d99924e286f7c519adc5a13acc7d1337071f9b1a4c9f842feca40bb7c311b2ac",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "10546932eb50f366467b922558a1b936b714758795f1ec87b7a75edcc7b6f522",
+   "checks.py": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9",
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303"
+  },
+  "build_sources": {
+   "ctl_timing_m9d_01": {
+    "source_sha256": "74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f",
+    "source_files": {
+     "response_only.p4": "74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "ctl_timing_m9d_01": {
+   "bfrt.json": "79fcd80131ddeda99eda252f59637679ea4285cda81f5f9f069ef0f9eedd4f46",
+   "p0/tofino.bin": "a0ff062e04c3a06643043e16c727eb9a5ed997b72b6c075ec1eadbb41558e4ef",
+   "p1/tofino.bin": "140fb2ac25bace995cf2b7a7687e266d8e5ceb05dc16ed7d00057261d6f571e0",
+   "p1/response_only.bfa": "9c037fe701ad0f7ce887dd2fc6a988dba1550aae77235c16477a0c76e70c47ed"
+  }
+ },
+ "paired_block": null,
+ "time": 1792219607.7532659,
+ "soft_failures": [
+  "ctl_m9d_ackdiag_b1_01_separate_ack_timing_only_t0",
+  "ctl_m9d_ackdiag_b1_01_separate_ack_combined_t0"
+ ]
+}

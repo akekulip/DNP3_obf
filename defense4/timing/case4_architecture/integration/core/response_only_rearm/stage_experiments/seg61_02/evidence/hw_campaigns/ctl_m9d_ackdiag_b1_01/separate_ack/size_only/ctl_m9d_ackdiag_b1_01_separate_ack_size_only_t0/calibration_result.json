@@ -1,0 +1,50 @@
+{
+  "capture_commands": {
+    "out": [
+      "tcpdump",
+      "--immediate-mode",
+      "-i",
+      "enp59s0f0np0",
+      "-Q",
+      "out",
+      "-s0",
+      "-U",
+      "-n",
+      "-c",
+      "2",
+      "-w",
+      "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0/calibration_out.pcap",
+      "tcp and src host 192.168.10.62 and dst host 192.168.10.61 and src port 20001 and dst port 61998"
+    ],
+    "in": [
+      "tcpdump",
+      "--immediate-mode",
+      "-i",
+      "enp59s0f0np0",
+      "-Q",
+      "in",
+      "-s0",
+      "-U",
+      "-n",
+      "-c",
+      "2",
+      "-w",
+      "/home/decps/pad58b_repeat_sbo_20261014c/runs/ctl_m9d_ackdiag_b1_01_separate_ack_size_only_t0/calibration_in.pcap",
+      "tcp and src host 192.168.10.62 and dst host 192.168.10.61 and src port 20001 and dst port 61998"
+    ]
+  },
+  "tcpdump": {
+    "out": {
+      "captured": 2,
+      "received": 4,
+      "dropped_kernel": 0
+    },
+    "in": {
+      "captured": 2,
+      "received": 4,
+      "dropped_kernel": 0
+    }
+  },
+  "capture_ready": true,
+  "ready_polls": 2
+}

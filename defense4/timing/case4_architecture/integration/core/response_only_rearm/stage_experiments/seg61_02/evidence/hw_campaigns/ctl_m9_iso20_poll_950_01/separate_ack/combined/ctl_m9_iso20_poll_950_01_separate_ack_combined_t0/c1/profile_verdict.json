@@ -1,0 +1,115 @@
+{
+ "schema_version": "dnp3-profile-v1",
+ "run": {
+  "run_id": "ctl_m9_iso20_poll_950_01",
+  "trial": "ctl_m9_iso20_poll_950_01_separate_ack_combined_t0",
+  "connection": "c1",
+  "arm": "combined"
+ },
+ "identity": {
+  "candidate_source_sha256": "6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f",
+  "build": "ctl_timing_m9_01",
+  "build_hashes": {
+   "bfrt.json": "f54acf2e7d598c2b3ad0bad4871f60cd3c6c83e96319d0d66e9c88ac82e42369",
+   "p0/tofino.bin": "d1885aa5e68e01c6a6a31309399b29f913a20d841a8038d4f156567c01b7cf6c",
+   "p1/tofino.bin": "946c32dd3dd9bf29bce38593151a7f0d2c94b429f08cd4325ffd8fab2fd9109d",
+   "p1/response_only.bfa": "18d8f4b858b02226ef72f458b5f18d5d2ec90df2249516c116ce4c4e04c70b9e"
+  },
+  "profile": "candidate61",
+  "profile_hash": "5da6c382eda0667eca546ed1f70f8917a2b7d78dc9f3a5416a07f07947b0dc8c",
+  "effective_config_sha256": "8c0e23b3cb85c664c14c55711a8a3dcff8df973841f3490d90eb30e77a28f130"
+ },
+ "expected": {
+  "counts": {
+   "READ": 1,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "checker": {
+  "profile_check_sha256": "1578d06e110046428be176426c870c56797d17cd64efb887fc27b0b4f75917ca"
+ },
+ "captures": {
+  "in": {
+   "sha256": "068bf620dcb24110aa7f54f0fd8a736a3ec2e523ad8a5f8131075bfa310ea6a2"
+  },
+  "out": {
+   "sha256": "c5d2dce0c1ec9bf745a265bfd8ee0aac838a659cea39ec8320494d4a480d7825"
+  }
+ },
+ "result": {
+  "profile": "candidate61",
+  "conformant": true,
+  "failures": [],
+  "verdicts": [
+   {
+    "attempt": 0,
+    "time": 1792221346.500362,
+    "stream_offset": 0,
+    "payload_len": 61,
+    "payload_sha256": "cbb99130b17a43f8aa8c923e2d48e968dd3de9f065e5093491d0d2fba5e504ca",
+    "response": 0,
+    "retransmission": false,
+    "kind": "READ",
+    "expected_len": 61,
+    "ok": true
+   },
+   {
+    "attempt": 1,
+    "time": 1792221346.533721,
+    "stream_offset": 61,
+    "payload_len": 61,
+    "payload_sha256": "cc5f498983f8bad3ffee4b870614d84cfe6c56c181d756f08ff5804eedc107b8",
+    "response": 1,
+    "retransmission": false,
+    "kind": "SELECT",
+    "expected_len": 61,
+    "ok": true
+   },
+   {
+    "attempt": 2,
+    "time": 1792221346.542652,
+    "stream_offset": 122,
+    "payload_len": 61,
+    "payload_sha256": "27cce233ab04f9976283f04269eee221e91423223b4e61033256e230c61577db",
+    "response": 2,
+    "retransmission": false,
+    "kind": "OPERATE",
+    "expected_len": 61,
+    "ok": true
+   }
+  ],
+  "responses": 3,
+  "attempts": 3,
+  "retransmissions": 0,
+  "counts": {
+   "READ": 1,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "master_port": 59921,
+  "outstation_port": 20000,
+  "expected_lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ }
+}
