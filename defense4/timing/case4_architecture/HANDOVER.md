@@ -1,9 +1,100 @@
-# Case 4 handover — START HERE (current as of 2026-10-15 m5 cycle; origin/main = d50ed9b78, plus local unpushed commits)
+# Case 4 handover — START HERE (current as of 2026-10-18; pushed through 2ab3bc1f8)
+
+Trust this section first, then the documents it links. Everything from section 0a down is history (the m5/m6 cycles of
+2026-10-15/16) and is partly superseded. Written so a different model can continue without the conversation.
+
+## 00. Current state (2026-10-18)
+
+**Candidate.** `integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m10_03`, source
+`d9b84fcc…`: m9_01 plus `transform_n_m10`. A stage-1 master RST restarts at stage 0 when the response claimed N's
+cell in between (`count_busy[5]` counts restarts). N 12, E 12, T 11 stages on SDK 9.13.1 and 9.13.2, the same as m9_01.
+
+**Where it stands.** Every item below is committed and pushed:
+
+| gate | result | evidence |
+|---|---|---|
+| model gate (summary v3, dependency closures mandatory) | **PASS**, `d60d5dd00` | `m10_03/model_summary_v3.json`; contention attempt 07 413/413, abort 07 79/79 |
+| earlier model attempts | 01–03 and 05 resolved; 04 and 06 **disclosed, unresolved** (simulator / packet-path stalls of unknown cause), each accepted only beside attempt 07; 06's disposition approved by Philip retrospectively | FAILURE notes in each `model_contention_m10_03_0N/`; `m10_03/DECISIONS_20261017.md` |
+| freeze v3 | written, `ff179e740` | `m10_03/freeze_v3.json`: one candidate record, six Step 4 configs |
+| silicon recovery (persistence graceful/RST, loss core, reconnect, held OPERATE) | **PASS**, restore verified after every block | `seg61_02/evidence/hw_campaigns/ctl_m10_*_01/`, `b286cf090` |
+| restart path on silicon | **NOT EXERCISED** (interleave block NOT_EXERCISED; host offsets 4–17 µs against 0–5 requested) | `ctl_m10_interleave_950_01/` |
+| claim table | written | `m10_03/CLAIMS_20261017.md` |
+| Part 2 (four-arm timing grid) | **prepared only, not launched** | `m10_03/PART2_DESIGN_20261018.md`, `2ab3bc1f8` |
+
+**Labels that must not drift.**
+- **Restart path:** model-proven, not exercised on silicon.
+- **m9 timing measurements** (switch-side 7 µs at the egress parser, host-observed p99 FAIL, isolation results):
+  inherited evidence, not re-measured on m10_03.
+- **Isolation cleanup deadline:** INDETERMINATE, argued not needed for correctness
+  (`m10_03/ISOLATION_ARGUMENT_20261017.md`).
+
+**Contention-harness changes this round** (`ctl_timing_01/model_contention.py` and helpers):
+- the duplicate-OPERATE watch confirms a copy by direction, sequence and command payload;
+- an inconclusive abort order is decided by T's own passes in the model log;
+- a held abort counts only if T's admission of the response is observed;
+- restart coverage comes from a log-triggered targeted section;
+- a handshake that gets nothing back stops the whole run, and later cases count as not executed (Philip accepted
+  this);
+- the committed-path precondition is classified after each run.
+
+Model-build trap: master and relay share **dev port 9**, so direction must be read from the frame. Bounded
+diagnostics: `m10_03/diag_harness_fixes_01.README.md`.
+
+**Part 2, prepared.**
+- **Reconciliation:** the historical 5/10/15/20 ms were request-anchored ACK deadlines, so they map to `da`, not to D.
+- **Grid:** `seg61_02/hw/part2_grid.py`, 10 conditions with one fixture delay of 5 ms. It adds a new check,
+  readiness ≥ max(da, L + J) + gap + slack.
+- **Configs:** 50 `part2_m10_*`. They are deliberately not `ctl_m10_*`, which names the supported-profile blocks.
+- **Attacker:** `seg61_02/analysis/leakage_four_arm.py`. It uses campaign_v2's estimators, has a competence gate, and
+  equals campaign_v2 exactly when restricted to two arms. The table comes from `four_arm_transactions.py`.
+
+**Next actions** (each needs Philip):
+1. Decide the Part 2 power: three blocks per condition give three folds.
+2. Write a freeze naming the Part 2 configs. Freeze v3 refuses them.
+3. Authorize the feasibility gate (`part2_m10_feas_*`, all ten conditions), then the campaign.
+4. Optional, new scope: exercise the restart on silicon. That needs a sub-microsecond injector or a switch-side
+   trigger.
+
+**Read in this order:**
+1. `m10_03/CLAIMS_20261017.md`;
+2. `m10_03/DECISIONS_20261017.md`;
+3. `m10_03/PART2_DESIGN_20261018.md`;
+4. `m10_03/STEP4_PLAN_20261017.md`;
+5. `m10_03/failure_analysis_20261017/README.md`;
+6. `ctl_timing_01/supported_profile.json`;
+7. the review directive `DNP3_Review_and_Completion_Directive_af7bd434.md` (repo root, untracked) and the session
+   plan.
+
+**Standing rules** (unchanged; see the repository CLAUDE.md):
+- main only;
+- commits as akekulip, through `gated_commit.sh`;
+- push only when Philip says so;
+- hardware only through `run_block_frozen.sh`, detached, with restore_verify;
+- software endpoints only; no physical-relay OPERATE;
+- no default promotion;
+- never rerun to obtain a pass;
+- evidence is immutable.
+
+**Rig at end:** switch on production `case4_response_path` (restore verified after the last block,
+`ctl_m10_interleave_950_01`).
+
+**Earlier milestones, briefly** (details in `integration/evidence/rearm_01/STATUS.md`):
+- **m6_07:** T's 32-bit readiness aliasing found (C1).
+- **m7:** fixed T time base.
+- **m8:** E places a held-ahead outstation RST.
+- **m9_01:** N waits out a busy cell instead of dropping a master RST. Not qualified: ACK tail localized downstream
+  of the egress parser; the reset race still lost the RST.
+- **m10:** fixes that race.
+
+---
+
+HISTORY (2026-10-16 and earlier) below.
+
 
 Everything below the line "HISTORY" is older and partly superseded; trust this section first, then the
 documents it links. Written so a different model can continue without the conversation.
 
-## 0a. Current night: m6 continuation (from 72d85875b; started 2026-10-15 22:11 EDT)
+## 0a. (history) m6 continuation (from 72d85875b; started 2026-10-15 22:11 EDT)
 
 Plan: `integration/evidence/rearm_01/PLAN_m5.md`, section "m6 continuation" (directive at the repo root,
 `DNP3_m5_Continuation_Prompt_72d85875b.md`). m5_10 stays the immutable record. Progress:
@@ -20,7 +111,7 @@ the permit, and attribute STALE_BLOCKER by connection, then one block; (3) the 1
 m6_07 on a new port range (configs not yet built: sealed profile bfrt -> p4pp, CONTROL_TIMED_SOURCES,
 build_candidate61_configs.py `ctl_m6_*`); (4) contention probe after switch rows for its tuple are authorized.
 
-## 0. Current cycle: m5 (approved 2026-10-15) — read this first
+## 0. (history) m5 cycle (approved 2026-10-15)
 
 **Plan:** `integration/evidence/rearm_01/PLAN_m5.md` (verbatim approved plan, with the full read-in-order file index).
 **Progress (2026-10-15 evening, pushed through a6e4c4bef):** T0, S0, S1, S2 (m5_10 `b758c981…`, model: every driver passes) and S3 (offline) committed; S4 silicon run (STATUS.md, newest first): recovery and piggyback pass, repeated-SBO b1 qualified, b2/b3 rejected on the index-127 timing outlier; N contention gate clean.

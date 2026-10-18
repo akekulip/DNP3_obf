@@ -1,5 +1,7 @@
 # Case 4 architecture implementation
 
+> **2026-10-18:** the active candidate is `integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m10_03`. It passed the model gate, is frozen (freeze v3), and passed the silicon recovery blocks; the restart path is not exercised on silicon. It is not a production default (the switch runs `case4_response_path`). Current state: [HANDOVER.md](HANDOVER.md) section 00. The paragraphs below predate it.
+
 Work is in progress. **There is no complete qualified target.** Sources here are
 offline engineering candidates and executable resource experiments. Do not load
 an individual probe as Case4. The controller qualification registry is empty.

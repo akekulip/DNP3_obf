@@ -1,5 +1,44 @@
 # Generation-safe rearm evidence
 
+**2026-10-18 Part 2 prepared, not launched (`2ab3bc1f8`).** `ctl_timing_01/evidence/m10_03/PART2_DESIGN_20261018.md`:
+- the knobs verified on m10_03's P4 (gap = D from the ACK's actual release; OPERATE request→ACK = max(da, J + L));
+- the historical 5/10/15/20 ms reconciled as request-anchored ACK deadlines, so they map to `da`;
+- a 10-condition grid (`seg61_02/hw/part2_grid.py`, fixture delay 5 ms in every block, new readiness check);
+- 50 `part2_m10_*` configs, which freeze v3 refuses;
+- the four-arm attacker (`seg61_02/analysis/leakage_four_arm.py`): competence gate, and an exact two-arm match with
+  campaign_v2.
+
+Philip's decisions recorded (`m10_03/DECISIONS_20261017.md`, `fe2b81e95`):
+- attempt 06's interruption approved retrospectively as disclosed and unresolved;
+- whole-run stop on a handshake with nothing back accepted;
+- stage-count claim corrected: m9_01 and m10_03 are both N12/E12/T11.
+
+Pushed through `2ab3bc1f8`.
+
+**2026-10-17 m10_03 baseline delivered (review af7bd434, steps 3–5).**
+- **Model gate passed** (`d60d5dd00`): contention attempt 07 413/413, abort 07 79/79, revised reset contract PASS.
+  This followed four harness fixes (`9752038e5`), each a bounded diagnostic first.
+- **Earlier attempts:** 04 and 06 disclosed and unresolved; 05 resolved by a justified correction.
+- **Freeze v3** (`ff179e740`).
+- **Silicon** (`b286cf090`): five recovery blocks PASS with restore verified; the interleave block NOT_EXERCISED,
+  so the restart path stays model-only.
+- **Claim table:** `m10_03/CLAIMS_20261017.md`.
+
+**2026-10-17 m9 round 2** (`af7bd4345`): m9_01 not qualified.
+- Host-observed ACK tail localized downstream of the switch's egress parser (m9d build: switch CLRT within 7 µs of
+  950 µs).
+- Isolation cleanup deadline INDETERMINATE.
+- Reset race open, and fixed later in m10.
+
+Decision table: `ctl_timing_01/evidence/m9_01/ROUND2_DECISION_20261017.md`.
+
+**2026-10-16 C0–C3 and m7–m9** (directive ba50eac69):
+- C0 corrected the m5 isolation interpretation.
+- C1: m6_07's SELECT loss was T's 32-bit readiness aliasing, fixed by m7's T time base.
+- C2/m8: E places a held-ahead outstation RST.
+- C3: isolation acceptance v2/v3, with the two STALE_BLOCKER events attributed.
+- m9_01: N waits out a busy work cell instead of dropping a master RST; silicon not qualified (`b8ae7cf89`).
+
 **2026-10-16 correction (directive ba50eac69):** the m5 quiet-isolation FAIL is not late old timer tokens: all 7 READ and 4 OPERATE timer rejections preceded the permit; the open item is attribution of the 2 STALE_BLOCKER events in c2/c3 traffic. Verdict stays FAIL. `core/response_only_rearm/stage_experiments/seg61_02/evidence/hw_campaigns/ctl_m5_stale_iso20_950_01/INTERPRETATION_20261016.md`. Plan: directive `DNP3_m6_Completion_Directive_ba50eac69.md` (C0-C6).
 
 **2026-10-16 ~06:30 m6 night outcome (72d85875b directive; partial qualification verdict).**

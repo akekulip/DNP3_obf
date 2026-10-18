@@ -1,5 +1,7 @@
 # Rearm checkpoint
 
+**Current state (2026-10-18): see `defense4/timing/case4_architecture/HANDOVER.md` section 00. The active candidate is `ctl_timing_01/evidence/m10_03`, frozen as freeze v3. Silicon recovery passes; the restart path is not exercised on silicon; Part 2 is prepared, not launched.** The text below is history.
+
 **Current state (2026-10-15): see `defense4/timing/case4_architecture/HANDOVER.md` section "START HERE" and
 `STATUS.md` (newest first). Everything below is the 2026-10-12 checkpoint, kept as history.**
 

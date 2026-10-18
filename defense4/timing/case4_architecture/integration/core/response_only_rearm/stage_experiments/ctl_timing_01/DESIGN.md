@@ -1,6 +1,6 @@
 # ctl_timing_01: normalize SELECT and OPERATE CLRT, keep the OPERATE hold, bound piggyback latency (design, not built)
 
-Status (2026-10-14): built as milestones m1 (SELECT), m2 (OPERATE) and m3 (piggyback bound); see "As built" at the end. Design reviewed before code; implementation reviewed after m3. Base source is the qualified candidate61, `seg61_02/evidence/full_04/response_only.p4` (SHA256 `1b2d62d1…65aa`). Line numbers below refer to that file. Contract: `rearm_01/TIMING_CONTRACT.md`. Decisions: Philip, 2026-10-14 (all three CLRTs normalized to `gap`, J kept as its own objective, piggyback bounded per response).
+Status (2026-10-18): built through m10; the active candidate is m10_03 (section m10 at the end; evidence/m10_03/CLAIMS_20261017.md). Earlier status (2026-10-14): built as milestones m1 (SELECT), m2 (OPERATE) and m3 (piggyback bound); see "As built" at the end. Design reviewed before code; implementation reviewed after m3. Base source is the qualified candidate61, `seg61_02/evidence/full_04/response_only.p4` (SHA256 `1b2d62d1…65aa`). Line numbers below refer to that file. Contract: `rearm_01/TIMING_CONTRACT.md`. Decisions: Philip, 2026-10-14 (all three CLRTs normalized to `gap`, J kept as its own objective, piggyback bounded per response).
 
 ## What the code does today
 
@@ -282,3 +282,34 @@ m9 = m8 + one N change (`transform_n_m9`); E and T are byte-identical to m8.
     OLD_EPOCH_DROP.
   - Released branch, all kinds: one response, then the RST at the new frontier.
   - OPERATE responses are never held, because J > D, so an OPERATE abort is always the released branch.
+
+## m10: a stage-1 master RST survives the response claiming N's cell (2026-10-17, review af7bd434 finding 1)
+
+m10 = m9 + one N change (`transform_n_m10`); E and T are byte-identical to m9_01.
+- **The race m9 left open.** A master RST's stage-0 pass found the cell idle. The response then claimed the cell
+  before the RST's stage-1 pass, the owner had changed, and m9's wait did not apply, so the RST was lost. The
+  compiled model showed this on m9_01: the first RST was lost and the response reached the master
+  (`evidence/m10_03/diag_restart_case_on_m9_01_01`).
+- **The fix.**
+  - A stage-1 RST restarts at stage 0 as the 0x0800 retry when the epoch is unchanged, the low 16 bits of the owner
+    difference are 0, and the RST bit is set. `count_busy[5]` counts restarts.
+  - The lap counter rides in `event.reserved`. snapshot_t's retry rows keep it, and `first_close` no longer zeroes
+    it. It is bounded at 32.
+- **Attempts.**
+  - m10_01 restarted FIN|ACK too, so the RST bit became a key.
+  - m10_02 added a metadata field (`m.rst_laps`) that corrupted the compiled model (`evidence/m10_bisect_01`).
+  - m10_03 carries the counter in the existing snapshot variants instead.
+- **Build.** Source `d9b84fcc`; N12/E12/T11 on SDK 9.13.1 and 9.13.2, the same as m9_01.
+- **Reset contract (Philip, 2026-10-17).** A reset takes effect for T's held traffic at T's reset-application pass
+  (`close_epoch` + `live_reset_gen`). A response released by T before that pass may still reach the master: the
+  N-to-T window, a stated limitation, with at most one copy. A release after that pass is a defect.
+  `reset_application_check.py` judges this from each run's model log. The original "no response" result is kept,
+  as recorded.
+- **Results.**
+  - Model gate passed: `evidence/m10_03/model_summary_v3.json`, contention attempt 07 413/413, abort 07 79/79.
+  - Restart: exercised on the compiled model by the targeted section (first try, both kinds).
+  - Silicon: recovery passes. The restart path is **not exercised on silicon** (`evidence/m10_03/CLAIMS_20261017.md`).
+- **Open items** (`evidence/m10_03/NOTES_20261017.md`):
+  - mutation3: a forged retry frame on RETURN_PORT, unreachable from outside, inherited from m9;
+  - a master that sends after its own RST;
+  - the model tests the 9.13.1 image while the switch loads the 9.13.2 image.

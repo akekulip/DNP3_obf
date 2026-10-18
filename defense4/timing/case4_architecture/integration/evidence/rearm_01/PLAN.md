@@ -1,5 +1,7 @@
 # Generation-safe rearm execution
 
+> **2026-10-18:** the current state and remaining steps are in `defense4/timing/case4_architecture/HANDOVER.md` section 00 and the m10_03 evidence (`ctl_timing_01/evidence/m10_03/CLAIMS_20261017.md`, `PART2_DESIGN_20261018.md`). The plan below is the 2026-10-14/15 record.
+
 ## Current plan — 61-octet READ/SBO and full timing qualification (2026-10-14)
 
 **Steps 1 to 5 are complete (2026-10-14).** Offline verification is green (integrated suite 699 passed, with and without `RESEARCH_PYTHON`) and the bounded four-arm silicon smoke passed as `candidate61_fourarm_smoke_03`; earlier attempts `_01` and `_02` failed closed on harness defects that are fixed and retained. Production `case4_response_path` was restored and observed after every run. Step 3 passed on silicon the same day after Philip's go-ahead. Step 4 (timing and size evaluation) then ran the same afternoon; step 5 (final review and report) is done: `seg61_02/evidence/QUALIFICATION_REPORT.md`. Work was committed on branch `implement/seg61-qualified-20261014`, fast-forwarded into `main` and pushed to `origin/main` at `f0baa724a` on Philip's instruction (2026-10-14); no defaults promoted. The f0baa724a audit (`DNP3_f0baa724a_Audit.md`) reopened the items marked below.

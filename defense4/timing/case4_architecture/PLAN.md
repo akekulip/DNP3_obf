@@ -1,5 +1,18 @@
 # Case 4 architecture execution
 
+> **CURRENT CHECKPOINT (2026-10-18), supersedes the checkpoints below where they conflict.** The active candidate is
+> `ctl_timing_01/evidence/m10_03`. It passed the model gate, is frozen (freeze v3), and passed the silicon recovery
+> blocks with restore verified. The restart path is **not exercised on silicon**; m9 timing results are inherited.
+> The four-arm timing experiment (Part 2) is **prepared, not launched**: `ctl_timing_01/evidence/m10_03/PART2_DESIGN_20261018.md`,
+> 50 `seg61_02/hw/config/part2_m10_*` configs. Remaining steps, each awaiting Philip:
+> 1. the Part 2 power decision;
+> 2. a freeze naming the Part 2 configs;
+> 3. the feasibility gate;
+> 4. the campaign.
+>
+> Start at [HANDOVER.md](HANDOVER.md) section 00 and `ctl_timing_01/evidence/m10_03/CLAIMS_20261017.md`. The
+> 2026-10-13 direction (native requests; no request padding, splitting or carving) still holds.
+
 > **CURRENT CHECKPOINT AND REMAINING PLAN (2026-10-14):** candidate61 `seg61_02/full_04` compiles on both SDKs at N11/E12/T11 and passes the five compiled-model suites (30/30,30/30,622/622,399/399,102/102). **Update 2026-10-14: the four-arm silicon smoke and every step-3 gate (persistence, loss, reconnect, isolation, held OPERATE) passed on silicon; the step-4 timing and size evaluation is complete (`seg61_02/evidence/STEP4_RESULTS.md`).** The detailed completed/pending checklist is in [the updated rearm PLAN](integration/evidence/rearm_01/PLAN.md): final test/review, qualified-capture four-arm silicon smoke, persistence/loss/reconnect/stale/held-duplicate gates, repeated four-arm and strict timing comparison at59,570PPS/950µs, separately labelled piggyback, then14,892-vs59,570PPS overhead/precision comparison. This checkpoint supersedes conflicting historical directions below, including the earlier open equal-size SBO decision. READ/SBO61 uses the directive's legal re-encoding/transport framing with unchanged application content. Hardware evidence: `seg61_02/evidence/hw_campaigns/`.
 
 > **ACTIVE DIRECTION (2026-10-13), supersedes every instruction below that conflicts with it.** Source:
