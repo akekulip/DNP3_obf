@@ -1,0 +1,355 @@
+{
+ "run_id": "ctl_m10_interleave_950_01",
+ "ok": false,
+ "failure": "ctl_m10_interleave_950_01_separate_ack_combined_t0 interleave NOT_EXERCISED: restart path not exercised (count_busy[5] did not rise)",
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "ctl_timing_m10_03",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+     "master_port": 59970,
+     "reads": 1,
+     "ok": false,
+     "failures": [
+      "restart path not exercised (count_busy[5] did not rise)"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65513
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 21
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 21
+      },
+      "snapshot": {
+       "bfrt_sha256": "df6b191450db62c1f17f56be5320032aca80a50eec09ee91540f55b7104b4a2c",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792290799.1587436,
+       "valid": true
+      },
+      "time": 1792290799.1683621,
+      "budget": {
+       "reads": 1,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 3,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m10_interleave_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+     },
+     "interleave_verdict": "NOT_EXERCISED",
+     "restarts": 0
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "fixture": "separate_ack",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59970,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_ctl_m10_interleave_950_01_separate_ack_combined_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "becfd4f0d0bf391fc117c3954542a173374746b9f86130be0d2607f3f2ec7818",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "c1a935023ecbdbf2b172b6d7c39d55d3b25b1eccf0bcc9b3065e0696e71d82e4",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "55c37381a89cec90627d4a32b7118abc3f56586628d58d685488aabe96d13791",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "9fe131b98ac26b6b1b1ca4179d3fe4f92ff4c0ea7ff9761b8522380e7cb6d6b0",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_pad58b",
+  "lib_path": "/home/decps/pad58b_rearm_controls_20261012/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "loss.py": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4",
+   "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a"
+  },
+  "vision_run_sha256": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+  "loss_sha256": "818ca128d4c777fae3fb17f860af51ec8777c46f379864e759c2e00a752deaf4"
+ },
+ "interleave_identity": {
+  "vision_contention.py": "c8c014393b8e13703f5a26c611234e3003df1a812874ca8770f74bc27f35d9f4",
+  "contention_probe.py": "bfdf7863b2cfdfd564b22bb2ae6fa7d4f5329ebeeecef4249a32dd1924a7cd46",
+  "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+  "interleave_plan.json": "ee17339d5381a599354e44098e8296a32cbae21ce176ab05abe07c2632cf3495"
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 21
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65513
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "da": 2000000,
+   "readiness": 30000000,
+   "cap": 40000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570,
+    "op": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "modes": [
+    "separate_ack"
+   ],
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "readiness_margin_ms": 5,
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
+  },
+  "trials": {
+   "reads_per_trial": 1,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "master_port_range": {
+    "first": 59970,
+    "last": 59970
+   },
+   "range": 8,
+   "gap_ms": 0,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately.",
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "read_pause_ms": 25,
+   "run_sbo": true,
+   "close_grace_ms": 1000
+  },
+  "ports_map": {
+   "n_ack_return": 48,
+   "t_in": 180,
+   "hb_return": 181,
+   "held_return": 182,
+   "recirc": 68,
+   "master_dev": 9,
+   "relay_dev": 9,
+   "stat_ports": "9,64"
+  },
+  "endpoints": {
+   "master_ip": "192.0.2.61",
+   "outstation_ip": "192.0.2.62",
+   "outstation_port": 20000,
+   "read_dst": 0,
+   "read_src": 256,
+   "link_note": "read_dst 0x0000 <- read_src 0x0100: the link addresses of the probe frames (contention_probe READ head), not the OpenDNP3 outstation (10)"
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "candidate61_label": "m10_reset_interleave"
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "ctl_timing_m10_03": 0
+  },
+  "endpoint_identity": {
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "binary_sha256": "7446e921d0ef28ae06bd31165d0048a0612ccf6590f4080e72e2ea939f9579c9",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "_pinned": "Separate controls fixture; baseline endpoint directory and identity remain unchanged.",
+   "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "source_sha256": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+   "source_files": {
+    "SocketGatePad58B.cpp": "aa574dbdf6fac27fa19364b5f46bc75514b203dd161b132faf07b2c46bd346e9",
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2"
+   }
+  },
+  "vision_run_dir": "/home/decps/pad58b_rearm_controls_20261012"
+ },
+ "config_sha256": "683b11fa9408382f58289f0d6361a6f98f62d031eef4b2dbb2f7bcbb3bdc80ba",
+ "config_file_sha256": "95ec370c6970230369da978d0c59e287547b12ae2283661332536bb23efea057",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "10546932eb50f366467b922558a1b936b714758795f1ec87b7a75edcc7b6f522",
+   "checks.py": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9",
+   "vision_run.py": "8d349f8e70c20ab5d381dcf681b30860b4f4ddd14f6f70e0de4c918ae0f1fd28",
+   "clrt_check.py": "de93c67678bc2436b311e400a6658c91bf8e2f3ec1e210a2e7fd0f0b8a973b04",
+   "wire_check.py": "3ba65a2a4453288321b9c09f2062319e72d9d0ca882ef0e9ac87993bb11abb3a",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303"
+  },
+  "build_sources": {
+   "ctl_timing_m10_03": {
+    "source_sha256": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc",
+    "source_files": {
+     "response_only.p4": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "ctl_timing_m10_03": {
+   "bfrt.json": "df6b191450db62c1f17f56be5320032aca80a50eec09ee91540f55b7104b4a2c",
+   "p0/tofino.bin": "7db033abdd621c2cdb21b428873ec2096d46bdd2f1e281ec1694998ace89cc78",
+   "p1/tofino.bin": "856ea43018a46b79a717dc371a6de492394bfce291d7a5c67c695f3d3c113aac",
+   "p1/response_only.bfa": "b5f3bc0c4abf175ba5a942619c06b3231414a6b6ea635dc58220229cd64f860f"
+  }
+ },
+ "paired_block": null,
+ "time": 1792290881.821239
+}

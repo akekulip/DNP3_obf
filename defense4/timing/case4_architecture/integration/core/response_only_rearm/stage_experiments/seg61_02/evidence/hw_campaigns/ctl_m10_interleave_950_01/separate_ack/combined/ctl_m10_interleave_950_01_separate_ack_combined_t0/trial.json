@@ -1,0 +1,89 @@
+{
+ "fixture": "separate_ack",
+ "label": "ctl_m10_interleave_950_01_separate_ack_combined_t0",
+ "master_port": 59970,
+ "reads": 1,
+ "ok": false,
+ "failures": [
+  "restart path not exercised (count_busy[5] did not rise)"
+ ],
+ "max_token_stale": 0,
+ "reconnect_policy": "characterize",
+ "diagnostic": false,
+ "preset": "shape_59570",
+ "conditions": {
+  "delay_ms": 5,
+  "gap_ms": 0,
+  "start_delay_ms": 0,
+  "start_seed": 12345
+ },
+ "generation_headroom": {
+  "current": {
+   "operate": 0,
+   "read": 0
+  },
+  "max_generation": 65534,
+  "ok": true,
+  "registers": {
+   "operate": "p1.t_Ingress.op_gen_alloc_reg",
+   "read": "p1.t_Ingress.gen_alloc_reg"
+  },
+  "remaining_after_reserve": {
+   "operate": 65515,
+   "read": 65513
+  },
+  "remaining_before_reserve": {
+   "operate": 65534,
+   "read": 65534
+  },
+  "reserve": {
+   "operate": 19,
+   "read": 21
+  },
+  "reserves": {
+   "operate": 19,
+   "read": 21
+  },
+  "snapshot": {
+   "bfrt_sha256": "df6b191450db62c1f17f56be5320032aca80a50eec09ee91540f55b7104b4a2c",
+   "errors": {},
+   "program": "response_only",
+   "registers": {
+    "p1.t_Ingress.gen_alloc_reg": {
+     "action_name": null,
+     "is_default_entry": false,
+     "t_Ingress.gen_alloc_reg.f1": [
+      0
+     ]
+    },
+    "p1.t_Ingress.op_gen_alloc_reg": {
+     "action_name": null,
+     "is_default_entry": false,
+     "t_Ingress.op_gen_alloc_reg.f1": [
+      0
+     ]
+    }
+   },
+   "software_read_fallbacks": [],
+   "time": 1792290799.1587436,
+   "valid": true
+  },
+  "time": 1792290799.1683621,
+  "budget": {
+   "reads": 1,
+   "sbo_cycles": 1,
+   "cancelled_selects": 0,
+   "connections": 1,
+   "control_timed": true,
+   "timed": true,
+   "open_close_per_connection": 2,
+   "margin": 16,
+   "read_lane_per_connection": 3,
+   "operate_per_connection": 1,
+   "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+  },
+  "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/ctl_m10_interleave_950_01_separate_ack_combined_t0_before_generation_headroom.json"
+ },
+ "interleave_verdict": "NOT_EXERCISED",
+ "restarts": 0
+}

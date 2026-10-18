@@ -1,0 +1,54 @@
+{
+  "interface": "enp59s0f0np0",
+  "applied": true,
+  "tuple": [
+    "192.0.2.61",
+    "192.0.2.62",
+    59970,
+    20000
+  ],
+  "events": 140,
+  "capture_commands": {
+    "out": [
+      "tcpdump",
+      "-i",
+      "enp59s0f0np0",
+      "--immediate-mode",
+      "-Q",
+      "out",
+      "-s0",
+      "-U",
+      "-n",
+      "-w",
+      "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m10_interleave_950_01_separate_ack_combined_t0/out.pcap",
+      "tcp and host 192.0.2.61 and host 192.0.2.62"
+    ],
+    "in": [
+      "tcpdump",
+      "-i",
+      "enp59s0f0np0",
+      "--immediate-mode",
+      "-Q",
+      "in",
+      "-s0",
+      "-U",
+      "-n",
+      "-w",
+      "/home/decps/pad58b_rearm_controls_20261012/runs/ctl_m10_interleave_950_01_separate_ack_combined_t0/in.pcap",
+      "tcp and host 192.0.2.61 and host 192.0.2.62"
+    ]
+  },
+  "sent": 140,
+  "tcpdump": {
+    "out": {
+      "captured": 140,
+      "received": 260,
+      "dropped_kernel": 0
+    },
+    "in": {
+      "captured": 120,
+      "received": 260,
+      "dropped_kernel": 0
+    }
+  }
+}

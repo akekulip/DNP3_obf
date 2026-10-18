@@ -1,0 +1,129 @@
+{
+ "ok": true,
+ "failures": [],
+ "expected": {
+  "counts": {
+   "READ": 20,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2"
+  },
+  "calibration_in": {
+   "sha256": "3835d095848f97a90894f472d170e99fff3f6bbdcd2e265c5281c46cd357dafd"
+  },
+  "calibration_out": {
+   "sha256": "38e2207d8d915702b7d900b0ec8c247d0648e543de3cd666f84c49eb5c737549"
+  },
+  "calibration_result": {
+   "sha256": "16a71d55af1cefe6de780f0d945c3c5f93e5eba52db62042566957d87a6091b1"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "1430367214f2d549ec56f10012da06ab928c7f5a44d0e584fbd09a5debce7eb4"
+  },
+  "out": {
+   "sha256": "3b291d98241dbef2cf815297ad4ee276f3f0f8bd5594d1b15e2dd3c76118e575"
+  },
+  "run_result": {
+   "sha256": "44df622792aa3321f3f0d59b8613f98afeae6a2160206146a507d2f40703b1eb"
+  }
+ },
+ "precision": {
+  "required": true,
+  "status": "pass",
+  "reasons": [],
+  "evidence": {
+   "gap_us": 800.0,
+   "read_rows": 20,
+   "eligible": 20,
+   "excluded": {
+    "incomplete": 0,
+    "piggyback": 0,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": {
+    "n": 20,
+    "min": 0.0,
+    "median": 7,
+    "iqr": 12.0,
+    "p95": 28.0,
+    "p99": 33.0,
+    "max": 33.0,
+    "sd_population": 9.6,
+    "sd_sample": 9.8
+   },
+   "signed_error_us": {
+    "n": 20,
+    "min": -8.0,
+    "median": 6,
+    "iqr": 18.0,
+    "p95": 28.0,
+    "p99": 33.0,
+    "max": 33.0,
+    "sd_population": 11.9,
+    "sd_sample": 12.2
+   },
+   "tails": [
+    {
+     "t_req": 1792290629334597,
+     "clrt_us": 833,
+     "error_us": 33.0
+    },
+    {
+     "t_req": 1792290629368430,
+     "clrt_us": 828,
+     "error_us": 28.0
+    },
+    {
+     "t_req": 1792290629503836,
+     "clrt_us": 826,
+     "error_us": 26.0
+    },
+    {
+     "t_req": 1792290629537731,
+     "clrt_us": 824,
+     "error_us": 24.0
+    },
+    {
+     "t_req": 1792290629300782,
+     "clrt_us": 816,
+     "error_us": 16.0
+    }
+   ],
+   "pass": true,
+   "p99_nearest_rank_abs_error_us": 33.0,
+   "gated": true
+  }
+ },
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "not_applicable",
+  "operate_hold": "not_applicable"
+ },
+ "qualification": "measurement_only",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}
