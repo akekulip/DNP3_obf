@@ -376,3 +376,30 @@ def test_a_disclosed_unresolved_note_stands_only_beside_a_later_complete_pass(tm
     assert bool(s['disclosed_unresolved']) == ok
     if ok:
         assert s['disclosed_unresolved'][0]['passed_later_attempt'] == 'model_abort_m9_01_02'
+
+
+@pytest.mark.parametrize('driver, key', (('contention', 'abort_released_before_reset'),
+                                         ('abort', 'abort_released_before_send'),
+                                         ('abort', 'abort_released_before_reset'),
+                                         ('contention', 'abort_held_not_established')))
+def test_v3_blocks_an_unmeasured_held_abort_decided_by_t_passes_and_in_the_abort_driver(v3, driver, key):
+    """Harness fix 2: a held abort whose release T's passes put before the reset application is judged by the
+    released-branch contract, and still did not measure the held path; the abort driver runs the same cases."""
+    build, _ = v3
+    run = next(build.parent.glob('model_%s_m9_01_*' % driver))
+    record = json.loads((run / 'launch_command.json').read_text())
+    record['MILESTONE'] = 'm10'
+    (run / 'launch_command.json').write_text(json.dumps(record))
+    contention = build.parent / 'model_contention_m9_01_01'
+    if driver == 'abort':
+        rec = json.loads((contention / 'launch_command.json').read_text())
+        rec['MILESTONE'] = 'm10'
+        (contention / 'launch_command.json').write_text(json.dumps(rec))
+    (contention / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    assert ms.summarize_v3(build)['qualification'] == 'model_gate_passed'
+    results = next(run.glob('*_results.json'))
+    data = json.loads(results.read_text())
+    data['meta'][key] = ['abort_held_READ']
+    results.write_text(json.dumps(data))
+    s = ms.summarize_v3(build)
+    assert s['qualification'] == 'blocked' and any('held abort path not measured' in x for x in s['blocked_reasons'])

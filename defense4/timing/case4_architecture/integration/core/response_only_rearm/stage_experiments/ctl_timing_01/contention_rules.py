@@ -32,6 +32,20 @@ def abort_branch_outcome(released_before_send, released_after_send):
     return 'inconclusive' if released_after_send else 'held'
 
 
+def abort_log_order(decision):
+    """The abort order from T's own passes (reset_application_check.classify over the connection's T records), used
+    only when the pre-send register read is inconclusive:
+      'released'              every release pass came before T's reset-application pass and the release count
+                              matches T's counters (verdict PASS with at least one release before);
+      'released_after_reset'  a release pass at or after the application pass (verdict FAIL): a dataplane defect;
+      'inconclusive'          anything else (no application found, unattributed, counts disagree)."""
+    if decision.get('verdict') == 'PASS' and decision.get('released_before'):
+        return 'released'
+    if decision.get('verdict') == 'FAIL':
+        return 'released_after_reset'
+    return 'inconclusive'
+
+
 def request_quiet(kind, watch_later, op_hold_s, default_s=0.2):
     """Quiet after the relayed request. OPERATE keeps op_hold_s (the duplicate-release window) unless the caller
     watches the relay port through the response capture instead (option a, 2026-10-17)."""
@@ -43,7 +57,7 @@ def _tcp_ports(frame):
     if len(frame) < 34 or frame[12:14] != b'\x08\x00' or frame[23] != 6 or (frame[14] & 0x0f) < 5:
         return None
     tcp = 14 + (frame[14] & 0x0f) * 4
-    if len(frame) < tcp + 4:
+    if len(frame) < tcp + 20:                    # the whole TCP header, so flags (frame[tcp + 13]) can be read
         return None
     return int.from_bytes(frame[tcp:tcp + 2], 'big'), int.from_bytes(frame[tcp + 2:tcp + 4], 'big')
 
@@ -57,14 +71,39 @@ def outstation_bound(frame, server_port):
     return ports is not None and ports[1] == server_port
 
 
-def master_bound(frame, server_port):
-    """True only for a frame positively read as IPv4 TCP sent from the outstation's port (toward the master)."""
+def tcp_view(frame):
+    """(sport, dport, seq, payload) of an untagged IPv4 TCP frame, payload bounded by the IP total length (Ethernet
+    padding excluded), or None if the frame cannot be read as one."""
     ports = _tcp_ports(frame)
-    return ports is not None and ports[0] == server_port
+    if ports is None:
+        return None
+    tcp = 14 + (frame[14] & 0x0f) * 4
+    end = 14 + int.from_bytes(frame[16:18], 'big')
+    return ports[0], ports[1], int.from_bytes(frame[tcp + 4:tcp + 8], 'big'), frame[tcp + (frame[tcp + 12] >> 4) * 4:end]
 
 
-def late_relay_copies(frames, relay_dev_port, server_port):
-    """Frames (t, port, frame) on the relay device port after the request capture that are not positively
-    master-bound: each is counted as a second copy of the request, an unreadable frame included (fail closed;
-    code review). Returns [(t, length)]; empty means none."""
-    return [(round(t, 4), len(f)) for t, p, f in frames if p == relay_dev_port and not master_bound(f, server_port)]
+def classify_watch_frames(frames, relay_dev_port, request, server_port):
+    """Frames (t, port, frame) on the relay device port after the request capture, each classed:
+      master_bound         sent from the outstation's port to the request's client port (the ACK, the response);
+      confirmed_duplicate  a second copy of the request: toward the outstation's port from the request's client port,
+                           with the request's TCP sequence and its exact payload (the same command);
+      unclassified         anything else, an unreadable frame included.
+    request: the request frame as the master sent it. The case passes only with no confirmed duplicate and nothing
+    unclassified (fail closed); the two are reported apart (harness fixes, 2026-10-17)."""
+    req = tcp_view(request)
+    rows = []
+    for t, p, f in frames:
+        if p != relay_dev_port:
+            continue
+        v = tcp_view(f)
+        if req is not None and v is not None and v[0] == server_port and v[1] == req[0]:
+            kind = 'master_bound'
+        elif req is not None and v is not None and (v[0], v[1], v[2], v[3]) == req:
+            kind = 'confirmed_duplicate'
+        else:
+            kind = 'unclassified'
+        rows.append(dict(t=round(t, 4), length=len(f), cls=kind))
+    count = lambda k: sum(r['cls'] == k for r in rows)
+    return dict(ok=count('confirmed_duplicate') == 0 and count('unclassified') == 0,
+                confirmed_duplicates=count('confirmed_duplicate'), unclassified=count('unclassified'),
+                master_bound=count('master_bound'), frames=[r for r in rows if r['cls'] != 'master_bound'])

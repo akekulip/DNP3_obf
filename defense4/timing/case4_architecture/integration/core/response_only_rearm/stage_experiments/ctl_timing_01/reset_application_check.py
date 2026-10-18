@@ -1,6 +1,8 @@
 """Revised reset contract, checked from a contention run's model log (Philip, 2026-10-17).
 
-  python3 reset_application_check.py RUN_DIR [TAG ...]    (default tags: restart_READ restart_SELECT)
+  python3 reset_application_check.py RUN_DIR [TAG ...]    (default: every restart point the run recorded, i.e. the
+                                                           meta points whose tag starts 'restart' and that carry
+                                                           'restarts': the ordinary and the targeted ones)
 
 The contract this checks (it does not replace the original check, which keeps its recorded results):
   A reset takes effect for T's held traffic at T's reset-application pass: the T ingress pass that runs close_epoch
@@ -105,9 +107,15 @@ def server_seq_pattern(results, tag):
     return '%08x' % ((int.from_bytes(frame[38:42], 'big') + 1) & 0xffffffff)
 
 
-def check(run_dir, tags=('restart_READ', 'restart_SELECT')):
+def restart_tags(results):
+    return tuple(p['tag'] for p in results['meta'].get('points', [])
+                 if str(p.get('tag', '')).startswith('restart') and 'restarts' in p)
+
+
+def check(run_dir, tags=None):
     run_dir = Path(run_dir)
     results = json.loads(next(run_dir.glob('*_results.json')).read_text())
+    tags = tags or restart_tags(results)
     with open(next(run_dir.glob('model_*.log')), errors='replace') as log:
         records = ingress_records(log)
     out = {}
@@ -123,9 +131,9 @@ def check(run_dir, tags=('restart_READ', 'restart_SELECT')):
 
 
 def main(argv):
-    result = check(argv[1], tuple(argv[2:]) or ('restart_READ', 'restart_SELECT'))
+    result = check(argv[1], tuple(argv[2:]) or None)
     print(json.dumps(result, indent=1))
-    return 0 if all(v['verdict'] == 'PASS' for v in result.values()) else 1
+    return 0 if result and all(v['verdict'] == 'PASS' for v in result.values()) else 1
 
 
 if __name__ == '__main__':

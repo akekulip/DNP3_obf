@@ -97,3 +97,10 @@ def test_each_ingress_record_carries_t_clock_from_its_own_parser():
     """committed_precondition_check reads T's clock per pass: the parser's extracted value, not a later dump line."""
     records = rac.ingress_records(TSTAMP_LOG.splitlines(True))
     assert records[0]['t_units'] == 0x0268d564 and records[0]['actions'] == ['t_Ingress.admit_response']
+
+
+def test_default_tags_are_every_recorded_restart_point_ordinary_and_targeted():
+    results = {'meta': {'points': [dict(tag='restart_READ', restarts=0), dict(tag='restart_READ_new_READ'),
+                                   dict(tag='restart_targeted_READ_1', restarts=0),
+                                   dict(tag='restart_targeted_READ_2', restarts=1), dict(tag='sweep_READ_000ms')]}}
+    assert rac.restart_tags(results) == ('restart_READ', 'restart_targeted_READ_1', 'restart_targeted_READ_2')

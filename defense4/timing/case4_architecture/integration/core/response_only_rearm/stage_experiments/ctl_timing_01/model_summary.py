@@ -274,7 +274,12 @@ def _unmeasured_points(run_dir):
     attempt is incomplete and blocks; never a pass:
     - committed_path_not_measured: a sweep point whose readiness fallback was the contract outcome;
     - abort_released_before_send: a held-branch abort point whose response T had released before the RST, so no
-      held response was flushed by the reset.
+      held response was flushed by the reset;
+    - abort_released_before_reset: the same, decided from T's passes in the model log (release before T applied
+      the reset) when the pre-send register read was inconclusive;
+    - abort_held_not_established: a held-branch abort point where T's admission of the response was never observed
+      in the model log, so the held construction was not established.
+    Applied to the contention driver and to the abort driver, which runs the same abort cases.
     An unreadable or ambiguous results file is itself a problem."""
     files = sorted(run_dir.glob('*_results.json'))
     if len(files) != 1:
@@ -285,7 +290,9 @@ def _unmeasured_points(run_dir):
         return ['unreadable %s (%s)' % (files[0].name, e)]
     problems = []
     for key, what in (('committed_path_not_measured', 'committed path not measured'),
-                      ('abort_released_before_send', 'held abort path not measured')):
+                      ('abort_released_before_send', 'held abort path not measured'),
+                      ('abort_released_before_reset', 'held abort path not measured'),
+                      ('abort_held_not_established', 'held abort path not measured')):
         if meta.get(key):
             problems.append('%s (incomplete, rerun required): %s' % (what, ', '.join(meta[key])))
     return problems
@@ -305,6 +312,8 @@ def summarize_v3(build):
         problems = _closure_problems(build, r)
         if driver == 'contention' and r.get('milestone') == 'm10':
             problems += _reset_application_problems(build.parent / run)
+            problems += _unmeasured_points(build.parent / run)
+        elif driver == 'abort' and r.get('milestone') == 'm10':
             problems += _unmeasured_points(build.parent / run)
         r['dependency_problems'] = problems
         for p in problems:

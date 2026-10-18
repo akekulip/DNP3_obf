@@ -1,0 +1,5655 @@
+{
+ "cases": [
+  {
+   "expected": 4,
+   "name": "sweep_READ_000ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000753000000000600210003ba20000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000088b80000753160121000b2d80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000007531000088b950101000ca950000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05076296301558614,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0508,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4402,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_008ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000009c40000000006002100014920000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000afc800009c416012100064b80000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c410000afc9501010007c750000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04986606980673969,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0499,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4327,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_015ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000c3500000000060021000ed810000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000d6d80000c3516012100016980000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000c3510000d6d9501010002e550000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.051205133087933064,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0512,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4206,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_022ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000ea600000000060021000c6710000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310000fde80000ea6160121000c8770000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000ea610000fde950101000e0340000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05108558898791671,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0511,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4243,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_030ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001117000000000600210009f610000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000124f800011171601210007a570000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000011171000124f95010100092140000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.052569594932720065,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0526,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4311,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_045ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000013880000000006002100078510000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100014c0800013881601210002c370000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001388100014c095010100043f40000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.051742793060839176,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0517,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4338,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_060ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000015f90000000006002100051410000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001731800015f9160121000de160000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000015f910001731950101000f5d30000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05107940686866641,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0511,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4183,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_090ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000186a000000000600210002a310000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100019a28000186a1601210008ff60000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000186a100019a2950101000a7b30000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05030257906764746,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0503,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4313,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_READ_120ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001adb0000000006002100003210000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001c1380001adb16012100041d60000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_READ_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001adb10001c1395010100059930000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04992261598818004,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0499,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_READ_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.431,
+   "resp_dup_drop": 0,
+   "tag": "sweep_READ_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_READ_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_000ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001d4c00000000060021000dc100000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310001e8480001d4c160121000f3b50000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001d4c10001e849501010000b730000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05086237005889416,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0509,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4249,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_008ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001fbd00000000060021000b5000000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100020f580001fbd160121000a5950000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001fbd100020f5950101000bd520000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.049936641938984394,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0499,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4384,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_015ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000222e000000000600210008df00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100023668000222e16012100057750000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000222e100023669501010006f320000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.049418138107284904,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0494,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4234,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_022ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000249f0000000006002100066e00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100025d78000249f16012100009550000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000249f100025d795010100021120000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.053194408072158694,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0532,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4356,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_030ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002710000000000600210003fd00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000284880002710160121000bb340000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000271010002848950101000d2f10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.0532149369828403,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0532,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4266,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_045ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000029810000000006002100018c00000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002ab9800029811601210006d140000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000298110002ab995010100084d10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.053085252875462174,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0531,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4211,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_060ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002bf200000000060021000f1af0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002d2a80002bf21601210001ef40000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200002bf210002d2a95010100036b10000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05458063096739352,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0546,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4314,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_090ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200002e6300000000060021000ca9f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310002f9b80002e63160121000d0d30000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200002e6310002f9b950101000e8900000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.050679777981713414,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0507,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4338,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_SELECT_120ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000030d400000000060021000a38f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000320c800030d416012100082b30000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_SELECT_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000030d41000320c9501010009a700000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.051440775860100985,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0514,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "SELECT",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_SELECT_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4389,
+   "resp_dup_drop": 0,
+   "tag": "sweep_SELECT_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_SELECT_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_000ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003345000000000600210007c7f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000347d8000334516012100034930000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_000ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000033451000347d9501010004c500000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_000ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.049668838968500495,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0497,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_000ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4413,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_000ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_000ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_008ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000035b600000000060021000556f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100036ee800035b6160121000e6720000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_008ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000035b6100036ee950101000fe2f0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_008ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05038254917599261,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 8,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0504,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_008ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4624,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_008ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_008ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_015ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003827000000000600210002e5f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000395f8000382716012100098520000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_015ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000038271000395f950101000b00f0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_015ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05072039319202304,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 15,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0507,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_015ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4656,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_015ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_015ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_022ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003a9800000000060021000074f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310003bd080003a981601210004a320000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_022ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003a9810003bd095010100061ef0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_022ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04868029314093292,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 22,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0487,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_022ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.441,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_022ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_022ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_030ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003d0900000000060021000e03e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310003e4180003d09160121000fc110000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_030ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003d0910003e4195010100013cf0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_030ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.054360317066311836,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 30,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0544,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_030ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4519,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_030ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_030ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_045ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200003f7a00000000060021000b92e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100040b280003f7a160121000adf10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_045ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200003f7a100040b2950101000c5ae0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_045ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.053267867071554065,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 45,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0533,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_045ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4524,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_045ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_045ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_060ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000041eb00000000060021000921e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004323800041eb1601210005fd10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_060ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000041eb10004323950101000778e0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_060ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05735170398838818,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 60,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0574,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_060ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4462,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_060ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_060ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_090ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000445c000000000600210006b0e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100045948000445c16012100011b10000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_090ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000445c10004594950101000296e0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_090ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.05415466194972396,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 90,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0542,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_090ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4573,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_090ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_090ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "sweep_OPERATE_120ms_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000046cd0000000006002100043fe0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004805800046cd160121000c3900000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "sweep_OPERATE_120ms_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000046cd10004805950101000db4d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "no copy of the request and no unclassified frame after the request capture",
+   "master_bound": 2,
+   "name": "sweep_OPERATE_120ms_request_not_relayed_again",
+   "observed": "confirmed duplicates 0, unclassified 0",
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.053024489898234606,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 120,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.053,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "OPERATE",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "sweep_OPERATE_120ms_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4435,
+   "resp_dup_drop": 0,
+   "tag": "sweep_OPERATE_120ms"
+  },
+  {
+   "expected": true,
+   "name": "sweep_OPERATE_120ms_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000493e000000000600210001cee0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004a768000493e16012100075700000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000493e10004a769501010008d2d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 1,
+   "expected": true,
+   "expected_flushed": 305001,
+   "expected_released": 305062,
+   "expected_rst_ack": 300021,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.054934997111558914
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "held",
+   "request_relayed": true,
+   "resets_seq": [
+    305001
+   ],
+   "responses": 0,
+   "rst_ack": [
+    300021
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 5,
+    "OLD_EPOCH_DROP": 1
+   },
+   "tag": "abort_held_READ"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200004baf00000000060021000f5dd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004ce780004baf16012100027500000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200004baf10004ce79501010003f0d0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 315001,
+   "expected_released": 315062,
+   "expected_rst_ack": 310021,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "READ",
+   "name": "abort_released_READ_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    315062
+   ],
+   "responses": 1,
+   "rst_ack": [
+    310021
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 5,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_READ"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200004e2000000000060021000cecd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310004f5880004e20160121000d92f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200004e2010004f58950101000f0ec0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 1,
+   "expected": true,
+   "expected_flushed": 325001,
+   "expected_released": 325062,
+   "expected_rst_ack": 320036,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04076095297932625
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "held",
+   "request_relayed": true,
+   "resets_seq": [
+    325001
+   ],
+   "responses": 0,
+   "rst_ack": [
+    320036
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 5,
+    "OLD_EPOCH_DROP": 1
+   },
+   "tag": "abort_held_SELECT"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_SELECT_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000509100000000060021000a7bd0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100051c9800050911601210008b0f0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005091100051c9950101000a2cc0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 335001,
+   "expected_released": 335062,
+   "expected_rst_ack": 330036,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "SELECT",
+   "name": "abort_released_SELECT_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    335062
+   ],
+   "responses": 1,
+   "rst_ack": [
+    330036
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 6,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_SELECT"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_OPERATE_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000053020000000006002100080ad0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000543a800053021601210003cef0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000053021000543a95010100054ac0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_OPERATE_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "abort_held_OPERATE_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 345062,
+   "expected_released": 345123,
+   "expected_rst_ack": 340071,
+   "frames_to_master": 2,
+   "held_before_rst": false,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04378295689821243
+   },
+   "kind": "OPERATE",
+   "name": "abort_held_OPERATE_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    345123
+   ],
+   "responses": 1,
+   "rst_ack": [
+    340071
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 9,
+    "OP_RELEASE": 1,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_OPERATE"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_OPERATE_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000557300000000060021000599d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100056ab80005573160121000eece0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005573100056ab950101000068c0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_OPERATE_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "abort_released_OPERATE_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 355062,
+   "expected_released": 355123,
+   "expected_rst_ack": 350071,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "OPERATE",
+   "name": "abort_released_OPERATE_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    355123
+   ],
+   "responses": 1,
+   "rst_ack": [
+    350071
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 15,
+    "OP_RELEASE": 1,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_OPERATE"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_READ_plus48_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus48_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000057e400000000060021000328d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus48_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000591c800057e4160121000a0ae0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus48_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000057e41000591c950101000b86b0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_plus48_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 365001,
+   "expected_released": 365062,
+   "expected_rst_ack": 360021,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04655827791430056
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus48_no_master_reset",
+   "observed": true,
+   "offset": 48,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 28,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_READ_plus48"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_READ_plus50_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus50_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200005a55000000000600210000b7d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus50_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310005b8d80005a55160121000528e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus50_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005a5510005b8d9501010006a4b0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_plus50_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 375001,
+   "expected_released": 375062,
+   "expected_rst_ack": 370021,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.05204463889822364
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus50_no_master_reset",
+   "observed": true,
+   "offset": 50,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 21,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_READ_plus50"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_plus48_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200005cc600000000060021000e46c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310005dfe80005cc6160121000046e0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005cc610005dfe9501010001c2b0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_plus48_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 385001,
+   "expected_released": 385062,
+   "expected_rst_ack": 380036,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.05993157811462879
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus48_no_master_reset",
+   "observed": true,
+   "offset": 48,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 26,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_SELECT_plus48"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_plus50_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200005f3700000000060021000bd5c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000606f80005f37160121000b64d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200005f371000606f950101000ce0a0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_plus50_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 395001,
+   "expected_released": 395062,
+   "expected_rst_ack": 390036,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04458471294492483
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus50_no_master_reset",
+   "observed": true,
+   "offset": 50,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 20,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_SELECT_plus50"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_READ_plus49_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus49_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000061a800000000060021000964c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus49_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100062e0800061a8160121000682d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus49_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000061a8100062e09501010007fea0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_READ_plus49_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_SELECT_plus37_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus37_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200006419000000000600210006f3c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus37_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310006551800064191601210001a0d0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus37_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000064191000655195010100031ca0000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_SELECT_plus37_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "abort_followed_by_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000668a00000000060021000482c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100067c28000668a160121000cbec0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000668a100067c2950101000e3a90000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_followed_by_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.04912940505892038,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     60,
+     "ack"
+    ],
+    [
+     0.0491,
+     115,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "ACK_FALLBACK": 0,
+    "RESP_FALLBACK": 0,
+    "RESP_RELEASE": 1
+   },
+   "name": "abort_followed_by_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4253,
+   "resp_dup_drop": 0,
+   "tag": "abort_followed_by_READ"
+  },
+  {
+   "expected": true,
+   "name": "abort_followed_by_READ_RST_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "restart_targeted_READ_1_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_READ_1_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e2000068fb00000000060021000211c0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_READ_1_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310006a33800068fb1601210007dcc0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_READ_1_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000068fb10006a3395010100095890000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_READ_1_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_READ_1_first_RST_relayed_once",
+   "observed": true,
+   "ok": true,
+   "relayed": 1
+  },
+  {
+   "copies": 0,
+   "expected": true,
+   "name": "restart_targeted_READ_1_response_at_most_once",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_READ_path_exercised",
+   "observed": true,
+   "ok": true,
+   "restarts": [
+    1
+   ],
+   "tries": 1
+  },
+  {
+   "expected": 4,
+   "name": "restart_targeted_SELECT_1_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_SELECT_1_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200006b6c00000000060021000fa0b0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_SELECT_1_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e2075310006ca480006b6c1601210002fac0000020405b40000"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "restart_targeted_SELECT_1_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200006b6c10006ca495010100047690000000000000000"
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_SELECT_1_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_SELECT_1_first_RST_relayed_once",
+   "observed": true,
+   "ok": true,
+   "relayed": 1
+  },
+  {
+   "copies": 1,
+   "expected": true,
+   "name": "restart_targeted_SELECT_1_response_at_most_once",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "restart_targeted_SELECT_path_exercised",
+   "observed": true,
+   "ok": true,
+   "restarts": [
+    1
+   ],
+   "tries": 1
+  }
+ ],
+ "meta": {
+  "abort_negative_characterization": [
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 405001,
+    "expected_released": 405062,
+    "expected_rst_ack": 400021,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": 49,
+    "request_relayed": true,
+    "resets_seq": [
+     405062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     400021
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 6,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ_plus49"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 415001,
+    "expected_released": 415062,
+    "expected_rst_ack": 410036,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": 37,
+    "request_relayed": true,
+    "resets_seq": [
+     415062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     410036
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 6,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT_plus37"
+   }
+  ],
+  "driver_sha256": "9b74c11429875d27cc843d801634530ded75f989322b6d4711328ed1952f6532",
+  "final_count_busy": [
+   0,
+   0,
+   18,
+   0,
+   0,
+   2,
+   0,
+   0,
+   0
+  ],
+  "final_outcomes": {
+   "ACK_COMMIT": 46,
+   "ACK_FALLBACK": 0,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 684,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 3,
+   "OP_DUP_DROP": 0,
+   "OP_RELEASE": 11,
+   "REQ_BYPASS": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_FALLBACK": 0,
+   "RESP_RELEASE": 50,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "n_generation_counter": 278,
+  "ordinary_restart_by_kind": {},
+  "physical": false,
+  "points": [
+   {
+    "clrt_wall_s": 0.05076296301558614,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0508,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4402,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_000ms"
+   },
+   {
+    "clrt_wall_s": 0.04986606980673969,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0499,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4327,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_008ms"
+   },
+   {
+    "clrt_wall_s": 0.051205133087933064,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0512,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4206,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_015ms"
+   },
+   {
+    "clrt_wall_s": 0.05108558898791671,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0511,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4243,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_022ms"
+   },
+   {
+    "clrt_wall_s": 0.052569594932720065,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0526,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4311,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_030ms"
+   },
+   {
+    "clrt_wall_s": 0.051742793060839176,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0517,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4338,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_045ms"
+   },
+   {
+    "clrt_wall_s": 0.05107940686866641,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0511,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4183,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_060ms"
+   },
+   {
+    "clrt_wall_s": 0.05030257906764746,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0503,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4313,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_090ms"
+   },
+   {
+    "clrt_wall_s": 0.04992261598818004,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0499,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.431,
+    "resp_dup_drop": 0,
+    "tag": "sweep_READ_120ms"
+   },
+   {
+    "clrt_wall_s": 0.05086237005889416,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0509,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4249,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_000ms"
+   },
+   {
+    "clrt_wall_s": 0.049936641938984394,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0499,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4384,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_008ms"
+   },
+   {
+    "clrt_wall_s": 0.049418138107284904,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0494,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4234,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_015ms"
+   },
+   {
+    "clrt_wall_s": 0.053194408072158694,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0532,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4356,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_022ms"
+   },
+   {
+    "clrt_wall_s": 0.0532149369828403,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0532,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4266,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_030ms"
+   },
+   {
+    "clrt_wall_s": 0.053085252875462174,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0531,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4211,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_045ms"
+   },
+   {
+    "clrt_wall_s": 0.05458063096739352,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0546,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4314,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_060ms"
+   },
+   {
+    "clrt_wall_s": 0.050679777981713414,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0507,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4338,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_090ms"
+   },
+   {
+    "clrt_wall_s": 0.051440775860100985,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0514,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "SELECT",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4389,
+    "resp_dup_drop": 0,
+    "tag": "sweep_SELECT_120ms"
+   },
+   {
+    "clrt_wall_s": 0.049668838968500495,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0497,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4413,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_000ms"
+   },
+   {
+    "clrt_wall_s": 0.05038254917599261,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 8,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0504,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4624,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_008ms"
+   },
+   {
+    "clrt_wall_s": 0.05072039319202304,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 15,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0507,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4656,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_015ms"
+   },
+   {
+    "clrt_wall_s": 0.04868029314093292,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 22,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0487,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.441,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_022ms"
+   },
+   {
+    "clrt_wall_s": 0.054360317066311836,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 30,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0544,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4519,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_030ms"
+   },
+   {
+    "clrt_wall_s": 0.053267867071554065,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 45,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0533,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4524,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_045ms"
+   },
+   {
+    "clrt_wall_s": 0.05735170398838818,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 60,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0574,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4462,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_060ms"
+   },
+   {
+    "clrt_wall_s": 0.05415466194972396,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 90,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0542,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4573,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_090ms"
+   },
+   {
+    "clrt_wall_s": 0.053024489898234606,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 120,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.053,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "OPERATE",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4435,
+    "resp_dup_drop": 0,
+    "tag": "sweep_OPERATE_120ms"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 1,
+    "expected_flushed": 305001,
+    "expected_released": 305062,
+    "expected_rst_ack": 300021,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.054934997111558914
+    },
+    "kind": "READ",
+    "offset": null,
+    "order_before_send": "held",
+    "request_relayed": true,
+    "resets_seq": [
+     305001
+    ],
+    "responses": 0,
+    "rst_ack": [
+     300021
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 5,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "abort_held_READ"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 315001,
+    "expected_released": 315062,
+    "expected_rst_ack": 310021,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     315062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     310021
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 5,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 1,
+    "expected_flushed": 325001,
+    "expected_released": 325062,
+    "expected_rst_ack": 320036,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.04076095297932625
+    },
+    "kind": "SELECT",
+    "offset": null,
+    "order_before_send": "held",
+    "request_relayed": true,
+    "resets_seq": [
+     325001
+    ],
+    "responses": 0,
+    "rst_ack": [
+     320036
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 5,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "abort_held_SELECT"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 335001,
+    "expected_released": 335062,
+    "expected_rst_ack": 330036,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     335062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     330036
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 6,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 345062,
+    "expected_released": 345123,
+    "expected_rst_ack": 340071,
+    "frames_to_master": 2,
+    "held_before_rst": false,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.04378295689821243
+    },
+    "kind": "OPERATE",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     345123
+    ],
+    "responses": 1,
+    "rst_ack": [
+     340071
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 9,
+     "OP_RELEASE": 1,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_OPERATE"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 355062,
+    "expected_released": 355123,
+    "expected_rst_ack": 350071,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "OPERATE",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     355123
+    ],
+    "responses": 1,
+    "rst_ack": [
+     350071
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 15,
+     "OP_RELEASE": 1,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_OPERATE"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 365001,
+    "expected_released": 365062,
+    "expected_rst_ack": 360021,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.04655827791430056
+    },
+    "kind": "READ",
+    "offset": 48,
+    "request_relayed": true,
+    "resets_seq": [],
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "HELD_REWAIT": 28,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_READ_plus48"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 375001,
+    "expected_released": 375062,
+    "expected_rst_ack": 370021,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.05204463889822364
+    },
+    "kind": "READ",
+    "offset": 50,
+    "request_relayed": true,
+    "resets_seq": [],
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "HELD_REWAIT": 21,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_READ_plus50"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 385001,
+    "expected_released": 385062,
+    "expected_rst_ack": 380036,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.05993157811462879
+    },
+    "kind": "SELECT",
+    "offset": 48,
+    "request_relayed": true,
+    "resets_seq": [],
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "HELD_REWAIT": 26,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_SELECT_plus48"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 395001,
+    "expected_released": 395062,
+    "expected_rst_ack": 390036,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.04458471294492483
+    },
+    "kind": "SELECT",
+    "offset": 50,
+    "request_relayed": true,
+    "resets_seq": [],
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "HELD_REWAIT": 20,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_SELECT_plus50"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 405001,
+    "expected_released": 405062,
+    "expected_rst_ack": 400021,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": 49,
+    "request_relayed": true,
+    "resets_seq": [
+     405062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     400021
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 6,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ_plus49"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 415001,
+    "expected_released": 415062,
+    "expected_rst_ack": 410036,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": 37,
+    "request_relayed": true,
+    "resets_seq": [
+     415062
+    ],
+    "responses": 1,
+    "rst_ack": [
+     410036
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 6,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT_plus37"
+   },
+   {
+    "clrt_wall_s": 0.04912940505892038,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      60,
+      "ack"
+     ],
+     [
+      0.0491,
+      115,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "ACK_FALLBACK": 0,
+     "RESP_FALLBACK": 0,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4253,
+    "resp_dup_drop": 0,
+    "tag": "abort_followed_by_READ"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "kind": "READ",
+    "relayed_resets": 1,
+    "response_copies_to_master": 0,
+    "restarts": 1,
+    "stage0_seen": true,
+    "stage0_wait_s": 0.013488946948200464,
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 19,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "restart_targeted_READ_1"
+   },
+   {
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "kind": "SELECT",
+    "relayed_resets": 1,
+    "response_copies_to_master": 1,
+    "restarts": 1,
+    "stage0_seen": true,
+    "stage0_wait_s": 0.013778560096397996,
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 19,
+     "RESP_RELEASE": 1
+    },
+    "tag": "restart_targeted_SELECT_1"
+   }
+  ],
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000088b9e2341a00e6090000",
+     "0xe60c": "0000006d000348163ac1e200e60c0000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "000000370001e84900000000e1000000",
+     "76": "000000000000000000000000e1000000",
+     "90": "00000001000088b900000000e1000000"
+    },
+    "frames": 232,
+    "longest": 105,
+    "shortest": 76
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "00000001000088b9e2341a0009000000",
+     "0x0a00": "00000001000000000656be000a000000",
+     "0x0b00": "00000001000000000aa901000b000000",
+     "0x0c00": "0000006d000348163ac1e2000c000000",
+     "0x0d01": "00000001000088f6000000000d010000",
+     "0x0d02": "000000be00000000000000000d020000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "105": "000000370001e8490000000009000000",
+     "107": "0000003700000000000000000b000000",
+     "119": "00000001000000000aa901000b000000",
+     "76": "0000000100000000000000000e000000",
+     "90": "00000001000088b9e2341a0009000000"
+    },
+    "frames": 236,
+    "longest": 119,
+    "shortest": 76
+   },
+   "181": {
+    "bytes_12_13_seen": {
+     "0x4455": "0d0000260003a980001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "97": "0d0000260003a980001122334455aabb"
+    },
+    "frames": 235,
+    "longest": 97,
+    "shortest": 97
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x4455": "0e00000200000001001122334455aabb"
+    },
+    "first_16_bytes_by_length": {
+     "111": "0f00000200000001001122334455aabb",
+     "68": "0e00000200000001001122334455aabb",
+     "99": "0f00001d00000037001122334455aabb"
+    },
+    "frames": 684,
+    "longest": 111,
+    "shortest": 68
+   }
+  },
+  "scope": "ctl_timing_01 m10: ACK/response contention for N's work cell (spacing sweep, edges)",
+  "sections": [
+   "sweep",
+   "abort",
+   "restart_targeted"
+  ]
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 302,
+  "total": 302
+ }
+}
