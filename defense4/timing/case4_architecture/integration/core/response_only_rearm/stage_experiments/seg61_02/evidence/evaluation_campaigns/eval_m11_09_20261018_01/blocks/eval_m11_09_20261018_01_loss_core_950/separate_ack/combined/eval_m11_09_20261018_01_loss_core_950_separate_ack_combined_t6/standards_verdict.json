@@ -1,0 +1,67 @@
+{
+ "ok": true,
+ "failures": [],
+ "expected": {
+  "counts": {
+   "READ": 20,
+   "SELECT": 1,
+   "OPERATE": 1
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "15337f486e0cc7acb9ec17f11145fe5ae07f163f70e0d534b7db25f6fc3eb2d2"
+  },
+  "calibration_in": {
+   "sha256": "3a924e3533106dbc0055846fa27e0ad5bf50ef1b0713ba561e6d9365455222c8"
+  },
+  "calibration_out": {
+   "sha256": "4b92a95bf5a8d77804059cdcf65c521c88e3b78eac767c712a54abc804705041"
+  },
+  "calibration_result": {
+   "sha256": "cab3586eb7a396544d0969dd1c5eeab26577f99f2bd960ccec6b5fdbe621a0f4"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "in": {
+   "sha256": "0234bd79a1dc5883a28b77a18e9f6b4306bc9512496723be2e95908298f30fd6"
+  },
+  "out": {
+   "sha256": "3fe2f46614f13c02a9e494c65182b647e60365f63d2d7dec680bc459ae273f0d"
+  },
+  "run_result": {
+   "sha256": "ac2fff8fbd1d327edd81255e9accff41a4b4d347d7915e3592d0e6dc17e97ba7"
+  }
+ },
+ "precision": {
+  "required": false,
+  "status": "not_applicable",
+  "reasons": [
+   "loss/recovery trial: READ precision is not evaluated"
+  ],
+  "evidence": null
+ },
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "not_applicable",
+  "operate_hold": "not_applicable"
+ },
+ "qualification": "measurement_only",
+ "profile": {
+  "ok": true,
+  "failures": []
+ }
+}

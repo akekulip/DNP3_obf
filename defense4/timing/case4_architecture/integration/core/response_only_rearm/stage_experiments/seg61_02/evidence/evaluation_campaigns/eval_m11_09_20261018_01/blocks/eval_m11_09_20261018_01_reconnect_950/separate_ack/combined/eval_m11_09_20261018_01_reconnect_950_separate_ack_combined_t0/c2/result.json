@@ -1,0 +1,370 @@
+{
+ "label": "eval_m11_09_20261018_01_reconnect_950_separate_ack_combined_t0_c2",
+ "master_port": 60959,
+ "reads": 20,
+ "range": 8,
+ "gap_ms": 0,
+ "start_delay_ms_max": 0,
+ "start_seed": 12345,
+ "start_delay_ms_applied": 0,
+ "endpoint_controls": {
+  "read_pause_ms": 25,
+  "run_sbo": true,
+  "close_grace_ms": 1000
+ },
+ "capture_immediate": false,
+ "qualify_capture": true,
+ "capture_commands": {
+  "out": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "out",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/eval_m11_09_20261018_01_reconnect_950_separate_ack_combined_t0/c2/out.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ],
+  "in": [
+   "tcpdump",
+   "-i",
+   "enp59s0f0np0",
+   "-Q",
+   "in",
+   "-s0",
+   "-U",
+   "-n",
+   "-w",
+   "/home/decps/pad58b_rearm_controls_20261012/runs/eval_m11_09_20261018_01_reconnect_950_separate_ack_combined_t0/c2/in.pcap",
+   "tcp and host 192.168.10.61 and host 192.168.10.62"
+  ]
+ },
+ "source_port_wait": {
+  "port": 60959,
+  "polls": 1,
+  "elapsed_s": 0.032,
+  "result": "free"
+ },
+ "outstation_ready": true,
+ "master_rc": 0,
+ "master_timeout": false,
+ "endpoint_collection": {
+  "schema_version": "vision-endpoint-collection-v1",
+  "status": "completed",
+  "partial": false,
+  "stdout": "master.stdout",
+  "stderr": "master.stderr"
+ },
+ "tcp_rto": {
+  "schema_version": "vision-tcp-rto-v2",
+  "samples": [
+   {
+    "observed_at_epoch_ns": 1792351226064695551,
+    "observed_at_monotonic_ns": 1123149043576511,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.218/0.081 ato:52 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:40 bytes_acked:41 bytes_received:98 segs_out:5 segs_in:5 data_segs_out:2 data_segs_in:2 send 535779817bps lastsnd:22 lastrcv:16 lastack:16 pacing_rate 1070332184bps delivery_rate 64888888bps delivered:3 app_limited rcv_space:14600 rcv_ssthresh:64076 minrtt:0.18 snd_wnd:64200\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351226096065013,
+    "observed_at_monotonic_ns": 1123149074945651,
+    "endpoint": "outstation",
+    "namespace": "ns_vepa_b",
+    "local_port": 20000,
+    "peer_port": 60959,
+    "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :20000 and dport = :60959 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     205.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      49     192.168.10.62:20000 192.168.10.61:60959\n\t cubic rto:205 rtt:4.635/8.676 ato:57 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:147 bytes_acked:98 bytes_received:60 segs_out:6 segs_in:6 data_segs_out:3 data_segs_in:3 send 25199569bps lastsnd:21 lastrcv:21 lastack:21 pacing_rate 50393696bps delivery_rate 2200448bps delivered:3 app_limited busy:58ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:0.159 snd_wnd:64142\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351226382915010,
+    "observed_at_monotonic_ns": 1123149361795696,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.196/0.015 ato:63 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:240 bytes_acked:241 bytes_received:588 segs_out:15 segs_in:25 data_segs_out:12 data_segs_in:12 send 595918367bps lastsnd:20 lastrcv:14 lastack:14 pacing_rate 1188048312bps delivery_rate 65988696bps delivered:13 app_limited busy:3ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.177 snd_wnd:64060\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351226409658691,
+    "observed_at_monotonic_ns": 1123149388539270,
+    "endpoint": "outstation",
+    "namespace": "ns_vepa_b",
+    "local_port": 20000,
+    "peer_port": 60959,
+    "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :20000 and dport = :60959 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     225.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      49     192.168.10.62:20000 192.168.10.61:60959\n\t cubic rto:225 rtt:24.4/11.589 ato:62 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:637 bytes_acked:588 bytes_received:260 segs_out:26 segs_in:16 data_segs_out:13 data_segs_in:13 send 4786885bps lastsnd:15 lastrcv:15 lastack:15 pacing_rate 9573768bps delivery_rate 2200448bps delivered:13 app_limited busy:366ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:0.159 snd_wnd:64044\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351226702610755,
+    "observed_at_monotonic_ns": 1123149681491420,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.224/0.039 ato:40 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:470 bytes_acked:471 bytes_received:1054 segs_out:26 segs_in:45 data_segs_out:22 data_segs_in:22 send 521428571bps lastsnd:54 lastrcv:49 lastack:49 pacing_rate 1042857136bps delivery_rate 95737704bps delivered:23 app_limited busy:6ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.122 snd_wnd:64060\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351226735048482,
+    "observed_at_monotonic_ns": 1123149713929075,
+    "endpoint": "outstation",
+    "namespace": "ns_vepa_b",
+    "local_port": 20000,
+    "peer_port": 60959,
+    "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :20000 and dport = :60959 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     229.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.62:20000 192.168.10.61:60959\n\t cubic rto:229 rtt:28.487/8.753 ato:51 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:1054 bytes_acked:1054 bytes_received:470 segs_out:44 segs_in:26 data_segs_out:22 data_segs_in:22 send 4100116bps lastsnd:85 lastrcv:85 lastack:39 pacing_rate 8200080bps delivery_rate 2200448bps delivered:23 app_limited busy:653ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.159 snd_wnd:64044\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351227021623267,
+    "observed_at_monotonic_ns": 1123150000503985,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.224/0.039 ato:40 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:470 bytes_acked:471 bytes_received:1054 segs_out:26 segs_in:45 data_segs_out:22 data_segs_in:22 send 521428571bps lastsnd:374 lastrcv:369 lastack:369 pacing_rate 1042857136bps delivery_rate 95737704bps delivered:23 app_limited busy:6ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.122 snd_wnd:64060\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351227055691988,
+    "observed_at_monotonic_ns": 1123150034572568,
+    "endpoint": "outstation",
+    "namespace": "ns_vepa_b",
+    "local_port": 20000,
+    "peer_port": 60959,
+    "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :20000 and dport = :60959 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     229.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.62:20000 192.168.10.61:60959\n\t cubic rto:229 rtt:28.487/8.753 ato:51 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:1054 bytes_acked:1054 bytes_received:470 segs_out:44 segs_in:26 data_segs_out:22 data_segs_in:22 send 4100116bps lastsnd:404 lastrcv:404 lastack:358 pacing_rate 8200080bps delivery_rate 2200448bps delivered:23 app_limited busy:653ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.159 snd_wnd:64044\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351227339762966,
+    "observed_at_monotonic_ns": 1123150318643652,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.224/0.039 ato:40 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:470 bytes_acked:471 bytes_received:1054 segs_out:26 segs_in:45 data_segs_out:22 data_segs_in:22 send 521428571bps lastsnd:690 lastrcv:685 lastack:685 pacing_rate 1042857136bps delivery_rate 95737704bps delivered:23 app_limited busy:6ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.122 snd_wnd:64060\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351227371742586,
+    "observed_at_monotonic_ns": 1123150350623199,
+    "endpoint": "outstation",
+    "namespace": "ns_vepa_b",
+    "local_port": 20000,
+    "peer_port": 60959,
+    "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :20000 and dport = :60959 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     229.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.62:20000 192.168.10.61:60959\n\t cubic rto:229 rtt:28.487/8.753 ato:51 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:1054 bytes_acked:1054 bytes_received:470 segs_out:44 segs_in:26 data_segs_out:22 data_segs_in:22 send 4100116bps lastsnd:716 lastrcv:716 lastack:670 pacing_rate 8200080bps delivery_rate 2200448bps delivered:23 app_limited busy:653ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.159 snd_wnd:64044\n",
+    "stderr": ""
+   },
+   {
+    "observed_at_epoch_ns": 1792351227650177076,
+    "observed_at_monotonic_ns": 1123150629057748,
+    "endpoint": "master",
+    "namespace": "ns_vepa_a",
+    "local_port": 60959,
+    "peer_port": 20000,
+    "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+    "command": [
+     "ss",
+     "-tin",
+     "state",
+     "established",
+     "( sport = :60959 and dport = :20000 )"
+    ],
+    "units": "ms",
+    "status": "ok",
+    "rto_ms": [
+     201.0
+    ],
+    "returncode": 0,
+    "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60959 192.168.10.62:20000\n\t cubic rto:201 rtt:0.224/0.039 ato:40 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:470 bytes_acked:471 bytes_received:1054 segs_out:26 segs_in:45 data_segs_out:22 data_segs_in:22 send 521428571bps lastsnd:996 lastrcv:991 lastack:991 pacing_rate 1042857136bps delivery_rate 95737704bps delivered:23 app_limited busy:6ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.122 snd_wnd:64060\n",
+    "stderr": ""
+   }
+  ],
+  "endpoints": {
+   "master": {
+    "status": "ok",
+    "sample_count": 6,
+    "reason": null
+   },
+   "outstation": {
+    "status": "ok",
+    "sample_count": 5,
+    "reason": null
+   }
+  },
+  "status": "ok",
+  "maximum_samples": 240,
+  "maximum_samples_per_endpoint": 120,
+  "command_timeout_s": 2,
+  "sample_interval_s": 0.25,
+  "reason": null
+ },
+ "master_wall_s": 1.665,
+ "outstation_collection": {
+  "schema_version": "vision-endpoint-collection-v1",
+  "status": "completed",
+  "partial": false,
+  "ready_line": "READY"
+ },
+ "tcpdump": {
+  "out": {
+   "captured": 75,
+   "received": 150,
+   "dropped_kernel": 0
+  },
+  "in": {
+   "captured": 75,
+   "received": 150,
+   "dropped_kernel": 0
+  }
+ },
+ "frames_out": 75,
+ "frames_in": 75,
+ "ok": true
+}
