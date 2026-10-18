@@ -349,3 +349,30 @@ def test_v3_blocks_unmeasured_held_aborts_and_unreadable_results(v3, mutate):
     else:
         (run / 'extra_results.json').write_text(results.read_text())
     assert ms.summarize_v3(build)['qualification'] == 'blocked'
+
+
+@pytest.mark.parametrize('case, ok', (('later_pass', True), ('note_on_latest', False), ('no_evidence_path', False),
+                                      ('later_fails', False), ('plain_text', False)))
+def test_a_disclosed_unresolved_note_stands_only_beside_a_later_complete_pass(tmp_path, case, ok):
+    """Philip, 2026-10-17: attempt 04 may be frozen as a disclosed, unresolved interruption only if a later complete
+    attempt passes. It is listed, never counted as resolved."""
+    build, sha = make_build(tmp_path)
+    all_pass_v2(tmp_path, build, sha)
+    inner = hashlib.sha256(CONTENTION.encode()).hexdigest()
+    run1 = tmp_path / 'model_abort_m9_01_01'
+    (run1 / 'trace.txt').write_text('evidence\n')
+    if case != 'note_on_latest':
+        attempt_v2(tmp_path, build, 'abort', 2, sha, 'wrapper\n', inner=inner, sections=['abort'], points=NEG)
+    if case == 'later_fails':
+        res = next((tmp_path / 'model_abort_m9_01_02').glob('*_results.json'))
+        data = json.loads(res.read_text())
+        data['summary'] = dict(passed=1, total=2, failed=['x'])
+        res.write_text(json.dumps(data))
+    line = {'no_evidence_path': 'DISCLOSED UNRESOLVED: model_abort_m9_01_01/missing.txt',
+            'plain_text': 'cause not determined'}.get(case, 'DISCLOSED UNRESOLVED: model_abort_m9_01_01/trace.txt')
+    (run1 / 'FAILURE_20261016.md').write_text(line + '\n')
+    s = ms.summarize_v2(build)
+    assert (s['qualification'] == 'model_gate_passed') == ok, s['blocked_reasons']
+    assert bool(s['disclosed_unresolved']) == ok
+    if ok:
+        assert s['disclosed_unresolved'][0]['passed_later_attempt'] == 'model_abort_m9_01_02'

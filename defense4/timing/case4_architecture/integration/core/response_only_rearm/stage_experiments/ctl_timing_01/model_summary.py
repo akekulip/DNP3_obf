@@ -110,6 +110,24 @@ def _resolution(note, run_dir):
     return None
 
 
+def _disclosed_exception(note, run, base, run_dir):
+    """Philip, 2026-10-17 (attempt 04): an unresolved FAILURE note may stand as a disclosed exception, never as a
+    resolution. Accepted only if the note has a line 'DISCLOSED UNRESOLVED: <reference>' naming an existing evidence
+    path, and the latest attempt of the same driver is a later attempt that passed completely on this build's source
+    (exit 0, every case passed). Returns that later attempt's name, else None."""
+    lines = [line for line in note.read_text().splitlines() if line.startswith('DISCLOSED UNRESOLVED:')]
+    if not lines or not any('/' in token and any((b / token).exists() for b in (run_dir, run_dir.parent, REPO))
+                            for line in lines for token in re.findall(r'[\w./-]+', line[len('DISCLOSED UNRESOLVED:'):])):
+        return None
+    latest = next((x for x in base['runs'] if x['run'] == base['latest_by_driver'].get(run['driver'])), None)
+    if latest is None or latest['attempt'] <= run['attempt']:
+        return None
+    if not (latest['exit_code'] == 0 and latest['total'] and latest['passed'] == latest['total']
+            and not latest['failed'] and latest['source_sha256'] == base['source_sha256']):
+        return None
+    return latest['run']
+
+
 def _abort_negatives(results):
     """Abort negatives (48/50 octets ahead while held): no master reset, no E-16, and the held response survives,
     released exactly once (review finding: the driver asserted only the first two)."""
@@ -143,7 +161,7 @@ def summarize_v2(build):
     build = Path(build).resolve()
     reasons = list(base['blocked_reasons'])
     reasons = [r for r in reasons if ': unresolved FAILURE_' not in r]       # re-judged below with references
-    retained = {}
+    retained, exceptions = {}, []
     for r in base['runs']:
         src = build.parent / r['run'] / 'driver_source.py'
         if src.is_file():
@@ -177,16 +195,20 @@ def summarize_v2(build):
         notes = []
         for note in sorted(run_dir.glob('FAILURE_*.md')):
             ref = _resolution(note, run_dir)
-            notes.append(dict(note=note.name, resolution=ref))
-            if ref is None:
+            disclosed = None if ref else _disclosed_exception(note, r, base, run_dir)
+            notes.append(dict(note=note.name, resolution=ref, disclosed_exception_after=disclosed))
+            if ref is None and disclosed is None:
                 reasons.append('%s: unresolved %s (no RESOLVED reference that exists)' % (r['run'], note.name))
+            elif disclosed:
+                exceptions.append(dict(run=r['run'], note=note.name, passed_later_attempt=disclosed))
         r['failure_notes'] = notes
     for driver, run in sorted(base['latest_by_driver'].items()):
         r = next(x for x in base['runs'] if x['run'] == run)
         for p in r['provenance_problems']:
             reasons.append('%s: latest attempt %s: %s' % (driver, run, p))
     return dict(base, summary_version=SUMMARY_V2, generated_by='ctl_timing_01/model_summary.py (v2)',
-                qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons)
+                qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons,
+                disclosed_unresolved=exceptions)
 
 
 # ---- summary version 3 (review of af7bd434; Philip 2026-10-17: dependency evidence is mandatory for new runs) ----

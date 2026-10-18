@@ -56,6 +56,10 @@ def timeline(event, **fields):
 DELAYS_MS = (0, 8, 15, 22, 30, 45, 60, 90, 120)
 WAIT_S, QUIET_S = 8.0, 1.5     # > T's readiness fallback in wall time (about 3 s at ~6.8e8 model ns/s)
 OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
+# OP_HOLD_S is in effect the quiet after the relayed OPERATE: the only window a duplicate OPERATE release was watched
+# for. point() OPERATE exchanges (option a, 2026-10-17) use the READ/SELECT quiet instead and watch the relay port
+# through the response capture (<tag>_request_not_relayed_again), a longer window; the stimulus then leaves margin
+# to T's readiness (evidence/m10_03/precondition_05). Other OPERATE paths keep OP_HOLD_S.
 # TRACE_sweep_SELECT_000ms.md (m6_07): a point's verdict is T's own lane (commit and release required). Before m7, T's lane
 # could be fooled by 32-bit readiness aliasing past 2^32 ns (_02); m7's clock moves that to 9.16 minutes. The request-
 # to-ACK wall time is recorded only; model-time stimulus checks are read from the model log (trace_model_log.py).
@@ -174,8 +178,9 @@ def main():
                            for _t, p, f in got))
             return got
 
-        def request(kind, fc, objects):
-            """Send the request; OPERATE waits out J. Returns (app, request bytes)."""
+        def request(kind, fc, objects, watch_later=False):
+            """Send the request; OPERATE waits out J. Returns (app, request bytes). watch_later: the caller watches
+            the relay port for a second copy through the response capture, so the OPERATE quiet is not needed."""
             c, s, g = st['c'], st['s'], st['growth']
             req, app = st['seqs'].request(fc, objects)
             st['seqs'].next_app()
@@ -183,7 +188,7 @@ def main():
             m.drain(ports)
             m.send(MASTER.dev_port, sent)
             t_sent = time.monotonic()
-            got = capture(OP_HOLD_S * 3 if kind == 'OPERATE' else 1.0, OP_HOLD_S if kind == 'OPERATE' else 0.2)
+            got = capture(OP_HOLD_S * 3 if kind == 'OPERATE' else 1.0, rules.request_quiet(kind, watch_later, OP_HOLD_S))
             # the contract is "relayed exactly once", not "within 1 s of host time": a stalled model (model_contention_
             # m10_03_01, SELECT 60 ms: 3.3 s with no model activity while the request was in N) relays it later
             while not any(p == RELAY.dev_port for _t, p, _f in got) and time.monotonic() - t_sent < WAIT_S:
@@ -202,14 +207,18 @@ def main():
             st['c'] += len(req)
             return app, ok
 
-        def respond(kind, app, body, d_ms, during=None, send_response=True):
+        def respond(kind, app, body, d_ms, during=None, send_response=True, keep_queued=False):
             """Standalone ACK, then the response d_ms later. during(st) runs after the response is sent (or
-            in its place when send_response is False). Returns the frames seen and the native response."""
+            in its place when send_response is False). Returns the frames seen and the native response.
+            keep_queued: frames already queued are read into st['queued'] instead of drained unseen."""
             c, s = st['c'], st['s']
             native = st['seqs'].response(app, body, kind)
             ack = vectors.packet(16, s, c, reverse=True)
             sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
-            m.drain(ports)
+            if keep_queued:
+                st['queued'] = capture(0.02, 0.01)
+            else:
+                m.drain(ports)
             m.send(RELAY.dev_port, ack)
             st['t_ack_sent'] = time.monotonic()
             if d_ms:
@@ -344,15 +353,25 @@ def main():
             if kind == 'OPERATE':
                 select_complete(tag, on_ms)
             before, busy0 = outcomes(), busy()
-            app, ok = request(kind, fc, objects)
+            watch = kind == 'OPERATE' and during is None             # nothing relay-bound is sent in the response phase
+            app, ok = request(kind, fc, objects, watch_later=watch)
             report.add('%s_request_relayed' % tag, True, ok)
-            got, native, ack, sent_rsp = respond(kind, app, body, d_ms, during, send_response)
+            got, native, ack, sent_rsp = respond(kind, app, body, d_ms, during, send_response, keep_queued=watch)
             extra = {'d_ms': d_ms, 'sent_rsp': sent_rsp}
             if retransmit_after_s is not None:
                 time.sleep(retransmit_after_s)
                 m.send(RELAY.dev_port, sent_rsp)                     # the outstation's own retransmission
                 got += capture(WAIT_S, QUIET_S)
                 extra['outstation_retransmission'] = True
+            if watch:
+                late = rules.late_relay_copies(st.pop('queued') + got, RELAY.dev_port)
+                if late:                                   # times are read times, relative to the first relay
+                    report.record['meta'].setdefault('request_relayed_again', []).append(dict(
+                        tag=tag, request_relayed_ok=ok, after_relay_s=[round(t - (st['t_relayed'] or t), 4)
+                                                                        for t, _n in late], lengths=[n for _t, n in late]))
+                report.add('%s_request_not_relayed_again' % tag, 'no relay-bound frame after the request capture',
+                           ('%d late relay frame(s)%s' % (len(late), '' if ok else ', original not relayed in time'))
+                           if late else 'none', ok=not late)
             return got, native, ack, before, busy0, extra
 
         # ---- spacing sweep -------------------------------------------------------------------------------------

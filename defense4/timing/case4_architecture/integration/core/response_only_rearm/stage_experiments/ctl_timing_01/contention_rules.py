@@ -30,3 +30,15 @@ def abort_branch_outcome(released_before_send, released_after_send):
     if released_before_send:
         return 'released'
     return 'inconclusive' if released_after_send else 'held'
+
+
+def request_quiet(kind, watch_later, op_hold_s, default_s=0.2):
+    """Quiet after the relayed request. OPERATE keeps op_hold_s (the duplicate-release window) unless the caller
+    watches the relay port through the response capture instead (option a, 2026-10-17)."""
+    return op_hold_s if kind == 'OPERATE' and not watch_later else default_s
+
+
+def late_relay_copies(frames, relay_port):
+    """Relay-bound frames (t, port, frame) seen after the request capture: each is a second copy of the request.
+    Returns [(t, length)]; empty means none."""
+    return [(round(t, 4), len(f)) for t, p, f in frames if p == relay_port]
