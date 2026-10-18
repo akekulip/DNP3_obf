@@ -675,6 +675,50 @@ inter10['interleave'] = {'master_mac': '02:00:00:00:00:61', 'outstation_mac': '0
                          '_note': 'plan from interleave_probe.build_interleave_plan; judged by judge_interleave'}
 write('ctl_m10_interleave_950.json', inter10)
 
+# Part 2 (ctl_timing_01/evidence/m10_03/PART2_DESIGN_20261018.md): the reconciled timing grid on the frozen m10_03
+# build, PREPARED ONLY. Conditions and checks live in part2_grid.py. Per condition: three four-arm campaign blocks in
+# the existing Latin rotation (repeat_orders; repeated-SBO workload, separate-ACK fixture) and two feasibility-gate
+# blocks on the combined arm (a short persistent READ and a short repeated SBO). None of these configs is in
+# freeze_v3's config set, so run_block_frozen.sh refuses them until a freeze names them. They are named part2_m10_*,
+# not ctl_m10_*: ctl_m10_* are the supported-profile blocks (tests/test_supported_profile.py), and the grid departs
+# from that profile on purpose.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import part2_grid  # noqa: E402
+PART2_NOTE = ('Part 2 grid config (part2_grid.CONDITIONS; ctl_timing_01/evidence/m10_03/PART2_DESIGN_20261018.md): '
+              'fixture delay 5 ms in every block; prepared only; not in freeze_v3, so run_block_frozen.sh refuses it.')
+for i, (cond, da, gap, readiness) in enumerate(part2_grid.CONDITIONS):
+    base = 60000 + 10 * i
+    timing = part2_grid.params(da, gap, readiness)
+    for filename, template, order, block in repeat_orders:
+        data = m10(transform(load(template), purpose={'purpose': 'timing_precision_characterization',
+            'read_precision': True, 'candidate61_label': 'm10_part2_%s' % cond, 'block': block, 'arm_order': order},
+            arms=order, reads=65, trials=1, preset='shape_59570', gap=gap, readiness=readiness, port_first=base,
+            port_last=base + 3, start_delay_ms=50, loss_presets={}, sbo_cycles=64, endpoint=REPEAT_ENDPOINT,
+            vision_run_dir=REPEAT_VISION_DIR, fixtures=['separate_ack'], **M10B), pb=timing['pb'])
+        data['timing_params_ns'].update(timing)
+        data['fixture']['delay_ms'] = part2_grid.FIXTURE_L_NS // part2_grid.MS   # one L for every block (review C1)
+        data['_notes'] = notes + [PART2_NOTE]   # the template's block notes (3/8 ms, 500 READs) no longer apply
+        data['part2'] = {'condition': cond, 'role': 'campaign', 'grid': 'part2_grid.CONDITIONS'}
+        write('part2_m10_%s_b%d.json' % (cond, block), data)
+    feas_read = m10(transform(load('candidate57s_graceful_800.json'), purpose={'purpose': 'timing_precision_characterization',
+        'read_precision': True, 'candidate61_label': 'm10_part2_feas_read_%s' % cond}, arms=['combined'], reads=20,
+        trials=1, gap=gap, readiness=readiness, port_first=base + 4, port_last=base + 4, **M10B), pb=timing['pb'])
+    feas_read['timing_params_ns'].update(timing)
+    feas_read['fixture']['delay_ms'] = part2_grid.FIXTURE_L_NS // part2_grid.MS
+    feas_read['_notes'] = notes + [PART2_NOTE]   # the template's block notes (3/8 ms, 500 READs) no longer apply
+    feas_read['part2'] = {'condition': cond, 'role': 'feasibility_read', 'grid': 'part2_grid.CONDITIONS'}
+    write('part2_m10_feas_read_%s.json' % cond, feas_read)
+    feas_sbo = m10(transform(load(repeat_orders[0][1]), purpose={'purpose': 'timing_precision_characterization',
+        'read_precision': True, 'candidate61_label': 'm10_part2_feas_sbo_%s' % cond}, arms=['combined'], reads=17,
+        trials=1, preset='shape_59570', gap=gap, readiness=readiness, port_first=base + 5, port_last=base + 5,
+        start_delay_ms=50, loss_presets={}, sbo_cycles=16, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
+        fixtures=['separate_ack'], **M10B), pb=timing['pb'])
+    feas_sbo['timing_params_ns'].update(timing)
+    feas_sbo['fixture']['delay_ms'] = part2_grid.FIXTURE_L_NS // part2_grid.MS
+    feas_sbo['_notes'] = notes + [PART2_NOTE]   # the template's block notes (3/8 ms, 500 READs) no longer apply
+    feas_sbo['part2'] = {'condition': cond, 'role': 'feasibility_sbo', 'grid': 'part2_grid.CONDITIONS'}
+    write('part2_m10_feas_sbo_%s.json' % cond, feas_sbo)
+
 # ACK-delay localization (ctl_timing_01/evidence/m9d_01/ACK_DIAG_PLAN_20261017.md): six predefined blocks, the
 # qualification repeated-SBO workload and arm orders, purpose characterization so every arm runs. Three on m9_01 (the
 # control) and three on the m9d diagnostic build (m9 + E egress timestamps), each pair on its own port range.
@@ -731,5 +775,5 @@ write('candidate61_compare_14892_950.json', transform(load('precision_10_950_rem
     gap=950000, arms=['combined'], reads=50, trials=3, port_first=59580, port_last=59582))
 
 print('wrote', sum(len(list(DST.glob(g))) for g in ('candidate61_*.json', 'strict_comparison_*.json', 'ctl_timing_*.json', 'ctl_m4_*.json',
-                                                 'ctl_m5_*.json', 'ctl_m9_*.json', 'ctl_m9d_*.json', 'ctl_m10_*.json')),
+                                                 'ctl_m5_*.json', 'ctl_m9_*.json', 'ctl_m9d_*.json', 'ctl_m10_*.json', 'part2_m10_*.json')),
       'configs to', DST)
