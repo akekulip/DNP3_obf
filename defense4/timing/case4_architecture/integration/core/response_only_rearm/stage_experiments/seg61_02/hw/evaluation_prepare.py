@@ -155,7 +155,10 @@ def evaluation_config(template, block, envelope, order_sha):
     if not block['sbo']:
         cfg['traffic'].pop('sbo_cycles')
     cfg['fixture'].update(modes=['separate_ack'], delay_ms=5, jitter_ms=0)
-    cfg['evaluation'].update(purpose='qualification', read_precision=True,
+    # host-observed CLRT precision is measured and reported, never a block gate (Philip, 2026-10-18, option 1:
+    # the inherited ~1 ms single-exchange host tail stopped eval_m11_09_20261018_01 at its reference block)
+    cfg['evaluation'].update(purpose='timing_precision_characterization', read_precision=True,
+                             host_precision_gated=False,
                              collection_order_sha256=order_sha, evaluation_protocol='69a9d24',
                              campaign_block=block, requested_common_envelope=envelope['requested_ns'],
                              effective_timing_ns={k: grid.t_units(v)*256
@@ -213,6 +216,9 @@ def prepare(root, campaign_id):
         # Evidence roots may be absolute; the existing wrapper resolves them consistently.
         cfg['evidence_dir'] = str(root / 'blocks')
         cfg['evaluation'].update(collection_order_sha256=order_sha, campaign_block=block)
+        if block['phase'] == 'reference':
+            # the template reference block reports host precision too (option 1); recovery blocks keep their gates
+            cfg['evaluation'].update(purpose='timing_precision_characterization', host_precision_gated=False)
         write_new(config_path(root, block), cfg)
     steps = []
     def hook(name):
@@ -261,11 +267,32 @@ def observed_rtos(document):
     return values
 
 
+def host_precision(block, cfg, ledger):
+    """Host-observed CLRT precision per timed arm and operation, as measured (reported, not gated, under option 1):
+    count, nearest-rank p99 and maximum absolute error against D, and the number of exchanges over 100 us."""
+    captured = [r for r in ledger.get('records', []) if r.get('record_type') == 'captured_exchange']
+    by_arm, out = {a['name']: a for a in cfg.get('arms', [])}, {}
+    for name in block['arms']:
+        if not (by_arm.get(name) or {}).get('T'):
+            continue
+        rows = [r for r in captured if r['arm'] == ('baseline' if name == 'off' else name)]
+        for operation in ('READ', 'SELECT', 'OPERATE'):
+            values = sorted(abs(r['clrt_ns'] - cfg['timing_params_ns']['gap']) for r in rows
+                            if r['txn_class'] == operation and number(r.get('clrt_ns')))
+            if values:
+                out['%s/%s' % (name, operation)] = dict(
+                    n=len(values), p99_abs_error_ns=values[math.ceil(.99*len(values))-1], max_abs_error_ns=values[-1],
+                    over_100us=sum(v > 100_000 for v in values))
+    return dict(gated=cfg.get('evaluation', {}).get('host_precision_gated') is not False, by_arm_operation=out)
+
+
 def check_observations(block, cfg, record, ledger):
     """Check actual observations, in addition to the wrapper's correctness gates."""
     errors = []
     captured = [r for r in ledger['records'] if r['record_type'] == 'captured_exchange']
-    if record.get('ok') is not True:
+    precision_reported = cfg.get('evaluation', {}).get('host_precision_gated') is False
+    if record.get('ok') is not True and not (precision_reported and record.get('gate_ok') is True
+                                             and record.get('host_precision_reported_not_gated') is True):
         errors.append('hardware block did not pass')
     sources = record.get('source_identity', {}).get('build_sources', {})
     if not sources or any(v.get('source_sha256') != SOURCE for v in sources.values()):
@@ -292,14 +319,20 @@ def check_observations(block, cfg, record, ledger):
                     continue
                 values = [abs(r['clrt_ns'] - cfg['timing_params_ns']['gap']) for r in rows
                           if r['txn_class'] == operation and number(r.get('clrt_ns'))]
-                if len(values) != n or sorted(values)[math.ceil(.99*len(values))-1] > 100_000:
-                    errors.append('%s/%s actual CLRT p99 precision fails or is incomplete' % (name, operation))
+                if len(values) != n:
+                    errors.append('%s/%s actual CLRT observations incomplete' % (name, operation))
+                elif sorted(values)[math.ceil(.99*len(values))-1] > 100_000 and not precision_reported:
+                    errors.append('%s/%s actual CLRT p99 precision fails' % (name, operation))
             holds = [r.get('operate_hold_ns') for r in rows if r['txn_class'] == 'OPERATE']
             if any(not number(h) or h < cfg['timing_params_ns']['op_j'] for h in holds):
                 errors.append('%s actual OPERATE J hold fails' % name)
         arm = next((a for a in record.get('arms', []) if a['arm'] == name), {})
         trials = arm.get('trials', [])
-        if len(trials) != 1 or trials[0].get('ok') is not True:
+        soft_precision = bool(trials) and precision_reported and trials[0].get('ok') is False and \
+            (trials[0].get('continuation') or {}).get('allowed') is True and trials[0].get('failures') and \
+            all(f.startswith(('READ precision:', 'SELECT precision:', 'OPERATE precision:'))
+                for f in trials[0]['failures'])
+        if len(trials) != 1 or not (trials[0].get('ok') is True or soft_precision):
             errors.append('%s trial gate missing or failed' % name)
             continue
         trial = trials[0]
@@ -351,6 +384,7 @@ def postcheck(root, block_id):
     if not hardware:
         errors.append('block evidence is not attested hardware (pre-run switch program or verified restore missing)')
     proof = dict(schema_version=1, block_id=block_id, ok=not errors, failures=errors,
+                 host_precision=host_precision(block, cfg, ledger),
                  ledger_sha256=sha(target / 'publication_ledger.json'),
                  campaign_record_sha256=sha(target / 'campaign_run.json'),
                  evidence_kind='hardware' if hardware else 'unattested')

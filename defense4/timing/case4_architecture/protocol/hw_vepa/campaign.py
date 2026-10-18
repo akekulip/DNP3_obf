@@ -80,6 +80,21 @@ OBJECTIVE_KEYS = {'read_precision': 'READ precision:', 'select_precision': 'SELE
 LOSS_OBJECTIVES_EXEMPT = 'loss/recovery trial: timing objectives are not evaluated'
 RECONNECT_OBJECTIVES_EXEMPT = 'reconnect %s: timing objectives beyond READ precision are not evaluated'
 RUNNER_OBJECTIVES_EXEMPT = 'this runner evaluates no timing objectives beyond READ precision'
+# host-observed CLRT precision misses only (not J hold, piggyback latency, or any correctness gate)
+PRECISION_PREFIXES = ('READ precision:', 'SELECT precision:', 'OPERATE precision:')
+
+
+def precision_only_soft(record, evaluation):
+    """True when a block's only failures are host-observed CLRT precision threshold misses that the runner already
+    accepted as timing-characterization continuations, AND the config explicitly reports host precision instead of
+    gating it (evaluation.host_precision_gated is False; Philip, 2026-10-18, evaluation option 1). Any other failure,
+    including a J-hold or piggyback miss, stays a hard failure."""
+    if evaluation.get('host_precision_gated') is not False or \
+            evaluation.get('purpose') != 'timing_precision_characterization':
+        return False
+    soft = [t for a in record.get('arms', []) for t in a.get('trials', []) if t.get('ok') is False]
+    return bool(soft) and all((t.get('continuation') or {}).get('allowed') is True and t.get('failures') and
+                              all(f.startswith(PRECISION_PREFIXES) for f in t['failures']) for t in soft)
 
 
 def path_of(rel):
@@ -838,9 +853,15 @@ class Campaign:
         self.record['ok'] = (not failed) and restore_ok and not self.soft_failures
         if self.soft_failures:
             self.record['soft_failures'] = self.soft_failures
+        # record['ok'] keeps its strict meaning; gate_ok says the block passed every gate it is configured to apply
+        precision_reported = (not failed) and restore_ok and bool(self.soft_failures) and \
+            precision_only_soft(self.record, self.cfg.get('evaluation', {}))
+        self.record['gate_ok'] = bool(self.record['ok'] or precision_reported)
+        if precision_reported:
+            self.record['host_precision_reported_not_gated'] = True
         if not dry:
             self.finish(dry)
-        return 0 if self.record['ok'] else 1
+        return 0 if self.record['gate_ok'] else 1
 
     def vision_identity(self):
         """Read-only identity checks on Vision (the only change is copying vision_run.py)."""

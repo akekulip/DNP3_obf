@@ -571,7 +571,10 @@ def validate_release(directory, training=False, _fixture=False):
                 raise ValueError('hardware block lacks source/restore/extraction audit evidence')
             run,restore,post,ledger = [read_json(safe_path(root,audit[name]['path'])) for name in required_audit]
             sources = run.get('source_identity',{}).get('build_sources',{}).values()
-            if (run.get('ok') is not True or restore.get('ok') is not True or post.get('ok') is not True
+            # option 1 (2026-10-18): a block whose only misses were reported host CLRT precision passes its gates
+            run_passed = run.get('ok') is True or (run.get('gate_ok') is True and
+                                                   run.get('host_precision_reported_not_gated') is True)
+            if (not run_passed or restore.get('ok') is not True or post.get('ok') is not True
                     or post.get('evidence_kind')!='hardware' or post.get('block_id')!=block['block_id']
                     or post.get('campaign_record_sha256')!=audit['campaign_run.json']['sha256']
                     or post.get('ledger_sha256')!=audit['publication_ledger.json']['sha256']

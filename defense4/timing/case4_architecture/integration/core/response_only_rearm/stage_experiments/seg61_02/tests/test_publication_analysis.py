@@ -358,6 +358,35 @@ class PublicationContract(unittest.TestCase):
                                           kind='fit_attestation',evidence_kind='hardware'))
         self.pa.write_json(root/'release_manifest.json',manifest)
 
+    def _rebind_run(self, root, mutate):
+        """Mutate one block's campaign_run.json and carry the change through every hash binding."""
+        manifest=self.pa.read_json(root/'release_manifest.json')
+        run_rec=next(a for a in manifest['artifacts'] if a['path'].endswith('campaign_run.json'))
+        block_id=run_rec['block_id']
+        run_path=root/run_rec['path']
+        run=self.pa.read_json(run_path); mutate(run); self.pa.write_json(run_path,run)
+        run_rec['sha256']=self.pa.sha256(run_path)
+        post_rec=next(a for a in manifest['artifacts'] if a.get('block_id')==block_id and a['path'].endswith('evaluation_postcheck.json'))
+        post=self.pa.read_json(root/post_rec['path']); post['campaign_record_sha256']=run_rec['sha256']
+        self.pa.write_json(root/post_rec['path'],post); post_rec['sha256']=self.pa.sha256(root/post_rec['path'])
+        self.pa.write_json(root/'release_manifest.json',manifest)
+
+    def test_option1_precision_reported_block_validates_but_a_plain_failed_block_does_not(self):
+        """Option 1 (2026-10-18): ok=False with gate_ok and host_precision_reported_not_gated is a passing block;
+        ok=False without them is still rejected."""
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            self.build_release(root,training=True)
+            self.repro.fit_lock(root,root/'model_lock.json',fixture=True)
+            shutil.copyfile(root/'rows.csv',root/'training_rows.csv')
+            self.build_release(root,training=False)
+            self.structural_hardware_fixture(root)
+            self._rebind_run(root,lambda run: run.update(ok=False,gate_ok=True,host_precision_reported_not_gated=True))
+            self.pa.validate_release(root)
+            self._rebind_run(root,lambda run: run.update(ok=False,gate_ok=False,host_precision_reported_not_gated=False))
+            with self.assertRaisesRegex(ValueError,'binding failed'):
+                self.pa.validate_release(root)
+
     def test_main_validation_rejects_hashed_heldout_boundary_and_cost_mutations(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)

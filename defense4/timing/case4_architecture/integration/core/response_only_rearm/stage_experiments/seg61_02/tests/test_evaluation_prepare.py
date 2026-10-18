@@ -105,7 +105,7 @@ def test_missing_measurements_and_fallbacks_cannot_qualify(tmp_path):
     assert any('source identity' in e for e in errors)
     assert any('execution order' in e for e in errors)
     assert any('class counts' in e for e in errors)
-    assert any('precision' in e for e in errors)
+    assert any('CLRT observations incomplete' in e for e in errors)   # missing data is still an error (option 1)
     assert any('trial gate' in e for e in errors)
 
 
@@ -139,3 +139,69 @@ def test_timeout_evidence_requires_both_observed_endpoint_rtos():
                 dict(doc, samples=[dict(s, rto_ms=[]) for s in doc['samples']])):
         with pytest.raises(ValueError, match='endpoint TCP'):
             m.observed_rtos(bad)
+
+
+def _ledger(block, cfg, late_ns=0):
+    """A complete capture ledger for every arm, one exchange per timed arm late by late_ns."""
+    records = []
+    for name in block['arms']:
+        for kind, n in dict(READ=block['reads'], SELECT=block['sbo'], OPERATE=block['sbo']).items():
+            for i in range(n):
+                late = late_ns if (i == 0 and kind == 'SELECT') else 0
+                records.append(dict(record_type='captured_exchange', arm='baseline' if name == 'off' else name,
+                                    txn_class=kind, clrt_ns=cfg['timing_params_ns']['gap'] + late))
+    return dict(records=records)
+
+
+def test_option1_configs_report_host_precision_and_recovery_keeps_its_gates(tmp_path):
+    """Philip, 2026-10-18 (option 1): reference, pilot, feasibility and main report host precision; recovery does not
+    change."""
+    m = module()
+    base = m.load(m.BUILD / 'configs/part2_m11_09_ref_r30_b1.json')
+    order = m.collection_order('test_campaign')
+    cfg = m.evaluation_config(base, order[10], m.derive_envelope([6_000_000], [200_000_000]), 'order')
+    assert cfg['evaluation']['purpose'] == 'timing_precision_characterization'
+    assert cfg['evaluation']['host_precision_gated'] is False and cfg['evaluation']['read_precision'] is True
+    root = m.prepare(tmp_path / 'campaign', 'test_campaign')
+    for block in order[:10]:
+        ev = m.load(m.config_path(root, block))['evaluation']
+        if block['phase'] == 'recovery':
+            assert 'host_precision_gated' not in ev
+        else:
+            assert ev['host_precision_gated'] is False and ev['purpose'] == 'timing_precision_characterization'
+
+
+def test_option1_a_late_exchange_is_recorded_not_failed_only_when_reported():
+    m = module()
+    base = m.load(m.BUILD / 'configs/part2_m11_09_ref_r30_b1.json')
+    block = m.collection_order('test_campaign')[10 + 16 + 8]   # a main block, with SBO
+    cfg = m.evaluation_config(base, block, m.derive_envelope([6_000_000], [200_000_000]), 'order')
+    ledger = _ledger(block, cfg, late_ns=1_000_000)
+    record = {'ok': True, 'arms': [], 'effective': {}}
+    errors = m.check_observations(block, cfg, record, ledger)
+    assert not any('p99 precision fails' in e for e in errors)
+    timed = [a['name'] for a in cfg['arms'] if a['T']][0]
+    measured = m.host_precision(block, cfg, ledger)
+    assert measured['gated'] is False
+    assert measured['by_arm_operation']['%s/SELECT' % timed]['over_100us'] == 1
+    gated = dict(cfg, evaluation=dict(cfg['evaluation'], host_precision_gated=True))
+    assert any('p99 precision fails' in e for e in m.check_observations(block, gated, record, ledger))
+
+
+def test_option1_trial_precision_soft_failure_accepted_but_other_soft_failures_are_not():
+    m = module()
+    base = m.load(m.BUILD / 'configs/part2_m11_09_ref_r30_b1.json')
+    block = m.collection_order('test_campaign')[10 + 16 + 8]   # a main block, with SBO
+    cfg = m.evaluation_config(base, block, m.derive_envelope([6_000_000], [200_000_000]), 'order')
+    ledger = _ledger(block, cfg)
+
+    def run(failures, gate_ok=True):
+        trial = dict(ok=False, failures=failures, continuation=dict(allowed=True))
+        record = dict(ok=False, gate_ok=gate_ok, host_precision_reported_not_gated=gate_ok,
+                      arms=[dict(arm=a, trials=[trial]) for a in block['arms']], effective={})
+        return m.check_observations(block, cfg, record, ledger)
+    ok = run(['SELECT precision: p99 1076 us'])
+    assert not any('trial gate' in e or 'did not pass' in e for e in ok)
+    hold = run(['OPERATE hold: realized J below op_j'])
+    assert any('trial gate' in e for e in hold)
+    assert any('did not pass' in e for e in run(['SELECT precision: x'], gate_ok=False))
