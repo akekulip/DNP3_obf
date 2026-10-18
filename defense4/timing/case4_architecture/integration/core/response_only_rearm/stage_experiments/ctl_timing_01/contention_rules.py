@@ -38,7 +38,33 @@ def request_quiet(kind, watch_later, op_hold_s, default_s=0.2):
     return op_hold_s if kind == 'OPERATE' and not watch_later else default_s
 
 
-def late_relay_copies(frames, relay_port):
-    """Relay-bound frames (t, port, frame) seen after the request capture: each is a second copy of the request.
-    Returns [(t, length)]; empty means none."""
-    return [(round(t, 4), len(f)) for t, p, f in frames if p == relay_port]
+def _tcp_ports(frame):
+    """(sport, dport) of an untagged IPv4 TCP frame, or None if the frame cannot be read as one."""
+    if len(frame) < 34 or frame[12:14] != b'\x08\x00' or frame[23] != 6 or (frame[14] & 0x0f) < 5:
+        return None
+    tcp = 14 + (frame[14] & 0x0f) * 4
+    if len(frame) < tcp + 4:
+        return None
+    return int.from_bytes(frame[tcp:tcp + 2], 'big'), int.from_bytes(frame[tcp + 2:tcp + 4], 'big')
+
+
+def outstation_bound(frame, server_port):
+    """True only for a frame positively read as IPv4 TCP addressed to the outstation's port. Direction comes from the
+    frame: in the model build the relay leg is mapped to the master's device port (port_map relay_port 9), so a
+    capture's port tag cannot tell the directions apart (model_contention_m10_03_06). Use it where being
+    outstation-bound makes a check PASS (an RST 'relayed')."""
+    ports = _tcp_ports(frame)
+    return ports is not None and ports[1] == server_port
+
+
+def master_bound(frame, server_port):
+    """True only for a frame positively read as IPv4 TCP sent from the outstation's port (toward the master)."""
+    ports = _tcp_ports(frame)
+    return ports is not None and ports[0] == server_port
+
+
+def late_relay_copies(frames, relay_dev_port, server_port):
+    """Frames (t, port, frame) on the relay device port after the request capture that are not positively
+    master-bound: each is counted as a second copy of the request, an unreadable frame included (fail closed;
+    code review). Returns [(t, length)]; empty means none."""
+    return [(round(t, 4), len(f)) for t, p, f in frames if p == relay_dev_port and not master_bound(f, server_port)]

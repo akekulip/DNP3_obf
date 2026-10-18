@@ -59,10 +59,48 @@ def test_operate_keeps_its_duplicate_window_unless_the_caller_watches_later():
     assert rules.request_quiet('READ', False, 0.9) == rules.request_quiet('SELECT', True, 0.9) == 0.2
 
 
-def test_any_relay_bound_frame_after_the_request_capture_is_a_copy():
-    frames = [(1.00001, 9, b'm' * 60), (1.5, 48, b'r' * 101), (2.0, 48, b'r' * 101)]
-    assert rules.late_relay_copies(frames, 48) == [(1.5, 101), (2.0, 101)]
-    assert rules.late_relay_copies(frames[:1], 48) == []
+ETH = bytes.fromhex('001122334455aabbccddeeff0800')
+
+
+def tcp_frame(sport, dport, payload=b''):
+    ip = bytes.fromhex('4500') + (40 + len(payload)).to_bytes(2, 'big') + bytes.fromhex('000140004006') + bytes(2) \
+        + bytes([10, 0, 0, 1 if dport == 20000 else 2, 10, 0, 0, 2 if dport == 20000 else 1])
+    return ETH + ip + sport.to_bytes(2, 'big') + dport.to_bytes(2, 'big') + bytes(8) + bytes.fromhex('5018') \
+        + bytes(6) + payload
+
+
+def test_only_outstation_bound_frames_count_as_copies_whatever_the_port_tag():
+    """model_contention_m10_03_06: relay and master share dev port 9 in the model, so the master-bound ACK (60) and
+    response (115) were counted as copies. Direction must come from the frame."""
+    ack, rsp = tcp_frame(20000, 30001), tcp_frame(20000, 30001, bytes(61))
+    copy = tcp_frame(30001, 20000, bytes(35))
+    frames = [(1.5, 9, ack), (1.55, 9, rsp)]
+    assert rules.late_relay_copies(frames, 9, 20000) == []
+    assert rules.late_relay_copies(frames + [(2.0, 9, copy)], 9, 20000) == [(2.0, len(copy))]
+    assert rules.late_relay_copies([(2.0, 48, copy)], 9, 20000) == []          # another device port: not watched
+
+
+def test_an_unreadable_frame_on_the_relay_port_counts_as_a_copy():
+    """Code review W1: fail closed. A VLAN-tagged, non-IP, non-TCP or truncated frame is not proven master-bound."""
+    copy = tcp_frame(30001, 20000, bytes(35))
+    vlan = copy[:12] + bytes.fromhex('81000001') + copy[12:]
+    udp = copy[:23] + bytes([17]) + copy[24:]
+    for odd in (vlan, udp, copy[:30], b'short'):
+        assert rules.late_relay_copies([(1.0, 9, odd)], 9, 20000) == [(1.0, len(odd))]
+        assert not rules.outstation_bound(odd, 20000)          # but never counts as an RST 'relayed'
+
+
+def test_ip_options_are_parsed_through_ihl():
+    copy = tcp_frame(30001, 20000, bytes(35))
+    opts = copy[:14] + bytes([0x46]) + copy[15:34] + bytes(4) + copy[34:]
+    assert rules.outstation_bound(opts, 20000) and not rules.master_bound(opts, 20000)
+
+
+def test_the_rst_relayed_checks_take_direction_from_the_frame():
+    """Code review W2: a master-bound RST on the shared device port must not make a missing relay pass."""
+    text = (Path(__file__).resolve().parents[1] / 'model_contention.py').read_text()
+    assert len(re.findall(r'p == RELAY\.dev_port and rules\.outstation_bound\(f, RELAY\.port\)', text)) == 3
+    assert not re.search(r'p == RELAY\.dev_port and f\[47\] & 0x04', text)
 
 
 def test_the_driver_watches_only_where_nothing_relay_bound_is_sent():
@@ -71,7 +109,7 @@ def test_the_driver_watches_only_where_nothing_relay_bound_is_sent():
     text = (Path(__file__).resolve().parents[1] / 'model_contention.py').read_text()
     assert "watch = kind == 'OPERATE' and during is None" in text
     assert "st['queued'] = capture(0.02, 0.01)" in text
-    assert "late = rules.late_relay_copies(st.pop('queued') + got, RELAY.dev_port)" in text
+    assert "late = rules.late_relay_copies(st.pop('queued') + got, RELAY.dev_port, RELAY.port)" in text
     # code review: the only keep_queued argument is the watch flag; drain only in respond's else branch; only point()
     # passes watch_later
     assert re.findall(r'(?<!def )respond\([^)]*keep_queued=(\w+)', text) == ['watch']

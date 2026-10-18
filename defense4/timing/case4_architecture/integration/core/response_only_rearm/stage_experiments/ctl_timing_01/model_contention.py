@@ -57,8 +57,8 @@ DELAYS_MS = (0, 8, 15, 22, 30, 45, 60, 90, 120)
 WAIT_S, QUIET_S = 8.0, 1.5     # > T's readiness fallback in wall time (about 3 s at ~6.8e8 model ns/s)
 OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
 # OP_HOLD_S is in effect the quiet after the relayed OPERATE: the only window a duplicate OPERATE release was watched
-# for. point() OPERATE exchanges (option a, 2026-10-17) use the READ/SELECT quiet instead and watch the relay port
-# through the response capture (<tag>_request_not_relayed_again), a longer window; the stimulus then leaves margin
+# for. point() OPERATE exchanges (option a, 2026-10-17) use the READ/SELECT quiet instead and watch for an
+# outstation-bound copy through the response capture (<tag>_request_not_relayed_again), a longer window; the stimulus then leaves margin
 # to T's readiness (evidence/m10_03/precondition_05). Other OPERATE paths keep OP_HOLD_S.
 # TRACE_sweep_SELECT_000ms.md (m6_07): a point's verdict is T's own lane (commit and release required). Before m7, T's lane
 # could be fooled by 32-bit readiness aliasing past 2^32 ns (_02); m7's clock moves that to 9.16 minutes. The request-
@@ -180,7 +180,7 @@ def main():
 
         def request(kind, fc, objects, watch_later=False):
             """Send the request; OPERATE waits out J. Returns (app, request bytes). watch_later: the caller watches
-            the relay port for a second copy through the response capture, so the OPERATE quiet is not needed."""
+            for a second outstation-bound copy through the response capture, so the OPERATE quiet is not needed."""
             c, s, g = st['c'], st['s'], st['growth']
             req, app = st['seqs'].request(fc, objects)
             st['seqs'].next_app()
@@ -364,12 +364,12 @@ def main():
                 got += capture(WAIT_S, QUIET_S)
                 extra['outstation_retransmission'] = True
             if watch:
-                late = rules.late_relay_copies(st.pop('queued') + got, RELAY.dev_port)
+                late = rules.late_relay_copies(st.pop('queued') + got, RELAY.dev_port, RELAY.port)
                 if late:                                   # times are read times, relative to the first relay
                     report.record['meta'].setdefault('request_relayed_again', []).append(dict(
                         tag=tag, request_relayed_ok=ok, after_relay_s=[round(t - (st['t_relayed'] or t), 4)
                                                                         for t, _n in late], lengths=[n for _t, n in late]))
-                report.add('%s_request_not_relayed_again' % tag, 'no relay-bound frame after the request capture',
+                report.add('%s_request_not_relayed_again' % tag, 'no frame toward the outstation after the request capture',
                            ('%d late relay frame(s)%s' % (len(late), '' if ok else ', original not relayed in time'))
                            if late else 'none', ok=not late)
             return got, native, ack, before, busy0, extra
@@ -421,7 +421,8 @@ def main():
             def master_rst(_rsp, c=c, s=s, g=g):
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
                 seen = capture(0.6, 0.6)
-                first_rst['relayed'] = any(p == RELAY.dev_port and f[47] & 0x04 for _t, p, f in seen)
+                first_rst['relayed'] = any(p == RELAY.dev_port and rules.outstation_bound(f, RELAY.port) and f[47] & 0x04
+                                            for _t, p, f in seen)
                 first_rst['seen'] = seen
             got, native, ack, _rsp = respond(kind, app, body, 0, during=master_rst)
             got = first_rst['seen'] + got
@@ -679,7 +680,8 @@ def main():
                 # are themselves busy-dropped on the slow model); every frame seen meanwhile is kept
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
                 seen = capture(0.6, 0.6)
-                new['first_rst_relayed'] = any(p == RELAY.dev_port and f[47] & 0x04 for _t, p, f in seen)
+                new['first_rst_relayed'] = any(p == RELAY.dev_port and rules.outstation_bound(f, RELAY.port) and f[47] & 0x04
+                                               for _t, p, f in seen)
                 new.setdefault('seen', []).extend(seen)
                 # CLEANUP ONLY (after the verdict input above): close the connection if N refused the first RST
                 # (both master-visible acks: before and after the 61-octet image)
@@ -740,7 +742,8 @@ def main():
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
                 m.send(RELAY.dev_port, sent_rsp)
                 seen = capture(1.0, 0.6)
-                new['resets'] = [f for _t, p, f in seen if p == RELAY.dev_port and f[47] & 0x04]
+                new['resets'] = [f for _t, p, f in seen if p == RELAY.dev_port and rules.outstation_bound(f, RELAY.port)
+                                 and f[47] & 0x04]
                 new['seen'] = seen
                 if not new['resets']:            # CLEANUP ONLY, after the verdict input: close a refused connection
                     for visible in (0, IMAGE_LEN):
