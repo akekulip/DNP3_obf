@@ -342,6 +342,17 @@
     "source_and_profile_changed": false,
     "parameters_changed": false,
     "heavy_unit_suite_finished_before_launch": true,
-    "qualification_note": "Original207/211 remains failed. Replacement02 passed211/211; aggregate nine-driver qualification is still pending other drivers."
+    "qualification_note": "Original207/211 remains failed. Unchanged-source/profile/parameter replacement02 passed211/211, then became stale after the repeat-helper correction. Control03 reruns that closure after committed harness fix91204ef1b and is the final qualified attempt."
+  },
+  "profile_helper_requalification": {
+    "run": "model_control_timing_m11_09_03",
+    "summary": {
+      "passed": 211,
+      "total": 211,
+      "failed": []
+    },
+    "result_sha256": "ce71f766a63b1a90f829fefbd348541a803887918553a97878e49eff757c5a7a",
+    "harness_commit": "91204ef1b6d094be251b954b92934be53de60684",
+    "source_profile_parameters_unchanged": true
   }
 }

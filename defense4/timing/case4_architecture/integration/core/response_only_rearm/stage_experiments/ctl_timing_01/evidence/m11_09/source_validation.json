@@ -45,7 +45,7 @@
       "broad_passed": 288
     }
   },
-  "target_model_qualification": "Recorded separately in final model_summary_v3.json and checkpoint.json; source tests do not establish timing or hardware correctness.",
+  "target_model_qualification": "model_gate_passed in model_summary_v3.json, independently enforced; no hardware timing or silicon qualification claimed.",
   "integrated_unit_evidence": {
     "python": "3.8.10",
     "main_log": "verification/dnp3-full-py38.log",
@@ -67,6 +67,16 @@
       "log": "verification/dnp3-milestone1-clean-staged.log",
       "sha256": "e0b6f4f963f646820c5d247635c865ef25a4bea7fbdcb90806ee86e549d53220",
       "note": "Clean worktree omits ignored historical compiler/capture/raw-log artifacts and opt-in canonical data; those cases have separate workspace/source evidence."
+    },
+    "clean_staged_harness_gate": {
+      "commit": "91204ef1b6d094be251b954b92934be53de60684",
+      "author": "akekulip <akekulip@gmail.com>",
+      "committer": "akekulip <akekulip@gmail.com>",
+      "passed": 2201,
+      "skipped": 21,
+      "seconds": 657.55,
+      "log": "verification/dnp3-milestone2-clean-staged.log",
+      "sha256": "9ec80b70b9eb401a13764bd00a2bb620ec826675b62ff1ad7768fc6196a662df"
     }
   },
   "repeat_successor_expectation_fix": {
@@ -78,6 +88,8 @@
     "red_behavior_passed": 5,
     "red_log": "verification/dnp3-repeat-profile-red.log",
     "green_log": "verification/dnp3-repeat-profile-root-final-green.log",
-    "note": "Initial test-harness import error is separately retained; behavioral red proves the m11 cancellation exchange was omitted. Fix resolves existing source-bound profile before connecting to model, preserves historical/non-CT expectations, and rejects identity mismatches. SDE model replacement qualification remains pending."
-  }
+    "note": "Initial test-harness import error is separately retained; behavioral red proves the m11 cancellation exchange was omitted. Fix resolves existing source-bound profile before connecting to model, preserves historical/non-CT expectations, and rejects identity mismatches. Exact-source requalification is complete: repeat02 passed523/523 and control_timing03 passed211/211, with all nine latest gates model_gate_passed.",
+    "independent_review": "APPROVED after empty-PORT_MAP compatibility correction; root 34/34 targeted verification and clean staged 2201/21 gate."
+  },
+  "final_model_summary_sha256": "7ed2dd366bd26bcbf8bb64dbc46813b375be312dd1ddcca23f3d91372110f761"
 }

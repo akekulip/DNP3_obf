@@ -388,5 +388,17 @@
     "status": "proposed_not_executed_by_this_agent",
     "action": "Use source/profile-bound successor capability to select the inherited READ-after-SELECT expectation, then rerun every affected dependency-closure gate with fresh attempt directories.",
     "constraints": "Preserve repeat01 and its failed result; do not change P4/source/profile semantics to match a stale milestone-name branch. Root owns implementation, reruns and final qualification."
+  },
+  "follow_up": {
+    "harness_commit": "91204ef1b6d094be251b954b92934be53de60684",
+    "run": "model_repeat_m11_09_02",
+    "summary": {
+      "passed": 523,
+      "total": 523,
+      "failed": []
+    },
+    "result_sha256": "7d38be3a909e5c574bd87238fe9a60433ac8fb2308ccc75f08db8986e0d312b1",
+    "source_profile_parameters_unchanged": true,
+    "note": "Original512/520 remains failed; later source-bound expectation correction and complete passing run establish the final gate. No P4 change or acceptance weakening."
   }
 }

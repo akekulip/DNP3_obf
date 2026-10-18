@@ -1,6 +1,6 @@
 {
   "date_utc": "2026-10-18",
-  "milestone": "compiler_stage_cut",
+  "milestone": "compiler_stage_cut_model_qualified_frozen",
   "candidate": "m11_09",
   "source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8",
   "source_inputs_sha256": "0959dab1b4887c1453354d176d535dab3279fb5d0fe325eace4598bae65265e6",
@@ -119,13 +119,13 @@
     }
   },
   "stage_reduction_demonstrated": true,
-  "stage_claim_scope": "Compiler placement only; no hardware timing or final model qualification claimed yet.",
+  "stage_claim_scope": "Both compiler versions reduce N occupied stage count12->11; all nine offline model gates pass on exact final source. No physical switch latency or silicon qualification claim.",
   "resources": "compiler_comparison.json",
   "source_validation": "source_validation.json",
-  "model_qualification": "blocked",
+  "model_qualification": "model_gate_passed",
   "model_summary": "model_summary_v3.json",
   "failed_model_record": "model_driver_stall_01.json",
-  "next_action": "Correct repeat-driver successor applicability through the source-bound semantic profile. Verify and commit the harness milestone, then repeat02, control_timing03 and missing select_lifecycle01/contention01/abort01. Smoke/packets/rearm/dup executed closures remain valid. Retain all earlier attempts; enforce v3 and write normal freeze only after all nine gates qualify.",
+  "next_action": "Prepared hardware proposals remain NOT_RUN. Compatible baseline Part2 freeze remains unavailable, so comparison retains that explicit stop gate. No further hardware/full-campaign/manuscript work is authorized in this milestone.",
   "prepared_configuration_count": 55,
   "hardware_proposal_block_count": 7,
   "hardware_status": "NOT_RUN",
@@ -145,5 +145,112 @@
   "failed_model_records": [
     "model_driver_stall_01.json",
     "model_repeat_expectation_failure_01.json"
-  ]
+  ],
+  "harness_milestone_commit": "91204ef1b6d094be251b954b92934be53de60684",
+  "model_summary_sha256": "7ed2dd366bd26bcbf8bb64dbc46813b375be312dd1ddcca23f3d91372110f761",
+  "latest_model_attempts": {
+    "abort": "model_abort_m11_09_01",
+    "contention": "model_contention_m11_09_01",
+    "control_timing": "model_control_timing_m11_09_03",
+    "dup": "model_dup_m11_09_01",
+    "packets": "model_packets_m11_09_01",
+    "rearm": "model_rearm_m11_09_01",
+    "repeat": "model_repeat_m11_09_02",
+    "select_lifecycle": "model_select_lifecycle_m11_09_01",
+    "smoke": "model_smoke_m11_09_01"
+  },
+  "latest_model_case_counts": {
+    "abort": {
+      "passed": 79,
+      "total": 79
+    },
+    "contention": {
+      "passed": 413,
+      "total": 413
+    },
+    "control_timing": {
+      "passed": 211,
+      "total": 211
+    },
+    "dup": {
+      "passed": 102,
+      "total": 102
+    },
+    "packets": {
+      "passed": 622,
+      "total": 622
+    },
+    "rearm": {
+      "passed": 399,
+      "total": 399
+    },
+    "repeat": {
+      "passed": 523,
+      "total": 523
+    },
+    "select_lifecycle": {
+      "passed": 120,
+      "total": 120
+    },
+    "smoke": {
+      "passed": 30,
+      "total": 30
+    }
+  },
+  "freeze": {
+    "path": "freeze_v3.json",
+    "sha256": "724f42af3032085332dc182e4ee5f0b5f14afb8f576c5afba4443054f32e684d",
+    "diagnostic_exception": false,
+    "config_checks": [
+      {
+        "config": "ctl_m11_09_persistence_graceful_950.json",
+        "record": "freeze_check_ctl_m11_09_persistence_graceful_950.json",
+        "sha256": "fc106e447a6efe35b9906e3a8fc6b98aa95904ee619b53c018bfedc4a11f862e"
+      },
+      {
+        "config": "ctl_m11_09_persistence_rst_950.json",
+        "record": "freeze_check_ctl_m11_09_persistence_rst_950.json",
+        "sha256": "a0ce427db6cc518474c760bca3b0d694e5f543230c5e4e04ef1e6f98c7080459"
+      },
+      {
+        "config": "ctl_m11_09_loss_core_950.json",
+        "record": "freeze_check_ctl_m11_09_loss_core_950.json",
+        "sha256": "e7402bd6198c3c1106c316b6777af3253e7d3c7317e76862b9818b377a8ccce2"
+      },
+      {
+        "config": "ctl_m11_09_reconnect_950.json",
+        "record": "freeze_check_ctl_m11_09_reconnect_950.json",
+        "sha256": "f4fef5502a5a34316099a7a75056d749aa581fa760ee33016016184d15e1ccd0"
+      },
+      {
+        "config": "ctl_m11_09_held_operate_350.json",
+        "record": "freeze_check_ctl_m11_09_held_operate_350.json",
+        "sha256": "53488761a828ef823a5f4f5afa50c8ac9057a8deb271d149078635585ca09cb3"
+      },
+      {
+        "config": "part2_m11_09_ref_r30_b1.json",
+        "record": "freeze_check_part2_m11_09_ref_r30_b1.json",
+        "sha256": "b139e41113e73f12ca737a7c1aa2904e50ddb62eed944b514245885a69ab020f"
+      }
+    ]
+  },
+  "model_profile_requalification_runs": [
+    "model_repeat_m11_09_02",
+    "model_control_timing_m11_09_03",
+    "model_select_lifecycle_m11_09_01",
+    "model_contention_m11_09_01",
+    "model_abort_m11_09_01"
+  ],
+  "reset_application": {
+    "run": "model_contention_m11_09_01",
+    "report": "reset_application.json",
+    "sha256": "716a0616cc9267a2e373ccea7f0a45a442f1674a1ac30e976089febf8f4c478a",
+    "model_only": true,
+    "positive_restarts": {
+      "restart_READ": 1,
+      "restart_SELECT": 1,
+      "restart_targeted_READ_1": 1,
+      "restart_targeted_SELECT_1": 1
+    }
+  }
 }
