@@ -125,7 +125,7 @@
   "model_qualification": "blocked",
   "model_summary": "model_summary_v3.json",
   "failed_model_record": "model_driver_stall_01.json",
-  "next_action": "After the isolated staged unit-test/commit gate, execute one documented replacement control_timing run with unchanged source/profile/parameters, then remaining eight model drivers. Retain failed01.",
+  "next_action": "Correct repeat-driver successor applicability through the source-bound semantic profile. Verify and commit the harness milestone, then repeat02, control_timing03 and missing select_lifecycle01/contention01/abort01. Smoke/packets/rearm/dup executed closures remain valid. Retain all earlier attempts; enforce v3 and write normal freeze only after all nine gates qualify.",
   "prepared_configuration_count": 55,
   "hardware_proposal_block_count": 7,
   "hardware_status": "NOT_RUN",
@@ -141,5 +141,9 @@
   "attacker_evaluation": "PREPARED_NOT_RUN",
   "baseline_part2_freeze": "compatible historical freeze unavailable; no diagnostic override",
   "denominator_correction": "denominator_correction_20261018.json",
-  "replacement_attempts_executed": 0
+  "replacement_attempts_executed": 1,
+  "failed_model_records": [
+    "model_driver_stall_01.json",
+    "model_repeat_expectation_failure_01.json"
+  ]
 }

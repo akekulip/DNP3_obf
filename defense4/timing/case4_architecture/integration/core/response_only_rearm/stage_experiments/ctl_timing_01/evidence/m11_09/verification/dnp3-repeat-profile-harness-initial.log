@@ -1,0 +1,662 @@
+FFFFFFFFFFFF                                                             [100%]
+=================================== FAILURES ===================================
+______________ test_m11_successor_runs_the_cancellation_exchange _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76cb1ee0>
+
+    def test_m11_successor_runs_the_cancellation_exchange(monkeypatch):
+>       resolved, calls, cases = probe3_decision(monkeypatch, CT / 'evidence/m11_09/response_only.inputs.json', 'm11')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___ test_historical_source_bound_expectations_stay_unchanged[m1-m1_01-False] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76bd6e20>
+milestone = 'm1', build = 'm1_01', cancels = False
+
+    @pytest.mark.parametrize('milestone,build,cancels',
+                             [('m1', 'm1_01', False), ('m2', 'm2_01', False),
+                              ('m3', 'm3_01', False), ('m10', 'm10_03', True)])
+    def test_historical_source_bound_expectations_stay_unchanged(monkeypatch, milestone, build, cancels):
+>       resolved, calls, cases = probe3_decision(monkeypatch, CT / ('evidence/' + build + '/response_only.inputs.json'), milestone)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___ test_historical_source_bound_expectations_stay_unchanged[m2-m2_01-False] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76fba520>
+milestone = 'm2', build = 'm2_01', cancels = False
+
+    @pytest.mark.parametrize('milestone,build,cancels',
+                             [('m1', 'm1_01', False), ('m2', 'm2_01', False),
+                              ('m3', 'm3_01', False), ('m10', 'm10_03', True)])
+    def test_historical_source_bound_expectations_stay_unchanged(monkeypatch, milestone, build, cancels):
+>       resolved, calls, cases = probe3_decision(monkeypatch, CT / ('evidence/' + build + '/response_only.inputs.json'), milestone)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___ test_historical_source_bound_expectations_stay_unchanged[m3-m3_01-False] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76d60850>
+milestone = 'm3', build = 'm3_01', cancels = False
+
+    @pytest.mark.parametrize('milestone,build,cancels',
+                             [('m1', 'm1_01', False), ('m2', 'm2_01', False),
+                              ('m3', 'm3_01', False), ('m10', 'm10_03', True)])
+    def test_historical_source_bound_expectations_stay_unchanged(monkeypatch, milestone, build, cancels):
+>       resolved, calls, cases = probe3_decision(monkeypatch, CT / ('evidence/' + build + '/response_only.inputs.json'), milestone)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+__ test_historical_source_bound_expectations_stay_unchanged[m10-m10_03-True] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76c67280>
+milestone = 'm10', build = 'm10_03', cancels = True
+
+    @pytest.mark.parametrize('milestone,build,cancels',
+                             [('m1', 'm1_01', False), ('m2', 'm2_01', False),
+                              ('m3', 'm3_01', False), ('m10', 'm10_03', True)])
+    def test_historical_source_bound_expectations_stay_unchanged(monkeypatch, milestone, build, cancels):
+>       resolved, calls, cases = probe3_decision(monkeypatch, CT / ('evidence/' + build + '/response_only.inputs.json'), milestone)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___________ test_non_ct_driver_without_a_milestone_keeps_legacy_drop ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76b00c10>
+
+    def test_non_ct_driver_without_a_milestone_keeps_legacy_drop(monkeypatch):
+>       resolved, calls, cases = probe3_decision(monkeypatch, SEG / 'evidence/full_04/response_only.inputs.json', None)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+_______ test_recorded_successor_profile_applies_when_env_label_is_absent _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76a61e20>
+
+    def test_recorded_successor_profile_applies_when_env_label_is_absent(monkeypatch):
+>       resolved, calls, _ = probe3_decision(monkeypatch, CT / 'evidence/m11_09/response_only.inputs.json', None)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___ test_mismatched_or_unknown_identity_is_rejected_before_the_probe[source] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76a0ebb0>
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1813/test_mismatched_or_unknown_ide0')
+mutation = 'source'
+
+    @pytest.mark.parametrize('mutation', ('source', 'candidate_hash', 'unknown_source', 'milestone'))
+    def test_mismatched_or_unknown_identity_is_rejected_before_the_probe(monkeypatch, tmp_path, mutation):
+        source = (CT / 'evidence/m11_09/response_only.p4').read_bytes()
+        inputs = json.loads((CT / 'evidence/m11_09/response_only.inputs.json').read_text())
+        label = 'm11'
+        if mutation == 'source':
+            source += b'\n// changed source\n'
+        elif mutation == 'candidate_hash':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        elif mutation == 'unknown_source':
+            inputs.pop('supported_profile')
+        else:
+            label = 'm10'
+        (tmp_path / 'response_only.p4').write_bytes(source)
+        path = tmp_path / 'response_only.inputs.json'
+        path.write_text(json.dumps(inputs))
+        with pytest.raises(ValueError):
+>           probe3_decision(monkeypatch, path, label)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+_ test_mismatched_or_unknown_identity_is_rejected_before_the_probe[candidate_hash] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76b7d9a0>
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1813/test_mismatched_or_unknown_ide1')
+mutation = 'candidate_hash'
+
+    @pytest.mark.parametrize('mutation', ('source', 'candidate_hash', 'unknown_source', 'milestone'))
+    def test_mismatched_or_unknown_identity_is_rejected_before_the_probe(monkeypatch, tmp_path, mutation):
+        source = (CT / 'evidence/m11_09/response_only.p4').read_bytes()
+        inputs = json.loads((CT / 'evidence/m11_09/response_only.inputs.json').read_text())
+        label = 'm11'
+        if mutation == 'source':
+            source += b'\n// changed source\n'
+        elif mutation == 'candidate_hash':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        elif mutation == 'unknown_source':
+            inputs.pop('supported_profile')
+        else:
+            label = 'm10'
+        (tmp_path / 'response_only.p4').write_bytes(source)
+        path = tmp_path / 'response_only.inputs.json'
+        path.write_text(json.dumps(inputs))
+        with pytest.raises(ValueError):
+>           probe3_decision(monkeypatch, path, label)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+_ test_mismatched_or_unknown_identity_is_rejected_before_the_probe[unknown_source] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76950f70>
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1813/test_mismatched_or_unknown_ide2')
+mutation = 'unknown_source'
+
+    @pytest.mark.parametrize('mutation', ('source', 'candidate_hash', 'unknown_source', 'milestone'))
+    def test_mismatched_or_unknown_identity_is_rejected_before_the_probe(monkeypatch, tmp_path, mutation):
+        source = (CT / 'evidence/m11_09/response_only.p4').read_bytes()
+        inputs = json.loads((CT / 'evidence/m11_09/response_only.inputs.json').read_text())
+        label = 'm11'
+        if mutation == 'source':
+            source += b'\n// changed source\n'
+        elif mutation == 'candidate_hash':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        elif mutation == 'unknown_source':
+            inputs.pop('supported_profile')
+        else:
+            label = 'm10'
+        (tmp_path / 'response_only.p4').write_bytes(source)
+        path = tmp_path / 'response_only.inputs.json'
+        path.write_text(json.dumps(inputs))
+        with pytest.raises(ValueError):
+>           probe3_decision(monkeypatch, path, label)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+_ test_mismatched_or_unknown_identity_is_rejected_before_the_probe[milestone] __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8a76ba9430>
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1813/test_mismatched_or_unknown_ide3')
+mutation = 'milestone'
+
+    @pytest.mark.parametrize('mutation', ('source', 'candidate_hash', 'unknown_source', 'milestone'))
+    def test_mismatched_or_unknown_identity_is_rejected_before_the_probe(monkeypatch, tmp_path, mutation):
+        source = (CT / 'evidence/m11_09/response_only.p4').read_bytes()
+        inputs = json.loads((CT / 'evidence/m11_09/response_only.inputs.json').read_text())
+        label = 'm11'
+        if mutation == 'source':
+            source += b'\n// changed source\n'
+        elif mutation == 'candidate_hash':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        elif mutation == 'unknown_source':
+            inputs.pop('supported_profile')
+        else:
+            label = 'm10'
+        (tmp_path / 'response_only.p4').write_bytes(source)
+        path = tmp_path / 'response_only.inputs.json'
+        path.write_text(json.dumps(inputs))
+        with pytest.raises(ValueError):
+>           probe3_decision(monkeypatch, path, label)
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:37: in probe3_decision
+    namespace, branch = driver_logic()
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:24: in driver_logic
+    exec(compile(ast.Module(body=pure, type_ignores=[]), str(DRIVER), 'exec'), namespace)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    import copy
+    import hashlib
+    import importlib.util
+    import os
+    import sys
+    import traceback
+    from pathlib import Path
+    
+    HERE = Path(__file__).resolve().parents[2]
+    BASE = HERE.parent / 'response_only'
+    
+    
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return module
+    
+    
+    helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+    cp = load('_protected_model_cp', HERE / 'cp.py')
+    Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
+    vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
+>   import encode61  # noqa: E402
+E   ModuleNotFoundError: No module named 'encode61'
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py:40: ModuleNotFoundError
+___________ test_profile_resolution_precedes_connecting_to_the_model ___________
+
+    def test_profile_resolution_precedes_connecting_to_the_model():
+        tree = ast.parse(DRIVER.read_text())
+        main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        calls = [n for n in ast.walk(main) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
+>       profile = next(n for n in calls if n.func.id == 'repeat_milestone')
+E       StopIteration
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py:106: StopIteration
+
+The above exception was the direct cause of the following exception:
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x7f8a76dcc310>
+when = 'call'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        start = timing.time()
+        precise_start = timing.perf_counter()
+        try:
+>           result: TResult | None = func()
+
+../../.local/lib/python3.8/site-packages/_pytest/runner.py:341: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.local/lib/python3.8/site-packages/_pytest/runner.py:242: in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+../../.local/lib/python3.8/site-packages/pluggy/_hooks.py:513: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+../../.local/lib/python3.8/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+../../.local/lib/python3.8/site-packages/_pytest/threadexception.py:92: in pytest_runtest_call
+    yield from thread_exception_runtest_hook()
+../../.local/lib/python3.8/site-packages/_pytest/threadexception.py:68: in thread_exception_runtest_hook
+    yield
+../../.local/lib/python3.8/site-packages/_pytest/unraisableexception.py:95: in pytest_runtest_call
+    yield from unraisable_exception_runtest_hook()
+../../.local/lib/python3.8/site-packages/_pytest/unraisableexception.py:70: in unraisable_exception_runtest_hook
+    yield
+../../.local/lib/python3.8/site-packages/_pytest/logging.py:846: in pytest_runtest_call
+    yield from self._runtest_for(item, "call")
+../../.local/lib/python3.8/site-packages/_pytest/logging.py:829: in _runtest_for
+    yield
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <CaptureManager _method='fd' _global_capturing=<MultiCapture out=<FDCapture 1 oldfd=5 _state='suspended' tmpfile=<_io....xtIOWrapper name='/dev/null' mode='r' encoding='utf-8'>> _state='suspended' _in_suspended=False> _capture_fixture=None>
+item = <Function test_profile_resolution_precedes_connecting_to_the_model>
+
+    @hookimpl(wrapper=True)
+    def pytest_runtest_call(self, item: Item) -> Generator[None]:
+        with self.item_capture("call", item):
+>           return (yield)
+E           RuntimeError: generator raised StopIteration
+
+../../.local/lib/python3.8/site-packages/_pytest/capture.py:898: RuntimeError
+=========================== short test summary info ============================
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_m11_successor_runs_the_cancellation_exchange
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_historical_source_bound_expectations_stay_unchanged[m1-m1_01-False]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_historical_source_bound_expectations_stay_unchanged[m2-m2_01-False]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_historical_source_bound_expectations_stay_unchanged[m3-m3_01-False]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_historical_source_bound_expectations_stay_unchanged[m10-m10_03-True]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_non_ct_driver_without_a_milestone_keeps_legacy_drop
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_recorded_successor_profile_applies_when_env_label_is_absent
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_mismatched_or_unknown_identity_is_rejected_before_the_probe[source]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_mismatched_or_unknown_identity_is_rejected_before_the_probe[candidate_hash]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_mismatched_or_unknown_identity_is_rejected_before_the_probe[unknown_source]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_mismatched_or_unknown_identity_is_rejected_before_the_probe[milestone]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_repeat_profile.py::test_profile_resolution_precedes_connecting_to_the_model
+12 failed in 0.28s

@@ -7,7 +7,7 @@ images come from the seg61_01 encode61 oracle; requests must reach the relay unc
 acknowledgment. Phase A runs with T disabled (size and N authority); phase B repeats a few cycles with T enabled
 and checks one OPERATE release per cycle. Probes (T enabled): a READ after an SBO, or a READ alone, authorizes no
 OPERATE (dropped, nothing released); a SELECT followed by a READ is unsupported (READ dropped; reset recovers),
-except under MILESTONE=m4, where the READ cancels the selection (Table 4-9) and is answered.
+except under source-bound ctl_timing profiles implementing Table 4-9, where READ cancels the selection and is answered.
 Queue timing observed here is model behavior, not host timing or ASIC evidence. No register clear or CPU rearm.
 
   REPEAT_CYCLES (default 64), REPEAT_TIMED_CYCLES (default 3)
@@ -15,6 +15,7 @@ Queue timing observed here is model behavior, not host timing or ASIC evidence. 
 import copy
 import hashlib
 import importlib.util
+import json
 import os
 import sys
 import traceback
@@ -83,6 +84,20 @@ def crob(on_ms):
 READ_OBJECTS = bytes.fromhex('0a02000016')
 
 
+def repeat_milestone():
+    """Resolve CT expectations by source identity; keep the original non-CT driver's no-milestone behavior."""
+    inputs_path = os.environ.get('PORT_MAP')
+    if not inputs_path:
+        if os.environ.get('MILESTONE') is None:
+            return None
+        raise ValueError('CT repeat expectations require a source-bound PORT_MAP')
+    inputs = json.loads(Path(inputs_path).read_text())
+    if os.environ.get('MILESTONE') is None and 'milestone' not in inputs and 'supported_profile' not in inputs:
+        return None
+    profile = load('_repeat_model_profile', HERE / 'stage_experiments/ctl_timing_01/model_profile.py')
+    return profile.from_env()['milestone']
+
+
 def main():
     cycles = int(os.environ.get('REPEAT_CYCLES', '64'))
     timed_cycles = int(os.environ.get('REPEAT_TIMED_CYCLES', '3'))
@@ -91,6 +106,8 @@ def main():
                           '%d timed cycles; sequence wraps; unpaired OPERATE after READ' % (cycles, timed_cycles),
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     try:
+        milestone = repeat_milestone()
+        report.record['meta']['expectation_milestone'] = milestone
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
         m.enable_ports(ports + helpers.FRONT_LOOPS)
@@ -264,10 +281,10 @@ def main():
         unpaired_operate('probe2_READ_then_no_SELECT')
         # SELECT then READ (an abandoned SELECT) is an unsupported shape: N admits only the matching OPERATE, so the
         # READ is dropped and the connection must be reset (model_abandon.py characterizes it in detail).
-        # ctl_timing m4 (MILESTONE=m4) implements Table 4-9 instead: the READ cancels the selection and is answered.
+        # ctl_timing m4 and its supported successors implement Table 4-9: READ cancels the selection and is answered.
         reconnect('probe3', 40000, 50000)
         exchange('probe3', 'SELECT', 3, crob(500), control_body(500), False)
-        if os.environ.get('MILESTONE') in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
+        if milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
             report.add('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))
         else:
             request, _app = seqs.request(1, READ_OBJECTS)

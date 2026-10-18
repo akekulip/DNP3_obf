@@ -1,0 +1,392 @@
+{
+  "record_kind": "source-bound-repeat-driver-expectation-failure",
+  "driver_qualification": "failed",
+  "candidate": {
+    "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09",
+    "source": {
+      "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09/response_only.p4",
+      "sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8"
+    },
+    "inputs": {
+      "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09/response_only.inputs.json",
+      "sha256": "0959dab1b4887c1453354d176d535dab3279fb5d0fe325eace4598bae65265e6"
+    },
+    "supported_profile": {
+      "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09/supported_profile.json",
+      "sha256": "875813a835adc3a867f3466166ec5eb63e175a1f05e0cf01085e59fc8c8464b1"
+    }
+  },
+  "run": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01",
+  "launch": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/launch_command.json",
+    "sha256": "cf21b6790f15f7d23e693af782235d2c5f632f946a74bc6bcac9bbfe960a9cd9"
+  },
+  "executed_dependency_closure": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/dependency_closure.json",
+    "sha256": "2d6ee589a575172c42fa9c4b8537ab826dfe61f71e91a446397d37032d6b9739"
+  },
+  "driver_snapshot": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/driver_source.py",
+    "sha256": "fd1cfa95f0f1339ed4522391a82173115f4e6cb6cc821062e7c670b682241eb8"
+  },
+  "recorded_driver_sha256": "fd1cfa95f0f1339ed4522391a82173115f4e6cb6cc821062e7c670b682241eb8",
+  "recorded_milestone": "m11",
+  "results": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/repeat_results.json",
+    "sha256": "ac361cc279e7f4be306cff411f55f8e02868583ef5b1196d3d15e457883b25d6"
+  },
+  "result_summary": {
+    "failed": [
+      "probe3_READ_after_SELECT_dropped_unsupported_shape",
+      "probe4_qualified_RST",
+      "probe4_SYN",
+      "probe4_SYNACK",
+      "probe4_final_ACK",
+      "probe4_after_reset_READ_request",
+      "probe4_after_reset_READ_server_ACK",
+      "probe4_after_reset_READ_response_61"
+    ],
+    "passed": 512,
+    "total": 520
+  },
+  "failed_cases": [
+    {
+      "case_index_zero_based": 512,
+      "expected": 0,
+      "name": "probe3_READ_after_SELECT_dropped_unsupported_shape",
+      "observed": 1,
+      "ok": false,
+      "received": {
+        "9": [
+          "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e2000009c640000c376501810007192000005640dc400000100f387c1c1010a020000162a65"
+        ]
+      }
+    },
+    {
+      "case_index_zero_based": 513,
+      "expected": "one exact frame",
+      "name": "probe4_qualified_RST",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e2000009c640000c3765014100068a10000"
+    },
+    {
+      "case_index_zero_based": 514,
+      "expected": "one exact frame",
+      "name": "probe4_SYN",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000ea600000000060021000c6710000020405b4"
+    },
+    {
+      "case_index_zero_based": 515,
+      "expected": "one exact frame",
+      "name": "probe4_SYNACK",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000111700000ea6160121000b4ef0000020405b4"
+    },
+    {
+      "case_index_zero_based": 516,
+      "expected": "one exact frame",
+      "name": "probe4_final_ACK",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200000ea610001117150101000ccac0000"
+    },
+    {
+      "case_index_zero_based": 517,
+      "expected": "one exact frame",
+      "name": "probe4_after_reset_READ_request",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000ea610001117150181000a6d3000005640dc400000100f387c0c0010a020000165a2c"
+    },
+    {
+      "case_index_zero_based": 518,
+      "expected": "one exact frame",
+      "name": "probe4_after_reset_READ_server_ACK",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000111710000ea7550101000cc980000"
+    },
+    {
+      "case_index_zero_based": 519,
+      "expected": "one exact frame",
+      "name": "probe4_after_reset_READ_response_61",
+      "observed": "drop",
+      "ok": false,
+      "received": {
+        "9": []
+      },
+      "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000111710000ea75501810008ab0000005643244010000008042c0c08180000a0200000500010203040566800a02000609060708090a02010a00160064e60a0b0c0d0e0f1011121314151676bd"
+    }
+  ],
+  "diagnosis": {
+    "classification": "driver expectation inheritance mismatch followed by stale sequence cascade",
+    "driver_branch": "Retained repeat driver explicitly admits READ-after-SELECT cancellation for raw milestone names m4,m5,m6,m7,m8,m9,m9d,m10; m11 selects the unsupported-shape/drop branch.",
+    "source_behavior": "The candidate retains the m11_05 classifier predicate that maps an unmatched valid READ in SELECT-complete owner phase0xa to first_read_request. The new m.retry key is wildcard on this inherited row.",
+    "omitted_exchange": "The m11 unsupported branch directly sends the READ and checks for zero frames. It does not run read(), complete the admitted READ exchange, or advance its client TCP sequence by the20 request bytes.",
+    "cascade": "N advances the client frontier from0x9c64 to0x9c78. Probe4 qualified RST still uses0x9c64; N observes client_diff0xffffffec (\u221220), misses first_event, and does not execute first_close/reset. The old owner phase0xe and epoch0x1ec persist into the attempted reconnect, causing subsequent failures.",
+    "limits": "No P4 semantic regression or compiler miscompilation is established by this evidence. The unexpected frame is the probe3 READ itself, admitted and emitted promptly, not a delayed previous capture. The original512/520 result remains failed."
+  },
+  "inherited_READ_cancellation_rows": {
+    "m11_05": {
+      "source": {
+        "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/response_only.p4",
+        "sha256": "1cf53e706b92a6967a0816fd21fce033253728976147338470df3a8ee89334b5"
+      },
+      "key": "(8w9,3w1,1w0,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_)",
+      "action": "first_read_request"
+    },
+    "m11_09": {
+      "source": {
+        "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09/response_only.p4",
+        "sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8"
+      },
+      "key": "(8w9,3w1,1w0,32w0xa0000&&&32w0xffff0000,_,_,_,_,_,_,_)",
+      "action": "first_read_request"
+    }
+  },
+  "trace_timeline": [
+    {
+      "packet": "0xc1f",
+      "timestamp": "2026-10-18 10:11:40.054387",
+      "event": "Native READ TCP sequence0x9c64 is parsed."
+    },
+    {
+      "packet": "0xc20",
+      "timestamp": "2026-10-18 10:11:40.077759",
+      "event": "first_event chooses first_read_request; observed0xa0003, sequence_valid1, matched0, client_diff0, retry0; event0x0109."
+    },
+    {
+      "packet": "0xc21",
+      "timestamp": "2026-10-18 10:11:40.092485",
+      "event": "Owner CAS succeeds0x000a0003\u21920x000d0003."
+    },
+    {
+      "packet": "0xc22",
+      "timestamp": "2026-10-18 10:11:40.102603",
+      "event": "Owner CAS reaches0x000e0003."
+    },
+    {
+      "packet": "0xc25",
+      "timestamp": "2026-10-18 10:11:40.138476",
+      "event": "Probe3 READ is transmitted to port9 (model Tx log length78bytes); native input to transmit wall interval\u22480.084089s."
+    },
+    {
+      "packet": "0xc28",
+      "timestamp": "2026-10-18 10:11:40.309736",
+      "event": "Probe4 RST: client_diff0xffffffec from wire sequence0x9c64 minus frontier0x9c78; owner0xe0003, epoch0x1ec, server_diff0."
+    },
+    {
+      "packet": "0xc28",
+      "timestamp": "2026-10-18 10:11:40.311496",
+      "event": "first_event misses; no first_close/reset verdict."
+    },
+    {
+      "packet": "0xc2e",
+      "timestamp": "2026-10-18 10:11:43.368418",
+      "event": "Subsequent attempted SYN lifecycle terminates through terminal_abort with prior owner0xe0003."
+    }
+  ],
+  "driver_branch_evidence": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/driver_source.py",
+    "sha256": "fd1cfa95f0f1339ed4522391a82173115f4e6cb6cc821062e7c670b682241eb8",
+    "excerpts": [
+      {
+        "line": 264,
+        "text": "        unpaired_operate('probe2_READ_then_no_SELECT')"
+      },
+      {
+        "line": 268,
+        "text": "        reconnect('probe3', 40000, 50000)"
+      },
+      {
+        "line": 269,
+        "text": "        exchange('probe3', 'SELECT', 3, crob(500), control_body(500), False)"
+      },
+      {
+        "line": 270,
+        "text": "        if os.environ.get('MILESTONE') in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):"
+      },
+      {
+        "line": 271,
+        "text": "            report.add('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))"
+      },
+      {
+        "line": 272,
+        "text": "        else:"
+      },
+      {
+        "line": 273,
+        "text": "            request, _app = seqs.request(1, READ_OBJECTS)"
+      },
+      {
+        "line": 274,
+        "text": "            seqs.next_app()"
+      },
+      {
+        "line": 275,
+        "text": "            got = m.exchange(MASTER.dev_port, vectors.packet(24, c, s + growth, payload=request), ports, timeout=3,"
+      },
+      {
+        "line": 276,
+        "text": "                             quiet=.15)"
+      },
+      {
+        "line": 277,
+        "text": "            report.add('probe3_READ_after_SELECT_dropped_unsupported_shape', 0, sum(len(v) for v in got.values()),"
+      },
+      {
+        "line": 278,
+        "text": "                       received=got)"
+      },
+      {
+        "line": 279,
+        "text": "        reconnect('probe4', 60000, 70000)"
+      },
+      {
+        "line": 280,
+        "text": "        read('probe4_after_reset')"
+      }
+    ]
+  },
+  "raw_trace_evidence": {
+    "path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_09_01/model_20261018_100925.log",
+    "sha256": "cc712e1d32417929be9142ce676fafc6ea48acf614b066fbd130dc988e439049",
+    "excerpts": [
+      {
+        "line": 3283870,
+        "text": ":10-18 10:11:40.054387:        :0xc1f:-:<0,0,2>:Ingress Parser state 'read_tcp': extracted 0x00009c64, updating PHV word  32 to value 0x00009c64 I [hdr.tcp.seq[31:0]]"
+      },
+      {
+        "line": 3285743,
+        "text": ":10-18 10:11:40.077491:        :0xc20:-:<0,0,9>:\tm.retry[1:0] = 0x0"
+      },
+      {
+        "line": 3285753,
+        "text": ":10-18 10:11:40.077660:    :0xc20:-:<0,0,10>:Ingress : Table n_Ingress.first_event is hit"
+      },
+      {
+        "line": 3285754,
+        "text": ":10-18 10:11:40.077669:        :0xc20:-:<0,0,10>:Key:"
+      },
+      {
+        "line": 3285755,
+        "text": ":10-18 10:11:40.077689:        :0xc20:-:<0,0,10>:\thdr.tcp.flags[7:0] = 0x18"
+      },
+      {
+        "line": 3285756,
+        "text": ":10-18 10:11:40.077696:        :0xc20:-:<0,0,10>:\tm.client_diff[31:0] = 0x0"
+      },
+      {
+        "line": 3285757,
+        "text": ":10-18 10:11:40.077702:        :0xc20:-:<0,0,10>:\tm.direction[1:0] = 0x1"
+      },
+      {
+        "line": 3285759,
+        "text": ":10-18 10:11:40.077714:        :0xc20:-:<0,0,10>:\tm.matched[0:0] = 0x0"
+      },
+      {
+        "line": 3285760,
+        "text": ":10-18 10:11:40.077720:        :0xc20:-:<0,0,10>:\tm.new_seq[31:0] = 0x9C78"
+      },
+      {
+        "line": 3285764,
+        "text": ":10-18 10:11:40.077744:        :0xc20:-:<0,0,10>:\tm.sequence_valid[2:0] = 0x1"
+      },
+      {
+        "line": 3285766,
+        "text": ":10-18 10:11:40.077759:        :0xc20:-:<0,0,10>:Execute Action: n_Ingress.first_read_request"
+      },
+      {
+        "line": 3285773,
+        "text": ":10-18 10:11:40.077828:        :0xc20:-:<0,0,10>:\tmask=0xFFFF"
+      },
+      {
+        "line": 3286518,
+        "text": ":10-18 10:11:40.092475:        :0xc21:-:<0,0,7>:\t     Before stateful alu execution: 0x000a0003"
+      },
+      {
+        "line": 3286519,
+        "text": ":10-18 10:11:40.092485:        :0xc21:-:<0,0,7>:\t     After stateful alu execution: 0x000d0003"
+      },
+      {
+        "line": 3287407,
+        "text": ":10-18 10:11:40.102603:        :0xc22:-:<0,0,7>:\t     After stateful alu execution: 0x000e0003"
+      },
+      {
+        "line": 3290703,
+        "text": ":10-18 10:11:40.138476:    :-:0xc25:<0,0,0>:========== Tx Pkt to port 9 (78 bytes) =========="
+      },
+      {
+        "line": 3292681,
+        "text": ":10-18 10:11:40.308612:        :0xc28:-:<0,0,5>:\t    Output Destination Field: m.epoch = 0x1ec"
+      },
+      {
+        "line": 3292790,
+        "text": ":10-18 10:11:40.309619:        :0xc28:-:<0,0,7>:\t     Before stateful alu execution: 0x000e0003"
+      },
+      {
+        "line": 3292791,
+        "text": ":10-18 10:11:40.309628:        :0xc28:-:<0,0,7>:\t     After stateful alu execution: 0x000e0003"
+      },
+      {
+        "line": 3292804,
+        "text": ":10-18 10:11:40.309736:        :0xc28:-:<0,0,7>:\tm.client_diff[31:0] = 0xFFFFFFEC"
+      },
+      {
+        "line": 3292806,
+        "text": ":10-18 10:11:40.309748:        :0xc28:-:<0,0,7>:\tSource 1:"
+      },
+      {
+        "line": 3292808,
+        "text": ":10-18 10:11:40.309760:        :0xc28:-:<0,0,7>:\tSource 2:"
+      },
+      {
+        "line": 3292814,
+        "text": ":10-18 10:11:40.309796:        :0xc28:-:<0,0,7>:\tm.server_diff[31:0] = 0x0"
+      },
+      {
+        "line": 3293014,
+        "text": ":10-18 10:11:40.311496:    :0xc28:-:<0,0,10>:Ingress : Table n_Ingress.first_event is miss"
+      },
+      {
+        "line": 3293022,
+        "text": ":10-18 10:11:40.311560:        :0xc28:-:<0,0,10>:\tm.observed[31:0] = 0xE0003"
+      },
+      {
+        "line": 3293025,
+        "text": ":10-18 10:11:40.311578:        :0xc28:-:<0,0,10>:\tm.sequence_valid[2:0] = 0x2"
+      },
+      {
+        "line": 3297120,
+        "text": ":10-18 10:11:43.368418:        :0xc2e:-:<0,0,9>:Execute Action: n_Ingress.terminal_abort"
+      }
+    ]
+  },
+  "next_action": {
+    "status": "proposed_not_executed_by_this_agent",
+    "action": "Use source/profile-bound successor capability to select the inherited READ-after-SELECT expectation, then rerun every affected dependency-closure gate with fresh attempt directories.",
+    "constraints": "Preserve repeat01 and its failed result; do not change P4/source/profile semantics to match a stale milestone-name branch. Root owns implementation, reruns and final qualification."
+  }
+}

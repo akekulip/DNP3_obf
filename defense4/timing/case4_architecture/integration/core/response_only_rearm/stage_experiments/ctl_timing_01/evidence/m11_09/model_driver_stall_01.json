@@ -320,13 +320,28 @@
     ]
   },
   "replacement_status": {
-    "status": "proposed_not_executed",
-    "executed_replacement_attempts": 0,
-    "proposed_count": 1,
-    "owner": "root agent",
-    "ordering": "After CPU-heavy full unit suite finishes.",
-    "constraints": "Same source, finalized inputs/profile and parameters; preserve failed01 and use a new attempt directory. Root owns launch and qualification.",
-    "checked_absent_path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_09_02",
-    "qualification_note": "This diagnostic does not turn207/211 into a pass and does not authorize or perform a retry."
+    "status": "one_replacement_executed_and_passed",
+    "executed_replacement_attempts": 1,
+    "original_proposal": {
+      "status": "proposed_not_executed",
+      "executed_replacement_attempts": 0,
+      "proposed_count": 1,
+      "owner": "root agent",
+      "ordering": "After CPU-heavy full unit suite finishes.",
+      "constraints": "Same source, finalized inputs/profile and parameters; preserve failed01 and use a new attempt directory. Root owns launch and qualification.",
+      "checked_absent_path": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_09_02",
+      "qualification_note": "This diagnostic does not turn207/211 into a pass and does not authorize or perform a retry."
+    },
+    "run": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_09_02",
+    "results_sha256": "eb784288da164dcfa5cbf1882025796a4791e315d70ffbbf9d4442add060d0bb",
+    "summary": {
+      "failed": [],
+      "passed": 211,
+      "total": 211
+    },
+    "source_and_profile_changed": false,
+    "parameters_changed": false,
+    "heavy_unit_suite_finished_before_launch": true,
+    "qualification_note": "Original207/211 remains failed. Replacement02 passed211/211; aggregate nine-driver qualification is still pending other drivers."
   }
 }
