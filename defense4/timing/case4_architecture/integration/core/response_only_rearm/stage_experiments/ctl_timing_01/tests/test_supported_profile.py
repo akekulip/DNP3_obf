@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 CT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CT))
 X = CT.parent
 PROFILE = json.loads((CT / 'supported_profile.json').read_text())
 CONFIGS = sorted((X / 'seg61_02/hw/config').glob('ctl_m10_*.json'))
@@ -126,3 +127,53 @@ def test_artifact_hashes_match_the_files():
     for compile_dir, hashes in PROFILE['candidate']['artifact_sha256'].items():
         for rel, want in hashes.items():
             assert hashlib.sha256((BUILD / compile_dir / 'out' / rel).read_bytes()).hexdigest() == want
+
+
+@pytest.mark.parametrize('children', (1, 3))
+def test_successor_semantics_are_bound_to_source_instead_of_name(tmp_path, children):
+    import model_profile
+    source = tmp_path / 'response_only.p4'
+    source.write_text('new successor source')
+    sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    inputs = dict(source_sha256=sha, milestone='successor', supported_profile=dict(
+        reset_restart_required=True, t_child_count=children, candidate=dict(source_sha256=sha)))
+    got = model_profile.resolve(inputs, source, 'successor')
+    assert got['milestone'] == 'm10' and got['reset_restart_required'] is True and got['t_child_count'] == children
+
+
+@pytest.mark.parametrize('mutation', ('missing', 'wrong_hash', 'no_reset', 'bad_children', 'historical_name_bypass'))
+def test_unknown_or_inconsistent_profile_cannot_select_old_expectations(tmp_path, mutation):
+    import model_profile
+    source = tmp_path / 'response_only.p4'
+    source.write_text('new successor source')
+    sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    inputs = dict(source_sha256=sha, milestone='successor', supported_profile=dict(
+        reset_restart_required=True, t_child_count=1, candidate=dict(source_sha256=sha)))
+    milestone = 'successor'
+    if mutation == 'missing':
+        inputs.pop('supported_profile')
+    elif mutation == 'wrong_hash':
+        inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+    elif mutation == 'no_reset':
+        inputs['supported_profile']['reset_restart_required'] = False
+    elif mutation == 'bad_children':
+        inputs['supported_profile']['t_child_count'] = 2
+    else:
+        inputs.pop('supported_profile')
+        inputs['milestone'] = milestone = 'm9'
+    with pytest.raises(ValueError):
+        model_profile.resolve(inputs, source, milestone)
+
+
+@pytest.mark.parametrize('probes, expected', (((), 3), (('t_single_child',), 1)))
+def test_source_simulator_uses_declared_child_layout(tmp_path, probes, expected):
+    import efficiency_candidates
+    sys.path.insert(0, str(CT / 'tests'))
+    import contention_source
+    build = tmp_path / 'successor'
+    efficiency_candidates.generate(build, probes)
+    pipeline = contention_source.LapPipeline(build / 'response_only.p4')
+    assert pipeline.t_child_count == expected
+    assert sorted(name for role, name in pipeline.t.src.cells if name.startswith('child_seen')) == [
+        'child_seen%d_reg' % n for n in range(expected)]
+    pipeline.close()

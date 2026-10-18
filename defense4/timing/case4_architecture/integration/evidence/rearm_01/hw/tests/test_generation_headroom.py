@@ -237,3 +237,64 @@ def test_budget_refuses_unknown_or_mislabelled_builds_and_preflight_reports_it()
     assert any('generation budget for' in e and 'cancelled_selects' in e for e in campaign.preflight())
     cfg['traffic']['cancelled_selects'] = 0
     assert not any('generation budget' in e for e in campaign.preflight())
+
+
+def test_m10_source_cannot_downgrade_control_timed_budget():
+    module, cfg, campaign = ctl_campaign()
+    build = cfg['arms'][0]['build']
+    cfg['builds'][build]['source_sha256'] = 'd9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc'
+    cfg['builds'][build]['control_timed'] = False
+    with pytest.raises(ValueError, match='control_timed'):
+        campaign._headroom_reserve({'reads': 65}, {'build': build, 'T': 1})
+
+
+def profiled_headroom(tmp_path):
+    import hashlib
+    module, cfg, campaign = ctl_campaign()
+    name = cfg['arms'][0]['build']
+    build = cfg['builds'][name]
+    source = tmp_path / 'response_only.p4'
+    source.write_text('source fixture with a separately bound profile')
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    profile = json.loads((module.ARCH / 'integration/core/response_only_rearm/stage_experiments/'
+                          'ctl_timing_01/supported_profile.json').read_text())
+    profile['candidate']['source_sha256'] = digest
+    inputs = {'source_sha256': digest, 'supported_profile': profile}
+    (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+    build['out_dir'] = str(tmp_path / 'compile_switch_9132/out')
+    build['source_sha256'] = digest
+    build.pop('control_timed', None)
+    return module, cfg, campaign, name, source, inputs
+
+
+def test_source_bound_profile_derives_control_timing_without_an_optional_flag(tmp_path):
+    module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+    reserve, why = campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+    assert reserve == {'read': 211, 'operate': 82}
+    assert why['control_timed'] is True
+    cfg['builds'][name]['control_timed'] = False
+    with pytest.raises(ValueError, match='control_timed'):
+        campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+
+
+@pytest.mark.parametrize('tamper', ['source', 'profile', 'inputs'])
+def test_control_timing_profile_must_match_source_and_inputs(tmp_path, tamper):
+    module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+    if tamper == 'source':
+        source.write_text('changed source')
+    elif tamper == 'profile':
+        inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+    else:
+        inputs['source_sha256'] = '0' * 64
+    (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+    with pytest.raises(ValueError, match='profile|source'):
+        campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+
+
+@pytest.mark.parametrize('field', ['candidate', 'encoding', 'timing_ns'])
+def test_headroom_refuses_malformed_profile_objects(tmp_path, field):
+    module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+    inputs['supported_profile'][field] = None
+    (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+    with pytest.raises(ValueError, match='profile'):
+        campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})

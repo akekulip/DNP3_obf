@@ -48,7 +48,8 @@ ANALYSIS = (A + 'integration/core/response_only_rearm/stage_experiments/seg61_02
             A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/isolation_v3.py',
             A + 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py',
             A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/ack_diag.py')
-BUILD_FILES = ('response_only.p4', 'response_only.inputs.json', 'generate.py', 'resource_review.json')
+BUILD_FILES = ('response_only.p4', 'response_only.inputs.json', 'supported_profile.json', 'generate.py',
+               'resource_review.json')
 COMPILE_FILES = ('manifest.json', 'out/bfrt.json', 'out/response_only.p4pp', 'out/p0/tofino.bin', 'out/p1/tofino.bin')
 COMPILES = ('compile_local', 'compile_switch_9132')
 LOADED_COMPILE = 'compile_switch_9132'           # the compile the switch loads (SDK 9.13.2)

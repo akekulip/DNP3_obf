@@ -12,6 +12,7 @@ in arrival order); nothing here is compiler, model or hardware evidence.
 """
 import heapq
 import importlib.util
+import json
 import re
 import sys
 from pathlib import Path
@@ -69,6 +70,17 @@ class LapPipeline(sp.SourcePipeline):
 
     def __init__(self, source, lap_ns=1000, pb=qs.q(2_000_000), **timing):
         text = Path(source).read_text()
+        children = set(map(int, re.findall(r'\bchild_seen(\d+)_reg;', role(text, 'T'))))
+        if children not in ({0}, {0, 1, 2}):
+            raise ValueError('unsupported T child register layout')
+        self.t_child_count = len(children)
+        inputs = Path(source).with_name('response_only.inputs.json')
+        if inputs.is_file():
+            sys.path.insert(0, str(CTL))
+            from model_profile import resolve
+            profile = resolve(json.loads(inputs.read_text()), source)
+            if profile['t_child_count'] != self.t_child_count:
+                raise ValueError('T source child register layout differs from supported profile')
         self._patches = [patch.object(module, 'generate', lambda name=name: role(text, name))
                          for module, name in ((make_n, 'N'), (make_e, 'E'), (make_t, 'T'))]
         for p in self._patches:
@@ -89,6 +101,8 @@ class LapPipeline(sp.SourcePipeline):
         values = t_config.t_units(values, **self.t_time)
         self.t.src.controls['Ingress'].tables['params']['runtime'] = []
         self.t.src.install('params', (), 'set_params', [values[k] for k in names] + ([values['pb']] if eight else []))
+        # This local adapter names TNA's existing parser-error intrinsic; ordinary accepted passes default to0.
+        self.t.src.width['ig.parser_err'] = 16
         self.lap_ns, self.heap, self.order = lap_ns, [], 0
         self.passes = []          # (time, port, frame, events, egress or None, drop reason or None)
 

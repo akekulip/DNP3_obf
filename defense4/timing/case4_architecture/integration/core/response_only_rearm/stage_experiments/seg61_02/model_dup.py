@@ -34,6 +34,7 @@ def load(name, path):
 
 helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
 cp = load('_protected_model_cp', CANDIDATE / 'cp.py')
+sealed_profile = load('_dup_model_profile', CANDIDATE / 'hw/sealed_profile.py')
 Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
 vectors, rs, b, scalar = helpers.vectors, helpers.rs, helpers.b, helpers.scalar
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
@@ -68,6 +69,8 @@ def main():
                     params=PARAMS, deadline_tolerance=DEADLINE_TOL)
     results = report.record['meta'].setdefault('dup_cases', {})
     try:
+        child_regs = sealed_profile.child_registers(sealed_profile.describe(
+            Path(os.environ['PORT_MAP']).parent / 'compile_local/out'))
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
         m.enable_ports(ports + helpers.FRONT_LOOPS)
@@ -290,8 +293,8 @@ def main():
             registers = {'N': ('owner', 'client', 'server', 'epoch'),
                          'E': ('epoch', 'master_isn', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'),
                          'T': ('cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 't0_reg', 'op_t0_reg',
-                               'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg', 'child_seen1_reg',
-                               'child_seen2_reg', 'ack_commit_at_reg', 'ack_commit_gen_reg')}
+                               'ack_done_reg', 'resp_done_reg', 'op_done_reg') + child_regs +
+                              ('ack_commit_at_reg', 'ack_commit_gen_reg')}
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0)
                            for name in names} for role, names in registers.items()}

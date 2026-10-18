@@ -1,0 +1,135 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_______ test_post_entry_log_failure_cannot_mask_restoration_status[0-1] ________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca0/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca0/repo/config.json'))
+restore_rc = 0, want = 1
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_log_failure_cannot_mask_restoration_status(block_rig, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        tool = hw / 'candidate_campaign.py'
+        tool.write_text(tool.read_text().replace("(root / 'campaign_run.json').write_text('{}')",
+            "(root / 'campaign_run.json').write_text('{}')\n"
+            "log = pathlib.Path(__file__).parent / 'run_block.log'\n"
+            "log.unlink()\nlog.mkdir()"))
+        result = subprocess.run(block_cmd(block_rig), env=dict(os.environ, RESTORE_RC=str(restore_rc)),
+                                capture_output=True, text=True)
+        assert result.returncode == want
+        assert json.loads((arch / 'runs/unit/restore_verify.json').read_text()) == {'checked': True}
+>       assert 'nothing entered' not in result.stderr
+E       assert 'nothing entered' not in "REFUSED (no...block.log'\n"
+E         
+E         'nothing entered' is contained here:
+E           REFUSED (nothing entered): [Errno 21] Is a directory: '/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.log'
+E         ?          +++++++++++++++
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:273: AssertionError
+_______ test_post_entry_log_failure_cannot_mask_restoration_status[1-2] ________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca1/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca1/repo/config.json'))
+restore_rc = 1, want = 2
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_log_failure_cannot_mask_restoration_status(block_rig, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        tool = hw / 'candidate_campaign.py'
+        tool.write_text(tool.read_text().replace("(root / 'campaign_run.json').write_text('{}')",
+            "(root / 'campaign_run.json').write_text('{}')\n"
+            "log = pathlib.Path(__file__).parent / 'run_block.log'\n"
+            "log.unlink()\nlog.mkdir()"))
+        result = subprocess.run(block_cmd(block_rig), env=dict(os.environ, RESTORE_RC=str(restore_rc)),
+                                capture_output=True, text=True)
+>       assert result.returncode == want
+E       assert 1 == 2
+E        +  where 1 = CompletedProcess(args=['bash', '/tmp/pytest-of-philip/pytest-1735/test_post_entry_log_failure_ca1/repo/defense4/timing..._post_entry_log_failure_ca1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.log'\n").returncode
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:271: AssertionError
+___________ test_post_entry_wait_failure_still_verifies_restore[0-1] ___________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f62200f5e20>
+restore_rc = 0, want = 1
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_wait_failure_still_verifies_restore(block_rig, monkeypatch, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_wait_failure', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        original = runner.command_output
+        def fail_after_entered_command(command, output, env=None):
+            result = original(command, output, env)
+            if command[2] == 'run':
+                raise OSError('wait failed after child entered')
+            return result
+        monkeypatch.setattr(runner, 'command_output', fail_after_entered_command)
+        monkeypatch.setenv('RESTORE_RC', str(restore_rc))
+>       assert runner.block('candidate_campaign', cfg, 'unit', []) == want
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:291: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:79: in block
+    refuse_retained(root, record, run_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_architecture/runs/unit')
+record = PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_checks/unit.json')
+run_id = 'unit'
+
+    def refuse_retained(root, record, run_id):
+        paths = [root, record, Path(tempfile.gettempdir()) / ('run_block_%s.out' % run_id),
+                 Path(tempfile.gettempdir()) / ('run_block_%s.out.plan' % run_id)]
+        for path in paths:
+            if existing(path):
+>               raise ValueError('retained run path already exists: %s; use a new run ID' % path)
+E               ValueError: retained run path already exists: /tmp/run_block_unit.out; use a new run ID
+
+/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:31: ValueError
+___________ test_post_entry_wait_failure_still_verifies_restore[1-2] ___________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f62201b1760>
+restore_rc = 1, want = 2
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_wait_failure_still_verifies_restore(block_rig, monkeypatch, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_wait_failure', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        original = runner.command_output
+        def fail_after_entered_command(command, output, env=None):
+            result = original(command, output, env)
+            if command[2] == 'run':
+                raise OSError('wait failed after child entered')
+            return result
+        monkeypatch.setattr(runner, 'command_output', fail_after_entered_command)
+        monkeypatch.setenv('RESTORE_RC', str(restore_rc))
+>       assert runner.block('candidate_campaign', cfg, 'unit', []) == want
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:291: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:79: in block
+    refuse_retained(root, record, run_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_architecture/runs/unit')
+record = PosixPath('/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_checks/unit.json')
+run_id = 'unit'
+
+    def refuse_retained(root, record, run_id):
+        paths = [root, record, Path(tempfile.gettempdir()) / ('run_block_%s.out' % run_id),
+                 Path(tempfile.gettempdir()) / ('run_block_%s.out.plan' % run_id)]
+        for path in paths:
+            if existing(path):
+>               raise ValueError('retained run path already exists: %s; use a new run ID' % path)
+E               ValueError: retained run path already exists: /tmp/run_block_unit.out; use a new run ID
+
+/tmp/pytest-of-philip/pytest-1735/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:31: ValueError
+=========================== short test summary info ============================
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_log_failure_cannot_mask_restoration_status[0-1]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_log_failure_cannot_mask_restoration_status[1-2]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_wait_failure_still_verifies_restore[0-1]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_wait_failure_still_verifies_restore[1-2]
+4 failed, 25 deselected in 0.44s

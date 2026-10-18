@@ -1,0 +1,97 @@
+................FFFFF                                                    [100%]
+=================================== FAILURES ===================================
+____________ test_m10_source_cannot_downgrade_control_timed_budget _____________
+
+    def test_m10_source_cannot_downgrade_control_timed_budget():
+        module, cfg, campaign = ctl_campaign()
+        build = cfg['arms'][0]['build']
+        cfg['builds'][build]['source_sha256'] = 'd9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc'
+        cfg['builds'][build]['control_timed'] = False
+        with pytest.raises(ValueError, match='control_timed'):
+>           campaign._headroom_reserve({'reads': 65}, {'build': build, 'T': 1})
+E           Failed: DID NOT RAISE <class 'ValueError'>
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py:248: Failed
+__ test_source_bound_profile_derives_control_timing_without_an_optional_flag ___
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1679/test_source_bound_profile_deri0')
+
+    def test_source_bound_profile_derives_control_timing_without_an_optional_flag(tmp_path):
+        module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+        reserve, why = campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+>       assert reserve == {'read': 211, 'operate': 82}
+E       AssertionError: assert {'operate': 82, 'read': 83} == {'operate': 82, 'read': 211}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'read': 83} != {'read': 211}
+E         Use -v to get more diff
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py:273: AssertionError
+_______ test_control_timing_profile_must_match_source_and_inputs[source] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1679/test_control_timing_profile_mu0')
+tamper = 'source'
+
+    @pytest.mark.parametrize('tamper', ['source', 'profile', 'inputs'])
+    def test_control_timing_profile_must_match_source_and_inputs(tmp_path, tamper):
+        module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+        if tamper == 'source':
+            source.write_text('changed source')
+        elif tamper == 'profile':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        else:
+            inputs['source_sha256'] = '0' * 64
+        (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+        with pytest.raises(ValueError, match='profile|source'):
+>           campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+E           Failed: DID NOT RAISE <class 'ValueError'>
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py:291: Failed
+______ test_control_timing_profile_must_match_source_and_inputs[profile] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1679/test_control_timing_profile_mu1')
+tamper = 'profile'
+
+    @pytest.mark.parametrize('tamper', ['source', 'profile', 'inputs'])
+    def test_control_timing_profile_must_match_source_and_inputs(tmp_path, tamper):
+        module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+        if tamper == 'source':
+            source.write_text('changed source')
+        elif tamper == 'profile':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        else:
+            inputs['source_sha256'] = '0' * 64
+        (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+        with pytest.raises(ValueError, match='profile|source'):
+>           campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+E           Failed: DID NOT RAISE <class 'ValueError'>
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py:291: Failed
+_______ test_control_timing_profile_must_match_source_and_inputs[inputs] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1679/test_control_timing_profile_mu2')
+tamper = 'inputs'
+
+    @pytest.mark.parametrize('tamper', ['source', 'profile', 'inputs'])
+    def test_control_timing_profile_must_match_source_and_inputs(tmp_path, tamper):
+        module, cfg, campaign, name, source, inputs = profiled_headroom(tmp_path)
+        if tamper == 'source':
+            source.write_text('changed source')
+        elif tamper == 'profile':
+            inputs['supported_profile']['candidate']['source_sha256'] = '0' * 64
+        else:
+            inputs['source_sha256'] = '0' * 64
+        (tmp_path / 'response_only.inputs.json').write_text(json.dumps(inputs))
+        with pytest.raises(ValueError, match='profile|source'):
+>           campaign._headroom_reserve({'reads': 65}, {'build': name, 'T': 1})
+E           Failed: DID NOT RAISE <class 'ValueError'>
+
+defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py:291: Failed
+=========================== short test summary info ============================
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py::test_m10_source_cannot_downgrade_control_timed_budget
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py::test_source_bound_profile_derives_control_timing_without_an_optional_flag
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py::test_control_timing_profile_must_match_source_and_inputs[source]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py::test_control_timing_profile_must_match_source_and_inputs[profile]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py::test_control_timing_profile_must_match_source_and_inputs[inputs]
+5 failed, 16 passed in 0.21s

@@ -1,0 +1,86 @@
+{
+  "profile_version": "supported-profile-v1-20261017",
+  "_note": "The one supported P4 profile of the ctl_timing_01 candidate (review af7bd434, section 6). Each value is stated once here and cross-checked against its source by tests/test_supported_profile.py. Arbitrary input sizes are not supported.",
+  "candidate": {
+    "build": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_n_tail_fused_m11_01",
+    "milestone": "m11",
+    "source_sha256": "bae7e6c66ce481890cd45f055d33809ea4893e31f8df439d3b858576072aaafb",
+    "segment_sha256": {
+      "N": "cd9e1f6da64ee544c9d09031fe8519f7855352b95f6ef13c2a2abd4747e7c40b",
+      "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+      "T": "7efd3a4667213d0072dfcc3686c8f0f769be2026caf2cba0e910208f73754739"
+    },
+    "artifact_sha256": {}
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": 49,
+      "SELECT": 37,
+      "OPERATE": 37
+    },
+    "output_octets": 61,
+    "read_ranges": [
+      [
+        0,
+        0,
+        5
+      ],
+      [
+        0,
+        6,
+        9
+      ],
+      [
+        1,
+        10,
+        22
+      ]
+    ],
+    "read_ranges_note": "(qualifier, start, stop) of the G10V2 re-encoding (read_reencode_01/profile_check.py READ_RANGES)",
+    "control_application_partition": [
+      15,
+      6,
+      1
+    ],
+    "control_partition_note": "the 22 native SELECT/OPERATE application octets split 15/6/1 into transport frames 28/19/14"
+  },
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 950000,
+    "J_operate_hold": 2400000,
+    "pb_piggyback_bound": 4000000,
+    "readiness": 30000000,
+    "da": 2000000,
+    "cap": 40000000,
+    "held_operate_overrides": {
+      "D_release_budget": 800000,
+      "J_operate_hold": 350000000,
+      "pb_piggyback_bound": 360000000,
+      "readiness": 380000000,
+      "cap": 400000000
+    },
+    "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+  },
+  "n": {
+    "retry_budget_laps": 32,
+    "restart_counter": "count_busy[5]"
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 9,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "the ctl_m10_* configs' ports_map: both software endpoints on device port 9 (VEPA hairpin); no physical relay in this profile"
+  },
+  "t_child_count": 3,
+  "reset_restart_required": true
+}

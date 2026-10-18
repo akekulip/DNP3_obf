@@ -1,0 +1,6 @@
+Recorded terminal evidence summary.
+Command: python3 -m pytest -q CT/tests/test_model_summary.py -k missing_inputs
+2 failed, 53 deselected in 0.14s.
+Both unknown-source/m9-spelling and m10-only-source/m9-spelling missing-input builds incorrectly returned model_gate_passed before the fix.
+
+Executed-profile binding follow-up: two missing/mismatched binding cases failed; current binding passed. Command: python3 -m pytest -q CT/tests/test_model_summary.py -k executed_supported_profile. 2 failed,1 passed,55 deselected in0.16s.

@@ -1,0 +1,7 @@
+Recorded terminal evidence summary.
+Pinned Python = defense4/timing/evidence/campaign_v2/repro/.venv/bin/python.
+Command: pinned Python -m pytest -q seg61_02/tests/test_four_arm_transactions.py seg61_02/tests/test_leakage_four_arm.py seg61_02/hw/tests -k "not separates_leaky and not block_level_shift and not size_and_joint and not two_arm_restriction"
+61 passed, 4 deselected in 1.37s.
+Selected candidate preparation: 55 configs generated for m11_02 source 211adb2287c3dabdcc2e6c64ac3d0f2cfa3ec8c68f839ac9669f597a5d3d768b.
+All55 pass campaign.load_config and exact template policy equality after restoring only arms/builds/evaluation/ctl_timing_identity. Original m10 templates unchanged.
+The m11_02 configs are retained preparation, not qualification; root subsequently reported compiled-model failure and is preparing m11_03.

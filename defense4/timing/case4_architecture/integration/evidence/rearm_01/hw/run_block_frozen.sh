@@ -10,16 +10,5 @@
 # 0 block and restore passed; 1 block failed, restore verified; 2 restore NOT verified (stop all hardware).
 set -u
 HW="$(cd "$(dirname "$0")" && pwd)"
-REPO="$(git -C "$HW" rev-parse --show-toplevel)"
-FREEZE="$1"; TOOL="$2"; CONFIG="$3"; RUN_ID="$4"; shift 4
-CFG="$(realpath -e "$CONFIG")" || exit 3
-ROOT="$REPO/defense4/timing/case4_architecture/$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['evidence_dir'])" "$CFG")/$RUN_ID"
-REC="$HW/freeze_checks/$RUN_ID.json"           # outside the run directory, which the block tools create
-if ! python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$CFG" --record "$REC"; then
-    echo "$(date -Is) FREEZE-REFUSED $RUN_ID (nothing touched)" >> "$HW/run_block.log"
-    exit 3
-fi
-bash "$HW/run_block.sh" "$TOOL" "$CFG" "$RUN_ID" "$@" < /dev/null
-RC=$?
-mkdir -p "$ROOT" && cp "$REC" "$ROOT/freeze_check.json"
-exit $RC
+FREEZE="$1"; shift
+exec python3 "$HW/guarded_block.py" --freeze "$FREEZE" "$@"

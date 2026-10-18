@@ -2,6 +2,9 @@
 import glob
 import importlib.util
 import json
+import hashlib
+import subprocess
+import sys
 from pathlib import Path
 
 HW = Path(__file__).resolve().parents[1]
@@ -82,3 +85,75 @@ def test_a_config_with_another_fixture_delay_fails(tmp_path):
     cfg = json.load(open(sorted(glob.glob(str(HW / 'config' / 'part2_m10_*.json')))[0]))
     cfg['fixture']['delay_ms'] = 8
     assert any('not the grid L' in x for x in g.check_config(cfg))
+
+
+def test_references_match_the_supported_tuple_including_piggyback_bound():
+    profile = json.loads((HW.parent.parent / 'ctl_timing_01' / 'supported_profile.json').read_text())
+    p = profile['timing_ns']
+    expected = dict(da=p['da'], gap=p['D_release_budget'], readiness=p['readiness'], cap=p['cap'],
+                    pb=p['pb_piggyback_bound'], op_j=p['J_operate_hold'])
+    for condition, ready in [('ref_r30', 30_000_000), ('ref_r40', 40_000_000)]:
+        cfg = json.loads((HW / 'config' / ('part2_m10_%s_b1.json' % condition)).read_text())
+        assert cfg['timing_params_ns'] == dict(expected, readiness=ready)
+    assert g.params(10_000_000, 1_000_000, 40_000_000)['pb'] == 11_000_000
+
+
+def test_feasibility_workloads_can_supply_twenty_observations_per_required_kind():
+    for path in (HW / 'config').glob('part2_m10_feas_*.json'):
+        cfg = json.loads(path.read_text())
+        if cfg['part2']['role'] == 'feasibility_read':
+            assert cfg['trials']['reads_per_trial'] == 20
+            assert cfg['traffic']['run_sbo'] is False
+        else:
+            assert cfg['traffic']['sbo_cycles'] == 20
+            assert cfg['trials']['reads_per_trial'] == 21
+
+
+def test_explicit_successor_preparation_preserves_all_existing_experiment_policy(tmp_path):
+    build = tmp_path / 'successor'; build.mkdir()
+    source = b'fixture successor source\n'; (build / 'response_only.p4').write_bytes(source)
+    digest = hashlib.sha256(source).hexdigest()
+    profile = json.loads((HW.parent.parent / 'ctl_timing_01/supported_profile.json').read_text())
+    profile.update(reset_restart_required=True, t_child_count=1)
+    profile['candidate'] = {'source_sha256': digest, 'artifact_sha256': {}}
+    for name, version in [('compile_local', '9.13.1'), ('compile_switch_9132', '9.13.2')]:
+        out = build / name / 'out'; out.mkdir(parents=True)
+        artifacts = {}
+        for relative in ['bfrt.json', 'response_only.p4pp', 'p0/context.json', 'p1/context.json',
+                         'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa']:
+            p = out / relative; p.parent.mkdir(exist_ok=True)
+            p.write_text(json.dumps({'tables': [{'name': 'p1.t_Ingress.child_seen0_reg'}]})
+                         if relative == 'bfrt.json' else relative)
+            artifacts[relative] = hashlib.sha256(p.read_bytes()).hexdigest()
+        profile['candidate']['artifact_sha256'][name] = artifacts
+        (build / name / 'manifest.json').write_text(json.dumps({'source_sha256': digest, 'exit_code': 0,
+            'compiler': 'p4c ' + version, 'artifact_sha256': artifacts}))
+    (build / 'supported_profile.json').write_text(json.dumps(profile))
+    (build / 'response_only.inputs.json').write_text(json.dumps({'source_sha256': digest, 'supported_profile': profile}))
+    original = {p.name: p.read_bytes() for p in (HW / 'config').glob('*.json')}
+    destination = tmp_path / 'prepared'
+    command = [sys.executable, str(HW / 'build_candidate61_configs.py'), '--successor-build', str(build),
+               '--successor-output', str(destination)]
+    result = subprocess.run(command, cwd=tmp_path, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    manifest = json.loads((destination / 'prepared_configs.json').read_text())
+    assert len(manifest['configs']) == 55
+    assert manifest['source_sha256'] == digest and manifest['qualification'] == 'pending exact-candidate model gates and freeze'
+    for name, entry in manifest['configs'].items():
+        prepared = json.loads((destination / name).read_text())
+        template = json.loads((HW / 'config' / entry['template']).read_text())
+        assert prepared['builds']['ctl_timing_successor']['source_sha256'] == digest
+        assert prepared['ctl_timing_identity']['supported_profile_sha256'] == hashlib.sha256(
+            (build / 'supported_profile.json').read_bytes()).hexdigest()
+        for key in ('arms', 'builds', 'evaluation', 'ctl_timing_identity'):
+            prepared[key] = template[key]
+        assert prepared == template
+    assert {p.name: p.read_bytes() for p in (HW / 'config').glob('*.json')} == original
+    before = {p.name: p.read_bytes() for p in destination.iterdir()}
+    again = subprocess.run(command, cwd=tmp_path, text=True, capture_output=True)
+    assert again.returncode != 0
+    assert {p.name: p.read_bytes() for p in destination.iterdir()} == before
+    inline = subprocess.run([sys.executable, str(HW / 'build_candidate61_configs.py'),
+        '--successor-build=' + str(build), '--successor-output=' + str(tmp_path / 'inline')],
+        cwd=tmp_path, text=True, capture_output=True)
+    assert inline.returncode == 0, inline.stdout + inline.stderr

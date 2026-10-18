@@ -1,0 +1,693 @@
+{
+  "purpose": "Bounded reproducibility commands for the selected m11_05 candidate; command manifest, not a gate-result or authorization record.",
+  "cwd": "repository root",
+  "current_candidate": {
+    "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05",
+    "source_sha256": "1cf53e706b92a6967a0816fd21fce033253728976147338470df3a8ee89334b5",
+    "transforms": [
+      "response_retry_reserved_zero",
+      "t_single_child",
+      "n_zero_timestamp"
+    ]
+  },
+  "no_overwrite": "Offline argv below use a fresh example build name. Before starting, verify every required_absent path is absent (including dangling symlinks). If a path is retained, choose one new build/run suffix consistently; never rerun generation, compilation, model attempts, freeze writes or analysis outputs onto retained paths.",
+  "environment": {
+    "local_sdk": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+    "switch_sdk": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+    "analysis_python": "defense4/timing/evidence/campaign_v2/repro/.venv/bin/python",
+    "note": "Use the installed SDK/model dependencies and the existing pinned analysis environment. This manifest installs no dependencies or services."
+  },
+  "provenance": {
+    "m11_02": {
+      "source_sha256": "211adb2287c3dabdcc2e6c64ac3d0f2cfa3ec8c68f839ac9669f597a5d3d768b",
+      "retained_result": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_02_01/control_timing_results.json",
+      "passed": 191,
+      "total": 211,
+      "failed_invalid_id_cases": 20,
+      "finding": "Parser reject still executes T ingress on the target; invalid child IDs changed state/counters."
+    },
+    "m11_03": {
+      "source_sha256": "573550f965910f900bbe9f17b4c87d8f5dcb65a8b032b2f55a4977780075935c",
+      "retained_compile": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_03/compile_local/manifest.json",
+      "local_session_log": "/tmp/dnp3-compile-m11_03-local.log",
+      "finding": "SDK 9.13.1 rejected comparing bit<16> parser_err with error.NoError of type error."
+    },
+    "m11_05": {
+      "finding": "Single-child transform gates all T state/counter work on parser_err==16w0; failed02/03 sources and evidence remain unchanged.",
+      "qualification": "Consult the latest exact-source model_summary_v3.json and frozen artifact records; this command file does not assert pending gates passed."
+    },
+    "retained_parser_error_gateway_failure": {
+      "build": "m11_04",
+      "results": "../model_control_timing_m11_04_01/control_timing_results.json",
+      "summary": "191/211; same20invalid-child counter effects; rejected"
+    }
+  },
+  "offline_reproduction": [
+    {
+      "order": 1,
+      "purpose": "Generate the same selected N-zero plus single-child source into a fresh build directory.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/efficiency_candidates.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "--probe",
+        "t_single_child",
+        "--probe",
+        "n_zero_timestamp"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01"
+      ],
+      "expected_source_sha256": "1cf53e706b92a6967a0816fd21fce033253728976147338470df3a8ee89334b5"
+    },
+    {
+      "order": 2,
+      "purpose": "Compile locally through the repository build entrypoint; SDK 9.13.1.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/build.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/response_only.p4",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/compile_local",
+        "--compiler",
+        "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c",
+        "--timeout",
+        "420"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/compile_local"
+      ]
+    },
+    {
+      "order": 3,
+      "purpose": "Compile SDK 9.13.2 through the existing remote compile-only orchestrator; no switch activation.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/compile_switch_orchestrator.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "1cf53e706b92a6967a0816fd21fce033253728976147338470df3a8ee89334b5"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/compile_switch_9132/manifest.json"
+      ],
+      "compiler": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c",
+      "compiler_host": "decps@10.10.54.81"
+    },
+    {
+      "order": 4,
+      "purpose": "Verify both successful source-bound compiler results and pin their exact artifact bytes.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/efficiency_candidates.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "--record-artifacts"
+      ],
+      "updates_only": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/response_only.inputs.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/supported_profile.json"
+      ]
+    },
+    {
+      "order": 5,
+      "purpose": "Report physical occupied stages, stage spans, resources and both SDK mirror guards against m10.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/resource_review.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01"
+      ],
+      "output": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/resource_review.json"
+    },
+    {
+      "order": 6,
+      "purpose": "Run the exact-source control_timing compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "control_timing",
+        "1",
+        "--milestone",
+        "m11"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 7,
+      "purpose": "Run the exact-source smoke compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "smoke",
+        "1",
+        "--milestone",
+        "m11",
+        "--pb",
+        "300000000"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_smoke_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 8,
+      "purpose": "Run the exact-source packets compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "packets",
+        "1",
+        "--milestone",
+        "m11",
+        "--pb",
+        "300000000"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_packets_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 9,
+      "purpose": "Run the exact-source rearm compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "rearm",
+        "1",
+        "--milestone",
+        "m11",
+        "--pb",
+        "300000000"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_rearm_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 10,
+      "purpose": "Run the exact-source dup compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "dup",
+        "1",
+        "--milestone",
+        "m11",
+        "--pb",
+        "300000000"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_dup_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 11,
+      "purpose": "Run the exact-source repeat compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "repeat",
+        "1",
+        "--milestone",
+        "m11",
+        "--pb",
+        "300000000"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 12,
+      "purpose": "Run the exact-source select_lifecycle compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "select_lifecycle",
+        "1",
+        "--milestone",
+        "m11"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_select_lifecycle_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 13,
+      "purpose": "Run the exact-source contention compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "contention",
+        "1",
+        "--milestone",
+        "m11",
+        "--timeline"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_contention_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 14,
+      "purpose": "Run the exact-source abort compiled-model driver.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "abort",
+        "1",
+        "--milestone",
+        "m11"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_abort_m11_05_reproduction_01_01"
+      ],
+      "model_only": true
+    },
+    {
+      "order": 15,
+      "purpose": "Recompute and enforce all nine latest exact-source model gates.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "--v3",
+        "--write",
+        "--enforce"
+      ],
+      "output": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/model_summary_v3.json"
+    },
+    {
+      "order": 16,
+      "purpose": "Derive the unchanged 50 Part2 and five recovery configurations for this verified build.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/build_candidate61_configs.py",
+        "--successor-build",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "--successor-output",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs"
+      ],
+      "expected_configuration_count": 55,
+      "note": "This prepares the existing workload only; it does not launch any campaign."
+    },
+    {
+      "order": 17,
+      "purpose": "Write an ordinary qualifying freeze covering only the bounded hardware proposal configurations.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "write",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01",
+        "-o",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--configs",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_persistence_graceful_950.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_persistence_rst_950.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_loss_core_950.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_reconnect_950.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_held_operate_350.json",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/part2_m11_05_reproduction_01_ref_r30_b1.json"
+      ],
+      "required_absent": [
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json"
+      ],
+      "requires": "All nine latest exact-source model gates must pass; no diagnostic exception."
+    },
+    {
+      "order": 18,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_persistence_graceful_950.json"
+      ]
+    },
+    {
+      "order": 19,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_persistence_rst_950.json"
+      ]
+    },
+    {
+      "order": 20,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_loss_core_950.json"
+      ]
+    },
+    {
+      "order": 21,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_reconnect_950.json"
+      ]
+    },
+    {
+      "order": 22,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/ctl_m11_05_reproduction_01_held_operate_350.json"
+      ]
+    },
+    {
+      "order": 23,
+      "purpose": "Check the freeze binds this exact proposed configuration.",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+        "check",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/freeze_v3.json",
+        "--config",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05_reproduction_01/configs/part2_m11_05_reproduction_01_ref_r30_b1.json"
+      ]
+    },
+    {
+      "purpose": "Export actual compiler baseline/probe/final comparison and42-row table",
+      "argv": [
+        "python3",
+        "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/export_comparison.py"
+      ],
+      "requires": "BothSDKartifacts for the seven named builds; this only exports reports, no hardware actions."
+    }
+  ],
+  "existing_local_compile_entrypoint": {
+    "path": "defense4/timing/case4_architecture/build.py",
+    "reference_log": "/tmp/dnp3-compile-combined-02.log",
+    "evidence": "Compile manifests retain the actual bf-p4c argv, compiler identity, source snapshot and artifacts. SDK helpers snapshot the source under compile_local/source; use build.py, not a new compile wrapper."
+  },
+  "selected_candidate_pre_hardware_commands": [
+    [
+      "python3",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05",
+      "--v3",
+      "--write",
+      "--enforce"
+    ],
+    [
+      "python3",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/build_candidate61_configs.py",
+      "--successor-build",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05",
+      "--successor-output",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs"
+    ],
+    [
+      "python3",
+      "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+      "write",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05",
+      "-o",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+      "--configs",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_persistence_graceful_950.json",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_persistence_rst_950.json",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_loss_core_950.json",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_reconnect_950.json",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_held_operate_350.json",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/part2_m11_05_ref_r30_b1.json"
+    ],
+    [
+      "python3",
+      "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py",
+      "check",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+      "--config",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/part2_m11_05_ref_r30_b1.json"
+    ]
+  ],
+  "selected_candidate_pre_hardware_note": "Run preparation only against absent derived output paths. If configs already exist, retain and verify them rather than regenerate. Freeze creation requires ordinary model_gate_passed. Do not run any hardware proposal until separately authorized.",
+  "hardware_proposal": {
+    "status": "proposal_only_awaiting_explicit_hardware_authorization",
+    "physical_relay": false,
+    "boundary": "Existing two-pipe software-endpoint lab and wrappers only; no new injector, service/shaping change or full campaign.",
+    "comparison": {
+      "condition": "ref_r30_b1",
+      "images": [
+        "frozen m10_03",
+        "selected m11_05"
+      ],
+      "arm_order": [
+        "off",
+        "timing_only",
+        "size_only",
+        "combined"
+      ],
+      "reads_per_arm": 65,
+      "sbo_cycles_per_arm": 64,
+      "trials_per_arm": 1,
+      "fixture": {
+        "mode": "separate_ack",
+        "delay_ms": 5,
+        "jitter_ms": 0
+      },
+      "timing_ns": {
+        "da": 2000000,
+        "gap": 950000,
+        "op_j": 2400000,
+        "pb": 4000000,
+        "readiness": 30000000,
+        "cap": 40000000
+      },
+      "shaping_preset": "shape_59570",
+      "claim": "Compact engineering comparison only; one block per image cannot support the main blocked classifier or a statistical power claim."
+    },
+    "stop_rule": "Wrappers independently verify restoration. Exit0: block/restore passed; exit1: block failed but restore verified; exit2: restoration unverified, stop all hardware; exit3: freeze check refused before entry. Stop this bounded proposal on any nonzero; never rerun to obtain a pass.",
+    "commands": [
+      {
+        "order": 1,
+        "purpose": "One successor recovery block: persistence_graceful_950",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_series",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_persistence_graceful_950.json",
+          "ctl_m11_05_persistence_graceful_950_bounded_repro01",
+          "--arms",
+          "combined",
+          "--fixtures",
+          "separate_ack",
+          "--close-mode",
+          "graceful"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization",
+        "requires": "Fresh run ID/root, exact qualifying freeze and verified restoration after the preceding block."
+      },
+      {
+        "order": 2,
+        "purpose": "One successor recovery block: persistence_rst_950",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_series",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_persistence_rst_950.json",
+          "ctl_m11_05_persistence_rst_950_bounded_repro01",
+          "--arms",
+          "combined",
+          "--fixtures",
+          "separate_ack",
+          "--close-mode",
+          "rst",
+          "--rst-grace-ms",
+          "1000"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization",
+        "requires": "Fresh run ID/root, exact qualifying freeze and verified restoration after the preceding block."
+      },
+      {
+        "order": 3,
+        "purpose": "One successor recovery block: loss_core_950",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_campaign",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_loss_core_950.json",
+          "ctl_m11_05_loss_core_950_bounded_repro01",
+          "--arms",
+          "combined",
+          "--fixtures",
+          "separate_ack",
+          "--loss",
+          "core"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization",
+        "requires": "Fresh run ID/root, exact qualifying freeze and verified restoration after the preceding block."
+      },
+      {
+        "order": 4,
+        "purpose": "One successor recovery block: reconnect_950",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_campaign",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_reconnect_950.json",
+          "ctl_m11_05_reconnect_950_bounded_repro01",
+          "--arms",
+          "combined",
+          "--fixtures",
+          "separate_ack",
+          "--scenario",
+          "reconnect",
+          "--reconnect-policy",
+          "protected"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization",
+        "requires": "Fresh run ID/root, exact qualifying freeze and verified restoration after the preceding block."
+      },
+      {
+        "order": 5,
+        "purpose": "One successor recovery block: held_operate_350",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_series",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/ctl_m11_05_held_operate_350.json",
+          "ctl_m11_05_held_operate_350_bounded_repro01",
+          "--arms",
+          "combined",
+          "--fixtures",
+          "separate_ack",
+          "--close-mode",
+          "graceful"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization",
+        "requires": "Fresh run ID/root, exact qualifying freeze and verified restoration after the preceding block."
+      },
+      {
+        "order": 6,
+        "purpose": "One frozen m10 reference b1 four-arm measurement control.",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/baseline_ref_r30_freeze_v3.json",
+          "candidate_campaign",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/config/part2_m10_ref_r30_b1.json",
+          "part2_m10_ref_r30_b1_bounded_repro01",
+          "--arms",
+          "off,timing_only,size_only,combined",
+          "--fixtures",
+          "separate_ack"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization_and_compatible_baseline_freeze",
+        "gate_limitation": "No compatible baseline ref_r30 freeze is retained. Original m10 freeze covers Step4 configurations only. If normal qualification/freeze cannot be established under current tooling, leave this comparison unexecuted; do not weaken the gate or requalify historical evidence as part of this task."
+      },
+      {
+        "order": 7,
+        "purpose": "One successor reference b1 four-arm block matched to the baseline control.",
+        "argv": [
+          "bash",
+          "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/freeze_v3.json",
+          "candidate_campaign",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_05/configs/part2_m11_05_ref_r30_b1.json",
+          "part2_m11_05_ref_r30_b1_bounded_repro01",
+          "--arms",
+          "off,timing_only,size_only,combined",
+          "--fixtures",
+          "separate_ack"
+        ],
+        "status": "proposal_only_awaiting_explicit_hardware_authorization"
+      }
+    ],
+    "stdin": "/dev/null"
+  },
+  "analysis_reproduction": {
+    "placeholders": {
+      "TRIAL_DIR": "One retained/newly collected trial directory containing out.pcap and in.pcap.",
+      "FRESH_TIMING_JSON": "A new absent derived JSON path; never overwrite the retained timing.json.",
+      "TABLE": "A new absent transactions CSV path; its .counts.json must also be absent.",
+      "OUT": "A new absent classifier-result JSON path.",
+      "BLOCK1": "Existing complete block1 of one condition and one source/build.",
+      "BLOCK2": "Existing independent complete block2 of that same condition/build.",
+      "BLOCK3": "Existing independent complete block3 of that same condition/build."
+    },
+    "commands": [
+      {
+        "purpose": "Exact per-exchange extraction used by the campaign; standalone recomputation writes a fresh artifact.",
+        "argv": [
+          "defense4/timing/evidence/campaign_v2/repro/.venv/bin/python",
+          "defense4/timing/case4_architecture/protocol/hw_vepa/clrt_check.py",
+          "${TRIAL_DIR}/out.pcap",
+          "${TRIAL_DIR}/in.pcap",
+          "--json",
+          "${FRESH_TIMING_JSON}"
+        ]
+      },
+      {
+        "purpose": "Assemble the existing paired four-arm analysis table and coverage counts.",
+        "argv": [
+          "defense4/timing/evidence/campaign_v2/repro/.venv/bin/python",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/four_arm_transactions.py",
+          "${TABLE}",
+          "${BLOCK1}",
+          "${BLOCK2}",
+          "${BLOCK3}"
+        ]
+      },
+      {
+        "purpose": "Reproduce the existing timing, size and joint-feature attackers with bounded permutation count.",
+        "argv": [
+          "defense4/timing/evidence/campaign_v2/repro/.venv/bin/python",
+          "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/leakage_four_arm.py",
+          "${TABLE}",
+          "${OUT}",
+          "--n-perm",
+          "30"
+        ]
+      }
+    ],
+    "data_flow": "The campaign already runs clrt_check.py OUT.pcap IN.pcap --json TRIAL_DIR/timing.json once when collecting a new block. The four-arm adapter consumes those timing.json files with campaign_run.json and retained capture/extractor identities. Standalone re-extraction writes a distinct fresh output and preserves the original evidence.",
+    "main_input_requirement": "At least three independent complete four-arm blocks of one condition and one build, all READ/SELECT/OPERATE classes, valid exchange/capture provenance. Do not mix baseline-image and successor-image blocks or pass only the two proposed compact b1 blocks to the main paired analyzer.",
+    "scope": "Analysis commands consume existing qualifying evidence only. They do not authorize or launch the prepared full campaign."
+  },
+  "pending_status_source": "Actual compile/model/freeze/restore status belongs to the retained reports and final checkpoint, not this manifest."
+}

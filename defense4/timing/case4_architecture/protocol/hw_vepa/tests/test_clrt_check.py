@@ -65,6 +65,17 @@ class ClrtCheck(unittest.TestCase):
         self.assertEqual(self.read['attempts'], 5)
         self.assertEqual(self.read['retransmitted'], 1)
 
+    def test_exchange_identity_and_capture_provenance_survive_extraction(self):
+        rows = self.rep['exchanges']
+        self.assertEqual(len({row['exchange_id'] for row in rows}), 4)
+        self.assertEqual(rows[0]['attempts'], 2)
+        self.assertEqual(rows[0]['request_key']['seq'], 1001)
+        self.assertIsInstance(rows[0]['request_packet_index'], int)
+        self.assertIsInstance(rows[0]['response_packet_index'], int)
+        self.assertEqual(len(self.rep['capture_sha256']['out']), 64)
+        self.assertEqual(len(self.rep['capture_sha256']['in']), 64)
+        self.assertEqual(len(self.rep['extractor_sha256']), 64)
+
     def test_incomplete_and_piggyback_are_distinguished_and_counted(self):
         self.assertEqual(self.read['complete'], 3)
         self.assertEqual(self.read['incomplete'], 1)         # READ2, failed, still reported

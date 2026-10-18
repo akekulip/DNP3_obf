@@ -1,0 +1,180 @@
+........................................................................ [  3%]
+................................................s....................... [  6%]
+........................................................................ [ 10%]
+........................................................................ [ 13%]
+........................................................................ [ 16%]
+........................................................................ [ 20%]
+........................................................................ [ 23%]
+........................................................................ [ 26%]
+........................................................................ [ 30%]
+........................................................................ [ 33%]
+........................................................................ [ 37%]
+........................................................................ [ 40%]
+........................................................................ [ 43%]
+........................................................................ [ 47%]
+........................................................................ [ 50%]
+........................................................................ [ 53%]
+........................................................................ [ 57%]
+.....................................................F.FFF.............. [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 67%]
+........................................................................ [ 70%]
+........................................................................ [ 74%]
+........................................................................ [ 77%]
+........................................................................ [ 80%]
+........................................................................ [ 84%]
+........................................................................ [ 87%]
+........................................................................ [ 90%]
+........................................................................ [ 94%]
+........................................................................ [ 97%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+_____ RepeatSbo.test_64_cycles_on_one_connection_cross_both_sequence_wraps _____
+
+self = <test_repeat_sbo.RepeatSbo testMethod=test_64_cycles_on_one_connection_cross_both_sequence_wraps>
+
+    def test_64_cycles_on_one_connection_cross_both_sequence_wraps(self):
+        cycles = 64
+>       rc, output, err, station, rows = self.exchange(reads=1, CASE4_SBO_CYCLES=str(cycles))
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:70: in exchange
+    station_port, proxy_port = free_port(), free_port()
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:32: in free_port
+    with socket.socket() as sock:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=AddressFamily.AF_UNSPEC, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/usr/lib/python3.8/socket.py:231: PermissionError
+__________ RepeatSbo.test_cycles_without_a_leading_read_are_rejected ___________
+
+self = <test_repeat_sbo.RepeatSbo testMethod=test_cycles_without_a_leading_read_are_rejected>
+
+    def test_cycles_without_a_leading_read_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            stop = Path(temp) / 'stop'; stop.touch()
+>           run = subprocess.run([str(BINARY), 'master', '127.0.0.1', str(free_port()), str(stop), '0'],
+                                 env=environment(CASE4_SBO_CYCLES='4'), capture_output=True, text=True, timeout=5)
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:32: in free_port
+    with socket.socket() as sock:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=AddressFamily.AF_UNSPEC, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/usr/lib/python3.8/socket.py:231: PermissionError
+_____________ RepeatSbo.test_default_keeps_the_single_trailing_sbo _____________
+
+self = <test_repeat_sbo.RepeatSbo testMethod=test_default_keeps_the_single_trailing_sbo>
+
+    def test_default_keeps_the_single_trailing_sbo(self):
+>       rc, output, err, station, rows = self.exchange(reads=2)
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:70: in exchange
+    station_port, proxy_port = free_port(), free_port()
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:32: in free_port
+    with socket.socket() as sock:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=AddressFamily.AF_UNSPEC, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/usr/lib/python3.8/socket.py:231: PermissionError
+________ RepeatSbo.test_invalid_cycle_controls_fail_before_any_traffic _________
+
+self = <test_repeat_sbo.RepeatSbo testMethod=test_invalid_cycle_controls_fail_before_any_traffic>
+
+    def test_invalid_cycle_controls_fail_before_any_traffic(self):
+        with tempfile.TemporaryDirectory() as temp:
+            stop = Path(temp) / 'stop'; stop.touch()
+            for env in (dict(CASE4_SBO_CYCLES='65'), dict(CASE4_SBO_CYCLES='-1'), dict(CASE4_SBO_CYCLES='1x'),
+                        dict(CASE4_SBO_CYCLES='2', CASE4_RUN_SBO='0')):
+                with self.subTest(env=env):
+>                   run = subprocess.run([str(BINARY), 'master', '127.0.0.1', str(free_port()), str(stop), '1'],
+                                         env=environment(**env), capture_output=True, text=True, timeout=5)
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/repeat_sbo_endpoint/tests/test_repeat_sbo.py:32: in free_port
+    with socket.socket() as sock:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.socket fd=-1, family=AddressFamily.AF_UNSPEC, type=0, proto=0>
+family = <AddressFamily.AF_INET: 2>, type = <SocketKind.SOCK_STREAM: 1>
+proto = 0, fileno = None
+
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        # For user code address family and type values are IntEnum members, but
+        # for the underlying _socket.socket they're just integers. The
+        # constructor of _socket.socket converts the given argument to an
+        # integer automatically.
+        if fileno is None:
+            if family == -1:
+                family = AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+>       _socket.socket.__init__(self, family, type, proto, fileno)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/usr/lib/python3.8/socket.py:231: PermissionError
+=========================== short test summary info ============================
+SKIPPED [1] defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/tests/test_leakage_four_arm.py:82: opt-in (LEAKAGE_REPRO=1) and needs the git-ignored campaign_v2 canonical table
+4 failed, 2133 passed, 1 skipped in 976.20s (0:16:16)

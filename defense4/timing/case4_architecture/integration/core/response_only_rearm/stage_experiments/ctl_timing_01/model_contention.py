@@ -76,7 +76,9 @@ class PointInterrupted(Exception):
 
 
 def main():
-    milestone = os.environ.get('MILESTONE', 'm4')
+    from model_profile import from_env
+    profile = from_env()
+    milestone = profile['milestone']
     if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
         raise SystemExit('unknown MILESTONE %r' % milestone)
     bounded = milestone not in ('m1', 'm2')

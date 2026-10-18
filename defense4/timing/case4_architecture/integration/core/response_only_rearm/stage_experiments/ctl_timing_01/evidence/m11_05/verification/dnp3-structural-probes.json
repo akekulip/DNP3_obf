@@ -1,0 +1,142 @@
+{
+  "baseline_source_sha256": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc",
+  "scope": "bounded source-only structural probes; compiler/model gates pending root",
+  "tests": {
+    "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_structural_efficiency.py",
+    "passed": 12,
+    "duration_s": 5.75
+  },
+  "probes": {
+    "t_outcome_direct": {
+      "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_t_outcome_direct_m11_01",
+      "probe": "t_outcome_direct",
+      "source_sha256": "bd22b8b37b450a2414d9b3aac7dda4d536be2e287bd9cae6615c5badf37cc47f",
+      "segment_sha256": {
+        "N": "6d8c3bf420de7a423014c3d1ed181c522d19a7b4a48924941c8c26df88a9ef9b",
+        "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+        "T": "2d53213fb6d38a65118d1dc6630ddfce1d01e57617b5309f8a80dc88d3459d36"
+      },
+      "hypothesis": "Remove the stage-10 outcome identity exact-match lookup while retaining one guarded indexed SALU call after verdicts; stage reduction is unproven and a resource-only result is possible.",
+      "source_tests": {
+        "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_structural_efficiency.py",
+        "passed": 12,
+        "duration_s": 5.75
+      },
+      "compiler_attempts": 0
+    },
+    "n_relax_crc_stage": {
+      "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_n_relax_crc_stage_m11_02",
+      "probe": "n_relax_crc_stage",
+      "source_sha256": "92beef47e978895083d4c887cd384d0f0294bc84f51c4eba52b1773ccd957220",
+      "segment_sha256": {
+        "N": "b5d63c77107fe78a94df71d3c146492e73fadde68fe54d47da4664fd6ad7a99d",
+        "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+        "T": "7efd3a4667213d0072dfcc3686c8f0f769be2026caf2cba0e910208f73754739"
+      },
+      "hypothesis": "Remove only crc_t's @stage(1) constraint; retain five @stage(2) CRC pins and all data/state order. Other CRC pins may keep guard at3 and disprove a stage-saving outcome; stop rather than broaden.",
+      "source_tests": {
+        "passed": 12,
+        "duration_s": 5.45
+      },
+      "compiler_attempts": 0,
+      "supersedes": "probe_n_relax_crc_stage_m11_01 (withdrawn uncompiled)"
+    },
+    "e_reverse_window": {
+      "status": "stopped_before_compile",
+      "reason": "Arithmetic partial-term reassociation cannot remove actual img_wend9 -> classify_rev10 -> window11 critical path; early gap8/window-base9 are not the final placement bottleneck. No extra metadata or unsupported arithmetic variant generated.",
+      "compiler_attempts": 0
+    }
+  },
+  "baseline_evidence": {
+    "compile_local": {
+      "p0": {
+        "n_Ingress.crc_t": [
+          1
+        ],
+        "n_Ingress.rd_request_crc_t": [
+          2
+        ],
+        "n_Ingress.guard": [
+          3
+        ],
+        "r_Egress.reverse_gap_t": [
+          8
+        ],
+        "r_Egress.reverse_window_base_t": [
+          9
+        ],
+        "r_Egress.img_wend_t": [
+          9
+        ],
+        "r_Egress.classify_rev": [
+          10
+        ],
+        "r_Egress.window_t": [
+          11
+        ]
+      },
+      "p0_context_sha256": "ce06e34ffb2850768825122ac6c809108f6040fb011af8eaf34ff87355a2e67a",
+      "p0_bfa_sha256": "afb4d7be5e19063b29037b1c74301a5bec8e103839358da485524ff54bc20383",
+      "p1": {
+        "t_Ingress.outcome_count": [
+          10
+        ]
+      },
+      "p1_context_sha256": "1b538ea28e0eb45eae27a0d4ff0e3ba4c03d1e8691cd77b949fb186dbe83b29d",
+      "p1_bfa_sha256": "bfca7d6858bfbb5c3c6911e8f310e38d38df97e91a980e575091389b9041b81a"
+    },
+    "compile_switch_9132": {
+      "p0": {
+        "n_Ingress.crc_t": [
+          1
+        ],
+        "n_Ingress.rd_request_crc_t": [
+          2
+        ],
+        "n_Ingress.guard": [
+          3
+        ],
+        "r_Egress.reverse_gap_t": [
+          8
+        ],
+        "r_Egress.reverse_window_base_t": [
+          9
+        ],
+        "r_Egress.img_wend_t": [
+          9
+        ],
+        "r_Egress.classify_rev": [
+          10
+        ],
+        "r_Egress.window_t": [
+          11
+        ]
+      },
+      "p0_context_sha256": "52d95d8a362732f22b368491db674fd7d4e5c7bcbe474aeff10c33a136461690",
+      "p0_bfa_sha256": "8a040c1a0d434f04e0d5ddc86b9572a64bc2e1d1d99409dc3cd2f11210f057a5",
+      "p1": {
+        "t_Ingress.outcome_count": [
+          10
+        ]
+      },
+      "p1_context_sha256": "dc2c1998a23ddd323ebad3ea23fc756b6266473264425dcf137055f034206d48",
+      "p1_bfa_sha256": "b5f3bc0c4abf175ba5a942619c06b3231414a6b6ea635dc58220229cd64f860f"
+    }
+  },
+  "implementation": {
+    "files": [
+      "efficiency_candidates.py",
+      "tests/test_structural_efficiency.py",
+      "tests/test_candidate_artifacts.py"
+    ],
+    "artifact_recording_cli": "python3 efficiency_candidates.py BUILD --record-artifacts",
+    "last_validation": {
+      "suite": "efficiency candidates + structural + artifact pins + supported profile",
+      "passed": 57,
+      "duration_s": 10.24
+    },
+    "syntax": "passed",
+    "whitespace": "passed",
+    "remaining": "root owns both SDK compiles, exact-source model gates and selected candidate integration"
+  }
+}

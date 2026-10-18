@@ -27,6 +27,7 @@ CONTROL_TIMED_SOURCES = frozenset({
     '35e896ebcd11f461ea947db3b0fa5198770c547d680ffb4bdec5d885465c79cf',   # ctl_timing_01 m4
     'b758c98199dddd36f8df4a90ce7a1e2301b63e95c2ac766aafa20b5b9f15e981',   # ctl_timing_01 m5 (m5_10)
     '6590141fc68b43788de7e969badf3d6bdf24ba0615a56631497ca39854c0ce0f',   # ctl_timing_01 m9 (m9_01)
+    'd9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc',   # ctl_timing_01 m10 (m10_03)
     '74c9cdcddbffa89589f2ed656f732328d9cc263d32877a74bab9a19ef269854f',   # DIAGNOSTIC ctl_timing_01 m9d (m9d_01)
 })
 EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
@@ -62,13 +63,30 @@ class CandidateCampaign(base.Campaign):
                   'rsync -aR %s %s:%s/src/' %
                   (' '.join(base.q(rel) for rel in EXTRA_FILES), host, self.R), cwd=str(ARCH))
         remote = {rel: '%s/src/%s' % (self.R, rel) for rel in EXTRA_FILES}
+        identities = dict(self.candidate_identity)
+        for name in base.selected_builds(self.cfg, self.arms):
+            files = self._profile_files(self.cfg['builds'][name])
+            if not files:
+                continue
+            destinations = {rel: '%s/out_%s/%s' % (self.R, name, rel) for rel in files}
+            parents = sorted({str(Path(path).parent) for path in destinations.values()})
+            self.step('switch', 'make bound profile directories for ' + name,
+                      'mkdir -p ' + ' '.join(base.q(path) for path in parents))
+            hashes = {}
+            for rel, local in files.items():
+                self.step('local', 'copy bound profile %s %s' % (name, rel),
+                          'rsync -a %s %s:%s' % (base.q(str(local)), host, base.q(destinations[rel])))
+                key = name + ':' + rel
+                remote[key] = destinations[rel]
+                identities[key] = hashes[rel] = base.sha256_file(local)
+            self.record.setdefault('candidate_profile_identity', {})[name] = hashes
         result = self.step('switch', 'verify isolated candidate CP and installer identity',
                            'sha256sum ' + ' '.join(base.q(path) for path in remote.values()))
         if not self.rn.dry:
             observed = {line.split()[1]: line.split()[0] for line in result.out.splitlines()
                         if len(line.split()) == 2}
             for rel, path in remote.items():
-                if observed.get(path) != self.candidate_identity[rel]:
+                if observed.get(path) != identities[rel]:
                     raise base.StepFailed('candidate installer identity mismatch: ' + path)
 
     def installer_cmd(self, *args, **kwargs):
@@ -100,6 +118,63 @@ class CandidateCampaign(base.Campaign):
                     build.get('packet_boundary_required') or
                     self.cfg.get('standards', {}).get('packet_boundary_required'))
 
+    def _profile_control_timed(self, build):
+        """Read successor semantics from the existing source-bound build inputs.
+
+        Historical builds without this profile keep the explicit registry/flag
+        contract. No compiler output is needed to verify a source-only profile.
+        """
+        directory = Path(base.path_of(build['out_dir'])).parent.parent
+        inputs_path = directory / 'response_only.inputs.json'
+        inputs = json.loads(inputs_path.read_text()) if inputs_path.is_file() else {}
+        if not isinstance(inputs, dict):
+            raise HEADROOM.HeadroomError('supported profile build inputs must be an object')
+        profile = inputs.get('supported_profile')
+        profile_path = directory / 'supported_profile.json'
+        if profile_path.is_file():
+            separate = json.loads(profile_path.read_text())
+            if profile is not None and profile != separate:
+                raise HEADROOM.HeadroomError('supported profile file differs from build inputs')
+            profile = separate
+        if profile is None:
+            return None
+        if not isinstance(profile, dict):
+            raise HEADROOM.HeadroomError('supported profile must be an object')
+        if any(not isinstance(profile.get(key), dict) for key in ('candidate', 'encoding', 'timing_ns')):
+            raise HEADROOM.HeadroomError('supported profile candidate, encoding and timing must be objects')
+        source = directory / 'response_only.p4'
+        digest = build.get('source_sha256')
+        if not digest or inputs.get('source_sha256') != digest or \
+                profile.get('candidate', {}).get('source_sha256') != digest or \
+                not source.is_file() or base.sha256_file(source) != digest:
+            raise HEADROOM.HeadroomError('supported profile source identity does not match the build and inputs')
+        encoding, timing = profile.get('encoding', {}), profile.get('timing_ns', {})
+        keys = ('D_release_budget', 'J_operate_hold', 'pb_piggyback_bound', 'readiness', 'da', 'cap')
+        if encoding.get('native_input_octets') != {'READ': 49, 'SELECT': 37, 'OPERATE': 37} or \
+                encoding.get('output_octets') != 61 or type(profile.get('t_child_count')) is not int or \
+                profile['t_child_count'] not in (1, 3) or \
+                any(type(timing.get(key)) is not int or timing[key] <= 0 for key in keys):
+            raise HEADROOM.HeadroomError('unsupported control-timing profile contract')
+        return True
+
+    def _profile_files(self, build):
+        if self._profile_control_timed(build) is None:
+            return {}
+        out = Path(base.path_of(build['out_dir']))
+        directory = out.parent.parent
+        compile_name = out.parent.name
+        if compile_name not in ('compile_local', 'compile_switch_9132'):
+            raise ValueError('supported profile requires an explicitly named SDK compile')
+        manifest = Path(base.path_of(build['manifest']))
+        if manifest.resolve() != (out.parent / 'manifest.json').resolve():
+            raise ValueError('supported profile compile manifest path differs from selected build')
+        files = {'profile/' + name: directory / name
+                 for name in ('response_only.p4', 'response_only.inputs.json')}
+        if (directory / 'supported_profile.json').is_file():
+            files['profile/supported_profile.json'] = directory / 'supported_profile.json'
+        files['profile/%s/manifest.json' % compile_name] = manifest
+        return files
+
     def _headroom_reserve(self, trial, rec=None):
         reads = trial.get('reads')
         if not isinstance(reads, int) or isinstance(reads, bool) or reads < 1:
@@ -110,10 +185,11 @@ class CandidateCampaign(base.Campaign):
         if rec is None or rec.get('build') not in self.cfg.get('builds', {}):
             raise HEADROOM.HeadroomError('generation budget needs the arm build')
         build = self.cfg['builds'][rec['build']]
-        control_timed = build.get('control_timed', False)
+        profile_timed = self._profile_control_timed(build)
+        control_timed = build.get('control_timed', profile_timed if profile_timed is not None else False)
         if not isinstance(control_timed, bool):
             raise HEADROOM.HeadroomError('build %s control_timed must be a boolean' % rec['build'])
-        if build.get('source_sha256') in CONTROL_TIMED_SOURCES and not control_timed:
+        if (profile_timed or build.get('source_sha256') in CONTROL_TIMED_SOURCES) and not control_timed:
             raise HEADROOM.HeadroomError('build %s is a control-timed source but does not declare control_timed'
                                          % rec['build'])
         traffic = self.cfg.get('traffic', {})

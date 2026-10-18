@@ -1,0 +1,20 @@
+{
+  "source_sha256": "996da520c93ee88e0e3a60fd1e211d5cd1b55b3e40a33e50c0f4d903a261b255",
+  "segment_sha256": {
+    "N": "6d8c3bf420de7a423014c3d1ed181c522d19a7b4a48924941c8c26df88a9ef9b",
+    "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+    "T": "9a08c2e3e3e1e86294e923849216635177f533175ccee9cefa6717a783e44354"
+  },
+  "supersedes": {
+    "build": "probe_t_single_child_m11_02",
+    "source_sha256": "6b8b0b222c5ddbd03d34831c6a85c2e47c8f581083164e0afc9d1a0f8252bd63",
+    "reason": "TNA parser reject continues ingress. Exact m11_02 compiled control gate191/211 failed20 invalid-ID register/counter negatives; gate all T apply state/counter work on parser_err==NoError."
+  },
+  "source_checks": {
+    "continuing_apply_red_failed": 3,
+    "continuing_apply_green_passed": 3
+  },
+  "target_red_evidence": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m11_02_01/control_timing_results.json",
+  "compiled_model": "not_run",
+  "hardware": "not_run"
+}

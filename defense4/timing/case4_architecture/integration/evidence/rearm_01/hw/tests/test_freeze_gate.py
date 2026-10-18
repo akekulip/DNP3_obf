@@ -104,6 +104,15 @@ def test_check_passes_unchanged_and_records_its_result(tmp_path, repo):
     assert json.loads(record.read_text())['ok'] is True
 
 
+def test_successor_profile_is_pinned_before_hardware_entry(tmp_path, repo):
+    root, build, config = repo
+    profile = build / 'supported_profile.json'
+    profile.write_text('{"t_child_count": 1}\n')
+    out = freeze(tmp_path, build, config)
+    profile.write_text('{"t_child_count": 3}\n')
+    assert fg.main(['check', str(out)]) == 1
+
+
 def test_check_fails_when_a_frozen_file_changes(tmp_path, repo):
     root, build, config = repo
     out = freeze(tmp_path, build, config)
@@ -261,11 +270,12 @@ def test_a_version_2_freeze_cannot_bind_a_config(tmp_path, repo):
 
 
 def test_runner_exits_3_and_never_reaches_run_block_on_a_foreign_config(tmp_path, repo):
-    """run_block_frozen.sh against a stub run_block.sh in the temporary repository: nothing is launched."""
+    """The real frozen entrypoint checks the candidate before an external run."""
     import shutil
     root, build, _ = repo
     hw = root / fg.A / 'integration/evidence/rearm_01/hw'
-    shutil.copy(HERE / 'run_block_frozen.sh', hw / 'run_block_frozen.sh')
+    for name in ('run_block.sh', 'run_block_frozen.sh', 'guarded_block.py'):
+        shutil.copy(HERE / name, hw / name)
     shutil.copy(HERE / 'freeze_gate.py', hw / 'freeze_gate.py')
     ct = hw.parents[2] / 'core/response_only_rearm/stage_experiments/ctl_timing_01'
     ct.mkdir(parents=True, exist_ok=True)
@@ -275,15 +285,22 @@ def test_runner_exits_3_and_never_reaches_run_block_on_a_foreign_config(tmp_path
         "def summarize_v3(build):\n    return dict(qualification='model_gate_passed', blocked_reasons=[],"
         " latest_by_driver={})\n" % FakeSummary.SUMMARY_V3)
     marker = tmp_path / 'run_block_called'
-    (hw / 'run_block.sh').write_text('touch %s\nexit 0\n' % marker)
+    (hw / 'candidate_campaign.py').write_text(
+        'import json, pathlib, sys\n'
+        'if sys.argv[1] == "plan": raise SystemExit(0)\n'
+        'cfg = json.loads(pathlib.Path(sys.argv[sys.argv.index("--config")+1]).read_text())\n'
+        'root = pathlib.Path(__file__).resolve().parents[4] / cfg["evidence_dir"] / sys.argv[sys.argv.index("--run-id")+1]\n'
+        'root.mkdir(parents=True)\n'
+        'pathlib.Path(%r).touch()\n' % str(marker))
+    (hw / 'restore_verify.py').write_text('print("restore verified by test fixture")\n')
     good = block_config(root, build, evidence_dir='ev')
     bad = block_config(root, build, evidence_dir='ev', builds=_other_source)
     out = freeze_v3(tmp_path, build, [good, bad])
-    run = subprocess.run(['bash', str(hw / 'run_block_frozen.sh'), str(out), 'tool', str(bad), 'r1'],
+    run = subprocess.run(['bash', str(hw / 'run_block_frozen.sh'), str(out), 'candidate_campaign', str(bad), 'r1'],
                          stdin=subprocess.DEVNULL, capture_output=True, text=True)
     assert run.returncode == 3 and not marker.exists()
     assert 'not bound' in run.stdout
-    run = subprocess.run(['bash', str(hw / 'run_block_frozen.sh'), str(out), 'tool', str(good), 'r2'],
+    run = subprocess.run(['bash', str(hw / 'run_block_frozen.sh'), str(out), 'candidate_campaign', str(good), 'r2'],
                          stdin=subprocess.DEVNULL, capture_output=True, text=True)
     assert run.returncode == 0 and marker.exists()                 # the same freeze admits its own config
 

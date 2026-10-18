@@ -104,3 +104,65 @@ def test_default_tags_are_every_recorded_restart_point_ordinary_and_targeted():
                                    dict(tag='restart_targeted_READ_1', restarts=0),
                                    dict(tag='restart_targeted_READ_2', restarts=1), dict(tag='sweep_READ_000ms')]}}
     assert rac.restart_tags(results) == ('restart_READ', 'restart_targeted_READ_1', 'restart_targeted_READ_2')
+
+
+@pytest.fixture
+def completed_restart():
+    run = EV / 'model_contention_m10_03_07'
+    results = __import__('json').loads((run / 'contention_results.json').read_text())
+    report = __import__('json').loads((run / 'reset_application.json').read_text())
+    return results, report
+
+
+def test_complete_recorded_reset_coverage_is_accepted(completed_restart):
+    results, report = completed_restart
+    assert rac.coverage_problems(results, report) == []
+
+
+@pytest.mark.parametrize('mutation', ('missing_report', 'invented_report', 'missing_point', 'duplicate_point',
+    'skip_attempt', 'missing_case', 'duplicate_case', 'failed_case', 'missing_witness', 'partial_sections',
+    'bad_summary', 'bad_release_count', 'wrong_sequence', 'missing_application', 'bad_copies', 'invented_case',
+    'truncated_synack', 'inconsistent_counter', 'missing_ordinary_aggregate'))
+def test_reset_coverage_rejects_incomplete_or_inconsistent_evidence(completed_restart, mutation):
+    results, report = completed_restart
+    if mutation == 'missing_report':
+        report.pop('restart_SELECT')
+    elif mutation == 'invented_report':
+        report['invented'] = dict(verdict='PASS')
+    elif mutation == 'missing_point':
+        results['meta']['points'] = [p for p in results['meta']['points'] if p['tag'] != 'restart_SELECT']
+    elif mutation == 'duplicate_point':
+        results['meta']['points'].append(dict(next(p for p in results['meta']['points'] if p['tag'] == 'restart_SELECT')))
+    elif mutation == 'skip_attempt':
+        next(p for p in results['meta']['points'] if p['tag'] == 'restart_targeted_READ_1')['tag'] = 'restart_targeted_READ_2'
+    elif mutation == 'missing_case':
+        results['cases'] = [c for c in results['cases'] if c['name'] != 'restart_READ_new_READ_request_relayed']
+    elif mutation == 'duplicate_case':
+        results['cases'].append(dict(results['cases'][0]))
+    elif mutation == 'failed_case':
+        next(c for c in results['cases'] if c['name'] == 'restart_READ_SYNACK')['ok'] = False
+    elif mutation == 'missing_witness':
+        next(p for p in results['meta']['points'] if p['tag'] == 'restart_targeted_READ_1')['restarts'] = 0
+    elif mutation == 'partial_sections':
+        results['meta']['sections'] = ['abort']
+    elif mutation == 'bad_summary':
+        results['summary']['total'] -= 1
+    elif mutation == 'bad_release_count':
+        report['restart_READ']['t_release_count'] += 1
+    elif mutation == 'wrong_sequence':
+        report['restart_READ']['server_seq'] = '01234567'
+    elif mutation == 'missing_application':
+        report['restart_READ'].pop('applied_at')
+    elif mutation == 'invented_case':
+        results['cases'].append(dict(name='restart_invented_SYN', ok=True))
+        results['summary']['total'] += 1
+        results['summary']['passed'] += 1
+    elif mutation == 'truncated_synack':
+        next(c for c in results['cases'] if c['name'] == 'restart_READ_SYNACK')['received'] = {'9': ['00']}
+    elif mutation == 'inconsistent_counter':
+        next(p for p in results['meta']['points'] if p['tag'] == 'restart_READ')['count_busy_delta'][5] = 1
+    elif mutation == 'missing_ordinary_aggregate':
+        results['meta'].pop('ordinary_restart_by_kind')
+    else:
+        report['restart_READ']['copies_to_master'] = 2
+    assert rac.coverage_problems(results, report)

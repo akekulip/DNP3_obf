@@ -27,7 +27,9 @@ def synthetic(rng, runs=6, per=60):
                 leaky = arm in ('baseline', 'size_only')
                 clrt = centre[k] + rng.normal(0, 0.05) if leaky else 0.95 + rng.normal(0, 0.05)
                 ack = 2.0 + rng.normal(0, 0.05)
-                rows.append(('s%02d' % r, arm, k, ack, clrt))
+                size = 49 if k == 'READ' else 37
+                rows.append(('s%02d' % r, arm, k, ack, clrt,
+                             61 if arm in ('size_only', 'combined') else size))
     a = np.array(rows, dtype=object)
     return a[:, 0].astype(str), a[:, 1].astype(str), a[:, 2].astype(str), a[:, 3:].astype(float)
 
@@ -49,11 +51,11 @@ def test_four_arms_fixed_attacker_separates_leaky_from_defended_arms():
     assert res['classifiers']['clrt']['folds_per_arm'] == {arm: 6 for arm in lfa.ARMS}
 
 
-def test_an_arm_missing_from_a_run_is_skipped_for_that_fold_and_counted():
+def test_an_arm_missing_from_a_run_is_refused():
     runs, arms, cls, X = synthetic(np.random.default_rng(2))
     keep = ~((runs == 's00') & (arms == 'combined'))
-    res = lfa.analyse(runs[keep], arms[keep], cls[keep], X[keep])
-    assert res['classifiers']['clrt']['folds_per_arm']['combined'] == 5
+    with pytest.raises(ValueError, match='coverage'):
+        lfa.analyse(runs[keep], arms[keep], cls[keep], X[keep])
 
 
 def test_campaign_v2_aliases_and_unknown_arms(tmp_path):
@@ -63,7 +65,7 @@ def test_campaign_v2_aliases_and_unknown_arms(tmp_path):
         w.writerow(['run', 'arm', 'txn_class', 'ack_ms', 'clrt_ms'])
         w.writerow(['s01', 'native', 'READ', '1', '2'])
         w.writerow(['s01', 'obfuscated', 'READ', '1', '2'])
-    assert list(lfa.load(p)[1]) == ['baseline', 'timing_only']
+    assert list(lfa.load(p)[1]) == ['native', 'obfuscated']
     with open(p, 'a') as f:
         f.write('s01,defended,READ,1,2\n')
     with pytest.raises(ValueError):
@@ -127,3 +129,44 @@ def test_mixed_label_vocabularies_are_refused(tmp_path):
 def test_spread_states_the_tables_own_run_count():
     d = lfa.spread([0.3, 0.4, 0.5])
     assert d['n_runs'] == 3 and 'across the 3 grouped runs' in d['interpretation']
+
+
+def test_size_and_joint_attackers_use_observed_payload_length():
+    runs, arms, cls, X = synthetic(np.random.default_rng(8), runs=3, per=30)
+    res = lfa.analyse(runs, arms, cls, X)
+    size = res['classifiers']['size']['A_fixed_baseline_trained']
+    assert 0.60 < size['tested_on_baseline']['mean'] < 0.70
+    assert size['tested_on_size_only']['mean'] < 0.40
+    assert res['classifiers']['ack_clrt_size']['features'] == ['ack_ms', 'clrt_ms', 'resp_len']
+    X[:, 2] = 61
+    changed = lfa.analyse(runs, arms, cls, X)
+    assert changed['classifiers']['size']['A_fixed_baseline_trained']['tested_on_baseline']['mean'] < 0.40
+    assert changed['mutual_information_scope'].startswith('marginal CLRT')
+
+
+@pytest.mark.parametrize('bad', ['read_only', 'two_blocks', 'nonfinite', 'zero_size', 'fractional_size'])
+def test_incomplete_or_invalid_main_inputs_are_refused(bad):
+    runs, arms, cls, X = synthetic(np.random.default_rng(9), runs=3, per=12)
+    if bad == 'read_only':
+        keep = cls == 'READ'
+    elif bad == 'two_blocks':
+        keep = runs != 's02'
+    else:
+        keep = np.ones(len(runs), dtype=bool)
+        X[0, 0 if bad == 'nonfinite' else 2] = {'nonfinite': np.nan, 'zero_size': 0,
+                                              'fractional_size': 49.5}[bad]
+    with pytest.raises(ValueError):
+        lfa.analyse(runs[keep], arms[keep], cls[keep], X[keep])
+
+
+def test_cli_prints_competence_and_anomaly_warnings(tmp_path, capsys, monkeypatch):
+    result = {'mutual_information': {}, 'classifiers': {'size': {
+        'A_fixed_baseline_trained': {}, 'B_adaptive_arm_trained': {},
+        'competence': {'comparison': 'UNINFORMATIVE: missing baseline leak', 'competent': False},
+        'adaptive_anomalies': {'tested_on_combined': 0.1}}}}
+    monkeypatch.setattr(lfa, 'load', lambda _p: ())
+    monkeypatch.setattr(lfa, 'analyse', lambda: result)
+    transactions = tmp_path / 'table.csv'; transactions.write_text('')
+    lfa.main([str(transactions), str(tmp_path / 'report.json'), '--n-perm', '1'])
+    output = capsys.readouterr().out
+    assert 'UNINFORMATIVE' in output and 'adaptive' in output and '0.1' in output

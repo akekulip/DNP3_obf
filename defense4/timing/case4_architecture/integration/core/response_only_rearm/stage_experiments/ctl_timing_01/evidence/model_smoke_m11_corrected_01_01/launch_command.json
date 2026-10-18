@@ -1,0 +1,35 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_corrected_01/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_smoke_m11_corrected_01_01",
+    "-P",
+    "9 48 68 180 181 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_corrected_01/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "m11",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "0ca6745218523f64bb22da0a09ad25f4ceead7ea4930f8136c522ea7ca27fb5e",
+  "driver_sha256": "d51e0522a5166a94ca6b0942ac3142cf864ef77abbd00b6cad1e14402a3cc195",
+  "library_sha256": {
+    "model_driver.py": "c2c37978c7131809244445c61788e3b03a85f95d26455570ef49b19c269ddf64",
+    "../core/response_only/hw/t_config.py": "bdfe3635736d7534e3bd90898ee5b3a3d3ba280c642cfff31091790febd41c3c"
+  },
+  "dependency_sha256": {
+    "response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "fd1cfa95f0f1339ed4522391a82173115f4e6cb6cc821062e7c670b682241eb8",
+    "response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke.py",
+  "dependency_closure_sha256": null,
+  "reset_restart_required": true,
+  "supported_profile_sha256": "7ca685f51b834768623b32db412ad1b5529f58e50ba4cfd9261f819ff5c6f65a",
+  "exit_code": 3
+}

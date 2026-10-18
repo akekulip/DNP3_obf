@@ -1,0 +1,86 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_post_entry_wait_failure_still_verifies_restore[0-1] ___________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7d476e85b0>
+restore_rc = 0, want = 1
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_wait_failure_still_verifies_restore(block_rig, monkeypatch, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_wait_failure', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        original = runner.command_output
+        def fail_after_entered_command(command, output, env=None):
+            result = original(command, output, env)
+            if command[2] == 'run':
+                raise OSError('wait failed after child entered')
+            return result
+        monkeypatch.setattr(runner, 'command_output', fail_after_entered_command)
+        monkeypatch.setenv('RESTORE_RC', str(restore_rc))
+>       assert runner.block('candidate_campaign', cfg, 'unit', []) == want
+
+/tmp/dnp3-postentry-before/hw/tests/test_run_directories.py:292: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:119: in block
+    rc = command_output(command + ['run', '--apply'] + options, run, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+command = ['/usr/bin/python3', '/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/repo/defense4/timing/case4_arc...run', '--apply', '--config', '/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/repo/config.json', ...]
+output = PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s0/run_block_unit_v2d5ezqt/run.out')
+env = {'CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS': '1', 'CODEX_CI': '1', 'CODEX_PERMISSION_PROFILE': ':workspace', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', ...}
+
+    def fail_after_entered_command(command, output, env=None):
+        result = original(command, output, env)
+        if command[2] == 'run':
+>           raise OSError('wait failed after child entered')
+E           OSError: wait failed after child entered
+
+/tmp/dnp3-postentry-before/hw/tests/test_run_directories.py:288: OSError
+___________ test_post_entry_wait_failure_still_verifies_restore[1-2] ___________
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7d47585b50>
+restore_rc = 1, want = 2
+
+    @pytest.mark.parametrize('restore_rc,want', [(0, 1), (1, 2)])
+    def test_post_entry_wait_failure_still_verifies_restore(block_rig, monkeypatch, restore_rc, want):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_wait_failure', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        original = runner.command_output
+        def fail_after_entered_command(command, output, env=None):
+            result = original(command, output, env)
+            if command[2] == 'run':
+                raise OSError('wait failed after child entered')
+            return result
+        monkeypatch.setattr(runner, 'command_output', fail_after_entered_command)
+        monkeypatch.setenv('RESTORE_RC', str(restore_rc))
+>       assert runner.block('candidate_campaign', cfg, 'unit', []) == want
+
+/tmp/dnp3-postentry-before/hw/tests/test_run_directories.py:292: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:119: in block
+    rc = command_output(command + ['run', '--apply'] + options, run, env)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+command = ['/usr/bin/python3', '/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/repo/defense4/timing/case4_arc...run', '--apply', '--config', '/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/repo/config.json', ...]
+output = PosixPath('/tmp/pytest-of-philip/pytest-1738/test_post_entry_wait_failure_s1/run_block_unit_s205omw4/run.out')
+env = {'CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS': '1', 'CODEX_CI': '1', 'CODEX_PERMISSION_PROFILE': ':workspace', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', ...}
+
+    def fail_after_entered_command(command, output, env=None):
+        result = original(command, output, env)
+        if command[2] == 'run':
+>           raise OSError('wait failed after child entered')
+E           OSError: wait failed after child entered
+
+/tmp/dnp3-postentry-before/hw/tests/test_run_directories.py:288: OSError
+=========================== short test summary info ============================
+FAILED ../../../../tmp/dnp3-postentry-before/hw/tests/test_run_directories.py::test_post_entry_wait_failure_still_verifies_restore[0-1]
+FAILED ../../../../tmp/dnp3-postentry-before/hw/tests/test_run_directories.py::test_post_entry_wait_failure_still_verifies_restore[1-2]
+2 failed, 27 deselected in 0.21s

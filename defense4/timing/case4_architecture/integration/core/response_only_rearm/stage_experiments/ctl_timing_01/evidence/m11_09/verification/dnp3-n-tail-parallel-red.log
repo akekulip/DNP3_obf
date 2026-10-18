@@ -1,0 +1,274 @@
+.F...FFF.....FFFFFFF                                                     [100%]
+=================================== FAILURES ===================================
+_ test_every_first_event_row_preserves_retry_results_and_saturating_counters[n_tail_parallel_counter] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_every_first_event_row_pre1')
+variant = 'n_tail_parallel_counter'
+
+    def test_every_first_event_row_preserves_retry_results_and_saturating_counters(tmp_path, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_every_first_event_row_pre1')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-abort_work] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_3')
+verdict = 'abort_work', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('verdict', ('abort_work', 'carry_current', None))
+    def test_stage_increment_commutes_with_each_verdict_and_wraps(tmp_path, verdict, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_3')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-carry_current] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_4')
+verdict = 'carry_current', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('verdict', ('abort_work', 'carry_current', None))
+    def test_stage_increment_commutes_with_each_verdict_and_wraps(tmp_path, verdict, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_4')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-None] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_5')
+verdict = None, variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('verdict', ('abort_work', 'carry_current', None))
+    def test_stage_increment_commutes_with_each_verdict_and_wraps(tmp_path, verdict, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_stage_increment_commutes_5')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_5')
+snapshot = 'snapshot', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('snapshot', ('snapshot', 'snapshot_lap', 'snapshot_epoch_zero',
+                                        'snapshot_retry', 'snapshot_lap_retry'))
+    def test_snapshot_clears_incoming_forward_event_before_noaction(tmp_path, snapshot, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_5')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_lap] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_6')
+snapshot = 'snapshot_lap', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('snapshot', ('snapshot', 'snapshot_lap', 'snapshot_epoch_zero',
+                                        'snapshot_retry', 'snapshot_lap_retry'))
+    def test_snapshot_clears_incoming_forward_event_before_noaction(tmp_path, snapshot, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_6')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_epoch_zero] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_7')
+snapshot = 'snapshot_epoch_zero', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('snapshot', ('snapshot', 'snapshot_lap', 'snapshot_epoch_zero',
+                                        'snapshot_retry', 'snapshot_lap_retry'))
+    def test_snapshot_clears_incoming_forward_event_before_noaction(tmp_path, snapshot, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_7')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_retry] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_8')
+snapshot = 'snapshot_retry', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('snapshot', ('snapshot', 'snapshot_lap', 'snapshot_epoch_zero',
+                                        'snapshot_retry', 'snapshot_lap_retry'))
+    def test_snapshot_clears_incoming_forward_event_before_noaction(tmp_path, snapshot, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_8')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_lap_retry] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_9')
+snapshot = 'snapshot_lap_retry', variant = 'n_tail_parallel_counter'
+
+    @pytest.mark.parametrize('snapshot', ('snapshot', 'snapshot_lap', 'snapshot_epoch_zero',
+                                        'snapshot_retry', 'snapshot_lap_retry'))
+    def test_snapshot_clears_incoming_forward_event_before_noaction(tmp_path, snapshot, variant):
+>       old, new = pipelines(tmp_path, variant)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_snapshot_clears_incoming_9')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_parallel_counter_matches_only_the_two_input_predicates[6-786432-4294967259] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_parallel_counter_matches_0')
+kind = 6, phase = 786432, difference = 4294967259
+
+    @pytest.mark.parametrize('kind,phase,difference', ((6, 0xc0000, 0xffffffdb),
+                                                   (11, 0xe0000, 0xffffffcf)))
+    def test_parallel_counter_matches_only_the_two_input_predicates(tmp_path, kind, phase, difference):
+>       old, new = pipelines(tmp_path, 'n_tail_parallel_counter')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:117: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_parallel_counter_matches_0')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+_ test_parallel_counter_matches_only_the_two_input_predicates[11-917504-4294967247] _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_parallel_counter_matches_1')
+kind = 11, phase = 917504, difference = 4294967247
+
+    @pytest.mark.parametrize('kind,phase,difference', ((6, 0xc0000, 0xffffffdb),
+                                                   (11, 0xe0000, 0xffffffcf)))
+    def test_parallel_counter_matches_only_the_two_input_predicates(tmp_path, kind, phase, difference):
+>       old, new = pipelines(tmp_path, 'n_tail_parallel_counter')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:117: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-1797/test_parallel_counter_matches_1')
+variant = 'n_tail_parallel_counter'
+
+    def pipelines(tmp_path, variant):
+>       assert hasattr(gen, variant), 'the N tail probe must retain both late-path semantics'
+E       AssertionError: the N tail probe must retain both late-path semantics
+E       assert False
+E        +  where False = hasattr(gen, 'n_tail_parallel_counter')
+
+defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py:20: AssertionError
+=========================== short test summary info ============================
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_every_first_event_row_preserves_retry_results_and_saturating_counters[n_tail_parallel_counter]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-abort_work]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-carry_current]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_stage_increment_commutes_with_each_verdict_and_wraps[n_tail_parallel_counter-None]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_lap]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_epoch_zero]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_retry]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_snapshot_clears_incoming_forward_event_before_noaction[n_tail_parallel_counter-snapshot_lap_retry]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_parallel_counter_matches_only_the_two_input_predicates[6-786432-4294967259]
+FAILED defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_n_tail_stagecut.py::test_parallel_counter_matches_only_the_two_input_predicates[11-917504-4294967247]
+11 failed, 9 passed in 3.07s

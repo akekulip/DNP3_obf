@@ -206,6 +206,7 @@ def test_runs_of_another_build_with_a_suffix_name_are_not_attempts(tmp_path):
 sys.path.insert(0, str(HERE.parent))
 import record_closure  # noqa: E402
 import run_model  # noqa: E402
+import model_profile  # noqa: E402
 
 
 @pytest.fixture
@@ -217,6 +218,12 @@ def v3(tmp_path, monkeypatch):
     monkeypatch.setattr(ms, 'REPO', repo)
     drivers = {}
     build, sha = make_build(tmp_path)
+    historical = repo / 'profiles'
+    monkeypatch.setattr(model_profile, 'HERE', historical)
+    for name in ('m9_01', 'm10_03'):
+        registered = historical / 'evidence' / name
+        registered.mkdir(parents=True)
+        (registered / 'response_only.inputs.json').write_text(json.dumps({'source_sha256': sha}))
     all_pass_v2(tmp_path, build, sha)
     for d in sorted(tmp_path.glob('model_*_m9_01_*')):
         driver = d.name[len('model_'):-len('_m9_01_01')]
@@ -243,6 +250,25 @@ def test_v3_passes_with_verified_dependency_evidence(v3):
     build, _ = v3
     s = ms.summarize_v3(build)
     assert s['qualification'] == 'model_gate_passed' and s['provenance_limitations'] == []
+
+
+@pytest.mark.parametrize('source', ('unknown', 'm10_as_m9'))
+def test_missing_inputs_cannot_use_launch_spelling_to_bypass_the_verified_profile(v3, source):
+    build, _ = v3
+    if source == 'unknown':
+        (build / 'response_only.p4').write_text('unknown successor source\n')
+        sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
+        for launch in build.parent.glob('model_*/launch_command.json'):
+            record = json.loads(launch.read_text()); record['source_sha256'] = sha
+            launch.write_text(json.dumps(record))
+    else:
+        registered = model_profile.HERE / 'evidence/m9_01/response_only.inputs.json'
+        registered.write_text(json.dumps({'source_sha256': '0' * 64}))
+    assert not (build / 'response_only.inputs.json').exists()
+    assert ms.summarize_v2(build)['qualification'] == 'model_gate_passed'
+    summary = ms.summarize_v3(build)
+    assert summary['qualification'] == 'blocked'
+    assert any('source/profile' in reason for reason in summary['blocked_reasons'])
 
 
 def test_v3_blocks_a_run_without_dependency_evidence_and_states_the_limitation(v3):
@@ -299,10 +325,20 @@ def test_v2_judges_a_required_abort_tag_even_without_a_usable_offset(tmp_path, o
     assert ms.summarize_v2(build)['qualification'] == 'blocked'
 
 
+def install_complete_reset(run):
+    retained = HERE.parent / 'evidence/model_contention_m10_03_07'
+    path = run / 'contention_results.json'
+    old = json.loads(path.read_text())
+    results = json.loads((retained / 'contention_results.json').read_text())
+    results['meta']['driver_sha256'] = old['meta']['driver_sha256']
+    path.write_text(json.dumps(results))
+    (run / 'reset_application.json').write_bytes((retained / 'reset_application.json').read_bytes())
+
+
 @pytest.mark.parametrize('content, passes', ((None, False), ('{}', False),
                                              ('{"restart_READ": {"verdict": "PASS"}, "restart_SELECT": {"verdict": "FAIL"}}', False),
                                              ('{"restart_READ": {"verdict": "no reset applied"}}', False),
-                                             ('{"restart_READ": {"verdict": "PASS"}, "restart_SELECT": {"verdict": "PASS"}}', True)))
+                                             ('{"restart_READ": {"verdict": "PASS"}, "restart_SELECT": {"verdict": "PASS"}}', False)))
 def test_v3_requires_the_revised_reset_contract_for_m10_contention(v3, content, passes):
     """Philip, 2026-10-17: the m10 contention attempt passes only with reset_application.json all PASS."""
     build, _ = v3
@@ -321,7 +357,7 @@ def test_v3_blocks_an_m10_contention_attempt_with_an_unmeasured_committed_path(v
     record = json.loads((run / 'launch_command.json').read_text())
     record['MILESTONE'] = 'm10'
     (run / 'launch_command.json').write_text(json.dumps(record))
-    (run / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    install_complete_reset(run)
     assert ms.summarize_v3(build)['qualification'] == 'model_gate_passed'
     results = run / 'contention_results.json'
     data = json.loads(results.read_text())
@@ -338,7 +374,7 @@ def test_v3_blocks_unmeasured_held_aborts_and_unreadable_results(v3, mutate):
     record = json.loads((run / 'launch_command.json').read_text())
     record['MILESTONE'] = 'm10'
     (run / 'launch_command.json').write_text(json.dumps(record))
-    (run / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    install_complete_reset(run)
     results = run / 'contention_results.json'
     if mutate == 'held_unmeasured':
         data = json.loads(results.read_text())
@@ -395,7 +431,7 @@ def test_v3_blocks_an_unmeasured_held_abort_decided_by_t_passes_and_in_the_abort
         rec = json.loads((contention / 'launch_command.json').read_text())
         rec['MILESTONE'] = 'm10'
         (contention / 'launch_command.json').write_text(json.dumps(rec))
-    (contention / 'reset_application.json').write_text('{"restart_READ": {"verdict": "PASS"}}')
+    install_complete_reset(contention)
     assert ms.summarize_v3(build)['qualification'] == 'model_gate_passed'
     results = next(run.glob('*_results.json'))
     data = json.loads(results.read_text())
@@ -403,3 +439,53 @@ def test_v3_blocks_an_unmeasured_held_abort_decided_by_t_passes_and_in_the_abort
     results.write_text(json.dumps(data))
     s = ms.summarize_v3(build)
     assert s['qualification'] == 'blocked' and any('held abort path not measured' in x for x in s['blocked_reasons'])
+
+
+@pytest.mark.parametrize('tag', ('restart_READ', 'invented'))
+def test_reset_application_singleton_pass_does_not_prove_coverage(tmp_path, tag):
+    (tmp_path / 'reset_application.json').write_text(json.dumps({tag: {'verdict': 'PASS'}}))
+    assert ms._reset_application_problems(tmp_path)
+
+
+def test_successor_profile_cannot_bypass_reset_gate_using_an_older_launch_milestone(v3):
+    build, _ = v3
+    sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
+    (build / 'response_only.inputs.json').write_text(json.dumps(dict(source_sha256=sha, milestone='successor',
+        supported_profile=dict(reset_restart_required=True, t_child_count=1, candidate=dict(source_sha256=sha)))))
+    summary = ms.summarize_v3(build)
+    assert summary['qualification'] == 'blocked'
+    assert any('reset application/results evidence' in p for p in summary['blocked_reasons'])
+    assert any('bound reset postcheck' in p for p in summary['blocked_reasons'])
+
+
+@pytest.mark.parametrize('binding', ('missing', 'mismatched', 'current'))
+def test_every_successor_driver_must_bind_the_executed_supported_profile(v3, binding):
+    build, _ = v3
+    sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
+    inputs = build / 'response_only.inputs.json'
+    inputs.write_text(json.dumps(dict(source_sha256=sha, milestone='successor',
+        supported_profile=dict(reset_restart_required=True, t_child_count=1, candidate=dict(source_sha256=sha)))))
+    digest = hashlib.sha256(inputs.read_bytes()).hexdigest()
+    for launch in build.parent.glob('model_*/launch_command.json'):
+        record = json.loads(launch.read_text())
+        record['supported_profile_sha256'] = digest
+        if launch.parent.name.startswith('model_control_timing_'):
+            if binding == 'missing': record.pop('supported_profile_sha256')
+            elif binding == 'mismatched': record['supported_profile_sha256'] = '0' * 64
+        launch.write_text(json.dumps(record))
+    summary = ms.summarize_v3(build)
+    reasons = [reason for reason in summary['blocked_reasons'] if 'supported_profile_sha256' in reason]
+    assert bool(reasons) is (binding != 'current')
+    if reasons:
+        assert len(reasons) == 1 and reasons[0].startswith('control_timing:')
+
+
+def test_duplicate_json_reset_report_keys_are_rejected(v3):
+    build, _ = v3
+    run = build.parent / 'model_contention_m9_01_01'
+    install_complete_reset(run)
+    path = run / 'reset_application.json'
+    report = json.loads(path.read_text())
+    duplicate = json.dumps('restart_READ') + ':' + json.dumps(report['restart_READ'])
+    path.write_text('{' + duplicate + ',' + path.read_text().lstrip()[1:])
+    assert ms._reset_application_problems(run)

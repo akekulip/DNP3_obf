@@ -1,0 +1,78 @@
+{
+  "status": "implemented and verified",
+  "files": [
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.sh",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_freeze_gate.py"
+  ],
+  "red": [
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py",
+      "result": "7 failed, 8 passed; retained evidence/freeze overwrite, dry-run, warning and concurrent-ID regressions",
+      "log": "/tmp/dnp3-wrapper-red.log"
+    },
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_generation_headroom.py",
+      "result": "5 failed, 16 passed; m10 downgrade and source-bound profile regressions",
+      "log": "/tmp/dnp3-headroom-red.log"
+    },
+    {
+      "result": "4 failed, 40 passed malformed nested profile/dangling root; 1 termination failed; 3 abbreviated identity options failed",
+      "logs": [
+        "/tmp/dnp3-wrapper-edge-red.log",
+        "/tmp/dnp3-wrapper-signal-red.log",
+        "/tmp/dnp3-wrapper-options-red.log"
+      ]
+    },
+    {
+      "result": "Post-entry log failure red; wait failure 2 red against saved pre-fix runner; all4 pass currentrunner",
+      "logs": [
+        "/tmp/dnp3-wrapper-postentry-red.log",
+        "/tmp/dnp3-wrapper-postentry-wait-red.log"
+      ]
+    },
+    {
+      "result": "2 failed for KeyboardInterrupt during post-entry evidence retention or reservation cleanup after failed restore",
+      "log": "/tmp/dnp3-wrapper-retention-red.log"
+    }
+  ],
+  "green": [
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py",
+      "result": "31 passed in 3.11s after final retention/cleanup termination guards"
+    },
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests",
+      "result": "477 passed in 26.79s after all wrapper and CP/schema changes",
+      "log": "/tmp/dnp3-wrapper-schema-final.log"
+    },
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests",
+      "result": "451 passed in 27.84s",
+      "log": "/tmp/dnp3-wrapper-full-final.log"
+    },
+    {
+      "command": "bash -n run_block.sh run_block_frozen.sh",
+      "result": "passed"
+    },
+    {
+      "command": "python3 -m py_compile guarded_block.py candidate_campaign.py",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/",
+      "result": "passed"
+    }
+  ],
+  "hardware": "none; subprocess external effects stubbed in temporary repositories",
+  "notes": [
+    "guarded_block.py is new/untracked and must be staged explicitly",
+    "new candidates derive control timing from source-bound inline supported_profile; legacy registry now includes m10; explicit false contradictions reject",
+    "matched profile reserves read211 operate82 for65READ64SBO; untimed arms preserve lifecycle/margins"
+  ],
+  "remaining_gates": []
+}

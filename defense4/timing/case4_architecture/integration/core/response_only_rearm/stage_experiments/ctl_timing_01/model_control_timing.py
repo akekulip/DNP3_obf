@@ -17,6 +17,7 @@ import importlib.util
 import os
 import select
 import statistics
+import struct
 import sys
 import time
 import traceback
@@ -37,7 +38,9 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 
 
 def main():
-    milestone = os.environ.get('MILESTONE', 'm1')
+    from model_profile import from_env
+    profile = from_env()
+    milestone = profile['milestone']
     if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
         raise SystemExit('unknown MILESTONE %r' % milestone)
     timed = {'READ': True, 'SELECT': milestone in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'),
@@ -423,6 +426,80 @@ def main():
         s += len(native)
         growth += IMAGE_LEN - len(native)
         rst('race')
+        if profile['t_child_count'] == 1:
+            # Use a live epoch and both current lane generations. An invalid child must be refused before
+            # any stateful action, rather than merely arriving with an already stale epoch/generation.
+            reconnect('single_child_ids', 9000, 10000)
+            transaction('READ', 1, rb.READ_OBJECTS, read_body)
+            sbo(104)
+
+            def negative_state():
+                names = {'N': ('owner', 'epoch', 'client', 'server'),
+                         'E': ('epoch', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'),
+                         'T': ('cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 't0_reg', 'op_t0_reg',
+                               'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg', 'ack_seen_reg',
+                               'ack_commit_at_reg', 'ack_commit_gen_reg')}
+                prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
+                result = {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0)
+                                 for name in registers} for role, registers in names.items()}
+                result['T']['outcomes'] = [scalar(m.register_read('p1.t_Ingress.outcomes', i, pipe=1))
+                                            for i in range(25)]
+                return result
+
+            epoch = scalar(m.register_read('p1.t_Ingress.cur_epoch_reg', 0, pipe=1))
+            read_gen = gen()
+            op_gen = scalar(m.register_read('p1.t_Ingress.op_gen_alloc_reg', 0, pipe=1))
+            report.add('single_child_negative_live_epoch_and_generations', True,
+                       0 < epoch < 0x80000000 and 0 < read_gen < 0xffff and 0 < op_gen < 0xffff,
+                       epoch=epoch, read_generation=read_gen, operate_generation=op_gen)
+            probe_native = rb.Sequences().response(0, read_body, 'READ')
+            opaque = vectors.packet(24, s + growth, c, reverse=True, payload=encode61.read61(probe_native))
+            for child in (1, 2, 255):
+                probes = [('response_stage%d' % child, PM.t_in,
+                           struct.pack('!IIIBBH', epoch, 0, 0, 11, child, 0) + opaque)]
+                for role in (14, 15, 16):
+                    op_lane = role in (13, 16)
+                    port = PM.hb_return if op_lane else PM.held_return
+                    generation = op_gen if op_lane else read_gen
+                    budget = epoch if role >= 14 else params['budget']
+                    probes.append(('ladder_role%d_child%d' % (role, child), port,
+                                   struct.pack('!BBHI', role, child, generation & 0xffff, budget) + opaque))
+                for tag, port, frame in probes:
+                    m.drain(ports)
+                    before = negative_state()
+                    got = m.exchange(port, frame, ports, timeout=0.6, quiet=0.1)
+                    after = negative_state()
+                    report.add('single_child_%s_no_output' % tag, 0, sum(map(len, got.values())), received=got)
+                    report.add('single_child_%s_state_unchanged' % tag, before, after)
+            # Completed blockers otherwise stop silently even with an invalid child. Policy-off's TOKEN_OFF
+            # row precedes that silent stop, making each legitimate child-0 blocker a counted positive control.
+            # The invalid-ID copies must still be rejected before that counter (or any other register) changes.
+            params['enabled'] = 0
+            m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
+            for role in (11, 12, 13):
+                port = PM.hb_return if role == 13 else PM.held_return
+                generation = op_gen if role == 13 else read_gen
+                for child in (0, 1, 2, 255):
+                    tag = 'single_child_blocker_role%d_child%d_policy_off' % (role, child)
+                    frame = struct.pack('!BBHI', role, child, generation & 0xffff, params['budget']) + opaque
+                    m.drain(ports)
+                    before = negative_state()
+                    got = m.exchange(port, frame, ports, timeout=0.6, quiet=0.1)
+                    after = negative_state()
+                    report.add(tag + '_no_output', 0, sum(map(len, got.values())), received=got)
+                    expected = {domain: dict(registers) for domain, registers in before.items()}
+                    expected['T']['outcomes'] = list(before['T']['outcomes'])
+                    if child == 0:
+                        i = OUT['TOKEN_OFF']
+                        expected['T']['outcomes'][i] = (expected['T']['outcomes'][i] + 1) & 0xffffffff
+                    report.add(tag + ('_positive_TOKEN_OFF_once' if child == 0 else '_state_unchanged'),
+                               expected, after)
+            params['enabled'] = 1
+            m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
+            report.record['meta']['single_child_negative_ids'] = [1, 2, 255]
+            report.record['meta']['single_child_negative_ladder_roles'] = [11, 12, 13, 14, 15, 16]
+            report.record['meta']['single_child_blocker_positive_control'] = 'policy-off TOKEN_OFF once, child 0'
+            rst('single_child_ids')
         reconnect('t_off', 10000, 11000)              # ISNs increase: N refuses an older SYN as stale
 
         # T disabled: everything passes through untimed and no lane state moves

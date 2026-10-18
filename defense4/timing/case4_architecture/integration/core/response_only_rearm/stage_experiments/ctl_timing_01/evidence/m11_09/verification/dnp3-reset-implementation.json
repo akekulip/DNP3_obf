@@ -1,0 +1,46 @@
+{
+  "status": "implemented_and_targeted_tests_passed",
+  "files": [
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_profile.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_control_timing.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/reset_application_check.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/contention_source.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_supported_profile.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_reset_application_check.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_record_closure.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_model_summary.py"
+  ],
+  "tests": [
+    {
+      "suite": "focused reset/profile/summary/closure/contention rules/committed preconditions",
+      "passed": 139,
+      "duration_s": 12.08
+    },
+    {
+      "suite": "current m11_corrected_01 retry and post-lifecycle duplicate regressions",
+      "passed": 58,
+      "deselected": 111,
+      "duration_s": 16.4
+    }
+  ],
+  "red_evidence": [
+    "singleton PASS accepted before fix (2 failing cases)",
+    "new source profile resolution absent",
+    "missing checker execution binding",
+    "missing driver closure raised before recording failure",
+    "duplicate JSON report keys accepted before fix"
+  ],
+  "integration": [
+    "new inputs supported_profile must inline reset_restart_required:true,t_child_count1|3,candidate.source_sha256 and segment hashes",
+    "run_model --milestone m11 selects current m10 semantics through bound profile",
+    "new contention evidence requires reset_application.dependencies.json and merged checker proof",
+    "historical gates preserved by explicit named source hash registry; historical sources/evidence not modified"
+  ],
+  "remaining": [
+    "full compiled model drivers owned by root",
+    "silicon validation owned by root"
+  ]
+}

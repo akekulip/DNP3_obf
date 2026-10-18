@@ -1,0 +1,145 @@
+{
+  "date_utc": "2026-10-18",
+  "milestone": "compiler_stage_cut",
+  "candidate": "m11_09",
+  "source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8",
+  "source_inputs_sha256": "0959dab1b4887c1453354d176d535dab3279fb5d0fe325eace4598bae65265e6",
+  "supported_profile_sha256": "875813a835adc3a867f3466166ec5eb63e175a1f05e0cf01085e59fc8c8464b1",
+  "baseline": {
+    "build": "m10_03",
+    "source_sha256": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc",
+    "stages": {
+      "N": 12,
+      "E": 12,
+      "T": 11
+    }
+  },
+  "compiles": {
+    "compile_local": {
+      "compiler": "p4c 9.13.1 (SHA: e558d01)",
+      "stages": {
+        "E": 12,
+        "N": 11,
+        "T": 11
+      },
+      "occupied_indices": {
+        "N": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "E": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "T": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "mirror_guard": "PASS select 0: session $tmp4 from H2;select 1: session md.clone_ses from H1;unconditional mirror_type=1: tbl_response_only2444"
+    },
+    "compile_switch_9132": {
+      "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+      "stages": {
+        "E": 12,
+        "N": 11,
+        "T": 11
+      },
+      "occupied_indices": {
+        "N": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "E": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "T": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "mirror_guard": "PASS select 0: session $tmp4 from H2;select 1: session md.clone_ses from H1;unconditional mirror_type=1: tbl_response_only2444"
+    }
+  },
+  "stage_reduction_demonstrated": true,
+  "stage_claim_scope": "Compiler placement only; no hardware timing or final model qualification claimed yet.",
+  "resources": "compiler_comparison.json",
+  "source_validation": "source_validation.json",
+  "model_qualification": "blocked",
+  "model_summary": "model_summary_v3.json",
+  "failed_model_record": "model_driver_stall_01.json",
+  "next_action": "After the isolated staged unit-test/commit gate, execute one documented replacement control_timing run with unchanged source/profile/parameters, then remaining eight model drivers. Retain failed01.",
+  "prepared_configuration_count": 55,
+  "hardware_proposal_block_count": 7,
+  "hardware_status": "NOT_RUN",
+  "physical_relay_used": false,
+  "manuscript_modified": false,
+  "historical_dispositions": {
+    "m10_attempts04_06": "disclosed unresolved; accepted replacement coverage, not reopened",
+    "silicon_restart": "NOT_EXERCISED",
+    "host_precision": "FAIL inherited/unremeasured; egress-parser observation is not physical wire TX",
+    "isolation_cleanup_deadline": "indeterminate/deferred",
+    "reset_contract": "cancel after matching T reset application; N-to-T propagation window disclosed"
+  },
+  "attacker_evaluation": "PREPARED_NOT_RUN",
+  "baseline_part2_freeze": "compatible historical freeze unavailable; no diagnostic override",
+  "denominator_correction": "denominator_correction_20261018.json",
+  "replacement_attempts_executed": 0
+}

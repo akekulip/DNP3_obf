@@ -1,0 +1,17 @@
+{
+  "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_n_relax_crc_stage_m11_02",
+  "probe": "n_relax_crc_stage",
+  "source_sha256": "92beef47e978895083d4c887cd384d0f0294bc84f51c4eba52b1773ccd957220",
+  "segment_sha256": {
+    "N": "b5d63c77107fe78a94df71d3c146492e73fadde68fe54d47da4664fd6ad7a99d",
+    "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+    "T": "7efd3a4667213d0072dfcc3686c8f0f769be2026caf2cba0e910208f73754739"
+  },
+  "hypothesis": "Remove only crc_t's @stage(1) constraint; retain five @stage(2) CRC pins and all data/state order. Other CRC pins may keep guard at3 and disprove a stage-saving outcome; stop rather than broaden.",
+  "source_tests": {
+    "passed": 12,
+    "duration_s": 5.45
+  },
+  "compiler_attempts": 0,
+  "supersedes": "probe_n_relax_crc_stage_m11_01 (withdrawn uncompiled)"
+}

@@ -1,0 +1,156 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__ test_post_entry_termination_never_downgrades_unverified_restore[retention] __
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f72868e1940>
+interrupted_phase = 'retention'
+
+    @pytest.mark.parametrize('interrupted_phase', ['retention', 'reservation_cleanup'])
+    def test_post_entry_termination_never_downgrades_unverified_restore(block_rig, monkeypatch, interrupted_phase):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_post_restore_interrupt', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        monkeypatch.setenv('RESTORE_RC', '1')
+        if interrupted_phase == 'retention':
+            def interrupt_copy(_source, _destination):
+                raise KeyboardInterrupt
+            monkeypatch.setattr(runner, 'copy_new', interrupt_copy)
+        else:
+            original = runner.Path.rmdir
+            def interrupt_cleanup(path):
+                if path.parent.name == 'run_reservations':
+                    raise KeyboardInterrupt
+                return original(path)
+            monkeypatch.setattr(runner.Path, 'rmdir', interrupt_cleanup)
+        try:
+>           status = runner.block('candidate_campaign', cfg, 'unit', [])
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:316: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:153: in block
+    copy_new(plan, root / 'run_block_plan.out')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_source = PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/run_block_unit_afdnfsva/plan.out')
+_destination = PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo/defense4/timing/case4_architecture/runs/unit/run_block_plan.out')
+
+    def interrupt_copy(_source, _destination):
+>       raise KeyboardInterrupt
+E       KeyboardInterrupt
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:306: KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne0/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f72868e1940>
+interrupted_phase = 'retention'
+
+    @pytest.mark.parametrize('interrupted_phase', ['retention', 'reservation_cleanup'])
+    def test_post_entry_termination_never_downgrades_unverified_restore(block_rig, monkeypatch, interrupted_phase):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_post_restore_interrupt', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        monkeypatch.setenv('RESTORE_RC', '1')
+        if interrupted_phase == 'retention':
+            def interrupt_copy(_source, _destination):
+                raise KeyboardInterrupt
+            monkeypatch.setattr(runner, 'copy_new', interrupt_copy)
+        else:
+            original = runner.Path.rmdir
+            def interrupt_cleanup(path):
+                if path.parent.name == 'run_reservations':
+                    raise KeyboardInterrupt
+                return original(path)
+            monkeypatch.setattr(runner.Path, 'rmdir', interrupt_cleanup)
+        try:
+            status = runner.block('candidate_campaign', cfg, 'unit', [])
+        except KeyboardInterrupt:
+>           pytest.fail('post-entry termination escaped the unverified-restore stop status')
+E           Failed: post-entry termination escaped the unverified-restore stop status
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:318: Failed
+_ test_post_entry_termination_never_downgrades_unverified_restore[reservation_cleanup] _
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f728686c0d0>
+interrupted_phase = 'reservation_cleanup'
+
+    @pytest.mark.parametrize('interrupted_phase', ['retention', 'reservation_cleanup'])
+    def test_post_entry_termination_never_downgrades_unverified_restore(block_rig, monkeypatch, interrupted_phase):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_post_restore_interrupt', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        monkeypatch.setenv('RESTORE_RC', '1')
+        if interrupted_phase == 'retention':
+            def interrupt_copy(_source, _destination):
+                raise KeyboardInterrupt
+            monkeypatch.setattr(runner, 'copy_new', interrupt_copy)
+        else:
+            original = runner.Path.rmdir
+            def interrupt_cleanup(path):
+                if path.parent.name == 'run_reservations':
+                    raise KeyboardInterrupt
+                return original(path)
+            monkeypatch.setattr(runner.Path, 'rmdir', interrupt_cleanup)
+        try:
+>           status = runner.block('candidate_campaign', cfg, 'unit', [])
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:316: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py:170: in block
+    reservation.rmdir()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_reservations/root_bc85b9eb4592d9e7a454fd08f9e5e0e0bebdc95060d1fd24317f031bb2500f17')
+
+    def interrupt_cleanup(path):
+        if path.parent.name == 'run_reservations':
+>           raise KeyboardInterrupt
+E           KeyboardInterrupt
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:312: KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+block_rig = (PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo'), PosixPath('/tmp/pytest-of-philip...vidence/rearm_01/hw'), PosixPath('/tmp/pytest-of-philip/pytest-1748/test_post_entry_termination_ne1/repo/config.json'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f728686c0d0>
+interrupted_phase = 'reservation_cleanup'
+
+    @pytest.mark.parametrize('interrupted_phase', ['retention', 'reservation_cleanup'])
+    def test_post_entry_termination_never_downgrades_unverified_restore(block_rig, monkeypatch, interrupted_phase):
+        repo, arch, hw, cfg = block_rig
+        spec = importlib.util.spec_from_file_location('guarded_block_post_restore_interrupt', hw / 'guarded_block.py')
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        monkeypatch.setattr(runner.tempfile, 'tempdir', str(repo.parent))
+        monkeypatch.setenv('RESTORE_RC', '1')
+        if interrupted_phase == 'retention':
+            def interrupt_copy(_source, _destination):
+                raise KeyboardInterrupt
+            monkeypatch.setattr(runner, 'copy_new', interrupt_copy)
+        else:
+            original = runner.Path.rmdir
+            def interrupt_cleanup(path):
+                if path.parent.name == 'run_reservations':
+                    raise KeyboardInterrupt
+                return original(path)
+            monkeypatch.setattr(runner.Path, 'rmdir', interrupt_cleanup)
+        try:
+            status = runner.block('candidate_campaign', cfg, 'unit', [])
+        except KeyboardInterrupt:
+>           pytest.fail('post-entry termination escaped the unverified-restore stop status')
+E           Failed: post-entry termination escaped the unverified-restore stop status
+
+/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py:318: Failed
+=========================== short test summary info ============================
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_termination_never_downgrades_unverified_restore[retention]
+FAILED defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_run_directories.py::test_post_entry_termination_never_downgrades_unverified_restore[reservation_cleanup]
+2 failed, 29 deselected in 0.35s

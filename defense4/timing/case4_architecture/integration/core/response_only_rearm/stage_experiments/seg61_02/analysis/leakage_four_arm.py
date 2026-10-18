@@ -11,8 +11,8 @@ the descriptive held-out-run spread (spread). The extension is only in which arm
   - attacker A (fixed): trained once per fold on baseline traffic of the training runs, then applied unchanged to the
     held-out run of every arm;
   - attacker B (adaptive): retrained per fold on each defended arm's training runs, tested on that arm.
-Folds are leave-one-grouped-run-out. An arm missing from a held-out run is skipped for that fold, and the number of
-folds per arm is reported. Features: CLRT, and request-to-ACK plus CLRT. No interval is reported (campaign_v2's
+Folds are leave-one-grouped-run-out. Main inputs require all four arms and three classes in at least three blocks.
+Features: CLRT, request-to-ACK plus CLRT, observed response TCP-payload octets, and all three together. No interval is reported (campaign_v2's
 rejected estimators stay rejected).
 
 Restricted to baseline and timing_only, the output equals leakage_campaign.py's on the same input
@@ -29,7 +29,9 @@ is exactly what makes the baseline attacker fail.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import csv
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -47,22 +49,109 @@ _spec.loader.exec_module(lc)
 ARMS = ('baseline', 'size_only', 'timing_only', 'combined')
 COMPETENCE_MARGIN = 0.05
 ALIASES = {'native': 'baseline', 'obfuscated': 'timing_only'}
-FEATURES = {'clrt': [1], 'ack_clrt': [0, 1]}
+FEATURES = {'clrt': [1], 'ack_clrt': [0, 1], 'size': [2], 'ack_clrt_size': [0, 1, 2]}
+FEATURE_NAMES = ['ack_ms', 'clrt_ms', 'resp_len']
+
+
+def _check_counts(path, rows):
+    counts_path = Path(str(path) + '.counts.json')
+    if not counts_path.is_file():
+        raise ValueError('main comparison requires the extraction counts sidecar')
+    counts = json.loads(counts_path.read_text())
+    if not isinstance(counts, dict) or counts.get('_problems'):
+        raise ValueError('extraction counts record unresolved input problems')
+    bound = counts.get('_table') or {}
+    digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    if (bound.get('sha256') != hashlib.sha256(Path(path).read_bytes()).hexdigest() or
+            bound.get('rows') != len(rows) or
+            bound.get('exchange_ids_sha256') != digest(sorted(r['exchange_id'] for r in rows)) or
+            bound.get('capture_ids_sha256') != digest(sorted({r['capture_identity'] for r in rows}))):
+        raise ValueError('table digest/count/identities differ from extraction counts')
+    by = Counter((r['run'], r['arm'], r['txn_class']) for r in rows)
+    runs = {r['run'] for r in rows}
+    if {key for key in counts if not key.startswith('_')} != runs:
+        raise ValueError('table blocks differ from extraction counts')
+    for run in runs:
+        first = next(r for r in rows if r['run'] == run)
+        meta = counts[run].get('_metadata', {})
+        if (meta.get('condition') != first['condition'] or meta.get('build_identity') != first['build_identity'] or
+                str(Path(meta.get('block_dir', '')).resolve()) != str(Path(first['block_dir']).resolve())):
+            raise ValueError('table metadata differs from extraction counts')
+        for arm in ARMS:
+            record = counts[run].get(arm, {})
+            total = 0
+            for kind in lc.CLASSES:
+                stat = record.get('classes', {}).get(kind, {})
+                observed = stat.get('observed')
+                if (stat.get('written') != by[run, arm, kind] or observed != stat.get('expected') or
+                        observed != sum(stat.get(key, 0) for key in
+                                        ('written', 'incomplete', 'missing_interval', 'invalid'))):
+                    raise ValueError('table class/request counts differ from extraction counts')
+                total += stat['written']
+            if record.get('written') != total:
+                raise ValueError('table arm counts differ from extraction counts')
 
 
 def load(path):
     runs, arms, cls, feats, labels = [], [], [], [], set()
     with open(path) as f:
-        for r in csv.DictReader(f):
-            arm = ALIASES.get(r['arm'], r['arm'])
-            if arm not in ARMS:
-                raise ValueError('unknown arm %r' % r['arm'])
-            labels.add(r['arm'])
-            runs.append(r['run']); arms.append(arm); cls.append(r['txn_class'])
-            feats.append((float(r['ack_ms']), float(r['clrt_ms'])))
-    if labels & set(ALIASES) and labels & set(ALIASES.values()):
+        rows = list(csv.DictReader(f))
+    labels = {r['arm'] for r in rows}
+    legacy = bool(labels & set(ALIASES))
+    if legacy and labels - set(ALIASES):
         raise ValueError('table mixes campaign_v2 labels and four-arm labels: %s' % sorted(labels))
+    if not legacy:
+        _check_counts(path, rows)
+    identities, captures, blocks, conditions, builds = set(), {}, {}, set(), set()
+    for r in rows:
+        arm = ALIASES.get(r['arm'], r['arm'])
+        if arm not in ARMS:
+            raise ValueError('unknown arm %r' % r['arm'])
+        if not legacy:
+            for key in ('condition', 'build_identity', 'exchange_id', 'capture_identity', 'block_dir', 'trial',
+                        'capture_out_sha256', 'capture_in_sha256'):
+                if not r.get(key):
+                    raise ValueError('main comparison requires %s' % key)
+            if r['exchange_id'] in identities:
+                raise ValueError('duplicate exchange identity %s' % r['exchange_id'])
+            identities.add(r['exchange_id'])
+            capture_group = (r['run'], arm, r['trial'])
+            if captures.setdefault(r['capture_identity'], capture_group) != capture_group:
+                raise ValueError('capture reused across blocks/arms/trials')
+            for key in ('capture_out_sha256', 'capture_in_sha256'):
+                if captures.setdefault(r[key], capture_group) != capture_group:
+                    raise ValueError('capture reused across blocks/arms/trials')
+            block_path = str(Path(r['block_dir']).resolve())
+            if blocks.setdefault(r['run'], block_path) != block_path:
+                raise ValueError('duplicate block name %s' % r['run'])
+            conditions.add(r['condition']); builds.add(r['build_identity'])
+        runs.append(r['run']); arms.append(r['arm']); cls.append(r['txn_class'])
+        values = [float(r['ack_ms']), float(r['clrt_ms'])]
+        if not legacy:
+            values.append(float(r['resp_len']))
+        feats.append(values)
+    if not legacy and (len(conditions) != 1 or len(builds) != 1):
+        raise ValueError('main comparison mixes condition/build metadata')
+    if len(set(blocks.values())) != len(blocks):
+        raise ValueError('duplicate input block path')
     return np.array(runs), np.array(arms), np.array(cls), np.array(feats, dtype=float)
+
+
+def validate(runs, arms, cls, X, legacy):
+    if not len(runs) or not (len(runs) == len(arms) == len(cls) == len(X)):
+        raise ValueError('empty or inconsistent experiment arrays')
+    if X.shape != (len(runs), 2 if legacy else 3) or not np.isfinite(X).all():
+        raise ValueError('invalid or nonfinite observed features')
+    if not legacy and (np.any(X[:, 2] <= 0) or np.any(X[:, 2] != np.floor(X[:, 2]))):
+        raise ValueError('response TCP-payload length must be a positive integer')
+    required_arms = ('baseline', 'timing_only') if legacy else ARMS
+    if set(arms) != set(required_arms) or len(set(runs)) < (2 if legacy else 3):
+        raise ValueError('coverage requires %s and independent blocks' % (required_arms,))
+    for block in sorted(set(runs)):
+        for arm in required_arms:
+            for partition in (runs == block, runs != block):
+                if set(cls[partition & (arms == arm)]) != set(lc.CLASSES):
+                    raise ValueError('coverage: block %s arm %s lacks READ/SELECT/OPERATE in train/test' % (block, arm))
 
 
 def spread(vals):
@@ -104,6 +193,11 @@ def folds(runs, arms, cls, X, idx, present):
 
 
 def analyse(runs, arms, cls, X, seed=lc.SEED):
+    legacy = bool(set(arms) & set(ALIASES))
+    if legacy and set(arms) - set(ALIASES):
+        raise ValueError('mixed legacy and four-arm labels')
+    arms = np.array([ALIASES.get(a, a) for a in arms])
+    validate(runs, arms, cls, X, legacy)
     present = [a for a in ARMS if (arms == a).any()]
     if 'baseline' not in present:
         raise ValueError('the fixed attacker needs baseline traffic')
@@ -111,18 +205,26 @@ def analyse(runs, arms, cls, X, seed=lc.SEED):
     res = dict(seed=seed, arms=present, chance_balanced_accuracy=round(1 / 3, 4), n_folds=len(set(runs)),
                classifier='RandomForest ' + json.dumps(lc.RF), n_permutations=lc.N_PERM,
                method='campaign_v2/repro/leakage_campaign.py estimators, unchanged; arms extended',
+               comparison_scope=('campaign_v2 timing reproduction' if legacy else 'complete paired four-arm comparison'),
                classifier_scope=('results characterise the evaluated Random-Forest attackers and this feature set; '
                                  'they do not generalise to all fingerprinting classifiers'),
-               mutual_information={}, classifiers={}, confusion_all_folds={})
+               mutual_information={}, classifiers={}, confusion_all_folds={}, confusion_support={},
+               mutual_information_scope='marginal CLRT MI only; no joint or size MI is claimed',
+               observable_scope=('ACK latency, CLRT and observed response TCP-payload octets; plaintext DNP3 '
+                                 'function codes remain visible and are outside these features'),
+               coverage={str(r): {a: {k: int(np.sum((runs == r) & (arms == a) & (cls == k)))
+                                     for k in lc.CLASSES} for a in present} for r in sorted(set(runs))})
     for arm in present:                                      # campaign_v2's order: baseline before timing_only
         m = arms == arm
         res['mutual_information'][arm] = lc.mi_block(X[m][:, [1]], cls[m], runs[m], rng)
     for name, idx in FEATURES.items():
+        if legacy and 2 in idx:
+            continue
         a_scores, b_scores, cms, used = folds(runs, arms, cls, X, idx, present)
         base_mean = float(np.mean(a_scores['baseline'])) if a_scores['baseline'] else None
         competent = base_mean is not None and base_mean > 1 / 3 + COMPETENCE_MARGIN
         res['classifiers'][name] = dict(
-            features=[['ack_ms', 'clrt_ms'][i] for i in idx],
+            features=[FEATURE_NAMES[i] for i in idx],
             A_fixed_baseline_trained={'tested_on_' + arm: spread(v) for arm, v in a_scores.items() if v},
             B_adaptive_arm_trained={'tested_on_' + arm: spread(v) for arm, v in b_scores.items() if v},
             folds_per_arm={arm: len(v) for arm, v in a_scores.items()}, folds_used=len(used),
@@ -135,8 +237,11 @@ def analyse(runs, arms, cls, X, seed=lc.SEED):
                                         'leak, so defended arms at chance say nothing about the defense')))
         for (who, arm), cm in cms.items():
             if cm.sum():
-                res['confusion_all_folds']['%s/%s_%s' % (name, who, arm)] = (
-                    cm / cm.sum(axis=1, keepdims=True)).round(4).tolist()
+                tag = '%s/%s_%s' % (name, who, arm)
+                support = cm.sum(axis=1)
+                res['confusion_support'][tag] = support.astype(int).tolist()
+                res['confusion_all_folds'][tag] = [
+                    (row / n).round(4).tolist() if n else None for row, n in zip(cm, support)]
     return res
 
 
@@ -148,11 +253,19 @@ def main(argv=None):
     a = ap.parse_args(argv)
     lc.N_PERM = a.n_perm
     res = analyse(*load(a.transactions))
-    Path(a.out).write_text(json.dumps(res, indent=1) + '\n')
+    res['transactions_sha256'] = hashlib.sha256(Path(a.transactions).read_bytes()).hexdigest()
+    counts_path = Path(a.transactions + '.counts.json')
+    if counts_path.exists():
+        res['extraction_counts'] = json.loads(counts_path.read_text())
+    Path(a.out).write_text(json.dumps(res, indent=1, allow_nan=False) + '\n')
     for arm, d in res['mutual_information'].items():
         print('MI %-11s %.5f bits  null p95 %.5f  p=%.5f' % (arm, d['observed_bits'], d['null_p95_bits'],
                                                             d['p_value_empirical']))
     for name, c in res['classifiers'].items():
+        if not c['competence']['competent']:
+            print('WARNING %s %s' % (name, c['competence']['comparison']))
+        for arm, value in c['adaptive_anomalies'].items():
+            print('WARNING %s adaptive anomaly %s balanced accuracy %s' % (name, arm, value))
         for who in ('A_fixed_baseline_trained', 'B_adaptive_arm_trained'):
             for k, v in c[who].items():
                 print('%-8s %-24s %-22s mean %.4f  [%.4f, %.4f]' % (name, who, k, v['mean'], v['min'], v['max']))

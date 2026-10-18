@@ -39,3 +39,74 @@ def test_records_a_module_loaded_from_cached_bytecode(tmp_path):
     assert list((tmp_path / 'repo' / 'lib' / '__pycache__').glob('by_path*.pyc'))
     rc, record = run(tmp_path)                         # second run imports by_path from its .pyc
     assert rc == 0 and 'lib/by_path.py' in record['files']
+
+
+def test_reset_postcheck_binds_checker_results_log_and_profile_and_preserves_failure(tmp_path):
+    import sys
+    sys.path.insert(0, str(RECORDER.parent))
+    import run_model
+    import model_summary
+    run = tmp_path / 'run'
+    run.mkdir()
+    (run / 'dependency_closure.json').write_text(json.dumps(dict(closure_version='dependency-closure-v1-20261017', files={})))
+    (run / 'contention_results.json').write_text(json.dumps(dict(meta=dict(points=[], sections='all'), cases=[], summary={})))
+    (run / 'model_test.log').write_text('no reset application\n')
+    profile = tmp_path / 'response_only.inputs.json'
+    profile.write_text('{}')
+    assert run_model.check_reset(run, profile) != 0
+    closure = json.loads((run / 'dependency_closure.json').read_text())
+    check = closure['postchecks']['reset_application']
+    assert check['exit_code'] != 0 and set(check['input_sha256']) == {
+        'contention_results.json', 'model_test.log', 'response_only.inputs.json'}
+    assert any(name.endswith('/reset_application_check.py') for name in closure['files'])
+    assert model_summary._postcheck_problems(run, profile)
+
+
+def test_complete_reset_postcheck_execution_is_bound_and_tampering_is_rejected(tmp_path):
+    import sys
+    sys.path.insert(0, str(RECORDER.parent))
+    import run_model
+    import model_summary
+    import reset_application_check as rac
+    run = tmp_path / 'run'
+    run.mkdir()
+    retained = RECORDER.parent / 'evidence/model_contention_m10_03_07/contention_results.json'
+    results = json.loads(retained.read_text())
+    (run / 'contention_results.json').write_text(json.dumps(results))
+    (run / 'dependency_closure.json').write_text(json.dumps(dict(closure_version='dependency-closure-v1-20261017', files={})))
+    lines = []
+    tick = 0
+    for tag in rac.restart_tags(results):
+        point = next(p for p in results['meta']['points'] if p['tag'] == tag)
+        count = sum(point['t_deltas'].get(k, 0) for k in ('RESP_RELEASE', 'RESP_FALLBACK'))
+        pattern = rac.server_seq_pattern(results, tag)
+        for actions in [['release_response_counted']] * count + [['close_epoch', 'live_reset_gen']]:
+            tick += 1
+            prefix = ':10-18 12:00:%02d.000001: :0x1:-:<0,1,0>:' % tick
+            lines.extend([prefix + '========== Ingress Pkt from port 180 (4 bytes) ==========\n',
+                          prefix + 'Packet :\n', prefix + ' '.join(pattern[i:i+2] for i in range(0, 8, 2)) + '\n'])
+            lines.extend(prefix + 'Execute Action: t_Ingress.' + action + '\n' for action in actions)
+    (run / 'model_test.log').write_text(''.join(lines))
+    profile = tmp_path / 'response_only.inputs.json'
+    profile.write_text('{}')
+    assert run_model.check_reset(run, profile) == 0
+    assert model_summary._postcheck_problems(run, profile) == []
+    for path in (profile, run / 'contention_results.json', run / 'model_test.log',
+                 run / 'reset_application.json', run / 'reset_application.dependencies.json'):
+        old = path.read_text()
+        path.write_text(old + ' ')
+        assert model_summary._postcheck_problems(run, profile), path
+        path.write_text(old)
+
+
+def test_missing_driver_closure_remains_a_recorded_failure(tmp_path):
+    import sys
+    sys.path.insert(0, str(RECORDER.parent))
+    import run_model
+    (tmp_path / 'contention_results.json').write_text('{}')
+    (tmp_path / 'model_test.log').write_text('')
+    inputs = tmp_path / 'response_only.inputs.json'
+    inputs.write_text('{}')
+    assert run_model.check_reset(tmp_path, inputs) != 0
+    closure = json.loads((tmp_path / 'dependency_closure.json').read_text())
+    assert closure.get('closure_version') is None and closure['error']

@@ -47,6 +47,7 @@ def attempts(build):
         yield dict(run=path.name, driver=match['driver'], attempt=int(match['n']),
                    source_sha256=record.get('source_sha256'), driver_sha256=record.get('driver_sha256'),
                    milestone=record.get('MILESTONE'), pb_injected=record.get('pb_injected'),
+                   supported_profile_sha256=record.get('supported_profile_sha256'),
                    exit_code=record.get('exit_code'), passed=summary.get('passed'), total=summary.get('total'),
                    failed=summary.get('failed', []), unresolved_failure_notes=failures,
                    results_files=[r.name for r in results])
@@ -255,18 +256,56 @@ def _closure_problems(build, r):
 
 
 def _reset_application_problems(run_dir):
-    """m10 contention: the revised reset contract (Philip, 2026-10-17; reset_application_check.py) must PASS for
-    every restart point, from the run's retained reset_application.json. Missing, unreadable or any other verdict
-    (FAIL, 'no reset applied') blocks."""
-    path = run_dir / 'reset_application.json'
+    """The report must cover the complete executed reset experiment, with consistent measured attribution."""
+    import reset_application_check
+    run_dir = Path(run_dir)
     try:
-        result = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return ['no readable reset_application.json (revised reset contract unchecked)']
-    if not result:
-        return ['reset_application.json is empty']
-    return ['revised reset contract %s: %s' % (tag, v.get('verdict')) for tag, v in sorted(result.items())
-            if v.get('verdict') != 'PASS']
+        result = reset_application_check.load_json(run_dir / 'reset_application.json')
+        files = list(run_dir.glob('*_results.json'))
+        if len(files) != 1:
+            return ['expected one reset results file, found %d' % len(files)]
+        results = reset_application_check.load_json(files[0])
+    except (OSError, ValueError, TypeError) as error:
+        return ['no readable reset application/results evidence (%s)' % error]
+    return reset_application_check.coverage_problems(results, result)
+
+
+def _postcheck_problems(run_dir, inputs_path):
+    """Bind the reset checker's executed dependency closure, input evidence, output and exit status."""
+    import record_closure
+    run_dir = Path(run_dir)
+    try:
+        closure = json.loads((run_dir / 'dependency_closure.json').read_text())
+        check = closure['postchecks']['reset_application']
+        expected = {'reset_application.json': check['report_sha256'],
+                    'reset_application.dependencies.json': check['dependency_closure_sha256']}
+        for name, sha in expected.items():
+            if _sha(run_dir / name) != sha:
+                return ['reset postcheck output/dependency closure changed: %s' % name]
+        recorded = check['input_sha256']
+        inputs = list(run_dir.glob('*_results.json')) + list(run_dir.glob('model_*.log'))
+        if len(inputs) != 2 or len(list(run_dir.glob('*_results.json'))) != 1:
+            return ['reset postcheck needs exactly one results file and one model log']
+        expected_inputs = {p.name: _sha(p) for p in inputs}
+        expected_inputs['response_only.inputs.json'] = _sha(inputs_path)
+        if recorded != expected_inputs:
+            return ['reset postcheck does not bind its results, model log and build profile']
+        if check['exit_code'] != 0:
+            return ['reset postcheck did not pass (exit %r)' % check['exit_code']]
+        checked = json.loads((run_dir / 'reset_application.dependencies.json').read_text())
+        checker = HERE / 'reset_application_check.py'
+        if Path(check['checker']).resolve() != checker.resolve():
+            return ['reset postcheck ran a different checker']
+        checker_rel = str(checker.resolve().relative_to(REPO))
+        if (checked.get('closure_version') != record_closure.CLOSURE_VERSION or
+                checked.get('target') != checker_rel or checked.get('target_sha256') != _sha(checker) or
+                checked.get('files', {}).get(checker_rel) != _sha(checker)):
+            return ['reset postcheck lacks the current executed checker']
+        if any(closure.get('files', {}).get(k) != v for k, v in checked.get('files', {}).items()):
+            return ['reset postcheck dependency files are absent from the bound closure']
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return ['missing/malformed bound reset postcheck evidence (%s)' % error]
+    return []
 
 
 def _unmeasured_points(run_dir):
@@ -307,13 +346,36 @@ def summarize_v3(build):
     build = Path(build).resolve()
     reasons = list(base['blocked_reasons'])
     limitations = []
+    inputs_path = build / 'response_only.inputs.json'
+    import model_profile
+    profile = None
+    has_inputs = inputs_path.is_file()
+    if has_inputs:
+        try:
+            profile = model_profile.resolve(json.loads(inputs_path.read_text()), build / 'response_only.p4')
+        except (OSError, ValueError, TypeError) as error:
+            reasons.append('unsupported or inconsistent build profile: %s' % error)
     for driver, run in sorted(base['latest_by_driver'].items()):
         r = next(x for x in base['runs'] if x['run'] == run)
         problems = _closure_problems(build, r)
-        if driver == 'contention' and r.get('milestone') == 'm10':
+        run_profile = profile
+        if not has_inputs:
+            try:
+                # Missing inputs can only select a retained historical source by its verified hash.
+                run_profile = model_profile.resolve({'source_sha256': base['source_sha256']},
+                    build / 'response_only.p4', r.get('milestone'))
+            except (OSError, ValueError, TypeError) as error:
+                problems.append('unsupported source/profile without build inputs: %s' % error)
+        reset_required = bool(run_profile and run_profile['reset_restart_required'])
+        if run_profile and not run_profile.get('historical_build') and \
+                r.get('supported_profile_sha256') != _sha(inputs_path):
+            problems.append('launch supported_profile_sha256 does not bind the current build inputs')
+        if driver == 'contention' and reset_required:
             problems += _reset_application_problems(build.parent / run)
+            if not run_profile.get('historical_build'):
+                problems += _postcheck_problems(build.parent / run, inputs_path)
             problems += _unmeasured_points(build.parent / run)
-        elif driver == 'abort' and r.get('milestone') == 'm10':
+        elif driver == 'abort' and reset_required:
             problems += _unmeasured_points(build.parent / run)
         r['dependency_problems'] = problems
         for p in problems:

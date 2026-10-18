@@ -1,0 +1,63 @@
+{
+  "candidate_source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8",
+  "generator_sha256": "8516ecb311c79295ee85b6eecab39493630cdc67e34b1800e82c5f8c297c1f00",
+  "status": "source_tests_passed",
+  "validations": [
+    {
+      "log": "verification/dnp3-final09-source.log",
+      "sha256": "7562208ac908470944e335d33794a18d3a6eefe36bc8fb35f8b4b3d0b3dcc672",
+      "passed": 53,
+      "note": "Exact final09 source: contention, stale retry, reset, and budget paths."
+    },
+    {
+      "log": "verification/dnp3-stagecut-current-tests.log",
+      "sha256": "774a4c2ae73ec7c6a224d0520b33421a1416874da6971b1744330084f592ade6",
+      "passed": 154,
+      "note": "Current T and N structural-probe tests, including row priorities, counters, wrap, mutually exclusive paths, and unreachable-key projection."
+    },
+    {
+      "log": "verification/dnp3-n-tail-parallel-green.log",
+      "sha256": "7650c1a8d4251b503ad1950c01d73a311240d2ed919b3db873682116bc2b516d",
+      "passed": 20,
+      "note": "N counter/table correction after its 11-failure missing-transform regression."
+    }
+  ],
+  "independent_precompile_review": {
+    "N_parallel_counter": "APPROVED",
+    "T_selected_single_child": "APPROVED_previously_and_unchanged_from_m11_05",
+    "T_final_probe": "APPROVED_source_but_not_selected"
+  },
+  "terminal_summary_evidence": {
+    "note": "These are captured agent terminal summaries, not archived raw test logs.",
+    "T_fusion": {
+      "red_failed": 1,
+      "focused_passed": 77,
+      "broad_passed": 231
+    },
+    "T_exclusive": {
+      "red_failed": 1,
+      "corrected_seen0_vector_passed": 52,
+      "broad_passed": 283
+    },
+    "T_held_keys": {
+      "red_failed": 1,
+      "focused_passed": 5,
+      "broad_passed": 288
+    }
+  },
+  "target_model_qualification": "Recorded separately in final model_summary_v3.json and checkpoint.json; source tests do not establish timing or hardware correctness.",
+  "integrated_unit_evidence": {
+    "python": "3.8.10",
+    "main_log": "verification/dnp3-full-py38.log",
+    "main_passed": 2133,
+    "environment_failures": 4,
+    "environment_failure": "restricted loopback socket creation EPERM before traffic",
+    "replacement_log": "verification/dnp3-loopback-system38.log",
+    "replacement_passed": 5,
+    "distinct_passing_cases": 2137,
+    "skipped": 1,
+    "skip_reason": "canonical leakage parity test is opt-in and was separately exercised earlier",
+    "latest_structural_tests": "verification/dnp3-stagecut-current-tests.log",
+    "clean_staged_commit_gate": "pending; enforced by existing gated_commit.sh"
+  }
+}

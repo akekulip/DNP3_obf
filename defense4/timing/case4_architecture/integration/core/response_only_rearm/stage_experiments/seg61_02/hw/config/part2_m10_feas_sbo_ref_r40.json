@@ -172,7 +172,7 @@
     "cap": 40000000,
     "gap": 950000,
     "op_j": 2400000,
-    "pb": 2950000
+    "pb": 4000000
   },
   "service": {
     "k": 2,
@@ -259,7 +259,7 @@
     "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected."
   },
   "trials": {
-    "reads_per_trial": 17,
+    "reads_per_trial": 21,
     "trials_per_arm": 1
   },
   "paired_blocks": {},
@@ -277,7 +277,7 @@
     "read_pause_ms": 25,
     "run_sbo": true,
     "close_grace_ms": 0,
-    "sbo_cycles": 16
+    "sbo_cycles": 20
   },
   "loss": {
     "inject": false,

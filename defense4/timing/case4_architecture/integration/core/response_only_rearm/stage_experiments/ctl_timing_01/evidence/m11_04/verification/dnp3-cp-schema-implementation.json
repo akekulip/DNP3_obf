@@ -1,0 +1,58 @@
+{
+  "status": "implemented and verified",
+  "files": [
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/bringup_composite.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_dup.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py",
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests/test_sealed_profile.py"
+  ],
+  "red": [
+    {
+      "result": "6 failed, 14 passed schema selector/snapshot regressions",
+      "log": "/tmp/dnp3-schema-red.log"
+    },
+    {
+      "result": "2 failed, 2 passed real model snapshot function child-count regression",
+      "log": "/tmp/dnp3-model-schema-red.log"
+    },
+    {
+      "result": "1 failed deployed metadata regression",
+      "log": "/tmp/dnp3-profile-deploy-red.log"
+    },
+    {
+      "result": "2 failed malformed required profile fields",
+      "log": "/tmp/dnp3-schema-fields-red.log"
+    }
+  ],
+  "green": [
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests",
+      "result": "477 passed in 26.79s after all wrapper and CP/schema changes",
+      "log": "/tmp/dnp3-wrapper-schema-final.log"
+    },
+    {
+      "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tests",
+      "result": "473 passed in 26.49s before final post-entry wrapper fix",
+      "log": "/tmp/dnp3-schema-full-green.log"
+    },
+    {
+      "result": "py_compile and scoped git diff --check passed"
+    }
+  ],
+  "integration_requirements": [
+    "Finalize both compile artifact pin maps in inline supported_profile before models; each map contains all compile manifest artifact_sha256 entries plus response_only.p4pp.",
+    "Keep candidate.source_sha256, inputs.source_sha256 and exact response_only.p4 digest equal; optional per-build supported_profile.json must equal inline profile.",
+    "Model rearm/dup now load sealed_profile.py on actual compiled model snapshot path; dependency closure must include this module.",
+    "Remote runtime copies only existing source/inputs/profile and selected compile manifest under deployed out_<build>/profile; no artifact or pin bypass."
+  ],
+  "known_gaps": [
+    "Selected-candidate compiled-model and hardware checks remain parent-owned; no physical hardware used by this slice."
+  ],
+  "notes": [
+    "Legacy static PROFILES is unchanged; select() still returns boolean. describe() adds strict child count and source/artifact binding.",
+    "Installer rebuilds sealed reset map from original on every configure, restoring 3-bank initialization after 1-bank configure.",
+    "snapshot_counters.py already follows installer readback map; baseline readback.py needs no changes."
+  ]
+}

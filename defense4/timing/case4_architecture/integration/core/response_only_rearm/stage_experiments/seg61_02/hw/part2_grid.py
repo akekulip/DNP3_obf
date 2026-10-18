@@ -16,8 +16,9 @@ Checks (`check`):
      The ACK commits only once a response child has been seen; for OPERATE the command is first held for J, so its
      ACK commits at max(da, J + L) after t0 (code review H1; m9 combined: OPERATE ACK median 7.9 ms against 5.5 ms
      for READ/SELECT). Below the relation the readiness fallback releases the response before a_commit + gap, so the
-     condition would not measure D. L = the config's fixture delay (fixture.delay_ms), SLACK = 5 ms (lap and shaping
-     granularity, a stated margin, not a measured bound). This is a new check, never a loosened one;
+     condition would not measure D. L = the config's injected fixture delay (fixture.delay_ms), SLACK = 5 ms (lap and
+     shaping granularity, a stated margin, not a measured bound). This screens nominal settings; qualification still
+     inspects observed admission/commit/fallback outcomes and generation headroom;
   3. the fixture delay is the grid's one L (5 ms) in every Part 2 config (code review C1: the rotation templates carry
      5/3/8 ms by block, which under leave-one-block-out hides even the undefended baseline's leak).
 `normalizes` states, per condition, whether request->ACK is NOMINALLY normalized for each kind: READ/SELECT need
@@ -26,16 +27,17 @@ median of about 5.45 ms, above da = 5 ms; lap and shaping overhead are not model
 """
 import json
 import sys
+from pathlib import Path
 
 MS = 1_000_000
 FIXTURE_L_NS = 5 * MS
 SLACK_NS = 5 * MS
 OP_J_NS = 2_400_000                       # J, fixed across the grid (the qualified value)
-READINESS_NS = 40 * MS                    # fixed for every condition, the reference included
+READINESS_NS = 40 * MS                    # sweep/readiness reference; the supported reference retains 30 ms
 CAP_NS = 40 * MS
 
-# (name, da, gap, readiness): pb = da + gap for each (piggyback request->response comparable to separate-ACK
-# request->response)
+# References retain the supported pb. Nonreference sweeps couple pb = da + gap;
+# these measure that joint policy, rather than an isolated change in da or gap.
 CONDITIONS = (
     ('ref_r30', 2 * MS, 950_000, 30 * MS),        # the qualified setting, unchanged (readiness 30 ms)
     ('ref_r40', 2 * MS, 950_000, READINESS_NS),   # the same at the grid's readiness, to expose the readiness confound
@@ -51,7 +53,11 @@ CONDITIONS = (
 
 
 def params(da, gap, readiness):
-    return dict(da=da, gap=gap, readiness=readiness, cap=max(CAP_NS, readiness), pb=da + gap, op_j=OP_J_NS)
+    profile = json.loads((Path(__file__).resolve().parents[2] / 'ctl_timing_01' / 'supported_profile.json').read_text())
+    supported = profile['timing_ns']
+    reference = da == supported['da'] and gap == supported['D_release_budget']
+    return dict(da=da, gap=gap, readiness=readiness, cap=max(CAP_NS, readiness),
+                pb=supported['pb_piggyback_bound'] if reference else da + gap, op_j=OP_J_NS)
 
 
 def t_units(ns):

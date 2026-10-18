@@ -61,12 +61,15 @@ installer.build_ports = SimpleNamespace(read=candidate_ports,
 profile = module('rearm_sealed_profile', HERE / 'sealed_profile.py')
 original_readback = installer.readback
 sealed_readback = module('rearm_sealed_readback', BASE / 'hw' / 'readback.py')
-sealed_readback.T_REGISTER_INIT = dict(original_readback.T_REGISTER_INIT)
-del sealed_readback.T_REGISTER_INIT['quarantine_reg']
 
 
 def configure(build_out):
-    sealed = profile.select(build_out)
+    descriptor = profile.describe(build_out)
+    sealed = descriptor['sealed']
+    # Rebuild from the original map so a later three-bank install restores all banks.
+    sealed_readback.T_REGISTER_INIT = {name: value for name, value in original_readback.T_REGISTER_INIT.items()
+                                      if name != 'quarantine_reg' and
+                                      (not name.startswith('child_seen') or name in profile.child_registers(descriptor))}
     installer.readback = sealed_readback if sealed else original_readback
     return sealed
 

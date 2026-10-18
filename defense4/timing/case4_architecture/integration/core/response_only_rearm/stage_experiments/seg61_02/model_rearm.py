@@ -27,6 +27,7 @@ def load(name, path):
 
 helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
 cp = load('_protected_model_cp', HERE / 'cp.py')
+sealed_profile = load('_rearm_model_profile', HERE / 'hw/sealed_profile.py')
 Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
 vectors, rs, scalar = helpers.vectors, helpers.rs, helpers.scalar
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "seg61_01"))
@@ -43,6 +44,8 @@ def main():
                     scope='E61 compiled protected reconnect; actual N/E/T; all 61 reverse distances and stale isolation',
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     try:
+        child_regs = sealed_profile.child_registers(sealed_profile.describe(
+            Path(os.environ['PORT_MAP']).parent / 'compile_local/out'))
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
         m.enable_ports(ports + helpers.FRONT_LOOPS)
@@ -86,8 +89,7 @@ def main():
                          'E': ('epoch', 'master_isn', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'),
                          'T': ('cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg',
                                't0_reg', 'op_t0_reg', 'ack_done_reg', 'resp_done_reg', 'op_done_reg')}
-            registers['T'] += ('child_seen0_reg', 'child_seen1_reg', 'child_seen2_reg',
-                               'ack_commit_at_reg', 'ack_commit_gen_reg')
+            registers['T'] += child_regs + ('ack_commit_at_reg', 'ack_commit_gen_reg')
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
                     for role, names in registers.items()}

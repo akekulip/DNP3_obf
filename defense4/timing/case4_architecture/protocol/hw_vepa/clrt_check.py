@@ -36,10 +36,12 @@ TCP pseudo-header placeholder, which is not corruption and does not affect the D
 are checksum-validated.
 """
 import argparse
+import hashlib
 import json
 import os
 import statistics
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wire_check as wc  # noqa: E402
@@ -101,7 +103,7 @@ def exchanges(out_path, in_path):
     back = sorted([s for s in in_segs if s['src'] != MASTER_IP], key=lambda s: (s['t_us'], s['index']))
     rows = []
     for lr in _master_requests(out_segs):
-        t_ack = t_resp = resp_len = None
+        t_ack = t_resp = resp_len = response_index = None
         piggy = False
         resp_crc_ok = None
         for b in back:
@@ -114,9 +116,14 @@ def exchanges(out_path, in_path):
                        func_of(b['payload']) in RESPONSE_FUNCS and app_seq(b['payload']) == lr['app_seq'])
             if is_resp and covers:
                 t_resp, resp_len = b['t_us'], b['len']
+                response_index = b['index']
                 resp_crc_ok = wc.dnp3_ok(b['payload'])[0]
                 break
+        request_key = {k: lr[k] for k in ('flow', 'inc', 'seq', 'func')}
+        exchange_id = hashlib.sha256(json.dumps(request_key, sort_keys=True).encode()).hexdigest()
         row = {'kind': lr['kind'], 'app_seq': lr['app_seq'], 't_req': lr['t_req'],
+               'request_key': request_key, 'exchange_id': exchange_id,
+               'request_packet_index': lr['attempts'][0]['index'], 'response_packet_index': response_index,
                'attempts': len(lr['attempts']), 'retransmitted': len(lr['attempts']) > 1,
                'req_crc_ok': lr['dnp3_crc_ok'], 'complete': t_resp is not None, 'piggyback': piggy,
                'resp_crc_ok': resp_crc_ok, 'resp_len': resp_len}
@@ -153,6 +160,9 @@ def summarize(rows):
 def analyze(out_path, in_path):
     rows = exchanges(out_path, in_path)
     return {'sd_convention': SD_CONVENTION,
+            'capture_sha256': {name: hashlib.sha256(Path(path).read_bytes()).hexdigest()
+                               for name, path in (('out', out_path), ('in', in_path))},
+            'extractor_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
                     'timestamps are integer microseconds at the capture resolution',
             'summary': summarize(rows), 'exchanges': rows}

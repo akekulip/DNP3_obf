@@ -1,6 +1,7 @@
 """Pinned sealed-epoch profile; sparse counters retain the original stale sum."""
 import hashlib
 import json
+import re
 from pathlib import Path
 
 # Actual complete compiler artifacts, not a register-size heuristic.
@@ -79,7 +80,7 @@ PROFILES = {
 }
 
 
-def select(build_out):
+def _legacy_select(build_out):
     out = Path(build_out)
     raw = (out/'bfrt.json').read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
@@ -93,6 +94,101 @@ def select(build_out):
         return False
     raise ValueError('unsupported candidate epoch/counter profile')
 
+
+
+def child_registers(descriptor):
+    count = descriptor.get('t_child_count')
+    if type(count) is not int or count not in (1, 3):
+        raise ValueError('unsupported T child count')
+    return tuple('child_seen%d_reg' % index for index in range(count))
+
+
+def _source_profile(out):
+    """Locate unchanged build metadata locally or in the deployed out/profile copy."""
+    if (out / 'profile').is_dir():
+        directory = out / 'profile'
+        names = [name for name in ('compile_local', 'compile_switch_9132')
+                 if (directory / name / 'manifest.json').is_file()]
+        if len(names) != 1:
+            raise ValueError('deployed profile requires one selected compile manifest')
+        compile_name = names[0]
+    else:
+        directory, compile_name = out.parent.parent, out.parent.name
+    inputs_path = directory / 'response_only.inputs.json'
+    if not inputs_path.is_file():
+        if directory == out / 'profile':
+            raise ValueError('deployed supported profile inputs are missing')
+        return None
+    inputs = json.loads(inputs_path.read_text())
+    if not isinstance(inputs, dict):
+        raise ValueError('supported profile inputs must be an object')
+    supported = inputs.get('supported_profile')
+    if supported is None:
+        return None
+    if not isinstance(supported, dict) or supported.get('reset_restart_required') is not True:
+        raise ValueError('successor supported profile must require reset restart coverage')
+    child_registers(supported)
+    candidate = supported.get('candidate')
+    if not isinstance(candidate, dict):
+        raise ValueError('supported profile candidate identity is missing')
+    source = directory / 'response_only.p4'
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    if inputs.get('source_sha256') != digest or candidate.get('source_sha256') != digest:
+        raise ValueError('supported profile source/input hashes differ')
+    separate = directory / 'supported_profile.json'
+    if separate.is_file() and json.loads(separate.read_text()) != supported:
+        raise ValueError('supported profile file differs from its build inputs')
+    compiles = candidate.get('artifact_sha256')
+    if not isinstance(compiles, dict):
+        raise ValueError('supported profile requires artifact hashes for both SDK compiles')
+    required = {'bfrt.json', 'response_only.p4pp', 'p0/context.json', 'p1/context.json',
+                'p0/tofino.bin', 'p1/tofino.bin'}
+    for name in ('compile_local', 'compile_switch_9132'):
+        pins = compiles.get(name)
+        if not isinstance(pins, dict) or not required.issubset(pins) or \
+                any(not isinstance(value, str) or re.fullmatch('[0-9a-f]{64}', value) is None
+                    for value in pins.values()):
+            raise ValueError('supported profile requires complete artifact hashes for both SDK compiles')
+    if compile_name not in compiles:
+        raise ValueError('unsupported selected SDK compile')
+    manifest = json.loads((directory / compile_name / 'manifest.json').read_text())
+    if manifest.get('source_sha256') != digest or manifest.get('exit_code') != 0:
+        raise ValueError('compile manifest does not bind a successful build of this source')
+    pins = compiles[compile_name]
+    artifacts = manifest.get('artifact_sha256')
+    if not isinstance(artifacts, dict) or not artifacts or \
+            any(pins.get(name) != value for name, value in artifacts.items()):
+        raise ValueError('compile manifest artifact hashes differ from the supported profile')
+    for name, expected in pins.items():
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('invalid supported profile artifact path')
+        path = out / relative
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError('supported profile artifact differs or is missing: ' + name)
+    return dict(sealed=True, t_child_count=supported['t_child_count'], source_sha256=digest,
+                compile_name=compile_name)
+
+
+def describe(build_out):
+    """Select a source/artifact-bound T schema; historical pins remain unchanged."""
+    out = Path(build_out)
+    descriptor = _source_profile(out)
+    if descriptor is None:
+        descriptor = dict(sealed=_legacy_select(out), t_child_count=3)
+    tables = json.loads((out / 'bfrt.json').read_bytes())['tables']
+    observed = {item['name'] for item in tables
+                if re.fullmatch(r'p1\.t_Ingress\.child_seen[0-9]+_reg', item['name'])}
+    expected = {'p1.t_Ingress.' + name for name in child_registers(descriptor)}
+    if observed != expected:
+        raise ValueError('compiled T child banks differ from the selected profile: expected %s, observed %s'
+                         % (sorted(expected), sorted(observed)))
+    return descriptor
+
+
+def select(build_out):
+    """Compatibility wrapper for callers that only need the sealed-layout boolean."""
+    return describe(build_out)['sealed']
 
 def read_diagnostics(read_outcome, outcomes, expected=False):
     blocker = outcomes.get('OUT_TOKEN_STALE')

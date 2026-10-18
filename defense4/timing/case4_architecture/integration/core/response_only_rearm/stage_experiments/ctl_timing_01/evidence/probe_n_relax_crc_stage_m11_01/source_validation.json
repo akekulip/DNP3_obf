@@ -1,0 +1,19 @@
+{
+  "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_n_relax_crc_stage_m11_01",
+  "probe": "n_relax_crc_stage",
+  "source_sha256": "2ad32b9f4add947c8469b74e549b21c8cd86535ec6ae4edd0082e92beec3519a",
+  "segment_sha256": {
+    "N": "9c4b2cf6273431cee8966bd8a05c0b3781bb9284f460fe98f943d16f0de7a43d",
+    "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+    "T": "7efd3a4667213d0072dfcc3686c8f0f769be2026caf2cba0e910208f73754739"
+  },
+  "hypothesis": "Six pure CRC table @stage pins constrain CRC outputs to stages 1/2 before guard3/work4; release pins only and let compiler preserve every data/state dependency.",
+  "source_tests": {
+    "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_structural_efficiency.py",
+    "passed": 12,
+    "duration_s": 5.75
+  },
+  "compiler_attempts": 0,
+  "status": "withdrawn_uncompiled",
+  "reason": "Removed six stage pins in one variant; superseded by a one-constraint probe."
+}

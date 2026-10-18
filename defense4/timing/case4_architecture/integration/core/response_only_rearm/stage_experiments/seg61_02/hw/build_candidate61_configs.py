@@ -1,5 +1,7 @@
 import copy
+import argparse
 import hashlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -66,6 +68,84 @@ def compile_identity(root, rel_manifest='compile_switch_9132/manifest.json', rel
         'manifest': str((root / rel_manifest).relative_to(ROOT)),
         'out_dir': str((root / rel_out).relative_to(ROOT)),
     }
+
+
+def successor_configs(build, output):
+    """Derive the existing prepared workloads against an explicitly selected verified build."""
+    build, output = Path(build).resolve(), Path(output).resolve()
+    here = Path(__file__).resolve().parent
+    architecture = Path(__file__).resolve().parents[6]
+    def reference(path):
+        try:
+            return str(path.relative_to(architecture))
+        except ValueError:
+            return str(path)
+    spec = importlib.util.spec_from_file_location('successor_sealed_profile', here.parents[2] / 'hw/sealed_profile.py')
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    for name in ('compile_local', 'compile_switch_9132'):
+        schema.describe(build / name / 'out')
+    inputs = load_json(build / 'response_only.inputs.json')
+    profile_path = build / 'supported_profile.json'
+    profile = load_json(profile_path)
+    if profile != inputs.get('supported_profile'):
+        raise ValueError('successor supported profile differs from build inputs')
+    selected = build / 'compile_switch_9132'
+    manifest = load_json(selected / 'manifest.json')
+    identity_record = dict(sdk='9.13.2', status='compiled', compiler=manifest['compiler'],
+        source_sha256=inputs['source_sha256'], manifest_sha256=sha(selected / 'manifest.json'),
+        bfrt_json_sha256=sha(selected / 'out/bfrt.json'), p4pp_sha256=sha(selected / 'out/response_only.p4pp'),
+        artifact_sha256={key: manifest['artifact_sha256'][key] for key in BUILD_HASHED},
+        manifest=reference(selected / 'manifest.json'), out_dir=reference(selected / 'out'))
+    templates = sorted((here / 'config').glob('part2_m10_*.json')) + [here / 'config' / ('ctl_m10_' + suffix + '.json')
+        for suffix in ('persistence_graceful_950', 'persistence_rst_950', 'loss_core_950', 'reconnect_950',
+                       'held_operate_350')]
+    if len(templates) != 55:
+        raise ValueError('successor preparation requires the existing 50 Part2 and five recovery templates')
+    prepared, bindings = {}, {}
+    name = 'ctl_timing_' + build.name
+    for template in templates:
+        data = load_json(template)
+        if len(data['builds']) != 1:
+            raise ValueError('prepared template must select one build: ' + str(template))
+        selected_build = copy.deepcopy(next(iter(data['builds'].values())))
+        selected_build.update(source_sha256=inputs['source_sha256'], manifest=identity_record['manifest'],
+                              out_dir=identity_record['out_dir'], hashes=identity_record['artifact_sha256'],
+                              _note='Prepared successor %s; exact-candidate model gates and freeze required.' % build.name)
+        data['builds'] = {name: selected_build}
+        for arm in data['arms']:
+            arm['build'] = name
+        label = data['evaluation'].get('candidate61_label')
+        if isinstance(label, str) and label.startswith('m10'):
+            data['evaluation']['candidate61_label'] = build.name + label[3:]
+        data['ctl_timing_identity'] = dict(source_sha256=inputs['source_sha256'],
+            switch_compile=identity_record, design=reference(here.parents[1] / 'ctl_timing_01/efficiency_candidates.py'),
+            supported_profile=reference(profile_path), supported_profile_sha256=sha(profile_path))
+        filename = template.name.replace('m10', build.name, 1)
+        prepared[filename] = json.dumps(data, indent=2) + '\n'
+        bindings[filename] = dict(template=template.name, template_sha256=sha(template),
+                                 sha256=hashlib.sha256(prepared[filename].encode()).hexdigest())
+    output.mkdir(parents=True, exist_ok=False)
+    for filename, content in prepared.items():
+        (output / filename).write_text(content)
+    record = dict(build=reference(build), source_sha256=inputs['source_sha256'],
+        supported_profile_sha256=sha(profile_path), inputs_sha256=sha(build / 'response_only.inputs.json'),
+        compile_manifests={name: sha(build / name / 'manifest.json')
+                           for name in ('compile_local', 'compile_switch_9132')},
+        qualification='pending exact-candidate model gates and freeze', configs=bindings)
+    (output / 'prepared_configs.json').write_text(json.dumps(record, indent=2) + '\n')
+    return record
+
+
+if any(argument.startswith('--successor-') for argument in sys.argv[1:]):
+    parser = argparse.ArgumentParser(description='Prepare unchanged Part2/recovery workloads for a selected successor.',
+                                     allow_abbrev=False)
+    parser.add_argument('--successor-build', required=True)
+    parser.add_argument('--successor-output', required=True)
+    arguments = parser.parse_args()
+    result = successor_configs(arguments.successor_build, arguments.successor_output)
+    print(json.dumps(dict(source_sha256=result['source_sha256'], configs=len(result['configs']))))
+    sys.exit(0)
 
 
 def latest_model_reports():
@@ -702,16 +782,17 @@ for i, (cond, da, gap, readiness) in enumerate(part2_grid.CONDITIONS):
         write('part2_m10_%s_b%d.json' % (cond, block), data)
     feas_read = m10(transform(load('candidate57s_graceful_800.json'), purpose={'purpose': 'timing_precision_characterization',
         'read_precision': True, 'candidate61_label': 'm10_part2_feas_read_%s' % cond}, arms=['combined'], reads=20,
-        trials=1, gap=gap, readiness=readiness, port_first=base + 4, port_last=base + 4, **M10B), pb=timing['pb'])
+        trials=1, gap=gap, readiness=readiness, port_first=base + 4, port_last=base + 4, run_sbo=False,
+        **M10B), pb=timing['pb'])
     feas_read['timing_params_ns'].update(timing)
     feas_read['fixture']['delay_ms'] = part2_grid.FIXTURE_L_NS // part2_grid.MS
     feas_read['_notes'] = notes + [PART2_NOTE]   # the template's block notes (3/8 ms, 500 READs) no longer apply
     feas_read['part2'] = {'condition': cond, 'role': 'feasibility_read', 'grid': 'part2_grid.CONDITIONS'}
     write('part2_m10_feas_read_%s.json' % cond, feas_read)
     feas_sbo = m10(transform(load(repeat_orders[0][1]), purpose={'purpose': 'timing_precision_characterization',
-        'read_precision': True, 'candidate61_label': 'm10_part2_feas_sbo_%s' % cond}, arms=['combined'], reads=17,
+        'read_precision': True, 'candidate61_label': 'm10_part2_feas_sbo_%s' % cond}, arms=['combined'], reads=21,
         trials=1, preset='shape_59570', gap=gap, readiness=readiness, port_first=base + 5, port_last=base + 5,
-        start_delay_ms=50, loss_presets={}, sbo_cycles=16, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
+        start_delay_ms=50, loss_presets={}, sbo_cycles=20, endpoint=REPEAT_ENDPOINT, vision_run_dir=REPEAT_VISION_DIR,
         fixtures=['separate_ack'], **M10B), pb=timing['pb'])
     feas_sbo['timing_params_ns'].update(timing)
     feas_sbo['fixture']['delay_ms'] = part2_grid.FIXTURE_L_NS // part2_grid.MS

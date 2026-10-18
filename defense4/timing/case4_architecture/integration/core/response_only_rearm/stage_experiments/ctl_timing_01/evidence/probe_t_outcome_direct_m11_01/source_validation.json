@@ -1,0 +1,17 @@
+{
+  "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/probe_t_outcome_direct_m11_01",
+  "probe": "t_outcome_direct",
+  "source_sha256": "bd22b8b37b450a2414d9b3aac7dda4d536be2e287bd9cae6615c5badf37cc47f",
+  "segment_sha256": {
+    "N": "6d8c3bf420de7a423014c3d1ed181c522d19a7b4a48924941c8c26df88a9ef9b",
+    "E": "92b69356664e17f48851255e449ff3ad4937e13c25056fc8d04422ca48369151",
+    "T": "2d53213fb6d38a65118d1dc6630ddfce1d01e57617b5309f8a80dc88d3459d36"
+  },
+  "hypothesis": "Remove the stage-10 outcome identity exact-match lookup while retaining one guarded indexed SALU call after verdicts; stage reduction is unproven and a resource-only result is possible.",
+  "source_tests": {
+    "command": "python3 -m pytest -q defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_structural_efficiency.py",
+    "passed": 12,
+    "duration_s": 5.75
+  },
+  "compiler_attempts": 0
+}
