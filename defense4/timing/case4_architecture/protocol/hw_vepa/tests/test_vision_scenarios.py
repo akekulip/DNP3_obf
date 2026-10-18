@@ -198,6 +198,43 @@ class SingleRun(Base):
         self.assertTrue(res['master_timeout'])
         self.assertFalse(res['ok'])
 
+    def test_partial_master_timeout_keeps_both_capture_artifacts_and_output(self):
+        original = vr.nsx
+
+        def timeout(ns, *cmd, **kwargs):
+            if vr.BIN in cmd and 'master' in cmd:
+                raise subprocess.TimeoutExpired(cmd, 1, output=b'{"reads": [', stderr=b'partial diagnostic')
+            return original(ns, *cmd, **kwargs)
+
+        vr.nsx = timeout
+        destination = Path(self.runs) / 'partial'
+        result = vr.run_connection(str(destination), 'partial', 54500, 5, 8, 0, 0, 0)
+        self.assertFalse(result['ok'])
+        self.assertTrue(result['master_timeout'])
+        self.assertEqual((destination / 'master.json').read_text(), '{"reads": [')
+        self.assertEqual((destination / 'master.stderr').read_text(), 'partial diagnostic')
+        self.assertTrue((destination / 'out.pcap').exists())
+        self.assertTrue((destination / 'in.pcap').exists())
+
+    def test_outstation_timeout_keeps_partial_output_after_kill(self):
+        original = FakePopen.communicate
+        seen = set()
+
+        def communicate(process, timeout=None):
+            if 'outstation' in process.argv:
+                if id(process) not in seen:
+                    seen.add(id(process))
+                    raise subprocess.TimeoutExpired(process.argv, timeout, output=b'partial outstation', stderr=b'partial error')
+                return '', ''
+            return original(process, timeout)
+
+        destination = Path(self.runs) / 'ost_partial'
+        with patch.object(FakePopen, 'communicate', communicate):
+            result = vr.run_connection(str(destination), 'ost_partial', 54500, 5, 8, 0, 0, 0)
+        self.assertEqual(result['outstation_collection']['status'], 'timeout')
+        self.assertEqual((destination / 'outstation.json').read_text(), 'partial outstation')
+        self.assertEqual((destination / 'outstation.stderr').read_text(), 'partial error')
+
 
 class ReconnectScenario(Base):
     def test_three_connections_each_with_its_own_directory_evidence_and_label(self):

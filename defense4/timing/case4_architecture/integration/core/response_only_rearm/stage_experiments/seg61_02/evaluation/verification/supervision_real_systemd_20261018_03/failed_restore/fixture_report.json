@@ -1,0 +1,98 @@
+{
+  "accelerated_clock": false,
+  "block_once": true,
+  "evidence_kind": "supervision_fixture",
+  "excluded_from_main_evidence": true,
+  "host": "gambit",
+  "independent_terminal": true,
+  "mode": "failed_restore",
+  "next_block_unexecuted": true,
+  "ok": true,
+  "status": {
+    "active_step": null,
+    "active_unit": null,
+    "blocks": [
+      {
+        "artifact_manifest": {
+          "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run0/artifact_manifest.json",
+          "sha256": "62fff2f512313c42129b7e3f3940b35ea3cec72d6ae1f8839c4e1841a4fa781b"
+        },
+        "finished": 1792347715.8995235,
+        "hardware_entry": 1792347715.7575712,
+        "id": "block0",
+        "kind": "block",
+        "manifest_sha256": "e4b0c61a07355db66973f79f6bdd05034cb5bb5625100cfdca66ba389eefe45f",
+        "postcheck_rc": null,
+        "rc": 0,
+        "reason": "unsafe_restoration",
+        "restoration": {
+          "device": 2050,
+          "inode": 50488700,
+          "mtime_ns": 1792347715882061574,
+          "ok": false,
+          "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run0/restore_verify.json",
+          "sha256": "8e6557b1bb75e3b7daa314b84821c308203b94647c74906f05438e5b3321b1c1",
+          "size": 53
+        },
+        "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run0",
+        "started": 1792347715.7515197,
+        "status": "failed",
+        "unit": "dnp3-eval-supervision-boundary-da44481807ad-ac03d204cae1-step-block0.service"
+      },
+      {
+        "id": "block1",
+        "rc": null,
+        "restoration": null,
+        "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run1",
+        "status": "unexecuted"
+      }
+    ],
+    "campaign_id": "supervision-boundary-da44481807ad",
+    "controller_generation": 1,
+    "controller_unit": "dnp3-eval-supervision-boundary-da44481807ad-ac03d204cae1-controller-1.service",
+    "created": 1792347715.6148076,
+    "deadline": 1792434115.689332,
+    "evidence_kind": "supervision_fixture",
+    "excluded_from_main_evidence": true,
+    "manifest_sha256": "e4b0c61a07355db66973f79f6bdd05034cb5bb5625100cfdca66ba389eefe45f",
+    "phase": "stopped",
+    "result": "INCOMPLETE",
+    "start": 1792347715.689332,
+    "started": true,
+    "steps": {
+      "block0": {
+        "artifact_manifest": {
+          "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run0/artifact_manifest.json",
+          "sha256": "62fff2f512313c42129b7e3f3940b35ea3cec72d6ae1f8839c4e1841a4fa781b"
+        },
+        "finished": 1792347715.8995235,
+        "hardware_entry": 1792347715.7575712,
+        "id": "block0",
+        "kind": "block",
+        "manifest_sha256": "e4b0c61a07355db66973f79f6bdd05034cb5bb5625100cfdca66ba389eefe45f",
+        "postcheck_rc": null,
+        "rc": 0,
+        "reason": "unsafe_restoration",
+        "restoration": {
+          "device": 2050,
+          "inode": 50488700,
+          "mtime_ns": 1792347715882061574,
+          "ok": false,
+          "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/failed_restore/run0/restore_verify.json",
+          "sha256": "8e6557b1bb75e3b7daa314b84821c308203b94647c74906f05438e5b3321b1c1",
+          "size": 53
+        },
+        "started": 1792347715.7515197,
+        "status": "failed",
+        "unit": "dnp3-eval-supervision-boundary-da44481807ad-ac03d204cae1-step-block0.service"
+      },
+      "block1": {
+        "rc": null,
+        "restoration": null,
+        "status": "unexecuted"
+      }
+    },
+    "stop_after_current": false,
+    "stop_reason": "unsafe_restoration"
+  }
+}

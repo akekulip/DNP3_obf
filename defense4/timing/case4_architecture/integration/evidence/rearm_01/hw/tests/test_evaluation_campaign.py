@@ -32,6 +32,10 @@ class FakeSystemd:
     def state(self, unit):
         return self.units.get(unit, 'absent')
 
+    def cancel(self, unit):
+        if self.units.get(unit) == 'queued':
+            self.units[unit] = 'inactive'
+
 
 class CampaignTests(unittest.TestCase):
     def setUp(self):
@@ -95,6 +99,26 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(report['blocks'][0]['reason'], 'deadline_expired')
         self.assertFalse((self.root / 'count0').exists())
         self.assertEqual(self.advance(campaign), 'stopped')
+
+    def test_a_start_job_queued_too_long_is_refused_not_waited_on(self):
+        """Review W2: a queued start job is waited on, but only up to QUEUED_LIMIT_S after launch."""
+        campaign = self.manifest()
+        self.assertEqual(self.advance(campaign, now=100), 'launched')
+        unit = self.c.read_state(campaign)['active_unit']
+        self.manager.units[unit] = 'queued'
+        self.assertEqual(self.advance(campaign, now=100 + self.c.QUEUED_LIMIT_S - 1), 'waiting')
+        with self.assertRaisesRegex(self.c.Refused, 'cancelled'):
+            self.advance(campaign, now=100 + self.c.QUEUED_LIMIT_S + 1)
+        self.assertEqual(self.manager.units[unit], 'inactive')     # the queued job was cancelled (review W2a)
+        self.assertFalse((self.root / 'count0').exists())          # never run, never replayed
+
+    def test_a_refusal_is_recorded_without_ending_the_campaign(self):
+        """Review W1: a (possibly transient) refusal stays resumable; status shows its reason."""
+        campaign = self.manifest()
+        self.c.record_refusal(campaign, 'cannot establish service state: test')
+        state = self.c.read_state(campaign)
+        self.assertNotIn(state['phase'], ('stopped', 'complete'))
+        self.assertIn('cannot establish', state['last_refusal']['reason'])
 
     def test_distinct_campaigns_share_active_testbed_guard(self):
         campaign = self.manifest()
@@ -332,6 +356,25 @@ class CampaignTests(unittest.TestCase):
         self.assertIn('--user', command)
         self.assertIn('--property=Restart=no', command)
         self.assertFalse(any('RuntimeMaxSec' in part or 'BindsTo' in part for part in command))
+        self.assertIn('--property=StandardInput=null', command)
+        self.assertTrue(any(p.startswith('--property=UnsetEnvironment=') and 'SSH_AUTH_SOCK' in p for p in command))
+
+    def test_unit_names_carry_the_eval_prefix(self):
+        self.assertTrue(self.c.unit_name(self.root, 'camp', 'controller-1').startswith('dnp3-eval-camp-'))
+
+    def test_a_queued_start_job_reads_as_activating_not_ambiguous(self):
+        """Review W1: systemd shows a queued --no-block start as inactive with a pending Job."""
+        from unittest import mock
+        out = mock.Mock(returncode=0, stdout='LoadState=loaded\nActiveState=inactive\nSubState=dead\nJob=4711\n', stderr='')
+        with mock.patch.object(self.c.subprocess, 'run', return_value=out):
+            self.assertEqual(self.c.Systemd().state('dnp3-eval-x.service'), 'queued')
+        self.assertIn('queued', self.c.ACTIVE)
+        out.stdout = 'LoadState=loaded\nActiveState=deactivating\nSubState=stop-sigterm\nJob=99\n'
+        with mock.patch.object(self.c.subprocess, 'run', return_value=out):   # a stop job is not a queued start
+            self.assertEqual(self.c.Systemd().state('dnp3-eval-x.service'), 'deactivating')
+        out.stdout = 'LoadState=loaded\nActiveState=inactive\nSubState=dead\nJob=\n'
+        with mock.patch.object(self.c.subprocess, 'run', return_value=out):
+            self.assertEqual(self.c.Systemd().state('dnp3-eval-x.service'), 'inactive')
 
 
 if __name__ == '__main__':

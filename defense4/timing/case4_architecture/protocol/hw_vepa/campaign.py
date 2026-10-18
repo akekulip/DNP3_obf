@@ -373,12 +373,18 @@ class ShellRunner:
         self.hosts = hosts
 
     def run(self, where, cmd, cwd=None, timeout=3600, label=None):
-        argv = ['ssh', '-o', 'BatchMode=yes', self.hosts[where], cmd] if where in ('switch', 'vision') \
+        detached_ssh = ['-o', 'BatchMode=yes', '-o', 'IdentityAgent=none',
+                        '-o', 'ControlMaster=no', '-o', 'ControlPath=none']
+        argv = ['ssh'] + detached_ssh + [self.hosts[where], cmd] if where in ('switch', 'vision') \
             else shlex.split(cmd)
+        if argv and argv[0] == 'scp':
+            argv[1:1] = detached_ssh
         try:
             p = subprocess.run(argv, capture_output=True, text=True, cwd=cwd, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            return Result(124, '', 'timed out after %ds' % timeout)
+        except subprocess.TimeoutExpired as error:
+            def partial(value):
+                return value.decode(errors='replace') if isinstance(value, bytes) else value or ''
+            return Result(124, partial(error.stdout), partial(error.stderr) + '\ntimed out after %ds' % timeout)
         return Result(p.returncode, p.stdout, p.stderr)
 
 

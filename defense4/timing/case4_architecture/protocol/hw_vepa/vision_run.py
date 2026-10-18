@@ -29,6 +29,7 @@ import re
 import subprocess
 import sys
 import time
+import threading
 
 import capture_observation
 import loss  # shared packet classes and iptables rule lifecycle; deployed beside this file
@@ -146,6 +147,92 @@ def wait_port_free(port, tries=80):
     return dict(port=port, polls=tries, elapsed_s=round(time.monotonic() - start, 3), result='busy')
 
 
+def tcp_rto_readback(master_port, endpoint='master'):
+    """Passive Linux TCP_INFO rendering from ss; no socket or kernel tuning."""
+    if endpoint not in ('master', 'outstation'):
+        raise ValueError('endpoint must be master or outstation')
+    namespace = NS_M if endpoint == 'master' else NS_O
+    local_port, peer_port = (master_port, PORT_O) if endpoint == 'master' else (PORT_O, master_port)
+    command = ['ss', '-tin', 'state', 'established', '( sport = :%d and dport = :%d )' % (local_port, peer_port)]
+    record = dict(observed_at_epoch_ns=time.time_ns(), observed_at_monotonic_ns=time.monotonic_ns(),
+                  endpoint=endpoint, namespace=namespace, local_port=local_port, peer_port=peer_port,
+                  source='ip netns exec %s ss -tin (Linux TCP_INFO)' % namespace,
+                  command=command, units='ms', status='unavailable', rto_ms=[])
+    try:
+        result = nsx(namespace, *command, timeout=2)
+        record.update(returncode=result.returncode, stdout=result.stdout, stderr=result.stderr)
+        if result.returncode:
+            record.update(status='error', reason='ss_nonzero_exit')
+        else:
+            record['rto_ms'] = [float(v) for v in re.findall(r'\brto:([0-9]+(?:\.[0-9]+)?)', result.stdout)]
+            record['status'] = 'ok' if record['rto_ms'] else 'unavailable'
+            if not record['rto_ms']:
+                record['reason'] = 'no_established_socket_rto_observed'
+    except (OSError, subprocess.SubprocessError) as error:
+        record.update(status='error', reason=type(error).__name__, error=str(error))
+    return record
+
+
+def _text_output(value):
+    return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else (value or '')
+
+
+def _run_master_evidence(run_dir, master_port, command, timeout):
+    """Retain partial output on timeout and sample RTO while the blocking master runs.
+
+    The sampler is bounded to 120 read-only probes per endpoint, each with a two-second timeout.
+    Monotonic timestamps describe collection only and are never subtracted from pcap epoch.
+    """
+    done, samples = threading.Event(), []
+
+    def sample():
+        for _ in range(120):
+            if done.wait(0.05 if not samples else 0.25):
+                return
+            for endpoint in ('master', 'outstation'):
+                if done.is_set():
+                    return
+                samples.append(tcp_rto_readback(master_port, endpoint=endpoint))
+
+    sampler = threading.Thread(target=sample, name='passive-tcp-rto', daemon=True)
+    sampler.start()
+    timed_out = False
+    try:
+        result = nsx(NS_M, *command, timeout=timeout)
+        stdout, stderr, rc = result.stdout, result.stderr, result.returncode
+    except subprocess.TimeoutExpired as error:
+        timed_out = True
+        stdout, stderr, rc = error.stdout, error.stderr, None
+    finally:
+        done.set()
+        sampler.join(timeout=3)
+    for name, value in (('master.json', stdout), ('master.stdout', stdout), ('master.stderr', stderr)):
+        with open(os.path.join(run_dir, name), 'w') as stream:
+            stream.write(_text_output(value))
+    endpoint_status = {}
+    for endpoint in ('master', 'outstation'):
+        endpoint_samples = [s for s in samples if s['endpoint'] == endpoint]
+        usable = any(s['status'] == 'ok' and any(v > 0 for v in s['rto_ms']) for s in endpoint_samples)
+        status = 'ok' if usable else ('error' if endpoint_samples and all(s['status'] == 'error' for s in endpoint_samples)
+                                      else 'unavailable')
+        endpoint_status[endpoint] = dict(status=status, sample_count=len(endpoint_samples),
+                                         reason=None if usable else ('no_positive_rto_observed' if endpoint_samples else
+                                                                    'master_finished_before_endpoint_probe'))
+    both_observed = all(value['status'] == 'ok' for value in endpoint_status.values())
+    readback = dict(schema_version='vision-tcp-rto-v2', samples=list(samples), endpoints=endpoint_status,
+                    status='ok' if both_observed else 'unavailable',
+                    maximum_samples=240, maximum_samples_per_endpoint=120,
+                    command_timeout_s=2, sample_interval_s=0.25,
+                    reason=None if both_observed else 'both_endpoint_positive_rtos_not_observed')
+    with open(os.path.join(run_dir, 'tcp_rto.json'), 'w') as stream:
+        json.dump(readback, stream, indent=1, allow_nan=False)
+    return dict(master_rc=rc, master_timeout=timed_out,
+                endpoint_collection=dict(schema_version='vision-endpoint-collection-v1',
+                                         status='timeout' if timed_out else 'completed', partial=timed_out,
+                                         stdout='master.stdout', stderr='master.stderr'),
+                tcp_rto=readback)
+
+
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
                    qualify_capture=False, sbo_cycles=0):
@@ -230,7 +317,7 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
 
         ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env +
                                [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads * 4 + extra_seconds)],
-                               stdout=subprocess.PIPE, text=True)
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
         if ready == 'READY':
@@ -238,13 +325,11 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
                 rule = loss.LossRule(nsx, drop, IP_M, IP_O, master_port, PORT_O).install()
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
-            try:
-                mst = nsx(NS_M, *env, BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
-                          IP_M, str(rng), str(gap_ms), timeout=reads * 4 + sbo_cycles * 4 + 30 + extra_seconds)
-                result.update(master_rc=mst.returncode, master_wall_s=round(time.time() - t0, 3))
-                open(os.path.join(run_dir, 'master.json'), 'w').write(mst.stdout)
-            except subprocess.TimeoutExpired:
-                result.update(master_rc=None, master_timeout=True, master_wall_s=round(time.time() - t0, 3))
+            command = env + [BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
+                             IP_M, str(rng), str(gap_ms)]
+            result.update(_run_master_evidence(run_dir, master_port, command,
+                                              reads * 4 + sbo_cycles * 4 + 30 + extra_seconds))
+            result['master_wall_s'] = round(time.time() - t0, 3)
             time.sleep(1.0)
     finally:
         # bounded, comprehensive cleanup of everything this run started, even on an exception above
@@ -254,11 +339,22 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
             result['loss'] = rule.record()
         open(stop, 'w').close()
         if ost is not None:
+            ost_timeout = False
             try:
-                open(os.path.join(run_dir, 'outstation.json'), 'w').write(ost.communicate(timeout=30)[0] or '')
-            except subprocess.TimeoutExpired:
+                ost_stdout, ost_stderr = ost.communicate(timeout=30)
+            except subprocess.TimeoutExpired as error:
+                ost_timeout = True
                 ost.kill()
-                ost.wait()
+                ost_stdout, ost_stderr = ost.communicate()
+                ost_stdout = ost_stdout or error.stdout
+                ost_stderr = ost_stderr or error.stderr
+            for name, value in (('outstation.json', ost_stdout), ('outstation.stdout', ost_stdout),
+                                ('outstation.stderr', ost_stderr)):
+                with open(os.path.join(run_dir, name), 'w') as stream:
+                    stream.write(_text_output(value))
+            result['outstation_collection'] = dict(schema_version='vision-endpoint-collection-v1',
+                                                   status='timeout' if ost_timeout else 'completed',
+                                                   partial=ost_timeout, ready_line=ready)
         time.sleep(1.0)
         tcpdump_stats = {}
         for d, c in caps.items():

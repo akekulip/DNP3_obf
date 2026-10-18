@@ -3,6 +3,10 @@ subprocess/root orchestration itself needs the Vision host and is not exercised 
 import sys
 import types
 import unittest
+import tempfile
+import subprocess
+import threading
+from unittest.mock import patch
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -55,6 +59,82 @@ class SysctlReadback(unittest.TestCase):
         self._patch('1', '0')
         with self.assertRaises(RuntimeError):
             vr.set_sysctl_checked('ns_vepa_a', 'net.ipv4.tcp_sack', '1')
+
+
+class EndpointEvidence(unittest.TestCase):
+    def test_timeout_keeps_partial_bytes_stdout_stderr_and_status(self):
+        error = subprocess.TimeoutExpired(['master'], 1, output=b'{"partial":', stderr=b'timed out detail\n')
+        with tempfile.TemporaryDirectory() as directory, patch.object(vr, 'nsx', side_effect=error):
+            result = vr._run_master_evidence(directory, 40000, ['master'], 1)
+            self.assertTrue(result['master_timeout'])
+            self.assertIsNone(result['master_rc'])
+            self.assertEqual(Path(directory, 'master.json').read_text(), '{"partial":')
+            self.assertEqual(Path(directory, 'master.stderr').read_text(), 'timed out detail\n')
+            self.assertEqual(result['endpoint_collection']['status'], 'timeout')
+            self.assertEqual(result['tcp_rto']['status'], 'unavailable')
+
+    def test_rto_readback_keeps_clock_source_units_and_unavailable_errors(self):
+        with patch.object(vr, 'nsx', return_value=types.SimpleNamespace(
+                returncode=0, stdout=' cubic rto:204 rtt:1.3/0.6\n', stderr='')) as invoke:
+            record = vr.tcp_rto_readback(40000)
+        self.assertEqual(record['rto_ms'], [204.0])
+        self.assertEqual(record['units'], 'ms')
+        self.assertEqual(record['status'], 'ok')
+        self.assertIsInstance(record['observed_at_epoch_ns'], int)
+        self.assertIn('ss', invoke.call_args.args)
+        with patch.object(vr, 'nsx', side_effect=FileNotFoundError('ss absent')):
+            self.assertEqual(vr.tcp_rto_readback(40000)['status'], 'error')
+
+    def test_rto_sample_is_taken_during_active_master(self):
+        sampled = threading.Event()
+        endpoints = set()
+
+        def invoke(namespace, *command, **kwargs):
+            if command[0] == 'ss':
+                endpoints.add(namespace)
+                if endpoints == {vr.NS_M, vr.NS_O}:
+                    sampled.set()
+                return types.SimpleNamespace(returncode=0, stdout=' cubic rto:208\n', stderr='')
+            self.assertTrue(sampled.wait(timeout=2))
+            return types.SimpleNamespace(returncode=0, stdout='{}', stderr='')
+
+        with tempfile.TemporaryDirectory() as directory, patch.object(vr, 'nsx', side_effect=invoke):
+            result = vr._run_master_evidence(directory, 40000, ['master'], 3)
+        self.assertEqual(result['tcp_rto']['status'], 'ok')
+        self.assertEqual(result['tcp_rto']['samples'][0]['rto_ms'], [208.0])
+        self.assertEqual({r['endpoint'] for r in result['tcp_rto']['samples']}, {'master', 'outstation'})
+        self.assertEqual(set(result['tcp_rto']['endpoints']), {'master', 'outstation'})
+        self.assertTrue(all(value['status'] == 'ok' for value in result['tcp_rto']['endpoints'].values()))
+
+    def test_outstation_rto_independent_failure_is_not_hidden_by_master_success(self):
+        with patch.object(vr, 'nsx', return_value=types.SimpleNamespace(
+                returncode=1, stdout='', stderr='outstation probe failed')) as invoke:
+            record = vr.tcp_rto_readback(40000, endpoint='outstation')
+        self.assertEqual(record['endpoint'], 'outstation')
+        self.assertEqual(record['namespace'], vr.NS_O)
+        self.assertEqual(record['status'], 'error')
+        self.assertEqual(record['units'], 'ms')
+        self.assertEqual(invoke.call_args.args[0], vr.NS_O)
+        self.assertIn('sport = :20000', ' '.join(record['command']))
+        self.assertIn('dport = :40000', ' '.join(record['command']))
+
+    def test_master_positive_rto_cannot_qualify_failed_outstation(self):
+        sampled = threading.Event()
+
+        def invoke(namespace, *command, **kwargs):
+            if command[0] == 'ss':
+                if namespace == vr.NS_O:
+                    sampled.set()
+                    return types.SimpleNamespace(returncode=1, stdout='', stderr='probe failed')
+                return types.SimpleNamespace(returncode=0, stdout=' cubic rto:208\n', stderr='')
+            self.assertTrue(sampled.wait(timeout=2))
+            return types.SimpleNamespace(returncode=0, stdout='{}', stderr='')
+
+        with tempfile.TemporaryDirectory() as directory, patch.object(vr, 'nsx', side_effect=invoke):
+            result = vr._run_master_evidence(directory, 40000, ['master'], 3)
+        self.assertEqual(result['tcp_rto']['status'], 'unavailable')
+        self.assertEqual(result['tcp_rto']['endpoints']['master']['status'], 'ok')
+        self.assertEqual(result['tcp_rto']['endpoints']['outstation']['status'], 'error')
 
 
 if __name__ == '__main__':

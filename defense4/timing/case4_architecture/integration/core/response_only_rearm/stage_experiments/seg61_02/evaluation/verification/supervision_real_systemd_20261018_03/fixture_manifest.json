@@ -1,0 +1,26 @@
+{
+  "campaign_id": "supervision-fixture-b57b2edfa6a6",
+  "evidence_kind": "supervision_fixture",
+  "steps": [
+    {
+      "id": "block0",
+      "kind": "block",
+      "argv": [
+        "/usr/bin/python3",
+        "-c",
+        "import json,time; from pathlib import Path\nroot=Path('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/run0'); root.mkdir()\nwith open('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/count0',\"x\") as stream: stream.write(\"once\")\nwhile not Path('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/release').exists(): time.sleep(.1)\n(root/\"restore_verify.json\").write_text(json.dumps({\"ok\":True,\"evidence_kind\":\"supervision_fixture\"}))\n"
+      ],
+      "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/run0"
+    },
+    {
+      "id": "block1",
+      "kind": "block",
+      "argv": [
+        "/usr/bin/python3",
+        "-c",
+        "import json,time; from pathlib import Path\nroot=Path('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/run1'); root.mkdir()\nwith open('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/count1',\"x\") as stream: stream.write(\"once\")\nwhile not Path('/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/release').exists(): time.sleep(.1)\n(root/\"restore_verify.json\").write_text(json.dumps({\"ok\":True,\"evidence_kind\":\"supervision_fixture\"}))\n"
+      ],
+      "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/verification/supervision_real_systemd_20261018_03/run1"
+    }
+  ]
+}

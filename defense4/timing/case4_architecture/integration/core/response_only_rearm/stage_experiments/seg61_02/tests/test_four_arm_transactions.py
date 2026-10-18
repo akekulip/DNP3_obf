@@ -159,3 +159,125 @@ def test_attacker_requires_the_complete_bound_extraction_table(tmp_path, mutatio
             data['_table']['sha256'] = hashlib.sha256(table.read_bytes()).hexdigest()
             counts.write_text(json.dumps(data))
     with pytest.raises(ValueError): lfa.load(table)
+
+
+def test_publication_ledger_reconciles_subset_and_retains_incomplete_and_count_gaps(tmp_path):
+    b = block(tmp_path, 'b0', {'off': [ex(), ex(complete=False)]})
+    trial = next(b.glob('*/*/*/timing.json')).parent
+    (trial / 'master.json').write_text(json.dumps(dict(
+        issued_ns=123456789, completed_ns=123456999, reads_requested=3,
+        reads=[dict(completed=True), dict(completed=False)])))
+    ledger = fat.publication_ledger(b, dict(condition='frozen', round=2, split='heldout'))
+    captured = [r for r in ledger['records'] if r['record_type'] == 'captured_exchange']
+    issued = [r for r in ledger['records'] if r['record_type'] == 'endpoint_issued_task']
+    assert len(captured) == 2 and len(issued) == 1
+    assert sum(r['legacy_feature_eligible'] for r in captured) == 1
+    assert any(r['status'] == 'incomplete' for r in captured)
+    assert all(r['condition'] == 'frozen' and r['round'] == 2 and r['split'] == 'heldout' for r in captured)
+    assert issued[0]['captured_exchange_ids'] is None
+    assert ledger['counts']['trials'][0]['requested_read_capture_gap'] == 1
+    assert ledger['counts']['trials'][0]['endpoint_read_records'] == 2
+    assert captured[0]['request_timestamp_ns'] is None
+    assert ledger['bindings']['legacy_exchange_ids_sha256'] == fat.identity([
+        r['exchange_id'] for r in captured if r['legacy_feature_eligible']])
+    json.dumps(ledger, allow_nan=False)
+
+
+def test_endpoint_only_partial_trial_is_retained_without_synthetic_requests(tmp_path):
+    b = tmp_path / 'partial'
+    trial = b / 'separate_ack' / 'off' / 'timeout'
+    trial.mkdir(parents=True)
+    (trial / 'master.json').write_text('{"reads": [')
+    ledger = fat.publication_ledger(b)
+    assert ledger['records'] == []
+    assert ledger['legacy_validation']['status'] == 'error'
+    assert ledger['counts']['trials'][0]['captured_exchanges'] is None
+    assert ledger['counts']['trials'][0]['endpoint_read_records'] is None
+    assert any(s.get('reason') == 'partial_or_invalid_json' for s in ledger['sources'])
+
+
+def test_publication_export_binds_content_and_preserves_explicit_fallback(tmp_path):
+    b = block(tmp_path, 'b0', {'off': [ex()]})
+    trial = next(b.glob('*/*/*/timing.json')).parent
+    (trial / 'result.json').write_text(json.dumps(dict(fallback=True, master_timeout=True)))
+    output = tmp_path / 'ledger.json'
+    fat.export_publication_ledger(output, [b], labels={'b0': dict(round=4, split='test')})
+    value = json.loads(output.read_text())
+    assert value['content_sha256'] == fat.identity(value['blocks'])
+    row = value['blocks'][0]['records'][0]
+    assert row['status'] == 'fallback' and row['fallback'] is True
+    assert row['master_timeout'] is True
+    assert row['round'] == 4 and row['split'] == 'test'
+
+
+def test_out_only_capture_retains_observed_requests_attempts_and_hash(tmp_path):
+    import sys
+    architecture = next(p for p in HERE.parents if (p / 'protocol/hw_vepa/tests/pcaptk.py').exists())
+    sys.path.insert(0, str(architecture / 'protocol/hw_vepa/tests'))
+    import pcaptk as tk
+    b = tmp_path / 'partial'
+    trial = b / 'fixture/off/trial'
+    trial.mkdir(parents=True)
+    req = tk.frame('192.168.10.61', '192.168.10.62', 40000, 20000, 1001, 5001, tk.PSH | tk.ACK, tk.read_request())
+    tk.write_pcap(trial / 'out.pcap', [(100, req), (200, req)])
+    (trial / 'master.json').write_text('{"reads_requested":1}')
+    ledger = fat.publication_ledger(b)
+    captured = [r for r in ledger['records'] if r['record_type'] == 'captured_exchange']
+    assert len(captured) == 1 and captured[0]['attempts'] == 2
+    assert captured[0]['request_timestamp_ns'] == 100000
+    assert captured[0]['response_timestamp_ns'] is None
+    assert captured[0]['in_request_packet_count'] is None
+    assert captured[0]['capture_out_sha256'] == hashlib.sha256((trial / 'out.pcap').read_bytes()).hexdigest()
+    assert any(s.get('sha256') == captured[0]['capture_out_sha256'] for s in ledger['sources'])
+    assert ledger['counts']['trials'][0]['captured_reads'] == 1
+    assert ledger['counts']['trials'][0]['captured_attempts'] == 2
+    assert ledger['counts']['trials'][0]['capture_availability']['in']['status'] == 'unavailable'
+
+
+@pytest.mark.parametrize('artifact', ['in.pcap', 'result.json'])
+def test_other_partial_evidence_is_discovered_with_unknown_request_counts(tmp_path, artifact):
+    b = tmp_path / 'partial'
+    trial = b / 'fixture/off/trial'
+    trial.mkdir(parents=True)
+    (trial / artifact).write_bytes(b'' if artifact == 'in.pcap' else b'{"master_timeout":true}')
+    ledger = fat.publication_ledger(b)
+    assert len(ledger['counts']['trials']) == 1
+    assert ledger['counts']['trials'][0]['captured_exchanges'] is None
+    assert ledger['counts']['trials'][0]['captured_attempts'] is None
+    assert any(s['path'].endswith(artifact) and s.get('sha256') for s in ledger['sources'])
+
+
+def test_partial_session_identity_includes_arm_and_missing_condition_stays_null(tmp_path):
+    b = tmp_path / 'partial'
+    for index, arm in enumerate(('off', 'size_only')):
+        trial = b / 'fixture' / arm / 'trial_001'
+        trial.mkdir(parents=True)
+        (trial / 'master.json').write_text(json.dumps(dict(issued_ns=100 + index)))
+        (trial / 'timing.json').write_text('{"exchanges":[]}')
+    ledger = fat.publication_ledger(b)
+    assert len({r['session_id'] for r in ledger['records']}) == 2
+    assert all(r['condition'] is None for r in ledger['records'])
+    assert all('condition' in r['audit_null_reasons'] for r in ledger['records'])
+
+
+def test_retained_smoke_replay_preserves_all_legacy_numbers_and_packets():
+    b = HERE / 'evidence/hw_campaigns/candidate61_fourarm_smoke_03'
+    ledger = fat.publication_ledger(b)
+    captured = [r for r in ledger['records'] if r['record_type'] == 'captured_exchange']
+    assert len(captured) == 88
+    # This historical fixture predates identity/provenance fields; replay does not silently
+    # upgrade its legacy CSV qualification or mutate any retained evidence.
+    assert ledger['legacy_validation']['status'] == 'error'
+    for timing in b.glob('*/*/*/timing.json'):
+        original = json.loads(timing.read_text())
+        replay = fat._replay_capture(timing.parent / 'out.pcap', timing.parent / 'in.pcap')
+        assert original['summary'] == replay['summary']
+        assert len(original['exchanges']) == len(replay['exchanges'])
+        for old, new in zip(original['exchanges'], replay['exchanges']):
+            assert old == {key: new[key] for key in old}
+    assert all(r['observation']['request']['frame_sha256'] for r in captured)
+    assert all(type(r['request_timestamp_ns']) is int for r in captured)
+    assert all(r['response_availability_ns'] is not None for r in captured)
+    assert all(r['operate_hold_ns'] == r['request_delivery_ns'] for r in captured if r['txn_class'] == 'OPERATE')
+    assert all(r['round'] is None and r['split'] is None for r in captured)
+    assert ledger['counts']['endpoint_issued_tasks'] == 4

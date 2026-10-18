@@ -23,7 +23,8 @@ import time
 HERE = Path(__file__).resolve().parent
 DAY = 24 * 60 * 60
 SAFE_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{0,79}\Z')
-ACTIVE = ('active', 'activating', 'reloading', 'deactivating')
+ACTIVE = ('active', 'activating', 'reloading', 'deactivating', 'queued')
+QUEUED_LIMIT_S = 600          # a start job still queued this long after launch is refused, never waited on forever
 
 
 class Refused(RuntimeError):
@@ -181,7 +182,7 @@ def read_state(directory):
 def unit_name(directory, identity, suffix):
     # Path salt avoids collisions with another persistent storage location.
     salt = digest(str(directory).encode())[:12]
-    unit = 'dnp3-%s-%s-%s.service' % (identity, salt, suffix)
+    unit = 'dnp3-eval-%s-%s-%s.service' % (identity, salt, suffix)   # dnp3-eval-* for monitoring (review R1)
     if len(unit) > 240 or not re.fullmatch(r'[A-Za-z0-9_-]+\.service', unit):
         raise Refused('unsafe generated service unit')
     return unit
@@ -194,6 +195,8 @@ class Systemd:
             raise Refused('unsafe unit name')
         return ['systemd-run', '--user', '--no-block', '--unit=' + unit,
                 '--property=Restart=no', '--property=RemainAfterExit=yes',
+                # nothing of the launching session: no stdin, no forwarded agent (review R1)
+                '--property=StandardInput=null', '--property=UnsetEnvironment=SSH_AUTH_SOCK SSH_AGENT_PID',
                 '--property=WorkingDirectory=' + str(cwd), '--'] + list(argv)
 
     def launch(self, unit, argv, cwd):
@@ -204,9 +207,14 @@ class Systemd:
 
     def state(self, unit):
         result = subprocess.run(['systemctl', '--user', 'show', unit,
-                                 '--property=LoadState,ActiveState,SubState'],
+                                 '--property=LoadState,ActiveState,SubState,Job'],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         values = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
+        if values.get('Job') and values.get('ActiveState') in ('inactive', 'failed'):
+            # a queued start job (only an inactive unit with a pending job; a stopping or reloading unit keeps its
+            # own state, review W2b): launched but not yet running, not ambiguous (review W1: --no-block start on a
+            # loaded host could otherwise read as inactive and stop the campaign); bounded in advance()
+            return 'queued'
         if values.get('LoadState') == 'not-found':
             return 'absent'
         if result.returncode or not values.get('ActiveState'):
@@ -214,6 +222,10 @@ class Systemd:
         if values.get('SubState') == 'exited':
             return 'inactive'
         return values['ActiveState']
+
+    def cancel(self, unit):
+        """Cancel a unit whose start job never ran (no process has started, so nothing is interrupted)."""
+        subprocess.run(['systemctl', '--user', 'stop', unit], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def preflight(self):
         result = subprocess.run(['loginctl', 'show-user', str(os.getuid()), '--property=Linger', '--value'],
@@ -305,7 +317,15 @@ def advance(directory, manager=None, now=None):
             step = next(s for s in manifest['steps'] if s['id'] == state['active_step'])
             terminal = directory / 'steps' / step['id'] / 'terminal.json'
             if not terminal.exists():
-                if manager.state(state['active_unit']) in ACTIVE:
+                service = manager.state(state['active_unit'])
+                launched = (state['steps'].get(step['id']) or {}).get('launched')
+                if service == 'queued' and launched is not None and now - launched > QUEUED_LIMIT_S:
+                    # cancel the queued job so it cannot start hardware later with no controller (review W2a)
+                    manager.cancel(state['active_unit'])
+                    after = manager.state(state['active_unit'])
+                    raise Refused('start job still queued %d s after launch; cancelled (state now %s); not run, not '
+                                  'replayed' % (QUEUED_LIMIT_S, after))
+                if service in ACTIVE:
                     return 'waiting'
                 raise Refused('active step lacks terminal record and live service; replay refused')
             record = terminal_record(directory, manifest, step, state['active_unit'])
@@ -530,11 +550,27 @@ def status(directory):
                     excluded_from_main_evidence=manifest['evidence_kind'] == 'supervision_fixture')
 
 
+def record_refusal(directory, reason):
+    """Record why the controller refused, so status shows it. The phase is NOT changed: a refusal (possibly
+    transient, e.g. systemctl unreadable) must stay inspectable and resumable, and a block may still be live."""
+    try:
+        with locked(Path(directory).resolve(strict=True)):
+            directory, manifest, state = load(directory)
+            state['last_refusal'] = dict(reason=reason, at=time.time())
+            atomic_json(directory / 'state.json', state)
+    except Exception:
+        return
+
+
 def controller(directory):
     directory = Path(directory).resolve(strict=True)
     with locked(directory, 'controller.lock', blocking=False):
         while True:
-            outcome = advance(directory)
+            try:
+                outcome = advance(directory)
+            except Refused as error:
+                record_refusal(directory, str(error))
+                raise
             if outcome in ('complete', 'stopped'):
                 return 0 if outcome == 'complete' else 1
             time.sleep(1)

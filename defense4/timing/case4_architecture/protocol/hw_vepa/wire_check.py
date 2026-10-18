@@ -30,6 +30,7 @@ SENT capture and are not wire corruption. Returned frames are validated; sent fr
 'offloaded' rather than 'bad'.
 """
 import argparse
+import hashlib
 import json
 import struct
 import sys
@@ -110,7 +111,12 @@ def ip_tcp_checksum(seg):
 
 # --- classic pcap reader (microsecond or nanosecond; integer timestamps at file resolution) ---
 
-def read_pcap(path):
+def read_pcap_records(path):
+    """Lossless classic-pcap records; timestamp_ns is an integer, never epoch float.
+
+    ``read_pcap`` retains its historical (t_us, frame) API for existing callers.
+    Resolution describes file encoding, not a claim of clock accuracy.
+    """
     data = Path(path).read_bytes()
     if len(data) < 24:
         return [], 'us'
@@ -127,21 +133,29 @@ def read_pcap(path):
         raise ValueError('not a classic pcap: %r' % magic)
     off, out = 24, []
     while off + 16 <= len(data):
-        ts_s, ts_f, incl, _orig = struct.unpack(endian + 'IIII', data[off:off + 16])
+        ts_s, ts_f, incl, orig = struct.unpack(endian + 'IIII', data[off:off + 16])
         frame = data[off + 16:off + 16 + incl]
         if len(frame) < incl:
             break
         t_us = ts_s * 1_000_000 + (ts_f // 1000 if res == 'ns' else ts_f)
-        out.append((t_us, frame))
+        out.append(dict(t_us=t_us, timestamp_ns=ts_s * 1_000_000_000 + ts_f * (1 if res == 'ns' else 1000),
+                        timestamp_seconds=ts_s, timestamp_fraction=ts_f, captured_len=incl, original_len=orig,
+                        capture_resolution=res, frame=frame))
         off += 16 + incl
     return out, res
 
 
+def read_pcap(path):
+    records, res = read_pcap_records(path)
+    return [(r['t_us'], r['frame']) for r in records], res
+
+
 def parse(path):
     """IPv4/TCP segments as dicts with integer microsecond timestamps and an in-file index."""
-    frames, res = read_pcap(path)
+    frames, res = read_pcap_records(path)
     segs = []
-    for idx, (t_us, frame) in enumerate(frames):
+    for idx, record in enumerate(frames):
+        t_us, frame = record['t_us'], record['frame']
         if len(frame) < 34 or frame[12:14] != b'\x08\x00':
             continue
         ihl = (frame[14] & 0x0f) * 4
@@ -149,6 +163,8 @@ def parse(path):
             continue
         total_len = int.from_bytes(frame[16:18], 'big')
         tcp_off = 14 + ihl
+        if ihl < 20 or len(frame) < tcp_off + 20:
+            continue
         dataofs = (frame[tcp_off + 12] >> 4) * 4
         src = '.'.join(str(b) for b in frame[26:30])
         dst = '.'.join(str(b) for b in frame[30:34])
@@ -161,6 +177,10 @@ def parse(path):
         seg = {'index': idx, 't_us': t_us, 'src': src, 'dst': dst, 'sport': sport, 'dport': dport,
                'seq': seq, 'ack': ack, 'flags': flags, 'len': len(payload), 'payload': payload,
                'frame': frame}
+        seg.update({key: value for key, value in record.items() if key != 'frame'})
+        seg['ip_len'] = total_len
+        seg['tcp_payload_declared_len'] = max(0, total_len - ihl - dataofs)
+        seg['frame_sha256'] = hashlib.sha256(frame).hexdigest()
         seg['dir'] = 'M->O' if src == MASTER_IP else ('O->M' if src == OUTSTATION_IP else '%s->%s' % (src, dst))
         seg['flow'] = tuple(sorted(((src, sport), (dst, dport))))
         segs.append(seg)

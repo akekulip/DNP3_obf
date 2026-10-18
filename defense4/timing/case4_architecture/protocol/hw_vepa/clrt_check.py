@@ -34,6 +34,23 @@ Standard deviation is reported under two explicit keys, `sd_population` (divide 
 DNP3 CRCs are verified on requests and responses. A checksum-offloaded master segment carries only a
 TCP pseudo-header placeholder, which is not corruption and does not affect the DNP3 CRC; returned frames
 are checksum-validated.
+
+Additive schema ``vision-exchanges-v2``: every legacy exchange also has ``observation``
+(packet references, integer timestamps, lengths and capture clock metadata) and ``publication``
+(integer ns intervals, or null plus ``null_reasons``). All intervals use the Vision parent-NIC
+capture clock. ``response_availability_ns`` is OUT response minus OUT request;
+``request_delivery_ns`` is IN request minus OUT request; ``operate_hold_ns`` is that
+request delivery interval for OPERATE. No endpoint steady_clock value enters these fields.
+Paired-capture metrics require unique preserved transport/content correspondence: M->O
+sequence/payload or O->M ACK plus application identity. Capture order is never proof of
+identity. Responses additionally require complete captured TCP payloads and exact content
+or the CRC-validated bounded native49/37-to-61 encoding described below. Ambiguous/lost/retransmitted groups remain null. Shared legacy response refs
+or a response ACK not exactly matching the request end cannot establish publication
+completion; ``publication_complete`` is independent of legacy ``complete``. DNP3 identity and
+checksums are audit data. Publication CLRT is null for a piggyback/missing ACK, while
+legacy clrt_us retains its historical zero for piggyback.
+``analyze(..., allow_missing=True)`` retains surviving OUT requests and capture hashes
+when its paired IN artifact is missing; unavailable capture metadata counts are null.
 """
 import argparse
 import hashlib
@@ -97,9 +114,223 @@ def _master_requests(out_segs):
     return logical
 
 
-def exchanges(out_path, in_path):
-    out_segs = wc.assign_incarnations(wc.parse(out_path)[0])
-    in_segs = wc.assign_incarnations(wc.parse(in_path)[0])
+def _packet_observation(packet, capture):
+    if packet is None:
+        return None
+    return dict(capture=capture, packet_index=packet['index'], timestamp_ns=packet['timestamp_ns'],
+                timestamp_seconds=packet['timestamp_seconds'], timestamp_fraction=packet['timestamp_fraction'],
+                capture_resolution=packet['capture_resolution'], direction=packet['dir'],
+                tcp_payload_len=packet['len'], tcp_payload_declared_len=packet['tcp_payload_declared_len'],
+                ip_len=packet['ip_len'], captured_len=packet['captured_len'], original_len=packet['original_len'],
+                frame_sha256=packet['frame_sha256'])
+
+
+def _crc_stripped_frames(payload):
+    """Validated (link header without LEN, transport/application user) pairs."""
+    if not wc.dnp3_ok(payload)[0]:
+        return None
+    frames, base = [], 0
+    while base < len(payload):
+        header = payload[base:base + 8]
+        remaining, position, user = header[2] - 5, base + 10, bytearray()
+        while remaining:
+            count = min(16, remaining)
+            user.extend(payload[position:position + count])
+            position += count + 2
+            remaining -= count
+        frames.append((header[:2] + header[3:], bytes(user)))
+        base = position
+    return frames
+
+
+def _response_content_matches(native, returned):
+    """Exact content or the bounded seg61_01/encode61.py wire transformation.
+
+    READ49->61 preserves the five transport/app/IIN bytes and all 23 G10V2 point
+    bytes while replacing the single range header with the three declared ranges.
+    Control37->61 preserves all 22 application bytes in transport segments 15/6/1.
+    Link control/addresses, FIR/FIN, transport sequence and every CRC must match.
+    Arbitrary padding, semantic changes and incomplete frames are unsupported.
+    This local matcher adds no runtime import of the encoder/oracle.
+    """
+    left, right = _crc_stripped_frames(native), _crc_stripped_frames(returned)
+    if left is None or right is None:
+        return False
+    if native == returned:
+        return True
+    if len(left) != 1 or len(returned) != 61:
+        return False
+    header, user = left[0]
+    if (len(native) == 49 and len(user) == 33 and user[0] & 0xc0 == 0xc0 and
+            user[1] & 0xf0 == 0xc0 and user[2] == 0x81 and user[5:10] == bytes.fromhex('0a02000016')):
+        points = user[10:]
+        expected = (user[:5] + bytes.fromhex('0a02000005') + points[:6] + bytes.fromhex('0a02000609') +
+                    points[6:10] + bytes.fromhex('0a02010a001600') + points[10:])
+        return right == [(header, expected)]
+    if (len(native) == 37 and len(user) == 23 and user[0] & 0xc0 == 0xc0 and user[2] == 0x81 and
+            user[5:10] == bytes.fromhex('0c01280100') and user[-1] == 0):
+        seq, app = user[0] & 0x3f, user[1:]
+        expected = [(header, bytes([0x40 | seq]) + app[:15]),
+                    (header, bytes([(seq + 1) & 0x3f]) + app[15:21]),
+                    (header, bytes([0x80 | ((seq + 2) & 0x3f)]) + app[21:])]
+        return right == expected
+    return False
+
+
+def _capture_pairs(sent, returned):
+    """Unique transport/content correspondence; capture order alone never establishes identity.
+
+    This deployment preserves M->O sequence/payload and O->M cumulative ACK values.
+    Response sequence/payload may be translated/padded and are not correspondence keys.
+    Repeated transport identities, including retransmissions, remain ambiguous.
+    """
+    groups = {}
+    for role, packets in (('out', sent), ('in', returned)):
+        for p in packets:
+            if p['len'] >= 13 and p['payload'][:2] == b'\x05\x64':
+                transport = (p['seq'], p['payload']) if p['src'] == MASTER_IP else (p['ack'],)
+                key = (p['flow'], p['inc'], p['dir'], func_of(p['payload']), app_seq(p['payload']), transport)
+                groups.setdefault(key, {'out': [], 'in': []})[role].append(p)
+    out_to_in, in_to_out = {}, {}
+    for group in groups.values():
+        left, right = group['out'], group['in']
+        if len(left) != 1 or len(right) != 1:
+            continue
+        a, b = left[0], right[0]
+        if b['timestamp_ns'] < a['timestamp_ns']:
+            continue
+        if any(p['len'] != p['tcp_payload_declared_len'] for p in (a, b)):
+            continue
+        if a['src'] != MASTER_IP and not _response_content_matches(a['payload'], b['payload']):
+            continue
+        out_to_in[a['index']] = b
+        in_to_out[b['index']] = a
+    return out_to_in, in_to_out
+
+
+def _add_publication(rows, out_segs, in_segs, capture_availability=None):
+    capture_availability = capture_availability or {'out': True, 'in': True}
+    sent = {p['index']: p for p in out_segs}
+    returned = {p['index']: p for p in in_segs}
+    request_pairs, response_pairs = _capture_pairs(out_segs, in_segs)
+    response_uses = {}
+    for row in rows:
+        index = row['response_packet_index']
+        if index is not None:
+            response_uses[index] = response_uses.get(index, 0) + 1
+    first_ns = min((sent[r['request_packet_index']]['timestamp_ns'] for r in rows), default=None)
+    for row in rows:
+        req = sent[row['request_packet_index']]
+        resp = returned.get(row['response_packet_index'])
+        response_reason = 'missing_response'
+        if resp is not None and response_uses[resp['index']] > 1:
+            response_reason = 'ambiguous_shared_response'
+            resp = None
+        if resp is not None and resp['ack'] != (req['seq'] + req['len']) & 0xffffffff:
+            response_reason = 'response_ack_not_exact_request_end'
+            resp = None
+        if resp is not None and resp['timestamp_ns'] < req['timestamp_ns']:
+            # Legacy microsecond truncation can order sub-us packets as ties. Keep the
+            # legacy row intact, but never turn a pre-request frame into publication latency.
+            resp = None
+            response_reason = 'response_precedes_request_at_ns_precision'
+        candidates = sorted((p for p in in_segs if p['flow'] == req['flow'] and p['inc'] == req['inc']
+                             and p['src'] != MASTER_IP and p['timestamp_ns'] >= req['timestamp_ns']
+                             and p['flags'] & wc.ACK and after(p['ack'], (req['seq'] + req['len']) & 0xffffffff)),
+                            key=lambda p: (p['timestamp_ns'], p['index']))
+        ack = candidates[0] if candidates else None
+        delivered = request_pairs.get(req['index']) if not row['retransmitted'] else None
+        available = response_pairs.get(resp['index']) if resp is not None else None
+        if available is not None and available['timestamp_ns'] < req['timestamp_ns']:
+            available = None
+        availability_reason = 'unpaired_or_missing_out_response'
+        if resp is not None and available is None:
+            counterparts = [p for p in out_segs if p['flow'] == resp['flow'] and p['inc'] == resp['inc'] and
+                            p['src'] == resp['src'] and p['ack'] == resp['ack'] and
+                            func_of(p['payload']) == func_of(resp['payload']) and
+                            app_seq(p['payload']) == app_seq(resp['payload'])]
+            if len(counterparts) == 1:
+                if any(p['len'] != p['tcp_payload_declared_len'] for p in (counterparts[0], resp)):
+                    availability_reason = 'response_capture_truncated'
+                elif not _response_content_matches(counterparts[0]['payload'], resp['payload']):
+                    availability_reason = 'response_content_mismatch_or_unsupported_encoding'
+        reasons = {}
+        pub = dict(request_timestamp_ns=req['timestamp_ns'],
+                   publication_complete=resp is not None,
+                   publication_response_packet_index=resp['index'] if resp else None,
+                   ack_timestamp_ns=ack['timestamp_ns'] if ack else None,
+                   response_timestamp_ns=resp['timestamp_ns'] if resp else None,
+                   response_available_timestamp_ns=available['timestamp_ns'] if available else None,
+                   request_delivered_timestamp_ns=delivered['timestamp_ns'] if delivered else None,
+                   sequence=req['index'], observed_at_ms=(req['timestamp_ns'] - first_ns) / 1_000_000.0,
+                   request_len=req['len'], response_len=resp['len'] if resp else None)
+        for key, end, start, reason in (
+                ('ack_latency_ns', ack, req, 'missing_covering_ack'),
+                ('response_latency_ns', resp, req, response_reason),
+                ('clrt_ns', resp if ack and not ack['len'] else None, ack,
+                 'piggyback_ack' if ack and ack['len'] else 'missing_ack_or_response'),
+                ('response_availability_ns', available, req, availability_reason),
+                ('request_delivery_ns', delivered, req, 'ambiguous_or_missing_request_reflection'),
+                ('operate_hold_ns', delivered if row['kind'] == 'OPERATE' else None, req,
+                 'not_operate' if row['kind'] != 'OPERATE' else 'ambiguous_or_missing_request_reflection')):
+            pub[key] = end['timestamp_ns'] - start['timestamp_ns'] if end and start else None
+            if pub[key] is None:
+                reasons[key] = reason
+        for key in ('ack_timestamp_ns', 'response_timestamp_ns', 'response_available_timestamp_ns',
+                    'request_delivered_timestamp_ns', 'response_len'):
+            if pub[key] is None:
+                reasons[key] = 'packet_not_observed_or_not_certainly_paired'
+        if resp is None and response_reason != 'missing_response':
+            for key in ('response_latency_ns', 'clrt_ns', 'response_availability_ns', 'response_timestamp_ns',
+                        'response_available_timestamp_ns', 'response_len', 'publication_response_packet_index'):
+                pub[key] = None
+                reasons[key] = response_reason
+        window_end = resp['timestamp_ns'] if resp else None
+        metadata = {}
+        for capture, packets in (('out', out_segs), ('in', in_segs)):
+            window = [p for p in packets if p['flow'] == req['flow'] and p['inc'] == req['inc'] and
+                      p['timestamp_ns'] >= req['timestamp_ns'] and
+                      (window_end is None or p['timestamp_ns'] <= window_end)]
+            for direction, src in (('request', MASTER_IP), ('response', wc.OUTSTATION_IP)):
+                key = capture + '_' + direction + '_packet_count'
+                metadata[key] = sum(p['src'] == src for p in window) if capture_availability[capture] else None
+                if metadata[key] is None:
+                    reasons[key] = 'capture_unavailable'
+            key = capture + '_payload_packet_count'
+            metadata[key] = sum(p['len'] > 0 for p in window) if capture_availability[capture] else None
+            if metadata[key] is None:
+                reasons[key] = 'capture_unavailable'
+        pub.update(metadata)
+        pub['null_reasons'] = reasons
+        row['observation'] = dict(schema_version='vision-exchanges-v2',
+                                  clock=dict(clock_id='vision-parent-nic', domain='pcap_epoch', units='ns',
+                                             source='paired tcpdump captures on the same Vision parent NIC',
+                                             resolution_is_accuracy=False, accuracy_ns=None,
+                                             timebase_verification='declared_capture_contract_not_calibrated'),
+                                  request=_packet_observation(req, 'out'), ack=_packet_observation(ack, 'in'),
+                                  response=_packet_observation(resp, 'in'),
+                                  request_delivered=_packet_observation(delivered, 'in'),
+                                  response_available=_packet_observation(available, 'out'),
+                                  response_content_correspondence=('exact' if available and resp and
+                                      available['payload'] == resp['payload'] else
+                                      'bounded_native_to_61' if available else None),
+                                  attempts=[_packet_observation(p, 'out') for p in out_segs
+                                            if p['flow'] == req['flow'] and p['inc'] == req['inc']
+                                            and p['seq'] == req['seq']
+                                            and func_of(p['payload']) == func_of(req['payload'])],
+                                  metadata_window_end='response' if resp else 'capture_end_incomplete')
+        row['publication'] = pub
+
+
+def _capture_available(path):
+    return bool(path is not None and Path(path).exists() and Path(path).stat().st_size >= 24)
+
+
+def exchanges(out_path, in_path, allow_missing=False):
+    available = {name: _capture_available(path) for name, path in
+                 (('out', out_path), ('in', in_path))}
+    out_segs = wc.assign_incarnations(wc.parse(out_path)[0]) if not allow_missing or available['out'] else []
+    in_segs = wc.assign_incarnations(wc.parse(in_path)[0]) if not allow_missing or available['in'] else []
     back = sorted([s for s in in_segs if s['src'] != MASTER_IP], key=lambda s: (s['t_us'], s['index']))
     rows = []
     for lr in _master_requests(out_segs):
@@ -133,6 +364,7 @@ def exchanges(out_path, in_path):
             row['clrt_us'] = t_resp - t_ack if t_ack is not None else None
             row['rt_us'] = t_resp - lr['t_req']
         rows.append(row)
+    _add_publication(rows, out_segs, in_segs, available)
     return rows
 
 
@@ -157,12 +389,18 @@ def summarize(rows):
     return out
 
 
-def analyze(out_path, in_path):
-    rows = exchanges(out_path, in_path)
-    return {'sd_convention': SD_CONVENTION,
+def analyze(out_path, in_path, allow_missing=False):
+    rows = exchanges(out_path, in_path, allow_missing=allow_missing)
+    return {'schema_version': 'vision-exchanges-v2', 'sd_convention': SD_CONVENTION,
             'capture_sha256': {name: hashlib.sha256(Path(path).read_bytes()).hexdigest()
-                               for name, path in (('out', out_path), ('in', in_path))},
+                               for name, path in (('out', out_path), ('in', in_path))
+                               if path is not None and Path(path).exists()},
+            'capture_availability': {name: dict(status='observed' if _capture_available(path) else 'unavailable',
+                                                reason=None if _capture_available(path) else 'capture_missing_or_header_truncated')
+                                     for name, path in (('out', out_path), ('in', in_path))},
             'extractor_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            'extractor_sources_sha256': {name: hashlib.sha256(Path(path).read_bytes()).hexdigest()
+                                         for name, path in (('clrt_check.py', __file__), ('wire_check.py', wc.__file__))},
             'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
                     'timestamps are integer microseconds at the capture resolution',
             'summary': summarize(rows), 'exchanges': rows}

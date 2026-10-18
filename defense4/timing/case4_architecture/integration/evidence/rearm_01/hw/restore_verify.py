@@ -33,7 +33,9 @@ REQUIRED_STEPS = ('cold-swap bf_switchd back to the observed production program'
 
 
 def ssh(host, cmd, timeout=180):
-    return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host, cmd],
+    return subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'IdentityAgent=none',
+                           '-o', 'ControlMaster=no', '-o', 'ControlPath=none',
+                           '-o', 'ConnectTimeout=8', host, cmd],
                           capture_output=True, text=True, timeout=timeout)
 
 

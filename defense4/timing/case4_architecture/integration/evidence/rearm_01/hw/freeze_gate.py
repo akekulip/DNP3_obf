@@ -47,7 +47,16 @@ BASELINE_DIRS = (A + 'integration/evidence/rearm_01/hw/restore_baseline',)
 ANALYSIS = (A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/m5_summary.py',
             A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/isolation_v3.py',
             A + 'integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py',
-            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/ack_diag.py')
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/ack_diag.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/hw/evaluation_prepare.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/hw/part2_grid.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/four_arm_transactions.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/cost_report.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/leakage_four_arm.py',
+            'defense4/timing/evidence/campaign_v2/repro/leakage_campaign.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/publication_analysis.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/publication_figures.py',
+            A + 'integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/reproduce_evaluation.py')
 BUILD_FILES = ('response_only.p4', 'response_only.inputs.json', 'supported_profile.json', 'generate.py',
                'resource_review.json')
 COMPILE_FILES = ('manifest.json', 'out/bfrt.json', 'out/response_only.p4pp', 'out/p0/tofino.bin', 'out/p1/tofino.bin')

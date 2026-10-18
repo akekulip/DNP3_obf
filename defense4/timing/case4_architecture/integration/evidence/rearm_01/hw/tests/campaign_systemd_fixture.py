@@ -114,7 +114,7 @@ def run_fixture(output):
                 owned_units.add(entry['unit'])
         # This stop list is exclusively generated from this random fixture ID.
         for unit in sorted(owned_units):
-            if not unit.startswith('dnp3-' + campaign_id + '-'):
+            if not unit.startswith('dnp3-eval-' + campaign_id + '-'):
                 raise RuntimeError('refuse cleanup outside unique fixture identity')
             subprocess.run(['systemctl', '--user', 'stop', unit],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -176,7 +176,7 @@ def run_boundary_fixture(output, mode):
             if entry.get('unit'):
                 units.add(entry['unit'])
         for unit in units:
-            if not unit.startswith('dnp3-' + campaign_id + '-'):
+            if not unit.startswith('dnp3-eval-' + campaign_id + '-'):
                 raise RuntimeError('fixture cleanup outside owned units')
             subprocess.run(['systemctl', '--user', 'stop', unit], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output / 'fixture_report.json').write_text(json.dumps(report, sort_keys=True, indent=2)+'\n')
