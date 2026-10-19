@@ -1,0 +1,4676 @@
+{
+ "seed": 20260828,
+ "arms": [
+  "baseline",
+  "size_only",
+  "timing_only",
+  "combined"
+ ],
+ "chance_balanced_accuracy": 0.3333,
+ "n_folds": 16,
+ "classifier": "RandomForest {\"n_estimators\": 200, \"min_samples_leaf\": 5, \"random_state\": 0, \"n_jobs\": -1, \"class_weight\": \"balanced\"}",
+ "n_permutations": 1000,
+ "method": "campaign_v2/repro/leakage_campaign.py estimators, unchanged; arms extended",
+ "comparison_scope": "complete paired four-arm comparison",
+ "classifier_scope": "results characterise the evaluated Random-Forest attackers and this feature set; they do not generalise to all fingerprinting classifiers",
+ "mutual_information": {
+  "baseline": {
+   "observed_bits": 0.17158,
+   "null_mean_bits": 0.00585,
+   "null_sd_bits": 0.0087,
+   "null_p95_bits": 0.02382,
+   "null_p99_bits": 0.03515,
+   "null_max_bits": 0.05343,
+   "n_permutations": 1000,
+   "n_null_ge_observed": 0,
+   "p_value_empirical": 0.001,
+   "p_value_resolution": 0.001,
+   "exceeds_null_p95": true,
+   "exceeds_null_p99": true,
+   "inside_null": false,
+   "scope": "within-campaign only; not evidence of generalization across days, devices, or deployments",
+   "rejected_estimators": {
+    "grouped_run_jackknife": {
+     "bias_corrected_bits": 0.21146,
+     "se_bits": 0.03596,
+     "status": "REJECTED, diagnostic only, never plotted",
+     "reason": "pseudo-value construction assumes a smooth estimator; a nearest-neighbour MI estimator near the zero-information boundary is bounded, biased and non-smooth, and the resulting interval excludes its own point estimate"
+    }
+   }
+  },
+  "size_only": {
+   "observed_bits": 0.18606,
+   "null_mean_bits": 0.00577,
+   "null_sd_bits": 0.00877,
+   "null_p95_bits": 0.0253,
+   "null_p99_bits": 0.03261,
+   "null_max_bits": 0.04695,
+   "n_permutations": 1000,
+   "n_null_ge_observed": 0,
+   "p_value_empirical": 0.001,
+   "p_value_resolution": 0.001,
+   "exceeds_null_p95": true,
+   "exceeds_null_p99": true,
+   "inside_null": false,
+   "scope": "within-campaign only; not evidence of generalization across days, devices, or deployments",
+   "rejected_estimators": {
+    "grouped_run_jackknife": {
+     "bias_corrected_bits": 0.4208,
+     "se_bits": 0.04835,
+     "status": "REJECTED, diagnostic only, never plotted",
+     "reason": "pseudo-value construction assumes a smooth estimator; a nearest-neighbour MI estimator near the zero-information boundary is bounded, biased and non-smooth, and the resulting interval excludes its own point estimate"
+    }
+   }
+  },
+  "timing_only": {
+   "observed_bits": 0.0595,
+   "null_mean_bits": 0.00593,
+   "null_sd_bits": 0.00871,
+   "null_p95_bits": 0.02451,
+   "null_p99_bits": 0.03314,
+   "null_max_bits": 0.04306,
+   "n_permutations": 1000,
+   "n_null_ge_observed": 0,
+   "p_value_empirical": 0.001,
+   "p_value_resolution": 0.001,
+   "exceeds_null_p95": true,
+   "exceeds_null_p99": true,
+   "inside_null": false,
+   "scope": "within-campaign only; not evidence of generalization across days, devices, or deployments",
+   "rejected_estimators": {
+    "grouped_run_jackknife": {
+     "bias_corrected_bits": 0.16127,
+     "se_bits": 0.02667,
+     "status": "REJECTED, diagnostic only, never plotted",
+     "reason": "pseudo-value construction assumes a smooth estimator; a nearest-neighbour MI estimator near the zero-information boundary is bounded, biased and non-smooth, and the resulting interval excludes its own point estimate"
+    }
+   }
+  },
+  "combined": {
+   "observed_bits": 0.05408,
+   "null_mean_bits": 0.00538,
+   "null_sd_bits": 0.00858,
+   "null_p95_bits": 0.0241,
+   "null_p99_bits": 0.03549,
+   "null_max_bits": 0.0525,
+   "n_permutations": 1000,
+   "n_null_ge_observed": 0,
+   "p_value_empirical": 0.001,
+   "p_value_resolution": 0.001,
+   "exceeds_null_p95": true,
+   "exceeds_null_p99": true,
+   "inside_null": false,
+   "scope": "within-campaign only; not evidence of generalization across days, devices, or deployments",
+   "rejected_estimators": {
+    "grouped_run_jackknife": {
+     "bias_corrected_bits": -0.00319,
+     "se_bits": 0.02872,
+     "status": "REJECTED, diagnostic only, never plotted",
+     "reason": "pseudo-value construction assumes a smooth estimator; a nearest-neighbour MI estimator near the zero-information boundary is bounded, biased and non-smooth, and the resulting interval excludes its own point estimate"
+    }
+   }
+  }
+ },
+ "classifiers": {
+  "clrt": {
+   "features": [
+    "clrt_ms"
+   ],
+   "A_fixed_baseline_trained": {
+    "tested_on_baseline": {
+     "mean": 0.4581,
+     "median": 0.4769,
+     "min": 0.3539,
+     "max": 0.5334,
+     "iqr_lo": 0.4029,
+     "iqr_hi": 0.503,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_size_only": {
+     "mean": 0.4477,
+     "median": 0.4413,
+     "min": 0.3786,
+     "max": 0.5649,
+     "iqr_lo": 0.4032,
+     "iqr_hi": 0.4733,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "B_adaptive_arm_trained": {
+    "tested_on_size_only": {
+     "mean": 0.4661,
+     "median": 0.4589,
+     "min": 0.3473,
+     "max": 0.5857,
+     "iqr_lo": 0.4237,
+     "iqr_hi": 0.5031,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.3949,
+     "median": 0.4038,
+     "min": 0.3257,
+     "max": 0.4505,
+     "iqr_lo": 0.3716,
+     "iqr_hi": 0.4138,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3957,
+     "median": 0.3966,
+     "min": 0.3377,
+     "max": 0.4667,
+     "iqr_lo": 0.3687,
+     "iqr_hi": 0.4116,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "folds_per_arm": {
+    "baseline": 16,
+    "size_only": 16,
+    "timing_only": 16,
+    "combined": 16
+   },
+   "folds_used": 16,
+   "adaptive_anomalies": {},
+   "competence": {
+    "baseline_mean_balanced_accuracy": 0.4581,
+    "required_above": 0.3833,
+    "competent": true,
+    "comparison": "informative"
+   }
+  },
+  "ack_clrt": {
+   "features": [
+    "ack_ms",
+    "clrt_ms"
+   ],
+   "A_fixed_baseline_trained": {
+    "tested_on_baseline": {
+     "mean": 0.6398,
+     "median": 0.6373,
+     "min": 0.5865,
+     "max": 0.752,
+     "iqr_lo": 0.6053,
+     "iqr_hi": 0.661,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_size_only": {
+     "mean": 0.6409,
+     "median": 0.6431,
+     "min": 0.5247,
+     "max": 0.7062,
+     "iqr_lo": 0.6196,
+     "iqr_hi": 0.6706,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "B_adaptive_arm_trained": {
+    "tested_on_size_only": {
+     "mean": 0.6197,
+     "median": 0.6333,
+     "min": 0.4928,
+     "max": 0.6907,
+     "iqr_lo": 0.5911,
+     "iqr_hi": 0.6597,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.402,
+     "median": 0.4093,
+     "min": 0.3367,
+     "max": 0.4666,
+     "iqr_lo": 0.3656,
+     "iqr_hi": 0.4344,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.417,
+     "median": 0.4145,
+     "min": 0.3428,
+     "max": 0.472,
+     "iqr_lo": 0.3941,
+     "iqr_hi": 0.4499,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "folds_per_arm": {
+    "baseline": 16,
+    "size_only": 16,
+    "timing_only": 16,
+    "combined": 16
+   },
+   "folds_used": 16,
+   "adaptive_anomalies": {},
+   "competence": {
+    "baseline_mean_balanced_accuracy": 0.6398,
+    "required_above": 0.3833,
+    "competent": true,
+    "comparison": "informative"
+   }
+  },
+  "size": {
+   "features": [
+    "resp_len"
+   ],
+   "A_fixed_baseline_trained": {
+    "tested_on_baseline": {
+     "mean": 0.6667,
+     "median": 0.6667,
+     "min": 0.6667,
+     "max": 0.6667,
+     "iqr_lo": 0.6667,
+     "iqr_hi": 0.6667,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_size_only": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.6667,
+     "median": 0.6667,
+     "min": 0.6667,
+     "max": 0.6667,
+     "iqr_lo": 0.6667,
+     "iqr_hi": 0.6667,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "B_adaptive_arm_trained": {
+    "tested_on_size_only": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.6667,
+     "median": 0.6667,
+     "min": 0.6667,
+     "max": 0.6667,
+     "iqr_lo": 0.6667,
+     "iqr_hi": 0.6667,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "folds_per_arm": {
+    "baseline": 16,
+    "size_only": 16,
+    "timing_only": 16,
+    "combined": 16
+   },
+   "folds_used": 16,
+   "adaptive_anomalies": {},
+   "competence": {
+    "baseline_mean_balanced_accuracy": 0.6667,
+    "required_above": 0.3833,
+    "competent": true,
+    "comparison": "informative"
+   }
+  },
+  "ack_clrt_size": {
+   "features": [
+    "ack_ms",
+    "clrt_ms",
+    "resp_len"
+   ],
+   "A_fixed_baseline_trained": {
+    "tested_on_baseline": {
+     "mean": 0.9577,
+     "median": 0.9609,
+     "min": 0.9115,
+     "max": 0.9844,
+     "iqr_lo": 0.9479,
+     "iqr_hi": 0.974,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_size_only": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.6667,
+     "median": 0.6667,
+     "min": 0.6667,
+     "max": 0.6667,
+     "iqr_lo": 0.6667,
+     "iqr_hi": 0.6667,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.3333,
+     "median": 0.3333,
+     "min": 0.3333,
+     "max": 0.3333,
+     "iqr_lo": 0.3333,
+     "iqr_hi": 0.3333,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "B_adaptive_arm_trained": {
+    "tested_on_size_only": {
+     "mean": 0.6187,
+     "median": 0.6403,
+     "min": 0.4876,
+     "max": 0.6792,
+     "iqr_lo": 0.5847,
+     "iqr_hi": 0.6637,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_timing_only": {
+     "mean": 0.7376,
+     "median": 0.7422,
+     "min": 0.6875,
+     "max": 0.7708,
+     "iqr_lo": 0.7253,
+     "iqr_hi": 0.7565,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    },
+    "tested_on_combined": {
+     "mean": 0.4202,
+     "median": 0.4222,
+     "min": 0.3325,
+     "max": 0.4873,
+     "iqr_lo": 0.4028,
+     "iqr_hi": 0.4473,
+     "n_runs": 16,
+     "interpretation": "within-campaign held-out-run variability across the 16 grouped runs (blocks); the folds share training data and this is a descriptive range, not a confidence interval"
+    }
+   },
+   "folds_per_arm": {
+    "baseline": 16,
+    "size_only": 16,
+    "timing_only": 16,
+    "combined": 16
+   },
+   "folds_used": 16,
+   "adaptive_anomalies": {},
+   "competence": {
+    "baseline_mean_balanced_accuracy": 0.9577,
+    "required_above": 0.3833,
+    "competent": true,
+    "comparison": "informative"
+   }
+  }
+ },
+ "confusion_all_folds": {
+  "clrt/A_baseline": [
+   [
+    0.3663,
+    0.3462,
+    0.2875
+   ],
+   [
+    0.2959,
+    0.4229,
+    0.2812
+   ],
+   [
+    0.1816,
+    0.2334,
+    0.585
+   ]
+  ],
+  "clrt/A_size_only": [
+   [
+    0.3615,
+    0.3894,
+    0.249
+   ],
+   [
+    0.3799,
+    0.4023,
+    0.2178
+   ],
+   [
+    0.1768,
+    0.2441,
+    0.5791
+   ]
+  ],
+  "clrt/A_timing_only": [
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ],
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ],
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ]
+  ],
+  "clrt/A_combined": [
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ],
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ],
+   [
+    0.0,
+    0.0625,
+    0.9375
+   ]
+  ],
+  "clrt/B_size_only": [
+   [
+    0.3798,
+    0.4356,
+    0.1846
+   ],
+   [
+    0.3877,
+    0.4375,
+    0.1748
+   ],
+   [
+    0.1797,
+    0.2393,
+    0.5811
+   ]
+  ],
+  "clrt/B_timing_only": [
+   [
+    0.424,
+    0.2625,
+    0.3135
+   ],
+   [
+    0.3896,
+    0.2588,
+    0.3516
+   ],
+   [
+    0.29,
+    0.208,
+    0.502
+   ]
+  ],
+  "clrt/B_combined": [
+   [
+    0.2779,
+    0.3433,
+    0.3788
+   ],
+   [
+    0.293,
+    0.3291,
+    0.3779
+   ],
+   [
+    0.2031,
+    0.2168,
+    0.5801
+   ]
+  ],
+  "ack_clrt/A_baseline": [
+   [
+    0.4673,
+    0.4548,
+    0.0779
+   ],
+   [
+    0.4131,
+    0.541,
+    0.0459
+   ],
+   [
+    0.0469,
+    0.042,
+    0.9111
+   ]
+  ],
+  "ack_clrt/A_size_only": [
+   [
+    0.5048,
+    0.4231,
+    0.0721
+   ],
+   [
+    0.4482,
+    0.5195,
+    0.0322
+   ],
+   [
+    0.0488,
+    0.0527,
+    0.8984
+   ]
+  ],
+  "ack_clrt/A_timing_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "ack_clrt/A_combined": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "ack_clrt/B_size_only": [
+   [
+    0.4567,
+    0.4529,
+    0.0904
+   ],
+   [
+    0.4355,
+    0.502,
+    0.0625
+   ],
+   [
+    0.0654,
+    0.0342,
+    0.9004
+   ]
+  ],
+  "ack_clrt/B_timing_only": [
+   [
+    0.3827,
+    0.3817,
+    0.2356
+   ],
+   [
+    0.4023,
+    0.3574,
+    0.2402
+   ],
+   [
+    0.2559,
+    0.2783,
+    0.4658
+   ]
+  ],
+  "ack_clrt/B_combined": [
+   [
+    0.3808,
+    0.3731,
+    0.2462
+   ],
+   [
+    0.4033,
+    0.373,
+    0.2236
+   ],
+   [
+    0.2588,
+    0.2441,
+    0.4971
+   ]
+  ],
+  "size/A_baseline": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "size/A_size_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "size/A_timing_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "size/A_combined": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "size/B_size_only": [
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "size/B_timing_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "size/B_combined": [
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "ack_clrt_size/A_baseline": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.9453,
+    0.0547
+   ],
+   [
+    0.0,
+    0.0723,
+    0.9277
+   ]
+  ],
+  "ack_clrt_size/A_size_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "ack_clrt_size/A_timing_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ]
+  ],
+  "ack_clrt_size/A_combined": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "ack_clrt_size/B_size_only": [
+   [
+    0.4548,
+    0.4548,
+    0.0904
+   ],
+   [
+    0.4375,
+    0.498,
+    0.0645
+   ],
+   [
+    0.0605,
+    0.0361,
+    0.9033
+   ]
+  ],
+  "ack_clrt_size/B_timing_only": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.665,
+    0.335
+   ],
+   [
+    0.0,
+    0.4521,
+    0.5479
+   ]
+  ],
+  "ack_clrt_size/B_combined": [
+   [
+    0.3846,
+    0.3798,
+    0.2356
+   ],
+   [
+    0.3984,
+    0.3711,
+    0.2305
+   ],
+   [
+    0.252,
+    0.2432,
+    0.5049
+   ]
+  ]
+ },
+ "confusion_support": {
+  "clrt/A_baseline": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/A_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/A_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/A_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/B_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/B_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "clrt/B_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/A_baseline": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/A_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/A_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/A_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/B_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/B_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt/B_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/A_baseline": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/A_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/A_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/A_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/B_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/B_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "size/B_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/A_baseline": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/A_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/A_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/A_combined": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/B_size_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/B_timing_only": [
+   1040,
+   1024,
+   1024
+  ],
+  "ack_clrt_size/B_combined": [
+   1040,
+   1024,
+   1024
+  ]
+ },
+ "mutual_information_scope": "marginal CLRT MI only; no joint or size MI is claimed",
+ "observable_scope": "ACK latency, CLRT and observed response TCP-payload octets; plaintext DNP3 function codes remain visible and are outside these features",
+ "coverage": {
+  "eval_m11_09_20261018_02_r01_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r02_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r03_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r04_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r05_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r06_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r07_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r08_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r09_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r10_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r11_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r12_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r13_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r14_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r15_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  },
+  "eval_m11_09_20261018_02_r16_D10_J2p4": {
+   "baseline": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "size_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "timing_only": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "combined": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   }
+  }
+ },
+ "transactions_sha256": "46dd2f1212cbecaa35177438c997830e456eb1e0fb6fa6567c5b3db9fca2e230",
+ "extraction_counts": {
+  "eval_m11_09_20261018_02_r01_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r01_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r02_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r02_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r03_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r03_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r04_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r04_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r05_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r05_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r06_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r06_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r07_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r07_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r08_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r08_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r09_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r09_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r10_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r10_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r11_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r11_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r12_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r12_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r13_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r13_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r14_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r14_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r15_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r15_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "eval_m11_09_20261018_02_r16_D10_J2p4": {
+   "_metadata": {
+    "condition": "56fc9d2a32b89cc2aa42184139ebcc2f941ee57140c6d0103170b8f2c0c1bbb8",
+    "effective_condition": {
+     "timing_params_ns": {
+      "cap": 66000000,
+      "da": 31000000,
+      "gap": 10000000,
+      "op_j": 2400000,
+      "pb": 56000000,
+      "readiness": 61000000
+     },
+     "fixture": {
+      "delay_ms": 5,
+      "jitter_ms": 0,
+      "modes": [
+       "separate_ack"
+      ],
+      "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+      "readiness_margin_ms": 5
+     },
+     "k": 2,
+     "shaping_requested": {
+      "preset": "shape_59570",
+      "hold_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_pps": {
+       "ack": 59570,
+       "op": 59570,
+       "resp": 59570
+      },
+      "block_burst": 64
+     },
+     "endpoint_identity": {
+      "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+      "_pin_with": "sha256sum case4_socket_gate_pad58b; sorted sha256sum listing hash under lib/ in the configured Vision directory",
+      "_pinned": "repeat_sbo_endpoint fork (CASE4_SBO_CYCLES, append-only per-command records); software handler only.",
+      "binary_sha256": "8d78cf2fe9adcd559c23c2c018834dc84110d83796f38ed4fdfc10e0874a0553",
+      "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+      "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+      "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+      "source_files": {
+       "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+       "SocketGatePad58B.cpp": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+      },
+      "source_sha256": "84ff5bc978a4a21f6749177aee298b65275b59afa217e24bb6d5d9a300b68e22"
+     },
+     "traffic": {
+      "run_sbo": true,
+      "sbo_cycles": 64,
+      "range": 8,
+      "gap_ms": 0,
+      "read_pause_ms": 25,
+      "close_grace_ms": 0,
+      "start_delay_ms": 50
+     },
+     "trials": {
+      "reads_per_trial": 65,
+      "trials_per_arm": 1
+     }
+    },
+    "build_identity": "f469066ba59bb1292650cb03e45e3b1aa3301fa6f8f3275faec99b4db7128089",
+    "block_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02/blocks/eval_m11_09_20261018_02_r16_D10_J2p4"
+   },
+   "combined": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "baseline": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "size_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   },
+   "timing_only": {
+    "written": 193,
+    "incomplete": 0,
+    "missing_interval": 0,
+    "other_kind": 0,
+    "invalid": 0,
+    "classes": {
+     "READ": {
+      "written": 65,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 65,
+      "expected": 65
+     },
+     "SELECT": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     },
+     "OPERATE": {
+      "written": 64,
+      "incomplete": 0,
+      "missing_interval": 0,
+      "invalid": 0,
+      "observed": 64,
+      "expected": 64
+     }
+    }
+   }
+  },
+  "_table": {
+   "sha256": "46dd2f1212cbecaa35177438c997830e456eb1e0fb6fa6567c5b3db9fca2e230",
+   "rows": 12352,
+   "exchange_ids_sha256": "0c2bb5f03741a52713f6687f2c870ade5c965f8912ba9e330af1a2504f62d5c0",
+   "capture_ids_sha256": "374fdafae4302c12d0bd1625d4f9cec3fb8d64adc80016a7175273e869305b9a"
+  }
+ }
+}
