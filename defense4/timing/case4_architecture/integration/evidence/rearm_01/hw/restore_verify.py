@@ -9,7 +9,8 @@ Read-only on both hosts. Passes only when all of these hold:
      config restores one), Vision restore and the ping;
   2. the switch is running the configured production program (observe_program.py, read-only);
   3. a fresh read-only live_snapshot.py of that program equals the block's own pre-run snapshot on every table
-     except the counter tables in VOLATILE (all 399 others, $PORT included, matched exactly on 2026-10-15);
+     except the counter tables in VOLATILE (all 399 others, $PORT included, matched exactly on 2026-10-15),
+     with the packet, drop and occupancy statistics in STATISTICS removed from entry data first;
   4. Vision's `vision_run.py state` equals the recorded baseline (source pruning, namespace TCP profile, route,
      fixture qdisc);
   5. a fresh ping through the restored path succeeds.
@@ -25,6 +26,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 VOLATILE = frozenset({'$PORT_STAT', 'log_tbl_counter', 'tbl_dbg_counter', 'tf1.log_tbl_counter'})
+# Packet, drop and buffer-occupancy statistics in entry data. A cold swap zeroes them, so they differ from a
+# pre-run snapshot taken after background traffic (2026-10-19); every key, action and other field is compared.
+STATISTICS = frozenset({'$COUNTER_SPEC_PKTS', '$COUNTER_SPEC_BYTES', 'drop_count_packets', 'drop_count_bytes',
+                        'usage_cells', 'watermark_cells', 'shared_pool_usage_cells', 'guaranteed_min_usage_cells'})
 BASELINE = HERE / 'restore_baseline/vision_state_20261015.txt'
 REQUIRED_STEPS = ('cold-swap bf_switchd back to the observed production program',
                   'replay the pre-run $PORT snapshot on the production program',
@@ -51,6 +56,14 @@ def run_record(root):
     return None, None
 
 
+def without_statistics(table):
+    if not isinstance(table, dict) or not isinstance(table.get('entries'), list):
+        return table
+    entries = [dict(e, data={k: v for k, v in e['data'].items() if k not in STATISTICS})
+               if isinstance(e, dict) and isinstance(e.get('data'), dict) else e for e in table['entries']]
+    return dict(table, entries=entries)
+
+
 def compare_snapshots(pre, post):
     errors = []
     if pre.get('program') != post.get('program'):
@@ -61,7 +74,8 @@ def compare_snapshots(pre, post):
     if set(a) != set(b):
         errors.append('table sets differ: %s' % sorted(set(a) ^ set(b))[:20])
     differ = sorted(k for k in set(a) & set(b) - VOLATILE
-                    if json.dumps(a[k], sort_keys=True) != json.dumps(b[k], sort_keys=True))
+                    if json.dumps(without_statistics(a[k]), sort_keys=True)
+                    != json.dumps(without_statistics(b[k]), sort_keys=True))
     if differ:
         errors.append('tables differ from the pre-run snapshot: %s' % differ[:20])
     return errors, len(set(a) & set(b) - VOLATILE)

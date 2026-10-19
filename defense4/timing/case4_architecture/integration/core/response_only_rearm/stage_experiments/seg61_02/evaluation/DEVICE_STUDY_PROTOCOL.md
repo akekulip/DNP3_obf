@@ -104,3 +104,20 @@ reached 23.2 ms once in 100 READs.
 
 The offline baseline ran on 2026-10-19 (`device_analysis.py baseline`): physical SEL-751 against the
 campaign outstation without obfuscation, K = 8, balanced accuracy 1.0 on 64 + 6 test windows.
+
+## Amendment 2 (2026-10-19 23:50 EDT, after the first pilot block, before any main block)
+
+Campaign `dev_m11_09_20261019_01` stopped at its first block, `pilot_dev_const5`. The block itself
+collected 64 READ per arm with zero fallbacks and 64 commits under Timing+Size, and every restore step
+and the restore ping passed. The independent restore verification failed only because 18 counter tables
+differed from the pre-run snapshot, in three statistic fields (`$COUNTER_SPEC_PKTS`,
+`drop_count_packets`, `watermark_cells`). The pre-run snapshot was taken on a baseline that had
+accumulated about 12 hours of background traffic (4,416 outcome counts), which the restore's cold swap
+zeroes. Background traffic now reaches the switch on port 9 and on the relay port at about one packet a
+minute, so the counters can no longer be expected to match.
+
+`restore_verify.py` now removes packet, drop and buffer-occupancy statistics from entry data before
+comparing; every table, entry key, action and other field is still compared exactly. On the stopped
+block's own snapshots it then reports all 399 tables equal. The stopped campaign stays on disk as the
+record. The study is relaunched as `dev_m11_09_20261019_02` with the same frozen design; the stopped
+pilot's data are not used.

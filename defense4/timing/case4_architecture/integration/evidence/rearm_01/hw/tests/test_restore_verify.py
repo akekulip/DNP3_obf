@@ -35,6 +35,43 @@ def test_any_changed_port_or_table_or_program_fails():
         assert rv.compare_snapshots(snap(), post)[0]
 
 
+def counter_snap():
+    s = snap()
+    s['tables']['pipe.Egress.outcome'] = {'entries': [
+        {'key': {'$COUNTER_INDEX': {'value': 0}}, 'data': {'$COUNTER_SPEC_PKTS': 0, 'action_name': None}}]}
+    s['tables']['tm.counter.ig_port'] = {'entries': [
+        {'key': {'dev_port': {'value': 9}}, 'data': {'drop_count_packets': 0, 'usage_cells': 0, 'watermark_cells': 0,
+                                                      'action_name': None, 'is_default_entry': False}}]}
+    return s
+
+
+def test_counter_statistics_reset_by_the_cold_swap_do_not_fail():
+    """A cold swap zeroes packet, drop and occupancy statistics; a pre-run snapshot taken after hours of
+    background traffic holds nonzero ones (dev_m11_09_20261019_01 pilot, 2026-10-19)."""
+    pre, post = counter_snap(), counter_snap()
+    pre['tables']['pipe.Egress.outcome']['entries'][0]['data']['$COUNTER_SPEC_PKTS'] = 4416
+    pre['tables']['tm.counter.ig_port']['entries'][0]['data'].update(drop_count_packets=3, watermark_cells=7)
+    errors, compared = rv.compare_snapshots(pre, post)
+    assert errors == [] and compared == 4
+
+
+def test_counter_tables_still_fail_on_any_non_statistic_difference():
+    for mutate in (lambda s: s['tables']['tm.counter.ig_port']['entries'][0]['key']['dev_port'].update(value=10),
+                   lambda s: s['tables']['pipe.Egress.outcome']['entries'].append(
+                       {'key': {'$COUNTER_INDEX': {'value': 1}}, 'data': {'$COUNTER_SPEC_PKTS': 0}}),
+                   lambda s: s['tables']['tm.counter.ig_port']['entries'][0]['data'].update(is_default_entry=True),
+                   lambda s: s['tables']['pipe.Egress.outcome']['entries'][0]['data'].update(action_name='x')):
+        post = counter_snap()
+        mutate(post)
+        assert rv.compare_snapshots(counter_snap(), post)[0]
+
+
+def test_statistic_names_are_not_stripped_from_configuration_fields():
+    pre, post = snap(), snap()
+    post['tables']['pipe.fwd']['entries'][0]['data'] = {'usage_limit': 5}
+    assert rv.compare_snapshots(pre, post)[0]
+
+
 def test_runner_record_is_found_and_failed_or_missing_steps_are_reported(tmp_path):
     steps = [{'step': s, 'rc': 0, 'ok': True} for s in rv.REQUIRED_STEPS]
     (tmp_path / 'series_run.json').write_text(json.dumps({'restore': steps}))
