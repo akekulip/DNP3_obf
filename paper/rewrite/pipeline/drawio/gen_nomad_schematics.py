@@ -135,7 +135,25 @@ def components():
     p.write(OUT / 'fig_nomad_components.drawio')
 
 
+def psa():
+    """A generic programmable data plane: the blocks Dr. Lin's Background II-C describes."""
+    p = Page('fig_psa_pipeline', 252, 78)
+    labels = ('Parser', 'MAUs', 'Deparser', 'Queues', 'Parser', 'MAUs', 'Deparser')
+    x, y, h, gap = 2.0, 28.0, 26.0, 5.0
+    w = (252 - 2 * x - gap * 6) / 7
+    for i, lab in enumerate(labels):
+        fill = '#F4F6F8' if lab == 'Queues' else '#FFFFFF'
+        p.box(x + i * (w + gap), y, w, h, lab, fill=fill, size=8)
+        if i:
+            p.line((x + i * (w + gap) - gap, y + h / 2), (x + i * (w + gap), y + h / 2), BLUE, width=0.7)
+    p.text(x, 10, 3 * w + 2 * gap, 10, 'Ingress pipeline', 8, colour=SOFT, italic=True)
+    p.text(x + 4 * (w + gap), 10, 3 * w + 2 * gap, 10, 'Egress pipeline', 8, colour=SOFT, italic=True)
+    p.text(x + 3 * (w + gap) - 14, y + h + 4, w + 28, 10, 'traffic manager', 8, colour=SOFT)
+    p.write(OUT / 'fig_psa_pipeline.drawio')
+
+
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
     timeline()
     components()
+    psa()

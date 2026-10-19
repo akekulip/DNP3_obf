@@ -1,0 +1,16 @@
+% Appendix: the IED vendor security survey that Dr. Lin's Section III-B refers to
+% ("The crawler methodology and detailed results are presented in Appendix").
+% Table generated from paper_inputs/crawler (supplied 2026-10-19); see CLAIM_EVIDENCE_MATRIX C17:
+% the draft sentence cites 99 / 32 / 6 / 1, which this run does not reproduce, pending Dr. Lin.
+\section{Security Support Documented by IED Vendors}
+\label{app:crawler}
+
+To estimate how widely DNP3 security is available in deployed devices, we collected public product manuals, data sheets and pages of five IED vendors and recorded, for each device, the DNP3 security it documents. Table~\ref{tab:crawler} summarizes 55 devices. Of these, 48 document no DNP3 security, 4 document encryption with authentication, 2 document authentication only, and 1 lists an option we could not confirm. All 25 devices of mature or legacy generations document none. Two of the four encrypted entries are PLCs whose security protects EtherNet/IP rather than DNP3, which reaches them only through an add-on module. A feature that a vendor documents may still be unused in a deployment~\cite{CISA2026SecureOT}; an analysis of traffic at an Internet exchange found that 75.6\% of ICS hosts communicate without encryption~\cite{barbieri2021}.
+
+\begin{table}[h]
+\centering
+\caption{DNP3 security support documented by five IED vendors (device counts): encryption with authentication, authentication only, an unconfirmed option, and none.}
+\label{tab:crawler}
+\footnotesize
+\input{tables/tab_crawler}
+\end{table}

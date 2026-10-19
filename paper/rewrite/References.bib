@@ -226,16 +226,20 @@
 }
 
 @inproceedings{securitas2026,
-  title     = {Securitas: Defending against Traffic Analysis Attacks with Flexible In-Network Obfuscation},
-  author    = {Xie, Guorui and others},
-  booktitle = {Proc. 23rd USENIX Symp. on Networked Systems Design and Implementation (NSDI)},
-  year      = {2026}
+  title     = {Defending against Traffic Analysis Attacks with Flexible In-Network Obfuscation},
+  author    = {Xie, Guorui and Li, Qing and Shi, Zhenning and Antichi, Gianni and Zhu, Yijia and Li, Kejun and Weng, Changxing and Miano, Sebastiano and Jiang, Yong and Xu, Mingwei},
+  booktitle = {Proc. 23rd USENIX Symp. on Networked Systems Design and Implementation ({NSDI})},
+  pages     = {2043--2063},
+  year      = {2026},
+  url       = {https://www.usenix.org/conference/nsdi26/presentation/xie-guorui}
 }
 @inproceedings{minos2025,
   title     = {Minos: A Lightweight and Dynamic Defense against Traffic Analysis in Programmable Data Planes},
-  author    = {Wang, Zihao and others},
-  booktitle = {Proc. USENIX Annual Technical Conference (ATC)},
-  year      = {2025}
+  author    = {Wang, Zihao and Li, Qing and Xie, Guorui and Zhao, Dan and Li, Kejun and Fan, Zhuochen and Ma, Lianbo and Jiang, Yong},
+  booktitle = {Proc. USENIX Annual Technical Conference ({ATC})},
+  pages     = {399--415},
+  year      = {2025},
+  url       = {https://www.usenix.org/conference/atc25/presentation/wang-zihao}
 }
 @inproceedings{hulin2023,
   title     = {Industrial Network Protocol Security Enhancement Using Programmable Switches},
@@ -421,4 +425,195 @@
   author = {{Schweitzer Engineering Laboratories}},
   year   = {2013},
   note   = {PM751A-01-NB, 20130329 printing; settings table, \texttt{STIMEO1} select/operate time-out}
+}
+
+% Added 2026-10-19 for Dr. Lin's draft (keys as he cites them; sources of record in
+% pipeline/reports/CITATION_AUDIT_20261019.md).
+@techreport{CISA2026SecureOT,
+  title       = {Barriers to Secure {OT} Communication: Why {Johnny} Can't Authenticate},
+  author      = {{Cybersecurity and Infrastructure Security Agency}},
+  institution = {Cybersecurity and Infrastructure Security Agency (CISA)},
+  type        = {Guidance},
+  month       = feb,
+  year        = {2026},
+  url         = {https://www.cisa.gov/sites/default/files/2026-02/Barriers-to-Secure-Communication-Why-OT-Johnny-Cant-Authenticate_508_2.pdf}
+}
+@techreport{p42022psa,
+  title       = {{P4\textsubscript{16}} Portable Switch Architecture ({PSA}), Version 1.2},
+  author      = {{The P4.org Architecture Working Group}},
+  institution = {P4.org},
+  month       = dec,
+  year        = {2022},
+  url         = {https://p4.org/wp-content/uploads/sites/53/p4-spec/docs/PSA-v1.2.html}
+}
+@misc{seion7550,
+  title        = {{PowerLogic} {ION7550}/{ION7650} Series},
+  author       = {{Schneider Electric}},
+  howpublished = {Product range page},
+  note         = {Accessed Oct. 15, 2026},
+  url          = {https://www.se.com/us/en/product-range/1460-powerlogic-ion7550-ion7650-series/}
+}
+
+% Added 2026-10-19 from Zotero collection OBfus_defense (sources of record in pipeline/reports/CITATION_AUDIT_20261019.md).
+@inproceedings{trafficsliver2020,
+  title = {{{TrafficSliver}}: {{Fighting Website Fingerprinting Attacks}} with {{Traffic Splitting}}},
+  author = {{De la Cadena}, Wladimir and Mitseva, Asya and Hiller, Jens and Pennekamp, Jan and Reuter, Sebastian and Filter, Julian and Engel, Thomas and Wehrle, Klaus and Panchenko, Andriy},
+  year = 2020,
+  month = oct,
+  pages = {1971--1985},
+  publisher = {ACM},
+  doi = {10.1145/3372297.3423351}
+}
+@inproceedings{front2020,
+  title = {Zero-Delay {{Lightweight Defenses}} against {{Website Fingerprinting}}},
+  booktitle = {29th {{USENIX Security Symposium}} ({{USENIX Security}} 20)},
+  author = {Gong, Jiajun and Wang, Tao},
+  year = 2020,
+  pages = {717--734},
+  publisher = {USENIX Association}
+}
+@inproceedings{kfp2016,
+  title = {K-Fingerprinting: {{A Robust Scalable Website Fingerprinting Technique}}},
+  booktitle = {25th {{USENIX Security Symposium}} ({{USENIX Security}} 16)},
+  author = {Hayes, Jamie and Danezis, George},
+  year = 2016,
+  pages = {1187--1203},
+  publisher = {USENIX Association}
+}
+@article{babun2021,
+  title = {{{CPS Device-Class Identification}} via {{Behavioral Fingerprinting}}: {{From Theory}} to {{Practice}}},
+  author = {Babun, Leonardo and Aksu, Hidayet and Uluagac, A. Selcuk},
+  year = 2021,
+  journal = {IEEE Transactions on Information Forensics and Security},
+  volume = {16},
+  pages = {2413--2428},
+  publisher = {{Institute of Electrical and Electronics Engineers (IEEE)}},
+  issn = {1556-6013},
+  doi = {10.1109/TIFS.2021.3054968}
+}
+@inproceedings{barbieri2021,
+  title = {Assessing the {{Use}} of {{Insecure ICS Protocols}} via {{IXP Network Traffic Analysis}}},
+  author = {Barbieri, Giovanni and Conti, Mauro and Tippenhauer, Nils Ole and Turrin, Federico},
+  year = 2021,
+  month = jul,
+  pages = {1--9},
+  publisher = {IEEE},
+  doi = {10.1109/ICCCN52240.2021.9522219},
+}
+@inproceedings{calendarq2020,
+  title = {Programmable {{Calendar Queues}} for {{High}}-Speed {{Packet Scheduling}}},
+  booktitle = {17th {{USENIX Symposium}} on {{Networked Systems Design}} and {{Implementation}} ({{NSDI}} 20)},
+  author = {Sharma, Naveen Kr. and Zhao, Chenxingyu and Liu, Ming and Kannan, Pravein G and Kim, Changhoon and Krishnamurthy, Arvind and Sivaraman, Anirudh},
+  year = 2020,
+  pages = {685--699},
+  publisher = {USENIX Association}
+}
+@article{tiktok2020,
+  title = {{\emph{Tik-}}{{{\emph{Tok}}}}                     : {{The Utility}} of {{Packet Timing}} in {{Website Fingerprinting Attacks}}},
+  author = {Rahman, Mohammad Saidur and Sirinam, Payap and Mathews, Nate and Gangadhara, Kantha Girish and Wright, Matthew},
+  year = 2020,
+  month = jul,
+  journal = {Proceedings on Privacy Enhancing Technologies},
+  volume = {2020},
+  number = {3},
+  pages = {5--24},
+  publisher = {Privacy Enhancing Technologies Symposium Advisory Board},
+  issn = {2299-0984},
+  doi = {10.2478/popets-2020-0043},
+}
+@inproceedings{surakav2022,
+  title = {Surakav: {{Generating Realistic Traces}} for a {{Strong Website Fingerprinting Defense}}},
+  author = {Gong, Jiajun and Zhang, Wuqi and Zhang, Charles and Wang, Tao},
+  year = 2022,
+  month = may,
+  pages = {1558--1573},
+  publisher = {IEEE},
+  doi = {10.1109/SP46214.2022.9833722}
+}
+@article{regulator2022,
+  title = {{{RegulaTor}}: {{A Straightforward Website Fingerprinting Defense}}},
+  author = {Holland, James K and Hopper, Nicholas},
+  year = 2022,
+  month = mar,
+  journal = {Proceedings on Privacy Enhancing Technologies},
+  volume = {2022},
+  number = {2},
+  pages = {344--362},
+  publisher = {Privacy Enhancing Technologies Symposium Advisory Board},
+  issn = {2299-0984},
+  doi = {10.2478/popets-2022-0049},
+}
+@inproceedings{idetect2026,
+  title = {I-{{DETECT}}: {{In}}-Network {{Deep Packet Inspection}} for {{Timed Event Correlation}} in {{Industrial Control Systems}}},
+  author = {Hu, Zheng and Lin, Hui and Qu, Yanfeng and Jin, Dong},
+  year = 2026,
+  month = jun,
+  pages = {627--640},
+  publisher = {IEEE},
+  doi = {10.1109/DSN69566.2026.00065}
+}
+@article{mtdsurvey2025,
+  title = {Survey of {{Moving Target Defense}} in {{Power Grids}}: {{Design Principles}}, {{Tradeoffs}}, and {{Future Directions}}},
+  author = {Chen, Yexiang and Konstantinou, Charalambos and Mashima, Daisuke and Srivastava, Anurag K. and Lakshminarayana, Subhash},
+  year = 2025,
+  journal = {IEEE Open Access Journal of Power and Energy},
+  volume = {12},
+  pages = {455--469},
+  publisher = {{Institute of Electrical and Electronics Engineers (IEEE)}},
+  issn = {2687-7910},
+  doi = {10.1109/oajpe.2025.3577012}
+}
+@article{formby2017,
+  title = {A {{Case Study}} in {{Power Substation Network Dynamics}}},
+  author = {Formby, David and Walid, Anwar and Beyah, Raheem},
+  year = 2017,
+  month = jun,
+  journal = {Proceedings of the ACM on Measurement and Analysis of Computing Systems},
+  volume = {1},
+  number = {1},
+  pages = {1--24},
+  publisher = {Association for Computing Machinery (ACM)},
+  issn = {2476-1249},
+  doi = {10.1145/3084456},
+}
+@inproceedings{normalization2001,
+  title = {Network Intrusion Detection: Evasion, Traffic Normalization, and {{End-to-End}} Protocol Semantics},
+  author = {Handley, Mark and Paxson, Vern and Kreibich, Christian},
+  booktitle = {10th {{USENIX Security Symposium}} ({{USENIX Security}} 01)},
+  year = 2001,
+  month = aug,
+  address = {Washington, D.C.},
+  publisher = {USENIX Association},
+  url = {https://www.usenix.org/conference/10th-usenix-security-symposium/network-intrusion-detection-evasion-traffic-normalization}
+}
+@inproceedings{smart2000,
+  title = {Defeating {{TCP/IP}} Stack Fingerprinting},
+  author = {Smart, Matthew and Malan, G. Robert and Jahanian, Farnam},
+  booktitle = {9th {{USENIX Security Symposium}} ({{USENIX Security}} 00)},
+  year = 2000,
+  month = aug,
+  address = {Denver, CO},
+  publisher = {USENIX Association},
+  url = {https://www.usenix.org/conference/9th-usenix-security-symposium/defeating-tcpip-stack-fingerprinting}
+}
+@inproceedings{askarov2010,
+  title = {Predictive Black-Box Mitigation of Timing Channels},
+  author = {Askarov, Aslan and Zhang, Danfeng and Myers, Andrew C.},
+  booktitle = {Proceedings of the 17th {{ACM}} Conference on Computer and Communications Security ({{CCS}} '10)},
+  year = 2010,
+  month = oct,
+  pages = {297--307},
+  address = {Chicago, IL, USA},
+  publisher = {ACM},
+  doi = {10.1145/1866307.1866341}
+}
+@inproceedings{keliris2016,
+  title = {Remote Field Device Fingerprinting Using Device-Specific {{Modbus}} Information},
+  author = {Keliris, Anastasis and Maniatakos, Michail},
+  booktitle = {2016 {{IEEE}} 59th International Midwest Symposium on Circuits and Systems ({{MWSCAS}})},
+  year = 2016,
+  month = oct,
+  pages = {1--4},
+  publisher = {IEEE},
+  doi = {10.1109/MWSCAS.2016.7870006}
 }

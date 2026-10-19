@@ -97,6 +97,15 @@ this session), **filed** (already in the library, now also filed in OBfus_defens
 | rahmanTikTokUtilityPacket2020 | Tik-Tok: The Utility of Packet Timing in Website Fingerprinting Attacks | Rahman, Sirinam, Mathews, Gangadhara, Wright | PoPETs 2020(3):5–24 | 2020 | 10.2478/popets-2020-0043 | yes | timing-only and directional-timing features defeat WTF-PAD | added (`7WMXMQ7T`) |
 | feghhi2016, panchenko2016 | — | — | — | — | — | yes | already cited | existing |
 
+### (g) Normalization, timing-channel mitigation and content-based ICS fingerprinting (added later on 2026-10-19)
+
+| key | title | authors | venue | year | DOI / URL | SoR checked | claim it can support | status |
+|---|---|---|---|---|---|---|---|---|
+| normalization2001 | Network Intrusion Detection: Evasion, Traffic Normalization, and End-to-End Protocol Semantics | Handley, Paxson, Kreibich | 10th USENIX Security Symposium, Washington, D.C. | 2001 | https://www.usenix.org/conference/10th-usenix-security-symposium/network-intrusion-detection-evasion-traffic-normalization | yes, BibTeX block on the usenix.org page (no DOI; no pages listed) | in-network normalization of protocol behaviour: a forwarding element rewrites traffic so a monitor sees one unambiguous form | added (Zotero `D6CJD2D4`), bib key added |
+| smart2000 | Defeating TCP/IP Stack Fingerprinting | Smart, Malan, Jahanian | 9th USENIX Security Symposium, Denver, CO | 2000 | https://www.usenix.org/conference/9th-usenix-security-symposium/defeating-tcpip-stack-fingerprinting | yes, BibTeX block on the usenix.org page (no DOI; no pages listed) | defeating stack fingerprinting by rewriting traffic in the network (the fingerprint scrubber) | added (Zotero `KQWWPSNT`), bib key added |
+| askarov2010 | Predictive Black-Box Mitigation of Timing Channels | Askarov, Zhang, Myers | ACM CCS '10, Chicago, pp. 297–307 | 2010 | 10.1145/1866307.1866341 | yes, DOI resolves to dl.acm.org; metadata from the ACM Crossref deposit (the ACM page itself returned 403 to the fetcher) | predictive timing-channel mitigation: release at predicted, schedule-determined times, the idea behind deadline release | added (Zotero `8NNAKU5I`), bib key added |
+| keliris2016 | Remote Field Device Fingerprinting Using Device-Specific Modbus Information | Keliris, Maniatakos | IEEE 59th MWSCAS, pp. 1–4 | 2016 | 10.1109/MWSCAS.2016.7870006 | yes, DOI resolves to IEEE Xplore 7870006; metadata from the IEEE Crossref deposit (the Xplore page renders client-side and could not be read) | content-based ICS device fingerprinting from vendor-specific Modbus information, which NOMAD's metadata-only scope does not address | added (Zotero `5C7AGF7Q`), bib key added |
+
 ## 3. Keys in main.tex whose References.bib entry or usage disagrees with the source of record
 
 | key | problem | fix |

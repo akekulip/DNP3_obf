@@ -122,6 +122,19 @@ and the distinction between measurements and later candidates.
 
 ## Paper writing (STRICT — Dr. Lin structure + manuscript gate)
 
+**Since 2026-10-19 (NOMAD rebuild):**
+- `pipeline/build.sh` also runs `check_lin_verbatim.py`, which checks Dr. Lin's protected
+  paragraphs word for word.
+- The gate's section order follows his structure.
+- The arms are *No obfuscation*, *Timing*, *Size* and *Timing+Size*.
+- Response-size claims scoped to the measured normalization no longer fail.
+- The evaluation figures and tables come from `seg61_02/analysis/paper_evidence.py`, mirrored by
+  `pipeline/sync_nomad_evidence.py`; the schematics come from `pipeline/drawio/build_nomad.sh`.
+- The campaign_v2 figure families below remain as that record and are not used by the rebuilt
+  manuscript.
+
+The rest of this section describes the earlier timing-only manuscript.
+
 All manuscript prose follows `paper/rewrite/pipeline/DR_LIN_WRITING_GUIDE.md` and is gated by
 `paper/rewrite/pipeline/lin_check.py` (`pipeline/build.sh` compiles and gates). The gate fails
 on forbidden names, stale arm labels (`native`, `defended`, `Timing ON`), firstness claims, em

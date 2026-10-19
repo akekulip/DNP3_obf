@@ -1,0 +1,25 @@
+% Obfuscation objectives and constraints. Envelope formulas and values from
+% eval_m11_09_20261018_02 release/audit/common_envelope.json (DESIGN_FACTS.md "Envelope").
+\section{Obfuscation Objectives and Constraints}
+\label{sec:objectives}
+
+The strategies of Section~\ref{sec:strategies} take their parameters from the control plane, and the parameters cannot be chosen freely. An obfuscation objective states what the observer should see; a constraint states what the control network and the switch must still guarantee. In this section, we describe both and the rule NOMAD uses to turn them into deadlines.
+
+\textbf{Objectives.} The operator states three targets: the CLRT the master should observe, $D$; the hold applied to every OPERATE, $J$; and the size of every response, 61~bytes in our deployment. Because the targets are values rather than functions of a device, the same targets can apply to all outstations behind the switch that acknowledge requests separately, so that such devices present the same timing and size to the master-facing link.
+
+\textbf{Packet availability.} The switch cannot release a packet it has not received. Strategy~1 therefore requires the response to arrive before the acknowledgment's deadline, $t_R \leq t_0 + d_a$, and for OPERATE the response arrives only after the hold, so $d_a$ must also cover $J$. We denote by $L$ an estimate of the largest time an outstation takes to make its response available after a request. We measure $L$ on unobfuscated pilot traffic, before any hold is applied; in our testbed, $L$ is 5.598~ms.
+
+\textbf{Deadlines.} To keep a margin for queue service and measurement error, we add a guard $G$ of 5~ms and size every deadline for the largest targets the operator may choose, $D_{\max} = J_{\max} = 20$~ms. With $C(x)$ rounding $x$ up to the next millisecond, the control plane sets
+\begin{equation}
+\label{eq:envelope}
+\begin{aligned}
+d_a &= C(L + J_{\max} + G),\\
+p_b &= C\big(\max(J_{\max} + G,\; d_a + D_{\max} + G)\big),\\
+r &= C\big(\max(p_b + G,\; \max(d_a, L + J_{\max}) + D_{\max} + G)\big),
+\end{aligned}
+\end{equation}
+where $d_a$ is the acknowledgment deadline of Strategy~1, $p_b$ bounds the release of a response that carries its own acknowledgment, and $r$ is the readiness deadline after which the switch releases any held packet. For $L$ = 5.598~ms, these rules give $d_a$ = 31~ms, $p_b$ = 56~ms and $r$ = 61~ms, and one envelope serves every combination of $D$ and $J$ up to 20~ms. The control plane also checks a cap of $r + G$ = 66~ms on the readiness deadline. These guards are margins we chose for the experiments, not proven worst-case bounds.
+
+\textbf{Communication requirements.} A held transaction must still complete before the master gives up on it. With these deadlines, a response leaves the switch about $d_a + D$ after its request, i.e., 51~ms for the largest $D$, and the guarded budget of the whole envelope is 76~ms. Both stay well below the 500~ms response timeout configured at the master and the 201~ms TCP retransmission timeout we measured on the endpoints, so a held request is not retransmitted. A deployment with slower devices raises $L$, and therefore $d_a$, by the same amount.
+
+\textbf{Protocol compliance.} The layouts of Strategy~3 must keep every frame valid under IEEE~1815, i.e., correct CRCs, transport sequence numbers and application sequence numbers, and must carry the same control units in the same order. Program E therefore rewrites a response only when its shape and every native CRC match the layout configured for its operation.

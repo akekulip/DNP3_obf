@@ -1,5 +1,31 @@
 # Dr. Lin writing guide — the one active guide for this manuscript
 
+> **NOMAD rebuild, 2026-10-19 (supersedes the rules below where they conflict).** Authority, in
+> order:
+> 1. Philip's current direction.
+> 2. Dr. Lin's draft `lin_draft/main_20261019.tex` and the structure `lin_draft/paper_structure_20261019.pdf`.
+> 3. The campaign evidence indexed in
+>    `defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/CLAIM_EVIDENCE_MATRIX.md`.
+> 4. This guide.
+>
+> **Protected text.** His non-[Archive] paragraphs are protected, and `check_lin_verbatim.py`
+> enforces them, replacing the retired `check_lin_intro_verbatim.py`.
+>
+> **Structure.**
+> - The section order is Introduction, Background, NOMAD Design Overview (threat model, design
+>   goals, RO1–RO3), Obfuscation Infrastructure, Obfuscation Strategies, Obfuscation Objectives and
+>   Constraints, Evaluation, Related Work, Conclusion, Appendix.
+> - The system name is NOMAD.
+> - The arms are No obfuscation, Timing, Size and Timing+Size; "Timing OFF" and "Obfuscated"
+>   are retired.
+>
+> **Size claims** are allowed, scoped to the measured response normalization; requests stay
+> native.
+>
+> **Figures and tables** come only from `seg61_02/analysis/paper_evidence.py`, mirrored by
+> `sync_nomad_evidence.py`, and the NOMAD schematics from `drawio/build_nomad.sh`. Concerns about
+> his text go to `reports/LIN_DRAFT_REVIEW_20261019.md`.
+
 > **Post-meeting revision, 2026-09-08.** The meeting of September 2026 and Dr. Lin's supplied
 > Introduction are now the writing authority for argument, scope and structure; this guide is
 > subordinate to them and to the measured evidence. Section 0 below records what the meeting

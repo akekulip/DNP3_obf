@@ -1,0 +1,32 @@
+% Obfuscation infrastructure. Every design fact cites a source line in
+% defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09/DESIGN_FACTS.md.
+\section{Obfuscation Infrastructure}
+\label{sec:infrastructure}
+
+To apply a different strategy to each type of operation, NOMAD must know, for every packet that crosses the switch, which transaction it belongs to and which control units it carries. We build this knowledge into three P4 programs that share one Tofino-1 switch. As shown in Fig.~\ref{fig:components}, program N runs in the ingress of pipe~0 and parses the DNP3 traffic. Program T runs in the ingress of pipe~1 and holds packets until their release, and program E runs in the egress of pipe~0 and rewrites responses on their way to the master. The switch has two physical pipes, and the three programs occupy both of them. In this section, we describe how each program handles a packet, and we leave the policy it applies to Section~\ref{sec:strategies}.
+
+\subsection{Extracting Control Units}
+
+In program N, we parse every TCP segment between the master and the outstation down to the DNP3 application layer and extract the function code of each request, e.g., READ, SELECT and OPERATE, and the object group, variation, qualifier and index range of each object header. Based on these fields and the TCP connection, we bind the request, its TCP acknowledgment and its response into one transaction, and we compute the DNP3 link-header and first-block cyclic redundancy checks (CRCs) of each frame. Requests leave N unchanged. A request whose operation NOMAD times is handed to program T through a dedicated internal port of pipe~1. Consequently, the classification of a packet costs one parsing pass and never adds a byte to the request a device receives.
+
+\subsection{Holding Packets with Queues}
+
+To hold a packet without a host in the loop, we keep the real acknowledgment, response or OPERATE command in a hold queue of the traffic manager, and program T serves that queue only after the packet's deadline. Each held packet is accompanied by blocker tokens, i.e., small internal packets in a higher-priority queue that the scheduler serves first, and the blocker tokens recirculate through T while the hold lasts. In every pass, T compares the switch clock with the deadlines of the transaction. The clock is the ingress timestamp in units of 256~ns on a 512~ns grid, and the comparison uses the sign bit of a 32-bit difference, so it stays correct for about 550~s around each deadline. Once a deadline has passed, T stops the blocker tokens of the held packet, the higher-priority queue drains, and the scheduler releases the held packet to normal egress. A budget of 240,000 recirculation laps bounds every hold, so a packet whose transaction never completes cannot occupy the switch indefinitely.
+
+This design keeps the timing in the queues and the decisions in the P4 programs. The held packet itself is never copied or regenerated, and its bytes reach the master exactly as the outstation sent them, apart from the rewriting of program E.
+
+\subsection{Rewriting Responses in Egress}
+
+In program E, we apply the response layouts of Section~\ref{sec:strategies} in one egress pass. Because a re-encoded response is longer than the original, the TCP byte stream seen by the master no longer matches the one the outstation sent. To keep both endpoints consistent, we map sequence numbers from the outstation's stream to the longer stream toward the master, and acknowledgment numbers from the master back to the outstation's stream. E rewrites a response only when its mapping state commits the new layout, so a flow without a configured layout is never lengthened without a matching translation. One incremental update of the TCP checksum covers every rewritten frame.
+
+\subsection{Control Plane and Resources}
+
+The control plane installs NOMAD's policy into match/action tables at run time: which obfuscation applies to each connection, the configured timing values, and the deadlines of Section~\ref{sec:objectives}. All four obfuscation configurations of our evaluation run on the same compiled image and differ only in these table entries. Table~\ref{tab:resources} lists the resources that the compiler allocates. N and T each use 11 match/action stages and E uses all 12 stages of its pipe, and on average NOMAD occupies 16.5\% of the SRAM and 31.3\% of the TCAM of pipe~0.
+
+\begin{table}[t]
+\centering
+\caption{Resources of NOMAD on Tofino-1 (p4c 9.13.2): stages, SRAM and TCAM blocks, and stateful ALUs per program, with the average per-stage utilization of each pipe.}
+\label{tab:resources}
+\footnotesize
+\input{tables/tab_resources}
+\end{table}

@@ -113,10 +113,15 @@ echo
 echo "[gate] report  -> ${report_txt}"
 echo "[gate] json    -> ${report_json}"
 
+# ---- Step 3: Dr. Lin's protected text, word for word ------------------------
+echo
+"${RESEARCH_PYTHON}" "${HERE}/check_lin_verbatim.py"
+rc_verbatim=$?
+
 # ---- Combined fail-closed status ------------------------------------------
 echo "------------------------------------------------------------------------------"
-echo "compile rc=${rc_build}   gate rc=${rc_gate}"
-if [[ ${rc_build} -ne 0 || ${rc_gate} -ne 0 ]]; then
+echo "compile rc=${rc_build}   gate rc=${rc_gate}   verbatim rc=${rc_verbatim}"
+if [[ ${rc_build} -ne 0 || ${rc_gate} -ne 0 || ${rc_verbatim} -ne 0 ]]; then
     echo "BUILD RESULT: FAIL"
     exit 1
 fi

@@ -1,0 +1,50 @@
+% Background. Dr. Lin's text from lin_draft/main_20261019.tex (A: lines 106-111, B: lines 113-125,
+% D: lines 143-145) is installed word for word; his [Archive] paragraphs and subsection II-C are
+% removed (Philip, 2026-10-19). New: the paragraph on index layouts with Table I, and the paragraph
+% defining CLRT and the OPERATE interval.
+\section{Background}
+\label{sec:background}
+
+\subsection{ICS Network Communications}
+Like many ICSs, power grids comprise cyber and physical infrastructures. \textit{Physically}, substations (buses) are linked by electrical lines into a transmission or distribution network. The \textit{cyber} infrastructure connects field devices, e.g., IEDs (intelligent electronic devices), PLCs (programmable logic controllers), and legacy sensors and breakers, to a control center over an IP-based \textit{control network}. The control center uses supervisory control and data acquisition (or a similar setup) to periodically collect measurements (voltage, current, power consumption) and issue commands to maintain stable, safe physical processes.
+
+% Figure to demonstrate indices mapped to measurements
+ICS network protocols, e.g., DNP3 and Modbus, are designed mainly to carry control units, e.g., measurements or control commands, to accomplish these functions. The syntax of control units varies across operational types. For example, the DNP3 protocol specifies primitive types, e.g., floating points, to represent measurements and composite types, e.g., control relay output block (CROB), to represent commands applied to circuit breakers. The protocol further uses numerical indices to organize various control units in a single network packet. The protocol-conforming devices, e.g., IEDs and PLCs, store a local configuration file, to look up the meaning of a control unit based on its indices.
+% TODO: Snapshot of SEL device configuration maps a numerical value to specific meaning, e.g., phasor magnitude or power consumption. 
+
+For example, Table~\ref{tab:pointmap} lists the analog input points that an SEL protective relay exposes over DNP3. Each measurement, from the three phase currents to the power factor, travels only as an index between 0 and 20, and the master interprets a value through the same configuration. A DNP3 request names the points it wants by an object group, a qualifier, and a range of indices, and the response returns the values under object headers that name the indices they carry~\cite{dnp3std}. Consequently, the same set of control units admits more than one valid layout, e.g., one range of indices or several consecutive ranges, and a response can change its size without changing what it says (Section~\ref{sec:strategies}).
+
+\begin{table}[t]
+\centering
+\caption{DNP3 analog input points of an SEL protective relay. The meaning of each index comes only from the device configuration.}
+\label{tab:pointmap}
+\footnotesize
+\input{tables/tab_point_map}
+\end{table}
+
+\subsection{ICS Device Fingerprinting}
+
+\begin{figure}[t]
+    \centering
+    \IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
+    \caption{The two DNP3 transactions on the master-facing link. (a) A READ poll and its CLRT. (b) A
+  select-before-operate control and its master-visible interval $O$.}
+    \label{fig:ladder}
+\end{figure}
+
+Because physical devices may use different algorithms or mechanical components to implement the same control operations, adversaries can use side-channel knowledge from control networks, e.g., packet size or timing, to pinpoint specific device types and control operations. This information can reveal vulnerable device models or firmware versions, enabling effective attacks. For example, studies in~\cite{formby2016} use two proprietary features for device fingerprinting, as shown in Fig.~\ref{fig:ladder}. Cross-layer response time (CLRT), calculated by the latency between a TCP ACK packet and the corresponding application layer response, estimates the time used by specific IEDs to retrieve measurements. Physical Response Time (PRT), calculated as the latency between unsolicited responses (indicating the start of a control operation) and the corresponding application-layer response, estimates the time specific IEDs take to execute control commands.
+% TODO: finding other paper such as IOT fingerprinting directly use response tim as fingerprinting features?
+These device fingerprinting presents different features compared to website or browser fingerprinting in general computing environments. While the latter treat every packet equally (as they are encrypted), device fingerprinting refers to timing between different types of packets to reveal device-specific features.
+
+Fig.~\ref{fig:ladder} shows the two transactions this paper protects. In a READ poll, the outstation's TCP stack acknowledges the request as soon as it arrives, while its application layer answers only after the device has retrieved the measurements. CLRT is the interval between the arrival of the TCP acknowledgment and the arrival of the DNP3 response at the master~\cite{formby2016}. Because both packets leave the same device over the same path, the network delay cancels, and CLRT estimates how long the device takes to serve the request. In a select-before-operate (SBO) control, the master first sends SELECT and then OPERATE, and the interval $O$ between the acknowledgment and the response of OPERATE reflects how the device executes the command. For example, the SEL-751A relay in our testbed acknowledges a READ poll within 0.49~ms and answers it 2.79~ms later at the median (Section~\ref{sec:overview}).
+
+\subsection{Network Switch with Programmable Network Dataplane}
+Network switches with programmable network data plane enabled by P4 draw significant attention to host in-network security analytics. P4 stands for Programming Protocol-independent Packet Processors and is the de facto data-plane programming language enable customized packet-processing functions~\cite{p4ccr2014}. 
+As shown in Fig.~\ref{fig:psa}, Portable Switch Architecture (PSA) provides reference infrastructure for a programmable network data plane. It can feature up to four ingress and four egress pipelines~\cite{p42022psa}, each composed of a parser, a deparser, and a sequence of match/action units (MAUs). MAUs include various storage units (e.g., SRAM, TCAM) to store network knowledge and arithmetic logic units (ALUs) to enable the following features directly in network devices: customized packet parsing across all network layers, line-rate analysis, and integrated monitoring and traffic engineering. However, realizing these benefits requires meeting with strict hardware limits, e.g., roughly 120 MB of SRAM, 10 MB of TCAM, and ALUs that do not support floating-point operations, multiplication, or division. 
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/nomad/fig_psa_pipeline.pdf}{\includegraphics[width=\columnwidth]{figures/nomad/fig_psa_pipeline}}{\figplaceholder{Programmable data plane: ingress parser, match/action stages, deparser, traffic manager, and the egress parser, stages and deparser.}}
+\caption{A programmable data plane. Packets pass a parser, a sequence of match/action units (MAUs) and a deparser in ingress, the traffic manager's queues, and the same three blocks in egress.}
+\label{fig:psa}
+\end{figure}

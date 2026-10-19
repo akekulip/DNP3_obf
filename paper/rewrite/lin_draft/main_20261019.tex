@@ -1,0 +1,307 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+
+\usepackage{stix}
+
+\usepackage{cite}
+%\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{float}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+\usepackage{url}
+\usepackage[breaklinks=true]{hyperref}
+\def\UrlBreaks{\do\/\do-\do_\do.\do=\do?\do&}
+
+% \usepackage{svg}
+%\usepackage{amssymb}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\usepackage{enumitem}
+
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{
+%EdgeLoc-GAT: Edge-Aware Graph Attention Network for False Data Injection Attack Localization with Cross-Topology Generalization\\
+NOMAD: In-Network Traffic Obfuscation Against Device Fingerprinting for Industrial Control Systems
+% Candidate title phrases:
+% In-network Traffic Obfuscation to Disrupt Device Fingerprinting in Industrial Control Systems
+% INDICS: In-network Device Fingerprinting Disruption for Industrial Control Systems
+% 
+}
+
+\author{\IEEEauthorblockN{Philip Akekudaga}
+\IEEEauthorblockA{\textit{Dept. of Electrical and Computer Engineering} \\
+\textit{University of Rhode Island}\\
+Kingston, RI, U.S.A\\
+philip.akekudaga@uri.edu}
+\and
+\IEEEauthorblockN{Hui Lin}
+\IEEEauthorblockA{\textit{Dept. of Electrical and Computer Engineering} \\
+\textit{University of Rhode Island}\\
+Kingston, RI, U.S.A.\\
+huilin@uri.edu}
+}
+\vspace{0pt}
+\maketitle
+
+\begin{abstract}
+TBD
+\end{abstract}
+
+\begin{IEEEkeywords}
+traffic obfuscation
+\end{IEEEkeywords}
+
+\section{Introduction}
+% Hui Lin Note: I would follow the logic of NDSS paper first to structure the paper. 
+
+% Paragraph 1 theme: Fingerpringting a device in industrial control systems (ICS) like power grids are critical. 
+%  References: fingerprinting on webpages, IoT, CPS, TCP, OS. 
+Device fingerprinting is an essential step in cyber reconnaissance, allowing adversaries to reveal unique features of target networks and design effective attack strategies. These techniques are becoming increasingly critical in industrial control systems (ICSs) such as power grids, where adversaries often use IP-based control networks and computing devices within as entry points to initiate physical damage. Consequently, fingerprinting shifts the focus from visited websites and user biometric behavior to device models and types of control operations that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian power grids and the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely believed that adversaries stay in their systems for at least 6 months to perform cyber reconnaissance \cite{ukraine2015, stuxnet2011}. 
+
+% Industrial control systems and grids run on protocols that an attacker will have to learn and understand before they can break them. For power grids, measurements and control commands move over protocols like DNP3 (Distributed Network Protocol 3) \cite{dnp3std} which, like many other protocols, was shipped with less security implementation and no encryption by default. Any observer on the path of communication can, therefore, read the exchanges. In December 2025 remote intruders reached the Ukrainian power grid and left 225,000 users in the dark \cite{ukraine2015}.  By learning which devices are communicating on the network and how they behave, because a control-related attack, such as a false-data injection attack on state estimation, only works if the attacker knows the target \cite{liufdia2009 , cardenas2011}.In this instance, the attacker does not need to read the payload, which may be encrypted or not. The packet sizes and timing on their own leak this information ~\cite{sirinam2018, feghhi2016} and a device, its type, and model can be identified from the traffic leak and behavior \cite{kohno2005,gtid2015}.
+
+% Paragraph 2 theme: research gap. There are existing methods to obfuscate network traffic to disrupt device fingerprinting. 
+
+To disrupt device fingerprinting, many studies present network traffic obfuscation \cite{wright2009, dyer2012}. Device fingerprinting targeting general computing environments typically relies on network-level features such as packet size and/or inter-packet latency observed from communication patterns \cite{sirinam2018}. Consequently, existing traffic obfuscation focuses on (i) padding and splitting network packets, which hide or change the distribution of network packet sizes~\cite{wright2009}, and (ii) delaying network packets and adding dummy ones, which disrupt the inter-packet timing pattern~\cite{dyer2012, tamaraw2014}. Because manipulating communication networks can introduce runtime overhead, recent work has begun offloading traffic obfuscation to programmable network switches, using specialized ASIC to change communication patterns at much higher line rates than CPUs \cite{ditto2022, minos2025,securitas2026}. 
+
+% Hui Lin Note: it seems that this paragraphs contains inaccurate arguments.
+Unfortunately, these methods cannot be directly applied to ICS environments for two main reasons. 
+First, existing traffic obfuscation is performed over encrypted channels, which are necessary to mix the obfuscated and normal traffic. ICS networks, on the other hand, still rely on plain-text communications traffic due to a wide range of legacy devices, despite ICS network protocols providing security features~\cite{dnp3std}. Directly padding or adding dummy packets can easily reveal obfuscated packets, exposing the underlying traffic pattern to adversaries. 
+%TODO: Hui Lin depends on whether we can implement it or not; we can mention undocumented variants in the device configuration, such as delayed-ACK configuration
+Second, device fingerprinting methods on ICS devices rely on different features from the ones in general computing environments. Instead of using network layer knowledge, they attempt to use behavior on physical devices to reveal device model or types of operations. For example, work in~\cite{formby2016} uses cross-layer response time (CLRT), determined by the latency between the TCP acknowledge packets (ACK) and the actual response from the same device to estimate execution time there. Since each vendor may choose different materials or algorithms to implement the same control functionality, CLRT becomes an effective feature for ICS device fingerprinting. 
+
+%First, the leaked features are different. General web traffic obfuscation usually targets the flow-level sizes and timing patterns~\cite{ditto2022} whereas ICS device fingerprinting is carried out by the response timing of the protocol exchanges, which stays visible even when the payload is encrypted~\cite{formby2016}. Secondly, ICS protocols leave no room or flexibility to add bytes or dummy or fabricated packets. This is because a protocol like DNP3 validates its payloads, so padding and injected packets will break the exchange when the master reassembles the response packets and checks the cyclic redundancy check (CRC) for every sixteen application bytes \cite{dnp3std}. Consequently, a defense in this setting must hide the timing that leaks even after encryption while changing no bytes.
+
+In this paper, we present NOMAD, an in-network traffic obfuscation mechanism against ICS device fingerprinting, even with plain-text communication. Consequently, adversaries cannot conduct effective reconnaissance using side-channel knowledge to reveal target systems' vulnerabilities (e.g., outdated firmware or vulnerable device models) from network communications. Our solution draws on a key insight: to carry \textit{control units} (e.g., measurements and commands), ICS network protocols map them to numerical indices, with syntax varying across control operations. %Consequently, when network packets pass through programmable network switches, we classify them by operation type and identify the corresponding boundaries of various control unit indices. 
+Instead of applying the same obfuscation strategy to each network packet (as in many existing solutions), we use programmable network switches to extract operation-related knowledge from network traffic and apply different strategies by splitting, padding, and scheduling control units while maintaining protocol compliance. 
+% we should provide some examples of obfuscation strategies. Expanding the following items. 
+NOMAD realizes multiple advancements with small runtime overhead: (i) provide flexible obfuscation (e.g., normalize TCP ACK and application response in two different patterns); (ii) preserve communication with legitimate end devices; and (iii) require no reliance on de-obfuscation hardware and encryption over ICS traffic. 
+
+% This paragraph 
+
+Unlike previous solutions which applies the same traffic obfuscation strategies to all network packets, that normalizes an outstation's fingerprintable features using the data plane of the Tofino programmable switch at the outstation edge, without changing the endpoints or modifying the bytes of the  DNP3 traffic. This defense holds per-transaction responses and releases them at configurable offsets, so the master-visible timing then becomes a policy value. We implement  this as a P4 program on a single switch and evaluate it on a cyberphysical testbed and make the following contributions:
+
+\begin{itemize}
+    \item We propose an in-network turning framework that obfuscates timing features and shapes how an on-path passive observer fingerprints outstation devices. This, to the best of our knowledge, is the first in-network defense for ICS device-fingerprinting features. 
+    \item A case study of the timing frameworks introduced by Formby et al \cite{formby2016}, we present a multi-configurable mode of operation that holds TCP acknowledgments and DNP3 Responses and releases at predetermined offsets from the request, such that the master visible response time is deterministic
+    \item Normalizes the control command and operation transaction time. As a second case study covering the physical fingerprinting feature of Formby et al. We build a hold mechanism  to hold and determine the observed time on the master-facing observed traffic and show the passive observer records a time that is obfuscated. 
+    \item We evaluate this mechanism on a single physical Tofino  and outstation device.
+    
+\end{itemize}
+
+\section{Background}
+
+\subsection{ICS Network Communications}
+Like many ICSs, power grids comprise cyber and physical infrastructures. \textit{Physically}, substations (buses) are linked by electrical lines into a transmission or distribution network. The \textit{cyber} infrastructure connects field devices, e.g., IEDs (intelligent electronic devices), PLCs (programmable logic controllers), and legacy sensors and breakers, to a control center over an IP-based \textit{control network}. The control center uses supervisory control and data acquisition (or a similar setup) to periodically collect measurements (voltage, current, power consumption) and issue commands to maintain stable, safe physical processes.
+
+% Figure to demonstrate indices mapped to measurements
+ICS network protocols, e.g., DNP3 and Modbus, are designed mainly to carry control units, e.g., measurements or control commands, to accomplish these functions. The syntax of control units varies across operational types. For example, the DNP3 protocol specifies primitive types, e.g., floating points, to represent measurements and composite types, e.g., control relay output block (CROB), to represent commands applied to circuit breakers. The protocol further uses numerical indices to organize various control units in a single network packet. The protocol-conforming devices, e.g., IEDs and PLCs, store a local configuration file, to look up the meaning of a control unit based on its indices.
+% TODO: Snapshot of SEL device configuration maps a numerical value to specific meaning, e.g., phasor magnitude or power consumption. 
+
+\subsection{ICS Device Fingerprinting}
+
+\begin{figure}[t]
+    \centering
+    \IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
+    \caption{The two DNP3 transactions on the master-facing link. (a) A READ poll and its CLRT. (b) A
+  select-before-operate control and its master-visible interval $O$.}
+    \label{fig:ladder}
+\end{figure}
+
+Because physical devices may use different algorithms or mechanical components to implement the same control operations, adversaries can use side-channel knowledge from control networks, e.g., packet size or timing, to pinpoint specific device types and control operations. This information can reveal vulnerable device models or firmware versions, enabling effective attacks. For example, studies in~\cite{formby2016} use two proprietary features for device fingerprinting, as shown in Fig.~\ref{fig:ladder}. Cross-layer response time (CLRT), calculated by the latency between a TCP ACK packet and the corresponding application layer response, estimates the time used by specific IEDs to retrieve measurements. Physical Response Time (PRT), calculated as the latency between unsolicited responses (indicating the start of a control operation) and the corresponding application-layer response, estimates the time specific IEDs take to execute control commands.
+% TODO: finding other paper such as IOT fingerprinting directly use response tim as fingerprinting features?
+These device fingerprinting presents different features compared to website or browser fingerprinting in general computing environments. While the latter treat every packet equally (as they are encrypted), device fingerprinting refers to timing between different types of packets to reveal device-specific features.
+
+
+\textbf{[Archive]} We first present the DNP3 transactions captured in the scope of this paper, and then explain why the timing of these transactions serves as a fingerprint for the device. We then go into who a we able to change that.
+
+\textbf{[Archive]} DNP3 carries traffic over TCP between the master and outstation~\cite{dnp3std}. In figure~\ref{fig:ladder}, we show the transactions where the master sends a poll READ request with a function code 1 and the outstation replies with an acknowledgment and the measurements as a response with a function code 0X81. A control command uses a select-before-operate process where the master first selects the function code (3 in the out case) with the name of output indices, and the outstation confirms it. With the acknowledgment, the master proceeds with an OPERATE function, which the operator executes and confirms with a solicited response.
+
+\textbf{[Archive]} For a DNP3 protocol that is carried over TCP, it uses the transport layer if the outstation acknowledges each request it receives. This acknowledgment travels in segments before the application layer answers, even though the TCP allows it to ride on the response~\cite{rfc9293}. The exchange therefore appears as three packets per transaction: a request, a transport layer acknowledgment that carries not the DNP3 payload, and then a DNP3 response. 
+
+\textbf{[Archive]} \textbf{Definition 1. Cross-Layer Response Time (CLRT):} This is the measured time interval between the arrival of the transport acknowledgment and the arrival of the DNP3 response of the same transaction.
+
+\textbf{[Archive]} \textbf{Definition 2. Physical Operation Time:} For a select-before-operate command, the measure time interval between the OPERATE command  and when the outstation reports the physical change execution at the device.
+
+\subsection{ \textbf{[Archive]} Execution Time as a Fingerprint}
+\textbf{[Archive]} An outstation answers a request in two transactions that comes from two different layers. Its TCP acknowledges the request as it arrives, while the application layer responds after the device is done with the request. Because both packets travel on the same path and in the same direction, there is no propagation delay, and consequently, the measured CLRT will be the execution time  of the outstation device.
+
+\textbf{[Archive]} The execution times differ for devices and models, and since different vendors have their own implementations for the same functions but with different hardware and algorithms, Formby et al.\ classifies DNP3 device types and models by their distribution of CLRT~\cite{formby2016} and Lin et al.\ measured the execution times of devices and separated them by combining their averages and variations. For instance, the average CLRT of a SEL 751A is 2.929~ms for a control command and 2.121~ms for a poll, while its median acknowledgment latencies for READ, SELECT, and OPERATE lie within 0.003~ms of one another. Consequently, the CLRT carries how this device performs an operation, which is the profile a fingerprinting adversary builds.
+
+\subsection{Network Switch with Programmable Network Dataplane}
+Network switches with programmable network data plane enabled by P4 draw significant attention to host in-network security analytics. P4 stands for Programming Protocol-independent Packet Processors and is the de facto data-plane programming language enable customized packet-processing functions~\cite{p4ccr2014}. 
+As shown in Fig.~\ref{}, Portable Switch Architecture (PSA) provides reference infrastructure for a programmable network data plane. It can feature up to four ingress and four egress pipelines~\cite{p42022psa}, each composed of a parser, a deparser, and a sequence of match/action units (MAUs). MAUs include various storage units (e.g., SRAM, TCAM) to store network knowledge and arithmetic logic units (ALUs) to enable the following features directly in network devices: customized packet parsing across all network layers, line-rate analysis, and integrated monitoring and traffic engineering. However, realizing these benefits requires meeting with strict hardware limits, e.g., roughly 120 MB of SRAM, 10 MB of TCAM, and ALUs that do not support floating-point operations, multiplication, or division. 
+
+\textbf{[Archive]} A programmable switch offers a match-action pipeline coded in P4~\cite{p4ccr2014} and parses headers, keeps states in registers, and has the ability to keep packets in buffers and queues. As such, the pipeline can delay a packet and release it later without a host in the loop; a switch place between the master and the outstation can hold the acknowledgment and the response of a transaction and release them on a schedule the operator sets. With that, the switch can change the timing an adversary observes without changing either endpoint or any byte of the payload.
+
+
+\section{NOMAD Design Overview}
+In this section, we first present the threat model used by current ICS device fingerprinting. The assumptions about adversaries lead to NOMAD's design principles and major building components. 
+%We describe the adversary, their capability, and their knowledge, and then go into our research objectives, which the framework must achieve.
+\subsection{Threat Model}
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/fig_observation.pdf}{\includegraphics{figures/fig_observation}}{\figplaceholder{Observation model: master, observed master-facing link, programmable switch, relay-facing link (not observed), SEL-751A outstation.}}
+\caption{Observation model. The adversary monitors the shaded master-facing link. The dashed paths
+  are not visible to it.}
+\label{fig:observation}
+\end{figure}
+
+\textbf{Assumptions on Adversary's Capability.} We  assume the adversary has penetrated the control network already and can passively monitor traffic from the  master-facing link as shown in Figure~\ref{fig:observation}. The passive observer is able to read and record packet headers, their sizes, and arrival time, and because DNP3 does not have any transport security by default~\cite{east2009}, this gives the observer the ability to read the function codes of each request, and using that, they are able to label each exchange by what it does, e.g., READ poll or SELECT and OPERATE. We also assume that the adversary knows the existence of the framework and the intervals it obfuscates, but they cannot read the internal mechanism and state of the switch or be able to monitor the link between the switch and the outstation. This is practical, as the switch usually sits at  the edge of the outstation and is usually connected with a single cable between devices in the same substation cabinet.
+
+\textbf{Adversary's Goal.} The aim of the adversary is to fingerprint the outstation using the timing from the exchanges and then infer the make and model of devices and the operation each of them performs. With this knowledge, they can design specific and targeted attacks like false data injection that must match the devices they compromise~\cite{liufdia2009}.
+We consider an  adversary that builds its classifier from captured traffic before the framework is deployed and applies it afterwards.
+
+\subsection{Design Goals}
+
+Before describing NOMAD's design goal, we use a sample network trace collected from IEDs from two different vendors, i.e., the Schweitzer Engineering Laboratories (SEL) 751A~\cite{sel751a} and the Schneider Electric (SE) ION7550 power meter~\cite{seion7550}, to demonstrate unique characteristics in ICS device fingerprinting. First, despite establishing security extensions in common ICS network protocols, plain-text communication is still prevalent in power grids and other ICSs. We have developed a web crawler that examined public product manuals, datasheets, and pages from five IED vendors, namely, SEL, SE, Rockwell Automation, GE Vernova, and Siemens. With a stratified sample of 99 catalogued entries, 32 were identified as having DNP3 support, and these documents established encryption for six entries, and one had DNP3 authentication. However, it is also established that OT asset owners and operators do not use these security measures even if they exist, with numerous reasons hindering their adoption~\cite{CISA2026SecureOT}. The crawler methodology and detailed results are presented in Appendix~\ref{app}.
+
+% TODO web crawler on SEL, SE, AB, GE, Siemens product to see their support of security functionality.  
+
+Second, different IEDs can configure network protocols differently, and some even include undocumented variants. These configurations, largely benefiting from plain-text communication, can enable ad hoc features for ICS device fingerprinting. In Figure~\ref{}, we present the data acquisition based on the DNP3 protocol on IEDs from two different vendors, i.e., the Schweitzer Engineering Laboratories (SEL) 751A~\cite{sel751a} and the Schneider Electric (SE) ION7550 power meter~\cite{seion7550}. Based on the network trace, we find that SEL 751A disables TCP's ``delayed ACK'' mechanism, making CLRT a viable fingerprinting feature. However, SE ION7550 enables this mechanism, so we can no longer use CLRT to estimate how long the device spent retrieving measurements.  and configure the DNP3 protocol with different parameters. We believe the proprietary network protocol implementation and configuration can form unique device fingerprints, which also present an excellent opportunity to disrupt adversaries' reconnaissance if a different device fingerprint can be manipulated.
+
+To counter unique ICS device fingerprinting, we design NOMAD driven by the following goals.  
+
+\begin{itemize}[leftmargin=*,labelindent=0pt,labelsep=12pt, listparindent= 12pt,topsep=0pt, itemsep=0pt, parsep=0pt]
+
+\item \textbf{Obfuscation over Plain-text.} Despite ICS network protocols are gradually enhanced with security components, plain-text communication still prevails in ICS due to existing legacy devices and demanding communication requirements. It is essential to apply various obfuscation strategies, including packet splitting and padding, over plain-text communication without revealing the fact. 
+
+\item \textbf{Flexible Obfuscation.} Features from different types of network packets can combine to form unique fingerprints for IEDs. Applying different obfuscation strategies based on packet types and extracted features is important to accommodate ad-hoc fingerprinting methods.
+
+\item \textbf{Low Runtime Overhead.} Maintaining constant latency while applying various obfuscation strategies on thousands of IEDs in a power grid is essential to disrupt diverse device fingerprinting. 
+
+\item \textbf{No Reliance on De-obfuscation.} If we follow existing obfuscation solutions, a de-obfuscation unit processes network traffic from obfuscated traffic from all IED, presenting security and overhead bottleneck. It is critical to make obfuscation directly protocol-conformance, putting no reliance on de-obfuscation.  
+
+\end{itemize}
+
+\textbf{[Archive]}\textbf{ The Framework's Objective.}. Our aim is to disrupt the timing-based fingerprinting of the outstations without changing the outstations, the master, or the DNP3 protocol in use. We thereby work within the following research objectives:
+\begin{itemize}
+    \item \textbf{R01:} For both read and command transactions, we aim at making the CLRT the adversary calculate a value that the operator sets and not dependent on the execution time of the outstation.
+    \item \textbf{R02:} For both fixed and adaptive adversaries, it is our goal to remove the execution time of the outstation and what they learn  such that either the fixed or adaptive adversary's classification is thrown off and whatever they learn reflects that of the switch instead of the device.
+    \item \textbf{R03:} we aim to have the framework work with negligible overhead to the operations of the control network. We do not add packets or bytes, and we aim at keeping added delays within TCP and DNP3 timers to prevent retransmission of requests.
+\end{itemize}
+
+\textbf{Trusted Components.} To make these objectives possible, we only add a switch and a control plane to the trusted computing base. The control plane installs the policy to the switch for enforcement. The master or the outstation is not needed, and neither are they modified for the framework to function.
+
+\subsection{Components and Workflows}
+
+As shown in Fig.~\ref{}, NOMAD includes two components: (i) \textit{Obfuscation infrastructure} that uses P4-enabled network data planes to apply flexible obfuscation strategies and (ii) \textit{obfuscation objectives/constraints} determining security properties in various scenarios while observing ICS communication requirements. When a network packet traverses a gateway network device, we use a customized parser to extract network attributes and control-related knowledge, then categorize packets and organize the carried control units accordingly in the switch's local storage. Using the control-unit syntax, including sizes and indices, we can split, pad, and schedule control units according to different operations while maintaining protocol compliance. While obfuscation infrastructures provide an in-network hardware foundation, we use switches' control plane to realize various obfuscation objectives under constraints for diverse security applications, e.g., neutralize, mimicry communication patterns, and/or maximize differences between obfuscated and original patterns.  
+%TEA is a newly designed data structure that records timed events in a storage-efficient manner. 
+
+\textbf{[Archive]}\section{Design}
+\label{sec:design}
+In this section, we describe the timing model and the packet flow through the mechanism. We will then define the design variables and parameters along with the conditions under which the framework follows  the schedule. Lastly, we explain the queues and the P4 pipeline used for this schedule.
+
+\subsection{Timing Model and Packet Flow}
+\label{sec:design:overview}
+In order to change the timing the adversary observes, we place a programmable switch between the master and the outstation. When a READ poll or a SELECT passes through the switch, it forwards the request and holds the return acknowledgment and response, which carries the timing that will be seen by the adversary. For OPERATE, it also holds the command before forwarding it to the relay. Consequently, both cases use the request arrival time to schedule the returning packets such that the release deadlines do not follow the outstation acknowledgment latency.
+\begin{figure}[t]
+  \centering
+  \includegraphics{figures/release_timeline}
+  \caption{Release timeline of one READ transaction. All five instants are at the switch: the
+  request arrives at $t_0$, the acknowledgment and response arrive at $t_A$ and $t_R$, and the
+  switch releases them at $e_A$ and $e_R$. The schedule is anchored at $t_0$. (a) The response
+  arrives before its deadline. (b) It arrives late and leaves when its queue next serves it.
+  The drawing illustrates the ideal schedule; actual release also includes queue service.}
+  \label{fig:timeline}
+\end{figure}
+
+\textbf{Timing Model.} In Figure~~\ref{fig:timeline}, we show the timing of a read transaction. We denote the request arrival time at the switch by $t_0$, the acknowledge and response arrival times as $t_A$ and $t_R$ , and the time they depart to the master as $e_A$ and $e_R$. With this, the original acknowledgment-to-response is 
+ \begin{equation}
+\label{eq:clrt-original}
+\mathrm{CLRT}_{\mathrm{original}} = t_R - t_A .
+\end{equation}
+holding the two packets changes that interval to
+\begin{equation}
+\label{eq:clrt-new}
+e_R-e_A = \mathrm{CLRT}_{\mathrm{original}}+(e_R-t_R)-(e_A-t_A),
+\end{equation}
+ where $e_A-t_A$ and $e_R-t_R$ are the acknowledgment and response hold times, respectively. Because the adversary sits on the master facing, they will measure a CLRT where the difference in path and capture delay between the two packets also contributes to the interval. We distinguish that measurement from the switch release interval when interpreting the results.
+\textbf{Replacing the interval.} A constant hold on each packet will only shift the original CLRT by the difference between the holds, which will reserve the variation that a timing classifier can use. In order to absorb that variation, we choose to release the deadlines from the request  such that a packet arriving early has to be longer and a packet arriving closer to the deadline waits less. This design choice will require both packets to arrive before their respective deadlines.
+
+\textbf{Holding with Queues.} In order to keep packets in hold, we place them in a queue below another queue of higher priority. The higher queue contains internal \emph{blocker packets},which the scheduler serves instead of the held acknowledgment and response packets so far as the higher priority queue remains non-empty. We circulate the blocker packets until their deadline, after which they stop recirculating to fill the queue. This drains the remaining blockers and then allows the scheduler to serve the held packets. This way, the queues provide the timing and the wait while the P4 programs decide which packets enter them and when blockers drain.
+
+\subsection{Design Parameters and Constraints}
+\label{sec:design:read}
+
+\textbf{Release Deadlines.} We configure two parameters, $D_A$ as the acknowledgment deadline that is measured from the request, and $\mathrm{CLRT}_{\mathrm{new}}$, the desired gap that an adversary will measure as the interval between an acknowledgment and the response. When a request arrives, we set
+\begin{equation}
+\label{eq:schedule}
+\hat{e}_A=t_0+D_A, \qquad
+\hat{e}_R=t_0+D_A+\mathrm{CLRT}_{\mathrm{new}}.
+\end{equation}
+the hats to denote scheduled parameters, not measured departures. We call their combined offset
+\begin{equation}
+\label{eq:budget}
+D=D_A+\mathrm{CLRT}_{\mathrm{new}}
+\end{equation}
+the response \emph{release budget}
+
+\textbf{Packet Availability.} The switch will not be able to release a packet it has not received; the ideal schedule will require that
+\begin{equation}
+\label{eq:availability}
+t_A\leq t_0+D_A, \qquad t_R\leq t_0+D.
+\end{equation}
+under these conditions, the ideal holds are
+\begin{equation}
+\label{eq:coupling}
+\begin{aligned}
+\hat{e}_A-t_A &= D_A-(t_A-t_0),\\
+\hat{e}_R-t_R &= D-(t_R-t_0).
+\end{aligned}
+\end{equation}
+With this, the hold is able to absorb the changes in the arrival time without moving the scheduled departures. If either packet arrives later than scheduled, its release then depends on when it arrives and when the queue can serve it. To maintain both deadlines, we must first admit the transaction and be able to sustain each packet held with enough blockers.
+
+\textbf{Actual Release.} For any admitted transaction that arrives on time and whose hold last until their deadline, we write  $e_A=\hat{e}_A+\varepsilon_A$ and $e_R=\hat{e}_R+\varepsilon_R$. There are release tails that include  the time for the remaining blockers in the hold queues to drain and for priority to shift to the held response packets to be released by the traffic manager. Therefore,
+\begin{equation}
+\label{eq:released}
+\begin{aligned}
+e_A-t_0 &= D_A+\varepsilon_A,\\
+e_R-e_A &= \mathrm{CLRT}_{\mathrm{new}}+\varepsilon_R-\varepsilon_A.
+\end{aligned}
+\end{equation}
+consequently, the actual release gap differs from the configured time value by the difference between the two release tails that the operator sets.
+
+\subsubsection{Control Transactions}
+To separate OPERATE from its arrival, we configure a set of queues to hold the commands at $J$. When an OPERATE arrives at $T_0$the switch 
+
+
+
+
+
+\section{Implementation}
+To evaluate this defense, we implement it on  UfiSpace running Intel Tofino-1 ASIC, in between a Dell PowerEdge R440  as a master and a SEL-751A sitting in the outstation as our testbed.
+
+\textbf{Target and program.} We design a single $P4_16$ program for the Tofino Native Architecture on the Tofino switch and compiled it with Barefoot SDE 9.13. The program compiles in twelve ingress match action stages and six egress stages with 112 tables. We
+ 
+\textbf{[Archive]}\section{Related Work}
+\textbf{Device fingerprinting.} Devices can be identified by what they emit and communicate even without access to the payload. Kohno et al. fingerprinted a remote host from the skew of its clock as seen in its TCP timestamps \cite{kohno2005}, and GTID fingerprints a device and its type using the timing signature of its packets  \cite{gtid2015}. These earlier works identified the threats we address, but our objective is to remove the timing features they rely on from the master-facing observation where a passive adversary sits.
+
+\textbf{ICS and power-systems fingerprinting.} Formby et al. were first to introduce fingerprinting to control systems and define what a cross-layer response time and physical operation time measured on a DNP3 outstation device are \cite{formby2016}, and Gu et al. added device physics as a feature \cite{gu2018}. Jeon et al. fingerprint SCADA devices passively without deep packet inspection \cite{jeon2016passive}. These methods that this technique presents help in the execution of false-data injection and process control attacks \cite{liufdia2009}, \cite{cardenas2011}, \cite{kohno2005}, \cite{gtid2015}, \cite{gu2018}, \cite{jeon2016passive}, \cite{cardenas2011}. Many defenses have been presented and have so far worked at the content and connectivity layer. DefRec virtualizes physical functions and presents deceptive measurements \cite{defrec2020}, while RAINCOAT randomizes data acquisition and and injects decoy measurements \cite{raincoat2019} and a testbed that evaluates such anti-reconnaissance approaches on grid infrastructure \cite{lincps2016}. In comparison to these defenses, our mechanism works below the semantics and reshapes when the outstation answers and what the outstation's answer says.
+
+\textbf{General traffic obfuscation. }The mechanism of traffic morphing has been used to transform one class of packet size distribution into another \cite{wright2009}, while Dyer et al proved that per-packet padding and fragmentation still leave features that can be exploited \cite{dyer2012}.Tamaraw presented fixes for packet size and rates at the cost of bandwidth \cite{tamaraw2014} and WTF-PAD uses padding to fix interpacket gaps adaptively \cite{juarez2016}. However, a good fingerprinting attack defeats several of these techniques \cite{sirinam2018} and questions their accuracy at an internet scale \cite{panchenko2016}. Size and timing channels have been used in identifying smart-home devices even with encryption, where shaping is a defense measure \cite{apthorpe2019},whiles Pacer and NetShaper shape  traffic to a particular schedule that bounds side-channel leakage in the cloud \cite{pacer2022,netshaper2024}. Ditto,  more recent implementation defines a size pattern whiles using a queue to regulate the rate that is seen and uses two switches on both sides \cite{ditto2022}  All these defenses assume an encrypted payload and cooperating end host or hypervisor that can add covert traffic. In contrast, this work targets plaintext protocols commonly found in legacy ICS whose feature is one interval inside a request-response exchange without adding bytes and must run in a setting where the outstation is fixed and cannot be changed. 
+
+\textbf{Programmable data-plane traffic transformation.} P4 defines a programmable parser and a match-action model that we make use of \cite{p4ccr2014}. PIFO defines a programmable scheduling at line rate \cite{pifo2016} and SP-PIFO uses this to estimates priority queues on today's switches \cite{sppifo2020} 
+
+
+%two paragraphs intro related work, small title  spatial vs temporal
+\section*{References}
+\bibliographystyle{IEEEtran}
+\bibliography{References}
+
+\end{document}
+
+

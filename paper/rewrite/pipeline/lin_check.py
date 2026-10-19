@@ -99,6 +99,7 @@ STALE_LABEL_PATTERNS = (
     r"mode|timing|CLRT|distribution|data|measurements?|case|setting|scenario)\b",
     r"\bnative\s*(?:versus|vs\.?|and|/|to)\s*defended\b",
     r"\bTiming ON\b",
+    r"\bTiming OFF\b",
 )
 # Allowed: 'unmodified' phrasing that negates the native-baseline claim, and file names.
 STALE_LABEL_ALLOW = (
@@ -428,8 +429,8 @@ def check_stale_labels(doc: Document) -> CheckResult:
         hits.append("%s: %s" % (text, ctx))
     status = Status.FAIL if hits else Status.PASS
     return CheckResult("stale_labels", status,
-                       "%d stale arm label(s); use Timing OFF / Obfuscated" % len(hits) if hits
-                       else "arms named Timing OFF / Obfuscated",
+                       "%d stale arm label(s); use No obfuscation / Timing / Size / Timing+Size" % len(hits) if hits
+                       else "no stale arm label",
                        numbers={"hits": len(hits)}, detail=hits)
 
 
@@ -462,20 +463,25 @@ def check_size_claims(doc: Document) -> CheckResult:
             fails.append(s.strip())
         else:
             infos.append(s.strip())
-    status = Status.FAIL if fails else Status.PASS
+    # Since 2026-10-19 the manuscript claims the measured response-size normalization (CLAUDE.md
+    # first hard rule), so size sentences are listed for review against CLAIM_EVIDENCE_MATRIX.md and
+    # no longer fail the gate.
+    status = Status.PASS
     return CheckResult("size_claims", status,
-                       "%d sentence(s) claim size obfuscation as ours" % len(fails) if fails
-                       else "no size claim made as ours (%d context mention(s))" % len(infos),
+                       "%d size sentence(s) as ours, review against the claim matrix (%d context)"
+                       % (len(fails), len(infos)),
                        numbers={"claimed": len(fails), "context_mentions": len(infos)},
                        detail=["CLAIM: " + f for f in fails])
 
 
+# Dr. Lin's post-meeting structure (lin_draft/paper_structure_20261019.pdf), adopted 2026-10-19.
 REQUIRED_ORDER = [
     ("introduction", lambda t: "introduction" in t),
     ("background", lambda t: "background" in t),
-    ("threat model", lambda t: "threat" in t),
-    ("design", lambda t: "design" in t and "background" not in t),
-    ("implementation", lambda t: "implementation" in t),
+    ("design overview", lambda t: "overview" in t),
+    ("obfuscation infrastructure", lambda t: "infrastructure" in t),
+    ("obfuscation strategies", lambda t: "strateg" in t),
+    ("objectives and constraints", lambda t: "objective" in t),
     ("evaluation", lambda t: "evaluation" in t),
     ("related work", lambda t: "related" in t),
     ("conclusion", lambda t: "conclusion" in t),
@@ -505,16 +511,28 @@ def check_structure(doc: Document) -> CheckResult:
         BACK_MATTER = ("ethics considerations", "open science", "acknowledgment",
                        "acknowledgments", "acknowledgement", "acknowledgements",
                        "availability", "artifact availability", "disclosure")
+        # Appendices and the reference list follow the Conclusion; what must not happen is a body
+        # section between Related Work and the Conclusion, or Related Work after the Conclusion.
         later = [t for o, t in top
-                 if o > found["related work"] and o != found["conclusion"]
+                 if found["related work"] < o < found["conclusion"]
                  and t.strip().lower() not in BACK_MATTER]
+        if found["related work"] > found["conclusion"]:
+            later.append("conclusion precedes related work")
         if later:
             problems.append("related work is not second-last (followed by %s)" % later)
     # labels
     labels = sorted(set(re.findall(r"\bRO\d+\b", doc.prose)))
-    tm = next((s for s in doc.sections if s.level == 1 and "threat" in s.title.lower()), None)
+    # Since 2026-10-19 the threat model is a subsection of the Design Overview (Dr. Lin's
+    # structure), so the objectives may be defined anywhere in that section, subsections included.
+    tm = next((s for s in doc.sections if s.level == 1 and ("threat" in s.title.lower()
+                                                             or "overview" in s.title.lower())), None)
     ev = next((s for s in doc.sections if s.level == 1 and "evaluation" in s.title.lower()), None)
-    defined_in_tm = sorted(set(re.findall(r"\bRO\d+\b", tm.prose))) if tm else []
+    defined_in_tm = []
+    if tm:
+        tm_end = next((s.order for s in doc.sections if s.level == 1 and s.order > tm.order), None)
+        tm_prose = " ".join(s.prose for s in doc.sections
+                            if s.order >= tm.order and (tm_end is None or s.order < tm_end))
+        defined_in_tm = sorted(set(re.findall(r"\bRO\d+\b", tm_prose)))
     # the evaluation's prose = its own section body until the next \section
     reused = []
     if ev:
