@@ -131,6 +131,20 @@ TEXT = {
                'within connection, session and split.',
         limitations='Oracle-assisted windows group exchanges by true operation, which a passive observer cannot '
                     'do without labels; at K = 64 each estimate rests on 24 windows. ' + SCOPE),
+    'fig_formby_nb': dict(
+        caption='The attacker of Formby et al.: multinomial naive Bayes on 200-bin CLRT histograms of windows of K '
+                'transactions of one operation, classifying READ, SELECT and OPERATE (chance 1/3, dashed). Markers '
+                'give the mean over the eight settings and bars the range. (a) Trained on unobfuscated traffic '
+                'before deployment: under Timing and Timing+Size it falls to 0.333 at every K and setting. '
+                '(b) Retrained on the traffic of each configuration: Timing+Size averages 0.454, 0.531 and 0.557 at '
+                'K = 8, 32 and 64, against 0.553, 0.591 and 0.604 without obfuscation.',
+        method='results/attack_summary.csv rows with feature nb (pre-registered): 199 regular bins on [0, H) plus an '
+               'overflow bin, H = max(1 µs, 1.05 × maximum training CLRT); non-overlapping windows within connection, '
+               'session and split; trained on rounds 1-8 (attacker fixed: No obfuscation; attacker adaptive: the same '
+               'configuration) and tested on rounds 9-16. Windows group transactions of one operation, which the '
+               'readable DNP3 function codes allow.',
+        limitations='Held-out windows per setting: 192, 48 and 24 at K = 8, 32 and 64. Native accuracy is low because '
+                    'the software outstation serves every operation in nearly the same time. ' + SCOPE),
     'fig_envelope': dict(
         caption='Response availability on the outstation side, request to native response, against the frozen '
                 'envelope (dashed): pilot maximum L = 5.60 ms; da / pb / readiness / cap = 31 / 56 / 61 / 66 ms. '

@@ -163,22 +163,23 @@ def fig_clrt(w, rows):
 
 def fig_precision(w, residuals):
     """C4/C16: |CLRT - D| complementary CDF for the timed arms, per operation, all conditions."""
-    fig, ax = plt.subplots(1, 3, figsize=(COL2, 1.9), sharey=True)
+    fig, ax = plt.subplots(figsize=(COL1, 2.2))
     data = []
-    for i, op in enumerate(OPS):
+    opstyle = {'READ': '-', 'SELECT': '--', 'OPERATE': ':'}
+    for op in OPS:
         for a in ('timing_only', 'combined'):
             v = np.sort([max(float(r['abs_error_ms']) * 1000, 1.0) for r in residuals
                          if r['arm'] == a and r['operation'] == op])
             ccdf = 1 - np.arange(len(v)) / len(v)
-            ax[i].step(v, ccdf, where='post', color=COLOR[a], linestyle=LINE[a], label=LABEL[a])
+            ax.step(v, ccdf, where='post', color=COLOR[a], linestyle=opstyle[op], linewidth=.9,
+                    label='%s, %s' % (LABEL[a], op))
             for q in (.5, .99, .999, 1.):
                 data.append(dict(arm=a, operation=op, quantile=q, abs_error_us=float(np.quantile(v, q)), n=len(v),
                                  within_100us=int((v <= 100).sum())))
-        ax[i].axvline(100, color='.4', linewidth=.6, linestyle='--')
-        ax[i].set(xscale='log', yscale='log', xlim=(1, 3000), ylim=(1e-5, 1.05), title=op,
-                  xlabel='|CLRT − D| (µs), floor 1 µs')
-    ax[0].set_ylabel('Fraction exceeding')
-    ax[2].legend(handles=legend_handles(ax[2], ('timing_only', 'combined')), frameon=False, loc='lower left')
+    ax.axvline(100, color='.4', linewidth=.6, linestyle='--')
+    ax.set(xscale='log', yscale='log', xlim=(1, 3000), ylim=(1e-5, 1.05), xlabel='|CLRT − D| (µs), floor 1 µs',
+           ylabel='Fraction exceeding')
+    ax.legend(frameon=False, fontsize=5.5, loc='lower left', ncol=2)
     w.figure(fig, 'fig_precision_tail', data, ['results/precision_residuals.csv'], ['C4', 'C16'])
 
 
@@ -250,7 +251,7 @@ def fig_replacement(w, rows, windows):
 def fig_operate(w, rows):
     """C6: the OPERATE hold J is applied on the outstation side and is invisible on the master side."""
     jconds = [c for c in CONDITIONS if c[1] == 10.]
-    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.6), sharex=True)
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 2.7), sharex=True)
     data = []
     for a in ARMS:
         hold, ack, rt = [], [], []
@@ -423,6 +424,36 @@ def fig_windows(w, attacks, windows):
     ax[1].set(xscale='log', xlabel='Median observation time per window (s)', yticks=[24, 48, 96, 192],
               ylabel='Windows per condition/arm', title='(b) Support shrinks as K grows')
     w.figure(fig, 'fig_windows', data, ['results/attack_summary.csv', 'results/oracle_windows.csv'], ['C11'])
+
+
+def fig_formby(w, attacks):
+    """C8: the attacker of Formby et al. (multinomial naive Bayes on 200-bin CLRT histograms of windows
+    of K transactions), trained before deployment (top) or retrained on each configuration (bottom)."""
+    ks = (8, 32, 64)
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.1), sharex=True, sharey=True)
+    data = []
+    for i, (att, title) in enumerate((('fixed', '(a) Trained before deployment'),
+                                      ('adaptive', '(b) Retrained after deployment'))):
+        for j, a in enumerate(ARMS):
+            means, lo, hi = [], [], []
+            for k in ks:
+                v = [float(r['balanced_accuracy']) for r in attacks if r['feature'] == 'nb' and r['attacker'] == att
+                     and r['arm'] == a and r['k'] == str(k) and num(r['balanced_accuracy']) is not None]
+                means.append(np.mean(v)); lo.append(min(v)); hi.append(max(v))
+                prim = next(float(r['balanced_accuracy']) for r in attacks if r['feature'] == 'nb' and r['attacker'] == att
+                            and r['arm'] == a and r['k'] == str(k) and r['condition_id'] == PRIMARY)
+                data.append(dict(attacker=att, arm=a, k=k, settings=len(v), mean=float(np.mean(v)), min=min(v), max=max(v),
+                                 primary=prim))
+            xs = np.arange(len(ks)) + (j - 1.5) * .14
+            m = np.array(means)
+            ax[i].errorbar(xs, m, yerr=[m - np.array(lo), np.array(hi) - m], color=COLOR[a], marker=MARK[a],
+                           markersize=3, linestyle='none', capsize=1.5, linewidth=.7, label=LABEL[a])
+        ax[i].axhline(1 / 3, color='.4', linewidth=.6, linestyle='--')
+        ax[i].set(ylim=(0.2, 0.85), ylabel='Balanced accuracy', title=title)
+    ax[1].set_xticks(range(len(ks)), ['K = %d' % k for k in ks])
+    ax[1].set_xlabel('Transactions per window')
+    ax[0].legend(frameon=False, fontsize=5.5, ncol=2, loc='upper right')
+    w.figure(fig, 'fig_formby_nb', data, ['results/attack_summary.csv'], ['C8', 'C11'])
 
 
 def fig_envelope(w, rows, envelope):
@@ -719,6 +750,7 @@ def build(campaign, out):
     fig_residual(w, posthoc, attacks)
     fig_dj(w, reductions, attacks)
     fig_windows(w, attacks, windows)
+    fig_formby(w, attacks)
     fig_envelope(w, rows, envelope)
     fig_latency(w, rows, envelope)
     table_resources(w, compiler)

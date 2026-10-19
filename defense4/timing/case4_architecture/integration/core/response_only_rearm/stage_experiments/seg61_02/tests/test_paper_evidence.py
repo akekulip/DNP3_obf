@@ -156,6 +156,14 @@ class CaptionNumbers(unittest.TestCase):
         self.assertQuoted('fig_operate_hold', _span([float(r['realized_j_median_ms']) for r in d], '%.2f'))
         self.assertEqual({'%.1f' % float(r['rt_median_ms']) for r in d}, {'41.1'})
 
+    def test_formby(self):
+        d = _data('fig_formby_nb')
+        mean = lambda att, a: ['%.3f' % float(r['mean']) for r in d if r['attacker'] == att and r['arm'] == a]
+        for v in mean('adaptive', 'combined') + mean('adaptive', 'off'):
+            self.assertIn(v, TEXT['fig_formby_nb']['caption'])
+        self.assertTrue(all(abs(float(r['max']) - 1 / 3) < 1e-9 for r in d
+                            if r['attacker'] == 'fixed' and r['arm'] in ('timing_only', 'combined')))
+
     def test_envelope_and_counts(self):
         d = _data('fig_envelope')
         pairs = [r for r in d if r.get('series') == 'all pairs']
