@@ -3,6 +3,43 @@
 What the timing evidence supports, stated so that each claim can be checked against a named
 artifact, and what it does not support, stated so that no reader has to infer the boundary.
 
+## Current manuscript evidence (2026-10-19): `eval_m11_09_20261018_02`
+
+From 2026-10-19 the manuscript, rebuilt on Dr. Lin's draft, rests on the hardware evaluation
+`eval_m11_09_20261018_02` on candidate m11_09 (Philip's decision). Its claims, each with its figure
+or table, output hash and status, are in
+`case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/CLAIM_EVIDENCE_MATRIX.md`;
+its results summary is `.../evidence/evaluation_campaigns/eval_m11_09_20261018_02_RESULTS.md`.
+In short:
+
+- **Setup.** One physical Tofino-1, OpenDNP3 software master and outstation on Vision, fixed 5 ms
+  fixture, four arms on one image (No obfuscation, Timing, Size, Timing+Size), eight D/J
+  conditions, 154/154 blocks, 98,816 main exchanges. Not the physical SEL-751A relay.
+- **Claims.**
+  - Timed-arm CLRT sits at D: median error 10–16 µs and p99 58–86 µs, with 0.14–0.46% of
+    exchanges beyond 100 µs (precision reported, not gated).
+  - The OPERATE hold J does not reach the master-facing timing.
+  - Every READ and select-before-operate response is 61 bytes and conformant; requests stay
+    native.
+  - The fixed joint attacker falls from 0.950 to 0.333; the primary reduction is 0.617
+    [0.593, 0.635].
+  - An adaptive attacker keeps 0.36–0.46, traced post hoc to OPERATE.
+  - There were no fallbacks, retransmissions or timeouts.
+- **Response size is now claimed.** The size claim is scoped to the measured response
+  normalization. The campaign_v2 rule L13 below, which made no size claim, applies to the
+  campaign_v2 paper only.
+- **Limitations carried.**
+  - Software endpoints.
+  - Restart path model-only.
+  - m9 timing localization inherited.
+  - Guards are not proven bounds, and cap is not a hard deadline.
+  - Transaction-class results, not device identification.
+  - Results are scoped to the evaluated attackers.
+  - Native requests leak READ versus select-before-operate (0.667 from the request alone).
+
+Everything below this section describes `campaign_v2` and the earlier timing-only paper. It stays
+as that record and is not the current manuscript authority.
+
 **Active evidence: `evidence/campaign_v2/`**, collected on the request-anchored build. One physical
 Tofino-1 between a DNP3 master and a physical SEL-751A relay, all timestamps taken on the
 master-facing link. 22 grouped collection runs over 5.3 hours, 132 captures, 63,360 DNP3

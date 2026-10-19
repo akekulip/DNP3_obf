@@ -1,10 +1,12 @@
 # CLAUDE.md — final timing-paper repository
 
 This repository holds the verified timing evidence, its active manuscript, and separate
-implementation work such as stage reduction and delay search. The approved publication evidence
-remains `campaign_v2`. The frozen manuscript already contains later engineering results that have not been reconciled with that authority; their presence is
-an open audit finding, not approval. Promotion requires Dr. Lin's acceptance and an explicit
-claim/provenance update.
+implementation work such as stage reduction and delay search. **Since 2026-10-19 the manuscript
+evidence is the hardware evaluation `eval_m11_09_20261018_02` on candidate m11_09** (Philip's
+decision; four arms, timing and response size), with its claims, figures and tables indexed in
+`defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evaluation/CLAIM_EVIDENCE_MATRIX.md`.
+`campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript
+authority. The manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
 ## Layout
 
@@ -52,6 +54,15 @@ and the distinction between measurements and later candidates.
 
 ## Hard rules
 
+- **Manuscript rebuild (2026-10-19, Philip).** The paper is rebuilt on Dr. Lin's draft
+  (`main.tex` at the repository root, structure in `paper structure.pdf`). His non-[Archive]
+  text is installed word for word; [Archive] parts are deleted or rewritten. This supersedes the
+  paper freeze below and the timing-only and no-size claim boundary below for the new
+  manuscript: response-size claims are allowed, scoped to the measured normalization (every READ
+  and select-before-operate response 61 bytes, conformant; requests stay native). Every number the
+  paper states must trace to a row of `CLAIM_EVIDENCE_MATRIX.md`. Figures and tables come only from
+  `seg61_02/analysis/paper_evidence.py` (`--check` must pass). New citations go through Zotero
+  collection `OBfus_defense` from their sources of record, avoiding arXiv.
 - **Current Case 4 scope (2026-10-06).** Philip authorized implementation of the
   Case 4 plan in the current session. This supersedes the older no-size/no-BMv2
   working-code restriction below: separate candidate code, offline tests,
@@ -101,11 +112,13 @@ and the distinction between measurements and later candidates.
   control path keeps a spent OPERATE generation after release and drops a matching
   retransmission, so a command lost on the relay-facing link cannot be repaired by its own
   retransmission; that is a source-level reading, not a hardware observation
-  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance: every `campaign_v2` block and sweep point has a control-plane readback; the per-transaction `J` and the horizon `H` are unobserved (`CLAIMS_AND_LIMITATIONS.md` L12). No
-  size, segmentation, padding or splitting claim anywhere in the manuscript.
+  (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`). Configuration provenance: every `campaign_v2` block and sweep point has a control-plane readback; the per-transaction `J` and the horizon `H` are unobserved (`CLAIMS_AND_LIMITATIONS.md` L12). For
+  the campaign_v2 paper: no size, segmentation, padding or splitting claim. For the 2026-10-19
+  rebuild see the first hard rule.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.
-- The internal project codename must never appear in any file.
+- The internal project codename must never appear in any file. "NOMAD" is the published system
+  name Dr. Lin chose for the paper (Philip, 2026-10-19) and is not covered by this rule.
 
 ## Paper writing (STRICT — Dr. Lin structure + manuscript gate)
 

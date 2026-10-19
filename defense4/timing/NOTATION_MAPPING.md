@@ -8,6 +8,22 @@ make the difference explicit before any equation, figure caption, or configurati
 renamed.** Those record what ran. Only the paper's prose, equations, and figure labels adopt the
 convention below, and this file is the bridge.
 
+## 00. The 2026-10-19 rebuild (NOMAD, campaign eval_m11_09_20261018_02)
+
+| paper | campaign field / code | meaning |
+|---|---|---|
+| No obfuscation | `off` | no timing hold, native response size |
+| Timing | `timing_only` | request-anchored ACK/response release and OPERATE hold, native size |
+| Size | `size_only` | response-size normalization only (all responses 61 B) |
+| Timing+Size | `combined` | both |
+| D | `gap` | configured ACK-to-response gap seen by the master (configured CLRT) |
+| J | `op_j` | OPERATE hold before delivery to the outstation |
+| da, pb, readiness, cap | `effective_ns` in `release/audit/common_envelope.json` | ACK deadline from the request, piggyback deadline, fallback readiness, validator bound |
+| L | `response_availability_max_ns` | pilot maximum request-to-native-response availability |
+| G | `margin_ns` | 5 ms guard |
+
+The sections below describe the campaign_v2 notation and remain the bridge for that record.
+
 ## 0. What changed on 2026-09-09
 
 | symbol | earlier revision | now |

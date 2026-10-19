@@ -1,0 +1,1 @@
+A schematic placed at medians, not one recorded transaction; propagation within the testbed is drawn as instantaneous. Fallback paths (readiness) and piggybacked responses (pb) are not drawn; neither occurred in the campaign.
