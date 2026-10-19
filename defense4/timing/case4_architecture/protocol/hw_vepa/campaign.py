@@ -145,7 +145,7 @@ def load_config(path):
 
 def validate_profile(cfg):
     """The hardware profile the campaign may run: the 8-bit-range READ, a positive K, non-negative shaping
-    rates, and no fixture jitter (vision_run.py has no way to apply it)."""
+    rates, and fixture jitter only with a netem distribution on the separate_ack fixture."""
     for key, default in (('read_pause_ms', 25), ('close_grace_ms', 0)):
         value = cfg['traffic'].get(key, default)
         if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5000:
@@ -218,8 +218,14 @@ def validate_profile(cfg):
         raise ValueError('traffic.start_delay_ms must be an integer >= 0')
     validate_paired_blocks(cfg)
     validate_loss_and_scenarios(cfg)
-    if cfg['fixture'].get('jitter_ms', 0) != 0:
-        raise ValueError('fixture.jitter_ms must be 0: vision_run.py does not implement jitter')
+    jitter, distribution = cfg['fixture'].get('jitter_ms', 0), cfg['fixture'].get('distribution')
+    if not isinstance(jitter, int) or isinstance(jitter, bool) or not 0 <= jitter <= 20:
+        raise ValueError('fixture.jitter_ms must be an integer in 0..20, got %r' % (jitter,))
+    if jitter and (distribution not in vr.DISTRIBUTIONS or 'separate_ack' not in modes):
+        raise ValueError('fixture.jitter_ms needs fixture.distribution in %s and the separate_ack fixture'
+                         % (vr.DISTRIBUTIONS,))
+    if not jitter and distribution is not None:
+        raise ValueError('fixture.distribution is only meaningful with fixture.jitter_ms > 0')
 
 
 def resolve_shaping(cfg, preset=None):
@@ -970,8 +976,11 @@ class Campaign:
     def set_fixture(self, fixture, delay_ms):
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
         if fixture == 'separate_ack':
-            self.step('vision', 'fixture separate_ack: casea on, response delayed %d ms' % delay_ms,
-                      'sudo python3 %s/vision_run.py casea on --delay-ms %d' % (self.V, delay_ms))
+            jitter = self.cfg['fixture'].get('jitter_ms', 0)
+            spread = (' --jitter-ms %d --distribution %s' % (jitter, self.cfg['fixture']['distribution'])
+                      if jitter else '')
+            self.step('vision', 'fixture separate_ack: casea on, response delayed %d ms%s' % (delay_ms, spread),
+                      'sudo python3 %s/vision_run.py casea on --delay-ms %d%s' % (self.V, delay_ms, spread))
         else:
             self.step('vision', 'fixture piggyback: casea off (ACK rides on the response)',
                       'sudo python3 %s/vision_run.py casea off' % self.V)

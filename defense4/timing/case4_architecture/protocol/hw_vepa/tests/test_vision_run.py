@@ -139,3 +139,23 @@ class EndpointEvidence(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CaseaNetem(unittest.TestCase):
+    def run_casea(self, *args):
+        calls = []
+        ok = types.SimpleNamespace(returncode=0, stdout='', stderr='')
+        with patch.object(vr, 'nsx', side_effect=lambda ns, *cmd, **kw: calls.append(cmd) or ok):
+            vr.casea(True, *args)
+        return [c for c in calls if 'netem' in c][0]
+
+    def test_without_jitter_the_netem_command_is_unchanged(self):
+        self.assertEqual(self.run_casea(5)[-5:], ('netem', 'delay', '5ms', 'limit', '1000'))
+
+    def test_jitter_and_distribution_are_passed_to_netem(self):
+        self.assertEqual(self.run_casea(2, 2, 'paretonormal')[-8:],
+                         ('netem', 'delay', '2ms', '2ms', 'distribution', 'paretonormal', 'limit', '1000'))
+
+    def test_jitter_without_a_distribution_is_refused(self):
+        with self.assertRaises(SystemExit):
+            self.run_casea(2, 2, None)

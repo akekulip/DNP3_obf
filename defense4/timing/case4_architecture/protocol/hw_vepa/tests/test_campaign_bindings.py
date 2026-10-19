@@ -281,9 +281,24 @@ class Profile(unittest.TestCase):
     def test_snapshot_args_never_carry_block_burst(self):
         self.assertNotIn('--block-burst', cp.shaping_args(self.cfg, burst=False, preset='shape_3723'))
 
-    def test_fixture_jitter_is_rejected_because_vision_run_cannot_apply_it(self):
+    def test_fixture_jitter_needs_a_known_distribution(self):
+        for fx in ({'jitter_ms': 5}, {'jitter_ms': 5, 'distribution': 'uniform'},
+                   {'jitter_ms': 21, 'distribution': 'normal'}, {'jitter_ms': 2.5, 'distribution': 'normal'},
+                   {'jitter_ms': 0, 'distribution': 'normal'}, {'jitter_ms': -1, 'distribution': 'normal'}):
+            bad = copy.deepcopy(self.cfg)
+            bad['fixture'].update(fx)
+            with self.assertRaises(ValueError, msg=fx):
+                cp.validate_profile(bad)
+
+    def test_fixture_jitter_with_distribution_is_accepted(self):
+        for dist in ('normal', 'paretonormal'):
+            ok = copy.deepcopy(self.cfg)
+            ok['fixture'].update(jitter_ms=2, distribution=dist)
+            cp.validate_profile(ok)
+
+    def test_fixture_jitter_requires_the_separate_ack_fixture(self):
         bad = copy.deepcopy(self.cfg)
-        bad['fixture']['jitter_ms'] = 5
+        bad['fixture'].update(modes=['piggyback'], jitter_ms=2, distribution='normal')
         with self.assertRaises(ValueError):
             cp.validate_profile(bad)
 

@@ -548,6 +548,17 @@ class FixtureDimension(Base):
         self.assertTrue(on and off and sep and pig)
         self.assertTrue(on[0] < sep[0] < off[0] < pig[0], (on, sep, off, pig))
 
+    def test_zero_jitter_keeps_the_casea_command_unchanged(self):
+        r = FakeRunner()
+        self.campaign(r, arms=('combined',)).execute()
+        self.assertFalse(r.cmds('--jitter-ms'))
+
+    def test_jitter_and_distribution_reach_vision_run(self):
+        self.cfg['fixture'].update(jitter_ms=2, distribution='paretonormal')
+        r = FakeRunner()
+        self.assertEqual(self.campaign(r, arms=('combined',)).execute(), 0)
+        self.assertTrue(r.runs('vision_run.py casea on --delay-ms 5 --jitter-ms 2 --distribution paretonormal'))
+
     def test_ports_are_distinct_across_fixtures(self):
         r = FakeRunner()
         self.campaign(r, arms=('size_only', 'combined')).execute()

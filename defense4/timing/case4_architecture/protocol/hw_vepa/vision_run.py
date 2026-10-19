@@ -102,15 +102,21 @@ def pruning(value):
     time.sleep(8)          # the i40e PF resets on this change; wait for the link
 
 
-def casea(on, delay_ms):
+DISTRIBUTIONS = ('normal', 'paretonormal')
+
+
+def casea(on, delay_ms, jitter_ms=0, distribution=None):
     nsx(NS_O, 'tc', 'qdisc', 'del', 'dev', 'mvB', 'root')
     route = ['ip', 'route', 'replace', '192.168.10.0/24', 'dev', 'mvB', 'src', IP_O]
     if not on:
         r = nsx(NS_O, *route)
     else:
+        if jitter_ms and distribution not in DISTRIBUTIONS:
+            sys.exit('casea: jitter needs --distribution %s' % '|'.join(DISTRIBUTIONS))
+        spread = ['%dms' % jitter_ms, 'distribution', distribution] if jitter_ms else []
         r = nsx(NS_O, *route, 'quickack', '1')
         cmds = [['tc', 'qdisc', 'add', 'dev', 'mvB', 'root', 'handle', '1:', 'prio', 'bands', '3', 'priomap'] + ['0'] * 16,
-                ['tc', 'qdisc', 'add', 'dev', 'mvB', 'parent', '1:2', 'handle', '20:', 'netem', 'delay', '%dms' % delay_ms, 'limit', '1000']]
+                ['tc', 'qdisc', 'add', 'dev', 'mvB', 'parent', '1:2', 'handle', '20:', 'netem', 'delay', '%dms' % delay_ms] + spread + ['limit', '1000']]
         for total_len in (89, 77):       # 49-byte READ response, 37-byte SELECT/OPERATE response
             cmds.append(['tc', 'filter', 'add', 'dev', 'mvB', 'parent', '1:', 'protocol', 'ip', 'u32', 'match', 'ip', 'protocol', '6', '0xff',
                          'match', 'u16', '0x%04x' % total_len, '0xffff', 'at', '2', 'flowid', '1:2'])
@@ -439,6 +445,8 @@ def main():
                     help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
+    ap.add_argument('--jitter-ms', type=int, default=0, help='netem jitter of the separate_ack response delay')
+    ap.add_argument('--distribution', choices=DISTRIBUTIONS, help='netem jitter distribution (needed with --jitter-ms)')
     ap.add_argument('--connect-must-fail', action='store_true')
     ap.add_argument('--scenario', choices=('reconnect',),
                     help='reconnect: c1 on the installed port, c2 on a new unknown port (expected native), c3 on the '
@@ -459,7 +467,7 @@ def main():
     if a.mode == 'casea':
         if a.label not in ('on', 'off'):
             sys.exit('casea on|off')
-        casea(a.label == 'on', a.delay_ms)
+        casea(a.label == 'on', a.delay_ms, a.jitter_ms, a.distribution)
     if a.mode == 'restore':
         casea(False, 0)
         profile('1', DEFAULT_RANGE)
