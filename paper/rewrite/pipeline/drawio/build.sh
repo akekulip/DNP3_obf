@@ -35,7 +35,7 @@ for f in "${FIGURE_NAMES[@]}"; do
 done
 if [[ "${1:-}" != "--design" ]]; then
 "$PY" "$HERE/finalize_svg.py" "$TMP/fig_ladder.svg" "$FIGS/fig_ladder.svg" lad "DNP3 transaction ladder" \
-  "Two DNP3 transactions between a SCADA master and the outstation, time running downwards. Requests are blue, transport acknowledgments grey and application responses green, with DNP3 function codes in grey beside the outstation. A bar on the outstation's lifeline marks the interval in which the device produces the answer. On the master side, c is the READ's cross-layer response time and O the master-visible OPERATE response-to-acknowledgment interval, both measured between the acknowledgment and the response arriving at the master."
+  "Two DNP3 transactions between a SCADA master and the outstation, time running downwards, with DNP3 function codes in parentheses. Requests are blue, TCP acknowledgments grey and responses green. In (a), a READ is acknowledged by a TCP ACK and answered by a RESPONSE; CLRT runs from the TCP ACK to the RESPONSE at the master. In (b), a SELECT and an OPERATE are each acknowledged and answered, and the outstation later sends an UNSOLICITED RESPONSE reporting the state change; PRT runs from the OPERATE to the UNSOLICITED RESPONSE."
 "$PY" "$HERE/finalize_svg.py" "$TMP/fig_observation.svg" "$FIGS/fig_observation.svg" obs "Observation model" \
   "A SCADA master reaches the outstation, a protective relay, through one programmable switch. A passive adversary taps the master-facing link, the only part of the path it observes, which is shaded; the relay-facing link and the switch's two internal loopback lanes, one for reads and one for control, are dashed and are observed by neither the adversary nor the authors."
 fi

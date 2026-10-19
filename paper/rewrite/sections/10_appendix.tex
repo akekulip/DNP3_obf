@@ -14,3 +14,8 @@ To estimate how widely DNP3 security is available in deployed devices, we collec
 \footnotesize
 \input{tables/tab_crawler}
 \end{table}
+
+\section{Implementation on Tofino-1}
+\label{app:tofino}
+
+We implement the three modules of Section~\ref{sec:infrastructure} as three P4\textsubscript{16} programs for the Tofino Native Architecture, compiled with p4c~9.13. The switch has two physical pipes. The classifier runs in the ingress of pipe~0 and hands the requests of timed operations to the holder, which runs in the ingress of pipe~1; the rewriter runs in the egress of pipe~0, through which every packet toward an endpoint leaves. Each pipe has dedicated recirculation ports, which carry the blocker tokens and the held packets between passes. The holder reads the ingress timestamp in units of 256~ns, and the rewriter updates the TCP checksum incrementally. The classifier and the holder each use 11 match/action stages and the rewriter uses all 12 stages of its pipe, and on average the programs occupy 16.5\% of the SRAM and 31.3\% of the TCAM of pipe~0.

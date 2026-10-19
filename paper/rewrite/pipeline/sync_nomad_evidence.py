@@ -23,9 +23,8 @@ EVIDENCE = (REPO / "defense4/timing/case4_architecture/integration/core/response
             "seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02_paper")
 FIG_OUT = PAPER / "figures" / "nomad_eval"
 TAB_OUT = PAPER / "tables"
-FIGURES = ("fig_motivation", "fig_clrt_four_arm", "fig_precision_tail", "fig_precision_bias", "fig_replacement",
-           "fig_operate_hold", "fig_attackers", "fig_confusion", "fig_residual_sources", "fig_dj_curves",
-           "fig_windows", "fig_envelope", "fig_latency")
+FIGURES = ("fig_motivation", "fig_clrt_four_arm", "fig_precision_tail", "fig_precision_bias",
+           "fig_operate_hold", "fig_formby_nb", "fig_envelope", "fig_latency")
 ARM = {"No obfuscation": "No obfuscation", "Timing": "Timing", "Size": "Size", "Timing+Size": "Timing+Size"}
 
 
@@ -113,8 +112,7 @@ def table_delivery() -> str:
             + "\n".join(body) + "\n" r"\bottomrule" "\n" r"\end{tabular}" "\n")
 
 
-TABLES = {"tab_point_map": table_point_map, "tab_crawler": table_crawler,
-          "tab_resources": table_resources, "tab_delivery": table_delivery}
+TABLES = {"tab_point_map": table_point_map, "tab_crawler": table_crawler, "tab_delivery": table_delivery}
 
 
 def build() -> dict[str, bytes]:
@@ -139,6 +137,9 @@ def main() -> int:
         ok = ok and (PAPER / "figures/nomad_eval/MIRROR.sha256").read_text() == manifest
         print("sync check: " + ("current" if ok else "STALE: run sync_nomad_evidence.py"))
         return 0 if ok else 1
+    for old in list(FIG_OUT.glob("*.pdf")) + list(TAB_OUT.glob("tab_*.tex")):
+        if str(old.relative_to(PAPER)) not in files:
+            old.unlink()
     for k, v in files.items():
         (PAPER / k).parent.mkdir(parents=True, exist_ok=True)
         (PAPER / k).write_bytes(v)

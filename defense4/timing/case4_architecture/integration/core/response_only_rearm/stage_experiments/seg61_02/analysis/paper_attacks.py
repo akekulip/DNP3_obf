@@ -107,6 +107,38 @@ def run(release):
     return out
 
 
+def formby_shift(release):
+    """Post hoc: the pre-registered Formby-style naive Bayes, trained on unobfuscated rounds 1-8 of a
+    setting, tested on unobfuscated rounds 9-16 shifted by one constant. A constant delay is the
+    baseline that separates replacing CLRT from merely moving it out of the learned histogram."""
+    from sklearn.naive_bayes import MultinomialNB
+    from publication_analysis import histogram, make_windows
+    rows = load_rows(Path(release) / 'rows.csv')
+    out = []
+    for condition, _, _ in CONDITIONS:
+        off = [r for r in rows if r['condition_id'] == condition and r['arm'] == 'off']
+        comb = [r for r in rows if r['condition_id'] == condition and r['arm'] == 'combined']
+        train = [r for r in off if r['split'] == 'training']
+        high = max(.001, 1.05 * max(r['clrt_ms'] for r in train))
+        test_off = [r for r in off if r['split'] == 'testing']
+        test_comb = [r for r in comb if r['split'] == 'testing']
+        to_median = statistics.median(r['clrt_ms'] for r in test_comb) - statistics.median(r['clrt_ms'] for r in test_off)
+        for k in (8, 32, 64):
+            def feats(sub, shift=0.0):
+                wins, _ = make_windows([dict(r, clrt_ms=r['clrt_ms'] + shift) for r in sub], k)
+                return np.array([histogram(w['values'], high) for w in wins]), [w['operation'] for w in wins]
+            xtr, ytr = feats(train)
+            model = MultinomialNB(alpha=1.).fit(xtr, ytr)
+            for name, sub, shift in (('none', test_off, 0.0), ('+0.3 ms', test_off, 0.3), ('+1 ms', test_off, 1.0),
+                                     ('to Timing+Size median', test_off, to_median), ('Timing+Size (measured)', test_comb, 0.0)):
+                x, y = feats(sub, shift)
+                out.append(dict(task='formby_shift', feature_group=name, condition_id=condition, arm='off' if sub is test_off else 'combined',
+                                balanced_accuracy=balanced_accuracy_score(y, model.predict(x)), block_min='', block_max='',
+                                test_blocks='', n_train=len(ytr), n_test=len(y), classes='|'.join(sorted(set(ytr))),
+                                fields='nb k=%d H=%.4f shift=%.4f' % (k, high, shift)))
+    return out
+
+
 def write(rows, path):
     with open(path, 'w', newline='') as handle:
         writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator='\n')

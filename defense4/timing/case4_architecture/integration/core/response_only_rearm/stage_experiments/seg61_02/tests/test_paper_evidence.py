@@ -164,6 +164,14 @@ class CaptionNumbers(unittest.TestCase):
         self.assertTrue(all(abs(float(r['max']) - 1 / 3) < 1e-9 for r in d
                             if r['attacker'] == 'fixed' and r['arm'] in ('timing_only', 'combined')))
 
+    def test_formby_shift(self):
+        rows = [r for r in _data('posthoc_attacks', 'tables') if r['task'] == 'formby_shift']
+        self.assertEqual(len(rows), 8 * 3 * 5)
+        mean = lambda g: sum(float(r['balanced_accuracy']) for r in rows if r['feature_group'] == g) / 24
+        self.assertLess(mean('to Timing+Size median'), 0.36)
+        self.assertLess(mean('+1 ms'), 0.37)
+        self.assertGreater(mean('none'), 0.5)
+
     def test_envelope_and_counts(self):
         d = _data('fig_envelope')
         pairs = [r for r in d if r.get('series') == 'all pairs']

@@ -66,6 +66,6 @@ As shown in Fig.~\ref{fig:components}, NOMAD includes two components: (i) \texti
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/nomad/fig_nomad_components}
-\caption{NOMAD's components. The control plane installs the obfuscation objectives and constraints. On one Tofino-1 switch, program N parses DNP3 and binds each transaction, program T holds acknowledgments, responses and OPERATE commands in queues while blocker tokens recirculate, and program E re-encodes responses and maps TCP sequence numbers.}
+\caption{NOMAD's components. The control plane installs the obfuscation objectives and constraints. On one switch, the classifier parses DNP3 and binds each transaction, the holder keeps acknowledgments, responses and OPERATE commands in queues while blocker tokens recirculate, and the rewriter re-encodes responses and maps TCP sequence numbers.}
 \label{fig:components}
 \end{figure*}

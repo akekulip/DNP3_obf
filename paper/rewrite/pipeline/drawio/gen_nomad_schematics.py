@@ -117,14 +117,14 @@ def components():
           'constraints: packet availability, DNP3/TCP timers, IEEE 1815 conformance', fill='#F4F6F8', size=8)
     p.box(84, 62, 348, 148, '', fill='#FFFFFF', stroke=RULE, dashed=True)
     p.text(90, 64, 200, 10, 'Obfuscation infrastructure (one Tofino-1)', 8, align='left', colour=SOFT, italic=True)
-    p.box(94, 78, 150, 52, 'N (pipe 0 ingress)\nparse DNP3: function code,\nobject, qualifier, index ranges;\n'
-          'bind transaction', size=8, align='left')
-    p.box(272, 78, 150, 52, 'T (pipe 1 ingress)\nhold ACK, response, OPERATE\nin queues; blocker tokens\n'
+    p.box(94, 78, 150, 52, 'Classifier\nparse DNP3: function code,\nobject, qualifier, index ranges;\n'
+          'bind transaction, record t0', size=8, align='left')
+    p.box(272, 78, 150, 52, 'Holder\nhold ACK, response, OPERATE\nin queues; blocker tokens\n'
           'recirculate until release', size=8, align='left')
-    p.box(272, 142, 150, 52, 'E (pipe 0 egress)\nre-encode responses by index\nranges / transport frames;\n'
+    p.box(272, 142, 150, 52, 'Rewriter\nre-encode responses by index\nranges / transport frames;\n'
           'map TCP sequence numbers', size=8, align='left')
-    p.box(94, 142, 150, 52, 'Obfuscation strategies\nS1 timing replacement (T)\nS2 OPERATE hold (T)\n'
-          'S3 response splitting (E)', size=8, align='left', fill='#FBF3F8', stroke=PURPLE)
+    p.box(94, 142, 150, 52, 'Obfuscation strategies\nS1 timing replacement (holder)\nS2 OPERATE hold (holder)\n'
+          'S3 response splitting (rewriter)', size=8, align='left', fill='#FBF3F8', stroke=PURPLE)
     p.line((70, 112), (84, 112), INK, both=True)
     p.line((432, 112), (446, 112), INK, both=True)
     p.line((244, 104), (272, 104), BLUE)

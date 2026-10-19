@@ -27,8 +27,28 @@ the motivation, PSA and components figures, and Appendix~\ref{app} became the cr
    different vendors". Fig. 4 is built from the 2026-08-03 READ captures of the SEL-751A and the
    ION7550 (git `7c4a5a7`); it shows READ only, with no select-before-operate.
 5. **The threat model (III-A).** "We also assume that the adversary knows the existence of the
-   framework and the intervals it obfuscates." The evaluation's adaptive attacker implements this,
-   and the fixed attacker does not.
+   framework and the intervals it obfuscates." Only the retrained classifier (Sec. VII-D) fits this
+   assumption; the one trained before deployment does not.
+7. **The attacker's task (VII), for his decision.** By his choice, the paper uses only Formby's
+   classifier, applied to READ/SELECT/OPERATE windows. A reviewer pass on 2026-10-19 raised two
+   points, and the evidence confirms both:
+   - The function codes are readable, so the label is already visible to the adversary. The
+     Limitations now say that the task measures how much operation information CLRT carries.
+   - The classifier trained before deployment also falls to chance under a constant delay of 1 ms
+     (post hoc, claim C8b), because its threshold H is set from unobfuscated training data. The
+     paper now states this next to the headline, and the abstract no longer leads with "falls to
+     chance". Against the retrained classifier, NOMAD's effect is not significant on the software
+     outstation.
+   Options for him: classify devices rather than operations (needs a second device), or keep the
+   current framing with these caveats.
+
+6. **PRT (II-B, l.123) and Figure 1.** His sentence defines PRT "between unsolicited responses
+   (indicating the start of a control operation) and the corresponding application-layer response".
+   Formby et al. (NDSS 2016, Sec. IV-B; they call it "operation time") measure from the operate
+   command seen at the tap to the unsolicited response reporting the change (m = t3 - t1), or to its
+   SER timestamp. Philip chose the verified definition for Figure 1 (2026-10-19): PRT runs from
+   OPERATE (0x04) to UNSOLICITED RESPONSE (0x82). His sentence is unchanged; the Fig. 1 caption's
+   "(b) … its master-visible interval $O$" now reads "(b) … its PRT".
 
 ## Wording he may want to revisit (not changed)
 

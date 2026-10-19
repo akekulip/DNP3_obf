@@ -1,7 +1,7 @@
-"""Figure 1 as a draw.io document, with the same device icons as Figure 2.
+"""Figure 1 as a draw.io document: the two DNP3 transactions, CLRT and PRT.
 1 unit = 1 pt at the final 3.5 in width. Geometry is computed, not placed by eye."""
 import html
-W, H = 252, 150
+W, H = 252, 176
 XM, XO = 52.0, 214.0
 XC = (XM + XO) / 2
 SLANT = 5.0
@@ -60,23 +60,29 @@ def relay(x, y, s=1.0):
 # Geometry is chosen so nothing overruns the 252 unit page: the bracket gutter on the left of
 # each panel is 34 units, which is what its label needs, and the head labels are narrow enough
 # that panel (a) right and panel (b) left do not meet.
-PANELS = ((34.0, 102.0, "(a) READ poll"), (150.0, 218.0, "(b) Select-before-operate"))
-TOP, BOT = 26.0, 138.0
+PANELS = ((32.0, 98.0, "(a) READ poll"), (140.0, 232.0, "(b) Select-before-operate"))
+TOP, BOT = 26.0, 164.0
 
-def msg(xm, xo, y, l2r, colour, name):
+def msg(xm, xo, y, l2r, colour, name, w=66):
     x1, x2 = (xm + 1.5, xo - 1.5) if l2r else (xo - 1.5, xm + 1.5)
     arrow((x1, y), (x2, y + SLANT), colour)
-    text((xm + xo) / 2 - 33, y + SLANT / 2 - 12, 66, 9, name, 8, align="center")
+    # Centred between the master lifeline and the outstation's activation bar, so a label never
+    # touches the bar; a two-line label is raised by one line.
+    lines = name.count("\n") + 1
+    cx = (xm + xo - 6) / 2
+    text(cx - w / 2, y + SLANT / 2 - 3 - 9 * lines, w, 9 * lines, name.replace("\n", "<br>"), 8, align="center")
 
 def activation(xo, y0, y1):
     vertex(xo - 3, y0, 6, y1 - y0, f"fillColor=#BFE6D9;strokeColor={GREEN};strokeWidth=0.6;")
 
 def bracket(xm, y0, y1, sym, w=22, ital=False):
+    """An interval on the master's lifeline: a double-headed arrow whose two heads sit exactly at the
+    instants of the two packets that define it, with dotted leaders to those packets."""
     x = xm - 10
-    rule((x, y0), (x, y1), VERM, 1.0)
+    line((x, y0), (x, y1), f"startArrow=block;startFill=1;startSize=3;endArrow=block;endFill=1;endSize=3;"
+                           f"strokeColor={VERM};strokeWidth=0.9;")
     for yy in (y0, y1):
-        rule((x - 2, yy), (x + 2, yy), VERM, 1.0)
-        rule((x + 2, yy), (xm - 1, yy), VERM, 0.45, "1.2 1.2")
+        rule((x, yy), (xm - 1, yy), VERM, 0.45, "1.2 1.2")
     text(x - 2 - w, (y0 + y1) / 2 - 5, w, 10, sym, 9, align="right", colour=VERM, italic=ital)
 
 for xm, xo, title in PANELS:
@@ -86,25 +92,31 @@ for xm, xo, title in PANELS:
     for x in (xm, xo):
         rule((x, TOP), (x, BOT), "#9AA4AE", 0.6, "2 2")
 
+# Packet names and function codes as IEEE 1815 names them (READ 0x01, SELECT 0x03, OPERATE 0x04,
+# solicited RESPONSE 0x81, UNSOLICITED_RESPONSE 0x82; verified 2026-10-19 against the standard and
+# protocol/hw_vepa/clrt_check.py). CLRT and PRT follow Formby et al. (NDSS 2016, Sec. IV-A and IV-B):
+# CLRT runs from the outstation's TCP ACK to its DNP3 response; PRT ("operation time" there) runs from
+# the OPERATE command seen at the master-side tap to the unsolicited response reporting the change.
 XA, OA, _ = PANELS[0]
-msg(XA, OA, 38, True, BLUE, "READ")
-msg(XA, OA, 58, False, GREY, "ACK")
-msg(XA, OA, 78, False, GREEN, "Response")
+msg(XA, OA, 38, True, BLUE, "READ (0x01)")
+msg(XA, OA, 58, False, GREY, "TCP ACK")
+msg(XA, OA, 78, False, GREEN, "RESPONSE (0x81)")
 activation(OA, 58, 78)
 bracket(XA, 58 + SLANT, 78 + SLANT, "CLRT")
 
 XB, OB, _ = PANELS[1]
-for k, (l2r, colour, name) in enumerate(((True, BLUE, "SELECT"), (False, GREY, "ACK"),
-                                         (False, GREEN, "Response"), (True, BLUE, "OPERATE"),
-                                         (False, GREY, "ACK"), (False, GREEN, "Response"))):
-    msg(XB, OB, 38 + 16 * k, l2r, colour, name)
-# Rows in panel (b): SELECT 38, ACK 54, Response 70, OPERATE 86, ACK 102, Response 118. The
-# OPERATE activation and the O bracket therefore run from the acknowledgment at 102 to the
-# response at 118, exactly as CLRT runs from 58 to 78 in panel (a). They were drawn a row low,
-# from the response to an empty row, which put O against the wrong pair of packets.
-activation(OB, 54, 70)
-activation(OB, 102, 118)
-bracket(XB, 102 + SLANT, 118 + SLANT, "O", w=10, ital=True)
+ROWS = ((True, BLUE, "SELECT (0x03)"), (False, GREY, "TCP ACK"), (False, GREEN, "RESPONSE (0x81)"),
+        (True, BLUE, "OPERATE (0x04)"), (False, GREY, "TCP ACK"), (False, GREEN, "RESPONSE (0x81)"),
+        (False, GREEN, "UNSOLICITED\nRESPONSE (0x82)"))
+ROW_Y = (38, 55, 72, 89, 106, 123, 146)
+for (l2r, colour, name), y in zip(ROWS, ROW_Y):
+    msg(XB, OB, y, l2r, colour, name)
+# Rows in panel (b): SELECT 38, ACK 54, RESPONSE 70, OPERATE 86, ACK 102, RESPONSE 118,
+# UNSOLICITED RESPONSE 140 (two-line label). PRT starts where the OPERATE leaves the master (its tap instant) and
+# ends where the unsolicited response, sent after the output has changed state, reaches the master.
+activation(OB, 55, 72)
+activation(OB, 106, 123)
+bracket(XB, 89, 146 + SLANT, "PRT")
 
 xml = (f'<mxfile host="drawio"><diagram name="fig_ladder" id="lad">'
        f'<mxGraphModel dx="0" dy="0" grid="0" gridSize="4" guides="0" tooltips="0" connect="0" arrows="0" '

@@ -734,7 +734,7 @@ def build(campaign, out):
     windows = read(campaign / 'results/oracle_windows.csv')
     utility = read(campaign / 'results/counter_utility.csv')
     envelope = json.loads((campaign / 'release/audit/common_envelope.json').read_text())
-    posthoc = paper_attacks.run(campaign / 'release')
+    posthoc = paper_attacks.run(campaign / 'release') + paper_attacks.formby_shift(campaign / 'release')
     paper_attacks.write(posthoc, out / 'tables' / 'posthoc_attacks.csv')
     w._sidecars('tables', 'posthoc_attacks', None, ['release/rows.csv'], ['C9', 'C10'])
     inputs['tables/posthoc_attacks.csv'] = sha256(out / 'tables' / 'posthoc_attacks.csv')
