@@ -1,0 +1,6 @@
+program,pipe,gress,stages,sram_blocks,tcam_blocks,stateful_alus,exact_xbar_bytes,sram_utilization,tcam_utilization,meter_alu_utilization,exact_xbar_utilization
+N,p0,ingress,11,101,60,17,438,,,,
+E,p0,egress,12,55,30,8,304,,,,
+T,p1,ingress,11,49,60,13,294,,,,
+"pipe p0, all programs: average per-stage utilization",p0,all,,,,,,16.46%,31.25%,52.08%,36.72%
+"pipe p1, all programs: average per-stage utilization",p1,all,,,,,,5.57%,22.73%,29.55%,7.24%

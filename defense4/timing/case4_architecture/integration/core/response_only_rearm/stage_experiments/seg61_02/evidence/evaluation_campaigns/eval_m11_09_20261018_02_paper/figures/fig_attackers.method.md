@@ -1,0 +1,1 @@
+results/attack_summary.csv, test rounds 9–16 per condition. Feature sets: CLRT; ACK + CLRT; response size; joint (ACK, CLRT, response size). Settings: 200 trees, min_samples_leaf 5, balanced class weights, seed 0. Arms: No obfuscation (off), Timing (timing_only), Size (size_only), Timing+Size (combined); the code names in parentheses are the campaign field values.

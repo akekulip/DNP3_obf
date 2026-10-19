@@ -1,0 +1,1 @@
+results/attack_summary.csv (feature nb) and results/oracle_windows.csv, test split. 199 regular bins on [0, H) plus overflow, H = max(1 µs, 1.05 × maximum training CLRT); non-overlapping windows within connection, session and split.

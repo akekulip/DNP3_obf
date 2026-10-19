@@ -1,0 +1,1 @@
+Balanced accuracy of the Random-Forest attacker for three operations (chance 1/3, dashed). Fixed: trained on No obfuscation rounds 1–8 and applied unchanged; adaptive: retrained on each arm. Under Timing+Size the fixed attacker is at chance in every condition; the adaptive joint attacker keeps 0.36–0.46.

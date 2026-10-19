@@ -1,0 +1,1 @@
+Master-visible request-to-response time per condition: median (marker) to maximum (line). Under the timed arms it is about da + D (36.1–51.1 ms medians, maxima 37.2–52.3 ms); every exchange stays below the 201 ms minimum observed TCP retransmission timeout and the 500 ms endpoint timeout.

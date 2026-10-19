@@ -1,0 +1,1 @@
+The guards are experimental margins, not proven worst-case bounds; cap is not a demonstrated hard deadline. Main-campaign availability exceeded the pilot maximum L (up to 8.0 ms without J) but stayed below da. Campaign eval_m11_09_20261018_02 on candidate m11_09 (physical Tofino-1, OpenDNP3 software endpoints, fixed 5 ms fixture); 154/154 blocks completed; 98,816 main exchanges.

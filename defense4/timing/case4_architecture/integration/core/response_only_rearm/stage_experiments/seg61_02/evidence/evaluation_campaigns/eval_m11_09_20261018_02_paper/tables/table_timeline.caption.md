@@ -1,0 +1,1 @@
+Median instants, relative to the request, that place the release-timeline schematic at D = 10 ms, J = 10 ms: native ACK and response times (No obfuscation), the measured OPERATE hold, and the released ACK and response times (Timing+Size), with the frozen envelope.

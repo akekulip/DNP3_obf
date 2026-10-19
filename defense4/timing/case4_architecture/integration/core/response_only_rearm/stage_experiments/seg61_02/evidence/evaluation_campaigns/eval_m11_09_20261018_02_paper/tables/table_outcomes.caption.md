@@ -1,0 +1,1 @@
+Delivery and switch outcomes per arm: no retransmission, repeated attempt, master timeout, incomplete exchange or capture drop; every timed exchange committed its ACK and released its response without fallback, and every OPERATE was released once.

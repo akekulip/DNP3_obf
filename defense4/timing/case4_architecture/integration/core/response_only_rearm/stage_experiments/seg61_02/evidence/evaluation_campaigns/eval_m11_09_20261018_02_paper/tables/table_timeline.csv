@@ -1,0 +1,17 @@
+operation,quantity,value_ms,source
+READ,J_hold,0.0,Timing+Size realized_j_ms
+READ,native_ack_after_delivery,0.157,No obfuscation ack_ms
+READ,native_response_after_delivery,5.486,No obfuscation ack_ms + clrt_ms
+READ,released_ack,31.127,Timing+Size ack_ms
+READ,released_response,41.102,Timing+Size rt_ms
+OPERATE,J_hold,10.118,Timing+Size realized_j_ms
+OPERATE,native_ack_after_delivery,0.089,No obfuscation ack_ms
+OPERATE,native_response_after_delivery,5.3625,No obfuscation ack_ms + clrt_ms
+OPERATE,released_ack,31.126,Timing+Size ack_ms
+OPERATE,released_response,41.107,Timing+Size rt_ms
+envelope,da,31.000576,common_envelope.json
+envelope,pb,56.000512,common_envelope.json
+envelope,readiness,61.000704,common_envelope.json
+envelope,cap,66.00064,common_envelope.json
+envelope,D,10.0,condition D10_J10
+envelope,J,10.0,condition D10_J10

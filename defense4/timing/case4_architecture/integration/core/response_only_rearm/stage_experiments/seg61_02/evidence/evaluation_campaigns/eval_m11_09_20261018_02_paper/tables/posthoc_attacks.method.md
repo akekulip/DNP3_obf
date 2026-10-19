@@ -1,0 +1,1 @@
+seg61_02/analysis/paper_attacks.py on release/rows.csv with the campaign loader and Random-Forest settings; trained on rounds 1–8, tested on rounds 9–16 of the same arm; block_min/block_max are per-test-block balanced accuracies.

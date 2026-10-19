@@ -1,0 +1,1 @@
+paper_inputs/conformance_trials.csv, written by seg61_02/analysis/paper_conformance.py from each trial's standards.json, standards_verdict.json, wire.json, master.json and outstation.json, each checked against eval_m11_09_20261018_02_EVIDENCE.sha256. app_seq_echoed counts responses whose wire, native and request application sequence numbers agree.

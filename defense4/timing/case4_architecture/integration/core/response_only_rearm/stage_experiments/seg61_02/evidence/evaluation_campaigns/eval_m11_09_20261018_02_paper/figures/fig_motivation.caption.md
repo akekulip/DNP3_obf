@@ -1,0 +1,1 @@
+The same Class 0 READ poll on two physical IEDs behind the testbed switch. The SEL-751 acknowledges every request with a separate TCP segment (100/100), so its CLRT exists (median 2.79 ms); the ION7550 never does (0/100): its delayed-ACK stack lets the response carry the acknowledgment, so there is no CLRT to measure.

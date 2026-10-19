@@ -1,0 +1,1 @@
+Response availability on the outstation side, request to native response, against the frozen envelope (dashed): pilot maximum L = 5.60 ms; da / pb / readiness / cap = 31 / 56 / 61 / 66 ms. No main-campaign exchange became available after da; the latest was 26.45 ms (OPERATE including J = 20 ms).

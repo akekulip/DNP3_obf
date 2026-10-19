@@ -1,0 +1,1 @@
+The OPERATE hold J acts before delivery to the outstation and does not reach the master. (a) Measured hold on the outstation side follows the configured J (2.52–20.12 ms medians). (b) Master-visible request-to-response time of OPERATE stays at 41.1 ms for every J under the timed arms and at 5.4 ms without timing.

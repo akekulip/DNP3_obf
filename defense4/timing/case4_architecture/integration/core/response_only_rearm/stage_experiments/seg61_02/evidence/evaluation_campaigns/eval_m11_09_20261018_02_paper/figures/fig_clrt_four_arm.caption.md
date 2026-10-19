@@ -1,0 +1,1 @@
+Master-visible CLRT of all four arms at D = 10 ms, J = 2.4 ms. (a) Full range on 0.25 ms bins, log ordinate: No obfuscation and Size sit at the native 5.3 ms, Timing and Timing+Size at the configured D. (b) The timed arms within 0.1 ms of D on 5 µs bins.

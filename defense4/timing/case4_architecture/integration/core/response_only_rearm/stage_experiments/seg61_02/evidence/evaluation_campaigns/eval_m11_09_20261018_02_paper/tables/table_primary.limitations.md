@@ -1,0 +1,1 @@
+Campaign eval_m11_09_20261018_02 on candidate m11_09 (physical Tofino-1, OpenDNP3 software endpoints, fixed 5 ms fixture); 154/154 blocks completed; 98,816 main exchanges.
