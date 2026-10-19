@@ -1,5 +1,16 @@
 # Generation-safe rearm evidence
 
+**2026-10-19 m11_09 hardware evaluation complete** (Codex's evaluation plan, run by Claude; details in
+`case4_architecture/HANDOVER.md` section 00).
+- **Campaign `eval_m11_09_20261018_02`** (`ec4bda169`): COMPLETE, 154/154 blocks, 0 failed, every restore verified.
+  - Primary: fixed joint RF at D10/J2.4, native 0.950 → combined 0.333; reduction 0.617 [0.593, 0.635].
+  - Residuals: adaptive joint 0.36–0.46; metadata diagnostic 0.69–0.80.
+  - Host precision (reported, not gated): 99.705% within 100 µs.
+  - Offline reproduction byte-identical.
+- **Campaign `_01`** (`5ed45f0c2`) stopped at its reference block on the precision gate. Kept as recorded.
+- Results: `seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02_RESULTS.md`.
+- Raw evidence stays on disk, hashed.
+
 **2026-10-18 Part 2 prepared, not launched (`2ab3bc1f8`).** `ctl_timing_01/evidence/m10_03/PART2_DESIGN_20261018.md`:
 - the knobs verified on m10_03's P4 (gap = D from the ACK's actual release; OPERATE request→ACK = max(da, J + L));
 - the historical 5/10/15/20 ms reconciled as request-anchored ACK deadlines, so they map to `da`;

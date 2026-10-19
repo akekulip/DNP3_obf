@@ -1,9 +1,64 @@
-# Case 4 handover — START HERE (current as of 2026-10-18; pushed through 2ab3bc1f8)
+# Case 4 handover — START HERE (current as of 2026-10-19)
+
+Trust this section first. Everything from section 00b down is history. Written so a different model can continue
+without the conversation.
+
+## 00. Current state (2026-10-19): m11_09 evaluated on hardware
+
+**Candidate.** `integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m11_09`, source
+`f1de2b30…`. It is the N stage-cut successor of m10_03, at N11/E12/T11 on SDK 9.13.1 and 9.13.2. Model gate passed
+(`m11_09/model_summary_v3.json`; packets and smoke re-run after the evaluation changed `wire_check.py`).
+
+**Evaluation (Codex's `seg61_02/evaluation/HARDWARE_EVALUATION_PLAN.md`, run by Claude 2026-10-18/19):**
+
+| campaign | outcome | evidence |
+|---|---|---|
+| `eval_m11_09_20261018_01` | **stopped** at block 6 (reference) on the host-observed CLRT precision gate: one ~1 ms late exchange per arm. Kept as recorded | `5ed45f0c2` |
+| `eval_m11_09_20261018_02` | **COMPLETE, 154 of 154 blocks**, 0 failed, every restore verified. Option 1: host precision reported, not gated (Philip, 2026-10-18, no ceiling) | `ec4bda169` |
+
+**Results:** `seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02_RESULTS.md`.
+- **Primary:** fixed joint-feature RF at D10/J2.4. Native 0.950 → combined 0.333. Reduction **0.617, 95% CI
+  [0.593, 0.635]** (8 paired test blocks, 10,000 resamples).
+- **Residuals, reported:**
+  - adaptive joint attacker on combined: 0.36–0.46;
+  - adaptive metadata diagnostic: 0.69–0.80 (requests are native by design);
+  - the fixed attacker's drop to chance is partly distribution shift.
+- **Host precision:** 99.705% of timed exchanges within 100 µs; 73 outside, maximum 1.93 ms.
+- **Reproduction:** offline replay of `release/` regenerated 39/39 outputs byte-identically.
+
+**Evidence storage.** The raw block evidence (about 11 GB) stays on Gambit's disk and is not committed (Philip,
+2026-10-19). All 50,158 files are hashed in `eval_m11_09_20261018_02_EVIDENCE.sha256`; see
+`eval_m11_09_20261018_02_EVIDENCE_LOCATION.md`.
+
+**Campaign machinery** (for any future run):
+- `rearm_01/hw/evaluation_campaign.py`: detached Gambit user-systemd controller and block services; deadline; locks.
+- `seg61_02/hw/evaluation_prepare.py`: the 154-block order, the envelope, and the qualify and fit hooks.
+- `seg61_02/analysis/{publication_analysis,reproduce_evaluation,publication_figures}.py`.
+- Operator guide: `seg61_02/evaluation/README.md`.
+- Lessons:
+  - verify detachment after `start`;
+  - a changed harness file can stale the model drivers' dependency closures, so re-run them before the freeze;
+  - every reader of `campaign_run.json` must accept `gate_ok` when precision is reported.
+
+**Labels that must not drift:**
+- the restart path is model-proven, not exercised on silicon;
+- m9 timing measurements are inherited;
+- host precision is reported, not gated, for the evaluation;
+- training-lock replay checks hashes but does not refit;
+- results are transaction-class results for the evaluated attackers, not device identification.
+
+**Open items:**
+- the paper stays frozen pending Dr. Lin;
+- the deleted `DNP3_Implementation_Directive_492013014.md` in the working tree is Philip's to decide.
+
+**Standing rules** are unchanged: main only; akekulip identity, no trailers; gated commits; push only on Philip's
+word; hardware only through `run_block_frozen.sh` with restore_verify; evidence is immutable; never rerun for a pass.
+
 
 Trust this section first, then the documents it links. Everything from section 0a down is history (the m5/m6 cycles of
 2026-10-15/16) and is partly superseded. Written so a different model can continue without the conversation.
 
-## 00. Current state (2026-10-18)
+## 00b. (history) m10_03 state, 2026-10-18 morning
 
 **Candidate.** `integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m10_03`, source
 `d9b84fcc…`: m9_01 plus `transform_n_m10`. A stage-1 master RST restarts at stage 0 when the response claimed N's

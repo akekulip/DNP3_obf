@@ -1,5 +1,10 @@
 # Case 4 architecture execution
 
+> **CURRENT CHECKPOINT (2026-10-19), supersedes the checkpoints below.** The candidate is m11_09
+> (`ctl_timing_01/evidence/m11_09`). It is evaluated on hardware: campaign `eval_m11_09_20261018_02` is COMPLETE
+> (154/154). Results: `seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02_RESULTS.md`. Start at
+> [HANDOVER.md](HANDOVER.md) section 00. No further hardware run is planned.
+
 > **CURRENT CHECKPOINT (2026-10-18), supersedes the checkpoints below where they conflict.** The active candidate is
 > `ctl_timing_01/evidence/m10_03`. It passed the model gate, is frozen (freeze v3), and passed the silicon recovery
 > blocks with restore verified. The restart path is **not exercised on silicon**; m9 timing results are inherited.
