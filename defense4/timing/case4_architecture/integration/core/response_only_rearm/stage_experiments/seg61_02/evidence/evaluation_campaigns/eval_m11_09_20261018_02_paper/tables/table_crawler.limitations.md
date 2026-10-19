@@ -1,0 +1,1 @@
+Vendor documentation, not deployment: a supported feature may be unused. Two of the four encrypted entries secure EtherNet/IP, not DNP3; three rows are not DNP3 outstations by their own field. The draft text cites different totals (99 / 32 / 6 / 1). Crawler code and run identity are not in the repository.

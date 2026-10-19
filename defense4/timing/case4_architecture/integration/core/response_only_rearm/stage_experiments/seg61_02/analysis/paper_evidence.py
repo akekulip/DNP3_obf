@@ -593,6 +593,29 @@ def table_point_map(w, path):
     w.table('table_point_map', rows, ['paper_inputs/sel_point_map/sel_analog_point_map.csv'], ['C2'])
 
 
+CRAWLER_SUPPORT = ('Encryption+Auth', 'Authentication', 'Opt-in (unconfirmed)', 'None')
+
+
+def table_crawler(w, path):
+    """C17: IED security support from the vendor-document crawler, by vendor and by generation."""
+    with open(path, newline='') as f:
+        devices = list(csv.DictReader(f, delimiter='\t'))
+    if len(devices) != 55 or any(len(r) != 15 or None in r for r in devices):
+        raise SystemExit('crawler rows malformed')
+    out = []
+    for key, values in (('vendor', ('SEL', 'GE', 'Siemens', 'Schneider', 'Rockwell')),
+                        ('generation', ('current', 'mature', 'legacy'))):
+        for v in values + ('Total',):
+            sel = [r for r in devices if v == 'Total' or r[key] == v]
+            rec = dict(grouping=key, group=v, devices=len(sel))
+            rec.update({k: sum(r['security_support'] == k for r in sel) for k in CRAWLER_SUPPORT})
+            rec['dnp3_native_security'] = sum(r['security_support'] != 'None' and 'via module' not in r['dnp3']
+                                              and r['security_support'] != 'Opt-in (unconfirmed)' for r in sel)
+            rec['not_dnp3_by_own_field'] = sum(r['dnp3'] in ('none/serial', 'serial') for r in sel)
+            out.append(rec)
+    w.table('table_crawler', out, ['paper_inputs/crawler/ied_security_devices.tsv'], ['C17'])
+
+
 def table_conformance(w, trials):
     """C7: protocol conformance of every main trial, from the committed per-trial record."""
     out = []
@@ -658,6 +681,8 @@ def build(campaign, out):
                 raise SystemExit('paper input changed: %s/%s' % (folder.name, name))
     inputs['paper_inputs/motivation/CROSSCHECK.json'] = sha256(motivation / 'CROSSCHECK.json')
     point_map = paper_inputs / 'sel_point_map' / 'sel_analog_point_map.csv'
+    crawler = paper_inputs / 'crawler' / 'ied_security_devices.tsv'
+    inputs['paper_inputs/crawler/ied_security_devices.tsv'] = sha256(crawler)
     inputs['paper_inputs/sel_point_map/sel_analog_point_map.csv'] = sha256(point_map)
     build_manifest = (compiler / 'compile_switch_9132_manifest.json').read_text()
     for pipe in ('p0', 'p1'):
@@ -701,6 +726,7 @@ def build(campaign, out):
     table_conformance(w, read(trials_path))
     table_timeline(w, rows, envelope)
     table_point_map(w, point_map)
+    table_crawler(w, crawler)
     (out / 'INPUTS.json').write_text(json.dumps(inputs, indent=2, sort_keys=True) + '\n')
     files = sorted(p for p in out.rglob('*') if p.is_file() and p.name != 'OUTPUTS.sha256')
     (out / 'OUTPUTS.sha256').write_text(''.join('%s  %s\n' % (sha256(p), p.relative_to(out)) for p in files))

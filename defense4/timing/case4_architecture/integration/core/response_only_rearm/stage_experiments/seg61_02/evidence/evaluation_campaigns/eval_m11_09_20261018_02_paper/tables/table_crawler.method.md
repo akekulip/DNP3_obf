@@ -1,0 +1,1 @@
+paper_inputs/crawler/ied_security_devices.tsv (crawler output supplied 2026-10-19, SOURCE.md); counts recomputed from the 55 rows reproduce the three supplied summary tables exactly. dnp3_native_security excludes devices whose only security is outside DNP3 (CIP Security with DNP3 through an add-on module) and the unconfirmed option.

@@ -1,0 +1,1 @@
+DNP3 security support documented by five IED vendors for 55 devices, by vendor and by generation: 48 document none, 4 encryption with authentication, 2 authentication only and 1 an unconfirmed option; every legacy and mature device documents none.

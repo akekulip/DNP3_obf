@@ -5,7 +5,7 @@ A claim with no row here is not written. A row marked **open** is not written un
 
 - **Outputs:** `../evidence/evaluation_campaigns/eval_m11_09_20261018_02_paper/`, produced by
   `../analysis/paper_evidence.py`. The `--check` mode rebuilds them in a temporary directory and
-  compares all 119 file hashes in `OUTPUTS.sha256`. Hash prefixes below are from that file.
+  compares all 124 file hashes in `OUTPUTS.sha256`. Hash prefixes below are from that file.
 - **Inputs:**
   - the campaign's committed `results/` CSVs;
   - `release/rows.csv` (580 MB, uncommitted), checked against the hash in the committed
@@ -40,9 +40,9 @@ fields these are `off`, `timing_only`, `size_only` and `combined`.
 | C12 | Leakage reduction along D and J | `fig_dj_curves` (a97864da) | fixed 0.61–0.64, adaptive joint 0.50–0.61, metadata diagnostic 0.15–0.27 | closed (pointwise intervals) |
 | C13 | The envelope covers response availability; no fallback | `fig_envelope` (dbaceabd), `table_outcomes` (2959c927) | all 12 arm/operation pairs below da = 31 ms: max 8.0 ms untimed, 26.45 ms OPERATE with J; 49,408 ACK commits, 0 fallbacks | closed (guards are not bounds) |
 | C14 | Overhead is within the timers; no retransmission | `fig_latency` (38b5112a), `table_outcomes` | timed request→response 36.1–51.1 ms median, max 52.3 ms, versus 201 ms RTO and 500 ms timeout; 0 retransmissions, timeouts or capture drops | closed |
-| C15 | Offline reproduction | campaign `reproduce_evaluation.py` (39/39) + `paper_evidence.py --check` (119/119) | byte-identical | closed |
+| C15 | Offline reproduction | campaign `reproduce_evaluation.py` (39/39) + `paper_evidence.py --check` (124/124) | byte-identical | closed |
 | C16 | The ~1 ms precision tail is inherited, downstream of the switch | `fig_precision_tail` + RESULTS.md | 73 / 24,704 outside 100 µs | closed (localization inherited from m9d, not re-measured) |
-| C17 | Plain text prevails (crawler: 99 / 32 / 6 / 1) | — | no crawler code or output found; Barbieri et al. (ICCCN 2021) report 75.6% unencrypted ICS hosts (see `CITATION_AUDIT_20261019.md`) | **open**: needs the crawler data from Dr. Lin, or cite Barbieri instead |
+| C17 | Plain text prevails: vendors document little DNP3 security | `table_crawler` (cec91cbe) | 55 devices from 5 vendors: 48 document no DNP3 security, 4 encryption+auth (2 of them CIP Security, not DNP3), 2 auth only, 1 unconfirmed; all 25 legacy/mature devices none | **open**: the draft's sentence cites 99 / 32 / 6 / 1, which this output does not reproduce; Dr. Lin to confirm which run the paper reports (`paper_inputs/crawler/SOURCE.md`); Barbieri et al. (ICCCN 2021) as independent support |
 
 **Not claimed:**
 - device identification;

@@ -197,6 +197,18 @@ TEXT = {
                '(SOURCE.md); the one combined row for indices 17–20 is expanded to one row per index.',
         limitations='Relay model, firmware and the settings export it comes from are not yet recorded; the map '
                     'illustrates index mapping for the Background and is not an evaluation input.'),
+    'table_crawler': dict(
+        caption='DNP3 security support documented by five IED vendors for 55 devices, by vendor and by '
+                'generation: 48 document none, 4 encryption with authentication, 2 authentication only and 1 an '
+                'unconfirmed option; every legacy and mature device documents none.',
+        method='paper_inputs/crawler/ied_security_devices.tsv (crawler output supplied 2026-10-19, SOURCE.md); '
+               'counts recomputed from the 55 rows reproduce the three supplied summary tables exactly. '
+               'dnp3_native_security excludes devices whose only security is outside DNP3 (CIP Security with '
+               'DNP3 through an add-on module) and the unconfirmed option.',
+        limitations='Vendor documentation, not deployment: a supported feature may be unused. Two of the four '
+                    'encrypted entries secure EtherNet/IP, not DNP3; three rows are not DNP3 outstations by '
+                    'their own field. The draft text cites different totals (99 / 32 / 6 / 1). Crawler code and '
+                    'run identity are not in the repository.'),
     'table_primary': dict(
         caption='Primary statistic and every balanced accuracy at D = 10 ms, J = 2.4 ms.',
         method='results/paired_reductions.csv (primary row) and results/attack_summary.csv.',
