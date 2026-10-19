@@ -189,6 +189,14 @@ TEXT = {
                'are measured after delivery, so the schematic adds the hold J before them.',
         limitations='Medians of host-observed values place a schematic; they are not a single transaction. '
                     + SCOPE),
+    'table_point_map': dict(
+        caption='DNP3 analog input points of an SEL protective relay: each measurement, from phase currents to '
+                'power factor and four auxiliary inputs, is carried as a numeric index 0–20 whose meaning only the '
+                "device's configuration supplies.",
+        method='paper_inputs/sel_point_map/sel_analog_point_map.csv, as supplied by Philip on 2026-10-19 '
+               '(SOURCE.md); the one combined row for indices 17–20 is expanded to one row per index.',
+        limitations='Relay model, firmware and the settings export it comes from are not yet recorded; the map '
+                    'illustrates index mapping for the Background and is not an evaluation input.'),
     'table_primary': dict(
         caption='Primary statistic and every balanced accuracy at D = 10 ms, J = 2.4 ms.',
         method='results/paired_reductions.csv (primary row) and results/attack_summary.csv.',

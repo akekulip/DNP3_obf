@@ -585,6 +585,14 @@ def table_timeline(w, rows, envelope):
     w.table('table_timeline', out, ['release/rows.csv', 'release/audit/common_envelope.json'], ['C4', 'C6'])
 
 
+def table_point_map(w, path):
+    """C2: an SEL relay's DNP3 analog point map, as supplied (Background example of index mapping)."""
+    rows = read(path)
+    if [int(r['index']) for r in rows] != list(range(len(rows))):
+        raise SystemExit('point map indices must run 0..n-1 without gaps')
+    w.table('table_point_map', rows, ['paper_inputs/sel_point_map/sel_analog_point_map.csv'], ['C2'])
+
+
 def table_conformance(w, trials):
     """C7: protocol conformance of every main trial, from the committed per-trial record."""
     out = []
@@ -649,6 +657,8 @@ def build(campaign, out):
             if sha256(folder / name) != want:
                 raise SystemExit('paper input changed: %s/%s' % (folder.name, name))
     inputs['paper_inputs/motivation/CROSSCHECK.json'] = sha256(motivation / 'CROSSCHECK.json')
+    point_map = paper_inputs / 'sel_point_map' / 'sel_analog_point_map.csv'
+    inputs['paper_inputs/sel_point_map/sel_analog_point_map.csv'] = sha256(point_map)
     build_manifest = (compiler / 'compile_switch_9132_manifest.json').read_text()
     for pipe in ('p0', 'p1'):
         if sha256(compiler / (pipe + '_mau.resources.log')) not in build_manifest:
@@ -690,6 +700,7 @@ def build(campaign, out):
     table_primary(w, reductions, attacks)
     table_conformance(w, read(trials_path))
     table_timeline(w, rows, envelope)
+    table_point_map(w, point_map)
     (out / 'INPUTS.json').write_text(json.dumps(inputs, indent=2, sort_keys=True) + '\n')
     files = sorted(p for p in out.rglob('*') if p.is_file() and p.name != 'OUTPUTS.sha256')
     (out / 'OUTPUTS.sha256').write_text(''.join('%s  %s\n' % (sha256(p), p.relative_to(out)) for p in files))
