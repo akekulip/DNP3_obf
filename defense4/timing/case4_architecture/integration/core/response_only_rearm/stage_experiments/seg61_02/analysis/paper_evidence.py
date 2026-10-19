@@ -93,6 +93,7 @@ class Writer:
 
     def figure(self, fig, name, data, sources, claims):
         path = self.out / 'figures' / (name + '.pdf')
+        fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
         fig.savefig(path, metadata={'CreationDate': None, 'ModDate': None, 'Creator': None, 'Producer': None},
                     bbox_inches='tight', pad_inches=.02)
         plt.close(fig)
@@ -136,7 +137,7 @@ def legend_handles(ax, arms=ARMS):
 def fig_clrt(w, rows):
     """C4: master-visible CLRT, four arms, coarse and zoomed, at the primary condition."""
     sel = [r for r in rows if r['condition_id'] == PRIMARY]
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 2.0))
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.6))
     edges = np.arange(0, 22.25, .25)
     zoom = np.arange(9.9, 10.1001, .005)
     data = []
@@ -183,7 +184,7 @@ def fig_precision(w, residuals):
 
 def fig_precision_bias(w, residuals):
     """C4: signed median CLRT - D per condition and operation (operation-dependent only at D = 10 ms)."""
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 1.9), sharey=True)
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.6), sharex=True, sharey=True)
     x = np.arange(len(CONDITIONS))
     data = []
     opstyle = {'READ': ('o', '-'), 'SELECT': ('s', '--'), 'OPERATE': ('^', ':')}
@@ -199,16 +200,16 @@ def fig_precision_bias(w, residuals):
             ax[i].plot(x, y, color='.15', marker=opstyle[op][0], linestyle=opstyle[op][1], markersize=3,
                        linewidth=.8, label=op)
         ax[i].axhline(0, color='.5', linewidth=.6)
-        ax[i].set(title=LABEL[a], xlabel='D/J (ms)')
+        ax[i].set(title=LABEL[a], ylabel='Median CLRT − D (µs)')
         ax[i].set_xticks(x, [cond_label(c[0], True) for c in CONDITIONS], fontsize=6, rotation=90)
-    ax[0].set_ylabel('Median CLRT − D (µs)')
+    ax[1].set_xlabel('D/J (ms)')
     ax[1].legend(frameon=False, fontsize=6, loc='upper left')
     w.figure(fig, 'fig_precision_bias', data, ['results/precision_residuals.csv'], ['C4', 'C9'])
 
 
 def fig_replacement(w, rows, windows):
     """C5: measured replacement versus a constant-shift counterfactual, and per-window variance."""
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 2.0))
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.9))
     sel = [r for r in rows if r['condition_id'] == PRIMARY]
     clrt = {(a, op): np.sort([float(r['clrt_ms']) for r in sel if r['arm'] == a and r['operation'] == op])
             for a in ('off', 'combined') for op in OPS}
@@ -242,14 +243,14 @@ def fig_replacement(w, rows, windows):
     ax[1].set(yscale='log', xticks=[1.5, 6.5, 11.5], xticklabels=OPS, ylabel='Window CLRT variance (ms²)',
               title='(b) K = 32 held-out windows, all conditions')
     ax[1].legend(handles=[matplotlib.patches.Patch(color=COLOR[a], alpha=.6, label=LABEL[a]) for a in ARMS],
-                 frameon=False, fontsize=6, ncol=4, loc='upper center', bbox_to_anchor=(.5, -.1))
+                 frameon=False, fontsize=6, ncol=4, loc='upper center', bbox_to_anchor=(.5, -.12))
     w.figure(fig, 'fig_replacement', data, ['release/rows.csv', 'results/oracle_windows.csv'], ['C5'])
 
 
 def fig_operate(w, rows):
     """C6: the OPERATE hold J is applied on the outstation side and is invisible on the master side."""
     jconds = [c for c in CONDITIONS if c[1] == 10.]
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 1.9))
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.6), sharex=True)
     data = []
     for a in ARMS:
         hold, ack, rt = [], [], []
@@ -265,9 +266,9 @@ def fig_operate(w, rows):
         js = np.array([c[2] for c in jconds]) + (ARMS.index(a) - 1.5) * .15
         ax[0].plot(js, hold, color=COLOR[a], linestyle=LINE[a], marker=MARK[a], markersize=3)
         ax[1].plot(js, rt, color=COLOR[a], linestyle=LINE[a], marker=MARK[a], markersize=3)
-    ax[0].set(xlabel='Configured J (ms), D = 10 ms', ylabel='OPERATE hold before delivery (ms)',
+    ax[0].set(ylabel='Hold before delivery (ms)',
               title='(a) Outstation side: hold follows J')
-    ax[1].set(xlabel='Configured J (ms), D = 10 ms', ylabel='Master-visible request→response (ms)',
+    ax[1].set(xlabel='Configured J (ms), D = 10 ms', ylabel='Request→response (ms)',
               title='(b) Master side: independent of J', ylim=(0, 50))
     ax[1].legend(handles=legend_handles(ax[1]), frameon=False, fontsize=6, loc='center right')
     w.figure(fig, 'fig_operate_hold', data, ['release/rows.csv'], ['C6'])
@@ -328,7 +329,7 @@ SHORT = {'READ': 'READ', 'SELECT': 'SEL', 'OPERATE': 'OPR'}
 
 def fig_residual(w, posthoc, attacks):
     """C9/C10: where the residual leakage sits (post hoc, adaptive, locked splits)."""
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 2.1), sharey=True)
+    fig, ax = plt.subplots(1, 2, figsize=(COL2, 2.7), sharey=True)
     x = np.arange(len(CONDITIONS))
     data = []
     groups = (('request', 'Request only (native)'), ('response', 'Defended response only'),
@@ -350,7 +351,7 @@ def fig_residual(w, posthoc, attacks):
     ax[0].axhline(1 / 3, color='.4', linewidth=.6, linestyle=':')
     ax[0].set(ylim=(0, 1.02), ylabel='Balanced accuracy', title='(a) Three operations, Timing+Size, by observed fields')
     ax[0].set_xticks(x, [cond_label(c[0], True) for c in CONDITIONS], fontsize=6, rotation=90)
-    ax[0].legend(frameon=False, fontsize=5.5, loc='upper center', bbox_to_anchor=(.5, -.32), ncol=2)
+    ax[0].legend(frameon=False, fontsize=5.5, loc='upper center', bbox_to_anchor=(.5, -.42), ncol=2)
     for k, a in enumerate(ARMS):
         for task, mk, fill in (('read_vs_select', MARK[a], COLOR[a]), ('read_preceding_gap', MARK[a], 'none')):
             y = [float(next(r for r in posthoc if r['task'] == task and r['arm'] == a and r['condition_id'] == c[0])['balanced_accuracy'])
@@ -362,7 +363,7 @@ def fig_residual(w, posthoc, attacks):
     ax[1].axhline(.5, color='.4', linewidth=.6, linestyle=':')
     ax[1].set(title='(b) Binary tasks: READ vs SELECT (filled), READ gap (open)')
     ax[1].set_xticks(x, [cond_label(c[0], True) for c in CONDITIONS], fontsize=6, rotation=90)
-    ax[1].legend(handles=legend_handles(ax[1]), frameon=False, fontsize=5.5, loc='upper center', bbox_to_anchor=(.5, -.32), ncol=4)
+    ax[1].legend(handles=legend_handles(ax[1]), frameon=False, fontsize=5.5, loc='upper center', bbox_to_anchor=(.5, -.42), ncol=4)
     for axis in ax:
         axis.set_xlabel('D/J (ms)')
     w.figure(fig, 'fig_residual_sources', data, ['tables/posthoc_attacks.csv', 'results/attack_summary.csv'], ['C9', 'C10'])
@@ -370,7 +371,7 @@ def fig_residual(w, posthoc, attacks):
 
 def fig_dj(w, reductions, attacks):
     """C12: reduction of the fixed and adaptive joint attackers along D and along J."""
-    fig, ax = plt.subplots(1, 2, figsize=(COL2, 1.9), sharey=True)
+    fig, ax = plt.subplots(2, 1, figsize=(COL1, 3.6), sharey=True)
     data = []
     series = (('fixed', 'joint', 'Fixed, joint', '#000000', 'o'), ('adaptive', 'joint', 'Adaptive, joint', COLOR['combined'], 'D'),
               ('adaptive', 'metadata_diagnostic', 'Adaptive, metadata diagnostic', '.55', 's'))
@@ -387,7 +388,8 @@ def fig_dj(w, reductions, attacks):
                           lower=float(l), upper=float(h), primary=r['primary']) for c, e, l, h, r in zip(cs, y, lo, hi, rows)]
         ax[i].axhline(0, color='.4', linewidth=.6)
         ax[i].set(xlabel=xlab, ylim=(-.05, .75))
-    ax[0].set_ylabel('Reduction in balanced accuracy\n(No obfuscation − Timing+Size)')
+    for a_ in ax:
+        a_.set_ylabel('Reduction in balanced\naccuracy')
     ax[1].legend(frameon=False, fontsize=6, loc='lower right')
     w.figure(fig, 'fig_dj_curves', data, ['results/paired_reductions.csv'], ['C12'])
 
