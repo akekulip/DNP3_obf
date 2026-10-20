@@ -18,7 +18,7 @@ DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle
 # wrapper drivers and the driver code they execute; local modules every driver imports
 WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 DEPENDENCIES = [HERE.parent / 'seg61_02' / 'model_repeat.py', HERE.parents[2] / 'response_only' / 'model_drive_composite.py']
-for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon', 'prefix'):
+for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon', 'prefix', 'mixed'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
 
 

@@ -44,21 +44,153 @@ def neg(n):
 
 
 def transform_mapper(src, image):
-    """Single constant image length = `image`; classify_rev window regenerated to it."""
+    """Single constant image length = `image`; classify_rev window regenerated to it. (Legacy
+    single-target mapper; superseded by transform_mapper_var. Kept for the single-target fallback.)"""
     src = once(src, 'const bit<32> r_IMAGE_LEN = 61;', 'const bit<32> r_IMAGE_LEN = %d;' % image)
     # start_arm: seq + (-(image-1)); was -60 (0xFFFFFFC4) for the 61-byte image
     src = once(src, 'void apply(inout bit<32> v) { v = hdr.tcp.seq + 32w0xFFFFFFC4; } };',
                'void apply(inout bit<32> v) { v = hdr.tcp.seq + %s; } };' % neg(image - 1))
     # fwd_prep: m.pm = m.p - image; was -61 (0xFFFFFFC3)
     src = once(src, 'm.pm = m.p + 32w0xFFFFFFC3;', 'm.pm = m.p + %s;' % neg(image))
-    # acct_t: add a do_acct_try row for the full-READ native length 247 (read_shape), beside 49/37
-    # (full-READ 247 acct_t / reset_front rows land with the full READ in M5)
     # classify_rev: regenerate the per-byte withhold window to the image size
-    start = src.index('    table classify_rev {')
     src = once(src, 'size = 124; const default_action = rev_drop();', 'size = %d; const default_action = rev_drop();' % (2 * image + 2))
     body_start = src.index('const entries = {', src.index('    table classify_rev {')) + len('const entries = {')
     body_end = src.index('        }\n    }', body_start)
     src = src[:body_start] + '\n' + rev_entries(image) + '\n        ' + src[body_end:]
+    return src
+
+
+# per-shape encoded image lengths (new-encoded length = native + len_delta). The mapper carries each
+# response to its own target (option A, variable image). Must equal each padder's output size.
+SHAPE_IMAGE = {'read': 73, 'ctl': 61}   # range READ 49->73 (prefix), SBO 37->61 (k=3). full READ 247->269 added in M5.
+STALE_GUARD = False   # step 1a core; stale guard (1b) pending PHV fit
+
+
+def transform_mapper_var(src, shape_image, stale_guard=True):
+    """Per-response VARIABLE image length (option A), PHV-cluster-safe. The per-response encoded size is
+    a COMPILE CONSTANT per shape in BOTH the acct SALU (acct_try_<shape>) and fwd_prep (fwd_prep_<shape>),
+    so NO new 32-bit metadata enters the saturated mapper arithmetic cluster (m.q/p/y/z/pm/t/qx/r/seq/ack).
+    A per-response image_len FIELD could not place: a 32-bit one joins the cluster and a 16-bit one's
+    cast-temp does too (bf-p4c 2026-10-20, 33-36 slices unallocated).
+
+    The three lengths stay distinct: native m.leff (unchanged), new-encoded = the per-shape constant in
+    acct_try_<shape>/fwd_prep_<shape>, committed-image = the per-shape constant stored by the reverse
+    stale guard. start_arm stays virtual (-60): the first response commits via classify_fwd's
+    (front_ret=0)->out_commit row (ignores m.p); replays use post-commit img_start=seq giving m.p=0, so
+    m.pm=m.p-<const> maps to the image start for any shape. (Traced 2026-10-20.)
+
+    shape_image maps 'read'->target / 'ctl'->target (the full READ adds a 'read' at its own size later).
+    Requires <= 4 RegisterActions on acct (arm + one try per shape + grow + rev); with 2 shapes that is 5,
+    so step 1 uses ONE try action whose constant is the single small-op size when read and ctl share it,
+    else per-shape try actions and the action-count limit is tested."""
+    max_image = max(shape_image.values())
+    sizes = sorted(set(shape_image.values()))
+    # 0) Tofino allows <=4 RegisterActions per Register. m11_09's acct has 4 (arm/try/grow/rev); a second
+    #    constant-image try would make 5. Drop acct_grow (+= m.leff): its acct_t row matches only
+    #    frontier-forward ACK-shaped packets that are NOT the READ(49)/SBO(37) commit rows -- in this
+    #    workload only pure keepalive ACKs (m.leff == 0, so the add was a no-op). READ=read_shape and
+    #    SELECT/OPERATE=ctl_shape go through the try rows. That leaves arm/rev + two per-size try = 4
+    #    actions, input crossbar still {m.ina, m.leff} = 2. (Assumes no unsolicited/event data responses
+    #    in the read lane -- consistent with m11_09's single-segment scope.)
+    src = once(src, '    RegisterAction<r_pair32, r_slot_t, bit<8>>(acct) acct_grow = {\n'
+               '        void apply(inout r_pair32 v) { v.lo = v.lo + m.leff; v.hi = v.hi + m.leff; } };\n', '')
+    src = once(src, '    action do_acct_grow() { acct_grow.execute(m.idx); }\n', '')
+    src = once(src, '(_, 1, 3w4 &&& 3w7, 0, _, _, _, _, _, _, _, _, _, _, _): do_acct_grow();', '')
+    # reverse stale guard needs two 32-bit fields; declare them only then (keeps the base build lean)
+    if stale_guard:
+        src = once(src, '    bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;',
+                   '    bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;\n'
+                   '    bit<32> committed_len; bit<32> rstale;')
+    # 1) acct_try per DISTINCT size (constant image; no PHV field). acct_t rows route each shape to its
+    #    size's try action. Keeps the acct SALU inputs at {m.leff, m.ina} = 2 (unchanged from m11_09).
+    try_acts = ''
+    for v in sizes:
+        try_acts += ('    RegisterAction<r_pair32, r_slot_t, bit<8>>(acct) acct_try_%d = {\n'
+                     '        void apply(inout r_pair32 vv, out bit<8> rv) {\n'
+                     '            rv = 0;\n'
+                     '            if (vv.hi == 0) { vv.lo = vv.lo + 32w%d; vv.hi = vv.hi + 32w%d; rv = 1; }\n'
+                     '            else { vv.lo = vv.lo + m.leff; vv.hi = vv.hi + m.leff; }\n'
+                     '        } };\n'
+                     '    action do_acct_try_%d() { m.grant = (bit<1>)(acct_try_%d.execute(m.idx)); }\n'
+                     % (v, v, v, v, v))
+    # replace the single acct_try RegisterAction + its do_acct_try with the per-size set
+    src = once(src,
+               '    RegisterAction<r_pair32, r_slot_t, bit<8>>(acct) acct_try = {\n'
+               '        void apply(inout r_pair32 v, out bit<8> rv) {\n'
+               '            rv = 0;\n'
+               '            if (v.hi == 0) { v.lo = v.lo + r_IMAGE_LEN; v.hi = v.hi + r_IMAGE_LEN; rv = 1; }\n'
+               '            else { v.lo = v.lo + m.leff; v.hi = v.hi + m.leff; }\n'
+               '        } };',
+               try_acts.rstrip('\n'))
+    src = once(src, '    action do_acct_try() { m.grant = (bit<1>)(acct_try.execute(m.idx)); }\n', '')
+    # acct_t entries: READ commit row -> its size's try; SBO commit row -> its size's try.
+    src = once(src, '8w0 &&& 8w0x07, 49, 1, _, 0, 0, 0, 0, _, _): do_acct_try();',
+               '8w0 &&& 8w0x07, 49, 1, _, 0, 0, 0, 0, _, _): do_acct_try_%d();' % shape_image['read'])
+    src = once(src, '8w0 &&& 8w0x07, 37, _, 1, 0, _, _, _, 0, 0): do_acct_try();',
+               '8w0 &&& 8w0x07, 37, _, 1, 0, _, _, _, 0, 0): do_acct_try_%d();' % shape_image['ctl'])
+    # acct_t action list: swap do_acct_try for the per-size set
+    src = once(src, 'actions = { do_acct_arm; do_acct_try; do_acct_grow; do_acct_rev; NoAction; } size = 10;',
+               'actions = { do_acct_arm; %s do_acct_rev; NoAction; } size = 10;'
+               % ''.join('do_acct_try_%d;' % v for v in sizes))
+    # 2) fwd_prep per shape: m.t (wire advance) and m.pm (replay back-off) use a CONSTANT image per shape.
+    fp_acts = ''
+    for s, v in shape_image.items():
+        fp_acts += ('    action fwd_prep_%s() { m.y = m.q + m.leff; m.z = m.p + m.leff; m.pm = m.p + %s; m.t = m.q + 32w%d; }\n'
+                    % (s, neg(v), v))
+    fp_acts += '    action fwd_prep_native() { m.y = m.q + m.leff; m.z = m.p + m.leff; m.pm = m.p - m.leff; m.t = m.q + m.leff; }\n'
+    fp_rows = ';'.join('(%s): fwd_prep_%s()' % (('1, _' if s == 'read' else '_, 1'), s) for s in shape_image)
+    fp_tab = ('    table fwd_prep_t { key = { m.read_shape : ternary; m.ctl_shape : ternary; }\n'
+              '        actions = { %s fwd_prep_native; } size = 4; const default_action = fwd_prep_native();\n'
+              '        const entries = { %s; } }'
+              % (''.join('fwd_prep_%s;' % s for s in shape_image), fp_rows))
+    src = once(src,
+               '    action fwd_prep() { m.y = m.q + m.leff; m.z = m.p + m.leff; m.pm = m.p + 32w0xFFFFFFC3; m.t = m.q + r_IMAGE_LEN; }\n'
+               '    table fwd_prep_t { actions = { fwd_prep; } size = 1; const default_action = fwd_prep(); }',
+               fp_acts + fp_tab)
+    # 3) classify_rev window ladder to max_image (length-independent split, keyed on d=-m.r)
+    src = once(src, 'size = 124; const default_action = rev_drop();', 'size = %d; const default_action = rev_drop();' % (2 * max_image + 2))
+    body_start = src.index('const entries = {', src.index('    table classify_rev {')) + len('const entries = {')
+    body_end = src.index('        }\n    }', body_start)
+    src = src[:body_start] + '\n' + rev_entries(max_image) + '\n        ' + src[body_end:]
+    if stale_guard:
+        # committed-image register: store the per-shape constant at COMMIT, read on the reverse ACK, and
+        # drop acks that fall before the committed image start (exact per-response stale boundary).
+        ilen_acts = ''.join(
+            '    RegisterAction<bit<32>, r_slot_t, bit<32>>(img_len) ilen_commit_%d = {\n'
+            '        void apply(inout bit<32> v) { v = 32w%d; } };\n'
+            '    action do_ilen_commit_%d() { ilen_commit_%d.execute(m.idx); }\n' % (v, v, v, v)
+            for v in sizes)
+        commit_rows = ';'.join('(1, 3w4 &&& 3w7, r_OUT_COMMIT, %s): do_ilen_commit_%d()'
+                               % (('1, _' if s == 'read' else '_, 1'), shape_image[s]) for s in shape_image)
+        ilen = ('    Register<bit<32>, r_slot_t>(16, 0) img_len;\n'
+                + ilen_acts +
+                '    RegisterAction<bit<32>, r_slot_t, bit<32>>(img_len) ilen_rev = {\n'
+                '        void apply(inout bit<32> v, out bit<32> rv) { rv = v; } };\n'
+                '    action do_ilen_rev() { m.committed_len = ilen_rev.execute(m.idx); }\n'
+                '    table img_len_t {\n'
+                '        key = { m.dir : exact; m.shape : ternary; m.result : ternary; m.read_shape : ternary; m.ctl_shape : ternary; }\n'
+                '        actions = { %s do_ilen_rev; NoAction; } size = 6;\n'
+                '        const default_action = NoAction();\n'
+                '        const entries = { %s; (2, (bit<3>)r_SH_ACK, _, _, _): do_ilen_rev(); }\n'
+                '    }\n' % (''.join('do_ilen_commit_%d;' % v for v in sizes), commit_rows))
+        src = once(src, '    Register<bit<32>, r_slot_t>(16, 0) img_wend;', ilen + '    Register<bit<32>, r_slot_t>(16, 0) img_wend;')
+        guard = ('    action rstale_calc() { m.rstale = m.committed_len + m.r; }\n'
+                 '    table rstale_t { actions = { rstale_calc; } size = 1; const default_action = rstale_calc(); }\n'
+                 '    action rev_stale_drop() { hdr.tcp.window = 0; m.result = r_OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }\n'
+                 '    table rev_stale_drop_t { actions = { rev_stale_drop; } size = 1; const default_action = rev_stale_drop(); }\n'
+                 '    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;')
+        src = once(src, '    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;', guard)
+        src = once(src, '        if (((bit<8>)m.dir == 1 && (bit<8>)m.shape == r_SH_SYNACK_OK) || (bit<8>)m.mode == 1) { img_wend_t.apply(); }',
+                   '        if (((bit<8>)m.dir == 1 && (bit<8>)m.shape == r_SH_SYNACK_OK) || (bit<8>)m.mode == 1) { img_wend_t.apply(); img_len_t.apply(); }')
+        src = once(src,
+                   '            classify_rev.apply();\n'
+                   '            if ((bit<8>)m.wide == 1) { window_t.apply(); }',
+                   '            rstale_t.apply();\n'
+                   '            if (m.rstale[31:31] == 1w1) { rev_stale_drop_t.apply(); }\n'
+                   '            else {\n'
+                   '                classify_rev.apply();\n'
+                   '                if ((bit<8>)m.wide == 1) { window_t.apply(); }\n'
+                   '            }')
     return src
 
 
@@ -153,7 +285,7 @@ def transform_read_prefix(src, image):
     src = once(src, '    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}\n', '')
     return src
 
-TRANSFORMS = ['mapper', 'read_prefix']  # grown incrementally: 'sbo_frame', 'n_lane'
+TRANSFORMS = ['mapper_var', 'read_prefix']  # step 1: variable image (READ 73 + inherited SBO 61); 'sbo_frame','n_lane' grown later
 
 
 def build(image, only=None):
@@ -162,7 +294,10 @@ def build(image, only=None):
         raise SystemExit('m11_09 source changed')
     applied = []
     for name in TRANSFORMS:
-        src = globals()['transform_' + name](src, image)
+        if name == 'mapper_var':
+            src = transform_mapper_var(src, SHAPE_IMAGE, stale_guard=STALE_GUARD)
+        else:
+            src = globals()['transform_' + name](src, image)
         applied.append(name)
         if only and name == only:
             break
@@ -183,7 +318,7 @@ def main():
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
     # (e.g. mapper alone: image=269 while the encoders still emit 61) is an intermediate placement
     # experiment, NOT a working candidate, and is flagged non-runnable so nothing treats it as integrated.
-    required = {'mapper', 'read_pad', 'sbo_frame', 'n_lane'}
+    required = {'mapper_var', 'read_prefix'}  # step 1 runnable scope: range READ + inherited SBO; full READ (n_lane) + SBO retarget added later
     runnable = required.issubset(set(applied))
     segs = {role: hashlib.sha256(_combined.segment(src, role).encode()).hexdigest() for role in ('N', 'E', 'T')}
     profile = {'candidate': {'build': str(out), 'milestone': 'm12', 'source_sha256': sha, 'segment_sha256': segs,
