@@ -18,10 +18,26 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import fullread as fr  # noqa: E402
 import dnp3_std as std  # noqa: E402
+import pad_oracle as po  # noqa: E402
 
 
 def master_record(d):
     return json.loads([l for l in (Path(d) / 'master.log').read_text().splitlines() if l.startswith('{')][-1])
+
+
+def size_verdict(size, native, targets):
+    """Return a failure string if a master-facing response of `size` octets is wrong for a native of
+    `native` octets under `targets`, else None. A response that stayed native when a target was reachable
+    (e.g. a disabled padder) FAILS; a response is left native only when it is genuinely ineligible
+    (at/above every target so it cannot be reduced)."""
+    expected = po.choose_target(native, targets)       # smallest reachable target >= native
+    if expected is None:
+        if size != native or native < max(targets):
+            return 'ineligible response size %d (native %d) not left native as required' % (size, native)
+        return None
+    if size != expected:
+        return 'response size %d did not reach the required target %d (native %d)' % (size, expected, native)
+    return None
 
 
 def verify(run_dir, native_dir, fixture_dir, targets):
@@ -36,9 +52,12 @@ def verify(run_dir, native_dir, fixture_dir, targets):
     sizes = {}
     for m, o in zip(master_tx, out_tx):
         size = m['tcp_payload_octets']
+        native = o['tcp_payload_octets']
         sizes[size] = sizes.get(size, 0) + 1
-        if targets and size not in targets and size != o['tcp_payload_octets']:
-            failures.append('response size %d outside targets %r' % (size, targets))
+        if targets:
+            v = size_verdict(size, native, targets)
+            if v:
+                failures.append(v)
         mo = [p for p in m['points']]
         oo = [p for p in o['points']]
         if mo[:len(oo)] != oo:
@@ -64,13 +83,18 @@ def verify(run_dir, native_dir, fixture_dir, targets):
         if wrong:
             failures.append('delivered value differs from the outstation database: %r' % wrong[:3])
             break
+        scan_synth = {k for k in got if k not in fixture}
         real_extra |= {k for k in got if k in fixture and k not in native_same}
-        synthetic |= {k for k in got if k not in fixture}
-    bad = [k for k in synthetic if not (k.startswith('bi:') and int(k[3:]) >= 16)]
-    if bad:
-        failures.append('added points outside the declared padding range: %r' % sorted(bad)[:3])
-    if any(rec['scans'][0]['points'][k] != [0, 0] for k in synthetic if k in rec['scans'][0]['points']):
-        failures.append('a padding point is not value 0 with flags 0x00')
+        synthetic |= scan_synth
+        # every synthetic padding point, in EVERY scan, must be a bi:>=16 point with value 0, flags 0x00
+        bad = [k for k in scan_synth if not (k.startswith('bi:') and int(k[3:]) >= 16)]
+        if bad:
+            failures.append('added points outside the declared padding range: %r' % sorted(bad)[:3])
+            break
+        corrupt = [k for k in scan_synth if got[k] != [0, 0]]
+        if corrupt:
+            failures.append('a padding point is not value 0 with flags 0x00: %r' % sorted(corrupt)[:3])
+            break
     first = sorted((t['first_response_time'] - t['request_time']) * 1e3 for t in master_tx)
     done = sorted((t['complete_response_time'] - t['request_time']) * 1e3 for t in master_tx)
     return {'run': str(run_dir), 'passed': not failures, 'failures': failures, 'sizes_master_facing': sizes,

@@ -36,3 +36,19 @@ branch must sum them). That is correctness work, not a placement blocker.
 282-byte image and ~220-byte egress injection — compile within the 12-stage egress budget. The
 integrated READ+SBO candidate is placement-feasible; the remaining work is correct implementation
 (valid CRCs, TCP checksum over the additions, N lane, model gates).
+
+# Review corrections (2026-10-20)
+- **#5 add-bytes probe emits 240 B, not 220.** `make_addbytes_probe.py` rounds the request up to six
+  40-byte headers (240 B) while bumping IP length by the requested 220. It is explicitly a **placement**
+  probe, so the "large constant injection places in one egress pass" result stands; it does NOT establish
+  byte-exact encoding or checksums. The byte-exact encoding is validated by the integrated candidate and
+  `model_packets`, not by this probe.
+- **#2 intermediate generator output is now flagged non-runnable.** `make_m12.py` writes
+  `runnable/full_target: false` with an `intermediate_note` whenever the mapper and the size-path
+  transforms (`read_pad`, `sbo_frame`, `n_lane`) do not all agree, so a mapper-only build (image 269 while
+  the encoders still emit 61) is never mistaken for a working candidate.
+- **#3/#4 verifier holes closed** in `full_read_01/verify_demo.py` with `tests/test_verify_demo.py`: a
+  disabled padder (size == native when a target is reachable) now FAILS via `size_verdict`, and corrupted
+  synthetic padding in ANY scan now FAILS (the value check moved into the per-scan loop).
+- **#1 full-READ append-order** is addressed by the replacement design below (full parse so the appended
+  frame emits AFTER the native payload; a partial parse would place padding inside the native frame).
