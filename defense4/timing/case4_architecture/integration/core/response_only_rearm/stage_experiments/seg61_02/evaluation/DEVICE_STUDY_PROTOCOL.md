@@ -121,3 +121,16 @@ comparing; every table, entry key, action and other field is still compared exac
 block's own snapshots it then reports all 399 tables equal. The stopped campaign stays on disk as the
 record. The study is relaunched as `dev_m11_09_20261019_02` with the same frozen design; the stopped
 pilot's data are not used.
+
+## Amendment 3 (2026-10-19, run 02 refused before touching hardware)
+
+`dev_m11_09_20261019_02` refused its first block (`testbed_refused`): run 01's unverified restoration
+left a durable refusal in the host-wide testbed ownership record
+(`~/.local/state/dnp3-evaluation/tofino1-testbed/ownership.json`, `unsafe_restoration: true`), which no
+campaign may bypass. Run 02 collected nothing and changed nothing.
+
+A read-only re-verification of the live testbed with the corrected `restore_verify.py`, against run 01's
+own pre-run snapshot, passed every check: production program `case4_response_path`, all 399 tables equal
+with statistics set aside, Vision state equal to the recorded baseline, and the ping. Its output is
+`dev_m11_09_20261019_01/reverify_20261019/restore_verify.json`; run 01's original records are unchanged.
+The refusal stays in place until Philip decides to clear it; no campaign runs before then.
