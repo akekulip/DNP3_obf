@@ -150,3 +150,42 @@ Four advances that make the remaining padder tractable and correct-by-constructi
   (extend `restore_verify`'s volatile-ignore set to the counter/outcome tables, without touching
   config/operational checks, then clear via the ownership mechanism) is specified in the plan's M0b and
   pending before any hardware load.
+
+## Decisive constraint (2026-10-20) — full-READ in-switch padding hits the 160 B parser depth
+
+Reviewer finding #1 (append order) led to a decisive compile probe. The egress parser has a **160-byte
+maximum parse depth** (evidence: `probe/evidence/full_parse_247_error.log`):
+
+    error: Parser r_EgParser: longest path through parser (362B) exceeds maximum parse depth (160B)
+
+Consequences for the full READ (247 B response), established by compilation, independent of any old code:
+- **Cannot full-parse it.** 247 B of DNP3 blocks pushes the parse path to 362 B, over the 160 B limit.
+- **Cannot append after it with a partial parse.** Tofino emits parsed headers *before* the unparsed
+  payload, so padding emitted after a first-block-only parse lands *inside* the native frame (reviewer
+  #1), not after it.
+- **Cannot insert padding mid-fragment.** The native first object's points span the unparsed blocks, so
+  inserting padding between the parsed first block and the unparsed remainder would split that object.
+
+So **in-switch append/insert padding of the 247 B full READ in a single egress pass is infeasible** on
+Tofino-1. This is a hard target constraint, not an artifact of the old implementation.
+
+### Resolution path (no redesign)
+- **Full READ → Case A (request expansion), not in-switch response padding.** The switch grows the
+  READ *request* (small, well within the parser budget) so the outstation returns a larger *natural*
+  response at the target size; N carries it through the timing lanes. The parser-depth limit never
+  applies, because the switch modifies only the small request. This is Dr. Lin's Case A and is the
+  architecturally correct way to normalize the full READ.
+- **SBO → in-switch reframe (Case-B-style).** The 37 B control fragment is fully parseable (well under
+  160 B); the existing `ctl_eligible`/`ctl_sequences` append-frame split extends to k=19 segments to
+  reach an attainable 22+13k target. This is the tractable in-switch replacement.
+- **Small READs (≤ ~140 B native) → in-switch append padding.** They parse within budget; the append
+  padder (this document) applies. Large constant padding of very small responses is additionally
+  PHV-limited (49→269 = +220 B of tail), so the shared target and the small-READ membership are bounded
+  by both the parser depth and PHV.
+
+### Net
+The integrated replacement is: Case A request expansion for the full READ, in-switch reframe for SBO,
+and in-switch append padding for small READs, all sharing the target policy and TCP mapping. The full
+READ's in-switch *response* padding is the one piece the Tofino-1 egress parser cannot do in one pass —
+an evidenced hardware constraint that bounds the mechanism, reported rather than worked around with a
+new pipeline.
