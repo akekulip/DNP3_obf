@@ -100,3 +100,53 @@ independently verified restore.
 4. Full 9-driver model gate + pytest.
 5. Remote 9.13.2 compile + resource table.
 6. Multi-target policy via the oracle; decoded examples; per-response frame-count + added-byte report.
+
+## Design advances (2026-10-20) — construction resolved to the byte
+
+Verified by compilation this session (all SDE 9.13.1, egress 12 / ingress 11, exit 0):
+`baseline` rebuild; `classify_rev`@282 (566 entries); +220 egress bytes; **integrated mapper T=269**
+(`r_IMAGE_LEN=269`, `classify_rev`@269 = 540 entries, `acct_t` +247 row, `classify_fwd`
++`out_reset_front_247`). Generator `make_m12.py` (transform `mapper`) committed (`3e91e8bb6`).
+
+Four advances that make the remaining padder tractable and correct-by-construction:
+
+1. **Full-READ parser budget is resolved by first-block-only parse.** The 247-B full READ has ~14
+   link-user blocks, over the ~160-B egress-parser budget. The padder parses/validates/modifies **only
+   the first 16-B block** (where the transport FIN bit lives) and re-emits the remaining native blocks
+   **unparsed**. Those blocks are untouched, so their original CRCs stay valid and the **master still
+   validates every block** — no weakening of what reaches the master; the switch simply does not
+   re-validate bytes it does not alter (the same way E already re-emits merged-retransmission tails).
+
+2. **Range READ reuses the existing full parse.** `read_b0` already extracts the whole 49-B response;
+   the padder keeps `robj/c0/c1`/points **live** (unlike the re-encode, which invalidated them), clears
+   FIN on `rh.tpctrl` (`&0x7f`), and appends the padding frame — no new parser state for the range READ.
+
+3. **Clearing FIN is an affine CRC delta (constant).** Flipping the one FIN bit (0x80) at byte 0 of the
+   first user block changes that block's CRC by a fixed constant, so `c0_new = c0 ^ FIN_DELTA` — derived
+   from the live `c0`, with a proven-invariant delta (same class as the existing `^0x6222`).
+
+4. **The appended padding frame's checksum contribution is a single constant.** Its content is synthetic
+   (g1 points, value 0, flags 0x00) so its one's-complement sum is a compile constant folded into the TCP
+   checksum — no byte-by-byte summing of ~220 added bytes in the deparser. The appended frame's **link
+   header is derived** (copy `dl.ctrl/dst/src`, const `len`, CRC `= dl.crc ^ delta`, the `ctl_eligible`
+   pattern); its **first user block's transport octet is derived** (native seq+1 via a `ctl_sequences`-
+   style table) so that block's CRC is Hash-derived, while the remaining all-zero blocks have constant
+   CRCs.
+
+## Honest status (2026-10-20)
+- **Done + committed:** M0 software milestone (`623a78f77`); two placement probes (`2b923ef63`,
+  `6685b6bb1`); generator + integrated mapper T=269 (`3e91e8bb6`). Baseline preserved on
+  `baseline-m11_09-20261019`.
+- **Feasibility: proven.** Every placement unknown compiles within the 12-stage egress budget.
+- **Remaining (NOT blocked; large byte-exact coding):** the READ append-padder (range 49→269 reuses
+  parse, +220 B / 12 blocks; full 247→269 needs the first-block parser path, +22 B / 1 block), the SBO
+  reframer (37→269, k=19 segments), the N-lane recognition of the full READ (ip.len 287, first-block
+  classify, seq delta 247), then `model_packets` vectors + the 9-driver model gate + both-SDK builds +
+  the P4 multi-target extension + the hardware demonstration. The mapper, the affine/derived-CRC
+  patterns, the constant-checksum folding and the parser-budget resolution above remove the uncertainty;
+  what is left is careful generation of the per-shape append blocks and their derived CRCs, compiled and
+  model-checked shape by shape.
+- **Restore lock:** volatile-counter false positive; `reverify_20261019` `ok:true`. The lock-reconcile
+  (extend `restore_verify`'s volatile-ignore set to the counter/outcome tables, without touching
+  config/operational checks, then clear via the ownership mechanism) is specified in the plan's M0b and
+  pending before any hardware load.
