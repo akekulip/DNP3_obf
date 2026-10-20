@@ -73,96 +73,91 @@ def transform_mapper(src, image):
     return src
 
 
-def transform_read_pad(src, image):
-    """Replace the READ re-encode with the append-a-frame measurement-object padder (range READ 49->T).
-
-    Keeps the native response's blocks LIVE (not re-encoded): clears FIN on the first transport segment
-    (affine CRC delta 0x370c), and appends ONE padding link frame sized to reach T. The appended frame is
-    synthetic padding (g1v2 points, value 0, flags 0x00): its content and data-block CRCs are compile
-    constants; its link header is DERIVED (copy dl.ctrl/dst/src, const len, CRC = dl.crc ^ 0x4679); its
-    first user block's transport octet is DERIVED (native seq+1 | FIN) so that block's CRC is Hash-derived.
-    Only 49->269 (T=269) is implemented here; other native READ sizes/targets extend the same construction.
-    """
+def transform_read_prefix(src, image):
+    """Replace the READ re-encode with the PREFIX padder (prepend.py construction). Range READ 49->73
+    (T=73) here; the full READ and other targets extend the same construction. Parses only the first
+    block (28 B), emits a leading FIR/!FIN frame carrying the live app header + padding object header,
+    rewrites the original first block into a !FIR/FIN continuation (app-header bytes -> 4 padding points,
+    CRC Hash-derived over all changes), and re-emits the original tail verbatim as unparsed payload."""
     if image != 269:
-        raise SystemExit('transform_read_pad currently targets T=269 only')
-    B0CONST = '0x01020010c300000000000000000000'   # objhdr(g1v2 qual0 16..195) + pts 16-25, 15 bytes
-    TAIL = [  # 4 x 48 bytes of constant tail (blocks 1..11 with their CRCs), from pad_oracle
-        '0x00000000000000000000000000000000ffff00000000000000000000000000000000ffff000000000000000000000000',
-        '0x00000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff000000000000',
-        '0x00000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff',
-        '0x00000000000000000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000ffff']
-    # 1) meta fields for the derived transport octet and its CRC
+        raise SystemExit('transform_read_prefix: image length set by the mapper; target set per shape')
+    PREFIX_LEN = 0x11          # leading frame link LEN for 49->73
+    LINK_DELTA = 0x577d        # leading link CRC = dl.crc ^ this (len 0x26 -> 0x11)
+    PADOBJ = 0x01020010150000  # g1v2 qual0 [16,21] + 2 synthetic points (56 bits), const
+    DELTA = 24                 # 73 - 49
+    # 1) meta
     src = once(src, '    bit<16> rtcrc; bit<16> rtcrc_b; bit<16> ctcrc2; bit<16> ctcrc3;',
-               '    bit<16> rtcrc; bit<16> rtcrc_b; bit<16> ctcrc2; bit<16> ctcrc3; bit<8> pad_tp; bit<16> pad_c0;')
-    # 2) header declarations for the appended padding frame
-    decls = ('header r_pad_link_h{bit<16> start;bit<8> len;bit<8> ctrl;bit<16> dst;bit<16> src;bit<16> crc;}\n'
-             'header r_pad_b0_h{bit<8> tp;bit<120> body;}\n'
-             'header r_pad_c0_h{bit<16> crc;}\n'
-             'header r_pad_t0_h{bit<384> v;}\nheader r_pad_t1_h{bit<384> v;}\n'
-             'header r_pad_t2_h{bit<384> v;}\nheader r_pad_t3_h{bit<384> v;}\n')
+               '    bit<16> rtcrc; bit<16> rtcrc_b; bit<16> ctcrc2; bit<16> ctcrc3; bit<8> pl_tp; bit<8> co_tp; bit<16> pl_uc; bit<16> co_c0;')
+    # 2) headers for the leading frame
+    decls = ('header r_pl_link_h{bit<16> start;bit<8> len;bit<8> ctrl;bit<16> dst;bit<16> src;bit<16> crc;}\n'
+             'header r_pl_u_h{bit<8> tp;bit<32> app;bit<56> padobj;}\n'
+             'header r_pl_uc_h{bit<16> crc;}\n')
     src = once(src, 'header r_ctl_tail_p2_h{bit<80> filler_b;bit<16> crc2;}',
                'header r_ctl_tail_p2_h{bit<80> filler_b;bit<16> crc2;}\n' + decls.rstrip())
-    # 3) struct members (appended after cs3)
     src = once(src, 'r_ctl_dl_h cd3; r_ctl_seg3_h cs3; }',
-               'r_ctl_dl_h cd3; r_ctl_seg3_h cs3; r_pad_link_h padl; r_pad_b0_h padb0; r_pad_c0_h padc0; '
-               'r_pad_t0_h padt0; r_pad_t1_h padt1; r_pad_t2_h padt2; r_pad_t3_h padt3; }')
-    # 4) derive pad_tp and pad_c0 (replace the re-encode CRC helpers' apply with these)
-    # native single-frame READ response transport = 0xC0|seq (FIR+FIN); map it -> appended tp = ((seq+1)&0x3f)|0x80
-    tp_rows = ''.join('(8w0x%02x):set_pad_tp(8w0x%02x);' % (0xC0 | s, (((s + 1) & 0x3f) | 0x80)) for s in range(64))
+               'r_ctl_dl_h cd3; r_ctl_seg3_h cs3; r_pl_link_h pll; r_pl_u_h plu; r_pl_uc_h pluc; }')
+    # 3) parser: first-block-only read (stop after c0; leave the rest unparsed)
+    src = once(src,
+               '    state read_b0 { pkt.extract(hdr.rh); pkt.extract(hdr.robj); pkt.extract(hdr.p03); pkt.extract(hdr.p45); pkt.extract(hdr.c0);\n'
+               '        pkt.extract(hdr.p69); pkt.extract(hdr.p1012); pkt.extract(hdr.p1321); pkt.extract(hdr.c1); pkt.extract(hdr.p22); pkt.extract(hdr.c2); transition accept; }',
+               '    state read_b0 { pkt.extract(hdr.rh); pkt.extract(hdr.robj); pkt.extract(hdr.p03); pkt.extract(hdr.p45); pkt.extract(hdr.c0); transition accept; }')
+    # 4) derive leading/continuation transport octets (0x40|seq, 0x80|((seq+1)&0x3f)) by table, and the two CRCs
+    tp_rows = ''.join('(8w0x%02x):set_tp(8w0x%02x,8w0x%02x);' % (0xC0 | s, 0x40 | s, 0x80 | ((s + 1) & 0x3f)) for s in range(64))
     src = once(src, '    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.p1012.d,hdr.p1321.d,hdr.p22.d});}',
-               '    action set_pad_tp(bit<8> v){m.pad_tp=v;}\n'
-               '    table derive_pad_tp_t{key={hdr.rh.tpctrl:exact;}actions={set_pad_tp;NoAction;}size=64;'
-               'const default_action=NoAction();const entries={' + tp_rows + '}}\n'
-               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_pad_c0;\n'
-               '    action crc_pad_c0(){m.pad_c0=hash_pad_c0.get({m.pad_tp, 120w%s});}\n'
-               '    table crc_pad_c0_t{actions={crc_pad_c0;}size=1;const default_action=crc_pad_c0();}\n'
-               '    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.p1012.d,hdr.p1321.d,hdr.p22.d});}' % B0CONST)
-    # 5) the padder action (replace read_eligible body)
+               '    action set_tp(bit<8> a, bit<8> b){m.pl_tp=a;m.co_tp=b;}\n'
+               '    table set_tp_t{key={hdr.rh.tpctrl:exact;}actions={set_tp;NoAction;}size=64;const default_action=NoAction();const entries={' + tp_rows + '}}\n'
+               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_pl_uc;\n'
+               '    action crc_pl_uc(){m.pl_uc=hash_pl_uc.get({m.pl_tp, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, 56w%d});}\n'
+               '    table crc_pl_uc_t{actions={crc_pl_uc;}size=1;const default_action=crc_pl_uc();}\n'
+               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_co_c0;\n'
+               '    action crc_co_c0(){m.co_c0=hash_co_c0.get({m.co_tp, 32w0, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d});}\n'
+               '    table crc_co_c0_t{actions={crc_co_c0;}size=1;const default_action=crc_co_c0();}\n'
+               '    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.p1012.d,hdr.p1321.d,hdr.p22.d});}' % PADOBJ)
+    # 5) the prefix action (replace read_eligible)
     old_re = ('    action read_eligible(){hdr.ra.setValid();hdr.ra.v=40w0x0a02000005;hdr.ca.setValid();'
               'hdr.ca.crc=hdr.c0.crc^16w0x6222;hdr.rbh.setValid();hdr.rbh.v=40w0x0a02000609;hdr.rc.setValid();'
               'hdr.rc.v=56w0x0a02010a001600;hdr.cb.setValid();hdr.cb.crc=m.rtcrc_b[7:0]++m.rtcrc_b[15:8];'
               'hdr.c2.crc=m.rtcrc[7:0]++m.rtcrc[15:8];hdr.robj.setInvalid();hdr.c0.setInvalid();hdr.c1.setInvalid();'
               'hdr.dl.len=8w0x32;hdr.dl.crc=hdr.dl.crc^16w0xaf35;hdr.ip.len=hdr.ip.len+16w12;m.len_delta=16w12;}')
     new_pad = ('    action read_eligible(){'
-               'hdr.rh.tpctrl=hdr.rh.tpctrl & 8w0x7f;'                       # clear FIN on native first segment
-               'hdr.c0.crc=hdr.c0.crc ^ 16w0x370c;'                          # native block0 CRC after FIN clear
-               'hdr.padl.setValid();hdr.padl.start=16w0x0564;hdr.padl.len=8w0xbf;hdr.padl.ctrl=hdr.dl.ctrl;'
-               'hdr.padl.dst=hdr.dl.dst;hdr.padl.src=hdr.dl.src;hdr.padl.crc=hdr.dl.crc ^ 16w0x4679;'
-               'hdr.padb0.setValid();hdr.padb0.tp=m.pad_tp;hdr.padb0.body=120w%s;'
-               'hdr.padc0.setValid();hdr.padc0.crc=m.pad_c0[7:0]++m.pad_c0[15:8];'
-               'hdr.padt0.setValid();hdr.padt0.v=384w%s;hdr.padt1.setValid();hdr.padt1.v=384w%s;'
-               'hdr.padt2.setValid();hdr.padt2.v=384w%s;hdr.padt3.setValid();hdr.padt3.v=384w%s;'
-               'hdr.ip.len=hdr.ip.len+16w220;m.len_delta=16w220;}'
-               % (B0CONST, TAIL[0], TAIL[1], TAIL[2], TAIL[3]))
+               'hdr.pll.setValid();hdr.pll.start=16w0x0564;hdr.pll.len=8w0x%02x;hdr.pll.ctrl=hdr.dl.ctrl;'
+               'hdr.pll.dst=hdr.dl.dst;hdr.pll.src=hdr.dl.src;hdr.pll.crc=hdr.dl.crc ^ 16w0x%04x;'
+               'hdr.plu.setValid();hdr.plu.tp=m.pl_tp;hdr.plu.app=hdr.rh.appctrl ++ hdr.rh.func ++ hdr.rh.iin;hdr.plu.padobj=56w0x%x;'
+               'hdr.pluc.setValid();hdr.pluc.crc=m.pl_uc[7:0]++m.pl_uc[15:8];'
+               'hdr.rh.tpctrl=m.co_tp;hdr.rh.appctrl=8w0;hdr.rh.func=8w0;hdr.rh.iin=16w0;'
+               'hdr.c0.crc=m.co_c0[7:0]++m.co_c0[15:8];'
+               'hdr.ip.len=hdr.ip.len+16w%d;m.len_delta=16w%d;}'
+               % (PREFIX_LEN, LINK_DELTA, PADOBJ, DELTA, DELTA))
     src = once(src, old_re, new_pad)
-    # 6) apply: swap the re-encode CRC helpers for the padder derivations
+    # 6) apply: swap the re-encode CRC helpers for the prefix derivations
     src = once(src, 'read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); crc_read_tail_t.apply(); crc_read_b_t.apply();',
-               'read_profile.apply(); in_rb0_t.apply(); in_rb1_t.apply(); in_rt_t.apply(); derive_pad_tp_t.apply(); crc_pad_c0_t.apply();')
-    # 7) deparser emit: native blocks live (no ra/ca/rbh/rc/cb) + appended frame
+               'read_profile.apply(); in_rb0_t.apply(); set_tp_t.apply(); crc_pl_uc_t.apply(); crc_co_c0_t.apply();')
+    # 7) deparser emit: leading frame BEFORE dl... but dl is emitted earlier in the list. Re-emit: pll/plu/pluc then dl+first block, drop tail-block emits (now unparsed)
     src = once(src,
                'pkt.emit(hdr.rh); pkt.emit(hdr.robj); pkt.emit(hdr.ra); pkt.emit(hdr.p03); pkt.emit(hdr.p45); pkt.emit(hdr.c0); pkt.emit(hdr.ca);\n'
                '        pkt.emit(hdr.rbh); pkt.emit(hdr.p69); pkt.emit(hdr.rc); pkt.emit(hdr.cb);\n'
                '        pkt.emit(hdr.p1012); pkt.emit(hdr.p1321); pkt.emit(hdr.c1); pkt.emit(hdr.p22); pkt.emit(hdr.c2);',
-               'pkt.emit(hdr.rh); pkt.emit(hdr.robj); pkt.emit(hdr.p03); pkt.emit(hdr.p45); pkt.emit(hdr.c0);\n'
-               '        pkt.emit(hdr.p69); pkt.emit(hdr.p1012); pkt.emit(hdr.p1321); pkt.emit(hdr.c1); pkt.emit(hdr.p22); pkt.emit(hdr.c2);\n'
-               '        pkt.emit(hdr.padl); pkt.emit(hdr.padb0); pkt.emit(hdr.padc0); pkt.emit(hdr.padt0); pkt.emit(hdr.padt1); pkt.emit(hdr.padt2); pkt.emit(hdr.padt3);')
-    # 8) deparser checksum: new read-pad branch (native live fields + appended frame), mirroring parity
-    old_ck = ('        if (hdr.ra.isValid()) {\n')
-    new_ck_head = ('        if (hdr.padl.isValid()) {\n'
-                   '            hdr.tcp.checksum = tcp_read.update({hdr.tcp.seq, hdr.tcp.ack, m.ack_inv, hdr.tcp.window, m.len_delta,\n'
-                   '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
-                   '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop,\n'
-                   '                hdr.p03.d, hdr.p45.d, hdr.c0.crc, hdr.p69.d, hdr.p1012.d, hdr.p1321.d, hdr.c1.crc, hdr.p22.d, hdr.c2.crc, 8w0,\n'
-                   '                hdr.padl.start, hdr.padl.len, hdr.padl.ctrl, hdr.padl.dst, hdr.padl.src, hdr.padl.crc,\n'
-                   '                hdr.padb0.tp, hdr.padb0.body, hdr.padc0.crc,\n'  # tail (192 const bytes) sums to 0xffff = ~0, omitted
-                   '                m.r_residual});\n'
-                   '        }\n'
-                   '        if (hdr.ra.isValid()) {\n')
-    src = once(src, old_ck, new_ck_head)
+               'pkt.emit(hdr.pll); pkt.emit(hdr.plu); pkt.emit(hdr.pluc);\n'
+               '        pkt.emit(hdr.rh); pkt.emit(hdr.robj); pkt.emit(hdr.p03); pkt.emit(hdr.p45); pkt.emit(hdr.c0);')
+    # dl is emitted before rh already in the deparser (pkt.emit(hdr.dl) earlier). Move pll/plu/pluc before dl:
+    src = once(src, 'pkt.emit(hdr.mss); pkt.emit(hdr.dl);\n        pkt.emit(hdr.pll); pkt.emit(hdr.plu); pkt.emit(hdr.pluc);',
+               'pkt.emit(hdr.mss); pkt.emit(hdr.pll); pkt.emit(hdr.plu); pkt.emit(hdr.pluc); pkt.emit(hdr.dl);')
+    # 8) checksum branch for the prefix (pll valid): leading frame + dl + modified first block; tail unparsed (in old checksum)
+    old_ck = '        if (hdr.ra.isValid()) {\n'
+    new_ck = ('        if (hdr.pll.isValid()) {\n'
+              '            hdr.tcp.checksum = tcp_read.update({hdr.tcp.seq, hdr.tcp.ack, m.ack_inv, hdr.tcp.window, m.len_delta,\n'
+              '                hdr.pll.start, hdr.pll.len, hdr.pll.ctrl, hdr.pll.dst, hdr.pll.src, hdr.pll.crc,\n'
+              '                hdr.plu.tp, hdr.plu.app, hdr.plu.padobj, hdr.pluc.crc, 8w0,\n'
+              '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
+              '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop,\n'
+              '                hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
+              '                m.r_residual});\n'
+              '        }\n'
+              '        if (hdr.ra.isValid()) {\n')
+    src = once(src, old_ck, new_ck)
     return src
 
-
-TRANSFORMS = ['mapper', 'read_pad']  # grown incrementally: 'sbo_frame', 'n_lane'
+TRANSFORMS = ['mapper', 'read_prefix']  # grown incrementally: 'sbo_frame', 'n_lane'
 
 
 def build(image, only=None):
