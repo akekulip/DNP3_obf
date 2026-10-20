@@ -27,6 +27,9 @@ M11_09 = STAGE / 'ctl_timing_01/evidence/m11_09/response_only.p4'
 M11_09_SHA = 'f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8'
 sys.path.insert(0, str(HERE / 'probe'))
 from make_classify_rev_probe import rev_entries  # noqa: E402
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location('m12_combined', STAGE / 'combined_nt_01/generate.py')
+_combined = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_combined)
 
 
 def once(text, old, new):
@@ -49,21 +52,7 @@ def transform_mapper(src, image):
     # fwd_prep: m.pm = m.p - image; was -61 (0xFFFFFFC3)
     src = once(src, 'm.pm = m.p + 32w0xFFFFFFC3;', 'm.pm = m.p + %s;' % neg(image))
     # acct_t: add a do_acct_try row for the full-READ native length 247 (read_shape), beside 49/37
-    src = once(src,
-               '(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 49, 1, _, 0, 0, 0, 0, _, _): do_acct_try();',
-               '(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 49, 1, _, 0, 0, 0, 0, _, _): do_acct_try();'
-               '(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 247, 1, _, 0, 0, 0, 0, _, _): do_acct_try();')
-    src = once(src, 'actions = { do_acct_arm; do_acct_try; do_acct_grow; do_acct_rev; NoAction; } size = 10;',
-               'actions = { do_acct_arm; do_acct_try; do_acct_grow; do_acct_rev; NoAction; } size = 11;')
-    # classify_fwd: out_reset_front_247 for an RST one full-READ ahead
-    src = once(src, '    action out_reset_front_37() { m.qx = m.q - 32w37; m.result = r_OUT_RESET_FRONT; m.changed = 1; }',
-               '    action out_reset_front_37() { m.qx = m.q - 32w37; m.result = r_OUT_RESET_FRONT; m.changed = 1; }\n'
-               '    action out_reset_front_247() { m.qx = m.q - 32w247; m.result = r_OUT_RESET_FRONT; m.changed = 1; }')
-    src = once(src, 'out_reset_front_49; out_reset_front_37; } size = 24;',
-               'out_reset_front_49; out_reset_front_37; out_reset_front_247; } size = 24;')
-    src = once(src, '(32w37, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_37();',
-               '(32w37, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_37();'
-               '(32w247, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_247();')
+    # (full-READ 247 acct_t / reset_front rows land with the full READ in M5)
     # classify_rev: regenerate the per-byte withhold window to the image size
     start = src.index('    table classify_rev {')
     src = once(src, 'size = 124; const default_action = rev_drop();', 'size = %d; const default_action = rev_drop();' % (2 * image + 2))
@@ -79,10 +68,10 @@ def transform_read_prefix(src, image):
     block (28 B), emits a leading FIR/!FIN frame carrying the live app header + padding object header,
     rewrites the original first block into a !FIR/FIN continuation (app-header bytes -> 4 padding points,
     CRC Hash-derived over all changes), and re-emits the original tail verbatim as unparsed payload."""
-    if image != 269:
-        raise SystemExit('transform_read_prefix: image length set by the mapper; target set per shape')
+    if image not in (73, 269):
+        raise SystemExit('transform_read_prefix: target set per shape (range READ 49->73 here)')
     PREFIX_LEN = 0x11          # leading frame link LEN for 49->73
-    LINK_DELTA = 0x577d        # leading link CRC = dl.crc ^ this (len 0x26 -> 0x11)
+    LINK_DELTA = 0x7d57        # leading link CRC delta in P4-space (hdr.dl.crc is big-endian of the LE wire)
     PADOBJ = 0x01020010150000  # g1v2 qual0 [16,21] + 2 synthetic points (56 bits), const
     DELTA = 24                 # 73 - 49
     # 1) meta
@@ -147,14 +136,23 @@ def transform_read_prefix(src, image):
     new_ck = ('        if (hdr.pll.isValid()) {\n'
               '            hdr.tcp.checksum = tcp_read.update({hdr.tcp.seq, hdr.tcp.ack, m.ack_inv, hdr.tcp.window, m.len_delta,\n'
               '                hdr.pll.start, hdr.pll.len, hdr.pll.ctrl, hdr.pll.dst, hdr.pll.src, hdr.pll.crc,\n'
-              '                hdr.plu.tp, hdr.plu.app, hdr.plu.padobj, hdr.pluc.crc, 8w0,\n'
+              '                hdr.plu.tp, hdr.plu.app, hdr.plu.padobj, hdr.pluc.crc,\n'
               '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
               '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop,\n'
               '                hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
               '                m.r_residual});\n'
               '        }\n'
               '        if (hdr.ra.isValid()) {\n')
-    src = once(src, old_ck, new_ck)
+    # Fix 3: first-block-only parse does not reach c1/c2; drop their verdicts (they read unparsed
+    # headers into m.rbad1/m.rbadt). Left at 0, the keys match the good path; the master validates
+    # the untouched tail's original CRCs.
+    src = once(src, 'if (hdr.c1.crc != (m.in_rb1[7:0] ++ m.in_rb1[15:8])) { m.rbad1 = 1; }', '')
+    src = once(src, 'if (hdr.c2.crc != (m.in_rt[7:0] ++ m.in_rt[15:8])) { m.rbadt = 1; }', '')
+    # drop the now-dead block-1/tail CRC tables and their actions
+    src = once(src, '    action in_rb1(){m.in_rb1=hash_in_rb1.get({hdr.p69.d,hdr.p1012.d,hdr.p1321.d});}\n', '')
+    src = once(src, '    table in_rb1_t{actions={in_rb1;}size=1;const default_action=in_rb1();}\n', '')
+    src = once(src, '    action in_rt(){m.in_rt=hash_in_rt.get({hdr.p22.d});}\n', '')
+    src = once(src, '    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}\n', '')
     return src
 
 TRANSFORMS = ['mapper', 'read_prefix']  # grown incrementally: 'sbo_frame', 'n_lane'
@@ -176,7 +174,7 @@ def build(image, only=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
-    ap.add_argument('--image', type=int, default=269)
+    ap.add_argument('--image', type=int, default=73)
     ap.add_argument('--only', default=None)
     a = ap.parse_args()
     out = Path(a.out)
@@ -189,13 +187,25 @@ def main():
     # experiment, NOT a working candidate, and is flagged non-runnable so nothing treats it as integrated.
     required = {'mapper', 'read_pad', 'sbo_frame', 'n_lane'}
     runnable = required.issubset(set(applied))
+    segs = {role: hashlib.sha256(_combined.segment(src, role).encode()).hexdigest() for role in ('N', 'E', 'T')}
+    profile = {'candidate': {'build': str(out), 'milestone': 'm12', 'source_sha256': sha, 'segment_sha256': segs,
+                             'artifact_sha256': {}},
+               'reset_restart_required': True, 't_child_count': 1}
     (out / 'response_only.inputs.json').write_text(json.dumps({
         'milestone': 'm12', 'image_len': a.image, 'transforms_applied': applied,
         'full_target': runnable, 'runnable': runnable,
         'intermediate_note': None if runnable else
         'PARTIAL build: mapper image=%d but %s not yet applied; encoders/N still at the old lengths — '
         'placement experiment only, not a working integrated candidate' % (a.image, sorted(required - set(applied))),
-        'source_sha256': sha, 'successor_of': {'build': 'm11_09', 'source_sha256': M11_09_SHA}}, indent=2) + '\n')
+        'source_sha256': sha, 'segment_sha256': segs, 'supported_profile': profile,
+        't_time': {'unit_ns': 256, 'grid_ns': 512, 'source': 'global_tstamp[39:8] & ~1'},
+        't_lifetime_encoding': 'sealed_low31',
+        'native_lengths': {'READ': 49, 'SELECT_OPERATE': 37},
+        'output_lengths': {'READ': a.image, 'SELECT_OPERATE': 61},
+        'read_growth': a.image - 49, 'control_growth': 24,
+        'port_map': {'relay_port': 9, 'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182},
+        'successor_of': {'build': 'm11_09', 'source_sha256': M11_09_SHA}}, indent=2) + '\n')
+    (out / 'supported_profile.json').write_text(json.dumps(profile, indent=2) + '\n')
     print('wrote %s (image=%d, transforms=%s, sha=%s)' % (out / 'response_only.p4', a.image, applied, sha[:12]))
 
 
