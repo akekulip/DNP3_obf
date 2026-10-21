@@ -1,0 +1,873 @@
+{
+ "freeze_version": "freeze-v3-20261017",
+ "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08",
+ "source_sha256": "7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f",
+ "candidate": {
+  "source_sha256": "7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f",
+  "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08",
+  "loaded_compile": {
+   "out_dir": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out",
+   "manifest": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/manifest.json"
+  },
+  "artifacts": {
+   "compile_local": {
+    "manifest.json": "e7f3332baa2700d0d5b1ccc4807d53c7397289bbaa656797fe2df6a6692d88fe",
+    "out/bfrt.json": "5c5939c458561e760078f0a6ae4cfb913a68847713dd7661c321ea97b87b4bbc",
+    "out/response_only.p4pp": "583642e48eac1273521a16c19b5a4cb32896c2baf45d95616eee46fc1bb9c0d4",
+    "out/p0/tofino.bin": "f1622f073f2768a020a8f05af08cc51e4b9e003413b97cae37e2c4172b016370",
+    "out/p1/tofino.bin": "caef712d20baee9dc969fd2b1ee29758f5e05fa03a379a93e8c1a9d7eb49c513",
+    "out/p0/context.json": "bb6902978e3b7af778da9e5212fe5a5706416ed9caa23782797f8af49f3f44d4",
+    "out/p0/response_only.bfa": "8abe6f0e5697978763ff0de4153d8b49b6d5c6f5573a07b20c4b37e311d94885",
+    "out/p1/context.json": "0bf360a70c175abc11b5d30db626224b5c58c442048792445a631457b0081e8d",
+    "out/p1/response_only.bfa": "c11ed646936c7305e4807e881cf5d84c764c2a694e7a0fb11a08606a62c54f02",
+    "out/response_only.conf": "dd63b51a65e865c98f7106fedf4d90c949096bf6cc2fd35a9631847f65cb9f6f"
+   },
+   "compile_switch_9132": {
+    "manifest.json": "91e2e8af7c91d4b24b5af973af2b4cf964cdf914575622435b268590d4c10a7e",
+    "out/bfrt.json": "5c5939c458561e760078f0a6ae4cfb913a68847713dd7661c321ea97b87b4bbc",
+    "out/response_only.p4pp": "e9d5f266c799eb129b58512d96b9832b59874896b1347360ac707c3680c81f77",
+    "out/p0/tofino.bin": "438cb69b66297146ab787c6e2ac0139199cd84c368482161bbe783adfef86a7e",
+    "out/p1/tofino.bin": "f7200d903ec0a64c10156a9d7718a4ae3bbe21342a4ce304f2ebd4c918fd384d",
+    "out/p0/context.json": "274a57632d26fc5c66bab58e3ffffa12cd055176665f582fac4c8e8677c4ad96",
+    "out/p0/response_only.bfa": "ef4a25cd55aa24fec977daf151186ac270ffe2d939d1a137ac0aa82d3f9c666e",
+    "out/p1/context.json": "569cdf3d3c82e217c4a7af41375fbd837e2e70ccc54707dd5db877033eafc24e",
+    "out/p1/response_only.bfa": "1ef87d160848141d5c2bd5358834da2eddc4b428fa39e9b9a249883ca9c5f84a",
+    "out/response_only.conf": "abf92054857581c8a7f0ffcd8aa4bc417cf28520a204bf6a0cbbb5b85ee8264c"
+   }
+  },
+  "model": {
+   "summary": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/model_summary_v3.json",
+   "summary_sha256": "1b5a6b87296a85de7412b00dc6f3b435d0bae6a3dbd608144b9162e40c76e8fa",
+   "summary_version": "model-summary-v3-20261017",
+   "qualification": "model_gate_passed",
+   "blocked_reasons": [],
+   "latest_by_driver": {
+    "abandon": "model_abandon_m12p_b08_02",
+    "abort": "model_abort_m12p_b08_01",
+    "contention": "model_contention_m12p_b08_01",
+    "control_timing": "model_control_timing_m12p_b08_01",
+    "dup": "model_dup_m12p_b08_01",
+    "packets": "model_packets_m12p_b08_01",
+    "policy": "model_policy_m12p_b08_01",
+    "policy_boundary": "model_policy_boundary_m12p_b08_01",
+    "rearm": "model_rearm_m12p_b08_01",
+    "repeat": "model_repeat_m12p_b08_01",
+    "select_lifecycle": "model_select_lifecycle_m12p_b08_01",
+    "smoke": "model_smoke_m12p_b08_02",
+    "smoke_sizeoff": "model_smoke_sizeoff_m12p_b08_01"
+   }
+  },
+  "configs": {
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_held_operate_350.json": "4a89a5af897f51000014b62a8d4bfd6031fc859a19036ca00bcac039996c502a",
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_loss_core_950.json": "c66b2b6f81a81102bfa7b74534ee42b56859065b738634ac1580a492cbb12c44",
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_graceful_950.json": "01c28e3adaeff5ca66cb4e13bbbd7cbf61a0f867a7d62d0364915b1495a00b88",
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_rst_950.json": "1183b75b5150390b5111c3a24bd345fe93a10e94cb18d144b776c9ea65f2d065",
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reconnect_950.json": "89877bbec5de9cd26efab16e73aba2472a8c112555b8867bec722b582205c8c3",
+   "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reference.json": "934abe6cd161f72266f58a7767cc56142f70e5345896327ec64d3a58f5b36241"
+  },
+  "diagnostic_exception": null
+ },
+ "files": {
+  "defense4/timing/case4_architecture/integration/connection/binding/tests/read_support.py": {
+   "sha256": "7ac8c875b1d965a4dba522c91f795a61e2a2a7e320ce50eb8b18cbaeb576bdcd",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/harness/driver.py": {
+   "sha256": "bdf0ab0656d1cf4a60a047c0df00728eaf39fe4cb4e294decf19a2c468444a60",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/harness/interp_ext.py": {
+   "sha256": "5c38ce0a77282acbde51962a7256795c34ff0de7d83d296ab9afb7d0649c8705",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/harness/p4syntax.py": {
+   "sha256": "66a645f8202f4698b14ec32b3c3834e21480bf7993d6d0042b98f995ddb340cc",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/harness/tna_dialect.py": {
+   "sha256": "fe10ac51c4d380c5ed70c49a97f676da26a18c93301c497bdfe07d9664a37c83",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/harness/vectors.py": {
+   "sha256": "16a65e3e890bd1c6e97a156867fb241c9417fd6729abf01984a11fc6e7ad5189",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/model_driver.py": {
+   "sha256": "c2c37978c7131809244445c61788e3b03a85f95d26455570ef49b19c269ddf64",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/cp.py": {
+   "sha256": "b868dc5cd5f77cccdbd0b7b482653d93046e2b7f150184b35a77c826c7413656",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/bringup_composite.py": {
+   "sha256": "ce8240548ee46cad890837cc285165d217f86df5732afa0e1164412717893ccf",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/bringup_teardown.py": {
+   "sha256": "dcad5a9855ec7d3260e3e20c34a5569e18cdc5ad8778f3b3c49de09d34939221",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/build_ports.py": {
+   "sha256": "0d5b604c45b6dcde20d573420f2d1518b6b472601d44cb422652b63de5a13931",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/check_names.py": {
+   "sha256": "bfe9bb168c83bf19a4fe4999c02a566a3446a132696cfaa1c6dbaec279219e78",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/make_conf.py": {
+   "sha256": "f59642ac4c68ed052ef61e2081f79f8744ead4516bc3661a8c69e32e2f79e4b9",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/readback.py": {
+   "sha256": "36a8f2d6fd4a064f561d1d013e5bdf10a3701c37e381cfcc72886d6f428387ae",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/rows.py": {
+   "sha256": "b2fe969683dbe9f1c2d0cc4d6a5f0e56de703e7ff7b616af7de168b22ba883cb",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/set_enabled.py": {
+   "sha256": "394b03bbb622aac41e69fe95fe0e1fad8375d7bfa1280ea868f93e2b9e135a2e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/snapshot_counters.py": {
+   "sha256": "e9c100a4745efe3b159d14f940c2c074434f132b5974f4094ee743b516fef241",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/switch.py": {
+   "sha256": "3d90facfb959d7ae8c4fffdc94114f0ab2a9ab6121951cfa0dba85b9282f40bf",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/hw/t_config.py": {
+   "sha256": "bdfe3635736d7534e3bd90898ee5b3a3d3ba280c642cfff31091790febd41c3c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py": {
+   "sha256": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only/port_map.py": {
+   "sha256": "2bd5471ff0965a12eb4d2b59e6479084236612d6ff012ce6182f85cec1c0bee8",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/cp.py": {
+   "sha256": "74ce4da95f438dae5500fa055fcf939868cba9afd5d4ccb7e53f9363d233d75c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/bringup_composite.py": {
+   "sha256": "a1374e9d9f61acb6e459fd773bb47019cd0193f1187d0d868a434612fe9550b2",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/generation_headroom.py": {
+   "sha256": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py": {
+   "sha256": "1096679ca55c6c53af39f0965f37b09d86b12b993a985fc3ec53e0b004ccd15e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/snapshot_counters.py": {
+   "sha256": "55c37381a89cec90627d4a32b7118abc3f56586628d58d685488aabe96d13791",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/contention_rules.py": {
+   "sha256": "52f484efbdea35c62a7756081f9a156842ff33b4f470dd8f510ab1126f3ec53a",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/manifest.json": {
+   "sha256": "e7f3332baa2700d0d5b1ccc4807d53c7397289bbaa656797fe2df6a6692d88fe",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/bfrt.json": {
+   "sha256": "5c5939c458561e760078f0a6ae4cfb913a68847713dd7661c321ea97b87b4bbc",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p0/context.json": {
+   "sha256": "bb6902978e3b7af778da9e5212fe5a5706416ed9caa23782797f8af49f3f44d4",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p0/response_only.bfa": {
+   "sha256": "8abe6f0e5697978763ff0de4153d8b49b6d5c6f5573a07b20c4b37e311d94885",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p0/tofino.bin": {
+   "sha256": "f1622f073f2768a020a8f05af08cc51e4b9e003413b97cae37e2c4172b016370",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p1/context.json": {
+   "sha256": "0bf360a70c175abc11b5d30db626224b5c58c442048792445a631457b0081e8d",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p1/response_only.bfa": {
+   "sha256": "c11ed646936c7305e4807e881cf5d84c764c2a694e7a0fb11a08606a62c54f02",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/p1/tofino.bin": {
+   "sha256": "caef712d20baee9dc969fd2b1ee29758f5e05fa03a379a93e8c1a9d7eb49c513",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/response_only.conf": {
+   "sha256": "dd63b51a65e865c98f7106fedf4d90c949096bf6cc2fd35a9631847f65cb9f6f",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_local/out/response_only.p4pp": {
+   "sha256": "583642e48eac1273521a16c19b5a4cb32896c2baf45d95616eee46fc1bb9c0d4",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/manifest.json": {
+   "sha256": "91e2e8af7c91d4b24b5af973af2b4cf964cdf914575622435b268590d4c10a7e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/bfrt.json": {
+   "sha256": "5c5939c458561e760078f0a6ae4cfb913a68847713dd7661c321ea97b87b4bbc",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p0/context.json": {
+   "sha256": "274a57632d26fc5c66bab58e3ffffa12cd055176665f582fac4c8e8677c4ad96",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p0/response_only.bfa": {
+   "sha256": "ef4a25cd55aa24fec977daf151186ac270ffe2d939d1a137ac0aa82d3f9c666e",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p0/tofino.bin": {
+   "sha256": "438cb69b66297146ab787c6e2ac0139199cd84c368482161bbe783adfef86a7e",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p1/context.json": {
+   "sha256": "569cdf3d3c82e217c4a7af41375fbd837e2e70ccc54707dd5db877033eafc24e",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p1/response_only.bfa": {
+   "sha256": "1ef87d160848141d5c2bd5358834da2eddc4b428fa39e9b9a249883ca9c5f84a",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/p1/tofino.bin": {
+   "sha256": "f7200d903ec0a64c10156a9d7718a4ae3bbe21342a4ce304f2ebd4c918fd384d",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/response_only.conf": {
+   "sha256": "abf92054857581c8a7f0ffcd8aa4bc417cf28520a204bf6a0cbbb5b85ee8264c",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/compile_switch_9132/out/response_only.p4pp": {
+   "sha256": "e9d5f266c799eb129b58512d96b9832b59874896b1347360ac707c3680c81f77",
+   "tracked": false,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/generate.py": {
+   "sha256": "750d42d97f93eb7a6934d8c58b5e118f96dd419131ac4c4c01a7b45d1f262391",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/model_summary_v3.json": {
+   "sha256": "1b5a6b87296a85de7412b00dc6f3b435d0bae6a3dbd608144b9162e40c76e8fa",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/resource_review.json": {
+   "sha256": "140ac7f69dfdce4cdc9ca119fe4f07497d0e2b0479fbba4346b5f060ef90c281",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/response_only.inputs.json": {
+   "sha256": "47670663fc677a2dd7c88d7a1dc964c9b3127c705c48d368bbafbaf2ece8a130",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/response_only.p4": {
+   "sha256": "7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/supported_profile.json": {
+   "sha256": "ef5c4ee880352a8e46e6a2bb8699b82bf79d0e24589f2962672361b26e8aff11",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_abort.py": {
+   "sha256": "a0276bbf682c2ad851503008b24d4ee3010605565bd00eea8db5b0dc9fa7d898",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py": {
+   "sha256": "5613b7dcf4af0d0ac03a920a27e818bfbf1ee1ea2ef589dbeeedc6504b4f9855",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_control_timing.py": {
+   "sha256": "47b3c4c3a917db38103882cb0c320005a6203057924c88703d4d271ac9ad10f7",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_log_view.py": {
+   "sha256": "d51f566af52f6dbb7f62e6729579406671ff58d5313de43a80ebfb9e418bbbc9",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_profile.py": {
+   "sha256": "326e35498252662945025777f1c7d4fd25b8bf03e619c73ee5500a997eb1bf9a",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_select_lifecycle.py": {
+   "sha256": "3b5980523ac9c205ffb507cc3ddd59c077e7214bf8feda3b3bdb4f34dc144cff",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py": {
+   "sha256": "c31633fa634d3cbfa7f27cf5f69a7bd96482acf7f40395dee510dc596d4f5693",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py": {
+   "sha256": "99d2111d7bee0ab797b95db19ec2541be28e0d7f009360c6f6fbc973a73afa59",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/reset_application_check.py": {
+   "sha256": "e24d838e60907732947045e6c91ad84bd3e1589b00d6e17e4b148887e7b7b72f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/full_read_01/fullread.py": {
+   "sha256": "834f03882237f843464e8912d3c36796a813ae77b5fb1fd0b1f4763614c9432b",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/full_read_01/pad_oracle.py": {
+   "sha256": "4c3ad78bf591d175ca592815712b95aea323d159f192e057def20ce425f4e1a4",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/full_read_01/prepend.py": {
+   "sha256": "b00b833835ddb3d0353630eb1e4a1e5628093168e9d10381638a54ab961e0beb",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_held_operate_350.json": {
+   "sha256": "4a89a5af897f51000014b62a8d4bfd6031fc859a19036ca00bcac039996c502a",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_loss_core_950.json": {
+   "sha256": "c66b2b6f81a81102bfa7b74534ee42b56859065b738634ac1580a492cbb12c44",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_graceful_950.json": {
+   "sha256": "01c28e3adaeff5ca66cb4e13bbbd7cbf61a0f867a7d62d0364915b1495a00b88",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_rst_950.json": {
+   "sha256": "1183b75b5150390b5111c3a24bd345fe93a10e94cb18d144b776c9ea65f2d065",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reconnect_950.json": {
+   "sha256": "89877bbec5de9cd26efab16e73aba2472a8c112555b8867bec722b582205c8c3",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reference.json": {
+   "sha256": "934abe6cd161f72266f58a7767cc56142f70e5345896327ec64d3a58f5b36241",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_reencode_01/capture.py": {
+   "sha256": "40d1c50df45ef478fae01141a1d57f6b3789a15a8238ed187814e1533d3f030f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_reencode_01/dnp3_std.py": {
+   "sha256": "fc7b2f262ff2b2bfbcf6b38862a7fee8b8a4a88c9bc19dcdeb4e9359deb6a697",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_01/encode61.py": {
+   "sha256": "87d641dfa847c294d58b8c659ebd163ae7dac78e43f4df9a33be92e7d34b25f8",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/ack_diag.py": {
+   "sha256": "c3dd4bb96efa7115e9cfd05627a522621defcf5eb2c74acb3b0e22c3b224f28d",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/cost_report.py": {
+   "sha256": "34d69c5d7c1f5590d63d4d9b4e6c640800c19e4f114a090970f46620d67c7793",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/four_arm_transactions.py": {
+   "sha256": "8797ccb699153a22314041fac65ed4d428abeb0e92be77af7b9e2547b8520765",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/isolation_v3.py": {
+   "sha256": "edb58bb9c3d5a085d8925f96aebfb777338536cb796ef1b114e642f023789cbc",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/leakage_four_arm.py": {
+   "sha256": "af2dea676ea2e286c97ca91f697e4b37c4d512a280eb4d921bd600b1c8f5855c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/m5_summary.py": {
+   "sha256": "a11ca2b224ae7677beb8c6fa2b52a084858870b284518e92c1a56dd9eca74bd1",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/publication_analysis.py": {
+   "sha256": "a30e5df0f526146b4cf847e7b5f7bb0d77d00156e48b97411f65f99d9a3371c6",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/publication_figures.py": {
+   "sha256": "9bfa47e63e84732cc55ede742fb5d0c1a208392a098e0cae12efb026483938b2",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/analysis/reproduce_evaluation.py": {
+   "sha256": "33dc9b79247bbc7070afbfb265f55d64dd8a8a2a189086e86f24f46466f0066f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/evaluation_prepare.py": {
+   "sha256": "6e8e941c3580b249ef2457616b60491574e55e6967df9f0d6b681d9a387e4c32",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/hw/part2_grid.py": {
+   "sha256": "1ea28fcf5d6324b7196e722bb77e2f410332835454e9081171af36138b6c63bf",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_abandon.py": {
+   "sha256": "2a728a06699805911a21732dbe527d665433e609883ee56c8e98afa20eada21d",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_dup.py": {
+   "sha256": "0ac8164285f61a62d4435d06ca228dfbfebf1a3dace32305438fdc27ae019c85",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_fullread.py": {
+   "sha256": "e0d1e346ad209bbc2341dd929b17867b241a6a75cc0c4440782f9678334f1c7e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_fullread_boundary.py": {
+   "sha256": "6b629ab795d47422e85bcac2eda0d20392e5e7bb04aa817a6a77e399c7795e2e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py": {
+   "sha256": "bc048c7612ea29c5da7a1419b89e6d8f3bf543d7b337fdc0b7409d537d6f09de",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_policy.py": {
+   "sha256": "38c16ab69bceecedec212bfed3287c487624b3b9571e4dc227ff6601399a8c94",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_policy_boundary.py": {
+   "sha256": "59a7a5d20c2ae63116eab3778eca53771c528957659fc5c2e93a1c21c6d5b9e7",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_prefix.py": {
+   "sha256": "0f1d805afe385ea4ba6ca942a213ffd7da072e91b38f09d77573af9d77b60492",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py": {
+   "sha256": "5a0084452a4b73ffbffe59bf3d6a725f37b3c14c29e50e6d74ad95a20a264095",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py": {
+   "sha256": "e1e04a7e7f04e710c58cfa6aed29ee0edbda6f2c138152fcc0a4215680a380ba",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke.py": {
+   "sha256": "03e05bc2882ff9f0f82f667c0d8ec0c36df1d500cbbf454f8fce8622f24f6d5b",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke_sizeoff.py": {
+   "sha256": "73f7946b474391bb4065d3dbe9c728df5bd1d2bae3e43799a590241c00845443",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/read_policy_expect.py": {
+   "sha256": "3401d7845c2fe6738ec962aa4f11744bf2e8f5dc970c1a73f2f1fb3383583dc9",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/baseline_queue.py": {
+   "sha256": "1c3610796f47b1b4c8b37cc7d909c111c755cfc7f220516b1fef98fb80311b26",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py": {
+   "sha256": "88207de5d594bd34005191cf8ac8e0355d69c7971856ef8c3a90e6d5da4584e3",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_external.py": {
+   "sha256": "8c49cf118fa89544b078b7d574dbd062d31094ab60242c7a0a2868a15a9ad43c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_interleave.py": {
+   "sha256": "237b78cc023bfddce656884f55c53f5c18575eb86c38ccb487f470081d0c6476",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_isolation.py": {
+   "sha256": "31591abaeefe76a9508282bbd6829ac65ec2e9eae80c65153d04c2aeaa6a5e88",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_series.py": {
+   "sha256": "a6a27906c814e1e4dd7317d2cb1dcc5078c4cf3858e0dcbf31dd1fde3f56fee7",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/contention_probe.py": {
+   "sha256": "bfdf7863b2cfdfd564b22bb2ae6fa7d4f5329ebeeecef4249a32dd1924a7cd46",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/delay_read_tokens.py": {
+   "sha256": "3e0ee7b49f10b06b73c0338648cfc2f68b766f1193c4c42d6bf64784ce644d9e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/diag_poll.py": {
+   "sha256": "889510f437fd938b5288567e414f84cbf670e9edc59fee422c6a975a6a35ac7e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/evaluation_campaign.py": {
+   "sha256": "c74fa839293337059947486e699cac35202c407a98942dbd5446348d35284bca",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py": {
+   "sha256": "336f1bf5ce490d861e8d866f257502e31ee6f269fb5bd989ace8d88dbd67f63c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py": {
+   "sha256": "21e0472784aecb2519e2cc990804ebceaac13507e5b77d1ce89cb94b033a1af0",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/interleave_probe.py": {
+   "sha256": "250639020b1cd6e32a94e5406a9ac12d7ee907063b967f41397c75c983cc8efc",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/isolation_gate.py": {
+   "sha256": "4e2ca13721dc896a51f901595e21f5fa7c902d93abd4f264309c39b6419dc00d",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/native_reference.py": {
+   "sha256": "7c0b0c0840cb605b074d9b887cd9a07159e335a95aa9a6d7730d3cf82fefeb35",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/native_rst_capture.py": {
+   "sha256": "8b44a8b8f6b162974bd427c47bad06310993608b833cec0de7ba08758e134e5e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/precision_followup.py": {
+   "sha256": "eccc9b8e2ce62fe9569e29cca24eb35a0dcc3bf84ceadfcff0f5d0e2720a8e3b",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": {
+   "sha256": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/replay_old_packets.py": {
+   "sha256": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_state_20261015.txt": {
+   "sha256": "81a0ed722fb0efa9c9369c137f30d8baa6283bc72cfbd01fd109e2787d72312f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py": {
+   "sha256": "799d38076089914584c66f80c30bfe78721770cf3cd794ee5252594a92f3d79d",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.sh": {
+   "sha256": "30867a67ead7359ef6f2a63c47e898824cfe57b0b23d9ec3c3cce238c63b8892",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh": {
+   "sha256": "17ff533b45ab14f5be2e831b7ba2445984e77a7c34a779e5c6be5b3aa237d0ac",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": {
+   "sha256": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tail_factor.py": {
+   "sha256": "c1f3bb379b71642674b5cd314acc39ce3ec13e9785fc56e80451f1ea7f3c8ac1",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_diagnosis.py": {
+   "sha256": "488087e6ab177558117b618e6a775f3066fa197982d9524e50859ddcfc902c75",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_window.py": {
+   "sha256": "eddb9dda949af0538ef37911958f0e84acd07eced932371660ae640c13ecdbda",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_candidate.py": {
+   "sha256": "e054b89ff110999776831d4cc0bfb964b6da94a952244cd37add9a38bb43dbba",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_contention.py": {
+   "sha256": "c8c014393b8e13703f5a26c611234e3003df1a812874ca8770f74bc27f35d9f4",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_isolation.py": {
+   "sha256": "1a66a291e37919596bc6fa3d4c89fc681d2826a258ba74e56bca736c56a24eea",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_replay.py": {
+   "sha256": "92eac90ac22404906d91ab90f0e19b67a665a8e68e8e6323dbf7b9cc348b558e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/read/tests/queue_sim.py": {
+   "sha256": "12a5b9e54b758aa73c7bf51676b3672f58df90d22dbd5376a2892b392d94986c",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/integration/read/tests/whole_program.py": {
+   "sha256": "0c8e20f15145c426feeba9077657f09b321cb6cf794f3e753b152dd58d822c12",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/ownership/review/counterexamples.py": {
+   "sha256": "d07e1af22fc80c715b3009ad05bc83fa8f81585ec95e3fbecea98c9ab2b64211",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/egress/source_packets.py": {
+   "sha256": "364d12ab0c14459894c83d921736e35e443c75debd1faf4879f4a33e6cc07a21",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py": {
+   "sha256": "e78c0c2297468c8f29cbe4219dbb6c84c188ead2f0b6d50b31c313b1d0cfc339",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/capture_boundary.py": {
+   "sha256": "66b275bc29c28e66e71115d019f792d5cb9b3e060f032e71c70e9edc4922f4ce",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/capture_observation.py": {
+   "sha256": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/checks.py": {
+   "sha256": "31dee230695665b37cc68f2d51f6f051b451ae56bba0ba5b25e44b6ecabc20e9",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/clrt_check.py": {
+   "sha256": "a0b545623bd098baa10fc41346f16040323d481efc08d1595de9d9687ca07049",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/hold_check.py": {
+   "sha256": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/launch_composite.sh": {
+   "sha256": "6894b5da02e88fffffa5d45730b60665b052134ca6e5ad0f33c5904b528bc16b",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/loss.py": {
+   "sha256": "59186d6db3dd915db3abc57b77b80f9b191efaa47712e6cc83851f97bf7d885e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/observe_program.py": {
+   "sha256": "0fa2adf4699cc691cb1fc1b2d547ff811c2193e05bb446b0b9a0cb6f46e41887",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/report.py": {
+   "sha256": "cbe1928e931f8be4af6561e7ad08a849d8d3bc0f8f9f478d5e7ada6429c64f49",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/run.py": {
+   "sha256": "06df0d5d5a3ed14997373a2606a36a054820389bd95aecd373a5b430b71e4e49",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/standards.py": {
+   "sha256": "7ff7a02314dd6f963f11745abc53ee4ecc9a7e262aa1c59a95b3be5f9574d23f",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/switch_counters.py": {
+   "sha256": "65d9fa10cfebb4121f51ccc7336865b3d522dfcfafe74a6e69c7ece74b9f8e57",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/switch_slot.py": {
+   "sha256": "81a23408be4cd8e29633f999633c0e64fa6b3d016acde5e774dfe8b5703338e3",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/switch_swap.sh": {
+   "sha256": "1b03bd501fde0ac8d0f5f9e030d38e01f15c90eadba4e8b2f7bd97e6034b664d",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/tests/pcaptk.py": {
+   "sha256": "83bff77d927f6d4e4df2d8a1104747823579a63026be1aaaf3da4c34cd661123",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/vepa_namespaces.py": {
+   "sha256": "92d2efe690649d20c6ff0ca32ad499c4402c4b6fbe4ea50d5e23df6b3ee43085",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/vision_run.py": {
+   "sha256": "433240afe91a12c4a75c2c227e489303b9adabd0e9269ddb3f20df85dd74747a",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/hw_vepa/wire_check.py": {
+   "sha256": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/response_path_cp.py": {
+   "sha256": "bb305f76cb1d479a1768e76daefac47be7214b27476fda4504fa285fcdb38139",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/protocol/source_eval.py": {
+   "sha256": "5e8876b65bcebd23d6e43d4dbbf355e689f20391340a698ff32c5274a0b6417e",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/case4_architecture/tests/source_control.py": {
+   "sha256": "c9692a0ab886ec78589def2e0a2600436a4f4a2c88305cee495d07cfe694c5f6",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/evidence/campaign_v2/repro/leakage_campaign.py": {
+   "sha256": "50ff14548ba21336ccfa802b589bc568bd9a7537100697ee4a3d6fd413cecb15",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/framework/size/case4_pad58b.py": {
+   "sha256": "3284ff5a0fa6245b93c262ce09c4530e73d174143f7b2edf3fef1828774d4427",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/framework/size/case4_padding.py": {
+   "sha256": "5310571ad7eff3fdde1354fc1a39657279d426b09e177346debbb013593dff37",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/framework/size/case4_response_mapper.py": {
+   "sha256": "873dd28e15e127cd29d4bebb577b6642dd6ce678e8ecf62ea42e0d6b9f84f9aa",
+   "tracked": true,
+   "regenerate": null
+  },
+  "defense4/timing/framework/size/rrc.py": {
+   "sha256": "7d159d9fba907de3a2466b20387f4da7b6a3595dfc9f4a4886fff51544974ada",
+   "tracked": true,
+   "regenerate": null
+  }
+ },
+ "note": "checked before every block by run_block_frozen.sh (freeze_gate.py check --config --record)"
+}
