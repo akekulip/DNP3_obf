@@ -84,7 +84,8 @@ def rev_ternary_window(image, width=32):
     return out
 
 
-def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49, per_image=None, c3_exact=False):
+def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49, per_image=None, c3_exact=False,
+                         c3_cimg=False):
     """Per-response VARIABLE image length (option A), PHV-cluster-safe. The per-response encoded size is
     a COMPILE CONSTANT per shape in BOTH the acct SALU (acct_try_<shape>) and fwd_prep (fwd_prep_<shape>),
     so NO new 32-bit metadata enters the saturated mapper arithmetic cluster (m.q/p/y/z/pm/t/qx/r/seq/ack).
@@ -202,6 +203,8 @@ def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49, per
     #    (need PHV headroom in the full build -- see WORKING_NOTES C3). No window-range key / register /
     #    extra stage; fits and loads.
     maximg = max(shape_image.values())
+    if per_image is not None and c3_cimg:
+        return _policy_c5(_c3_committed_image(src, per_image), per_image)
     if per_image is not None and not c3_exact:
         # read_complete_01 policy build: m11_09's own reverse classifier, regenerated for the max image -- key
         # (m.r ternary, window range), per distance d: window <= d-1 -> rev_withhold_zero (window 0), else
@@ -265,6 +268,61 @@ def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49, per
                'size = %d; const default_action = rev_drop();' % (len(rows) + 1))
     src = src[:body_start] + '\n' + ''.join(rows) + '        ' + src[body_end:]
     return _policy_window_and_c5(src, per_image)
+
+
+def _c3_committed_image(src, per_image):
+    """Committed-image reverse boundary, no new PHV field (review of d531918e2, finding 2).
+
+    Attempts: m12p_c01 keyed an 8-bit m.cimg = m.q[7:0] - m.p[7:0] (+16-bit window field): PHV allocation failed (the
+    slice arithmetic split m.q/m.p/m.r into 8-bit pieces). m12p_c02 kept N in m.s_end and added the window after
+    classify_rev: 13 pipe-0 stages (classify_rev cannot precede img_wend_t at stage 9, so a later add costs a stage).
+    m12p_c03 wrote the forward-only m.t on the reverse path: 14 stages (fwd_prep_t, which also writes m.t, was ordered
+    after reverse_window_base_t although the branches are exclusive -- the same false dependency as the m.y forms).
+    This form keeps b08's stage layout with ONE dedicated reverse-only field m.wnd (bit<32>): reverse_window_base
+    still runs beside img_wend_t and writes m.wnd = N + window, leaving m.s_end = N for the key. classify_rev keys on (m.r ternary,
+    m.s_end[7:0] ternary): translate m.r >= 0 for any image; withhold exactly m.r in [-I, -1] for the committed image
+    I of that N (prefix rows, rev_ternary_window); anything earlier, or an unknown N, is stale (default rev_drop).
+    per_image's native lengths must be distinct mod 256. Window rule (m11_09's, qualified): a withheld ACK at
+    distance d advertises window 0 when window < d, else N + window - d (clamped to 0xffff). rev_withhold_open sets
+    m.wnd = N + window - d and the reverse-only m.r = window - d; window_t zeroes on negative m.r, else narrows m.wnd."""
+    if len({n & 0xFF for n in per_image}) != len(per_image):
+        raise SystemExit('committed native lengths must be distinct mod 256: %r' % sorted(per_image))
+    src = once(src, '    bit<8>  result; bit<1> changed; bit<1> pad; bit<1> wide;',
+               '    bit<8>  result; bit<1> changed; bit<1> pad; bit<1> wide; bit<32> wnd;')
+    src = once(src, '    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_win;',
+               '    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_win;\n'
+               '    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) widen_win_d;')
+    src = once(src, '    action reverse_window_base() { m.s_end = m.s_end + widen_win.get({hdr.tcp.window}); }',
+               '    action reverse_window_base() { m.wnd = m.s_end + widen_win.get({hdr.tcp.window}); }')
+    src = once(src, '    action rev_withhold_open() { hdr.tcp.ack = m.p; m.s_end = m.s_end + m.r; m.wide = (bit<1>)(1);',
+               '    action rev_withhold_open() { hdr.tcp.ack = m.p; m.wnd = m.wnd + m.r;\n'
+               '                                 m.r = m.r + widen_win_d.get({hdr.tcp.window}); m.wide = (bit<1>)(1);')
+    src = once(src, '    table classify_rev {\n'
+               '        key = { m.r : ternary; hdr.tcp.window : range; }',
+               '    table classify_rev {\n'
+               '        key = { m.r : ternary; m.s_end[7:0] : ternary; }')
+    body_start = src.index('const entries = {', src.index('    table classify_rev {')) + len('const entries = {')
+    body_end = src.index('        }\n    }', body_start)
+    rows = ['            (32w0 &&& 32w0x80000000, _) : rev_translate();\n']
+    for n, img in sorted(per_image.items()):
+        rows += ['            (32w0x%08x &&& 32w0x%08x, 8w%d) : rev_withhold_open();\n' % (v, m, n & 0xFF)
+                 for v, m in rev_ternary_window(img)]
+    src = once(src, 'size = 124; const default_action = rev_drop();',
+               'size = %d; const default_action = rev_drop();' % len(rows))
+    src = src[:body_start] + '\n' + ''.join(rows) + '        ' + src[body_end:]
+    src = once(src, '    action window_exact() { hdr.tcp.window = narrow_win.get({m.s_end[15:0]}); }',
+               '    action window_exact() { hdr.tcp.window = narrow_win.get({m.wnd[15:0]}); }')
+    src = once(src, '    action window_clamp() { hdr.tcp.window = 0xffff; }',
+               '    action window_clamp() { hdr.tcp.window = 0xffff; }\n'
+               '    action window_zero() { hdr.tcp.window = 0; }')
+    src = once(src, 'key = { m.s_end : ternary; }\n'
+               '        actions = { window_exact; window_clamp; } size = 2; const default_action = window_clamp();\n'
+               '        const entries = { 32w0 &&& 32w0xFFFF0000 : window_exact(); 32w0 &&& 32w0 : window_clamp(); }',
+               'key = { m.wnd : ternary; m.r : ternary; }\n'
+               '        actions = { window_exact; window_clamp; window_zero; } size = 3; const default_action = window_clamp();\n'
+               '        const entries = { (_, 32w0x80000000 &&& 32w0x80000000) : window_zero();'
+               ' (32w0 &&& 32w0xFFFF0000, _) : window_exact(); (_, _) : window_clamp(); }')
+    return src
 
 
 def _policy_window_and_c5(src, per_image):
@@ -803,7 +861,7 @@ def transform_read_prefix_full(src, image):
 TRANSFORMS = ['mapper_var', 'read_prefix']  # step 1: variable image (READ 73 + inherited SBO 61); full READ uses read_prefix_full
 
 
-def build(image, only=None, full=False, policy=False):
+def build(image, only=None, full=False, policy=False, c3='ladder'):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -824,7 +882,7 @@ def build(image, only=None, full=False, policy=False):
     for name in transforms:
         if name == 'mapper_var':
             src = transform_mapper_var(src, shape_image, stale_guard=STALE_GUARD, read_native=read_native,
-                                       per_image=per_image)
+                                       per_image=per_image, c3_cimg=(policy and c3 == 'cimg'))
         elif name in ('read_prefix_p1', 'read_prepadded_e'):
             src = globals()['transform_' + name](src, policy_shape())
         else:
@@ -842,6 +900,8 @@ def main():
     ap.add_argument('--only', default=None)
     ap.add_argument('--full', action='store_true', help='full integrity READ (247->269) + SBO (61) candidate')
     ap.add_argument('--policy', action='store_true', help='read_complete_01 frozen policy: range READ 49->141 + SBO 61')
+    ap.add_argument('--c3', choices=('ladder', 'cimg'), default='ladder',
+                    help='policy build reverse boundary: max-image ladder (m12p_b08) or per committed image (cimg)')
     a = ap.parse_args()
     if a.full:
         a.image = 269
@@ -849,7 +909,7 @@ def main():
         a.image = policy_shape()['target']
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    src, applied = build(a.image, a.only, full=a.full, policy=a.policy)
+    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3)
     (out / 'response_only.p4').write_text(src)
     sha = hashlib.sha256(src.encode()).hexdigest()
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
