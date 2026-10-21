@@ -101,10 +101,92 @@ def repeated_sbo_checks(master, outstation, cycles):
     return fails
 
 
-def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False):
+def first_packet_len(e):
+    """Master-side length of a class response's first TCP segment under the declared construction (e = one class
+    of read_classes.expectations): the image when the native is one segment; for a segmented class, the native
+    first segment plus the added octets (the prefix frame travels with the native first frame)."""
+    segments = e.get('native_segments') or [e['native']]
+    return e['image'] if len(segments) == 1 else segments[0] + (e['image'] - e['native'])
+
+
+def read_class_record_checks(master, expectation, read_points):
+    """The master's per-READ records against the per-class expectation (read_classes.expectations): slot order,
+    completion and fixture match of every READ, and with a schedule the endpoint's schedule/db, its append-only
+    read_commands (function READ, class, native response size) and reads_per_class."""
+    fails, m = [], master or {}
+    classes, order = expectation['classes'], expectation['order']
+    total = sum(e['count'] for e in classes.values())
+    scheduled = expectation.get('schedule') is not None
+    rs = m.get('reads')
+    if not isinstance(rs, list) or len(rs) != total:
+        fails.append('master reads records %r, expected %d' % (len(rs) if isinstance(rs, list) else rs, total))
+        rs = []
+    for i, r in enumerate(rs):
+        want = order[i % len(order)]
+        got = r.get('class', 'range' if not scheduled else None) if isinstance(r, dict) else None
+        if got != want or r.get('completed') is not True or r.get('matches_seed') is not True or \
+                (want == 'range' and r.get('points_received') != read_points):
+            fails.append('READ %d: class %r completed %r matches %r points %r, expected %s%s'
+                         % (i, got, r.get('completed') if isinstance(r, dict) else None,
+                            r.get('matches_seed') if isinstance(r, dict) else None,
+                            r.get('points_received') if isinstance(r, dict) else None, want,
+                            ' with %d points' % read_points if want == 'range' else ''))
+    if not scheduled:
+        return fails
+    for key in ('read_schedule', 'db'):
+        if m.get(key) != expectation['schedule' if key == 'read_schedule' else 'db']:
+            fails.append('master %s=%r, expected %r' % (key, m.get(key),
+                                                         expectation['schedule' if key == 'read_schedule' else 'db']))
+    commands = m.get('read_commands')
+    if not isinstance(commands, list) or len(commands) != total:
+        fails.append('master read_commands %r, expected %d records'
+                     % (len(commands) if isinstance(commands, list) else commands, total))
+        commands = []
+    for i, c in enumerate(commands):
+        want = order[i % len(order)]
+        c = c if isinstance(c, dict) else {}
+        if (c.get('slot'), c.get('class'), c.get('function_code')) != (i, want, 1) or \
+                not all(c.get(k) is True for k in ('completed', 'success', 'matches_fixture')) or \
+                c.get('response_link_octets') != classes[want]['native']:
+            fails.append('read_commands[%d]: slot %r class %r function %r completed %r success %r fixture %r native '
+                         '%r octets, expected slot %d %s READ at %d octets'
+                         % (i, c.get('slot'), c.get('class'), c.get('function_code'), c.get('completed'),
+                            c.get('success'), c.get('matches_fixture'), c.get('response_link_octets'), i, want,
+                            classes[want]['native']))
+    per = m.get('reads_per_class') if isinstance(m.get('reads_per_class'), dict) else {}
+    for cls in set(per) | set(classes):
+        count = classes[cls]['count'] if cls in classes else 0
+        got = per.get(cls) or {'issued': 0, 'succeeded': 0}
+        if got != {'issued': count, 'succeeded': count}:
+            fails.append('reads_per_class[%s]=%r, expected %d issued and succeeded' % (cls, got, count))
+    return fails
+
+
+def read_class_timing_checks(summary, expectation):
+    """clrt_check's READ by_class summary (a read_policy run): every declared class complete exactly count times at
+    its first-segment length, and no READ outside the declared classes."""
+    fails = []
+    by_class = ((summary or {}).get('READ') or {}).get('by_class')
+    if not isinstance(by_class, dict):
+        return ['timing: READ by_class summary missing (clrt_check needs --read-policy)']
+    for cls in sorted(set(by_class) - set(expectation['classes'])):
+        fails.append('timing: READ class %s is not declared (%r)' % (cls, by_class[cls]))
+    for cls, e in sorted(expectation['classes'].items()):
+        item = by_class.get(cls) or {}
+        want = [first_packet_len(e)]
+        if item.get('logical_requests') != e['count'] or item.get('complete') != e['count'] or \
+                item.get('resp_len') != want:
+            fails.append('timing: READ %s logical=%r complete=%r resp_len=%r, expected %d at %s'
+                         % (cls, item.get('logical_requests'), item.get('complete'), item.get('resp_len'),
+                            e['count'], want))
+    return fails
+
+
+def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False, read_classes=None):
     """Endpoint semantics and per-function wire checks, shared by ordinary and reconnect trials. run_sbo is the
     number of SELECT/OPERATE pairs expected (a boolean means 0 or 1); repeated (from the configuration, not the
-    endpoint's report) requires per-cycle records for every one of them."""
+    endpoint's report) requires per-cycle records for every one of them. read_classes: the trial's per-class READ
+    expectation (read_classes.expectations); the READ records and READ lengths are then checked per class."""
     fails = []
     m, o, w, t = (ev.get(k) for k in ('master', 'outstation', 'wire', 'timing'))
     for key, value in (('master', m), ('outstation', o), ('wire', w), ('timing', t)):
@@ -118,7 +200,9 @@ def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False):
         if m.get('reads_completed') != reads or m.get('reads_requested') != reads:
             fails.append('master completed %s of %s READs, expected %d' % (m.get('reads_completed'), m.get('reads_requested'), reads))
         rs = m.get('reads')
-        if not isinstance(rs, list) or len(rs) != reads or any(
+        if read_classes is not None:
+            fails += read_class_record_checks(m, read_classes, exp['common']['read_points'])
+        elif not isinstance(rs, list) or len(rs) != reads or any(
                 not isinstance(r, dict) or r.get('points_received') != exp['common']['read_points']
                 or r.get('matches_seed') is not True or r.get('completed') is not True for r in rs):
             fails.append('READs did not return all %d seed values' % exp['common']['read_points'])
@@ -162,7 +246,9 @@ def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False):
                 fails.append('timing: %s piggyback count is missing or malformed' % kind)
             if item.get('req_crc_bad') != 0 or item.get('resp_crc_bad') != 0:
                 fails.append('timing: %s DNP3 CRC failures or missing counts' % kind)
-            if item.get('resp_len') != lengths:
+            if kind == 'READ' and read_classes is not None:
+                fails += read_class_timing_checks(summ, read_classes)
+            elif item.get('resp_len') != lengths:
                 fails.append('%s response length %s on the master side, expected %s (padding %d)' %
                              (kind, item.get('resp_len'), lengths, padding))
         if not run_sbo and any(summ.get(kind, {}).get('logical_requests', 0) for kind in SBO):
@@ -372,7 +458,7 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
 
 def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, gap_ns=None, precision=True, run_sbo=True,
              repeated=False, control_timed=False, piggyback_bound=False, pb_ns=None, op_j_ns=None,
-             gen_exhausted_outcome=None):
+             gen_exhausted_outcome=None, read_classes=None):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None.
 
     Timing objectives, each gated on its own failure entry (OBJECTIVE_PREFIXES) and observed under its own key:
@@ -388,7 +474,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
     need = [k for k in ('before', 'after', 'master', 'outstation', 'wire', 'timing') if not ev.get(k)]
     for k in need:
         fails.append('missing evidence: %s' % ('%s snapshot' % k if k in ('before', 'after') else k))
-    fails += application_checks(exp, arm['padding'], reads, ev, run_sbo, repeated)
+    fails += application_checks(exp, arm['padding'], reads, ev, run_sbo, repeated, read_classes)
     t = ev.get('timing')
     summary = t.get('summary', {}) if isinstance(t, dict) else {}
     summary = summary if isinstance(summary, dict) else {}
@@ -402,7 +488,14 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
             fails.append('piggyback fraction %.3f outside %s for fixture %s' % (frac, [lo, hi], fixture))
     if isinstance(t, dict):
         native = exp['native_len']
-        obs['growth_bytes'] = sum(e['resp_len'] - native.get(e['kind'], e['resp_len'])
+        first = {cls: (e.get('native_segments') or [e['native']])[0]
+                 for cls, e in ((read_classes or {}).get('classes') or {}).items()}
+
+        def native_of(e):        # per class: the native first segment of the exchange's own class
+            if read_classes is not None and e['kind'] == 'READ':
+                return first.get(e.get('read_class'), e['resp_len'])
+            return native.get(e['kind'], e['resp_len'])
+        obs['growth_bytes'] = sum(e['resp_len'] - native_of(e)
                                  for e in t.get('exchanges', []) if isinstance(e, dict) and e.get('resp_len'))
         pad = exp['padding'][str(arm['padding'])]
         if pad['growth'] == 'zero' and obs['growth_bytes'] != 0:

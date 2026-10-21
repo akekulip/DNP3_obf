@@ -51,6 +51,14 @@ checksums are audit data. Publication CLRT is null for a piggyback/missing ACK, 
 legacy clrt_us retains its historical zero for piggyback.
 ``analyze(..., allow_missing=True)`` retains surviving OUT requests and capture hashes
 when its paired IN artifact is missing; unavailable capture metadata counts are null.
+
+Per-class READ (``analyze(..., read_policy={'classes': {class: {'native', 'image', 'native_segments'}}})``,
+``--read-policy JSON``; the READ-class schedule endpoint): every READ row carries ``read_class`` (classified
+from its request bytes) and the READ summary gains ``by_class``. A READ response pairs only when it is exactly
+the native, or the policy prefix construction of a declared padded class: any one-frame prefix whose total is
+that class image, from a one-frame native of that class; and, when the build declares a segmented class padded,
+the first TCP segment of that class (prefix plus the renumbered native first frame). Without read_policy every
+behaviour is the legacy one.
 """
 import argparse
 import hashlib
@@ -165,7 +173,44 @@ def _read_prefix_matches(native_frame, right):
     return right == expected
 
 
-def _response_content_matches(native, returned):
+def _policy_prefix_matches(left, right, read_policy):
+    """right == the read_complete_01 prefix construction of left (CRC-stripped frames of one TCP payload each):
+    a FIR frame with the native transport sequence s, application header and IIN and a G1V2 q0x01 object from
+    index 1024 whose first n-4 flags are zero (n follows from the prefix frame's length), then every native frame
+    renumbered s+1.. keeping only its FIN bit, the first one's four application octets replaced by the last four
+    zero flags. The lengths must be a declared padded class: a one-frame FIR|FIN native at that class native,
+    returned at its image; or the first segment of a declared segmented class."""
+    header, user = left[0]
+    if len(user) < 6 or not user[0] & 0x40 or user[2] != 0x81 or len(right) != len(left) + 1:
+        return False
+    native_len = sum(10 + len(u) + 2 * (-(-len(u) // 16)) for _h, u in left)
+    returned_len = sum(10 + len(u) + 2 * (-(-len(u) // 16)) for _h, u in right)
+    complete = len(left) == 1 and user[0] & 0x80
+    allowed = False
+    for e in (read_policy.get('classes') or {}).values():
+        if e['image'] == e['native']:
+            continue
+        segments = e.get('native_segments') or [e['native']]
+        if complete and len(segments) == 1 and native_len == e['native'] and returned_len == e['image']:
+            allowed = True
+        elif not complete and len(segments) > 1 and native_len == segments[0] and \
+                returned_len - native_len == e['image'] - e['native']:
+            allowed = True
+    if not allowed:
+        return False
+    n = len(right[0][1]) - 8
+    if n < 4:
+        return False
+    obj = bytes.fromhex('010201') + (1024).to_bytes(2, 'little') + (1024 + n - 1).to_bytes(2, 'little') + bytes(n)
+    seq = user[0] & 0x3f
+    expected = [(header, bytes([0x40 | seq]) + user[1:5] + obj[:-4])]
+    for i, (h, u) in enumerate(left):
+        th = (u[0] & 0x80) | (((u[0] & 0x3f) + 1) & 0x3f)
+        expected.append((h, bytes([th]) + (obj[-4:] + u[5:] if i == 0 else u[1:])))
+    return right == expected
+
+
+def _response_content_matches(native, returned, read_policy=None):
     """Exact content or the bounded seg61_01/encode61.py wire transformation.
 
     READ49->61 preserves the five transport/app/IIN bytes and all 23 G10V2 point
@@ -180,7 +225,10 @@ def _response_content_matches(native, returned):
         return False
     if native == returned:
         return True
-    if len(left) == 1 and len(right) == 2 and len(returned) == READ_POLICY_IMAGE:
+    if read_policy is not None:
+        if left and len(left[0][1]) > 2 and left[0][1][2] == 0x81 and left[0][1][5:10] != bytes.fromhex('0c01280100'):
+            return _policy_prefix_matches(left, right, read_policy)       # a READ response: the policy only
+    elif len(left) == 1 and len(right) == 2 and len(returned) == READ_POLICY_IMAGE:
         return _read_prefix_matches(left[0], right)
     if len(left) != 1 or len(returned) != 61:
         return False
@@ -201,7 +249,7 @@ def _response_content_matches(native, returned):
     return False
 
 
-def _capture_pairs(sent, returned):
+def _capture_pairs(sent, returned, read_policy=None):
     """Unique transport/content correspondence; capture order alone never establishes identity.
 
     This deployment preserves M->O sequence/payload and O->M cumulative ACK values.
@@ -225,18 +273,18 @@ def _capture_pairs(sent, returned):
             continue
         if any(p['len'] != p['tcp_payload_declared_len'] for p in (a, b)):
             continue
-        if a['src'] != MASTER_IP and not _response_content_matches(a['payload'], b['payload']):
+        if a['src'] != MASTER_IP and not _response_content_matches(a['payload'], b['payload'], read_policy):
             continue
         out_to_in[a['index']] = b
         in_to_out[b['index']] = a
     return out_to_in, in_to_out
 
 
-def _add_publication(rows, out_segs, in_segs, capture_availability=None):
+def _add_publication(rows, out_segs, in_segs, capture_availability=None, read_policy=None):
     capture_availability = capture_availability or {'out': True, 'in': True}
     sent = {p['index']: p for p in out_segs}
     returned = {p['index']: p for p in in_segs}
-    request_pairs, response_pairs = _capture_pairs(out_segs, in_segs)
+    request_pairs, response_pairs = _capture_pairs(out_segs, in_segs, read_policy)
     response_uses = {}
     for row in rows:
         index = row['response_packet_index']
@@ -276,7 +324,7 @@ def _add_publication(rows, out_segs, in_segs, capture_availability=None):
             if len(counterparts) == 1:
                 if any(p['len'] != p['tcp_payload_declared_len'] for p in (counterparts[0], resp)):
                     availability_reason = 'response_capture_truncated'
-                elif not _response_content_matches(counterparts[0]['payload'], resp['payload']):
+                elif not _response_content_matches(counterparts[0]['payload'], resp['payload'], read_policy):
                     availability_reason = 'response_content_mismatch_or_unsupported_encoding'
         reasons = {}
         pub = dict(request_timestamp_ns=req['timestamp_ns'],
@@ -337,7 +385,8 @@ def _add_publication(rows, out_segs, in_segs, capture_availability=None):
                                   response_available=_packet_observation(available, 'out'),
                                   response_content_correspondence=('exact' if available and resp and
                                       available['payload'] == resp['payload'] else
-                                      'bounded_native_to_61' if available else None),
+                                      ('read_policy_construction' if read_policy is not None and row['kind'] == 'READ'
+                                       else 'bounded_native_to_61') if available else None),
                                   attempts=[_packet_observation(p, 'out') for p in out_segs
                                             if p['flow'] == req['flow'] and p['inc'] == req['inc']
                                             and p['seq'] == req['seq']
@@ -350,7 +399,7 @@ def _capture_available(path):
     return bool(path is not None and Path(path).exists() and Path(path).stat().st_size >= 24)
 
 
-def exchanges(out_path, in_path, allow_missing=False):
+def exchanges(out_path, in_path, allow_missing=False, read_policy=None):
     available = {name: _capture_available(path) for name, path in
                  (('out', out_path), ('in', in_path))}
     out_segs = wc.assign_incarnations(wc.parse(out_path)[0]) if not allow_missing or available['out'] else []
@@ -387,12 +436,16 @@ def exchanges(out_path, in_path, allow_missing=False):
         if t_resp is not None:
             row['clrt_us'] = t_resp - t_ack if t_ack is not None else None
             row['rt_us'] = t_resp - lr['t_req']
+        if read_policy is not None and lr['kind'] == 'READ':
+            import read_classes                        # policy runs only; the Vision-deployed path never needs it
+            row['read_class'] = read_classes.classify_request_frames(lr['attempts'][0]['payload'])
         rows.append(row)
-    _add_publication(rows, out_segs, in_segs, available)
+    _add_publication(rows, out_segs, in_segs, available, read_policy)
     return rows
 
 
-def summarize(rows):
+def summarize(rows, by_class=False):
+    """by_class (read_policy runs): the READ entry also carries the same counts per read_class."""
     out = {}
     for kind in sorted(set(r['kind'] for r in rows)):
         sel = [r for r in rows if r['kind'] == kind]
@@ -410,11 +463,21 @@ def summarize(rows):
             'clrt_us': stats([r['clrt_us'] for r in eligible if r.get('clrt_us') is not None]),
             'rt_us': stats([r['rt_us'] for r in eligible]),
             'ack_lat_us': stats([r['ack_lat_us'] for r in eligible if r.get('ack_lat_us') is not None])}
+        if by_class and kind == 'READ':
+            out[kind]['by_class'] = {}
+            for cls in sorted(set(str(r.get('read_class')) for r in sel)):
+                part = [r for r in sel if str(r.get('read_class')) == cls]
+                finished = [r for r in part if r['complete']]
+                out[kind]['by_class'][cls] = {
+                    'logical_requests': len(part), 'complete': len(finished),
+                    'resp_len': sorted(set(r['resp_len'] for r in finished if r['resp_len'] is not None)),
+                    'publication_paired': sum(1 for r in part
+                                              if r['publication']['response_available_timestamp_ns'] is not None)}
     return out
 
 
-def analyze(out_path, in_path, allow_missing=False):
-    rows = exchanges(out_path, in_path, allow_missing=allow_missing)
+def analyze(out_path, in_path, allow_missing=False, read_policy=None):
+    rows = exchanges(out_path, in_path, allow_missing=allow_missing, read_policy=read_policy)
     return {'schema_version': 'vision-exchanges-v2', 'sd_convention': SD_CONVENTION,
             'capture_sha256': {name: hashlib.sha256(Path(path).read_bytes()).hexdigest()
                                for name, path in (('out', out_path), ('in', in_path))
@@ -427,7 +490,7 @@ def analyze(out_path, in_path, allow_missing=False):
                                          for name, path in (('clrt_check.py', __file__), ('wire_check.py', wc.__file__))},
             'note': 'intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; '
                     'timestamps are integer microseconds at the capture resolution',
-            'summary': summarize(rows), 'exchanges': rows}
+            'summary': summarize(rows, by_class=read_policy is not None), 'exchanges': rows}
 
 
 if __name__ == '__main__':
@@ -435,8 +498,10 @@ if __name__ == '__main__':
     ap.add_argument('out_pcap')
     ap.add_argument('in_pcap')
     ap.add_argument('--json')
+    ap.add_argument('--read-policy', help='per-class READ declaration as JSON: {"classes": {class: {native, image, '
+                                          'native_segments}}}')
     a = ap.parse_args()
-    report = analyze(a.out_pcap, a.in_pcap)
+    report = analyze(a.out_pcap, a.in_pcap, read_policy=json.loads(a.read_policy) if a.read_policy else None)
     if a.json:
         json.dump(report, open(a.json, 'w'), indent=1, default=str)
     json.dump(report['summary'], sys.stdout, indent=1, default=str)

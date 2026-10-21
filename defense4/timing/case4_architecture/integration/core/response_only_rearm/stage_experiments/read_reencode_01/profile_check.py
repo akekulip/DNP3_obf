@@ -17,6 +17,13 @@ expected image. A retransmission is never folded into the first attempt.
 
   python3 profile_check.py RUN_DIR --master-port P [--outstation-port 20000] \
       --expect READ=61 --expect SELECT=61 --expect OPERATE=61 [-o profile.json]
+
+Per-class READ (check(..., read_classes={class: {'native': n, 'image': m}}), the READ-class schedule endpoint):
+every READ is classified from its request bytes (protocol/hw_vepa/read_classes.py) and held to its own class. A
+class at its target must arrive unchanged; a padded class must arrive as policy_image, the read_complete_01
+prefix construction over the whole native response (one or several link frames). Responses are compared as the
+reassembled aggregate: every outstation->master segment must carry exactly the expected octets at its stream
+offset, and every octet of every expected image must arrive.
 """
 import argparse
 import hashlib
@@ -97,6 +104,37 @@ def _read_prefix(header8, user, expected_len):
     raise std.StdError('no %s READ prefix reaches %d octets from %d' % (PROFILE, expected_len, native_len))
 
 
+def policy_image(native_frames, expected_len):
+    """read_complete_01 policy construction over a whole native response (its link frames, FIR..FIN), written
+    from the encoding: a new FIR frame carries the native transport sequence s, application header and IIN and a
+    G1V2 q0x01 object over the reserved indices from 1024 whose first n-4 zero flags fill it; every native frame
+    follows unchanged in length, renumbered s+1.., keeping only its FIN bit, the first one's four application octets
+    replaced by the last four zero flags. n is the one count that makes the aggregate expected_len, with the prefix
+    in one link frame. A native already at expected_len is returned unchanged."""
+    parts = [std.deframe(f) for f in native_frames]
+    if not parts:
+        raise std.StdError('no native frames')
+    header8, user = parts[0]
+    if not user[0] & FIR or len(user) < 6 or not parts[-1][1][0] & FIN:
+        raise std.StdError('native READ is not one transport series FIR..FIN with an application header and IIN')
+    native_len = sum(len(f) for f in native_frames)
+    if expected_len == native_len:                            # already at its target: unchanged
+        return b''.join(native_frames)
+    for n in range(4, READ_PAD_STOP - READ_PAD_START + 2):
+        obj = b'\x01\x02\x01' + struct.pack('<HH', READ_PAD_START, READ_PAD_START + n - 1) + bytes(n)
+        first = bytes([FIR | (user[0] & 0x3F)]) + user[1:5] + obj[:-4]
+        if len(first) > 250:                                  # one link frame carries at most 250 user octets
+            break
+        prefix = std.frame(_header(header8, len(first)), first)
+        if native_len + len(prefix) == expected_len:
+            out = prefix
+            for i, (h, u) in enumerate(parts):
+                th = (u[0] & FIN) | (((u[0] & 0x3F) + 1) & 0x3F)
+                out += std.frame(h, bytes([th]) + (obj[-4:] + u[5:] if i == 0 else u[1:]))
+            return out
+    raise std.StdError('no READ prefix reaches %d octets from %d' % (expected_len, native_len))
+
+
 def expected_image(kind, native_frame, expected_len):
     """The exact image the master must receive for this response under this arm's expected length."""
     header8, user = std.deframe(native_frame)
@@ -142,9 +180,146 @@ def _attempts(in_pcap, outstation_port, master_port):
     return out, (origins[0] if origins else None)
 
 
-def check(run_dir, master_port, expected_lengths, outstation_port=20000, require_handshake=True):
-    """expected_lengths: {kind: [length]} as standards.json expected.lengths for this arm/connection."""
+def _classifier():
+    """read_classes.classify_request from protocol/hw_vepa (the one request classifier), loaded on demand."""
+    import importlib.util
+    path = HERE.parents[4] / 'protocol' / 'hw_vepa' / 'read_classes.py'
+    spec = importlib.util.spec_from_file_location('dnp3_read_classes', str(path))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.classify_request
+
+
+def _series(frames):
+    """Group link frames into transport series FIR..FIN (each one solicited response)."""
+    out, cur = [], None
+    for f in frames:
+        _h, u = std.deframe(f)
+        if u and u[0] & FIR:
+            if cur:
+                raise std.StdError('native response series restarted before FIN')
+            cur = []
+        if cur is None:
+            raise std.StdError('native continuation frame without FIR')
+        cur.append(f)
+        if u and u[0] & FIN:
+            out.append(cur)
+            cur = None
+    if cur:
+        raise std.StdError('native response series without FIN at end of stream')
+    return out
+
+
+def _native_by_class(out_pcap, outstation_port, master_port, require_handshake):
+    """[(kind, READ class or None, native frames)] in order; READs classified from their request bytes."""
+    streams = capture.streams(out_pcap, include_incarnation=True, require_handshake=require_handshake)
+    rsp = [v for k, v in streams.items() if k[0][1] == outstation_port and k[1][1] == master_port]
+    req = [v for k, v in streams.items() if k[0][1] == master_port and k[1][1] == outstation_port]
+    if len(rsp) != 1 or len(req) != 1:
+        raise std.StdError('expected one native response and one request stream, found %d/%d' % (len(rsp), len(req)))
+    classify = _classifier()
+    requests = [app for app, _lens, _seq in std.reassemble(capture.frames(req[0]))[0]
+                if std.request(std.fragment_user(app))['function'] != 0]
+    kinds = {1: 'READ', 3: 'SELECT', 4: 'OPERATE'}
+    out = []
+    for i, frames in enumerate(_series(capture.frames(rsp[0]))):
+        if i >= len(requests):
+            out.append((None, None, frames))
+            continue
+        kind = kinds.get(requests[i][1], 'other')
+        out.append((kind, classify(requests[i]) if kind == 'READ' else None, frames))
+    return out
+
+
+def _check_by_class(run_dir, master_port, expected_lengths, read_classes, outstation_port, require_handshake):
+    failures, verdicts = [], []
+    try:
+        natives = _native_by_class(run_dir / 'out.pcap', outstation_port, master_port, require_handshake)
+        attempts, origin = _attempts(run_dir / 'in.pcap', outstation_port, master_port)
+        if origin is None and require_handshake:
+            raise ValueError('no handshake-backed stream origin for master port %s' % master_port)
+    except (OSError, ValueError) as error:
+        return {'profile': PROFILE, 'conformant': False, 'failures': ['capture unreadable: %s' % error],
+                'verdicts': [], 'responses': 0, 'attempts': 0}
+    expected = []
+    for i, (kind, cls, frames) in enumerate(natives):
+        native = b''.join(frames)
+        try:
+            if kind is None:
+                raise std.StdError('native response #%d has no request' % i)
+            if kind == 'READ':
+                if cls not in read_classes:
+                    raise std.StdError('READ class %s is not declared for this build' % cls)
+                e = read_classes[cls]
+                if len(native) != e['native']:
+                    raise std.StdError('READ %s native %d octets, declared %d' % (cls, len(native), e['native']))
+                image = native if e['image'] == e['native'] else policy_image(frames, e['image'])
+            else:
+                want = (expected_lengths or {}).get(kind)
+                if len(frames) != 1:
+                    raise std.StdError('%s native response spans %d frames' % (kind, len(frames)))
+                image = expected_image(kind, frames[0], want[0] if want else len(native))
+        except std.StdError as error:
+            failures.append('response #%d (%s%s): %s' % (i, kind, ' ' + cls if cls else '', error))
+            image = None
+        expected.append((kind, cls, image, native))
+    if origin is None and attempts:
+        origin = attempts[0]['seq']
+    spans, p = [], 0
+    for kind, cls, image, native in expected:
+        size = len(image) if image is not None else len(native)
+        spans.append((p, p + size))
+        p += size
+    covered = [set() for _ in expected]
+    for n, a in enumerate(attempts):
+        rel = (a['seq'] - origin) & 0xFFFFFFFF
+        index = next((i for i, (lo, hi) in enumerate(spans) if lo <= rel < hi), None)
+        v = {'attempt': n, 'time': a['time'], 'stream_offset': rel, 'payload_len': len(a['payload']),
+             'payload_sha256': _sha(a['payload']), 'response': index}
+        if index is None:
+            v.update(ok=False, retransmission=False, error='segment starts outside every expected response')
+        else:
+            kind, cls, image, native = expected[index]
+            lo, hi = spans[index]
+            octets = set(range(rel - lo, rel - lo + len(a['payload'])))
+            v.update(kind=kind, read_class=cls, retransmission=bool(octets & covered[index]),
+                     expected_len=len(image) if image is not None else None)
+            if image is None:
+                v.update(ok=False, error='no expected image')
+            elif rel + len(a['payload']) > hi:
+                v.update(ok=False, error='segment crosses the end of the expected response')
+            elif a['payload'] != image[rel - lo:rel - lo + len(a['payload'])]:
+                v.update(ok=False, error='payload differs from the %s image at offset %d'
+                         % ('native' if image == native else 'policy', rel - lo))
+            else:
+                v['ok'] = True
+                covered[index] |= octets
+        if not v['ok']:
+            failures.append('attempt #%d (%s): %s' % (n, v.get('kind'), v['error']))
+        verdicts.append(v)
+    for i, (kind, cls, image, native) in enumerate(expected):
+        if image is not None and len(covered[i]) != len(image):
+            failures.append('response #%d (%s%s): %d of %d octets reached the master'
+                            % (i, kind, ' ' + cls if cls else '', len(covered[i]), len(image)))
+    counts, class_counts = {}, {}
+    for kind, cls, _image, _native in expected:
+        counts[kind] = counts.get(kind, 0) + 1
+        if cls is not None:
+            class_counts[cls] = class_counts.get(cls, 0) + 1
+    return {'profile': PROFILE, 'conformant': not failures, 'failures': failures, 'verdicts': verdicts,
+            'responses': len(expected), 'attempts': len(attempts),
+            'retransmissions': sum(1 for v in verdicts if v.get('retransmission')), 'counts': counts,
+            'class_counts': class_counts, 'master_port': master_port, 'outstation_port': outstation_port,
+            'expected_lengths': expected_lengths, 'read_classes': read_classes}
+
+
+def check(run_dir, master_port, expected_lengths, outstation_port=20000, require_handshake=True, read_classes=None):
+    """expected_lengths: {kind: [length]} as standards.json expected.lengths for this arm/connection.
+    read_classes: the per-class READ declaration (standards expected.read_classes); None keeps the legacy check."""
     run_dir = Path(run_dir)
+    if read_classes is not None:
+        return _check_by_class(run_dir, master_port, expected_lengths, read_classes, outstation_port,
+                               require_handshake)
     failures, verdicts = [], []
     try:
         natives = _native_responses(run_dir / 'out.pcap', outstation_port, master_port, require_handshake)

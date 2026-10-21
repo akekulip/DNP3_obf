@@ -25,6 +25,7 @@ sys.path.insert(0, str(ARCH / 'protocol' / 'hw_vepa'))
 import candidate_campaign  # noqa: E402
 import campaign as base  # noqa: E402
 import checks  # noqa: E402
+import read_classes  # noqa: E402
 import wire_check as wc  # noqa: E402
 from privileged_python import authorized_python
 
@@ -224,7 +225,7 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
         image = build.get('image_len', 58)
-        read_image = build.get('read_image_len', image)      # READ image != control image on policy builds
+        read_image = read_classes.range_image_len(build, image)   # READ image != control image on policy builds
         expected = (reads * (read_image - 49) + (2 * (image - 37) if build.get('control_padding', True) else 0)
                     if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
@@ -283,6 +284,10 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series requires SBO enabled')
         if 'sbo_cycles' in self.cfg['traffic']:
             raise ValueError('candidate series does not carry traffic.sbo_cycles (vision_candidate runs one SBO)')
+        if 'read_schedule' in self.cfg['traffic'] or 'db' in self.cfg['traffic']:
+            raise ValueError('candidate series does not carry traffic.read_schedule/db (vision_candidate runs the '
+                             'range READ only)')
+        read_classes.range_image_len(self.cfg['builds'].get(self.arms[0].get('build')) or {})   # refuses unsupported
         traffic = self.cfg['traffic']
         if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
                 traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):
@@ -334,8 +339,8 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         args = [label, '--master-port', master_port, '--padding', self._series_padding,
                 '--control-padding', self._series_control_padding,
                 '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
-                ] + (['--read-image-len', int(self.cfg['builds'][self._series_build]['read_image_len'])]
-                     if 'read_image_len' in self.cfg['builds'][self._series_build] else []) + [
+                ] + (['--read-image-len', int(read_classes.range_image_len(self.cfg['builds'][self._series_build]))]
+                     if read_classes.range_image_len(self.cfg['builds'][self._series_build]) is not None else []) + [
                 '--expect-held-operate-dup', int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
                 '--close-mode', self.close_mode,
                 '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']

@@ -272,7 +272,17 @@ def _required_lengths(required_payload_len):
     return set(required_payload_len)
 
 
+def _verdict_key(verdict):
+    """'READ:<class>' for a classified READ verdict, else the verdict kind."""
+    if verdict.get('kind') == 'READ':
+        return 'READ:%s' % verdict.get('read_class')
+    return verdict.get('kind')
+
+
 def _checker_expectations(checker_result, required_payload_len):
+    """Checker exchanges the physical capture must show. required_payload_len: one length or several (legacy:
+    every verdict at one of them, bound as a set), or {kind or 'READ:<class>': length} (per class: every verdict
+    must be of a declared kind/class and at exactly its length, and carries that length forward)."""
     failures = []
     if required_payload_len is None:
         return [], failures
@@ -283,10 +293,20 @@ def _checker_expectations(checker_result, required_payload_len):
     if not isinstance(verdicts, list):
         return [], ['checker result verdicts missing for boundary exchange binding']
     expected = []
+    by_class = isinstance(required_payload_len, dict)
     for verdict in verdicts:
         if not isinstance(verdict, dict):
             continue
-        if verdict.get('wire_len') not in _required_lengths(required_payload_len):
+        if by_class:
+            key = _verdict_key(verdict)
+            if key not in required_payload_len:
+                failures.append('checker verdict %r (%s) is not a declared kind/class' % (verdict.get('index'), key))
+                continue
+            if verdict.get('wire_len') != required_payload_len[key]:
+                failures.append('checker verdict %r (%s) wire length %r, expected %d'
+                                % (verdict.get('index'), key, verdict.get('wire_len'), required_payload_len[key]))
+                continue
+        elif verdict.get('wire_len') not in _required_lengths(required_payload_len):
             continue
         app_seq = _verdict_app_seq(verdict)
         if app_seq is None:
@@ -297,6 +317,8 @@ def _checker_expectations(checker_result, required_payload_len):
                          'request_serial': verdict.get('request_serial'),
                          'wire_image_sha256': verdict.get('wire_image_sha256'),
                          'tuple': verdict.get('tuple'), 'incarnation': (verdict.get('tuple') or {}).get('incarnation')})
+        if by_class:
+            expected[-1].update(key=key, required_len=required_payload_len[key])
     return expected, failures
 
 
@@ -376,6 +398,99 @@ def _tuple_matches(seg, expected_tuple, outstation_port, master_port):
     return seg.get('sport') == outstation_port and (master_port is None or seg.get('dport') == master_port)
 
 
+def _is_continuation(payload):
+    """A segment whose first link frame continues a transport series (no FIR)."""
+    try:
+        users = _link_users(payload)
+    except ValueError:
+        return False
+    return bool(users and users[0] and not users[0][0] & 0x40)
+
+
+def _bind_segments_by_class(segs, expected, expected_attempts, outstation_port, master_port):
+    """Per-class binding: the protected segments, retransmission copies set aside, are consumed in checker order;
+    each exchange's segments (a response start, then any continuation segments) must total exactly the length of
+    its own kind/class and reassemble to the checker's wire image. A segment is never accepted because its length
+    belongs to some other exchange of the trial."""
+    failures = []
+    if len(expected) != expected_attempts:
+        failures.append('checker transformed response count %d, expected %d' % (len(expected), expected_attempts))
+    expected_tuple = expected[0].get('tuple') if expected else None
+    next_expected, consumed, seen_retx, protected_seen, partial = 0, [], set(), 0, None
+
+    def finish(want, data, where):
+        if want.get('wire_image_sha256') in (None, _sha(data)):
+            consumed.append(dict(want, image_sha256=_sha(data)))
+        else:
+            failures.append('physical incoming segment(s) %s of exchange %r (%s) do not reassemble to its checker image'
+                            % (where, want.get('index'), want['key']))
+
+    for seg in segs:
+        if not _tuple_matches(seg, expected_tuple, outstation_port, master_port):
+            continue
+        protected_seen += 1
+        payload = seg.get('payload', b'')
+        retx_key = (seg.get('src'), seg.get('dst'), seg.get('sport'), seg.get('dport'), seg.get('seq'), _sha(payload))
+        if retx_key in seen_retx:
+            continue
+        seen_retx.add(retx_key)
+        if partial is not None:
+            want = partial['want']
+            if _is_continuation(payload):
+                partial['data'] += payload
+                partial['where'].append(seg.get('index'))
+                if len(partial['data']) == want['required_len']:
+                    finish(want, bytes(partial['data']), partial['where'])
+                    partial = None
+                elif len(partial['data']) > want['required_len']:
+                    failures.append('physical incoming exchange %r (%s) reaches %d octets, expected %d'
+                                    % (want.get('index'), want['key'], len(partial['data']), want['required_len']))
+                    partial = None
+                continue
+            failures.append('physical incoming exchange %r (%s) incomplete: %d of %d octets before segment %r'
+                            % (want.get('index'), want['key'], len(partial['data']), want['required_len'],
+                               seg.get('index')))
+            partial = None
+        try:
+            app_seq = _response_app_seq(payload)
+        except ValueError as error:
+            failures.append('physical incoming protected segment %r is not a valid DNP3 response start: %s' %
+                            (seg.get('index'), error))
+            continue
+        if next_expected < len(expected) and app_seq == expected[next_expected]['app_seq']:
+            want = expected[next_expected]
+            next_expected += 1
+            if len(payload) == want['required_len']:
+                finish(want, payload, [seg.get('index')])
+            elif len(payload) < want['required_len']:
+                partial = {'want': want, 'data': bytearray(payload), 'where': [seg.get('index')]}
+            else:
+                failures.append('physical protected response segment %r len %r exceeds the %s length %d' %
+                                (seg.get('index'), len(payload), want['key'], want['required_len']))
+            continue
+        matching = [row for row in consumed if row['app_seq'] == app_seq]
+        if matching:
+            if any(row.get('image_sha256') == _sha(payload) for row in matching):
+                failures.append('physical incoming retransmission %r repeats response with new TCP key' %
+                                seg.get('index'))
+            else:
+                failures.append('physical incoming protected segment %r repeats app_seq %r with different image' %
+                                (seg.get('index'), app_seq))
+            continue
+        failures.append('physical incoming protected segment %r app_seq does not match the next checker exchange' %
+                        seg.get('index'))
+    if partial is not None:
+        failures.append('physical incoming exchange %r (%s) incomplete at capture end: %d of %d octets'
+                        % (partial['want'].get('index'), partial['want']['key'], len(partial['data']),
+                           partial['want']['required_len']))
+    if protected_seen == 0:
+        failures.append('physical incoming capture has no protected response payload evidence')
+    if len(consumed) < min(len(expected), expected_attempts):
+        failures.append('missing transformed response attempts: observed %d, expected %d' %
+                        (len(consumed), expected_attempts))
+    return failures
+
+
 def _validate_physical_main(in_path, result_path, *, required_payload_len=None, expected_attempts=0,
                             checker_result=None):
     failures = []
@@ -391,7 +506,14 @@ def _validate_physical_main(in_path, result_path, *, required_payload_len=None, 
         segs = _payloads(in_path)
     except (OSError, ValueError, KeyError, TypeError) as error:
         return failures + ['physical incoming capture parse failed: %s' % error]
-    if required_payload_len is not None and expected_attempts:
+    if isinstance(required_payload_len, dict) and expected_attempts:
+        expected, checker_failures = _checker_expectations(checker_result, required_payload_len)
+        failures.extend(checker_failures)
+        ports = checker_result if isinstance(checker_result, dict) else {}
+        failures.extend(_bind_segments_by_class(
+            segs, expected, expected_attempts,
+            20000 if ports.get('outstation_port') is None else ports.get('outstation_port'), ports.get('master_port')))
+    elif required_payload_len is not None and expected_attempts:
         expected, checker_failures = _checker_expectations(checker_result, required_payload_len)
         failures.extend(checker_failures)
         if len(expected) != expected_attempts:

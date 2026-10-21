@@ -14,6 +14,13 @@ Exit 0 when every READ is legal and equal and every control response satisfies R
 result JSON lists every frame verdict, so an all-58 run reports its control non-conformance explicitly.
 The CLI requires handshake-backed TCP streams by default for qualification; use --legacy-payload-only only for
 old retained payload-only fixtures.
+
+Per-class READ (check(..., read_classes={class: {'native': n, 'image': m}}), the READ-class schedule endpoint):
+every READ request is classified from its bytes (protocol/hw_vepa/read_classes.py); its verdict carries
+read_class, the native must have the declared native length, the master-side fragment must be the native one
+unchanged or exactly the policy padding of it (one G1V2 q0x01 block of zero flags from index 1024 inserted after
+the IIN, every native octet kept), and the wire length must be the class image. An undeclared or unclassified READ
+fails.
 """
 import argparse
 import hashlib
@@ -71,7 +78,37 @@ def _semantic_read_ok(nu, wu):
     return nu[1:5] == wu[1:5]
 
 
-def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, failures, verdicts, response_key=None):
+READ_PAD_START, READ_PAD_STOP = 1024, 4095    # read_complete_01/policy/policy.json reserved_padding_range
+
+
+def _policy_read_ok(napp, wapp):
+    """The wire fragment is the native one unchanged, or the native one with exactly one reserved G1V2 q0x01 block
+    of zero flags inserted after the application header and IIN."""
+    if len(napp) < 4 or napp[1] != 0x81:
+        return False
+    if wapp == napp:
+        return True
+    if len(wapp) < 11 or wapp[:4] != napp[:4] or wapp[4:7] != b'\x01\x02\x01':
+        return False
+    start, stop = int.from_bytes(wapp[7:9], 'little'), int.from_bytes(wapp[9:11], 'little')
+    if start != READ_PAD_START or not start <= stop <= READ_PAD_STOP:
+        return False
+    n = stop - start + 1
+    return wapp[11:11 + n] == bytes(n) and wapp[11 + n:] == napp[4:]
+
+
+def _classifier():
+    """read_classes.classify_request from protocol/hw_vepa (the one request classifier), loaded on demand."""
+    import importlib.util
+    path = HERE.parents[4] / 'protocol' / 'hw_vepa' / 'read_classes.py'
+    spec = importlib.util.spec_from_file_location('dnp3_read_classes', str(path))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.classify_request
+
+
+def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, failures, verdicts, response_key=None,
+                  read_classes=None, classify=None):
     native_frags, native_events = std.reassemble(native_rsp)
     wire_frags, wire_events = std.reassemble(wire_rsp)
     native_req_frags, native_req_events = std.reassemble(native_req)
@@ -125,7 +162,24 @@ def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, 
             if (nu[1] & 0x0F) != expected_seq or (wu[1] & 0x0F) != expected_seq:
                 raise std.StdError('application sequence mismatch: request %d, native %d, wire %d'
                                    % (expected_seq, nu[1] & 0x0F, wu[1] & 0x0F))
-            if nu[2] == 0x81 and nu[5:7] == b'\x0a\x02':
+            if read_classes is not None and req['function'] == 1:
+                v['kind'] = 'READ'
+                cls = classify(req['user'][1:])
+                v['read_class'] = cls
+                if cls not in read_classes:
+                    raise std.StdError('READ request class %r is not declared for this build' % cls)
+                declared = read_classes[cls]
+                if v['native_len'] != declared['native']:
+                    raise std.StdError('READ %s native length %d != declared %d'
+                                       % (cls, v['native_len'], declared['native']))
+                v['transport_ok'] = _policy_read_ok(napp, wapp)
+                if not v['transport_ok']:
+                    raise std.StdError('READ %s fragment is neither the native one nor its policy padding' % cls)
+                v['padded'] = napp != wapp
+                if v['wire_len'] != declared['image']:
+                    raise std.StdError('READ %s wire length %d != expected %d' % (cls, v['wire_len'], declared['image']))
+                v['ok'] = True
+            elif nu[2] == 0x81 and nu[5:7] == b'\x0a\x02':
                 v['kind'] = 'READ'
                 if req['function'] != 1:
                     raise std.StdError('READ response matched request function 0x%02x' % req['function'])
@@ -155,7 +209,7 @@ def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, 
                     raise std.StdError('READ request answered by a non-Group 10 Var 2 response')
                 if not v['ok']:
                     raise std.StdError('unclassified response changed')
-            expected = expected_lengths.get(v['kind'])
+            expected = expected_lengths.get(v['kind']) if read_classes is None or v['kind'] != 'READ' else None
             if expected is not None and v['wire_len'] != expected:
                 raise std.StdError('wire length %d != expected %d' % (v['wire_len'], expected))
         except std.StdError as error:
@@ -171,9 +225,13 @@ def _conversation(native_rsp, wire_rsp, native_req, wire_req, expected_lengths, 
         failures.append('missing control responses: expected %d, observed %d' % (controls_expected, controls_observed))
 
 
-def check(run_dir, outstation_port=20000, master_port=None, expected_lengths=None, require_handshake=False):
+def check(run_dir, outstation_port=20000, master_port=None, expected_lengths=None, require_handshake=False,
+          read_classes=None):
+    """read_classes: the per-class READ declaration (standards expected.read_classes); None keeps the legacy
+    G10V2-only READ check."""
     run_dir = Path(run_dir)
     expected_lengths = expected_lengths or {}
+    classify = _classifier() if read_classes is not None else None
     out_streams = _streams(run_dir / 'out.pcap', require_handshake)
     in_streams = _streams(run_dir / 'in.pcap', require_handshake)
     verdicts, failures = [], []
@@ -196,7 +254,7 @@ def check(run_dir, outstation_port=20000, master_port=None, expected_lengths=Non
             failures.append('missing %s for stream %r' % (', '.join(missing), key))
             continue
         _conversation(out_streams.get(key, []), in_streams.get(key, []), out_streams[req_key], in_streams[req_key],
-                      expected_lengths, failures, verdicts, key)
+                      expected_lengths, failures, verdicts, key, read_classes, classify)
     mports = sorted(set(k[1][1] for k in response_keys))
     return {'run_dir': str(run_dir), 'master_port': mports[0] if len(mports) == 1 else None,
             'responses': len(verdicts), 'verdicts': verdicts,

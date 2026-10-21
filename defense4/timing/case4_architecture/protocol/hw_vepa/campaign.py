@@ -52,6 +52,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import checks  # noqa: E402
 import loss  # noqa: E402
+import read_classes  # noqa: E402  (per-class READ declarations: builds[b].read_images, traffic.read_schedule/db)
 import run as runner  # noqa: E402  (evaluate(): the reviewed per-run gate)
 import standards  # noqa: E402
 import vision_run as vr  # noqa: E402  (the Vision-side paths the endpoint runner itself uses)
@@ -143,6 +144,33 @@ def load_config(path):
     return cfg
 
 
+def validate_read_classes(cfg):
+    """endpoint.binary, traffic.read_schedule/db and every arm's per-class READ declaration, before anything runs: a
+    schedule on an arm whose build declares no read_images/read_images_by_db, or a padded arm whose build does not
+    support a scheduled class, is refused here, never run against a native expectation. Loss presets
+    identify packets by one READ request/response length, so they do not carry a READ-class schedule."""
+    traffic = cfg['traffic']
+    if 'binary' in cfg['endpoint'] and (not isinstance(cfg['endpoint']['binary'], str) or
+                                        not re.fullmatch(r'[A-Za-z0-9_.-]+', cfg['endpoint']['binary']) or
+                                        cfg['endpoint']['binary'] in ('.', '..')):
+        raise ValueError('endpoint.binary must be a file name beside vision_run.py ([A-Za-z0-9_.-]+), got %r'
+                         % (cfg['endpoint']['binary'],))
+    for key in ('read_schedule', 'db'):
+        if key in traffic and not isinstance(traffic[key], str):
+            raise ValueError('traffic.%s must be a string' % key)
+    try:
+        name, _classes, _db = read_classes.schedule_and_db(cfg)
+        if name is not None and cfg.get('loss', {}).get('presets'):
+            raise ValueError('traffic.read_schedule is not supported with loss presets (unsupported shape)')
+        # the READ count one unit (connection) actually carries; one_connection runs every trial of an arm on one
+        reads = cfg['trials']['reads_per_trial'] * (cfg['trials']['trials_per_arm']
+                                                    if cfg.get('trial_mode') == 'one_connection' else 1)
+        for arm in cfg.get('arms', []):
+            standards.read_class_expectations(cfg, arm, {'reads': reads})
+    except read_classes.ReadClassError as error:
+        raise ValueError(str(error))
+
+
 def validate_profile(cfg):
     """The hardware profile the campaign may run: the 8-bit-range READ, a positive K, non-negative shaping
     rates, and fixture jitter only with a netem distribution on the separate_ack fixture."""
@@ -162,6 +190,7 @@ def validate_profile(cfg):
             raise ValueError('trials.reads_per_trial counts every READ and must be >= sbo_cycles + 1')
         if cfg.get('loss', {}).get('presets'):
             raise ValueError('traffic.sbo_cycles is not supported with loss presets (unsupported shape)')
+    validate_read_classes(cfg)
     quality = cfg.get('evaluation', {})
     if quality.get('purpose', 'qualification') not in ('qualification', 'stale_source_characterization',
                                                       'timing_precision_characterization'):
@@ -476,13 +505,15 @@ class Campaign:
         self.config_file_sha256 = sha256_file(config_path) if config_path else None
         self.runner_identity = {name: sha256_file(os.path.join(HERE, name)) for name in
                                 ('campaign.py', 'checks.py', 'vision_run.py', 'clrt_check.py', 'wire_check.py',
-                                 'hold_check.py')}
+                                 'hold_check.py', 'read_classes.py')}
         self.soft_failures = []
         if loss is not None and loss not in cfg['loss'].get('presets', {}):
             raise ValueError('unknown loss preset %r; the config defines %s' % (loss, sorted(cfg['loss'].get('presets', {}))))
         if scenario is not None:
             if 'sbo_cycles' in cfg['traffic']:
                 raise ValueError('scenario %r is not supported with traffic.sbo_cycles (unsupported shape)' % scenario)
+            if 'read_schedule' in cfg['traffic']:
+                raise ValueError('scenario %r is not supported with traffic.read_schedule (unsupported shape)' % scenario)
             if scenario not in cfg.get('scenarios', {}):
                 raise ValueError('unknown scenario %r; the config defines %s' % (scenario, sorted(cfg.get('scenarios', {}))))
             want = [cfg['scenarios'][scenario]['arm']]
@@ -519,7 +550,7 @@ class Campaign:
             'candidate_source_sha256': build.get('source_sha256') or build.get('strict_source_sha256'),
             'checker_files': [os.path.join(HERE, name) for name in
                               ('wire_check.py', 'clrt_check.py', 'checks.py', 'standards.py',
-                               'capture_boundary.py', 'hold_check.py')] + [CHECK_CAPTURE] + [
+                               'capture_boundary.py', 'hold_check.py', 'read_classes.py')] + [CHECK_CAPTURE] + [
                                    os.path.join(os.path.dirname(CHECK_CAPTURE), name)
                                    for name in ('capture.py', 'dnp3_std.py', 'profile_check.py')],
             'unbound_native': unbound_native,
@@ -617,13 +648,14 @@ class Campaign:
         context = self.standards_context(trial, arm, connection_id, unbound_native)
         expected = standards.expected_identity(context)['expected']
         lengths = {kind: values[0] for kind, values in expected['lengths'].items()}
+        per_class = {'read_classes': expected['read_classes']} if 'read_classes' in expected else {}
         try:
             raw = self._load_standards_checker().check(
                 dest,
                 outstation_port=self.cfg['endpoints']['outstation_port'],
                 master_port=master_port,
                 expected_lengths=lengths,
-                require_handshake=True)
+                require_handshake=True, **per_class)
         except SystemExit as error:
             raw = {'conformant': False, 'failures': ['SystemExit: %s' % error],
                    'verdicts': [], 'run_dir': dest}
@@ -635,6 +667,8 @@ class Campaign:
         result['master_port'] = master_port if master_port is not None else result.get('master_port')
         result['expected_lengths'] = expected['lengths']
         result['expected_counts'] = expected['counts']
+        if per_class:
+            result['expected_read_classes'] = expected['read_classes']
         result['raw_result'] = raw
         result['result_sha256'] = hashlib.sha256(
             json.dumps(raw, sort_keys=True, separators=(',', ':'), default=str).encode()).hexdigest()
@@ -687,7 +721,9 @@ class Campaign:
         checker = os.path.join(os.path.dirname(CHECK_CAPTURE), 'profile_check.py')
         try:
             module = self._load_profile_checker()
-            raw = module.check(dest, master_port, lengths, self.cfg['endpoints']['outstation_port'])
+            classes = standards.expected_identity(context)['expected'].get('read_classes')
+            raw = module.check(dest, master_port, lengths, self.cfg['endpoints']['outstation_port'],
+                               **({'read_classes': classes} if classes is not None else {}))
         except Exception as error:                        # fail closed; the run still restores
             raw = {'conformant': False, 'failures': ['profile checker error: %s' % error]}
         path = os.path.join(dest, 'profile_verdict.json')
@@ -715,7 +751,7 @@ class Campaign:
         uses the build's read_image_len when its READ image differs from the control image."""
         build = self.cfg['builds'][arm['build']]
         image = build.get('image_len', 58)
-        read = build.get('read_image_len', image)
+        read = read_classes.range_image_len(build, image)      # read_images['range'], else read_image_len
         if cls is not None and (str(cls).startswith('read_') or str(cls).startswith('master_ack')):
             image = read          # a READ class, or the master's ACK of the first padded frontier (a READ)
         elif cls is not None and read != image and str(cls).endswith('_resp_padded'):
@@ -818,11 +854,29 @@ class Campaign:
                     (('read_pause_ms', 25), ('run_sbo', True), ('close_grace_ms', 0))}
         if 'sbo_cycles' in self.cfg['traffic']:          # only the repeated-SBO endpoint knows this control
             controls['sbo_cycles'] = self.cfg['traffic']['sbo_cycles']
+        for key in ('read_schedule', 'db'):               # only the read-schedule endpoint knows these
+            if key in self.cfg['traffic']:
+                controls[key] = self.cfg['traffic'][key]
         return controls
 
     def endpoint_control_args(self):
-        return ''.join(' --%s %d' % (key.replace('_', '-'), int(value))
+        return ''.join(' --%s %s' % (key.replace('_', '-'), value if isinstance(value, str) else int(value))
                        for key, value in self.endpoint_controls().items())
+
+    def endpoint_binary_name(self):
+        """The endpoint file on Vision: endpoint.binary when configured, else the pad58b endpoint."""
+        return self.cfg['endpoint'].get('binary', os.path.basename(vr.BIN))
+
+    def endpoint_binary_arg(self):
+        return ' --endpoint-binary %s' % q(self.cfg['endpoint']['binary']) if 'binary' in self.cfg['endpoint'] else ''
+
+    def read_policy_arg(self, trial, arm):
+        """clrt_check --read-policy for a build with a per-class READ declaration, else ''."""
+        expectation = standards.read_class_expectations(self.cfg, arm, trial)
+        if expectation is None:
+            return ''
+        return ' --read-policy %s' % q(json.dumps({'classes': expectation['classes']}, sort_keys=True,
+                                                    separators=(',', ':')))
 
     # ---- the flow -------------------------------------------------------------------------------------------
     def execute(self):
@@ -891,8 +945,8 @@ class Campaign:
                 want = sha256_file(os.path.join(HERE, f))
                 if got.get(f) != want:
                     raise StepFailed('%s on Vision has sha256 %s, expected %s' % (f, got.get(f), want))
-        binary, lib = V + '/case4_socket_gate_pad58b', V + '/lib'
-        r = self.step('vision', 'verify the endpoint binary identity', 'sha256sum %s' % binary)
+        binary, lib = V + '/' + self.endpoint_binary_name(), V + '/lib'
+        r = self.step('vision', 'verify the endpoint binary identity', 'sha256sum %s' % q(binary))
         self.check_hash(r, ep['binary_sha256'], 'endpoint binary %s' % binary)
         r = self.step('vision', 'verify the endpoint lib/ identity',
                       'cd %s && find . -type f | sort | xargs sha256sum | sha256sum' % lib)
@@ -1071,7 +1125,7 @@ class Campaign:
                                             reconnect_port=(port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
                                                             if unit.get('scenario') else None)
                                             ).replace(runner.V_RUN, self.V) + self.endpoint_control_args()
-                          + self.qualify_capture_arg(arm), check=False)
+                          + self.endpoint_binary_arg() + self.qualify_capture_arg(arm), check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
             self.snapshot(out_remote, label + '_after', check=False, preset=preset)
@@ -1167,8 +1221,8 @@ class Campaign:
                       check=False)
         k = self.step('local', '%s: per-exchange timing extraction' % label,
                       '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
-                                                                q(dest + '/in.pcap'), q(dest + '/timing.json')),
-                      check=False)
+                                                                q(dest + '/in.pcap'), q(dest + '/timing.json'))
+                      + self.read_policy_arg(trial, arm), check=False)
         # OPERATE hold J from the same two captures (master-side TX to outstation-side RX), bound to this trial
         self.step('local', '%s: OPERATE hold transit extraction' % label,
                   '%s %s/hold_check.py %s %s --master-port %d --outstation-port %d --json %s'
@@ -1205,7 +1259,8 @@ class Campaign:
                                      piggyback_bound=bool(self.cfg['builds'][arm['build']].get('piggyback_bound')),
                                      pb_ns=self.cfg['timing_params_ns'].get('pb'),
                                      op_j_ns=self.cfg['timing_params_ns'].get('op_j'),
-                                     gen_exhausted_outcome=self.cfg['builds'][arm['build']].get('gen_exhausted_outcome'))
+                                     gen_exhausted_outcome=self.cfg['builds'][arm['build']].get('gen_exhausted_outcome'),
+                                     read_classes=standards.read_class_expectations(self.cfg, arm, trial))
         cfail += self.endpoint_control_checks(ev['master'])
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail
@@ -1312,7 +1367,7 @@ class Campaign:
         base = self._baseline_completion_s(fixture, arm['name'])
         build = c['builds'][arm['build']]
         arm = dict(arm, control_padding=build.get('control_padding', True), image_len=build.get('image_len', 58),
-                   read_image_len=build.get('read_image_len', build.get('image_len', 58)))
+                   read_image_len=read_classes.range_image_len(build, build.get('image_len', 58)))
         fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
                                         result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
                                         ev['timing'], c['expectations'], base)

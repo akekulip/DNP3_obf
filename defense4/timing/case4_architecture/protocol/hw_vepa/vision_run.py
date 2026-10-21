@@ -42,6 +42,23 @@ BIN, LIB, RUNS = HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/run
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'   # campaign receive-offload baseline (setup/restore)
+READ_SCHEDULES = ('rotate4',)                        # CASE4_READ_SCHEDULE (read-schedule endpoint only)
+DBS = ('base', 'large')                              # CASE4_DB
+
+
+def endpoint_env(read_pause_ms, run_sbo, close_grace_ms, sbo_cycles, read_schedule=None, db=None):
+    """The env prefix both endpoints run under. CASE4_SBO_CYCLES, CASE4_READ_SCHEDULE and CASE4_DB appear only when
+    set, so an unset control leaves the command of every older endpoint unchanged."""
+    return (['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB,
+             'CASE4_READ_PAUSE_MS=%d' % read_pause_ms, 'CASE4_RUN_SBO=%d' % int(run_sbo),
+             'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms] + (['CASE4_SBO_CYCLES=%d' % sbo_cycles] if sbo_cycles else []) +
+            (['CASE4_READ_SCHEDULE=%s' % read_schedule] if read_schedule else []) +
+            (['CASE4_DB=%s' % db] if db else []))
+
+
+def endpoint_binary(name):
+    """The endpoint binary beside this file: the configured file name, else the default pad58b endpoint."""
+    return BIN if name is None else HOME + '/' + name
 
 
 def sh(*cmd, **kw):
@@ -241,11 +258,13 @@ def _run_master_evidence(run_dir, master_port, command, timeout):
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
-                   qualify_capture=False, sbo_cycles=0):
+                   qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None):
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
     reused). capture_immediate enables tcpdump's immediate mode for live observers.
     sbo_cycles N>0 (repeated-SBO endpoint only): reads is the total READ count; the master issues reads-N READs,
     then N cycles of SELECT->OPERATE followed by one READ, all on this connection.
+    read_schedule/db (read-schedule endpoint only): CASE4_READ_SCHEDULE and CASE4_DB to both endpoints;
+    endpoint_binary_name: the endpoint file beside this script (default case4_socket_gate_pad58b).
     Returns the result dict and capture arguments, also written to run_dir/result.json."""
     for key, value in (('read_pause_ms', read_pause_ms), ('close_grace_ms', close_grace_ms)):
         if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5000:
@@ -260,12 +279,22 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
         raise ValueError('capture_immediate must be a boolean')
     if type(qualify_capture) is not bool:
         raise ValueError('qualify_capture must be a boolean')
+    if read_schedule is not None and read_schedule not in READ_SCHEDULES:
+        raise ValueError('read_schedule must be one of %s' % (READ_SCHEDULES,))
+    if db is not None and db not in DBS:
+        raise ValueError('db must be one of %s' % (DBS,))
+    if read_schedule is not None and db is None:
+        raise ValueError('read_schedule needs db on both endpoints')
+    if endpoint_binary_name is not None and not re.fullmatch(r'[A-Za-z0-9_.-]+', str(endpoint_binary_name)) or \
+            endpoint_binary_name in ('.', '..'):
+        raise ValueError('endpoint binary must be a file name beside vision_run.py, got %r' % (endpoint_binary_name,))
     os.makedirs(run_dir)                      # refuses to reuse a label
 
     def run_main():
         return _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed,
                                        drop, connect_must_fail, read_pause_ms, run_sbo, close_grace_ms,
-                                       capture_immediate, qualify_capture, sbo_cycles)
+                                       capture_immediate, qualify_capture, sbo_cycles, read_schedule, db,
+                                       endpoint_binary_name)
 
     if qualify_capture:
         return capture_observation.run_with_qualified_capture(run_dir, run_main, interface=PARENT)
@@ -274,7 +303,8 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
 
 def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                             connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0,
-                            capture_immediate=False, qualify_capture=False, sbo_cycles=0):
+                            capture_immediate=False, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None,
+                            endpoint_binary_name=None):
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
@@ -283,9 +313,8 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
     port_wait = wait_port_free(master_port)   # the existing TIME-WAIT barrier; record its result
 
     flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
-    env = ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB,
-           'CASE4_READ_PAUSE_MS=%d' % read_pause_ms, 'CASE4_RUN_SBO=%d' % int(run_sbo),
-           'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms] + (['CASE4_SBO_CYCLES=%d' % sbo_cycles] if sbo_cycles else [])
+    env = endpoint_env(read_pause_ms, run_sbo, close_grace_ms, sbo_cycles, read_schedule, db)
+    binary = endpoint_binary(endpoint_binary_name)
     extra_seconds = (reads * (gap_ms + read_pause_ms) + close_grace_ms + 999) // 1000
     stop = os.path.join(run_dir, 'stop')
     result = {'label': label, 'master_port': master_port, 'reads': reads, 'range': rng, 'gap_ms': gap_ms,
@@ -294,6 +323,12 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
     result['endpoint_controls'] = dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms)
     if sbo_cycles:
         result['endpoint_controls']['sbo_cycles'] = sbo_cycles
+    if read_schedule:
+        result['endpoint_controls']['read_schedule'] = read_schedule
+    if db:
+        result['endpoint_controls']['db'] = db
+    if endpoint_binary_name is not None:
+        result['endpoint_binary'] = binary
     result['capture_immediate'] = capture_immediate
     result['qualify_capture'] = qualify_capture
     result['capture_commands'] = {}
@@ -322,7 +357,7 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
                 raise RuntimeError('tcpdump -Q %s wrote no capture file' % d)
 
         ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env +
-                               [BIN, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads * 4 + extra_seconds)],
+                               [binary, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads * 4 + extra_seconds)],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         ready = ost.stdout.readline().strip()
         result['outstation_ready'] = ready == 'READY'
@@ -331,7 +366,7 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
                 rule = loss.LossRule(nsx, drop, IP_M, IP_O, master_port, PORT_O).install()
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
-            command = env + [BIN, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
+            command = env + [binary, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
                              IP_M, str(rng), str(gap_ms)]
             result.update(_run_master_evidence(run_dir, master_port, command,
                                               reads * 4 + sbo_cycles * 4 + 30 + extra_seconds))
@@ -457,6 +492,10 @@ def main():
                          'classes: ' + ', '.join(loss.names()))
     ap.add_argument('--qualify-capture', action='store_true',
                     help='opt-in physical packet-boundary qualification evidence for this run')
+    ap.add_argument('--read-schedule', choices=READ_SCHEDULES,
+                    help='read-schedule endpoint: CASE4_READ_SCHEDULE for the master (needs --db)')
+    ap.add_argument('--db', choices=DBS, help='read-schedule endpoint: CASE4_DB for both endpoints')
+    ap.add_argument('--endpoint-binary', help='endpoint file beside this script (default case4_socket_gate_pad58b)')
     a = ap.parse_args()
 
     if a.mode == 'setup':
@@ -490,6 +529,8 @@ def main():
         except ValueError as e:
             sys.exit(str(e))
     if a.scenario == 'reconnect':
+        if a.read_schedule or a.db or a.endpoint_binary:
+            sys.exit('--scenario reconnect does not carry --read-schedule/--db/--endpoint-binary')
         out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
                             a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
                             a.qualify_capture, a.sbo_cycles)
@@ -499,7 +540,8 @@ def main():
         result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
                                 a.start_delay_ms, a.start_seed, drop, a.connect_must_fail,
                                 a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
-                                qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles)
+                                qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles,
+                                read_schedule=a.read_schedule, db=a.db, endpoint_binary_name=a.endpoint_binary)
     except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))

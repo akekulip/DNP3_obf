@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 import capture_boundary
+import read_classes
 
 # v2: observed.precision + qualification. Every retained artifact is v2 and keeps its validation path and verdict;
 # SCHEMA_VERSION keeps naming it for those readers. v3 (everything build_standards_artifact writes now): v2 plus the
@@ -46,6 +47,16 @@ def boundary_segment_requirement(context, expected):
         return None, 0
     counts = (expected or {}).get('expected', {}).get('counts') or {}
     lengths = (expected or {}).get('expected', {}).get('lengths') or {}
+    classes = (expected or {}).get('expected', {}).get('read_classes')
+    if classes is not None:
+        # per-class READ declaration: when anything is transformed, every exchange of every kind and READ class is
+        # bound to its own length ('READ:<class>' or the kind), never to a set of lengths
+        if not any(e['image'] != e['native'] for e in classes.values()) and \
+                not any(lengths.get(kind) == [61] for kind in SBO):
+            return None, 0
+        required = {'READ:' + cls: e['image'] for cls, e in classes.items()}
+        required.update({kind: lengths[kind][0] for kind in SBO if kind in lengths and kind in counts})
+        return required, sum(e['count'] for e in classes.values()) + sum(int(counts.get(k, 0)) for k in SBO)
     # A transformed kind is one at the candidate61 image (61), or a READ at the build's read_image_len (a
     # read_complete_01 policy build). Several lengths come back as a tuple.
     config = (context or {}).get('config') or {}
@@ -125,6 +136,44 @@ def expected_lengths(config, arm, unbound_native=False):
     return {'READ': [read], 'SELECT': [sbo], 'OPERATE': [sbo]}
 
 
+def read_class_expectations(config, arm, trial=None, unbound_native=False):
+    """read_classes.expectations for this arm: padded exactly when expected_lengths gives a non-native READ. None
+    when the build declares no read_images (every legacy path); ReadClassError when a padded arm would run an
+    unsupported class."""
+    if arm is None:
+        return None
+    padded = expected_lengths(config, arm, unbound_native)['READ'] != [49]
+    return read_classes.expectations(config, arm, trial, padded)
+
+
+def read_class_failures(checker_result, classes):
+    """Per-class READ verdicts of check_capture (raw_result or the result itself) against the declaration: every
+    READ classified into a declared class, ok, at its class image, and exactly the declared count per class."""
+    raw = (checker_result or {}).get('raw_result') if isinstance((checker_result or {}).get('raw_result'), dict) \
+        else (checker_result or {})
+    verdicts = raw.get('verdicts') if isinstance(raw, dict) else None
+    if not isinstance(verdicts, list):
+        return ['per-class READ verdicts missing from the checker result']
+    failures, seen = [], {}
+    for v in verdicts:
+        if not isinstance(v, dict) or v.get('kind') != 'READ':
+            continue
+        cls = v.get('read_class')
+        if cls not in classes:
+            failures.append('READ verdict %r has undeclared class %r' % (v.get('index'), cls))
+            continue
+        seen[cls] = seen.get(cls, 0) + 1
+        if v.get('ok') is not True:
+            failures.append('READ %s verdict %r not ok: %s' % (cls, v.get('index'), v.get('error')))
+        if v.get('wire_len') != classes[cls]['image']:
+            failures.append('READ %s verdict %r wire length %r, expected %d'
+                            % (cls, v.get('index'), v.get('wire_len'), classes[cls]['image']))
+    for cls, e in sorted(classes.items()):
+        if seen.get(cls, 0) != e['count']:
+            failures.append('READ %s verdicts %d, expected %d' % (cls, seen.get(cls, 0), e['count']))
+    return failures
+
+
 def expected_counts(context):
     trial = context.get('trial') or {}
     reads = int(trial.get('reads', 0))
@@ -179,6 +228,14 @@ def expected_identity(context):
     build_hashes = {}
     if arm:
         build_hashes = ((run_record.get('builds') or {}).get(arm.get('build')) or build.get('hashes') or {})
+    lengths = {kind: lengths for kind, lengths in expected_lengths(
+        config, arm, bool(context.get('unbound_native'))
+    ).items() if kind == 'READ' or kind in expected_counts(context)}
+    classes = read_class_expectations(config, arm, trial, bool(context.get('unbound_native')))
+    expected = {'counts': expected_counts(context), 'lengths': lengths}
+    if classes is not None:          # per-class declaration only; a legacy build keeps the exact legacy shape
+        lengths['READ'] = sorted({e['image'] for e in classes['classes'].values()})
+        expected['read_classes'] = classes['classes']
     return {
         'run': {
             'run_id': run_id,
@@ -201,12 +258,7 @@ def expected_identity(context):
             'version': checker_version(context.get('checker_files')),
             'dependency_closure_sha256': dependency_closure_hash(context.get('checker_files')),
         },
-        'expected': {
-            'counts': expected_counts(context),
-            'lengths': {kind: lengths for kind, lengths in expected_lengths(
-                config, arm, bool(context.get('unbound_native'))
-            ).items() if kind == 'READ' or kind in expected_counts(context)}
-        },
+        'expected': expected,
     }
 
 
@@ -313,6 +365,13 @@ def validate_standards(artifact, context, captures, hold_analyzer=None):
             if checker_result.get('expected_counts') != expected['expected']['counts']:
                 failures.append('observed.checker_result.expected_counts mismatch: expected %r, got %r'
                                 % (expected['expected']['counts'], checker_result.get('expected_counts')))
+            if 'read_classes' in expected['expected']:
+                if checker_result.get('expected_read_classes') != expected['expected']['read_classes']:
+                    failures.append('observed.checker_result.expected_read_classes mismatch: expected %r, got %r'
+                                    % (expected['expected']['read_classes'],
+                                       checker_result.get('expected_read_classes')))
+                failures += ['observed.checker_result: ' + f for f in
+                             read_class_failures(checker_result, expected['expected']['read_classes'])]
         if observed.get('failures'):
             failures.append('observed.failures is non-empty: %r' % observed.get('failures'))
         for key in ('transport_ok', 'select_authorizes_operate', 'operate_success', 'aggregate_verdict'):
@@ -327,7 +386,9 @@ def validate_standards(artifact, context, captures, hold_analyzer=None):
             if row.get('count') != count or row.get('complete') != count:
                 failures.append('observed.exchanges.%s count/complete mismatch: expected %d, got count=%r complete=%r'
                                 % (kind, count, row.get('count'), row.get('complete')))
-            if row.get('resp_len') != expected['expected']['lengths'].get(kind):
+            if kind == 'READ' and 'read_classes' in expected['expected']:
+                pass        # per class: bound through the checker verdicts above, not the first-packet length set
+            elif row.get('resp_len') != expected['expected']['lengths'].get(kind):
                 failures.append('observed.exchanges.%s resp_len mismatch: expected %r, got %r'
                                 % (kind, expected['expected']['lengths'].get(kind), row.get('resp_len')))
             if row.get('failures'):
@@ -412,9 +473,10 @@ def _validate_context(context, captures, expected):
     if not isinstance(counts, dict) or any(not isinstance(v, int) or isinstance(v, bool) or v < 0
                                            for v in counts.values()):
         failures.append('context.expected.counts malformed')
-    if not isinstance(lengths, dict) or any(not isinstance(v, list) or len(v) != 1
-                                            or not isinstance(v[0], int) or isinstance(v[0], bool) or v[0] <= 0
-                                            for v in lengths.values()):
+    several = {'READ'} if 'read_classes' in expected['expected'] else set()    # one image per declared class
+    if not isinstance(lengths, dict) or any(not isinstance(v, list) or not v or (len(v) != 1 and k not in several)
+                                            or any(not isinstance(n, int) or isinstance(n, bool) or n <= 0 for n in v)
+                                            for k, v in lengths.items()):
         failures.append('context.expected.lengths malformed')
     return failures
 
