@@ -1,0 +1,184 @@
+{
+ "policy_targets": [
+  141,
+  247,
+  401
+ ],
+ "reserved_range": [
+  1024,
+  4095
+ ],
+ "encoder_sha256": "8a5f6b68988c59860699149a49c897b453c1b1bb133fa945779816966bcc5295",
+ "policy_sha256": "ade5643172ff0a005307fb47d74f09ad4459d004b15d10de22fce350777ebd19",
+ "shapes": {
+  "segmented_integrity_377": {
+   "shape": "segmented_integrity_377",
+   "construction": "prefix",
+   "native_total": 377,
+   "target": 401,
+   "added": 24,
+   "padding_points": 4,
+   "frames_out": [
+    24,
+    292,
+    85
+   ],
+   "native_frames": [
+    292,
+    85
+   ],
+   "tcp_packetization": [
+    292,
+    85
+   ],
+   "prefix_frame": "056411449469f72d920f75ca81addb0102010004030477cb",
+   "prefix_frame_len": 24,
+   "prefix_link_len": 17,
+   "prefix_link_ctrl": 68,
+   "prefix_user_len": 12,
+   "padobj_head": "01020100040304",
+   "padobj_group_var_qual": "010201",
+   "padobj_range": "00040304",
+   "reserved_first_index": 1024,
+   "reserved_last_index": 1027,
+   "moved_app_header_src": "native frame0 user[1:5] (app ctrl, function, IIN) -> prefix user[1:5]",
+   "per_frame": [
+    {
+     "index": 0,
+     "link_len": 255,
+     "frame_len": 292,
+     "transport_old": 117,
+     "transport_new": 54,
+     "rewritten_positions": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      26,
+      27
+     ],
+     "observed_changed_positions": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      26,
+      27
+     ],
+     "block0_crc_off": 26,
+     "block0_crc_old": 29223,
+     "block0_crc_new": 38895
+    },
+    {
+     "index": 1,
+     "link_len": 70,
+     "frame_len": 85,
+     "transport_old": 182,
+     "transport_new": 183,
+     "rewritten_positions": [
+      10,
+      26,
+      27
+     ],
+     "observed_changed_positions": [
+      10,
+      26,
+      27
+     ],
+     "block0_crc_off": 26,
+     "block0_crc_old": 16756,
+     "block0_crc_new": 52537
+    }
+   ],
+   "verified_samples": 512,
+   "prefix_frame_note": "prefix_frame is one sample only; across samples only link start octets, link LEN, link CTRL and padobj_head are invariant -- addresses, moved app header and both CRCs vary and are derived on chip",
+   "checksum_model": {
+    "seg0_tcp_pseudo_len_growth": 24,
+    "seg1_tcp_pseudo_len_growth": 0,
+    "constant_added_bytes_ones_sum": 8365,
+    "constant_added_bytes": "0564114401020100040304",
+    "seg0": {
+     "ip_before": {
+      "constant": 58451,
+      "distinct": 1,
+      "invariant": true
+     },
+     "ip_after": {
+      "constant": 58427,
+      "distinct": 1,
+      "invariant": true
+     },
+     "tcp_before": {
+      "constant": null,
+      "distinct": 507,
+      "invariant": false
+     },
+     "tcp_after": {
+      "constant": null,
+      "distinct": 512,
+      "invariant": false
+     }
+    },
+    "seg1": {
+     "ip_before": {
+      "constant": 58658,
+      "distinct": 1,
+      "invariant": true
+     },
+     "ip_after": {
+      "constant": 58658,
+      "distinct": 1,
+      "invariant": true
+     },
+     "tcp_before": {
+      "constant": null,
+      "distinct": 511,
+      "invariant": false
+     },
+     "tcp_after": {
+      "constant": null,
+      "distinct": 509,
+      "invariant": false
+     }
+    },
+    "note": "IP/TCP checksums vary across samples (addresses, moved IIN, varied points, transport renumber, +24 stream shift on seg1 seq); none is a compile constant. The deparser adds the constant_added_bytes one's-complement sum and the pseudo-header length growth; the remainder is derived from live fields exactly as the range padder does."
+   },
+   "block0_crc": {
+    "frame0": {
+     "off": 26,
+     "old_invariant": {
+      "constant": null,
+      "distinct": 508,
+      "invariant": false
+     },
+     "new_invariant": {
+      "constant": null,
+      "distinct": 510,
+      "invariant": false
+     }
+    },
+    "frame1": {
+     "off": 26,
+     "old_invariant": {
+      "constant": null,
+      "distinct": 509,
+      "invariant": false
+     },
+     "new_invariant": {
+      "constant": null,
+      "distinct": 510,
+      "invariant": false
+     }
+    },
+    "note": "block-0 CRCs (old and new) vary with live data; recomputed on chip, not a constant."
+   },
+   "transport_renumber": {
+    "frame0": "FIR|seq -> seq+1 (FIR cleared, becomes a middle segment); prefix carries the new FIR",
+    "frame1": "FIN|seq -> FIN|seq+1",
+    "table": "(0xC0|s)->set per-s like the range padder tp table"
+   }
+  }
+ }
+}

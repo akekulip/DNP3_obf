@@ -1010,10 +1010,103 @@ def transform_read_passthrough_n(src):
     return src
 
 
+def transform_segmented_t(src):
+    """SEGMENTED probe (opt-in, --segmented only). Smallest T extension toward a two-link-frame
+    377 -> 401 READ: let the transaction core admit a SECOND response child (tev.stage 1 / ladder.child 1)
+    so the FIN continuation segment is a child of the same READ generation as the FIR segment.
+
+    The base (m11_09) already declares md.seen1_diff/md.seen2_diff and the go/verdict tables already key
+    on them ternary; only child 0 is wired (child_seen0_reg) and children 1/2 are stubbed as 0xffffffff
+    ('never admitted'). This adds a real child_seen1_reg (one more ingress SALU/stage) plus the parser
+    paths for stage/child 1, mirroring child 0 exactly. It does NOT yet dispatch the 332/125 segments in N,
+    account the 401 image in the mapper, or prepend the 24-B prefix -- those land on p0, which is already
+    12/12 stages. This probe isolates whether T can represent the second child at all (T p1-ingress has one
+    free stage in m12p_c12). Byte-identical to c12 when --segmented is off."""
+    # 1) parser: admit stage 1 as a second response child, and ladder child 1
+    src = once(src,
+        '    state single_response_child { transition select(hdr.tev.stage) { 0: opaque_ethernet; default: reject; } }',
+        '    state single_response_child { transition select(hdr.tev.stage) { 0: opaque_ethernet; 1: opaque_ethernet; default: reject; } }')
+    src = once(src,
+        '        transition select(hdr.ladder.child) { 0: single_ladder_role; default: reject; }',
+        '        transition select(hdr.ladder.child) { 0: single_ladder_role; 1: single_ladder_role; default: reject; }')
+    # 2) a real second-child seen register + access table, mirroring child 0
+    seen1 = (
+        '\n    // ---- SEGMENTED probe: second response child (make_m12.transform_segmented_t) ----\n'
+        '    Register<bit<32>, bit<1>>(1, 0xffffffff) child_seen1_reg;\n'
+        '    RegisterAction<bit<32>, bit<1>, bit<32>>(child_seen1_reg) child_try1 = {\n'
+        '        void apply(inout bit<32> value, out bit<32> out_value) { out_value = value ^ md.cur_gen; value = md.cur_gen; }\n'
+        '    };\n'
+        '    RegisterAction<bit<32>, bit<1>, bit<32>>(child_seen1_reg) child_read1 = {\n'
+        '        void apply(inout bit<32> value, out bit<32> out_value) { out_value = value ^ md.cur_gen; }\n'
+        '    };\n'
+        '    action read_seen1() { md.seen1_diff = child_read1.execute(0); }\n'
+        '    action try_seen1() { md.seen1_diff = child_try1.execute(0); }\n'
+        '    table child_seen1_access {\n'
+        '        key = { ig_intr_md.ingress_port : ternary; md.event_kind : ternary;\n'
+        '                hdr.tev.stage : ternary; md.e_bad : ternary; md.enabled : ternary; }\n'
+        '        actions = { read_seen1; try_seen1; NoAction; }\n'
+        '        const entries = {\n'
+        '            (t_HELD_RETURN, _, _, _, _) : read_seen1();\n'
+        '            (t_T_IN, t_KIND_RESPONSE, 1, _, 0) : NoAction();\n'
+        '            (t_T_IN, t_KIND_RESPONSE, 1, 0, _) : try_seen1();\n'
+        '        }\n'
+        '        default_action = NoAction(); size = 3;\n'
+        '    }\n')
+    src = once(src,
+        '            (t_T_IN, t_KIND_RESPONSE, 0, 0, _) : try_seen0();\n'
+        '        }\n'
+        '        default_action = NoAction(); size = 3;\n'
+        '    }\n',
+        '            (t_T_IN, t_KIND_RESPONSE, 0, 0, _) : try_seen0();\n'
+        '        }\n'
+        '        default_action = NoAction(); size = 3;\n'
+        '    }\n' + seen1)
+    # 3) apply the second-child table (keep the not-seen default so stage-0 passes are unchanged)
+    src = once(src,
+        '        child_seen0_access.apply(); md.seen1_diff = 32w0xffffffff; md.seen2_diff = 32w0xffffffff;',
+        '        child_seen0_access.apply(); md.seen1_diff = 32w0xffffffff; child_seen1_access.apply(); md.seen2_diff = 32w0xffffffff;')
+    return src
+
+
+def transform_segmented_n(src):
+    """SEGMENTED probe step 2 (opt-in, --seg-n on top of --segmented). Add N's admission of the two
+    link-frame segments of the 377 native: the FIR segment is a 292-B TCP payload (ip.len 332) and the
+    FIN segment is an 85-B payload (ip.len 125). Reuses the existing rx_response path and the shallow
+    block-0 parse (read_response_fb / finish_shallow); no new header or table. This isolates whether the
+    already-full p0 ingress (12/12 MAU stages, PHV ~91%) can admit even the two new lengths. It does not
+    yet tag child 0 vs child 1 or change the handoff to T."""
+    src = once(src,
+        '(4w4,4w5,8w6,16w287):rx_response_ip_flags;',
+        '(4w4,4w5,8w6,16w287):rx_response_ip_flags;(4w4,4w5,8w6,16w332):rx_response_ip_flags;(4w4,4w5,8w6,16w125):rx_response_ip_flags;')
+    src = once(src,
+        '(8w0xd6,16w287):read_response_fb;default:accept;}}',
+        '(8w0xd6,16w287):read_response_fb;(8w0xff,16w332):read_response_fb;(8w0x46,16w125):read_response_fb;default:accept;}}')
+    return src
+
+
+def transform_segmented_n2(src):
+    """SEGMENTED probe step 3 (opt-in, --seg-n2 on top of --segmented --seg-n). Add ONE representative
+    new MAU table to N (p0 ingress): the child-index tag the two-segment READ needs, keyed on ip.len,
+    setting m.stage to child 0 (FIR, ip.len 332) or child 1 (FIN, ip.len 125). This directly tests
+    whether the already-full p0 ingress (12/12 MAU stages) can absorb even one extra match-action table.
+    It is a placement probe, not a correct classifier (it overwrites m.stage unconditionally for those
+    lengths)."""
+    src = once(src,
+        ' action network_accept(){m.network_valid=(bit<1>)(8w1);}',
+        ' action set_seg_child(bit<2> c){m.stage=c;}'
+        ' table seg_child_t{key={hdr.ip.len:exact;}actions={set_seg_child;NoAction;}size=2;'
+        'const entries={(16w332):set_seg_child(2w0);(16w125):set_seg_child(2w1);}const default_action=NoAction();}'
+        ' action network_accept(){m.network_valid=(bit<1>)(8w1);}')
+    src = once(src,
+        '  ports.apply();network.apply();retry_valid_t.apply();',
+        '  seg_child_t.apply();\n  ports.apply();network.apply();retry_valid_t.apply();')
+    return src
+
+
 TRANSFORMS = ['mapper_var', 'read_prefix']  # step 1: variable image (READ 73 + inherited SBO 61); full READ uses read_prefix_full
 
 
-def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'):
+def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none', segmented=False, seg_n=False, seg_n2=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -1025,6 +1118,12 @@ def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'
         transforms = ['mapper_var', 'read_prefix_p1', 'read_prepadded_e']
         if shapes == 'passthrough':
             transforms.append('read_passthrough_n')
+        if segmented:
+            transforms.append('segmented_t')
+        if seg_n:
+            transforms.append('segmented_n')
+        if seg_n2:
+            transforms.append('segmented_n2')
         shape_image = {'read': c['target'], 'ctl': 61}
         read_native = c['native_total']
         per_image = {c['native_total']: c['target'], 37: 61, 61: 61}   # 61: handshake virtual image
@@ -1039,6 +1138,12 @@ def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'
                                        per_image=per_image, c3_cimg=(policy and c3 == 'cimg'))
         elif name == 'read_passthrough_n':
             src = transform_read_passthrough_n(src)
+        elif name == 'segmented_t':
+            src = transform_segmented_t(src)
+        elif name == 'segmented_n':
+            src = transform_segmented_n(src)
+        elif name == 'segmented_n2':
+            src = transform_segmented_n2(src)
         elif name in ('read_prefix_p1', 'read_prepadded_e'):
             src = globals()['transform_' + name](src, policy_shape())
         else:
@@ -1060,16 +1165,28 @@ def main():
                     help='policy build reverse boundary: max-image ladder (m12p_b08) or per committed image (cimg)')
     ap.add_argument('--shapes', choices=('none', 'passthrough'), default='none',
                     help='policy build: also admit the pass-through READ classes (analog 141, class0/integrity 247) at native size')
+    ap.add_argument('--segmented', action='store_true',
+                    help='opt-in SEGMENTED probe: add the T second-response-child wiring toward the two-frame 377->401 READ (see transform_segmented_t)')
+    ap.add_argument('--seg-n', dest='seg_n', action='store_true',
+                    help='SEGMENTED probe step 2: also add N admission of the 332/125 segment lengths (requires --segmented)')
+    ap.add_argument('--seg-n2', dest='seg_n2', action='store_true',
+                    help='SEGMENTED probe step 3: also add the N child-index MAU table (requires --seg-n)')
     a = ap.parse_args()
     if a.shapes != 'none' and not a.policy:
         ap.error('--shapes requires --policy')
+    if a.segmented and not a.policy:
+        ap.error('--segmented requires --policy')
+    if a.seg_n and not a.segmented:
+        ap.error('--seg-n requires --segmented')
+    if a.seg_n2 and not a.seg_n:
+        ap.error('--seg-n2 requires --seg-n')
     if a.full:
         a.image = 269
     if a.policy:
         a.image = policy_shape()['target']
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3, shapes=a.shapes)
+    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3, shapes=a.shapes, segmented=a.segmented, seg_n=a.seg_n, seg_n2=a.seg_n2)
     (out / 'response_only.p4').write_text(src)
     sha = hashlib.sha256(src.encode()).hexdigest()
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
