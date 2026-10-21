@@ -1,0 +1,49 @@
+{
+  "active_step": null,
+  "active_unit": null,
+  "campaign_id": "rc01_hw_b08_20261021_03",
+  "controller_generation": 1,
+  "controller_unit": "dnp3-eval-rc01_hw_b08_20261021_03-70381b1b9fe6-controller-1.service",
+  "created": 1792596326.795391,
+  "deadline": 1792682726.91714,
+  "evidence_kind": "hardware",
+  "manifest_sha256": "96da290afd018bd3b30020807e019fe28a6dca06d49aec41904de438f0f123e7",
+  "phase": "stopped",
+  "start": 1792596326.91714,
+  "started": true,
+  "steps": {
+    "rc01_hw_b08_20261021_03_control_m11_09_reference": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_03_control_m11_09_reference/artifact_manifest.json",
+        "sha256": "39f076ecf5a286aa285b448e0fe739eebca10f17387c971af2c04da2e1b82c81"
+      },
+      "finished": 1792596741.0008473,
+      "hardware_entry": 1792596326.9831536,
+      "id": "rc01_hw_b08_20261021_03_control_m11_09_reference",
+      "kind": "block",
+      "manifest_sha256": "96da290afd018bd3b30020807e019fe28a6dca06d49aec41904de438f0f123e7",
+      "postcheck_rc": null,
+      "rc": 1,
+      "reason": "block_failed",
+      "restoration": {
+        "device": 2050,
+        "inode": 51156779,
+        "mtime_ns": 1792596740945496090,
+        "ok": true,
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_03_control_m11_09_reference/restore_verify.json",
+        "sha256": "ac3f35716c352a2043aacd4756a56c74a21db1a4f597073a48dee44fbd86c65a",
+        "size": 2411
+      },
+      "started": 1792596326.9778845,
+      "status": "failed",
+      "unit": "dnp3-eval-rc01_hw_b08_20261021_03-70381b1b9fe6-step-rc01_hw_b08_20261021_03_control_m11_09_reference.service"
+    },
+    "rc01_hw_b08_20261021_03_reference": {
+      "rc": null,
+      "restoration": null,
+      "status": "unexecuted"
+    }
+  },
+  "stop_after_current": false,
+  "stop_reason": "block_failed"
+}

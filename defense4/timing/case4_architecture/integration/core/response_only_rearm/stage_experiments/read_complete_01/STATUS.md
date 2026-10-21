@@ -128,3 +128,24 @@ policy, reproduction and the completion record only.
 - Readout direction bug fixed (out.pcap = what Vision sent). Block 1 on silicon: off/timing_only exactly native;
   size_only SBO 37->61 on 128/128, +16.75 % wire octets, READ 49 (padder not enabled).
 - COMPLETION_RECORD.md written (physical tier partial; decision needed).
+
+## 2026-10-21 (afternoon) — review d531918e2 continuation
+- Review package reproduced on a clean worktree at d531918e2 (all four counterexamples; gate blocked). Findings 3, 4, 5
+  fixed and committed (5be733630, 3e47e9b06, 7dae3ed39): fail-closed readout (11 tests incl. a positive padded
+  control), bound reset evidence verified against its launch pins and committed unchanged (logs as byte-exact xz +
+  hash-checked restore), policy from tracked inputs; gate recomputes model_gate_passed on a fresh worktree.
+- Restoration lock: reconcile extended for a never-reached-hardware block (65f1dd5ee, two reviews); run 15:24Z:
+  fresh restore_verify ok, unsafe_restoration=false (record reconcile_20261021T152429Z).
+- Endpoint READ-class schedule built (266adfda2): base 49/141/247/247, large DB class0 and integrity 292+85.
+- Finding 2 (committed-image boundary): m12p_c04 compiles in 12 stages with per-image classify_rev (15 entries,
+  was 284); contract tests 7 pass (source interpreter). c01-c03 failed attempts retained (2c5f81211).
+- TIMING ATTRIBUTION (campaign rc01_hw_b08_20261021_03, control on the unchanged m11_09 build, 15:25-15:32Z,
+  restore_verify ok): m11_09 TODAY fails the same precision gate (timing_only READ p99 abs CLRT error 3551 us,
+  median 1344; 18 Oct: 63 / 5). Off-arm request transit median 1101 us (b08 1161; 18 Oct 98). The discrepancy is
+  NOT the b08 build. It is environmental: even the restore ping through the PRODUCTION program to the relay is
+  slower (avg 2.8-3.7 ms today vs 0.66-0.89 ms on 18 Oct); data-path min RTT unchanged (0.364 vs 0.30-0.34 ms) but
+  jitter large (avg 3.46, max 9.0 ms), while Vision's management path is fast (avg 0.21 ms). Vision rebooted
+  2026-10-19 23:32; now adaptive RX/TX coalescing on (rx-usecs 50), intel_idle max_cstate 9, docker services up
+  since boot. No Vision latency tuning is recorded in the repo; sudo on Vision needs a password, so nothing was
+  changed. Hardware timing PRECISION cannot pass on this host state for any build until Philip restores the
+  pre-reboot latency (decision for Philip). Size/delivery/recovery hardware checks are not affected.
