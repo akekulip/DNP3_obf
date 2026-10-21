@@ -32,8 +32,23 @@ def _policy():
 POLICY = _policy()
 
 
+def _passthrough_lengths():
+    """Native (= output) lengths of the pass-through READ classes the build declares (inputs.json
+    passthrough_reads): those responses leave the switch unchanged."""
+    path = os.environ.get('PORT_MAP')
+    if not path or not POLICY:
+        return frozenset()
+    reads = json.loads(Path(path).read_text()).get('passthrough_reads') or {}
+    return frozenset(v['output_octets'] for v in reads.values() if v['output_octets'] == v['response_octets'])
+
+
+PASSTHROUGH_LENS = _passthrough_lengths()
+
+
 def construct(native, c=None):
     import dnp3_std as std
+    if len(native) in PASSTHROUGH_LENS:
+        return native                                     # already at a policy target: unchanged
     c = c or POLICY
     hdr, user = std.deframe(native)
     seq = user[0] & 63
@@ -65,6 +80,8 @@ def install(encode61):
 
 def image_len_of(native, default):
     """Wire image length for a native response: the policy READ image for the READ shape, else the build's."""
+    if len(native) in PASSTHROUGH_LENS:
+        return len(native)
     return read_image_len(default) if len(native) == READ_NATIVE_LEN else default
 
 

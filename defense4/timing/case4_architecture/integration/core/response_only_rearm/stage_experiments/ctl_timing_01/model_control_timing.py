@@ -14,6 +14,7 @@ is forwarded at once. Frame builders come from seg61_02/model_repeat.py.
 """
 import hashlib
 import importlib.util
+import json
 import os
 import select
 import statistics
@@ -302,6 +303,27 @@ def main():
                 report.add('late_old_SELECT_response_dropped', 0, sum(1 for _t, p, _f in got if p == MASTER.dev_port))
             transaction('SELECT', 3, rb.crob(112), bytes(2) + rb.crob(112), inject=late_old)
             transaction('OPERATE', 4, rb.crob(112), bytes(2) + rb.crob(112))
+
+        passthrough = sorted(rb.rp.PASSTHROUGH_LENS)
+        if passthrough:
+            # Timed READ -> SELECT -> OPERATE cycles on ONE connection rotating through every READ class the build
+            # declares (the fixture endpoint's order range, analog, class0, integrity), from real captured bytes
+            # (read_complete_01/vectors/read_class_templates.json): each READ held by T and released ACK-then-response
+            # with its own image (range padded 141; pass-through classes unchanged), each OPERATE held for J.
+            templates = json.loads((HERE.parent / 'read_complete_01/vectors/read_class_templates.json').read_text())
+            classes = {'range': (rb.READ_OBJECTS, read_body)}
+            for cls in ('analog', 'class0', 'integrity'):
+                t = templates['databases']['base'][cls]
+                q_user = encode61.std.deframe(bytes.fromhex(t['request']))[1]
+                r_user = encode61.std.deframe(bytes.fromhex(t['native']))[1]
+                classes[cls] = (q_user[3:], r_user[3:])
+            for rnd in range(4):
+                for cls in ('range', 'analog', 'class0', 'integrity'):
+                    objects, body = classes[cls]
+                    transaction('READ', 1, objects, body)
+                    sbo(130 + rnd)
+            report.record['meta']['class_cycles'] = {'rounds': 4, 'order': ['range', 'analog', 'class0', 'integrity'],
+                                                     'passthrough_lengths': passthrough}
 
         def reconnect(tag, client, server):
             nonlocal c, s, growth, seqs

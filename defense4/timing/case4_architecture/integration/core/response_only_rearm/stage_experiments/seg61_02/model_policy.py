@@ -10,7 +10,10 @@ decoded independently: one reassembled fragment, original points as the suffix, 
      in each direction: d = image -> withhold (10), d = image + 1 -> stale (11), d = 0 -> translate (9);
   C. C5: a delayed outstation pure ACK carrying the native START of the committed READ image maps to the
      wire START (wend - 141), not the wire end.
-Timing disabled here (encoding/mapping gate); timing-enabled mixed traffic is control_timing's job.
+When the build declares pass-through READ classes (inputs.json passthrough_reads), the READ slots of A rotate through
+range, analog, class0, integrity (the fixture endpoint's order) from real captured bytes
+(read_complete_01/vectors/read_class_templates.json): pass-through responses must leave the switch unchanged and be
+mapped at native size. Timing disabled here (encoding/mapping gate); timing-enabled mixed traffic is control_timing's job.
 Run: python3 run_model.py <build> policy N --milestone m12
 """
 import hashlib
@@ -29,6 +32,21 @@ import model_fullread_boundary as fb  # noqa: E402
 
 std = mp.std
 C = json.loads((HERE.parent / 'read_complete_01/vectors/constants.json').read_text())['shapes']['range_g10v2_23']
+TEMPLATES = json.loads((HERE.parent / 'read_complete_01/vectors/read_class_templates.json').read_text())['databases']['base']
+CLASS_ORDER = ('range', 'analog', 'class0', 'integrity')      # the fixture endpoint's rotate4 order
+
+
+def build_passthrough():
+    """The pass-through READ classes the build under test declares (response_only.inputs.json), or none."""
+    path = os.environ.get('PORT_MAP')
+    return json.loads(Path(path).read_text()).get('passthrough_reads') or {} if path else {}
+
+
+def resequence(frame, transport, app):
+    """A captured one-frame DNP3 message with a new transport sequence and application control, re-framed so
+    every CRC is valid (std.frame)."""
+    hdr, user = std.deframe(frame)
+    return std.frame(hdr, bytes([(user[0] & 0xC0) | (transport & 63), (user[1] & 0xF0) | (app & 0x0F)]) + user[2:])
 IMAGE = C['target']
 PAD_FIRST = C['reserved_first_index']
 NPAD = C['padding_points']
@@ -77,7 +95,33 @@ class PolicyGate(pfx.PrefixGate):
                           self.v.packet(16, cseq + 20, native_sseq + mp.READ_NATIVE))
         return cseq + 20, native_sseq + mp.READ_NATIVE, wire_sseq + IMAGE
 
+    def class_read_exchange(self, name, cls, cseq, native_sseq, wire_sseq, seq):
+        """A pass-through READ class from real captured bytes: N must admit the request and the response, which
+        leaves the switch UNCHANGED (already at a policy target), mapped at native size."""
+        t = TEMPLATES[cls]
+        request = resequence(bytes.fromhex(t['request']), seq, 0xC0 | (seq & 15))
+        self.exchange(name + '_request', self.v.packet(24, cseq, wire_sseq, payload=request),
+                      self.v.packet(24, cseq, native_sseq, payload=request))
+        qlen = len(request)
+        self.exchange(name + '_server_ack', self.rs.ack_packet(seq=native_sseq, ack=cseq + qlen),
+                      self.rs.ack_packet(seq=wire_sseq, ack=cseq + qlen), reverse=True)
+        native = resequence(bytes.fromhex(t['native']), seq, 0xC0 | (seq & 15))
+        self.add(name + '_policy_status', 'already_at_target', t['status'])
+        got = self.exchange(name + '_response',
+                            self.v.packet(24, native_sseq, cseq + qlen, reverse=True, payload=native),
+                            self.v.packet(24, wire_sseq, cseq + qlen, reverse=True, payload=native), reverse=True)
+        self.add(name + '_payload_unchanged', native.hex(), mp.tcp_payload(got).hex())
+        n = len(native)
+        self.exchange(name + '_mapped_ack', self.v.packet(16, cseq + qlen, wire_sseq + n),
+                      self.v.packet(16, cseq + qlen, native_sseq + n))
+        return cseq + qlen, native_sseq + n, wire_sseq + n
+
     def read(self, cseq, nsq, wsq, k):
+        cls = CLASS_ORDER[k % 4] if PASSTHROUGH else 'range'
+        if cls != 'range':
+            if cls not in PASSTHROUGH:
+                raise AssertionError('class %s scheduled but not declared by the build' % cls)
+            return self.class_read_exchange('read_%03d_%s' % (k, cls), cls, cseq, nsq, wsq, k & 63)
         statuses = [((k * 11 + j * 17) & 0xff) | (0x80 if j in (0, 7, 22) else 0) for j in range(23)]
         return self.read_exchange('read_%03d' % k, cseq, nsq, wsq, seq=k & 63, statuses=statuses,
                                   iin=bytes([0x80 if k & 1 else 0, k & 0x10]))
@@ -102,6 +146,9 @@ class PolicyGate(pfx.PrefixGate):
                 k += 1
                 cseq, nsq, wsq = self.read(cseq, nsq, wsq, k)
         self.close(cseq, nsq, wsq, 'close')
+
+
+PASSTHROUGH = build_passthrough()
 
 
 class PolicyBoundaryGate(PolicyGate):
