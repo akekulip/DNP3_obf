@@ -878,6 +878,24 @@ def main():
     profile = {'candidate': {'build': str(out), 'milestone': 'm12', 'source_sha256': sha, 'segment_sha256': segs,
                              'artifact_sha256': {}},
                'reset_restart_required': True, 't_child_count': 1}
+    if a.policy:
+        # complete supported profile (candidate_campaign's control-timing contract): N/T values inherited
+        # unchanged from m11_09; the READ image is stated separately from the control image
+        m11 = json.loads((STAGE / 'ctl_timing_01/evidence/m11_09/supported_profile.json').read_text())
+        profile.update({k: m11[k] for k in ('profile_version', 'clock', 'timing_ns', 'n', 'ports')})
+        profile['_note'] = ('read_complete_01 policy build: N/T values unchanged from m11_09 (T segment and timing '
+                            'parameters inherited); encoding differs: SELECT/OPERATE output 61 (output_octets), READ '
+                            'output %d (read_output_octets, pipe-1 egress prefix, %d synthetic G1V2 points %d..%d). '
+                            'Arbitrary input sizes are not supported.'
+                            % (c['target'], c['padding_points'], c['reserved_first_index'],
+                               c['reserved_first_index'] + c['padding_points'] - 1))
+        profile['encoding'] = {
+            'native_input_octets': {'READ': 49, 'SELECT': 37, 'OPERATE': 37}, 'output_octets': 61,
+            'output_octets_note': 'SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets',
+            'read_output_octets': c['target'],
+            'read_construction': 'prefix (read_complete_01/vectors/constants.json shape %s)' % c['shape'],
+            'control_application_partition': m11['encoding']['control_application_partition'],
+            'control_partition_note': m11['encoding']['control_partition_note']}
     (out / 'response_only.inputs.json').write_text(json.dumps({
         'milestone': 'm12', 'image_len': read_out, 'transforms_applied': applied, 'scope': scope,
         'full_target': runnable, 'runnable': runnable,
