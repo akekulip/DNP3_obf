@@ -1,0 +1,315 @@
+{
+ "cases": [
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4",
+   "work": {
+    "action_name": null,
+    "generation": [
+     1
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4",
+   "work": {
+    "action_name": null,
+    "generation": [
+     2
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000",
+   "work": {
+    "action_name": null,
+    "generation": [
+     3
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c",
+   "work": {
+    "action_name": null,
+    "generation": [
+     4
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000",
+   "work": {
+    "action_name": null,
+    "generation": [
+     5
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_response_61",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff0800450000b500014000400626400a0000020a0000014e207531000003850000007950181000707e000005644d44010000005c2140c081800001020100043f040000000019e100000000000000000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff0000000000000000ffff05642644010000002f7781000000000a02000016000102030405d483060708090a0b0c0d0e0f10111213141555eb1650f8"
+    ]
+   },
+   "want": "001122334455aabbccddeeff0800450000b500014000400626400a0000020a0000014e207531000003850000007950181000707e000005644d44010000005c2140c081800001020100043f040000000019e100000000000000000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff0000000000000000ffff05642644010000002f7781000000000a02000016000102030405d483060708090a0b0c0d0e0f10111213141555eb1650f8",
+   "work": {
+    "action_name": null,
+    "generation": [
+     6
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500004b00014000400626aa0a0000010a00000275314e2000000079000003b6501810005671000005641ac40a0001008a1cc1c1030c012801000100010164000000cc786400000000005b",
+   "work": {
+    "action_name": null,
+    "generation": [
+     7
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SELECT_response_61",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004120000009c501810002ec000000564154401000a004d1941c18100000c01280100010001016400441f05640c4401000a00b74e0200006400000049980564074401000a003b4783007b54"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500006500014000400626900a0000020a0000014e207531000004120000009c501810002ec000000564154401000a004d1941c18100000c01280100010001016400441f05640c4401000a00b74e0200006400000049980564074401000a003b4783007b54",
+   "work": {
+    "action_name": null,
+    "generation": [
+     8
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_after_SELECT_cancels_selection_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000009c000003db501810003b9c000005640dc400000100f387c2c2010a02000016babe"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000009c000003db501810003b9c000005640dc400000100f387c2c2010a02000016babe",
+   "work": {
+    "action_name": null,
+    "generation": [
+     9
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "RST_after_abandoned_SELECT_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000b0000003db50141000c3f10000000000000000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000b0000003db50141000c3f10000",
+   "work": {
+    "action_name": null,
+    "generation": [
+     9
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "new_SYN_after_abandoned_SELECT_admitted",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000138800000000600210009d4a0000020405b40000"
+    ]
+   },
+   "want": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200000138800000000600210009d4a0000020405b4",
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "characterized",
+   "observed": true,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "2a728a06699805911a21732dbe527d665433e609883ee56c8e98afa20eada21d",
+  "physical": false,
+  "read_after_select": [
+   {
+    "attempt": 0,
+    "forwarded": true,
+    "waited_s": 0,
+    "work": {
+     "action_name": null,
+     "generation": [
+      9
+     ],
+     "is_default_entry": false,
+     "phase": [
+      4
+     ]
+    }
+   }
+  ],
+  "recovery": {
+   "new_syn_forwarded": true,
+   "rst_forwarded": true,
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  "scope": "E61 compiled: SELECT not followed by OPERATE (abandoned select), T enabled=0; what N drops, whether it clears with time, RST or a new connection",
+  "work_after_select": {
+   "action_name": null,
+   "generation": [
+    8
+   ],
+   "is_default_entry": false,
+   "phase": [
+    4
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 12,
+  "total": 12
+ }
+}
