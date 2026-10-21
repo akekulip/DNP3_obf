@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # read_complete_01: one entry point that re-derives every offline result and re-checks the recorded evidence.
 #
-#   bash reproduce.sh                                # offline: software tests, policy, constants, P4, gate, freeze
+#   bash reproduce.sh                                # offline, the current candidate (CANDIDATE=c12 by default)
+#   CANDIDATE=b08 bash reproduce.sh                  # the earlier range-only candidate (b08, historical)
 #   bash reproduce.sh --readout BLOCK_DIR CONFIG [ARMS] # also the independent readout of one recorded block
 #                                                      (exit nonzero when that readout fails)
 #
@@ -14,9 +15,16 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 STAGE="$(dirname "$HERE")"
 HW="$(cd "$STAGE/../../../evidence/rearm_01/hw" && pwd)"
 PY312="${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}"
-BUILD="$STAGE/ctl_timing_01/evidence/m12p_b08"
+CANDIDATE="${CANDIDATE:-c12}"
+case "$CANDIDATE" in
+  c12) GEN_ARGS="--policy --c3 cimg --shapes passthrough"
+       SOURCE_SHA=742089cbe7629b754b47418245da9c22f1c2dc4949d8bd8a9f7e4bebaff8bbe5 ;;
+  b08) GEN_ARGS="--policy"
+       SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c12 | b08)"; exit 2 ;;
+esac
+BUILD="$STAGE/ctl_timing_01/evidence/m12p_$CANDIDATE"
 FREEZE="$BUILD/freeze_v3.json"
-B08_SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "$SCRATCH"' EXIT
 
@@ -33,21 +41,25 @@ step "3. switch constants: derive.py reproduces constants.json (byte-exact proof
 (cd "$HERE/vectors" && "$PY312" derive.py >/dev/null)
 git -C "$HERE" diff --exit-code -- vectors/constants.json
 
-step "4. P4: make_m12.py --policy regenerates the m12p_b08 source byte for byte"
-python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" --policy >/dev/null
+step "4. P4: make_m12.py $GEN_ARGS regenerates the m12p_$CANDIDATE source byte for byte"
+python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
-[ "$got" = "$B08_SOURCE_SHA" ] || { echo "regenerated source $got != $B08_SOURCE_SHA"; exit 1; }
+[ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
 
 step "5. model gate: retained logs restored (hash-verified), v3 summary recomputed (no --write)"
 python3 "$HERE/restore_retained_logs.py"
-(cd "$STAGE/ctl_timing_01" && python3 model_summary.py evidence/m12p_b08 --v3 --enforce | tail -1)
+(cd "$STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$CANDIDATE" --v3 --enforce | tail -1)
 
 step "6. freeze: every block config belongs to the frozen candidate"
-for c in "$HERE"/hw/config/rc01_m12p_b08_*.json; do
-  python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$c" >/dev/null
-  echo "ok $(basename "$c")"
-done
+if [ -f "$FREEZE" ] && ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/null 2>&1; then
+  for c in "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json; do
+    python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$c" >/dev/null
+    echo "ok $(basename "$c")"
+  done
+else
+  echo "no freeze yet for m12p_$CANDIDATE (configs present: $(ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json 2>/dev/null | wc -l)); skipping"
+fi
 
 if [ "${1:-}" = "--readout" ]; then
   [ $# -ge 3 ] || { echo "usage: reproduce.sh --readout BLOCK_DIR CONFIG [ARMS]"; exit 2; }

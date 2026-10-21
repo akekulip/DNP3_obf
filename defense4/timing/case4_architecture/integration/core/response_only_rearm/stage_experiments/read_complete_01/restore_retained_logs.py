@@ -22,7 +22,7 @@ def sha(data):
 
 
 def main():
-    archives = sorted(EVIDENCE.glob('model_*_m12p_b08_*/model_*.log.xz'))
+    archives = sorted(EVIDENCE.glob('model_*_m12p_*/model_*.log.xz'))   # b08 and c12 (and later) retained logs
     if not archives:
         print('no retained log archives found under %s' % EVIDENCE)
         return 1
