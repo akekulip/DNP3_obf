@@ -140,6 +140,41 @@ class CommittedImageBoundary(unittest.TestCase):
         self.assertEqual(reverse(self.e, 50, 10, 4096)[1], 1)
 
 
+def forward_pure_ack(e, native, q_offset, leff=0):
+    """E's forward classification of an outstation pure ACK (leff 0) whose sequence lies q_offset from the native
+    end of the last committed image (m.q), with m.p = 0 (no native data after the image start)."""
+    e.begin_pass(0)
+    e.valid['tcp'] = True
+    e.env.update({'m.front_ret': (-10) & 0xFFFFFFFF,     # behind the frontier: a delayed segment
+                  'm.grant': 0, 'm.q': q_offset & 0xFFFFFFFF, 'm.leff': leff, 'm.p': 0,
+                  'm.y': 0, 'm.z': 0, 'm.read_shape': 0, 'm.ctl_shape': 0, 'm.badh': 0, 'm.rbad0': 0, 'm.rbad1': 0,
+                  'm.rbadt': 0, 'm.cbad0': 0, 'm.cbadt': 0, 'hdr.tcp.flags': 0x10, 'm.result': 0, 'md.drop_ctl': 0})
+    e.table('classify_fwd')
+    return e.env.get('m.result'), e.env.get('m.qx'), e.env.get('md.drop_ctl', 0)
+
+
+class DelayedPureAckForwardMapping(unittest.TestCase):
+    """Review finding 6: the C5 model probe emitted no frame (N refused it upstream), so E's mapping was never
+    exercised. Here classify_fwd runs directly: a pure ACK carrying the committed image's NATIVE START (m.q = -N,
+    m.p = 0) must map to that image's WIRE START (m.qx = -I, so wend_fwd emits wire_end - I), not its wire end."""
+    @classmethod
+    def setUpClass(cls):
+        cls.text = generate('cimg')
+        cls.e = E(e_role(cls.text))
+        cls.zero = int(re.search(r'const bit<8>\s+r_OUT_ZERO\s*=\s*(\w+);', cls.text).group(1), 0)
+
+    def test_native_start_maps_to_wire_start_for_each_committed_image(self):
+        for native, image in ((37, 61), (49, 141), (61, 61)):
+            result, qx, drop = forward_pure_ack(self.e, native, -native)
+            self.assertEqual((result, drop), (self.zero, 0), native)
+            self.assertEqual(qx, (-image) & 0xFFFFFFFF, (native, image))
+
+    def test_a_pure_ack_at_the_native_end_still_maps_to_the_wire_end(self):
+        result, qx, drop = forward_pure_ack(self.e, 49, 0)
+        self.assertEqual(drop, 0)
+        self.assertNotEqual(qx, (-141) & 0xFFFFFFFF)
+
+
 class LadderBuildFinding(unittest.TestCase):
     def test_m12p_b08_ladder_withholds_where_the_61_image_must_stale(self):
         """The recorded d531918e2 finding, kept as evidence: b08's max-image ladder withholds at d 62..141."""
