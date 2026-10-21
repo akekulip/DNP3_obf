@@ -294,9 +294,12 @@ def _postcheck_problems(run_dir, inputs_path):
             return ['reset postcheck did not pass (exit %r)' % check['exit_code']]
         checked = json.loads((run_dir / 'reset_application.dependencies.json').read_text())
         checker = HERE / 'reset_application_check.py'
-        if Path(check['checker']).resolve() != checker.resolve():
-            return ['reset postcheck ran a different checker']
         checker_rel = str(checker.resolve().relative_to(REPO))
+        # The recorded path is absolute in the checkout that ran it; another checkout of the same repository
+        # binds the same checker when the repo-relative suffix matches (its sha256 is bound just below).
+        recorded = Path(check['checker'])
+        if recorded.resolve() != checker.resolve() and not str(recorded).endswith('/' + checker_rel):
+            return ['reset postcheck ran a different checker']
         if (checked.get('closure_version') != record_closure.CLOSURE_VERSION or
                 checked.get('target') != checker_rel or checked.get('target_sha256') != _sha(checker) or
                 checked.get('files', {}).get(checker_rel) != _sha(checker)):

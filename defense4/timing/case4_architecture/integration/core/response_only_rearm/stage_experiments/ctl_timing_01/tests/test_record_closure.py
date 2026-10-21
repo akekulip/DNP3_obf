@@ -99,6 +99,23 @@ def test_complete_reset_postcheck_execution_is_bound_and_tampering_is_rejected(t
         path.write_text(old)
 
 
+def test_the_checker_binding_survives_a_relocated_checkout_but_not_a_different_checker(tmp_path):
+    """Review of d531918e2: a fresh checkout at another path refused 'ran a different checker' although the
+    executed checker's repo-relative path and sha256 are bound; only the checkout location differed."""
+    import sys
+    sys.path.insert(0, str(RECORDER.parent))
+    import model_summary
+    test_complete_reset_postcheck_execution_is_bound_and_tampering_is_rejected(tmp_path)
+    run, profile = tmp_path / 'run', tmp_path / 'response_only.inputs.json'
+    closure_path = run / 'dependency_closure.json'
+    closure = json.loads(closure_path.read_text())
+    rel = str((RECORDER.parent / 'reset_application_check.py').resolve().relative_to(model_summary.REPO))
+    for recorded, ok in (('/elsewhere/checkout/' + rel, True),
+                         ('/elsewhere/checkout/' + rel.replace('reset_application_check', 'other_check'), False)):
+        closure['postchecks']['reset_application']['checker'] = recorded
+        closure_path.write_text(json.dumps(closure))
+        assert (model_summary._postcheck_problems(run, profile) == []) is ok, recorded
+
 def test_missing_driver_closure_remains_a_recorded_failure(tmp_path):
     import sys
     sys.path.insert(0, str(RECORDER.parent))
