@@ -46,10 +46,16 @@ def boundary_segment_requirement(context, expected):
         return None, 0
     counts = (expected or {}).get('expected', {}).get('counts') or {}
     lengths = (expected or {}).get('expected', {}).get('lengths') or {}
-    transformed = [kind for kind, values in lengths.items() if values == [61]]
+    # A transformed kind is one at the candidate61 image (61), or a READ at the build's read_image_len (a
+    # read_complete_01 policy build). Several lengths come back as a tuple.
+    config = (context or {}).get('config') or {}
+    read_len = (_build(config, (context or {}).get('arm') or _first_config_arm(config)) or {}).get('read_image_len')
+    transformed = [kind for kind, values in lengths.items()
+                   if values == [61] or (kind == 'READ' and read_len and values == [int(read_len)])]
     if not transformed:
         return None, 0
-    return 61, sum(int(counts.get(kind, 0)) for kind in transformed)
+    sizes = tuple(sorted({lengths[kind][0] for kind in transformed}))
+    return (sizes[0] if len(sizes) == 1 else sizes), sum(int(counts.get(kind, 0)) for kind in transformed)
 
 
 def sha256_file(path):
@@ -109,7 +115,7 @@ def expected_lengths(config, arm, unbound_native=False):
         read, sbo = 49, 37
     elif profile == 'candidate61' or image_len == 61:
         if padding and name in ('size_only', 'combined'):
-            read, sbo = 61, 61
+            read, sbo = int(build.get('read_image_len') or 61), 61
         else:
             read, sbo = 49, 37
     elif profile == 'strict_comparison' or image_len == 58:

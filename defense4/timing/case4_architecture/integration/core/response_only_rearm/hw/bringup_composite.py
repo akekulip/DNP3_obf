@@ -65,16 +65,39 @@ P1_PAD = {'enabled': False}
 original_rows_build = installer.rows.build
 
 
+def p1_ops(master, outstation, pad_enable):
+    if not P1_PAD['enabled']:
+        return []
+    return [dict(kind='p4', pipe=0xffff, table=table, priority=priority, action=action,
+                 key=[(f, v, None) for f, v in key], data=list(data))
+            for table, key, action, data, priority in candidate_cp.p1_pad_rows(outstation, master, pad_enable)]
+
+
 def rows_with_p1(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100, pad_enable=True):
     rows = original_rows_build(master, outstation, decoy, ports, read_dst, read_src, pad_enable=pad_enable)
-    if P1_PAD['enabled']:
-        for table, key, action, data, priority in candidate_cp.p1_pad_rows(outstation, master, pad_enable):
-            rows.append(dict(kind='p4', pipe=0xffff, table=table, priority=priority, action=action,
-                             key=[(f, v, None) for f, v in key], data=list(data)))
-    return rows
+    return rows + p1_ops(master, outstation, pad_enable)
 
 
 installer.rows.build = rows_with_p1
+original_plan = installer.plan
+
+
+def plan_with_p1(a, ports):
+    """The baseline plan keeps only p0.r_/p0.n_ rows, so the p1 row is placed here: after E's rows and before
+    any N row, so no READ is bound by N before the padder's enable is in place (rc01_hw_b08_20261021_01)."""
+    ops = original_plan(a, ports)
+    master, outstation = installer.rows.endpoints(a.master_ip, a.master_port, a.master_dev,
+                                                  a.relay_ip, a.relay_port, a.relay_dev)
+    extra = p1_ops(master, outstation, a.pad_enable)
+    if not extra:
+        return ops
+    first_n = next((i for i, op in enumerate(ops) if (op.get('table') or '').startswith('p0.n_')), None)
+    if first_n is None:
+        raise SystemExit('REFUSED: the plan has no N row to place the pipe-1 padder enable before')
+    return ops[:first_n] + extra + ops[first_n:]
+
+
+installer.plan = plan_with_p1
 
 
 profile = module('rearm_sealed_profile', HERE / 'sealed_profile.py')

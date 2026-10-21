@@ -265,6 +265,13 @@ def _verdict_app_seq(verdict):
     return None
 
 
+def _required_lengths(required_payload_len):
+    """One required payload length (int) or several (a READ image beside the control image)."""
+    if isinstance(required_payload_len, int):
+        return {required_payload_len}
+    return set(required_payload_len)
+
+
 def _checker_expectations(checker_result, required_payload_len):
     failures = []
     if required_payload_len is None:
@@ -279,7 +286,7 @@ def _checker_expectations(checker_result, required_payload_len):
     for verdict in verdicts:
         if not isinstance(verdict, dict):
             continue
-        if verdict.get('wire_len') != required_payload_len:
+        if verdict.get('wire_len') not in _required_lengths(required_payload_len):
             continue
         app_seq = _verdict_app_seq(verdict)
         if app_seq is None:
@@ -410,14 +417,14 @@ def _validate_physical_main(in_path, result_path, *, required_payload_len=None, 
             if retx_key in seen_retx:
                 continue
             seen_retx.add(retx_key)
-            if seg.get('len') != required_payload_len:
-                failures.append('physical protected response segment %r len %r, expected %d' %
+            if seg.get('len') not in _required_lengths(required_payload_len):
+                failures.append('physical protected response segment %r len %r, expected %s' %
                                 (seg.get('index'), seg.get('len'), required_payload_len))
                 continue
             try:
                 app_seq = _response_app_seq(payload)
             except ValueError as error:
-                failures.append('physical incoming 61-byte segment %r is not a valid DNP3 response: %s' %
+                failures.append('physical incoming protected segment %r is not a valid DNP3 response: %s' %
                                 (seg.get('index'), error))
                 continue
             if next_expected < len(expected):
@@ -432,10 +439,10 @@ def _validate_physical_main(in_path, result_path, *, required_payload_len=None, 
                     failures.append('physical incoming retransmission %r repeats response with new TCP key' %
                                     seg.get('index'))
                 else:
-                    failures.append('physical incoming 61-byte segment %r repeats app_seq %r with different image' %
+                    failures.append('physical incoming protected segment %r repeats app_seq %r with different image' %
                                     (seg.get('index'), app_seq))
                 continue
-            failures.append('physical incoming 61-byte segment %r app_seq/hash does not match checker exchanges' %
+            failures.append('physical incoming protected segment %r app_seq/hash does not match checker exchanges' %
                             seg.get('index'))
         if protected_seen == 0:
             failures.append('physical incoming capture has no protected response payload evidence')

@@ -34,6 +34,7 @@ PROFILE = 'candidate61'
 NATIVE_LEN = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
 READ_RANGES = ((0x00, 0, 5), (0x00, 6, 9), (0x01, 10, 22))
 CONTROL_SPLIT = (15, 6, 1)
+READ_PAD_START, READ_PAD_STOP = 1024, 4095    # read_complete_01/policy/policy.json reserved_padding_range
 FIR, FIN = 0x40, 0x80
 
 
@@ -76,6 +77,26 @@ def _control61(header8, user):
     return out
 
 
+def _read_prefix(header8, user, expected_len):
+    """read_complete_01 policy READ (one native frame, e.g. 49 -> 141), written here from the encoding, not from
+    the project encoder: a new FIR frame carries the native transport sequence s, application header and IIN, then
+    a G1V2 q0x01 object over the reserved indices from 1024 whose first n-4 zero flag octets fill it; the native
+    frame follows unchanged in length as FIN, sequence s+1, its four application octets replaced by the last four
+    zero flags. n is the one count that makes the total expected_len."""
+    if user[0] & (FIR | FIN) != (FIR | FIN) or len(user) < 6:
+        raise std.StdError('native READ is not a single FIR|FIN frame with an application header and IIN')
+    native_len = len(std.frame(header8, user))
+    for n in range(4, READ_PAD_STOP - READ_PAD_START + 2):
+        obj = b'\x01\x02\x01' + struct.pack('<HH', READ_PAD_START, READ_PAD_START + n - 1) + bytes(n)
+        first = bytes([FIR | (user[0] & 0x3F)]) + user[1:5] + obj[:-4]
+        if len(first) > 250:                                  # one link frame carries at most 250 user octets
+            break
+        if native_len + len(std.frame(_header(header8, len(first)), first)) == expected_len:
+            rest = bytes([FIN | ((user[0] + 1) & 0x3F)]) + obj[-4:] + user[5:]
+            return std.frame(_header(header8, len(first)), first) + std.frame(header8, rest)
+    raise std.StdError('no %s READ prefix reaches %d octets from %d' % (PROFILE, expected_len, native_len))
+
+
 def expected_image(kind, native_frame, expected_len):
     """The exact image the master must receive for this response under this arm's expected length."""
     header8, user = std.deframe(native_frame)
@@ -83,6 +104,8 @@ def expected_image(kind, native_frame, expected_len):
         return native_frame
     if expected_len == 61 and kind == 'READ':
         return _read61(header8, user)
+    if kind == 'READ' and expected_len > 61:
+        return _read_prefix(header8, user, expected_len)
     if expected_len == 61 and kind in ('SELECT', 'OPERATE'):
         return _control61(header8, user)
     raise std.StdError('no %s profile for %s %d -> %d' % (PROFILE, kind, len(native_frame), expected_len))

@@ -93,3 +93,30 @@ policy, reproduction and the completion record only.
   + single acct_try fed by m.ina via ina_img_t (RegisterActions arm/try/grow/rev = 4); loss @LEN/READLEN +
   campaign suffix per class; configs field-by-field (make_b08_configs.py). Both SDKs exit 0, N11/E12/T11;
   harness tests 1122 + 5 pass; b08 configs validate. Full b08 gate running (rc01-gate-b08b); re-review running.
+- 08:4xZ b08 final gate after the supported-profile change (make_m12.py emits the full profile; P4 source
+  byte-identical 7b1281bc4aa7): all 13 drivers pass (smoke 30, packets 622, rearm 799, dup 102, repeat 523,
+  select_lifecycle 120, control_timing 211, contention 413, abort 79, abandon 12, policy 386, policy_boundary 105,
+  smoke_sizeoff 30); model_summary --v3 --enforce model_gate_passed. Commit 5b5397c5c.
+  Configs regenerated; freeze_v3 rewritten (pre-profile freeze kept as freeze_v3_preprofile_SUPERSEDED.json);
+  freeze check passes for all six configs; dry run rc01dry3_reference rc 0. Commit 1f47a99ae.
+  Outstation in every block = Vision fixture 192.168.10.62 (no physical-relay OPERATE).
+- 08:40Z hardware campaign rc01_hw_b08_20261021_01 started detached (evaluation_campaign start; 6 blocks:
+  reference four-arm, persistence_graceful, persistence_rst, reconnect, held_operate_350, loss_core_950).
+  Evidence: evidence/hw_campaigns/rc01_hw_b08_20261021_01/ and evidence/hw_blocks/<run_id>/.
+- 08:46Z rc01_hw_b08_20261021_01 block 1 (reference, four arms) FAILED rc 1 at size_only; restore_verify ok;
+  campaign stopped itself (stop_reason block_failed); blocks 2-6 unexecuted. Evidence kept.
+  * off and timing_only trials ok (padding 0). size_only: master READ 49, expected 141.
+  * ROOT CAUSE (read, then reproduced by tests/test_p1_plan.py RED 0 != 1): the baseline installer plan()
+    (response_only/hw/bringup_composite.py:158-170) keeps only p0.r_/p0.n_ rows; the p1.x_Egress.p1_conn row
+    that rows.build returned was discarded, so the padder was never enabled on silicon (bring-up manifest has
+    no p1 table). The model drivers install rows themselves and never call plan(): model gate could not see it.
+    FIX: response_only_rearm/hw/bringup_composite.py plan_with_p1 inserts the row before the first N row.
+  * HARNESS: standards.expected_lengths, boundary requirement + capture_boundary, profile_check expected image
+    and clrt_check pairing assumed READ = 61 on candidate61 builds; generalized for read_image_len (independent
+    49->141 construction in profile_check and clrt_check, checked against 64 pad_read vectors
+    vectors/read141_vectors.json). protocol/hw_vepa tests 602 pass; installer 96 pass.
+  * TIMING FINDING (open): timing_only READ CLRT error median 1229 us / p99 2070 us vs m11_09 5 / 63 us (gap 950).
+    Off arm (T off, no padding) on b08: master->outstation request transit median 0.66-1.16 ms, p99 ~4 ms, near
+    1 ms multiples; m11_09 off arm ~95 us. Outstation->master pure ACKs unchanged (49 vs 28 us). Vision was
+    rebooted (~1.4 d uptime vs ~13 d at m11_09) and runs docker bridges now; Vision TCP minrtt 0.875 vs 0.17 ms.
+    Host vs build not yet separated: needs one m11_09 control block on today's host.

@@ -143,6 +143,28 @@ def _crc_stripped_frames(payload):
     return frames
 
 
+READ_POLICY_IMAGE = 141      # read_complete_01 frozen policy: range READ 49 -> 141 (the one hardware READ shape)
+
+
+def _read_prefix_matches(native_frame, right):
+    """read_complete_01 policy READ (49 -> 141): a FIR frame with the native transport sequence s, application
+    header and IIN and a G1V2 q0x01 object from index 1024 whose first n-4 flags are zero, then the native frame
+    as FIN, sequence s+1, its four application octets replaced by the last four zero flags. n follows from the
+    first frame's length; every other octet is fixed or the native's own."""
+    header, user = native_frame
+    if not (len(user) == 33 and user[0] & 0xc0 == 0xc0 and user[1] & 0xf0 == 0xc0 and user[2] == 0x81 and
+            user[5:10] == bytes.fromhex('0a02000016')):
+        return False
+    n = len(right[0][1]) - 8
+    if n < 4:
+        return False
+    obj = bytes.fromhex('010201') + (1024).to_bytes(2, 'little') + (1024 + n - 1).to_bytes(2, 'little') + bytes(n)
+    seq = user[0] & 0x3f
+    expected = [(header, bytes([0x40 | seq]) + user[1:5] + obj[:-4]),
+                (header, bytes([0x80 | ((seq + 1) & 0x3f)]) + obj[-4:] + user[5:])]
+    return right == expected
+
+
 def _response_content_matches(native, returned):
     """Exact content or the bounded seg61_01/encode61.py wire transformation.
 
@@ -158,6 +180,8 @@ def _response_content_matches(native, returned):
         return False
     if native == returned:
         return True
+    if len(left) == 1 and len(right) == 2 and len(returned) == READ_POLICY_IMAGE:
+        return _read_prefix_matches(left[0], right)
     if len(left) != 1 or len(returned) != 61:
         return False
     header, user = left[0]
