@@ -18,6 +18,7 @@ anchor fails loudly. Run with --only to stop after a subset (for incremental com
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -858,10 +859,161 @@ def transform_read_prefix_full(src, image):
     return src
 
 
+# Pass-through READ classes of the frozen policy (read_complete_01/policy/policy.json targets 141/247/401): the
+# response is already at a target, so it keeps its native size. Exact shapes decoded from the fixture endpoint's
+# loopback capture evidence/rearm_01/repeat_sbo_endpoint/loopback_evidence_20261021/b_rotate4_base (TCP options
+# aside; hardware runs without them): name -> (request octets, request dl.len, response octets, response dl.len).
+PASSTHROUGH_READS = {'analog': (22, 0x0f, 141, 0x78), 'class0': (18, 0x0b, 247, 0xd6), 'integrity': (27, 0x14, 247, 0xd6)}
+
+
+def _neg_entry_rows(src, table, mirrors):
+    """Repeat every const entry of N's `table` that names a range-READ length constant once per pass-through length
+    (mirrors: old literal -> [new literals]); each copy follows its original, so entry priority order is kept."""
+    head = src.index(' table %s{' % table)
+    start = src.index('const entries={', head) + len('const entries={')
+    depth, end = 1, start
+    while depth:
+        depth += {'{': 1, '}': -1}.get(src[end], 0)
+        end += 1
+    body = src[start:end - 1]
+    rows = re.findall(r'\([^()]*\):\w+\([^()]*\);', body)
+    if ''.join(rows) != body:
+        raise SystemExit('unexpected const-entry layout in %s' % table)
+    out = []
+    for r in rows:
+        out.append(r)
+        for old, news in mirrors.items():
+            if old in r:
+                out += [r.replace(old, n) for n in news]
+    size_at = src.index('size=', head)
+    size_end = src.index(';', size_at)
+    size = max(int(src[size_at + 5:size_end]), len(out))
+    return src[:size_at + 5] + str(size) + src[size_end:start] + ''.join(out) + src[end - 1:]
+
+
+def transform_read_passthrough_n(src):
+    """N admits, times and accounts the policy's pass-through READ classes at native size (step S1).
+
+    Requests (all fully parsed, real block CRC, TCP checksum verified as before): analog 22 octets (G30 V0 q01
+    [0,20], ip.len 62, dl.len 0x0f), class0 18 (G60V1 q06, ip.len 58, dl.len 0x0b), integrity 27 (G60V2/V3/V4/V1
+    q06, ip.len 67, dl.len 0x14). Responses: analog 141 (ip.len 181, dl.len 0x78) and class0/integrity 247 (ip.len
+    287, dl.len 0xd6), one link frame each, parsed FIRST BLOCK ONLY: the link-header and block-0 CRCs are really
+    checked, block-1+ CRCs are derived from block 0 (m.crc1 = m.tcrc = m.bcrc) and the TCP checksum is waived
+    (m.tcp_sum = 0xffeb, set by the parser's finish_shallow state: m12p_c06 wrote it in MAU, which moved N's
+    network table from stage 0 to 3 and N from 11 to 12 stages) -- the documented shallow-parse limitation of transform_read_prefix_full; the master's
+    stack validates the tail. New lengths enter through their own parser states that dispatch on the exact
+    (dl.len, ip.len) pair, so the range path (ip.len 60/89, and the timestamp variants) is byte-for-byte unchanged.
+    Their TCP states match only (offset, flags): m12p_c05 repeated the range states' (offset, reserved, urgent,
+    flags) select and ran out of ingress parser match registers; reserved == 0 and urgent == 0 are still required
+    by N's network table (exact keys), so admission is unchanged.
+    Sequence: next_seq_t adds each shape's native length; every retransmission row keyed on the range lengths
+    (-20 request, -49 response) is repeated for each pass-through length. E maps these responses natively (no
+    read_shape: acct_grow + translate) and the pipe-1 padder parses only ip.len 89 / dl.len 0x26."""
+    # 1) request headers, overlaid with the range request header (mutually exclusive parse paths)
+    src = once(src, 'header n_read_req_h{bit<8> tp;bit<8> app;bit<8> func;bit<8> group;bit<8> variation;bit<8> qualifier;bit<8> first;bit<8> last;bit<16> crc;}',
+               'header n_read_req_h{bit<8> tp;bit<8> app;bit<8> func;bit<8> group;bit<8> variation;bit<8> qualifier;bit<8> first;bit<8> last;bit<16> crc;}\n'
+               'header n_read_req_an_h{bit<8> tp;bit<8> app;bit<8> func;bit<24> o1;bit<16> start;bit<16> stop;bit<16> crc;}\n'
+               'header n_read_req_c0_h{bit<8> tp;bit<8> app;bit<8> func;bit<24> o1;bit<16> crc;}\n'
+               'header n_read_req_full_h{bit<8> tp;bit<8> app;bit<8> func;bit<24> o1;bit<24> o2;bit<24> o3;bit<24> o4;bit<16> crc;}')
+    src = once(src, 'n_read_req_h rd_req;', 'n_read_req_h rd_req;n_read_req_an_h rd_req_an;n_read_req_c0_h rd_req_c0;n_read_req_full_h rd_req_full;')
+    hdrs = ('hdr.rd_req', 'hdr.rd_req_an', 'hdr.rd_req_c0', 'hdr.rd_req_full')
+    pragmas = ''.join('@pa_mutually_exclusive("ingress", "%s", "%s")\n' % (a, b)
+                      for i, a in enumerate(hdrs) for b in hdrs[i + 1:])
+    src = once(src, '@pa_container_size("ingress", "m.expected_work_phase", 32)\n',
+               pragmas + '@pa_container_size("ingress", "m.expected_work_phase", 32)\n')
+    # 2) parser: new ip.len values -> dedicated states, exact (dl.len, ip.len) dispatch, else accept (unparsed)
+    src = once(src, '(4w4,4w5,8w6,16w60):read_ip_flags;',
+               '(4w4,4w5,8w6,16w60):read_ip_flags;' + ''.join('(4w4,4w5,8w6,16w%d):rx_ip_flags;' % (40 + v[0])
+                                                              for v in sorted(PASSTHROUGH_READS.values())))
+    rsp_ip = sorted({40 + v[2] for v in PASSTHROUGH_READS.values()})
+    src = once(src, '(4w4,4w5,8w6,16w89):read_response_ip_flags;',
+               '(4w4,4w5,8w6,16w89):read_response_ip_flags;' + ''.join('(4w4,4w5,8w6,16w%d):rx_response_ip_flags;' % n for n in rsp_ip))
+    req_cases = ''.join('(8w0x%02x,16w%d):read_request_%s;' % (v[1], 40 + v[0], {'analog': 'an', 'class0': 'c0', 'integrity': 'full'}[n])
+                        for n, v in sorted(PASSTHROUGH_READS.items()))
+    rsp_cases = ''.join('(8w0x%02x,16w%d):read_response_fb;' % k for k in sorted({(v[3], 40 + v[2]) for v in PASSTHROUGH_READS.values()}))
+    states = (' state rx_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):rx_tcp;(13w0,3w2):rx_tcp;default:accept;}}\n'
+              ' state rx_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags){(4w5,8w16):rx_dl;(4w5,8w24):rx_dl;default:accept;}}\n'
+              ' state rx_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition select(hdr.dl.len,hdr.ip.len){%sdefault:accept;}}\n'
+              ' state read_request_an{pkt.extract(hdr.rd_req_an);tc.subtract(hdr.rd_req_an);m.packet_kind=8w9;transition finish;}\n'
+              ' state read_request_c0{pkt.extract(hdr.rd_req_c0);tc.subtract(hdr.rd_req_c0);m.packet_kind=8w9;transition finish;}\n'
+              ' state read_request_full{pkt.extract(hdr.rd_req_full);tc.subtract(hdr.rd_req_full);m.packet_kind=8w9;transition finish;}\n'
+              ' state rx_response_ip_flags{transition select(hdr.ip.frag,hdr.ip.flags){(13w0,3w0):rx_response_tcp;(13w0,3w2):rx_response_tcp;default:accept;}}\n'
+              ' state rx_response_tcp{pkt.extract(hdr.tcp);tc.subtract(hdr.tcp);transition select(hdr.tcp.offset,hdr.tcp.flags){(4w5,8w16):rx_response_dl;(4w5,8w24):rx_response_dl;default:accept;}}\n'
+              ' state rx_response_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition select(hdr.dl.len,hdr.ip.len){%sdefault:accept;}}\n'
+              ' state read_response_fb{pkt.extract(hdr.first);tc.subtract(hdr.first);m.packet_kind=8w11;transition finish_shallow;}\n'
+              ' state finish_shallow{m.tcp_sum=16w0xffeb;m.parsed=(bit<1>)(8w1);m.shape_valid=(bit<1>)(8w1);transition accept;}\n'
+              % (req_cases, rsp_cases))
+    src = once(src, ' state read_request{pkt.extract(hdr.rd_req);', states + ' state read_request{pkt.extract(hdr.rd_req);')
+    # 3) request profiles (exact declared objects; tp FIR/FIN and app FIR/FIN/!CON/!UNS as EXACT slice keys, the
+    #    same match as the range profile's ternary c0&&&c0 / c0&&&f0 -- in m12p_c07 the three ternary profiles took
+    #    stage-1 TCAM and displaced retry_valid_t, one cause of N's 12th stage) + real block CRCs; response profile rows for the 141/247 block 0
+    prof = ('table read_request_an_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req_an.tp[7:6]:exact;hdr.rd_req_an.app[7:4]:exact;hdr.rd_req_an.func:exact;hdr.rd_req_an.o1:exact;hdr.rd_req_an.start:exact;hdr.rd_req_an.stop:exact;}\n'
+            ' actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w0x0f,8w0xc4,2w3,4w0xc,8w1,24w0x1e0001,16w0x0000,16w0x1400):eligible();}}\n'
+            'table read_request_c0_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req_c0.tp[7:6]:exact;hdr.rd_req_c0.app[7:4]:exact;hdr.rd_req_c0.func:exact;hdr.rd_req_c0.o1:exact;}\n'
+            ' actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w0x0b,8w0xc4,2w3,4w0xc,8w1,24w0x3c0106):eligible();}}\n'
+            'table read_request_full_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req_full.tp[7:6]:exact;hdr.rd_req_full.app[7:4]:exact;hdr.rd_req_full.func:exact;hdr.rd_req_full.o1:exact;hdr.rd_req_full.o2:exact;hdr.rd_req_full.o3:exact;hdr.rd_req_full.o4:exact;}\n'
+            ' actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w0x14,8w0xc4,2w3,4w0xc,8w1,24w0x3c0206,24w0x3c0306,24w0x3c0406,24w0x3c0106):eligible();}}\n')
+    src = once(src, '(16w0x0564,8w13,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,8w10,8w2,8w0,8w0,8w22):eligible();}}\n',
+               '(16w0x0564,8w13,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,8w10,8w2,8w0,8w0,8w22):eligible();}}\n' + prof)
+    src = once(src, 'actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();}}',
+               'actions={eligible;NoAction;}size=3;const default_action=NoAction();const entries={(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();'
+               '(16w0x0564,8w0x78,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w0x1e,8w1,8w0,8w0,8w0x14):eligible();'
+               '(16w0x0564,8w0xd6,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w1,8w2,8w0,8w0,8w0x0f):eligible();}}')
+    # Two tables compute the three new request CRCs: analog+class0 share one (one action each by header validity;
+    # 2 x 16 = 32 immediate hash bits, the per-table limit -- m12p_c10's single three-CRC table needed 48 and failed),
+    # integrity has its own. m12p_c09 used one table per shape: stages 0-2 have no free hash-distribution unit and
+    # stages 3-4 no free logical table ID (both shared with E), so the extra tables displaced E's stage-3 tables.
+    crcs = ''
+    for h, fields in (('an', 'tp,app,func,o1,start,stop,crc'), ('c0', 'tp,app,func,o1,crc'), ('full', 'tp,app,func,o1,o2,o3,o4,crc')):
+        crcs += ('Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_request_%s;\n'
+                 'action rd_request_%s_crc(){m.bcrc=hash_rd_request_%s.get({%s});}\n'
+                 % (h, h, h, ','.join('hdr.rd_req_%s.%s' % (h, f) for f in fields.split(','))))
+    crcs += ('table rd_request_x_crc_t{key={hdr.rd_req_an.isValid():exact;}'
+             'actions={rd_request_an_crc;rd_request_c0_crc;NoAction;}size=2;'   # a hash action cannot be the default (m12p_c11)
+             'const entries={true:rd_request_an_crc();false:rd_request_c0_crc();}const default_action=NoAction();}\n'
+             'table rd_request_full_crc_t{actions={rd_request_full_crc;}size=1;const default_action=rd_request_full_crc();}\n')
+    src = once(src, 'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;\n', crcs + 'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;\n')
+    src = once(src, 'action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value,hdr.rd_tail.crc});}',
+               'action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value,hdr.rd_tail.crc});}\n'
+               'action read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;}\n'
+               'table read_shallow_admit_t{actions={read_shallow_admit;}size=1;const default_action=read_shallow_admit();}')
+    src = once(src, 'if(m.packet_kind==8w9){read_request_profile.apply();rd_request_crc_t.apply();}else{read_response_profile.apply();rd_second_crc_t.apply();rd_tail_crc_t.apply();}',
+               'if(m.packet_kind==8w9){if(hdr.rd_req.isValid()){read_request_profile.apply();rd_request_crc_t.apply();}'
+               'else if(hdr.rd_req_full.isValid()){read_request_full_profile.apply();rd_request_full_crc_t.apply();}'
+               'else{if(hdr.rd_req_an.isValid()){read_request_an_profile.apply();}else{read_request_c0_profile.apply();}'
+               'rd_request_x_crc_t.apply();}}'
+               'else{read_response_profile.apply();if(hdr.second.isValid()){rd_second_crc_t.apply();rd_tail_crc_t.apply();}else{read_shallow_admit_t.apply();}}')
+    # 4) sequence accounting per shape: native length by (kind, dl.len); range rows unchanged as the fallbacks
+    rows = ''.join('(8w9,8w0x%02x):next_read_len(%d);' % (v[1], v[0]) for _, v in sorted(PASSTHROUGH_READS.items()))
+    rows += ''.join('(8w11,8w0x%02x):next_read_len(%d);' % k for k in sorted({(v[3], v[2]) for v in PASSTHROUGH_READS.values()}))
+    src = once(src, ' table next_seq_t{key={m.packet_kind:exact;}actions={next_seq;next_control;next_response;next_read_request;next_read_response;}size=5;'
+               'const entries={8w5:next_control();8w7:next_control();8w6:next_response();8w9:next_read_request();8w11:next_read_response();}const default_action=next_seq();}',
+               ' action next_read_len(bit<32> n){m.new_seq=hdr.tcp.seq+n;}\n'
+               ' table next_seq_t{key={m.packet_kind:exact;hdr.dl.len:ternary;}actions={next_seq;next_control;next_response;next_read_request;next_read_response;next_read_len;}size=12;'
+               'const entries={(8w5,_):next_control();(8w7,_):next_control();(8w6,_):next_response();%s(8w9,_):next_read_request();(8w11,_):next_read_response();}const default_action=next_seq();}' % rows)
+    # 5) application-sequence input from whichever request header is valid (response side reads hdr.first as before)
+    src = once(src, 'table read_input_t{key={m.packet_kind:exact;}actions={read_request_input;read_response_input;NoAction;}size=2;const entries={8w9:read_request_input();8w11:read_response_input();}const default_action=NoAction();}',
+               'action read_request_an_input(){m.compare_read_app=(bit<32>)(hdr.rd_req_an.app[3:0]);}\n'
+               'action read_request_c0_input(){m.compare_read_app=(bit<32>)(hdr.rd_req_c0.app[3:0]);}\n'
+               'action read_request_full_input(){m.compare_read_app=(bit<32>)(hdr.rd_req_full.app[3:0]);}\n'
+               'table read_input_t{key={m.packet_kind:exact;hdr.rd_req_an.isValid():exact;hdr.rd_req_c0.isValid():exact;hdr.rd_req_full.isValid():exact;}'
+               'actions={read_request_input;read_request_an_input;read_request_c0_input;read_request_full_input;read_response_input;NoAction;}size=5;'
+               'const entries={(8w9,false,false,false):read_request_input();(8w9,true,false,false):read_request_an_input();'
+               '(8w9,false,true,false):read_request_c0_input();(8w9,false,false,true):read_request_full_input();'
+               '(8w11,false,false,false):read_response_input();}const default_action=NoAction();}')
+    # 6) retransmission recognition per shape (sequence_guard, first_event, retry_dup_t)
+    req_neg = sorted({neg(v[0]) for v in PASSTHROUGH_READS.values()})
+    rsp_neg = sorted({neg(v[2]) for v in PASSTHROUGH_READS.values()})
+    mirrors = {neg(20): req_neg, neg(49): rsp_neg}
+    for table in ('sequence_guard', 'first_event', 'retry_dup_t'):
+        src = _neg_entry_rows(src, table, mirrors)
+    return src
+
+
 TRANSFORMS = ['mapper_var', 'read_prefix']  # step 1: variable image (READ 73 + inherited SBO 61); full READ uses read_prefix_full
 
 
-def build(image, only=None, full=False, policy=False, c3='ladder'):
+def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -871,6 +1023,8 @@ def build(image, only=None, full=False, policy=False, c3='ladder'):
     if policy:
         c = policy_shape()
         transforms = ['mapper_var', 'read_prefix_p1', 'read_prepadded_e']
+        if shapes == 'passthrough':
+            transforms.append('read_passthrough_n')
         shape_image = {'read': c['target'], 'ctl': 61}
         read_native = c['native_total']
         per_image = {c['native_total']: c['target'], 37: 61, 61: 61}   # 61: handshake virtual image
@@ -883,6 +1037,8 @@ def build(image, only=None, full=False, policy=False, c3='ladder'):
         if name == 'mapper_var':
             src = transform_mapper_var(src, shape_image, stale_guard=STALE_GUARD, read_native=read_native,
                                        per_image=per_image, c3_cimg=(policy and c3 == 'cimg'))
+        elif name == 'read_passthrough_n':
+            src = transform_read_passthrough_n(src)
         elif name in ('read_prefix_p1', 'read_prepadded_e'):
             src = globals()['transform_' + name](src, policy_shape())
         else:
@@ -902,14 +1058,18 @@ def main():
     ap.add_argument('--policy', action='store_true', help='read_complete_01 frozen policy: range READ 49->141 + SBO 61')
     ap.add_argument('--c3', choices=('ladder', 'cimg'), default='ladder',
                     help='policy build reverse boundary: max-image ladder (m12p_b08) or per committed image (cimg)')
+    ap.add_argument('--shapes', choices=('none', 'passthrough'), default='none',
+                    help='policy build: also admit the pass-through READ classes (analog 141, class0/integrity 247) at native size')
     a = ap.parse_args()
+    if a.shapes != 'none' and not a.policy:
+        ap.error('--shapes requires --policy')
     if a.full:
         a.image = 269
     if a.policy:
         a.image = policy_shape()['target']
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3)
+    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3, shapes=a.shapes)
     (out / 'response_only.p4').write_text(src)
     sha = hashlib.sha256(src.encode()).hexdigest()
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
@@ -925,6 +1085,12 @@ def main():
         scope = ('read_complete_01 policy hardware shape set, phase A: range READ 49->%d (prefix, G1V2 %d..%d '
                  'synthetic) + SELECT/OPERATE 37->61; analog/class0/integrity/segmented READ classes NOT yet in '
                  'this build' % (c['target'], c['reserved_first_index'], c['reserved_first_index'] + c['padding_points'] - 1))
+        if a.shapes == 'passthrough':
+            required.add('read_passthrough_n')
+            scope = ('read_complete_01 policy hardware shape set, phase S1: range READ 49->%d (prefix) + SELECT/OPERATE '
+                     '37->61 + pass-through READ classes at native size (analog 22->141, class0 18->247, integrity '
+                     '27->247; one link frame each, first-block-only N admission, TCP checksum of the response waived '
+                     'in N); segmented READ classes NOT yet in this build' % c['target'])
     elif a.full:
         required = {'mapper_var', 'read_prefix_full'}
         read_native, read_out = 247, 269
@@ -966,6 +1132,9 @@ def main():
         't_time': {'unit_ns': 256, 'grid_ns': 512, 'source': 'global_tstamp[39:8] & ~1'},
         't_lifetime_encoding': 'sealed_low31',
         'native_lengths': {'READ': read_native, 'SELECT_OPERATE': 37},
+        **({'passthrough_reads': {n: {'request_octets': v[0], 'request_dl_len': v[1], 'response_octets': v[2],
+                                      'response_dl_len': v[3], 'output_octets': v[2]}
+                                  for n, v in PASSTHROUGH_READS.items()}} if a.shapes == 'passthrough' else {}),
         'output_lengths': {'READ': read_out, 'SELECT_OPERATE': 61},
         'policy': (dict(constants_sha256=hashlib.sha256(CONSTANTS.read_bytes()).hexdigest(),
                         policy_targets=json.loads(CONSTANTS.read_text())['policy_targets'],
