@@ -1,0 +1,139 @@
+{
+ "campaign_id": "rc01_hw_b08_20261021_02",
+ "evidence_kind": "hardware",
+ "steps": [
+  {
+   "id": "rc01_hw_b08_20261021_02_control_m11_09_reference",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_control_m11_09_reference",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/control/freeze_v3_m11_09_control.json",
+    "candidate_campaign",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_control_m11_09_reference.json",
+    "rc01_hw_b08_20261021_02_control_m11_09_reference",
+    "--arms",
+    "off,timing_only,size_only,combined",
+    "--fixtures",
+    "separate_ack"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_reference",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_reference",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_campaign",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reference.json",
+    "rc01_hw_b08_20261021_02_reference",
+    "--arms",
+    "off,timing_only,size_only,combined",
+    "--fixtures",
+    "separate_ack"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_persistence_graceful_950",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_persistence_graceful_950",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_series",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_graceful_950.json",
+    "rc01_hw_b08_20261021_02_persistence_graceful_950",
+    "--arms",
+    "combined",
+    "--fixtures",
+    "separate_ack",
+    "--close-mode",
+    "graceful"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_persistence_rst_950",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_persistence_rst_950",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_series",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_persistence_rst_950.json",
+    "rc01_hw_b08_20261021_02_persistence_rst_950",
+    "--arms",
+    "combined",
+    "--fixtures",
+    "separate_ack",
+    "--close-mode",
+    "rst",
+    "--rst-grace-ms",
+    "1000"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_reconnect_950",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_reconnect_950",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_campaign",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_reconnect_950.json",
+    "rc01_hw_b08_20261021_02_reconnect_950",
+    "--arms",
+    "combined",
+    "--fixtures",
+    "separate_ack",
+    "--scenario",
+    "reconnect",
+    "--reconnect-policy",
+    "protected"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_held_operate_350",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_held_operate_350",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_series",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_held_operate_350.json",
+    "rc01_hw_b08_20261021_02_held_operate_350",
+    "--arms",
+    "combined",
+    "--fixtures",
+    "separate_ack",
+    "--close-mode",
+    "graceful"
+   ]
+  },
+  {
+   "id": "rc01_hw_b08_20261021_02_loss_core_950",
+   "kind": "block",
+   "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_b08_20261021_02_loss_core_950",
+   "argv": [
+    "/bin/bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b08/freeze_v3.json",
+    "candidate_campaign",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_b08_loss_core_950.json",
+    "rc01_hw_b08_20261021_02_loss_core_950",
+    "--arms",
+    "combined",
+    "--fixtures",
+    "separate_ack",
+    "--loss",
+    "core"
+   ]
+  }
+ ]
+}

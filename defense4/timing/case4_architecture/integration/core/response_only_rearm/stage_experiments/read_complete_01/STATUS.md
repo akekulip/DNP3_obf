@@ -120,3 +120,11 @@ policy, reproduction and the completion record only.
     1 ms multiples; m11_09 off arm ~95 us. Outstation->master pure ACKs unchanged (49 vs 28 us). Vision was
     rebooted (~1.4 d uptime vs ~13 d at m11_09) and runs docker bridges now; Vision TCP minrtt 0.875 vs 0.17 ms.
     Host vs build not yet separated: needs one m11_09 control block on today's host.
+- 09:02Z campaign rc01_hw_b08_20261021_02 step 1 (m11_09 control) failed at config load (my edit made
+  evaluation.purpose free text; I skipped its dry run). No hardware contact. Supervisor set unsafe_restoration
+  (fail-closed). reconcile REFUSED (no restore record / snapshot / freeze check: block never reached hardware);
+  flag LEFT SET. Fresh read-only restore_verify on a copy of block 1's inputs: ok (evidence/control/state_check_*).
+  Control config corrected (load_config ok, dry run rc 0, re-frozen). HARDWARE BLOCKED pending Philip.
+- Readout direction bug fixed (out.pcap = what Vision sent). Block 1 on silicon: off/timing_only exactly native;
+  size_only SBO 37->61 on 128/128, +16.75 % wire octets, READ 49 (padder not enabled).
+- COMPLETION_RECORD.md written (physical tier partial; decision needed).

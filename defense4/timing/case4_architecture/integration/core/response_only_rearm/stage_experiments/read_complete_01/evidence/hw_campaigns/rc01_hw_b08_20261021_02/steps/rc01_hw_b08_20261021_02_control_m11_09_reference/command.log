@@ -1,0 +1,12 @@
+freeze check: OK 0 changed, 0 missing
+  DIAGNOSTIC EXCEPTION (does not qualify): control block for read_complete_01: same reference block on the 2026-10-21 host to attribute the b08 timing_only CLRT regression to host or build; not a qualification of m11_09
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py", line 276, in <module>
+    sys.exit(base.main())
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py", line 1589, in main
+    cfg = load_config(a.config)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py", line 142, in load_config
+    validate_profile(cfg)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py", line 168, in validate_profile
+    raise ValueError('evaluation.purpose must be qualification, stale_source_characterization, '
+ValueError: evaluation.purpose must be qualification, stale_source_characterization, or timing_precision_characterization

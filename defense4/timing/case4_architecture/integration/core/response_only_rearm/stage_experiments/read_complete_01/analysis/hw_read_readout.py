@@ -2,8 +2,8 @@
 
 For every connection directory under a block's evidence (one with out.pcap and in.pcap), cut the DNP3 frames of
 each TCP direction from both captures and pair the transactions in order:
-  * outstation-side capture (in.pcap): the NATIVE responses the outstation sent;
-  * master-side capture (out.pcap): the responses the master received through the switch.
+  * out.pcap (Vision -Q out): the NATIVE responses the outstation sent, and the master's requests;
+  * in.pcap (Vision -Q in): the responses the master received through the switch.
 Each READ response the master received is checked against the REFERENCE ENCODER, independently of the switch
 and its model: general_read_padding.pad_read(request, native, policy targets, reserved range) must reproduce the
 received bytes exactly when the connection was padded (and the native bytes exactly when it was not). Every CRC,
@@ -120,9 +120,12 @@ def kind_of(response):
 
 
 def analyse_connection(cdir, padded_expected):
+    # Both captures are on Vision's switch-facing interface: out.pcap (-Q out) holds what Vision's endpoints
+    # SENT (the master's requests, the outstation's native responses); in.pcap (-Q in) holds what they RECEIVED
+    # (the requests at the outstation, the responses through the switch at the master).
     out_p, in_p = as_micro(cdir / 'out.pcap'), as_micro(cdir / 'in.pcap')
-    m_req, m_rsp = transactions(out_p)
-    o_req, o_rsp = transactions(in_p)
+    m_req, o_rsp = transactions(out_p)
+    o_req, m_rsp = transactions(in_p)
     rows, fails = [], []
     for i, ((mq, tq), (mr, tr)) in enumerate(zip(m_req, m_rsp)):
         if i >= len(o_rsp):
@@ -144,7 +147,7 @@ def analyse_connection(cdir, padded_expected):
             if not row['exact']:
                 fails.append('READ %d: master-side bytes differ from the reference encoder' % i)
         rows.append(row)
-    pk_m, pk_o = direction_packets(out_p), direction_packets(in_p)
+    pk_m, pk_o = direction_packets(in_p), direction_packets(out_p)   # master-received, outstation-sent
     o2m_m = [p for p in pk_m if p[1] == OUTSTATION and p[2] == MASTER]
     o2m_o = [p for p in pk_o if p[1] == OUTSTATION and p[2] == MASTER]
     reads = [r for r in rows if r['kind'] == 'READ']
