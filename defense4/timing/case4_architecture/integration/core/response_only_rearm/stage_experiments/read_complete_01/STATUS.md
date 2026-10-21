@@ -36,3 +36,23 @@ policy, reproduction and the completion record only.
 - NEXT: M4 P4 in make_m12.py: generalized READ shapes {49->141 pad, 141 pass, 247 pass, 377(292+85)->401 pad
   first seg + renumber continuation}, SBO 61 kept; single acct_try with size via m.ina (4-RegAction limit);
   C3 per-image boundary, C5, waiver gated on profile, zero-window restore.
+- M4 phase A (range 49->141 + SBO 61) in make_m12.py --policy, constants from vectors/derive.py
+  (constants.json, 512-sample byte-exact proof vs pad_read). Attempts: m12p_a01 (cb2e077e) failed:
+  --Werror=overlimit (constants >64 bit) + PHV; m12p_a02 (f1c15af9) fails PHV allocation (egress p1).
+  Bisect (scratch): no single ablation of {C3 m.y key, 64B const remainder plz, retained rbad1/rbadt verdicts,
+  C5 rows + window-zero} fixes it; all four removed compiles; committed range 49->73 build compiles.
+  Pairwise (plz + each) running. Old builds regenerate byte-identical (full f99773ce, range 0f12ee9b).
+- M6: evaluation_campaign.py reconcile + tests/test_reconcile.py 13/13; existing campaign tests 28/28.
+  Review running. NOT yet run on the live testbed.
+- CORRECTION recorded: the 10-19 reverify passed under restore_verify.py with counter-statistics
+  stripping (committed 291e8cb30 at 19:58) that the original 19:41 check did not have. My statement to
+  Philip that it passed "with unchanged rules" was inaccurate. The fresh reconcile check uses the current
+  committed rules, unchanged by this session.
+- M6 DONE: reconcile committed 3e2f59aec (review OK + fixes). Run once 2026-10-21T03:41Z on the live testbed:
+  fresh restore_verify (rules = committed 291e8cb30, unchanged) ok, 399 tables, program case4_response_path,
+  Vision state, ping 3/3 -> reconciliation.json sha a16c6cf5...; ownership.json unsafe_restoration=false.
+  Evidence: seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/reconcile_*_20261021T034133Z.
+- M4 phase A placement: a04 (constant-checksum folding of the 64B remainder) still PHV-fails with the same
+  18 slices. Measured cause: p0 (N ingress + E egress) is ~95% PHV in the placing 73-byte build (16b and
+  32b containers 100%); p1 is 24%. The 92-byte prefix does not fit p0 as built. Placement experiments Z
+  (zero constants) and Y (first-block-only E parse) running.

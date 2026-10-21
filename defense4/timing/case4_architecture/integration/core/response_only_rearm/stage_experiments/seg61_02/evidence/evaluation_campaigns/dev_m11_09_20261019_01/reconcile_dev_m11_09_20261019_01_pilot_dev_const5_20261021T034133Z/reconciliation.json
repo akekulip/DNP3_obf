@@ -1,0 +1,52 @@
+{
+  "at": 1792554093.2816877,
+  "bound_sha256": {
+    "config": "5f08dd510d93d23c6a9d54defc87597a5099fe4266505399b07f8ed700512d21",
+    "original_restore_verify": "b1b8b75331271ec982ad7c89c290385ba9e54eab30fc960051a957571cf1b837",
+    "ownership": "f11d17aac1e76136d7c6b9b6c87aeec42447c9c33d130c611a137e1d78b7249a",
+    "terminal": "d7a29f90dad29605871117948f0805206c3de47a04a43b387c0de8e94ef95db6"
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/dev_m11_09_20261019_01",
+  "command": [
+    "/usr/bin/python3",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py",
+    "--config",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/configs/dev_m11_09_20261019_01_pilot_dev_const5.json",
+    "--run-root",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/reconcile_dev_m11_09_20261019_01_pilot_dev_const5_20261021T034133Z"
+  ],
+  "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/configs/dev_m11_09_20261019_01_pilot_dev_const5.json",
+  "earlier_reverifies": {
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/evidence/evaluation_campaigns/dev_m11_09_20261019_01/reverify_20261019/restore_verify.json": "73074f816128bd70b80ac8b1d66e2df81597896501e03de85e4237f19c213cd4"
+  },
+  "fresh_restore_verify": "728ad5e75d7a5184101983807fe10161409a743dbbcb992c7e45ef241166ed6a",
+  "original_failures": [
+    "tables differ from the pre-run snapshot: ['Egress.outcome', 'counter.dpg', 'counter.eg_port', 'counter.ig_port', 'counter.pool', 'eg_port', 'ig_port', 'outcome', 'pipe.Egress.outcome', 'pool', 'tf1.tm.counter.dpg', 'tf1.tm.counter.eg_port', 'tf1.tm.counter.ig_port', 'tf1.tm.counter.pool', 'tm.counter.dpg', 'tm.counter.eg_port', 'tm.counter.ig_port', 'tm.counter.pool']"
+  ],
+  "rc": 0,
+  "restore_verify_tool": {
+    "last_commit": "291e8cb30e8121ada8aae2422bb87f757d6e5002 2026-10-19T19:58:40-04:00 restore_verify: compare counter tables without their statistics; device study amendments 1-2",
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py",
+    "rule_note": "comparison rules as committed; the original failed check may predate later rule commits (see last_commit)",
+    "sha256": "799d38076089914584c66f80c30bfe78721770cf3cd794ee5252594a92f3d79d",
+    "stripped_statistics": [
+      "$COUNTER_SPEC_BYTES",
+      "$COUNTER_SPEC_PKTS",
+      "drop_count_bytes",
+      "drop_count_packets",
+      "guaranteed_min_usage_cells",
+      "shared_pool_usage_cells",
+      "usage_cells",
+      "watermark_cells"
+    ],
+    "uncommitted_changes": false,
+    "volatile_tables": [
+      "$PORT_STAT",
+      "log_tbl_counter",
+      "tbl_dbg_counter",
+      "tf1.log_tbl_counter"
+    ]
+  },
+  "result": "restoration verified afresh; ownership update follows (the clear is proven by reconciliation_sha256 in ownership.json)",
+  "step_id": "dev_m11_09_20261019_01_pilot_dev_const5"
+}
