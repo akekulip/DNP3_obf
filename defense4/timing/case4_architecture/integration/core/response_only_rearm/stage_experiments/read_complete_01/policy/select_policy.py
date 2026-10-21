@@ -27,7 +27,11 @@ import fullread as fr  # noqa: E402
 import general_read_padding as gp  # noqa: E402
 
 std = gp.std
-INPUTS = ROOT / 'handoff/Claude_READ_Complete_Handoff/reference/target_selection/inputs'
+# The handoff's retained distribution, tracked here (byte-identical to the handoff copy; their hashes are
+# recorded in policy.json input_manifest, which reproduce.sh checks with git diff).
+INPUTS = ROOT / 'evidence/m1_software_pinned_01/target_selection/inputs'
+INPUT_RUNS = ('native_analog_base', 'native_class0_base', 'native_integrity_base', 'native_integrity_large',
+              'native_range_base')
 
 # ---- frozen implementation decisions (recorded in policy.json) -------------------------------------
 PAD_START, PAD_STOP = 1024, 4095   # reserved G1V2 index range; fixture DBs hold BI 0..15 only
@@ -46,6 +50,10 @@ def nearest_rank(sorted_values, i, states):
 
 def load_retained():
     rows, manifest = [], []
+    present = sorted(d.name for d in INPUTS.iterdir()) if INPUTS.is_dir() else []
+    if tuple(present) != INPUT_RUNS or not all((INPUTS / r / f).is_file() for r in INPUT_RUNS
+                                               for f in ('capture.pcap', 'run.json')):
+        raise SystemExit('retained inputs incomplete at %s: found %r' % (INPUTS, present))
     for d in sorted(INPUTS.iterdir()):
         cap = d / 'capture.pcap'
         meta = json.loads((d / 'run.json').read_text())
