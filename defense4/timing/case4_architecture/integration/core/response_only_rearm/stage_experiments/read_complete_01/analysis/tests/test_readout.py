@@ -210,3 +210,31 @@ def test_an_extra_response_fails(tmp_path):
     rewrite_o2m(trial / 'in.pcap', lambda payload: payload * 2)      # every response delivered twice in-stream
     rc, report = readout(block, '--arms', 'off')
     assert rc == 1 and any('exchange counts differ' in f for f in report['failures'])
+
+
+# ---- READ-class schedule (fixture endpoint rotate4) ----
+ENDPOINT_EVIDENCE = ROOT.parents[3] / 'evidence/rearm_01/repeat_sbo_endpoint/loopback_evidence_20261021'
+
+
+def test_the_schedule_counts_follow_the_endpoint_formula():
+    m = module()
+    assert m.schedule_counts('rotate4', 65) == {'range': 17, 'analog': 16, 'class0': 16, 'integrity': 16}
+    assert m.schedule_counts(None, 65) == {'range': 65}
+
+
+def test_read_classes_are_taken_from_real_request_bytes():
+    m = module()
+    sys.path.insert(0, str(ROOT / 'software/source/read_reencode_01'))
+    import capture
+    import dnp3_std as std
+    runs = sorted(p for p in ENDPOINT_EVIDENCE.iterdir() if p.is_dir() and 'rotate4_base' in p.name)
+    assert runs, 'loopback evidence of the scheduled endpoint is missing'
+    pcap = runs[0] / 'capture.pcap'
+    seen = []
+    for rec in capture.tcp_records(pcap):
+        p = rec['payload']
+        if rec['dst'][1] == 20000 and p[:2] == b'\x05\x64':
+            user = std.deframe(p[:std.frame_length(p[2] - 5)])[1]
+            if user[2] == 0x01:                                 # application function READ
+                seen.append(m.read_class(user[1:]))
+    assert seen[:8] == list(m.ROTATE4) * 2

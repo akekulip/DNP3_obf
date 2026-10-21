@@ -51,6 +51,28 @@ POLICY = json.loads((ROOT / 'policy/policy.json').read_text())
 TARGETS = POLICY['selected']['targets']
 PAD_START, PAD_STOP = POLICY['profile']['reserved_padding_range']
 KINDS = {1: 'READ', 3: 'SELECT', 4: 'OPERATE'}
+ROTATE4 = ('range', 'analog', 'class0', 'integrity')   # the fixture endpoint's fixed order (repeat_sbo_endpoint README)
+
+
+def read_class(request_app):
+    """READ class from the request's first object header (application bytes after func): never from position."""
+    g, v = request_app[2], request_app[3]
+    if g == 10:
+        return 'range'
+    if g == 30:
+        return 'analog'
+    if g == 60:
+        return 'class0' if (v == 1 and len(request_app) <= 5) else 'integrity'
+    return 'g%dv%d' % (g, v)
+
+
+def schedule_counts(schedule, total):
+    """Per-class READ counts of one trial of the fixed schedule: class j gets floor(T/4) + (j < T mod 4)."""
+    if not schedule:
+        return {'range': total}
+    if schedule != 'rotate4':
+        raise ReadoutError('unknown READ schedule %r' % schedule)
+    return {c: total // 4 + (1 if j < total % 4 else 0) for j, c in enumerate(ROTATE4)}
 SYN, ACK = 0x02, 0x10
 
 
@@ -78,6 +100,7 @@ def plan(cfg, arms, fixtures):
     """{label: {'arm', 'fixture', 'padding', 'counts'}} from the frozen config alone."""
     t, traffic = cfg['trials'], cfg.get('traffic', {})
     counts = {'READ': int(t['reads_per_trial'])}
+    classes = schedule_counts(traffic.get('read_schedule'), int(t['reads_per_trial']))
     if traffic.get('run_sbo', True):
         counts.update(SELECT=int(traffic['sbo_cycles']), OPERATE=int(traffic['sbo_cycles']))
     padding = {a['name']: int(a['padding']) for a in cfg['arms']}
@@ -86,7 +109,7 @@ def plan(cfg, arms, fixtures):
         for arm in arms:
             for i in range(int(t['trials_per_arm'])):
                 out['%s_%s_%s_t%d' % (cfg['_run_id'], fixture, arm, i)] = dict(
-                    arm=arm, fixture=fixture, padding=padding[arm], counts=dict(counts))
+                    arm=arm, fixture=fixture, padding=padding[arm], counts=dict(counts), classes=dict(classes))
     return out
 
 
@@ -231,7 +254,8 @@ def analyse_trial(tdir, spec, cfg):
         if not exact:
             fail.append('exchange %d (%s): master received %d octets, expected image %d octets%s'
                         % (i, kind, len(g['bytes']), len(want), '' if len(g['bytes']) != len(want) else ' (bytes differ)'))
-        rows.append(dict(index=i, kind=kind, app_seq=seqs[0], native_len=len(n['bytes']), master_len=len(g['bytes']),
+        rclass = read_class(bytes(qo['app'])) if kind == 'READ' else None
+        rows.append(dict(index=i, kind=kind, read_class=rclass, app_seq=seqs[0], native_len=len(n['bytes']), master_len=len(g['bytes']),
                          native_frames=n['frames'], master_frames=g['frames'], native_tcp=n['tcp_segments'],
                          master_tcp=g['tcp_segments'], exact=exact, encoding=info,
                          latency_first_ns=g['t_first_ns'] - q['t_first_ns'],
@@ -239,6 +263,9 @@ def analyse_trial(tdir, spec, cfg):
     counts = collections.Counter(r['kind'] for r in rows)
     if dict(counts) != spec['counts'] or len(rows) != sum(spec['counts'].values()):
         fail.append('exchanges by kind %r, planned %r' % (dict(counts), spec['counts']))
+    got_classes = dict(collections.Counter(r['read_class'] for r in rows if r['kind'] == 'READ'))
+    if got_classes != spec['classes']:
+        fail.append('READ classes %r, planned by the schedule %r' % (got_classes, spec['classes']))
     std_counts = (json.loads((tdir / 'standards.json').read_text()).get('expected') or {}).get('counts') \
         if (tdir / 'standards.json').is_file() else None
     if std_counts != spec['counts']:
@@ -252,8 +279,9 @@ def analyse_trial(tdir, spec, cfg):
     by_kind = {}
     for kind in sorted(counts):
         sel = [r for r in rows if r['kind'] == kind]
+        by_kind_classes = sorted(collections.Counter((r['read_class'], r['master_len']) for r in sel if r['read_class']).items())
         by_kind[kind] = dict(
-            n=len(sel), exact=sum(r['exact'] for r in sel),
+            n=len(sel), exact=sum(r['exact'] for r in sel), class_lengths=by_kind_classes,
             master_lens=sorted(collections.Counter(r['master_len'] for r in sel).items()),
             master_tcp=sorted(collections.Counter(tuple(r['master_tcp']) for r in sel).items()),
             latency_first_ns={q: nearest_rank([r['latency_first_ns'] for r in sel], q) for q in (50, 99)},
