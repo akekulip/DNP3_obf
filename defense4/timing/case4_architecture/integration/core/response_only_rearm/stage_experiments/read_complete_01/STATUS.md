@@ -56,3 +56,40 @@ policy, reproduction and the completion record only.
   18 slices. Measured cause: p0 (N ingress + E egress) is ~95% PHV in the placing 73-byte build (16b and
   32b containers 100%); p1 is 24%. The 92-byte prefix does not fit p0 as built. Placement experiments Z
   (zero constants) and Y (first-block-only E parse) running.
+- 05:3xZ M4/M5 progress (all compiled model, not yet committed):
+  * READ prefix moved to PIPE-1 EGRESS (p0 PHV exhausted; P4_PLACEMENT_FINDINGS.md). m12p_b06 (37ae61e2):
+    both SDKs exit 0 (9.13.1 81 s; 9.13.2 203 s). Model: policy interleaved R/S/O/R 386/386; boundary+C5
+    105/105 (READ 141 exact; SBO 61 pre-start withheld = LIMITATION; C5 delayed pure ACK never reaches E);
+    control_timing 211/211 (timed READ 141 + SBO 61 + OPERATE J); packets 622/622; smoke 30/30.
+  * Review of b06 (code-reviewer): BLOCKING C1 = pipe-1 padder ungated by the per-arm size enable (size-off
+    arms / reconnect c2 would be corrupted); H1 missing regressions; H2 C5 is a disposition record, not a C5
+    pass; W1 leff_t key; W2 E CRC defence-in-depth reduced; W3 provenance; W4 T timing with larger frames.
+  * b06 rearm 611/799: inverse_distance window cases -> my window-zero rule differed from m11_09's qualified
+    rule. Restored with m11_09's own ladder (classify_rev key m.r + window range, 284 entries at image 141).
+  * m12p_b07 = b06 + C1 gating (p1_conn per connection, cp.p1_pad_rows, installed by every model harness and
+    the hardware bring-up when the build has the table) + p1_outcome counter + W1 + generator_sha256 +
+    ladder window rule. Attempts: count-twice error; m.y window form -> 14 stages; ladder form compiling.
+- Drivers adapted (read_policy_expect.py): build's READ encoder via encode61 install, growth per response,
+  multi-frame independent decode, fullread response qualifiers; smoke growth = sum of per-response growth.
+- 07:3xZ (after usage-limit pause) m12p_b07 (fd38841e881b): both SDKs exit 0 (9.13.1 86 s; 9.13.2 209 s),
+  artifacts pinned; placement N11/E12/T11 (= m11_09) + pipe-1 egress padder 7 stages (new), no added traversal.
+  First full gate: smoke 30/30, packets 622/622, rearm 799/799 (ladder restores m11_09 window rule), dup
+  102/102, policy 386/386, policy_boundary 105/105; smoke_sizeoff 29/30 (READ/SBO exactly native = C1 fixed;
+  cumulative_growth -123 = acct_grow removed by the m12 mapper, inherited, OPEN); control_timing 83/211,
+  select_lifecycle 22/120, contention, abort, abandon failed: three ctl_timing drivers install their own rows
+  and lacked cp.p1_pad_rows (fixed); repeat 522/523 hard-coded 12-octet READ growth (fixed). Rerun batch
+  rc01-gate-b07b running (+ abandon on m11_09 baseline to test whether abandon's expectation predates m4+).
+- Harness: read_image_len (vision_candidate, candidate_series, campaign, loss) + tests/test_read_image_len.py
+  4/4; rearm_01/hw tests all pass. Hardware configs read_complete_01/hw/config/rc01_m12p_b07_*.json (6:
+  four-arm reference + 5 recovery), validated + bound. Readout analysis/hw_read_readout.py validated on a
+  retained m11_09 off-arm capture (65/65 READ exact native).
+- NEXT: gate results -> model_summary --write -> review (resumed) -> gated commit -> freeze_gate write ->
+  evaluation_campaign manifest (6 blocks, detached) -> readout per block.
+- 07:5xZ b07 corrected reruns: repeat 523/523, select_lifecycle 120/120, control_timing 211/211, contention
+  412/413 + abort 78/79 (released READ image end used 61: fixed len(image)/img_len); abandon 9/12 on b07 AND on
+  unchanged m11_09 (model_abandon_m11_09_01): expectation predates control-timed builds, not a b07 defect.
+  Review of b07: BLOCKING HIGH1 size-off accounting (acct_grow removed by m12 mapper), HIGH2 loss classes assume
+  one padded length, HIGH3 configs dropped switch_compile.out_dir. Fixed: m12p_b08 (7b1281bc4aa7) keeps acct_grow
+  + single acct_try fed by m.ina via ina_img_t (RegisterActions arm/try/grow/rev = 4); loss @LEN/READLEN +
+  campaign suffix per class; configs field-by-field (make_b08_configs.py). Both SDKs exit 0, N11/E12/T11;
+  harness tests 1122 + 5 pass; b08 configs validate. Full b08 gate running (rc01-gate-b08b); re-review running.

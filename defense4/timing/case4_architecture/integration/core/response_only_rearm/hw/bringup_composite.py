@@ -58,12 +58,33 @@ installer.build_ports = SimpleNamespace(read=candidate_ports,
                                         loopback_ports=baseline_ports.loopback_ports)
 
 
+# read_complete_01 policy builds: the pipe-1 READ padder is enabled per connection by p1_conn, installed exactly
+# when E's fwd_conn row enables padding (cp.p1_pad_rows). Only a build whose compiled program has that table
+# gets the row; every other build installs exactly the rows it did before.
+P1_PAD = {'enabled': False}
+original_rows_build = installer.rows.build
+
+
+def rows_with_p1(master, outstation, decoy, ports, read_dst=0x0000, read_src=0x0100, pad_enable=True):
+    rows = original_rows_build(master, outstation, decoy, ports, read_dst, read_src, pad_enable=pad_enable)
+    if P1_PAD['enabled']:
+        for table, key, action, data, priority in candidate_cp.p1_pad_rows(outstation, master, pad_enable):
+            rows.append(dict(kind='p4', pipe=0xffff, table=table, priority=priority, action=action,
+                             key=[(f, v, None) for f, v in key], data=list(data)))
+    return rows
+
+
+installer.rows.build = rows_with_p1
+
+
 profile = module('rearm_sealed_profile', HERE / 'sealed_profile.py')
 original_readback = installer.readback
 sealed_readback = module('rearm_sealed_readback', BASE / 'hw' / 'readback.py')
 
 
 def configure(build_out):
+    p4pp = Path(build_out) / 'response_only.p4pp'
+    P1_PAD['enabled'] = p4pp.is_file() and 'p1_conn' in p4pp.read_text(errors='replace')
     descriptor = profile.describe(build_out)
     sealed = descriptor['sealed']
     # Rebuild from the original map so a later three-bank install restores all banks.

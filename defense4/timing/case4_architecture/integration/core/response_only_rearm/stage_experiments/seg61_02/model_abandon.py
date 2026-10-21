@@ -42,7 +42,12 @@ Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpe
 vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
 import encode61  # noqa: E402
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
 IMAGE_LEN = 61
+# selection cancellation by a READ exists from ctl_timing m4 on (select_lifecycle); m1-m3 drop the READ instead
+CANCELS = os.environ.get('MILESTONE', 'm1') not in ('m1', 'm2', 'm3')
 READ_NATIVE, CONTROL_NATIVE = 49, 37
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
 # Link headers exactly as the retained model vectors use them (codec.build_frame rewrites LEN and the CRC):
@@ -114,6 +119,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=timed)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
@@ -160,19 +168,28 @@ def main():
             send('%s_response_61' % kind, vectors.packet(24, s, c, reverse=True, payload=native),
                  vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
             s += len(native)
-            growth += IMAGE_LEN - len(native)
+            growth += rp.growth(native, IMAGE_LEN)
         report.record['meta']['work_after_select'] = work()
         request, app = seqs.request(1, READ_OBJECTS)
         seqs.next_app()
         sent, want = vectors.packet(24, c, s + growth, payload=request), vectors.packet(24, c, s, payload=request)
         observations = []
-        for attempt, wait in enumerate((0, 0.5, 2, 5)):
-            time.sleep(wait)
-            # explicit expectation (model_abandon_01/02): N admits only the matching OPERATE after a SELECT
-            forwarded = send('READ_after_SELECT_attempt%d_after_%.1fs_dropped' % (attempt, wait), sent, None)
-            observations.append({'attempt': attempt, 'waited_s': wait, 'forwarded': forwarded, 'work': work()})
-            if forwarded:
-                break
+        if CANCELS:
+            # m4 and later (IEEE 1815 Table 4-9 selection cancellation, the required select_lifecycle gate's
+            # 'cancel' case): the READ after an unpaired SELECT is forwarded unchanged and cancels the selection.
+            # The candidate61 expectation below (READ dropped) is the pre-m4 characterization; m11_09 itself
+            # fails it identically (ctl_timing_01/evidence/model_abandon_m11_09_01).
+            forwarded = send('READ_after_SELECT_cancels_selection_forwarded', sent, want)
+            observations.append({'attempt': 0, 'waited_s': 0, 'forwarded': forwarded, 'work': work()})
+            c += len(request)
+        else:
+            for attempt, wait in enumerate((0, 0.5, 2, 5)):
+                time.sleep(wait)
+                # explicit expectation (model_abandon_01/02): N admits only the matching OPERATE after a SELECT
+                forwarded = send('READ_after_SELECT_attempt%d_after_%.1fs_dropped' % (attempt, wait), sent, None)
+                observations.append({'attempt': attempt, 'waited_s': wait, 'forwarded': forwarded, 'work': work()})
+                if forwarded:
+                    break
         report.record['meta']['read_after_select'] = observations
         rst = send('RST_after_abandoned_SELECT_forwarded', vectors.packet(20, c, s + growth), vectors.packet(20, c, s))
         syn = send('new_SYN_after_abandoned_SELECT_admitted', vectors.packet(2, 5000, mss=1460),

@@ -19,6 +19,9 @@ ARCH = HERE.parents[4]
 sys.path[:0] = [str(HERE.parent / 'seg61_01'), str(HERE.parent / 'read_reencode_01'),
                 str(ARCH / 'protocol/hw_vepa'), str(ARCH / 'protocol/hw_vepa/tests')]
 import encode61
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
 import dnp3_std as std
 import wire_check
 import pcaptk
@@ -42,7 +45,7 @@ def main():
                       driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     captures = {'sent': [], 'received': []}
     pad = os.environ.get('PAD_ENABLE', '1') == '1'
-    read_len, control_len = (61, 61) if pad else (49, 37)
+    read_len, control_len = (rp.read_image_len(61), 61) if pad else (49, 37)
     report.record['meta']['padding'] = pad
     try:
         m = h.Model(ports=[], enable=False)
@@ -65,6 +68,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, relay, master, pad_enable=pad, n_ack_return=pm.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(relay, master, pad):
+                m.add(table, dict(key), action, dict(data), priority)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params',
                       dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                            gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0))
@@ -100,12 +106,16 @@ def main():
         got = step('distinct_READ_%d' % read_len, v.packet(24, 901, 121, reverse=True, payload=native),
                    v.packet(24, 901, 121, reverse=True, payload=image), True)
         payload = got[54:14 + int.from_bytes(got[16:18], 'big')]
-        _, native_user = std.deframe(native)
-        _, user = std.deframe(payload)
-        _, points = std.check_read_response(native_user)
-        std.check_read_response(user, points)
-        report.add('READ_independent_crc_points', True,
-                   len(payload) == read_len and wire_check.dnp3_ok(payload)[0] and user[:5] == native_user[:5])
+        if rp.POLICY and pad:          # multi-frame policy image: same checks, decoded across frames
+            rp.check_read_image(native, payload)
+            report.add('READ_independent_crc_points', True, len(payload) == read_len and wire_check.dnp3_ok(payload)[0])
+        else:
+            _, native_user = std.deframe(native)
+            _, user = std.deframe(payload)
+            _, points = std.check_read_response(native_user)
+            std.check_read_response(user, points)
+            report.add('READ_independent_crc_points', True,
+                       len(payload) == read_len and wire_check.dnp3_ok(payload)[0] and user[:5] == native_user[:5])
         step('READ_mapped_ACK', v.packet(16, 121, 901 + read_len), v.packet(16, 121, 950))
 
         for fc, app, cseq, snative, swire in ((3, 0, 121, 950, 901 + read_len),
@@ -133,7 +143,9 @@ def main():
         accounting = m.register_read('p0.r_Egress.acct', 0, pipe=0)
         wire_front = h.scalar({k: value for k, value in accounting.items() if k.endswith('.lo')})
         native_front = h.scalar(m.register_read('p0.r_Egress.front', 0, pipe=0))
-        report.add('cumulative_growth', 60 if pad else 0, (wire_front - native_front) & 0xffffffff)
+        # the sum of this build's per-response growth (one READ, a SELECT and an OPERATE): 12+24+24 = 60 on m11_09
+        report.add('cumulative_growth', ((read_len - 49) + 2 * (control_len - 37)) if pad else 0,
+                   (wire_front - native_front) & 0xffffffff)
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
     except Exception:
         report.add('exception', 'none', traceback.format_exc(), ok=False)

@@ -73,6 +73,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rb.rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=1_000_000, readiness=2_000_000_000, cap=1_500_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=1)
         if bounded:
@@ -263,7 +266,7 @@ def main():
                            {k: after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE')},
                            all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
             s += len(native)
-            growth += IMAGE_LEN - len(native)
+            growth += rb.rp.growth(native, IMAGE_LEN)
             return sent_rsp
 
         def sbo(on_ms):
@@ -424,7 +427,7 @@ def main():
                    deltas=deltas, path=path, all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
         report.record['meta']['race_path'] = path
         s += len(native)
-        growth += IMAGE_LEN - len(native)
+        growth += rb.rp.growth(native, IMAGE_LEN)
         rst('race')
         if profile['t_child_count'] == 1:
             # Use a live epoch and both current lane generations. An invalid child must be refused before

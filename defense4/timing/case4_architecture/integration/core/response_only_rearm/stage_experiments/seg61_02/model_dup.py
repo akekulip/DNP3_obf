@@ -22,6 +22,10 @@ READ_IMAGE = CTL_IMAGE = 61
 READ_NATIVE, CTL_NATIVE = 49, 37
 sys.path.insert(0, str(HERE.parent / "seg61_01"))
 import encode61
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
+READ_IMAGE = rp.read_image_len(READ_IMAGE)   # the policy READ image (141) on a policy build
 
 
 def load(name, path):
@@ -93,6 +97,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(PARAMS)
 
         def set_t(**kw):

@@ -224,7 +224,8 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
         image = build.get('image_len', 58)
-        expected = (reads * (image - 49) + (2 * (image - 37) if build.get('control_padding', True) else 0)
+        read_image = build.get('read_image_len', image)      # READ image != control image on policy builds
+        expected = (reads * (read_image - 49) + (2 * (image - 37) if build.get('control_padding', True) else 0)
                     if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
@@ -333,6 +334,8 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         args = [label, '--master-port', master_port, '--padding', self._series_padding,
                 '--control-padding', self._series_control_padding,
                 '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
+                ] + (['--read-image-len', int(self.cfg['builds'][self._series_build]['read_image_len'])]
+                     if 'read_image_len' in self.cfg['builds'][self._series_build] else []) + [
                 '--expect-held-operate-dup', int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
                 '--close-mode', self.close_mode,
                 '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']

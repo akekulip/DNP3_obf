@@ -1,0 +1,30 @@
+{
+ "cases": [
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py\", line 139, in main\n    m.add(table, dict(key), action, dict(data), priority)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 124, in add\n    t = self.table(table)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 108, in table\n    self._tables[full] = self.info.table_get(full)\n  File \"/home/philip/bf-sde-9.13.1/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 3012, in table_get\n    return self.table_dict[name]\nKeyError: 'p1.x_Egress.p1_conn'\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "cycles": 64,
+  "driver_sha256": "d6b5017c4843070b026fd3f8a669007b2723d48ceb87291b80c04ae3cde700b1",
+  "expectation_milestone": "m10",
+  "physical": false,
+  "port_errors": {
+   "68": "BfruntimeReadWriteRpcException: Error(s):",
+   "196": "BfruntimeReadWriteRpcException: Error(s):"
+  },
+  "scope": "E61 compiled repeated SBO: READ, 64 x (SELECT, OPERATE, READ) on one connection, then 3 timed cycles; sequence wraps; unpaired OPERATE after READ",
+  "timed_cycles": 3
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

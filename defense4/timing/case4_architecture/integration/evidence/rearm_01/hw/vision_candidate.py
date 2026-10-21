@@ -52,12 +52,14 @@ EXPECT_STRICT = {'common': {'read_points': 23}, 'padding': {
     '1': {'read_resp_len': [58], 'sbo_resp_len': [37]}}}
 
 
-def expect(control_padding=1, image_len=58):
-    """Per-connection length expectations for a build: padded READ = image_len; padded SELECT/OPERATE = image_len,
-    or native 37 under the strict policy. image_len 58 reproduces EXPECT / EXPECT_STRICT exactly."""
+def expect(control_padding=1, image_len=58, read_image_len=None):
+    """Per-connection length expectations for a build: padded READ = read_image_len (default image_len); padded
+    SELECT/OPERATE = image_len, or native 37 under the strict policy. image_len 58 reproduces EXPECT /
+    EXPECT_STRICT exactly; read_image_len differs only on builds whose READ image is not the control image
+    (read_complete_01 policy: READ 141, SELECT/OPERATE 61)."""
     return {'common': {'read_points': 23}, 'padding': {
         '0': {'read_resp_len': [49], 'sbo_resp_len': [37]},
-        '1': {'read_resp_len': [image_len], 'sbo_resp_len': [image_len if control_padding else 37]}}}
+        '1': {'read_resp_len': [read_image_len or image_len], 'sbo_resp_len': [image_len if control_padding else 37]}}}
 
 
 def guard(port, apply=False):
@@ -248,7 +250,7 @@ def held_operate_duplicates(out_pcap, unmatched):
 
 def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1,
              image_len=58,
-             expect_held_operate_dup=0):
+             expect_held_operate_dup=0, read_image_len=None):
     failures, ev = [], {}
     required = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt')
     for name in required:
@@ -262,7 +264,7 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
         ev['wire'] = wc.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
         ev['timing'] = clrt.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
         write_json(Path(dest) / 'wire.json', ev['wire']); write_json(Path(dest) / 'timing.json', ev['timing'])
-        failures += checks.application_checks(expect(control_padding, image_len), padding, reads, ev,
+        failures += checks.application_checks(expect(control_padding, image_len, read_image_len), padding, reads, ev,
                                               run_sbo=True)
         master = ev['master'] or {}
         controls = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=rst_grace_ms if mode == 'rst' else 0)
@@ -295,7 +297,7 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
 
 
 def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
-             control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False):
+             control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False, read_image_len=None):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -357,7 +359,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
             connection['failures'] += evaluate(dest, port, mode, padding, result, rst_grace_ms=rst_grace_ms,
                                                reads=reads, pre_read_grace_ms=pre_read_grace_ms,
                                                control_padding=control_padding, image_len=image_len,
-                                               expect_held_operate_dup=expect_held_operate_dup)
+                                               expect_held_operate_dup=expect_held_operate_dup,
+                                               **({'read_image_len': read_image_len} if read_image_len else {}))
             connection['pre_read_hook'] = pre_read_evidence(dest, pre_read_grace_ms)[1]
             connection['ok'] = not connection['failures']
             write_json(dest / 'verdict.json', connection)
@@ -382,6 +385,8 @@ def main(argv=None):
     parser.add_argument('--master-port', type=int, required=True)
     parser.add_argument('--close-mode', choices=('graceful', 'rst'), default='graceful')
     parser.add_argument('--padding', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--read-image-len', type=int, default=None,
+                        help='padded READ length when it differs from --image-len (read_complete_01 policy builds)')
     parser.add_argument('--image-len', type=int, default=58,
                         help='padded response length of the build (58 default; 61 for the transport-segmented profile)')
     parser.add_argument('--expect-held-operate-dup', type=int, choices=(0, 1), default=0,
@@ -398,7 +403,8 @@ def main(argv=None):
     result = scenario(args.label, args.master_port, args.close_mode, args.padding, args.apply,
                       rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms,
                       control_padding=args.control_padding, expect_held_operate_dup=args.expect_held_operate_dup,
-                      image_len=args.image_len, qualify_capture=args.qualify_capture)
+                      image_len=args.image_len, qualify_capture=args.qualify_capture,
+                      read_image_len=args.read_image_len)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

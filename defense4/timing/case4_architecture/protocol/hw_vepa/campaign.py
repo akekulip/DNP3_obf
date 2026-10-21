@@ -710,9 +710,16 @@ class Campaign:
         return module
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
-    def _padded_suffix(self, arm):
-        """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''."""
-        image = self.cfg['builds'][arm['build']].get('image_len', 58)
+    def _padded_suffix(self, arm, cls=None):
+        """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''. A READ drop class
+        uses the build's read_image_len when its READ image differs from the control image."""
+        build = self.cfg['builds'][arm['build']]
+        image = build.get('image_len', 58)
+        read = build.get('read_image_len', image)
+        if cls is not None and (str(cls).startswith('read_') or str(cls).startswith('master_ack')):
+            image = read          # a READ class, or the master's ACK of the first padded frontier (a READ)
+        elif cls is not None and read != image and str(cls).endswith('_resp_padded'):
+            return '@%d/%d' % (image, read)
         return '' if image == 58 else '@%d' % image
 
     def units(self):
@@ -746,7 +753,7 @@ class Campaign:
                     for e in entries:
                         out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'],
                                         start_seed=c['seeds']['rng_seed'] + len(out),
-                                        drop=('%s:%d' % (e['class'], e['n']) + self._padded_suffix(arm)) if e else None,
+                                        drop=('%s:%d' % (e['class'], e['n']) + self._padded_suffix(arm, e['class'])) if e else None,
                                         scenario=self.scenario))
                         i += 1
             return out
@@ -1304,7 +1311,8 @@ class Campaign:
             ident = {'identified': False, 'candidates': None, 'packet': None, 'error': str(e)}
         base = self._baseline_completion_s(fixture, arm['name'])
         build = c['builds'][arm['build']]
-        arm = dict(arm, control_padding=build.get('control_padding', True), image_len=build.get('image_len', 58))
+        arm = dict(arm, control_padding=build.get('control_padding', True), image_len=build.get('image_len', 58),
+                   read_image_len=build.get('read_image_len', build.get('image_len', 58)))
         fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
                                         result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
                                         ev['timing'], c['expectations'], base)

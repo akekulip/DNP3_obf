@@ -32,6 +32,10 @@ Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpe
 vectors, rs, scalar = helpers.vectors, helpers.rs, helpers.scalar
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "seg61_01"))
 import encode61
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
+READ_IMAGE_LEN = rp.read_image_len(61)
 IMAGE_LEN = 61
 READ_NATIVE = 49
 CONTROL_NATIVE = 37
@@ -73,6 +77,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
@@ -155,9 +162,9 @@ def main():
         # cannot commit accounting. Every bounded range row is observed with
         # its computed ACK/window and independently computed checksums.
         before_inverse = copy.deepcopy(snapshot())
-        for distance in range(1, IMAGE_LEN + 1):
+        for distance in range(1, READ_IMAGE_LEN + 1):
             for window in sorted({0, distance - 1, distance, distance + 1, 65535}):
-                sent = bytearray(vectors.packet(16, 121, (901 + IMAGE_LEN) - distance))
+                sent = bytearray(vectors.packet(16, 121, (901 + READ_IMAGE_LEN) - distance))
                 sent[48:50] = struct.pack('!H', window)
                 sent[50:52] = bytes(2)
                 pseudo = sent[26:34] + bytes((0, 6)) + struct.pack('!H', len(sent) - 34)
@@ -179,10 +186,10 @@ def main():
         report.add('inverse_range_batch_authority_unchanged', before_inverse, snapshot())
         # Wire coordinates acknowledge the padded READ. E normalization occurs
         # before N validates the native frontier and authorizes accounting.
-        step('mapped_FIN', vectors.packet(17, 121, (901 + IMAGE_LEN)), vectors.packet(17, 121, 950))
+        step('mapped_FIN', vectors.packet(17, 121, (901 + READ_IMAGE_LEN)), vectors.packet(17, 121, 950))
         step('server_FIN_ACK', vectors.packet(17, 950, 122, reverse=True),
-             vectors.packet(17, (901 + IMAGE_LEN), 122, reverse=True), master=False)
-        step('last_FIN_ACK', vectors.packet(16, 122, (902 + IMAGE_LEN)), vectors.packet(16, 122, 951))
+             vectors.packet(17, (901 + READ_IMAGE_LEN), 122, reverse=True), master=False)
+        step('last_FIN_ACK', vectors.packet(16, 122, (902 + READ_IMAGE_LEN)), vectors.packet(16, 122, 951))
         report.add('bilaterally_retired', 0x10f, scalar(snapshot()['N']['owner']) >> 16)
         current = handshake(4000, 7000)
         report.add('epoch_advanced', True, scalar(current['N']['epoch']) > scalar(initial['N']['epoch']))
@@ -234,8 +241,8 @@ def main():
         before = copy.deepcopy(snapshot())
         for name, packet, master in (
                 ('old_ACK', vectors.packet(16, 101, 901), True),
-                ('old_FIN', vectors.packet(17, 121, (901 + IMAGE_LEN)), True),
-                ('old_RST', vectors.packet(20, 121, (901 + IMAGE_LEN)), True),
+                ('old_FIN', vectors.packet(17, 121, (901 + READ_IMAGE_LEN)), True),
+                ('old_RST', vectors.packet(20, 121, (901 + READ_IMAGE_LEN)), True),
                 ('old_READ_reply', rs.response_packet(seq=901, ack=121), False)):
             step(name, packet, None, master)
             report.add(name + '_authority_unchanged', before, snapshot())
@@ -251,25 +258,25 @@ def main():
         step('new_READ_ACK', ack, ack, master=False)
         step('new_READ_fresh_mapping_61', rs.response_packet(seq=7001, ack=4021),
              vectors.packet(24, 7001, 4021, reverse=True, payload=padded), master=False)
-        step('new_READ_wire_ACK_commit', vectors.packet(16, 4021, (7001 + IMAGE_LEN)), vectors.packet(16, 4021, 7050))
-        select = vectors.packet(24, 4021, (7001 + IMAGE_LEN), payload=vectors.native_select(0, 3))
+        step('new_READ_wire_ACK_commit', vectors.packet(16, 4021, (7001 + READ_IMAGE_LEN)), vectors.packet(16, 4021, 7050))
+        select = vectors.packet(24, 4021, (7001 + READ_IMAGE_LEN), payload=vectors.native_select(0, 3))
         step('new_SELECT_native', select,
              vectors.packet(24, 4021, 7050, payload=vectors.native_select(0, 3)))
         response = helpers.native_response37(0, 3)
         image = encode61.ctl61(response)
         step('new_SELECT_response_61', vectors.packet(24, 7050, 4056, reverse=True, payload=response),
-             vectors.packet(24, (7001 + IMAGE_LEN), 4056, reverse=True, payload=image), master=False)
+             vectors.packet(24, (7001 + READ_IMAGE_LEN), 4056, reverse=True, payload=image), master=False)
         params['enabled'] = 1
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
-        operate = vectors.packet(24, 4056, (7001 + 2 * IMAGE_LEN), payload=vectors.native_select(1, 4))
+        operate = vectors.packet(24, 4056, (7001 + READ_IMAGE_LEN + IMAGE_LEN), payload=vectors.native_select(1, 4))
         step('new_OPERATE_hold_native', operate,
              vectors.packet(24, 4056, 7087, payload=vectors.native_select(1, 4)))
         report.add('OPERATE_release_count', 1, scalar(m.register_read('p1.t_Ingress.outcomes', 5, pipe=1)))
         response = helpers.native_response37(1, 4)
         image = encode61.ctl61(response)
         step('new_OPERATE_response_61', vectors.packet(24, 7087, 4091, reverse=True, payload=response),
-             vectors.packet(24, (7001 + 2 * IMAGE_LEN), 4091, reverse=True, payload=image), master=False)
-        step('qualified_RST', vectors.packet(20, 4091, (7001 + 3 * IMAGE_LEN)), vectors.packet(20, 4091, 7124))
+             vectors.packet(24, (7001 + READ_IMAGE_LEN + IMAGE_LEN), 4091, reverse=True, payload=image), master=False)
+        step('qualified_RST', vectors.packet(20, 4091, (7001 + READ_IMAGE_LEN + 2 * IMAGE_LEN)), vectors.packet(20, 4091, 7124))
         report.add('RST_retired', 0x200, scalar(snapshot()['N']['owner']) >> 16)
         handshake(9000, 11000)
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}

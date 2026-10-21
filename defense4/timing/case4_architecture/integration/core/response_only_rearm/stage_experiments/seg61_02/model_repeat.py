@@ -39,6 +39,9 @@ Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpe
 vectors, scalar, codec = helpers.vectors, helpers.scalar, helpers.codec
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'seg61_01'))
 import encode61  # noqa: E402
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
 IMAGE_LEN = 61
 READ_NATIVE, CONTROL_NATIVE = 49, 37
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
@@ -131,6 +134,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
@@ -186,12 +192,12 @@ def main():
                            vectors.packet(16, s + growth, c, reverse=True), master=False)
             native = seqs.response(app, response_body, kind)
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-            if image is None or len(image) != IMAGE_LEN:
+            if image is None or len(image) != rp.image_len_of(native, IMAGE_LEN):
                 raise AssertionError('%s %s: oracle produced no 61-octet image' % (tag, kind))
             ok &= step('%s_%s_response_61' % (tag, kind), vectors.packet(24, s, c, reverse=True, payload=native),
                        vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
             s += len(native)
-            growth += IMAGE_LEN - len(native)
+            growth += rp.growth(native, IMAGE_LEN)
             counts[kind] += 1
             return ok, native, image
 
@@ -228,7 +234,8 @@ def main():
         report.record['meta']['phaseA_end_snapshot'] = end
         report.add('phaseA_all_cycles_exact', None, failed_cycle)
         report.add('phaseA_counts', {'READ': cycles + 1, 'SELECT': cycles, 'OPERATE': cycles}, dict(counts))
-        report.add('phaseA_growth_12_per_READ_24_per_control', 12 * (cycles + 1) + 24 * 2 * cycles, growth)
+        # name kept from m11_09 (12 per READ there); the expectation is this build's own READ growth
+        report.add('phaseA_growth_12_per_READ_24_per_control', rp.growth(bytes(49), IMAGE_LEN) * (cycles + 1) + 24 * 2 * cycles, growth)
         # Observed rollovers of the counters whose values every exact frame above carried on the wire.
         wraps = dict(seqs.wraps)
         report.record['meta']['phaseA_wraps'] = wraps

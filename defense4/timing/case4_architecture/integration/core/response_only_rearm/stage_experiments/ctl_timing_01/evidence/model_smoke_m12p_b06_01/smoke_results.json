@@ -1,0 +1,142 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4",
+   "name": "SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20000000640000000060021000b06e0000020405b4"
+  },
+  {
+   "expected": true,
+   "name": "SYN_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4",
+   "name": "SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531000003840000006560121000acd90000020405b4"
+  },
+  {
+   "expected": true,
+   "name": "SYNACK_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000",
+   "name": "ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20000000650000038550101000c4960000"
+  },
+  {
+   "expected": true,
+   "name": "ACK_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c",
+   "name": "READ_request",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e200000006500000385501810009ebd000005640dc400000100f387c0c0010a020000165a2c"
+  },
+  {
+   "expected": true,
+   "name": "READ_request_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000",
+   "name": "READ_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531000003850000007950101000c4820000"
+  },
+  {
+   "expected": true,
+   "name": "READ_ack_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff0800450000b500014000400626400a0000020a0000014e207531000003850000007950181000707e000005644d44010000005c2140c081800001020100043f040000000019e100000000000000000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff0000000000000000ffff05642644010000002f7781000000000a02000016000102030405d483060708090a0b0c0d0e0f10111213141555eb1650f8",
+   "name": "distinct_READ_61",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff0800450000b500014000400626400a0000020a0000014e207531000003850000007950181000707e000005644d44010000005c2140c081800001020100043f040000000019e100000000000000000000000000000000ffff00000000000000000000000000000000ffff00000000000000000000000000000000ffff0000000000000000ffff05642644010000002f7781000000000a02000016000102030405d483060708090a0b0c0d0e0f10111213141555eb1650f8"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff080045000059000140004006269c0a0000020a0000014e2075310000038500000079501810004c71000005642644010000002f77c0c08180000a0200001600010203040504a2060708090a0b0c0d0e0f10111213141555eb1650f8"
+  },
+  {
+   "expected": true,
+   "name": "distinct_READ_61_checksums",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke.py\", line 107, in main\n    _, user = std.deframe(payload)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_reencode_01/dnp3_std.py\", line 55, in deframe\n    raise StdError('%d trailing octets after LEN' % (len(data) - p))\ndnp3_std.StdError: 49 trailing octets after LEN\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "capture_sha256": {
+   "received": "38831537535f5659d1e17c7717fd3f762dc173461c684c84c75d2be30a313ca7",
+   "sent": "b9485cd1d0cf2e2f867c3bdf553451241544a8e34735355b8a11b4edf9dfc90c"
+  },
+  "driver_sha256": "76fb5370a261be7058d1c86bd555d8b420ff1cb60cde8387c7efb962c078b193",
+  "padding": true,
+  "physical": false,
+  "scope": "E61 first compiled packet gate"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 12,
+  "total": 13
+ }
+}

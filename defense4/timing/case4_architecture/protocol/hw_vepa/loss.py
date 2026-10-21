@@ -74,11 +74,17 @@ def parse_drop(text, reads):
     40 + LEN and the data-ACK gate looks for a LEN-octet frontier. It travels inside the drop string so Vision's
     vision_run.py --drop needs no extra flag."""
     text, _, plen = str(text).partition('@')
-    padded_len = PADDED_LEN
+    padded_len, read_len = PADDED_LEN, None
     if plen:
-        if not plen.isdigit() or not 50 <= int(plen) <= 249:
-            raise ValueError('--drop %s@%s: LEN must be an integer 50..249' % (text, plen))
+        # @LEN, or @LEN/READLEN on a build whose padded READ length differs from the control length
+        # (read_complete_01 policy: @61/141): the SELECT/OPERATE padded responses are then the only packets of
+        # IP length 40+LEN, so their aliases count from the first of them, not after the READs.
+        plen, _, rlen = plen.partition('/')
+        for value in (plen, rlen) if rlen else (plen,):
+            if not value.isdigit() or not 50 <= int(value) <= 249:
+                raise ValueError('--drop %s@%s: LEN must be an integer 50..249' % (text, value))
         padded_len = int(plen)
+        read_len = int(rlen) if rlen else None
     parts = text.split(':')
     if len(parts) > 2 or not parts[0]:
         raise ValueError('--drop wants CLASS[:N], got %r' % text)
@@ -93,6 +99,8 @@ def parse_drop(text, reads):
     if not 1 <= n <= MAX_N:
         raise ValueError('--drop %s: N must be 1..%d' % (text, MAX_N))
     base, off = (name, 0) if name in CLASSES else (ALIASES[name][0], ALIASES[name][1](reads))
+    if read_len is not None and read_len != padded_len and name in ('select_resp_padded', 'operate_resp_padded'):
+        off -= reads
     spec = dict(CLASSES[base], **{'class': name, 'n': n, 'base': base, 'occurrence': n + off,
                                   'data_ack': name in DATA_ACK, 'padded_len': padded_len})
     if base == 'resp_padded':
@@ -325,12 +333,12 @@ def data_ack_facts(ins, outs, t, padded_len=PADDED_LEN):
             'cover_us': by['t_us'] - t['t_us'] if by else None, 'covered_retransmitted': retx is not None}
 
 
-def _growth(timing, padded, control_padding=True, image_len=58):
+def _growth(timing, padded, control_padding=True, image_len=58, read_image_len=None):
     """(observed growth bytes over native, expected from the exchanges that actually completed). Under the
     strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing."""
     ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
     obs = sum(e['resp_len'] - NATIVE.get(e['kind'], e['resp_len']) for e in ex)
-    exp = ((image_len - NATIVE['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
+    exp = (((read_image_len or image_len) - NATIVE['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
            ((image_len - NATIVE['SELECT']) if control_padding else 0) *
            sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
     return obs, exp
@@ -427,9 +435,10 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
                      % len(w['unmatched_returned']))
     res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
     ctl, image = bool(arm.get('control_padding', True)), int(arm.get('image_len', 58))
-    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image)
+    read_image = int(arm.get('read_image_len', image))
+    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image, read_image)
     if res['growth_bytes'] != res['expected_growth_bytes']:
         fails.append('growth %d B != %d B expected from the responses delivered (%d per READ, %d per control response)'
-                     % (res['growth_bytes'], res['expected_growth_bytes'], image - NATIVE['READ'],
+                     % (res['growth_bytes'], res['expected_growth_bytes'], read_image - NATIVE['READ'],
                         image - NATIVE['SELECT'] if ctl else 0))
     return fails, res

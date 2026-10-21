@@ -26,6 +26,9 @@ ARCH = HERE.parents[4]
 sys.path[:0] = [str(HERE.parent / 'seg61_01'), str(HERE.parent / 'read_reencode_01'),
                 str(ARCH / 'protocol/hw_vepa'), str(ARCH / 'protocol/hw_vepa/tests')]
 import encode61
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
+import read_policy_expect as rp  # noqa: E402
+rp.install(encode61)
 import dnp3_std as std
 import wire_check
 import pcaptk
@@ -35,6 +38,8 @@ READ_NATIVE = 49
 CONTROL_NATIVE = 37
 READ_GROWTH = IMAGE_LEN - READ_NATIVE
 CONTROL_GROWTH = IMAGE_LEN - CONTROL_NATIVE
+READ_IMAGE_LEN = rp.read_image_len(IMAGE_LEN)   # the policy READ image (141) on a policy build, else 61
+READ_GROWTH = READ_IMAGE_LEN - READ_NATIVE
 TCP_PAYLOAD_OFFSET = 54
 
 
@@ -133,6 +138,8 @@ def assert_ip_tcp(frame):
 
 
 def validate_read_image(native, image, expected_statuses=None):
+    if rp.POLICY:
+        return rp.check_read_image(native, image, expected_statuses)
     if len(native) != READ_NATIVE or len(image) != IMAGE_LEN:
         raise AssertionError('READ length mismatch: %d -> %d' % (len(native), len(image)))
     if not wire_check.dnp3_ok(image)[0]:
@@ -247,6 +254,9 @@ class PacketGate:
         for table, key, action, data, priority in cp.e_conn_rows(0, self.relay, self.master,
                                                                  n_ack_return=self.pm.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(self.relay, self.master, True):
+                m.add(table, dict(key), action, dict(data), priority)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params',
                       dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                            gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0))
@@ -293,12 +303,12 @@ class PacketGate:
                             self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
                             self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image),
                             reverse=True)
-        self.add(name + '_payload_len', IMAGE_LEN, len(tcp_payload(got)))
+        self.add(name + '_payload_len', READ_IMAGE_LEN, len(tcp_payload(got)))
         if expect_growth:
             self.exchange(name + '_mapped_ack',
-                          self.v.packet(16, cseq + 20, wire_sseq + IMAGE_LEN),
+                          self.v.packet(16, cseq + 20, wire_sseq + READ_IMAGE_LEN),
                           self.v.packet(16, cseq + 20, native_sseq + READ_NATIVE))
-        return cseq + 20, native_sseq + READ_NATIVE, wire_sseq + IMAGE_LEN
+        return cseq + 20, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
 
     def control_exchange(self, name, cseq, native_sseq, wire_sseq, seq=0, app=0, fc=3, **kw):
         req = control_request(seq=seq, app=app, fc=fc, **kw)
@@ -367,11 +377,11 @@ class PacketGate:
                                self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image), reverse=True)
         self.add('retx_identical_image', first.hex(), second.hex())
         self.add('retx_no_doublegrowth_before_ack', before + READ_GROWTH, self.growth())
-        self.exchange('retx_ack_maps_once', self.v.packet(16, cseq + 20, wire_sseq + IMAGE_LEN),
+        self.exchange('retx_ack_maps_once', self.v.packet(16, cseq + 20, wire_sseq + READ_IMAGE_LEN),
                       self.v.packet(16, cseq + 20, native_sseq + READ_NATIVE))
         cseq += 20
         native_sseq += READ_NATIVE
-        wire_sseq += IMAGE_LEN
+        wire_sseq += READ_IMAGE_LEN
 
         # Excluded responses are tested with a real outstanding request. A
         # subsequent legal response must still complete that same transaction.
@@ -390,7 +400,7 @@ class PacketGate:
         self.add('neg_read_no_growth', before, self.growth())
         self.exchange('neg_read_recovery', self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=good),
                       self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=encode61.read61(good)), reverse=True)
-        cseq, native_sseq, wire_sseq = cseq + 20, native_sseq + READ_NATIVE, wire_sseq + IMAGE_LEN
+        cseq, native_sseq, wire_sseq = cseq + 20, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
         self.exchange('neg_read_recovery_ack', self.v.packet(16, cseq, wire_sseq), self.v.packet(16, cseq, native_sseq))
         req = control_request()
         self.exchange('neg_control_request', self.v.packet(24, cseq, wire_sseq, payload=req),

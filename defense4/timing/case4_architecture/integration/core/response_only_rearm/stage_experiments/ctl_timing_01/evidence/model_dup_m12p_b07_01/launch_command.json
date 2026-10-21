@@ -1,0 +1,35 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b07/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_dup_m12p_b07_01",
+    "-P",
+    "9 48 68 180 181 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_b07/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "m12",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "fd38841e881ba104c1e1d9feccf142547e50a88084b72db524805e52eeaff5e4",
+  "driver_sha256": "0ac8164285f61a62d4435d06ca228dfbfebf1a3dace32305438fdc27ae019c85",
+  "library_sha256": {
+    "model_driver.py": "c2c37978c7131809244445c61788e3b03a85f95d26455570ef49b19c269ddf64",
+    "../core/response_only/hw/t_config.py": "bdfe3635736d7534e3bd90898ee5b3a3d3ba280c642cfff31091790febd41c3c"
+  },
+  "dependency_sha256": {
+    "response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "d6b5017c4843070b026fd3f8a669007b2723d48ceb87291b80c04ae3cde700b1",
+    "response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_dup.py",
+  "dependency_closure_sha256": "a1044bd2c1e7fa5cdc3d219236baa28bce6c8520fe169a3a9cf17bddfcab39e7",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "03868673b8f36626471076ad01c4e53758a98d7d4b5131d99ab369f29d3e0751",
+  "exit_code": 0
+}

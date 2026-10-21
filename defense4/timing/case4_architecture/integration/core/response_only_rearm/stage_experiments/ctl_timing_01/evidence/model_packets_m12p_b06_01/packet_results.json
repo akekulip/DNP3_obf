@@ -1,0 +1,92 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b4",
+   "name": "wrap_SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e20ffffffe00000000060021000b0f10000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b4",
+   "name": "wrap_SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e207531fffffff0ffffffe160121000b0ef0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000",
+   "name": "wrap_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e20ffffffe1fffffff150101000c8ac0000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3",
+   "name": "wrap_read_request",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500003c00014000400626b90a0000010a00000275314e20ffffffe1fffffff1501810006f2e000005640dc400000100f387c0ce010a020000168dc3"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000",
+   "name": "wrap_read_server_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000020a0000014e207531fffffff1fffffff550101000c8980000"
+  },
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 431, in model_main\n    gate.run()\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 339, in run\n    wc, wn, ww = self.read_exchange('wrap_read', wc, wn, ww, seq=62)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 294, in read_exchange\n    validate_read_image(native, image, statuses)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 140, in validate_read_image\n    raise AssertionError('READ length mismatch: %d -> %d' % (len(native), len(image)))\nAssertionError: READ length mismatch: 49 -> 141\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "capture_sha256": {
+   "received": "4c2c83592af5bdc4b32dadc448c2b9d470feb154a6864f73a56cefdb72f4e5ae",
+   "sent": "22b28dbc5b9d48a44ff2d53628544f73dfd15ad2551a01c0150378c354cded1c"
+  },
+  "driver_sha256": "73074f6ef94ed61c85020e97594e72f4585c1b0d24dc9ca38053ad1f2db3b0fd",
+  "physical": false,
+  "scope": "E61 extended compiled packet gate"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 5,
+  "total": 6
+ }
+}

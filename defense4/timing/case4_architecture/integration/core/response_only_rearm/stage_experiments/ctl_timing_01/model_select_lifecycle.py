@@ -58,6 +58,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rep.rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000, gap=50_000_000, op_j=200_000_000,
                       budget=240_000, enabled=0, pb=PB)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
@@ -122,7 +125,7 @@ def main():
             step('%s_%s_response_61' % (tag, kind), vectors.packet(24, s, c, reverse=True, payload=native),
                  vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
             state['s'] = s + len(native)
-            state['growth'] = growth + IMAGE_LEN - len(native)
+            state['growth'] = growth + rep.rp.growth(native, IMAGE_LEN)
 
         read_body = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
 

@@ -33,6 +33,11 @@ spec.loader.exec_module(rb)
 helpers, cp, vectors, scalar, encode61 = rb.helpers, rb.cp, rb.vectors, rb.scalar, rb.encode61
 Model, Report, gc, same_frame = rb.Model, rb.Report, rb.gc, rb.same_frame
 PM, MASTER, RELAY, IMAGE_LEN = rb.PM, rb.MASTER, rb.RELAY, rb.IMAGE_LEN
+
+
+def img_len(kind):
+    """Wire image of a response kind on this build (READ image differs from the control image on policy builds)."""
+    return rb.rp.read_image_len(IMAGE_LEN) if kind == 'READ' else IMAGE_LEN
 # the contract rules (failure analysis of m10_03, 2026-10-17): judged from the dataplane's own evidence, not wall time
 _spec = importlib.util.spec_from_file_location('contention_rules', HERE / 'contention_rules.py')
 rules = importlib.util.module_from_spec(_spec)
@@ -114,6 +119,9 @@ def main():
             m.add('p0.n_Ingress.data_connection', key, 'n_Ingress.configure', dc)
         for table, key, action, data, priority in cp.e_conn_rows(0, RELAY, MASTER, n_ack_return=PM.n_ack_return):
             m.add('p0.r_' + table, dict(key), 'r_' + action, dict(data), priority)
+        if rb.rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
+            for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
+                m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=1_000_000, readiness=2_000_000_000, cap=1_500_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=1)
         if bounded:
@@ -347,7 +355,7 @@ def main():
                            and lane['ACK_COMMIT'] + lane['ACK_FALLBACK'] == 1
                            and lane['RESP_RELEASE'] + lane['RESP_FALLBACK'] == 1)
             st['s'] += len(native)
-            st['growth'] += IMAGE_LEN - len(native)
+            st['growth'] += rb.rp.growth(native, IMAGE_LEN)
             return ok
 
         def select_complete(tag, on_ms):
@@ -360,7 +368,7 @@ def main():
                 frames[1], vectors.packet(24, s + g, c, reverse=True, payload=image),
                 vectors.packet(24, s + g, c, reverse=True, payload=image)))
             st['s'] += len(native)
-            st['growth'] += IMAGE_LEN - len(native)
+            st['growth'] += rb.rp.growth(native, IMAGE_LEN)
 
         def settled(tag):
             """N's work cell must be idle (phase 4) before a point starts: the previous point's lifecycle, retries and
@@ -507,7 +515,7 @@ def main():
             # CLEANUP ONLY: an RST that met an in-flight lifecycle is refused (m4 behaviour); close the connection
             # so the next case's same-tuple SYN is accepted. Not part of the verdict above.
             time.sleep(0.5)
-            for visible in (0, IMAGE_LEN):                 # master-visible ack before / after the 61-octet image
+            for visible in (0, len(image)):                 # master-visible ack before / after the 61-octet image
                 m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                 capture(0.6, 0.3)
 
@@ -630,7 +638,7 @@ def main():
                        rst_ack=[int.from_bytes(f[42:46], 'big') for f in rst_frames],
                        rst_checksums_ok=[tcp_ok(f) for f in rst_frames], responses=len(responses),
                        frames_to_master=len(to_master), e_reset_front_delta=e1 - e0, t_deltas=dt,
-                       expected_flushed=s + g, expected_released=s + g + IMAGE_LEN, expected_rst_ack=c)
+                       expected_flushed=s + g, expected_released=s + g + len(image), expected_rst_ack=c)
             points.append(row)
             released = sum(dt.get(k, 0) for k in RELEASED)
             flushed = sum(dt.get(k, 0) for k in FLUSHED)
@@ -658,7 +666,7 @@ def main():
                     # T had released the response before the RST was sent, or (order_decided) before T applied the
                     # reset: the released-branch outcome is the contract one (contention_rules.abort_branch_outcome,
                     # abort_log_order)
-                    exact = (ok and row['resets_seq'] == [s + g + IMAGE_LEN] and good_rst and len(responses) == 1
+                    exact = (ok and row['resets_seq'] == [s + g + len(image)] and good_rst and len(responses) == 1
                              and e1 - e0 == 0 and released == 1)
                     # either way the held path (a held response flushed by the reset) was not measured: incomplete
                     report.record['meta'].setdefault('abort_released_before_reset' if row.get('order_decided')
@@ -675,7 +683,7 @@ def main():
                 else:
                     # released first (the 'released' branch, and OPERATE 'held' since J > D): only when the pre-send
                     # read shows the release; a release seen only after the send is inconclusive (code review A)
-                    exact = (ok and row['resets_seq'] == [s + g + IMAGE_LEN] and good_rst and len(responses) == 1
+                    exact = (ok and row['resets_seq'] == [s + g + len(image)] and good_rst and len(responses) == 1
                              and e1 - e0 == 0 and released == 1 and order == 'released')
                     if order == 'inconclusive':
                         report.record['meta'].setdefault('abort_order_inconclusive', []).append(tag)
@@ -689,7 +697,7 @@ def main():
             m.send(MASTER.dev_port, vectors.packet(20, c, s + g))
             capture(0.6, 0.3)
             st['s'] += len(native)
-            st['growth'] += IMAGE_LEN - len(native)
+            st['growth'] += rb.rp.growth(native, IMAGE_LEN)
 
         if section_on('abort'):
             for kind in ('READ', 'SELECT', 'OPERATE'):
@@ -754,7 +762,7 @@ def main():
                 new.setdefault('seen', []).extend(seen)
                 # CLEANUP ONLY (after the verdict input above): close the connection if N refused the first RST
                 # (both master-visible acks: before and after the 61-octet image)
-                for visible in (0, IMAGE_LEN):
+                for visible in (0, img_len(kind)):
                     m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                     new['seen'].extend(capture(0.4, 0.3))
                 st['isn'] += 10000
@@ -815,7 +823,7 @@ def main():
                                  and f[47] & 0x04]
                 new['seen'] = seen
                 if not new['resets']:            # CLEANUP ONLY, after the verdict input: close a refused connection
-                    for visible in (0, IMAGE_LEN):
+                    for visible in (0, img_len(kind)):
                         m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                         capture(0.4, 0.3)
             got, native, _ack, _rsp = respond(kind, app, body, 120, during=rst_then_response, send_response=False)
@@ -911,7 +919,7 @@ def main():
                     resets = [f for _t, p, f in seen if p == RELAY.dev_port and rules.outstation_bound(f, RELAY.port)
                               and f[47] & 0x04]
                     if not resets:               # CLEANUP ONLY, after the verdict input: close a refused connection
-                        for visible in (0, IMAGE_LEN):
+                        for visible in (0, img_len(kind)):
                             m.send(MASTER.dev_port, vectors.packet(20, c, s + g + visible))
                             capture(0.4, 0.3)
                     image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
@@ -995,7 +1003,7 @@ def main():
             points.append(row)
             report.add('%s_exactly_one_response' % tag, 1, len(rsp), **row)
             st['s'] += len(native)
-            st['growth'] += IMAGE_LEN - len(native)
+            st['growth'] += rb.rp.growth(native, IMAGE_LEN)
             rst(tag)
         report.record['meta']['final_outcomes'] = outcomes()
         report.record['meta']['final_count_busy'] = busy()
