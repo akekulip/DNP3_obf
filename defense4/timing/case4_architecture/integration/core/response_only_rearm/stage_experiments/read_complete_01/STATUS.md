@@ -161,3 +161,19 @@ policy, reproduction and the completion record only.
   unsupported): the padded aggregate is link frames [24,292,85]; the first-block rewrite + continuation path is
   being probed. Recovery for the added single-frame classes (analog 141, base class0/integrity 247) is being added
   to the existing helpers; segmented recovery coordinates with the continuation probe.
+
+## 2026-10-21 (evening) — review-96c729b7a continuation
+- Workstream A DONE: c12 full gate evidence committed (f243d85f6), gate recomputes model_gate_passed on a fresh
+  worktree; reproduce.sh defaults to c12; timing claim softened (control rules out a build-only cause, does not
+  identify a cause); resource line = N12/E12/T11 + pipe-1 egress 7 stages. Commits 378306a89, 7a0afc772.
+- Recovery (per-class) DONE: single-frame added classes covered; one 247-B loss selector read_resp_247 (class0 and
+  integrity are byte-indistinguishable at 247 B, so no per-class drop claim); read_resp_analog 181; segmented
+  NOT_EXERCISED; range unchanged; 668/583/65 pass; two reviews (BLOCKING collision fixed). Commit ae91e77f5.
+- Segmented 377->401 OPEN (bounded probe done): software construct==pad_read byte-exact on 512 samples
+  (constants_segmented.json; constants.json kept byte-stable 6f819e7e for c12's binding). Three P4 probes c13/c14/c15
+  compile clean and each shows a wall PLACES (T 2nd child 0 extra stage; N len-admission 0 MAU; child-tag table in
+  p0's 12 stages) but NONE is a faithful pad -- no segmented success claimed. Open risk: p0 MAU budget with the full
+  padder+classifier+mapper together (next probe = faithful padder c16). Commit ed75a04d6.
+- NEXT: faithful segmented padder c16 (decision: attempt now vs proceed to freeze c12 + hardware with segmented open);
+  c12 freeze + per-class recovery hardware configs; hardware campaign (reference rotate4 + per-class recovery);
+  timing PRECISION on hardware remains gated by the Vision environment (Philip decision to restore pre-reboot latency).
